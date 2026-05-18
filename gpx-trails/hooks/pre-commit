@@ -1,0 +1,54 @@
+#!/bin/bash
+set -euo pipefail
+
+# Strip PII (timestamps, author, creator) from staged GPX files
+gpx_files=$(git diff --cached --name-only --diff-filter=ACM | grep '\.gpx$' || true)
+[ -z "$gpx_files" ] && exit 0
+
+python3 - "$gpx_files" <<'PYEOF'
+import xml.etree.ElementTree as ET
+import sys, os
+
+ET.register_namespace('', 'http://www.topografix.com/GPX/1/1')
+ET.register_namespace('gpx_style', 'http://www.topografix.com/GPX/gpx_style/0/2')
+ET.register_namespace('gpxtpx', 'http://www.garmin.com/xmlschemas/TrackPointExtension/v1')
+ET.register_namespace('gpxx', 'http://www.garmin.com/xmlschemas/GpxExtensions/v3')
+ET.register_namespace('gpxpx', 'http://www.garmin.com/xmlschemas/PowerExtension/v1')
+ET.register_namespace('xsi', 'http://www.w3.org/2001/XMLSchema-instance')
+
+def strip_elements(parent):
+    removed = 0
+    to_remove = []
+    for child in parent:
+        tag = child.tag.split('}')[-1] if '}' in child.tag else child.tag
+        if tag in ('time', 'author'):
+            to_remove.append(child)
+        else:
+            removed += strip_elements(child)
+    for el in to_remove:
+        parent.remove(el)
+        removed += 1
+    return removed
+
+files = sys.argv[1].split('\n')
+for f in files:
+    if not os.path.exists(f):
+        continue
+    tree = ET.parse(f)
+    root = tree.getroot()
+    changed = False
+
+    if 'creator' in root.attrib:
+        del root.attrib['creator']
+        changed = True
+
+    if strip_elements(root) > 0:
+        changed = True
+
+    if changed:
+        tree.write(f, xml_declaration=True, encoding='UTF-8')
+        print(f"pre-commit: stripped PII from {f}")
+PYEOF
+
+# Re-stage the cleaned files
+echo "$gpx_files" | xargs git add
