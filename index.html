@@ -1484,6 +1484,13 @@
       return fetch(url).then(r => r.ok ? r.json() : fallback).catch(() => fallback);
     }
 
+    function radioGroupHtml(name, options, selected) {
+      return '<div class="radio-row">' +
+        options.map(([v, l]) =>
+          '<label><input type="radio" name="' + name + '" value="' + v + '"' + (selected === v ? ' checked' : '') + '> ' + l + '</label>'
+        ).join('') + '</div>';
+    }
+
     function panelSectionHtml(id, label) {
       return '<div class="panel-section collapsed" id="' + id + '-section">' +
         '<div class="panel-section-header" data-section="' + id + '-section">' + label +
@@ -1525,6 +1532,15 @@
       catch { return def; }
     }
     function setPref(key, val) { try { localStorage.setItem(key, val); } catch {} }
+    function bindRadioPref(name, prefKey, onChange) {
+      document.querySelectorAll('input[name="' + name + '"]').forEach(r => {
+        r.addEventListener('change', function() {
+          if (!this.checked) return;
+          setPref(prefKey, this.value);
+          if (onChange) onChange(this.value);
+        });
+      });
+    }
     function getDefaultTileLayer() { return getPref('atlas-tile-layer', 'Satellite'); }
     function getRememberView() { return getPref('atlas-remember-view', 'true') !== 'false'; }
     function getUnits() { return getPref('atlas-units', 'metric'); }
@@ -2174,11 +2190,7 @@
             api('DELETE', '/places', { name: place.name })
               .then(() => refreshPlaces())
               .then(() => { closeModal(); router(); })
-              .catch(err => {
-                this.disabled = false;
-                document.getElementById('edit-error').textContent = err.message;
-                document.getElementById('edit-error').classList.add('visible');
-              });
+              .catch(err => { this.disabled = false; showModalError(err.message); });
           });
           document.getElementById('edit-place-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -2211,11 +2223,6 @@
           });
         }
       );
-
-      function showModalError(msg) {
-        const el = document.getElementById('edit-error');
-        if (el) { el.textContent = msg; el.classList.add('visible'); }
-      }
     }
 
     function editSelectOrNewHtml(id, options, current) {
@@ -3033,11 +3040,7 @@
             '<label class="feature-pill' + (getRememberView() ? ' active' : '') + '"><input type="checkbox" id="s-remember-view"' + (getRememberView() ? ' checked' : '') + '>Remember last map view</label>' +
           '</div>') +
         '<h3 class="settings-h">Units</h3>' +
-        '<div class="radio-row">' +
-          [['metric', 'Metric (km, m)'], ['imperial', 'Imperial (mi, ft)']].map(([v, label]) =>
-            '<label><input type="radio" name="units" value="' + v + '"' + (getUnits() === v ? ' checked' : '') + '> ' + label + '</label>'
-          ).join('') +
-        '</div>' +
+        radioGroupHtml('units', [['metric', 'Metric (km, m)'], ['imperial', 'Imperial (mi, ft)']], getUnits()) +
         '<h3 class="settings-h">Language</h3>' +
         '<select id="s-language" disabled>' +
           '<option value="en" selected>English</option>' +
@@ -3056,29 +3059,13 @@
           ).join('') +
         '</select>' +
         '<label>Pin style</label>' +
-        '<div class="radio-row">' +
-          [['ring', 'Ring'], ['pin', 'Pin'], ['dot', 'Dot'], ['tag', 'Tag']].map(([v, l]) =>
-            '<label><input type="radio" name="pin-style" value="' + v + '"' + (pinStyle === v ? ' checked' : '') + '> ' + l + '</label>'
-          ).join('') +
-        '</div>' +
+        radioGroupHtml('pin-style', [['ring', 'Ring'], ['pin', 'Pin'], ['dot', 'Dot'], ['tag', 'Tag']], pinStyle) +
         '<label>Marker size</label>' +
-        '<div class="radio-row">' +
-          [['small', 'Small'], ['default', 'Default'], ['large', 'Large']].map(([v, l]) =>
-            '<label><input type="radio" name="marker-size" value="' + v + '"' + (markerSize === v ? ' checked' : '') + '> ' + l + '</label>'
-          ).join('') +
-        '</div>' +
+        radioGroupHtml('marker-size', [['small', 'Small'], ['default', 'Default'], ['large', 'Large']], markerSize) +
         '<label>Trail line thickness</label>' +
-        '<div class="radio-row">' +
-          [['thin', 'Thin'], ['default', 'Default'], ['thick', 'Thick']].map(([v, l]) =>
-            '<label><input type="radio" name="trail-weight" value="' + v + '"' + (trailWeight === v ? ' checked' : '') + '> ' + l + '</label>'
-          ).join('') +
-        '</div>' +
+        radioGroupHtml('trail-weight', [['thin', 'Thin'], ['default', 'Default'], ['thick', 'Thick']], trailWeight) +
         '<label>Map tile style</label>' +
-        '<div class="radio-row">' +
-          [['none', 'None'], ['desaturated', 'Desaturated'], ['muted', 'Muted']].map(([v, l]) =>
-            '<label><input type="radio" name="tile-filter" value="' + v + '"' + (tileFilter === v ? ' checked' : '') + '> ' + l + '</label>'
-          ).join('') +
-        '</div>' +
+        radioGroupHtml('tile-filter', [['none', 'None'], ['desaturated', 'Desaturated'], ['muted', 'Muted']], tileFilter) +
         '<h3 class="settings-h">Password</h3>' +
         '<form id="settings-pw-form">' +
           '<label for="s-current">Current password</label>' +
@@ -3148,34 +3135,10 @@
             try { localStorage.setItem('atlas-mode', this.value); } catch {}
             applyTheme(getStoredTheme(), this.value);
           });
-          document.querySelectorAll('input[name="pin-style"]').forEach(r => {
-            r.addEventListener('change', function() {
-              if (!this.checked) return;
-              setPref('atlas-pin-style', this.value);
-              wrappedRouter();
-            });
-          });
-          document.querySelectorAll('input[name="marker-size"]').forEach(r => {
-            r.addEventListener('change', function() {
-              if (!this.checked) return;
-              setPref('atlas-marker-size', this.value);
-              wrappedRouter();
-            });
-          });
-          document.querySelectorAll('input[name="trail-weight"]').forEach(r => {
-            r.addEventListener('change', function() {
-              if (!this.checked) return;
-              setPref('atlas-trail-weight', this.value);
-              wrappedRouter();
-            });
-          });
-          document.querySelectorAll('input[name="tile-filter"]').forEach(r => {
-            r.addEventListener('change', function() {
-              if (!this.checked) return;
-              setPref('atlas-tile-filter', this.value);
-              applyTileFilter(this.value);
-            });
-          });
+          bindRadioPref('pin-style', 'atlas-pin-style', wrappedRouter);
+          bindRadioPref('marker-size', 'atlas-marker-size', wrappedRouter);
+          bindRadioPref('trail-weight', 'atlas-trail-weight', wrappedRouter);
+          bindRadioPref('tile-filter', 'atlas-tile-filter', applyTileFilter);
           ['places', 'trails'].forEach(function(feat) {
             const cb = document.getElementById('s-feat-' + feat);
             if (!cb) return;
@@ -3205,13 +3168,7 @@
               wrappedRouter();
             });
           });
-          document.querySelectorAll('input[name="units"]').forEach(r => {
-            r.addEventListener('change', function() {
-              if (!this.checked) return;
-              setPref('atlas-units', this.value);
-              wrappedRouter();
-            });
-          });
+          bindRadioPref('units', 'atlas-units', wrappedRouter);
           const manageCats = document.getElementById('s-manage-cats');
           if (manageCats) manageCats.addEventListener('click', openManageCategoriesModal);
         }

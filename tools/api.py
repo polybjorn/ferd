@@ -718,15 +718,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     lock_path = data_dir / ".atlas-site-config.lock"
 
     def do_update():
-      existing: dict = {}
-      if config_path.exists():
-        try:
-          loaded = json.loads(config_path.read_text(encoding="utf-8"))
-          if not isinstance(loaded, dict):
-            raise ValidationError("site-config.json must be a JSON object")
-          existing = loaded
-        except json.JSONDecodeError as e:
-          raise ValidationError(f"existing site-config.json is not valid JSON: {e}")
+      existing = load_json_file(config_path, expected_type=dict, required=False, label="site-config.json")
       existing["category_labels"] = cleaned
       write_json_file(config_path, existing)
 
@@ -757,15 +749,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     lock_path = data_dir / ".atlas-places.lock"
 
     def do_append():
-      existing: list = []
-      if places_path.exists():
-        try:
-          loaded = json.loads(places_path.read_text(encoding="utf-8"))
-          if not isinstance(loaded, list):
-            raise ValidationError("places.json must contain a JSON array")
-          existing = loaded
-        except json.JSONDecodeError as e:
-          raise ValidationError(f"existing places.json is not valid JSON: {e}")
+      existing = load_json_file(places_path, expected_type=list, required=False, label="places.json")
       existing.append(place)
       write_json_file(places_path, existing)
       return len(existing)
@@ -801,11 +785,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     lock_path = data_dir / ".atlas-places.lock"
 
     def do_update():
-      if not places_path.exists():
-        raise ValidationError("places.json not found")
-      existing = json.loads(places_path.read_text(encoding="utf-8"))
-      if not isinstance(existing, list):
-        raise ValidationError("places.json must be an array")
+      existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
       # Locate by name (unique-ish; we update first match).
       idx = next((i for i, p in enumerate(existing) if isinstance(p, dict) and p.get("name") == original_name), None)
       if idx is None:
@@ -840,11 +820,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     lock_path = data_dir / ".atlas-places.lock"
 
     def do_delete():
-      if not places_path.exists():
-        raise ValidationError("places.json not found")
-      existing = json.loads(places_path.read_text(encoding="utf-8"))
-      if not isinstance(existing, list):
-        raise ValidationError("places.json must be an array")
+      existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
       original_count = len(existing)
       new_list = [p for p in existing if not (isinstance(p, dict) and p.get("name") == target_name)]
       if len(new_list) == original_count:
@@ -1033,6 +1009,22 @@ def resolve_under(base: Path, *parts: str) -> Path:
 def write_json_file(path: Path, data) -> None:
   """Serialize `data` as pretty JSON with trailing newline and write atomically."""
   atomic_write_bytes(path, (json.dumps(data, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+
+
+def load_json_file(path: Path, *, expected_type: type, required: bool, label: str):
+  """Read+parse a JSON file. Raise ValidationError on missing/invalid/wrong-type."""
+  if not path.exists():
+    if required:
+      raise ValidationError(f"{label} not found")
+    return expected_type()
+  try:
+    loaded = json.loads(path.read_text(encoding="utf-8"))
+  except json.JSONDecodeError as e:
+    raise ValidationError(f"existing {label} is not valid JSON: {e}")
+  if not isinstance(loaded, expected_type):
+    kind = "a JSON array" if expected_type is list else "a JSON object"
+    raise ValidationError(f"{label} must be {kind}")
+  return loaded
 
 
 def atomic_write_bytes(path: Path, data: bytes) -> None:
