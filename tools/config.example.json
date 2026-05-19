@@ -1,0 +1,10 @@
+{
+  "bind": "127.0.0.1:8091",
+  "db_path": "tools/atlas.db",
+  "data_dir": ".",
+  "manifest_cmd": "./gpx-manifest.sh",
+  "initial_user": null,
+  "initial_password": null,
+  "secure_cookies": true,
+  "max_body_bytes": 1048576
+}

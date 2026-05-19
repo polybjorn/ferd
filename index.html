@@ -1,0 +1,2862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atlas</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+  <link rel="stylesheet" href="https://unpkg.com/@raruto/leaflet-elevation@2.5.2/dist/leaflet-elevation.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #1e2228;
+      --surface:      #252a31;
+      --surface2:     #2a2e35;
+      --border:       #363b44;
+      --border-hover: #4a5060;
+      --text:         #dde1e7;
+      --muted:        #888;
+      --accent:       #6aaeee;
+      --red:          #ff5f57;
+      --yellow:       #ffbd2e;
+      --green:        #28ca41;
+      --radius:       6px;
+
+      --completed:    #00e05a;
+      --planned:      #ff6b6b;
+
+      --attribution-bg: var(--attribution-bg);
+      --cluster-fill:   rgba(106, 174, 238, 0.6);
+      --cluster-halo:   rgba(106, 174, 238, 0.25);
+      --shadow:         rgba(0, 0, 0, 0.4);
+      --backdrop:       rgba(0, 0, 0, 0.55);
+      --fab-text:       #1a1a1a;
+    }
+
+    [data-theme="light"] {
+      --bg:           #f3f5f8;
+      --surface:      #ffffff;
+      --surface2:     #eaedf2;
+      --border:       #d4d9e0;
+      --border-hover: #aab2c0;
+      --text:         #1a1f28;
+      --muted:        #5e6772;
+      --accent:       #2566a8;
+      --red:          #c8302a;
+      --yellow:       #a87600;
+      --green:        #1f8a35;
+
+      --completed:    #1f8a35;
+      --planned:      #c8302a;
+
+      --attribution-bg: rgba(255, 255, 255, 0.9);
+      --cluster-fill:   rgba(37, 102, 168, 0.65);
+      --cluster-halo:   rgba(37, 102, 168, 0.25);
+      --shadow:         rgba(0, 0, 0, 0.12);
+      --backdrop:       rgba(0, 0, 0, 0.4);
+      --fab-text:       #ffffff;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-weight: 300;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.18;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { opacity: 0.8; }
+
+    /* Nav */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 1rem;
+      padding: 0 1.5rem;
+      height: 50px;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      justify-self: end;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 400;
+      color: var(--text);
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      justify-self: start;
+    }
+    .nav-brand a { color: var(--text); text-decoration: none; }
+    #nav-back { display: none; opacity: 0.5; margin-right: 0.4rem; }
+    #nav-crumb { color: var(--muted); }
+
+    .nav-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      min-width: 0;
+      white-space: nowrap;
+      justify-self: center;
+    }
+
+    .nav-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .nav-group + .nav-group {
+      margin-left: 0.5rem;
+      padding-left: 1.25rem;
+      border-left: 1px solid var(--border);
+    }
+
+    .nav-stat { display: flex; align-items: center; gap: 0.3rem; }
+    .nav-stat .label {
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .nav-stat .value { font-weight: 300; color: var(--text); }
+    .nav-stat a { color: var(--accent); text-decoration: none; display: flex; align-items: center; gap: 0.3rem; }
+    .nav-stat a:hover { text-decoration: underline; }
+
+    /* View tabs */
+    .view-tabs {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      flex-shrink: 0;
+      justify-self: end;
+    }
+    .view-tabs a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.7rem;
+      font-weight: 400;
+      letter-spacing: 0.03em;
+      padding: 0.4rem 0.7rem;
+      transition: background 0.15s, color 0.15s;
+    }
+    .view-tabs a + a { border-left: 1px solid var(--border); }
+    .view-tabs a:hover { color: var(--text); opacity: 1; }
+    .view-tabs a.active { background: var(--surface2); color: var(--text); }
+
+    /* App container */
+    #app {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      height: calc(100vh - 50px);
+      overflow-y: overlay;
+      padding: 2rem 1.5rem 2rem;
+      box-sizing: border-box;
+    }
+
+    #app:has(#map),
+    #app:has(.detail-layout) {
+      overflow: hidden;
+      padding: 0;
+      position: relative;
+      max-width: none;
+    }
+
+    /* Index grids (places + trails) */
+    .category-grid,
+    .region-grid {
+      columns: 2;
+      column-gap: 1.5rem;
+    }
+
+    .category-group,
+    .region-group {
+      margin-bottom: 1.5rem;
+      break-inside: avoid;
+    }
+
+    .category-group:only-child,
+    .region-group:only-child { column-span: all; }
+
+    .category-label,
+    .region-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text);
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .place-count,
+    .route-count {
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 600px) {
+      .category-grid, .region-grid { columns: 1; }
+    }
+
+    /* Places index */
+    .index-controls {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      align-items: center;
+    }
+
+    .index-controls input[type="text"] {
+      flex: 1;
+      min-width: 0;
+      padding: 0.6rem 0.85rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 300;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .index-controls input[type="text"]::placeholder { color: var(--muted); }
+    .index-controls input[type="text"]:focus { border-color: var(--accent); }
+
+    .group-toggle {
+      display: flex;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .group-toggle button {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 400;
+      font-family: inherit;
+      padding: 0.45rem 0.65rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      letter-spacing: 0.03em;
+    }
+    .group-toggle button + button { border-left: 1px solid var(--border); }
+    .group-toggle button.active { background: var(--surface2); color: var(--text); }
+    .group-toggle button:hover:not(.active) { color: var(--text); }
+
+    .place-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .place-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .place-card:hover { border-color: var(--border-hover); }
+    .place-card .status-dot { margin-top: 0.35rem; }
+    .place-card .place-text { min-width: 0; flex: 1; }
+    .place-card .name { font-size: 0.85rem; font-weight: 300; }
+    .place-card .note { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .status-dot.visited { background: var(--green); }
+    .status-dot.want { background: var(--red); }
+    .status-dot.completed { background: var(--completed); }
+    .status-dot.planned { background: var(--planned); }
+
+    /* Trails index */
+    .route-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .route-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .route-card:hover { border-color: var(--border-hover); }
+    .route-card .name {
+      font-size: 0.85rem;
+      font-weight: 300;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Map view */
+    #map {
+      width: 100%;
+      height: 100%;
+      background: var(--surface);
+      box-sizing: border-box;
+    }
+
+    .map-panel {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      min-width: 200px;
+      max-width: 260px;
+    }
+
+    .panel-search {
+      padding: 0.45rem 0.65rem;
+      position: relative;
+    }
+
+    .panel-search input {
+      width: 100%;
+      padding: 0.4rem 0.6rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.7rem;
+      font-weight: 300;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .panel-search input::placeholder { color: var(--muted); }
+    .panel-search input:focus { border-color: var(--accent); }
+
+    .map-search-results {
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      right: 0;
+      margin-bottom: 0.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      max-height: 240px;
+      overflow-y: auto;
+      display: none;
+    }
+    .map-search-results.visible { display: block; }
+    .map-search-result {
+      padding: 0.45rem 0.75rem;
+      font-size: 0.7rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text);
+    }
+    .map-search-result:hover { background: var(--surface2); }
+    .map-search-result .result-dot,
+    .map-search-result .result-line {
+      flex-shrink: 0;
+    }
+    .map-search-result .result-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .map-search-result .result-line { width: 12px; height: 2px; border-radius: 1px; }
+    .map-search-result .result-meta { color: var(--muted); margin-left: auto; font-size: 0.6rem; }
+
+    /* Filter panel sections */
+    .panel-section {
+      border-top: 1px solid var(--border);
+    }
+
+    .panel-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.45rem 0.65rem;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.7rem;
+      font-weight: 400;
+      color: var(--text);
+      letter-spacing: 0.03em;
+    }
+    .panel-section-header .section-arrow {
+      font-size: 0.55rem;
+      color: var(--muted);
+      transition: transform 0.15s;
+    }
+    .panel-section.collapsed .section-arrow { transform: rotate(-90deg); }
+    .panel-section.collapsed .panel-section-body { display: none; }
+
+    .panel-section-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .panel-action {
+      font-size: 0.6rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+    }
+    .panel-action:hover { color: var(--text); }
+
+    .panel-section-body {
+      border-top: 1px solid var(--border);
+      padding: 0.4rem 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .legend-cats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.15rem 0.5rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.65rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.15s;
+      padding: 0.15rem 0;
+    }
+    .legend-item.disabled { opacity: 0.35; }
+
+    .legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .legend-line { width: 14px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+
+    .legend-status {
+      display: flex;
+      justify-content: center;
+      gap: 0.35rem;
+      margin-top: 0.25rem;
+      padding-top: 0.35rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .status-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.6rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      padding: 0.2rem 0.45rem;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      transition: opacity 0.15s, border-color 0.15s;
+    }
+    .status-chip.active { border-color: var(--border-hover); color: var(--text); }
+    .status-chip:hover { border-color: var(--border-hover); }
+
+    /* Trails detail view */
+    .detail-layout {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 0;
+      max-width: none;
+      margin: 0 auto;
+      box-sizing: border-box;
+    }
+    .detail-layout #map {
+      flex: 1;
+      min-height: 200px;
+    }
+
+    .elevation-wrap {
+      margin-top: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 0;
+      overflow: hidden;
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .elevation-wrap .elevation-detached { margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; }
+    .elevation-wrap .elevation-detached svg { width: 100% !important; display: block; margin-top: -8px; margin-bottom: -20px; }
+    .elevation-wrap .elevation-detached .elevation-summary { display: none !important; }
+    .elevation-wrap .elevation-detached .elevation-toggle-icon { display: none !important; }
+
+    .mobile-stats {
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.4rem 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      margin-top: 0.5rem;
+      font-size: 0.7rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+    .mobile-stats .stats-meta { display: flex; gap: 0.5rem; align-items: center; }
+    .mobile-stats .stats-data { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .mobile-stats .stat { display: flex; align-items: center; gap: 0.25rem; white-space: nowrap; }
+    .mobile-stats .stat .label { font-size: 0.55rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+    .mobile-stats .stat .value { color: var(--text); font-weight: 300; }
+
+    .no-elevation-notice {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-style: italic;
+      margin-top: 0.75rem;
+    }
+
+    /* Multi-track */
+    #track-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .track-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+    .track-legend-color {
+      width: 16px;
+      height: 3px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .track-legend-item .track-name { color: var(--text); font-weight: 400; }
+    .track-legend-item .track-stat { font-size: 0.6rem; }
+
+    #multi-elevation-container {
+      margin-top: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex-shrink: 0;
+      overflow-y: auto;
+      max-height: 50vh;
+    }
+    .elevation-track-panel {
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .elevation-track-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0.3rem 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .elevation-track-label::after {
+      content: '';
+      margin-left: auto;
+      border: 4px solid transparent;
+      border-top: 5px solid var(--muted);
+      transition: transform 0.15s;
+    }
+    .elevation-track-panel.collapsed .elevation-track-label::after { transform: rotate(-90deg); }
+    .elevation-track-panel .elevation-track-chart { transition: max-height 0.2s ease; overflow: hidden; }
+    .elevation-track-panel.collapsed .elevation-track-chart { max-height: 0 !important; }
+    .elevation-track-label .color-dot { width: 8px; height: 3px; border-radius: 2px; }
+    .elevation-track-panel .elevation-detached { margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; }
+    .elevation-track-panel .elevation-detached svg { width: 100% !important; display: block; margin-top: -8px; margin-bottom: -20px; }
+    .elevation-track-panel .elevation-detached .elevation-summary { display: none !important; }
+    .elevation-track-panel .elevation-detached .elevation-toggle-icon { display: none !important; }
+    .elevation-track-panel .elevation-control .area { fill: var(--track-color, var(--accent)); fill-opacity: 0.35; stroke: var(--track-color, var(--accent)); }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    /* Leaflet overrides */
+    .leaflet-bar { border-radius: var(--radius) !important; }
+    .leaflet-bar a:first-child { border-radius: var(--radius) var(--radius) 0 0 !important; }
+    .leaflet-bar a:last-child { border-radius: 0 0 var(--radius) var(--radius) !important; }
+    .leaflet-control-zoom a {
+      background: var(--surface) !important;
+      color: var(--text) !important;
+      border-color: var(--border) !important;
+    }
+    .leaflet-control-zoom a:hover { background: var(--surface2) !important; }
+
+    .leaflet-top .leaflet-control, .leaflet-bottom .leaflet-control { margin: 5px !important; }
+    .leaflet-control-attribution {
+      background: var(--attribution-bg) !important;
+      color: var(--muted) !important;
+      font-size: 0.6rem !important;
+      border-radius: var(--radius) !important;
+    }
+    .leaflet-control-attribution a { color: var(--accent) !important; }
+
+    .leaflet-tooltip {
+      background: var(--surface) !important;
+      color: var(--text) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius) !important;
+      font-size: 0.8rem;
+      font-weight: 300;
+      white-space: pre;
+      box-shadow: 0 2px 8px var(--shadow) !important;
+    }
+    .leaflet-tooltip-top::before { border-top-color: var(--border) !important; }
+    .leaflet-tooltip-bottom::before { border-bottom-color: var(--border) !important; }
+
+    .leaflet-popup-content-wrapper {
+      background: var(--surface) !important;
+      color: var(--text) !important;
+      border-radius: var(--radius) !important;
+      box-shadow: 0 2px 8px var(--shadow) !important;
+    }
+    .leaflet-popup-tip { background: var(--surface) !important; }
+    .leaflet-popup-content { font-size: 0.8rem; font-weight: 300; margin: 10px 14px; }
+    .leaflet-popup-content a { color: var(--accent); }
+    .leaflet-popup-content .popup-name { font-weight: 400; font-size: 0.85rem; margin-bottom: 0.25rem; }
+    .leaflet-popup-content .popup-local { font-size: 0.75rem; color: var(--muted); font-weight: 300; font-style: italic; }
+    .leaflet-popup-content .popup-note { color: var(--muted); font-size: 0.75rem; }
+    .leaflet-popup-content .popup-category { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.35rem; }
+    .leaflet-popup-content .popup-sources { font-size: 0.65rem; margin-top: 0.3rem; }
+    .leaflet-popup-content .popup-sources a { color: var(--accent); }
+    .leaflet-popup-content .popup-actions {
+      margin-top: 0.5rem;
+      padding-top: 0.4rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0.6rem;
+      font-size: 0.7rem;
+    }
+    .leaflet-popup-content .popup-actions a { color: var(--accent); cursor: pointer; }
+    .leaflet-popup-content .popup-actions .popup-trail-delete { color: var(--red); }
+
+    .leaflet-control-layers { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: var(--radius) !important; color: var(--text) !important; padding: 0 !important; }
+    .leaflet-control-layers-toggle { width: 36px !important; height: 36px !important; padding: 6px !important; background-size: 24px 24px !important; }
+    .leaflet-control-layers label { color: var(--text); }
+    .leaflet-control-layers-separator { border-color: var(--border) !important; }
+
+    /* Cluster overrides */
+    .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+      background: var(--cluster-halo) !important;
+    }
+    .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
+      background: var(--cluster-fill) !important;
+      color: #fff !important;
+      font-weight: 400;
+      font-size: 0.75rem;
+    }
+
+    /* Elevation control */
+    .elevation-control .background { fill: var(--surface); }
+    .elevation-control .area { fill: var(--accent); fill-opacity: 0.35; stroke: var(--accent); }
+    .elevation-control .axis text { fill: var(--text); font-size: 10px; text-shadow: none; paint-order: normal; stroke: none; }
+    .elevation-control .axis line, .elevation-control .axis path { stroke: var(--border); }
+    .elevation-control .mouse-focus-line { stroke: var(--text); }
+    .elevation-detached:not(:hover) .mouse-focus-line,
+    .elevation-detached:not(:hover) .mouse-focus-label { display: none; }
+    .leaflet-elevation-pane .elevation-summary { background: var(--surface) !important; color: var(--text) !important; }
+    .elevation-control .close-button, .elevation-control .elevation-toggle-icon, .elevation-detached .leaflet-close { display: none !important; }
+    .leaflet-interactive { filter: drop-shadow(0 0 3px rgba(0,0,0,0.5)); }
+    .marker-start, .marker-end { background: none !important; border: none !important; }
+
+    @media (max-width: 900px) {
+      #app { padding: 1rem 1rem 3rem; }
+      .place-grid, .route-grid { grid-template-columns: 1fr; }
+      .detail-layout { padding: 0; }
+      nav { padding: 0.6rem 1rem; gap: 0.5rem; }
+      .nav-info { gap: 0.4rem; flex-wrap: wrap; }
+      .nav-group { gap: 0.4rem; }
+      .nav-group + .nav-group { padding-left: 0.4rem; }
+      .nav-stat .label { font-size: 0.5rem; }
+      .nav-route-meta { display: none; }
+      #nav-stats-dynamic { display: none; }
+      .mobile-stats { display: flex; }
+      #track-legend { gap: 0.4rem; padding: 0.4rem 0.5rem; }
+      .track-legend-item .track-stat { display: none; }
+      #multi-elevation-container { max-height: 40vh; }
+      .map-panel { max-width: calc(100vw - 40px); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeIn 0.3s ease both; }
+
+    /* Auth widget in nav */
+    .auth-widget {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+      font-size: 0.7rem;
+      position: relative;
+    }
+    .auth-widget button, .auth-widget a {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.7rem;
+      letter-spacing: 0.03em;
+      padding: 0.35rem 0.6rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      text-decoration: none;
+      transition: color 0.15s, border-color 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .auth-widget button:hover, .auth-widget a:hover {
+      color: var(--text);
+      border-color: var(--border-hover);
+      opacity: 1;
+    }
+    .auth-widget .caret { font-size: 0.55rem; opacity: 0.7; }
+    .auth-menu {
+      position: absolute;
+      top: calc(100% + 0.4rem);
+      right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      min-width: 160px;
+      z-index: 1500;
+      padding: 0.25rem;
+    }
+    .auth-menu[hidden] { display: none; }
+    .auth-menu .auth-menu-header {
+      padding: 0.5rem 0.7rem 0.4rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0.25rem;
+    }
+    .auth-menu .auth-menu-header strong { color: var(--text); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 0.8rem; display: block; margin-top: 0.15rem; }
+    .auth-menu button {
+      display: flex;
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.75rem;
+      text-align: left;
+      padding: 0.5rem 0.7rem;
+      border-radius: 4px;
+      cursor: pointer;
+      justify-content: flex-start;
+    }
+    .auth-menu button:hover { background: var(--surface2); color: var(--text); border-color: transparent; }
+
+    /* Floating add button */
+    .fab-add {
+      position: absolute;
+      bottom: 2rem;
+      right: 0.75rem;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--fab-text);
+      border: none;
+      font-size: 1.5rem;
+      font-weight: 400;
+      cursor: pointer;
+      box-shadow: 0 4px 14px var(--shadow);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s;
+    }
+    .fab-add:hover { transform: scale(1.05); }
+
+    /* "Pick on map" inline button for the Add Place form */
+    .pick-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 0.4rem;
+    }
+    .pick-row button {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.7rem;
+      letter-spacing: 0.03em;
+      padding: 0.35rem 0.7rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+    .pick-row button:hover { color: var(--text); border-color: var(--border-hover); }
+
+    /* "Add new" toggle for category/region selects */
+    .select-or-new { display: flex; flex-direction: column; gap: 0.4rem; }
+    .select-or-new .new-input[hidden] { display: none; }
+
+    /* Settings modal sub-sections */
+    .modal h3.settings-h {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 1.25rem;
+      margin-bottom: 0.5rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+    .modal h3.settings-h:first-of-type {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 0;
+    }
+
+    .session-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .session-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface2);
+    }
+    .session-meta { flex: 1; min-width: 0; }
+    .session-device { font-size: 0.78rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
+    .session-current {
+      font-size: 0.55rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--green);
+      border: 1px solid rgba(40,202,65,0.3);
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+    }
+    .session-sub { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; }
+    .session-revoke {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--red);
+      font-size: 0.7rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .session-revoke:hover:not(:disabled) { border-color: var(--red); }
+    .session-revoke:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .radio-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .radio-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin: 0;
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 0.8rem;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .radio-row input { width: auto; }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: var(--backdrop);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 440px;
+      max-height: calc(100vh - 2rem);
+      overflow-y: auto;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 10px 40px var(--shadow);
+    }
+    .modal h2 {
+      font-size: 0.95rem;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0.2rem;
+    }
+    .modal .modal-close:hover { color: var(--text); }
+    .modal-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1rem;
+    }
+    .modal-tabs button {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+    }
+    .modal-tabs button.active { color: var(--text); border-bottom-color: var(--accent); }
+    .modal-tabs button:hover:not(.active) { color: var(--text); }
+    .modal label {
+      display: block;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+      margin-top: 0.75rem;
+    }
+    .modal input[type="text"],
+    .modal input[type="password"],
+    .modal input[type="number"],
+    .modal input[type="file"],
+    .modal textarea,
+    .modal select {
+      width: 100%;
+      padding: 0.5rem 0.7rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: 300;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .modal input:focus, .modal textarea:focus, .modal select:focus { border-color: var(--accent); }
+    .modal textarea { min-height: 60px; resize: vertical; }
+    .modal .row { display: flex; gap: 0.5rem; }
+    .modal .row > * { flex: 1; }
+    .modal .checkbox-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; }
+    .modal .checkbox-row input { width: auto; }
+    .modal .checkbox-row label { margin: 0; text-transform: none; letter-spacing: 0; font-size: 0.8rem; color: var(--text); }
+    .modal .modal-error {
+      margin-top: 0.75rem;
+      padding: 0.5rem 0.7rem;
+      background: rgba(255,95,87,0.1);
+      border: 1px solid rgba(255,95,87,0.3);
+      border-radius: var(--radius);
+      color: var(--red);
+      font-size: 0.75rem;
+      display: none;
+    }
+    .modal .modal-error.visible { display: block; }
+    .modal .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+    }
+    .modal .modal-actions button {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.75rem;
+      padding: 0.5rem 0.9rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      letter-spacing: 0.05em;
+    }
+    .modal .modal-actions button.primary {
+      background: var(--accent);
+      color: var(--fab-text);
+      border-color: var(--accent);
+    }
+    .modal .modal-actions button:hover:not(:disabled) { color: var(--text); border-color: var(--border-hover); }
+    .modal .modal-actions button.primary:hover { opacity: 0.9; color: var(--fab-text); }
+    .modal .modal-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .modal .hint {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+    }
+    .pick-coords-banner {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: var(--fab-text);
+      padding: 0.4rem 0.9rem;
+      border-radius: var(--radius);
+      font-size: 0.75rem;
+      z-index: 1500;
+      box-shadow: 0 2px 8px var(--shadow);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="nav-brand">
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Atlas</span></a><span id="nav-crumb"></span>
+    </span>
+    <div class="nav-info" id="nav-info"></div>
+    <div class="nav-right">
+      <div class="view-tabs">
+        <a href="#/places" data-view="places" id="tab-places">Places</a>
+        <a href="#/trails" data-view="trails" id="tab-trails">Trails</a>
+      </div>
+      <div class="auth-widget" id="auth-widget"></div>
+    </div>
+  </nav>
+  <div id="app"><div class="loading">Loading...</div></div>
+  <div id="modal-root"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.1.2/gpx.min.js"></script>
+  <script src="https://unpkg.com/@raruto/leaflet-elevation@2.5.2/dist/leaflet-elevation.js"></script>
+  <script>
+    // ----- Shared -----
+    const COLORS = ['#6aaeee', '#c792ea', '#ffbd2e', '#89ddff', '#f78c6c', '#c3e88d', '#ff5370', '#82b1ff', '#f07178', '#c17e70'];
+    const TRACK_COLORS = COLORS;
+    const ROUTE_COLOR = '#6aaeee';
+    const COMPLETED_COLOR = '#00e05a';
+    const PLANNED_COLOR = '#ff6b6b';
+
+    const DEFAULT_CONFIG = {
+      brand: 'Atlas',
+      default_view: { center: [45, 10], zoom: 4 },
+      default_view_trails: { center: [59.5, 6.5], zoom: 10 },
+      category_labels: {},
+      api_base: '/api',
+    };
+
+    const state = {
+      config: DEFAULT_CONFIG,
+      auth: { authenticated: false, username: null, is_operator: false, registration_open: true, has_users: false, requires_setup_token: false },
+      currentMap: null,
+      currentElevation: null,
+      // data
+      places: null,
+      manifest: null,
+      categoryColors: {},
+      // browse-list state
+      groupBy: 'category',
+      // unified-map filter state
+      hiddenCategories: new Set(),
+      showVisited: true,
+      showWant: true,
+      showCompleted: true,
+      showPlanned: true,
+      showPlaces: true,
+      showTrails: true,
+      // unified-map layer refs
+      _placeMarkers: null,
+      _placeClusterGroup: null,
+      _trailLayers: null,        // [{ route, layer, completed }]
+      _trailGroupCompleted: null,
+      _trailGroupPlanned: null,
+    };
+
+    function escapeHtml(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    function displayCategory(cat) {
+      const labels = (state.config && state.config.category_labels) || {};
+      return labels[cat] || cat.charAt(0).toUpperCase() + cat.slice(1);
+    }
+
+    function domainFromUrl(url) {
+      try { return new URL(url).hostname.replace(/^www\./, ''); }
+      catch { return url; }
+    }
+
+    function renderSources(sources) {
+      if (!sources || sources.length === 0) return '';
+      return sources.map(s => '<a href="' + escapeHtml(s) + '" target="_blank" rel="noopener">' + escapeHtml(domainFromUrl(s)) + ' &#x2197;</a>').join(' &middot; ');
+    }
+
+    function assignCategoryColors(places) {
+      const cats = [...new Set(places.map(p => p.category))].sort();
+      const map = {};
+      cats.forEach((c, i) => { map[c] = COLORS[i % COLORS.length]; });
+      return map;
+    }
+
+    function createTileLayers() {
+      return {
+        'OpenTopoMap': L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+          maxZoom: 17, subdomains: 'abc',
+          attribution: 'Map: <a href="https://opentopomap.org">OpenTopoMap</a> &middot; Data: <a href="https://openstreetmap.org">OSM</a>',
+        }),
+        'CyclOSM': L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
+          maxZoom: 20, subdomains: 'abc',
+          attribution: '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases">CyclOSM</a> &middot; <a href="https://openstreetmap.org">OSM</a>',
+        }),
+        'Satellite': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          maxZoom: 19,
+          attribution: '<a href="https://www.esri.com">Esri</a>',
+        }),
+        'Dark': L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          maxZoom: 20, subdomains: 'abcd',
+          attribution: '<a href="https://carto.com/attributions">CARTO</a> &middot; <a href="https://openstreetmap.org">OSM</a>',
+        }),
+        'OpenStreetMap': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '<a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+        }),
+      };
+    }
+
+    function addTileLayersToMap(map) {
+      const layers = createTileLayers();
+      layers['Satellite'].addTo(map);
+      L.control.layers(layers, null, { position: 'topright' }).addTo(map);
+    }
+
+    function cleanupMap() {
+      if (state.currentElevation) {
+        const controls = Array.isArray(state.currentElevation) ? state.currentElevation : [state.currentElevation];
+        for (const ctrl of controls) { try { ctrl.remove(); } catch (e) {} }
+        state.currentElevation = null;
+      }
+      if (state.currentMap) {
+        state.currentMap.remove();
+        state.currentMap = null;
+      }
+      state._placeMarkers = null;
+      state._placeClusterGroup = null;
+      state._trailLayers = null;
+      state._trailGroupCompleted = null;
+      state._trailGroupPlanned = null;
+    }
+
+    function formatDistance(m) { return m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m'; }
+    function formatElevation(m) { return Math.round(m) + ' m'; }
+
+    function setActiveTab(view) {
+      ['places', 'trails'].forEach(v => {
+        document.getElementById('tab-' + v).classList.toggle('active', v === view);
+      });
+    }
+
+    function setCrumb(text, showBack) {
+      document.getElementById('nav-crumb').textContent = text ? ' / ' + text : '';
+      document.getElementById('nav-back').style.display = showBack ? 'inline' : 'none';
+    }
+
+    function createMarkerIcon(color, visited) {
+      const size = 18, cx = size / 2, cy = size / 2;
+      let svg;
+      if (visited) {
+        svg = '<svg viewBox="0 0 ' + size + ' ' + size + '" width="' + size + '" height="' + size + '">' +
+          '<circle cx="' + cx + '" cy="' + cy + '" r="' + (size/2 - 1) + '" fill="' + color + '" stroke="#1a1a1a" stroke-width="2"/>' +
+          '<circle cx="' + cx + '" cy="' + cy + '" r="' + (size/2 - 1) + '" fill="none" stroke="#fff" stroke-width="1" opacity="0.6"/>' +
+          '</svg>';
+      } else {
+        svg = '<svg viewBox="0 0 ' + size + ' ' + size + '" width="' + size + '" height="' + size + '">' +
+          '<circle cx="' + cx + '" cy="' + cy + '" r="' + (size/2 - 2) + '" fill="' + color + '" fill-opacity="0.25" stroke="#1a1a1a" stroke-width="2.5"/>' +
+          '<circle cx="' + cx + '" cy="' + cy + '" r="' + (size/2 - 2) + '" fill="none" stroke="' + color + '" stroke-width="2"/>' +
+          '</svg>';
+      }
+      return L.divIcon({ className: '', html: svg, iconSize: [size, size], iconAnchor: [size/2, size/2] });
+    }
+
+    function addStartEndMarkers(map, startLatLng, endLatLng) {
+      const startIcon = L.divIcon({ className: 'marker-start', html: '<svg viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="6" fill="#00e05a" stroke="#fff" stroke-width="2"/></svg>', iconSize: [16, 16], iconAnchor: [8, 8] });
+      const endIcon = L.divIcon({ className: 'marker-end', html: '<svg viewBox="0 0 32 32" width="32" height="32"><rect x="4" y="2" width="2" height="28" rx="1" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><path d="M6 3h12c1 0 1.5.5 1 1.5L17 8l2 3.5c.5 1 0 1.5-1 1.5H6V3z" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><rect x="7" y="4" width="4.5" height="4" fill="#2d333b"/><rect x="11.5" y="4" width="4.5" height="4" fill="#fff"/><rect x="7" y="8" width="4.5" height="4" fill="#fff"/><rect x="11.5" y="8" width="4.5" height="4" fill="#2d333b"/></svg>', iconSize: [32, 32], iconAnchor: [5, 30] });
+      L.marker(startLatLng, { icon: startIcon }).bindPopup('Start').addTo(map);
+      L.marker(endLatLng, { icon: endIcon }).bindPopup('End').addTo(map);
+    }
+
+    // ----- Unified map -----
+    function renderUnifiedMap(focus) {
+      setActiveTab('map');
+      setCrumb('', false);
+      document.getElementById('nav-info').innerHTML = '';
+      cleanupMap();
+
+      const app = document.getElementById('app');
+      app.innerHTML = '<div id="map"></div>';
+
+      const dv = state.config.default_view || DEFAULT_CONFIG.default_view;
+      const map = L.map('map', {
+        zoomControl: true,
+        attributionControl: false,
+        maxBounds: [[-90, -200], [90, 200]],
+        maxBoundsViscosity: 1.0
+      }).setView(dv.center, dv.zoom);
+      L.control.attribution({ prefix: false }).addTo(map);
+      state.currentMap = map;
+      addTileLayersToMap(map);
+
+      // Places
+      const clusterGroup = L.markerClusterGroup({
+        maxClusterRadius: 40,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+      });
+      clusterGroup.on('clustermouseover', function(e) {
+        const names = e.layer.getAllChildMarkers().map(m => m._placeData.name).sort().slice(0, 10);
+        const total = e.layer.getChildCount();
+        let label = names.join('\n');
+        if (total > 10) label += '\n+' + (total - 10) + ' more';
+        e.layer.bindTooltip(label, { direction: 'top', sticky: true }).openTooltip();
+      });
+
+      const placeMarkers = [];
+      const placeBounds = L.latLngBounds();
+      let focusPlace = null;
+
+      if (state.places) {
+        for (const p of state.places) {
+          const color = state.categoryColors[p.category];
+          const marker = L.marker([p.lat, p.lon], { icon: createMarkerIcon(color, p.visited) });
+          let popupHtml = '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local" style="color:' + color + '">&middot; ' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
+          if (p.note) popupHtml += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
+          popupHtml += '<div class="popup-category"><span style="color:' + color + '">' + escapeHtml(p.category) + '</span> &middot; <span style="color:' + (p.visited ? 'var(--green)' : 'var(--red)') + '">' + (p.visited ? 'Visited' : 'Want to visit') + '</span></div>';
+          if (p.sources && p.sources.length) popupHtml += '<div class="popup-sources">' + renderSources(p.sources) + '</div>';
+          if (state.auth.authenticated) {
+            popupHtml += '<div class="popup-actions">' +
+              '<a href="#" class="popup-edit" data-place="' + escapeHtml(p.name) + '">Edit</a>' +
+            '</div>';
+          }
+          marker.bindPopup(popupHtml);
+          marker.on('click', (function(name) {
+            return function() { history.replaceState(null, '', '#/?focus=place:' + encodeURIComponent(name)); };
+          })(p.name));
+          marker.bindTooltip(escapeHtml(p.name), { direction: 'top', offset: [0, -6] });
+          marker._placeData = p;
+          placeMarkers.push(marker);
+          placeBounds.extend([p.lat, p.lon]);
+          if (focus && focus.type === 'place' && focus.name === p.name) focusPlace = marker;
+        }
+      }
+
+      state._placeMarkers = placeMarkers;
+      state._placeClusterGroup = clusterGroup;
+
+      // Trails: two groups by status
+      const groupCompleted = L.featureGroup();
+      const groupPlanned = L.featureGroup();
+      const trailLayers = [];
+      const trailBounds = L.latLngBounds();
+      let focusTrailKey = (focus && focus.type === 'trail') ? focus.name : null;
+      let focusTrailLayer = null;
+
+      if (state.manifest) {
+        for (const region of state.manifest.regions) {
+          for (const route of region.routes) {
+            const color = route.completed ? COMPLETED_COLOR : PLANNED_COLOR;
+            const parent = route.completed ? groupCompleted : groupPlanned;
+            const gpxUrl = 'gpx/' + route.file;
+            const gpxLayer = new L.GPX(gpxUrl, {
+              async: true,
+              polyline_options: { color: color, opacity: 0.85, weight: 4 },
+              markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
+            });
+            gpxLayer.on('loaded', function(e) {
+              const b = e.target.getBounds();
+              if (b.isValid()) trailBounds.extend(b);
+              if (focusTrailKey && route.key === focusTrailKey) {
+                focusTrailLayer = e.target;
+                if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
+              }
+            }).bindPopup(
+              '<div class="popup-name">' + escapeHtml(route.name) + '</div>' +
+              '<div class="popup-category"><span style="color:' + color + '">' + (route.completed ? 'Completed' : 'Planned') + '</span> &middot; ' + escapeHtml(region.name) + '</div>' +
+              '<div class="popup-sources"><a href="#/trails/route/' + encodeURIComponent(route.key) + '">View details &#x2197;</a></div>' +
+              (state.auth.authenticated ?
+                '<div class="popup-actions">' +
+                  '<a href="#" class="popup-trail-delete" data-region="' + escapeHtml(region.name) + '" data-name="' + escapeHtml(route.name) + '">Delete</a>' +
+                '</div>'
+                : '')
+            );
+            parent.addLayer(gpxLayer);
+            trailLayers.push({ route, region: region.name, layer: gpxLayer, completed: route.completed });
+          }
+        }
+      }
+
+      state._trailLayers = trailLayers;
+      state._trailGroupCompleted = groupCompleted;
+      state._trailGroupPlanned = groupPlanned;
+
+      applyMapFilters();
+
+      // Initial bounds: places + trails, prefer focus
+      if (focusPlace) {
+        setTimeout(function() {
+          map.setView([focusPlace._placeData.lat, focusPlace._placeData.lon], 12);
+          focusPlace.openPopup();
+        }, 300);
+      } else if (!focusTrailKey) {
+        const combined = L.latLngBounds();
+        if (placeBounds.isValid()) combined.extend(placeBounds);
+        if (trailBounds.isValid()) combined.extend(trailBounds);
+        if (combined.isValid()) map.fitBounds(combined, { padding: [40, 40] });
+      }
+
+      // Filter panel
+      const PanelControl = L.Control.extend({
+        options: { position: 'bottomleft' },
+        onAdd: function() {
+          const div = L.DomUtil.create('div', 'map-panel');
+          div.id = 'map-panel';
+          div.innerHTML =
+            '<div class="panel-search" id="map-search">' +
+            '<input type="text" id="map-search-input" placeholder="Search places + trails...">' +
+            '<div class="map-search-results" id="map-search-results"></div>' +
+            '</div>' +
+            '<div class="panel-section collapsed" id="places-section">' +
+            '<div class="panel-section-header" data-section="places-section">Places' +
+            '<span class="panel-section-actions">' +
+            '<span class="panel-action" id="places-toggle-all">Toggle</span>' +
+            '<span class="section-arrow">&#x25BC;</span>' +
+            '</span>' +
+            '</div>' +
+            '<div class="panel-section-body" id="places-body"></div>' +
+            '</div>' +
+            '<div class="panel-section collapsed" id="trails-section">' +
+            '<div class="panel-section-header" data-section="trails-section">Trails' +
+            '<span class="panel-section-actions">' +
+            '<span class="panel-action" id="trails-toggle-all">Toggle</span>' +
+            '<span class="section-arrow">&#x25BC;</span>' +
+            '</span>' +
+            '</div>' +
+            '<div class="panel-section-body" id="trails-body"></div>' +
+            '</div>';
+          L.DomEvent.disableClickPropagation(div);
+          L.DomEvent.disableScrollPropagation(div);
+          return div;
+        }
+      });
+      map.addControl(new PanelControl());
+
+      bindFilterPanel();
+      refreshFilterPanel();
+      initUnifiedSearch(map);
+      bindPopupActions(map);
+
+      // Nav summary
+      const placeCount = state.places ? state.places.length : 0;
+      const trailCount = state.manifest ? state.manifest.regions.reduce((n, r) => n + r.routes.length, 0) : 0;
+      document.getElementById('nav-info').innerHTML =
+        '<div class="nav-group">' +
+        '<div class="nav-stat"><span class="value">' + placeCount + ' places</span></div>' +
+        '<div class="nav-stat"><span class="value">' + trailCount + ' trails</span></div>' +
+        '</div>';
+    }
+
+    function refreshFilterPanel() {
+      const placesBody = document.getElementById('places-body');
+      if (placesBody) {
+        const cats = Object.keys(state.categoryColors).sort();
+        let html = '<div class="legend-cats">';
+        for (const cat of cats) {
+          const color = state.categoryColors[cat];
+          const hidden = state.hiddenCategories.has(cat);
+          html += '<div class="legend-item' + (hidden ? ' disabled' : '') + '" data-cat="' + escapeHtml(cat) + '">';
+          html += '<span class="legend-dot" style="background:' + color + '"></span>';
+          html += escapeHtml(displayCategory(cat));
+          html += '</div>';
+        }
+        html += '</div>';
+        html += '<div class="legend-status">';
+        html += '<div class="status-chip' + (state.showVisited ? ' active' : '') + '" data-filter="visited">Visited</div>';
+        html += '<div class="status-chip' + (state.showWant ? ' active' : '') + '" data-filter="want">Want</div>';
+        html += '</div>';
+        placesBody.innerHTML = html;
+      }
+
+      const trailsBody = document.getElementById('trails-body');
+      if (trailsBody) {
+        let html = '<div class="legend-cats" style="grid-template-columns:1fr">';
+        html += '<div class="legend-item' + (state.showCompleted ? '' : ' disabled') + '" data-trail-status="completed">';
+        html += '<span class="legend-line" style="background:' + COMPLETED_COLOR + '"></span>Completed';
+        html += '</div>';
+        html += '<div class="legend-item' + (state.showPlanned ? '' : ' disabled') + '" data-trail-status="planned">';
+        html += '<span class="legend-line" style="background:' + PLANNED_COLOR + '"></span>Planned';
+        html += '</div>';
+        html += '</div>';
+        trailsBody.innerHTML = html;
+      }
+    }
+
+    function bindFilterPanel() {
+      // Section collapse
+      document.querySelectorAll('.panel-section-header').forEach(function(h) {
+        h.addEventListener('click', function(e) {
+          if (e.target.closest('.panel-action')) return;
+          document.getElementById(this.dataset.section).classList.toggle('collapsed');
+        });
+      });
+
+      // Toggle-all (places)
+      const placesToggle = document.getElementById('places-toggle-all');
+      if (placesToggle) placesToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const cats = Object.keys(state.categoryColors);
+        const allOn = state.hiddenCategories.size === 0 && state.showVisited && state.showWant;
+        if (allOn) {
+          cats.forEach(c => state.hiddenCategories.add(c));
+          state.showVisited = false; state.showWant = false;
+        } else {
+          state.hiddenCategories.clear();
+          state.showVisited = true; state.showWant = true;
+        }
+        refreshFilterPanel();
+        applyMapFilters();
+      });
+
+      // Toggle-all (trails)
+      const trailsToggle = document.getElementById('trails-toggle-all');
+      if (trailsToggle) trailsToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const allOn = state.showCompleted && state.showPlanned;
+        state.showCompleted = !allOn;
+        state.showPlanned = !allOn;
+        refreshFilterPanel();
+        applyMapFilters();
+      });
+
+      // Delegated clicks on the body elements (survive innerHTML refresh)
+      const placesBody = document.getElementById('places-body');
+      if (placesBody) placesBody.addEventListener('click', function(e) {
+        const cat = e.target.closest('.legend-item[data-cat]');
+        if (cat) {
+          const c = cat.dataset.cat;
+          if (state.hiddenCategories.has(c)) { state.hiddenCategories.delete(c); cat.classList.remove('disabled'); }
+          else { state.hiddenCategories.add(c); cat.classList.add('disabled'); }
+          applyMapFilters();
+          return;
+        }
+        const chip = e.target.closest('.status-chip[data-filter]');
+        if (chip) {
+          if (chip.dataset.filter === 'visited') state.showVisited = !state.showVisited;
+          else state.showWant = !state.showWant;
+          chip.classList.toggle('active');
+          applyMapFilters();
+        }
+      });
+
+      const trailsBody = document.getElementById('trails-body');
+      if (trailsBody) trailsBody.addEventListener('click', function(e) {
+        const item = e.target.closest('.legend-item[data-trail-status]');
+        if (!item) return;
+        const s = item.dataset.trailStatus;
+        if (s === 'completed') state.showCompleted = !state.showCompleted;
+        else state.showPlanned = !state.showPlanned;
+        item.classList.toggle('disabled');
+        applyMapFilters();
+      });
+    }
+
+    function bindPopupActions(map) {
+      // Delegated click on popup contents. Leaflet popups are rendered into the
+      // map container, so a single delegated handler covers all of them.
+      map.getContainer().addEventListener('click', function(e) {
+        const edit = e.target.closest('.popup-edit');
+        if (edit) {
+          e.preventDefault();
+          const name = edit.dataset.place;
+          const place = state.places.find(p => p.name === name);
+          if (place) {
+            map.closePopup();
+            openEditPlaceModal(place);
+          }
+          return;
+        }
+        const trailDel = e.target.closest('.popup-trail-delete');
+        if (trailDel) {
+          e.preventDefault();
+          const region = trailDel.dataset.region;
+          const name = trailDel.dataset.name;
+          if (!confirm('Delete trail "' + name + '" (region: ' + region + ')? This removes the GPX file.')) return;
+          api('DELETE', '/gpx', { region: region, name: name })
+            .then(() => refreshRoutes())
+            .then(() => { map.closePopup(); router(); })
+            .catch(err => alert('Failed: ' + err.message));
+        }
+      });
+    }
+
+    // ----- Edit place modal -----
+    function openEditPlaceModal(place) {
+      const cats = Object.keys(state.categoryColors).sort();
+      const sourcesText = (place.sources || []).join('\n');
+      openModal(
+        '<h2>Edit place<button class="modal-close">&times;</button></h2>' +
+        '<form id="edit-place-form">' +
+          '<label for="e-name">Name</label>' +
+          '<input type="text" id="e-name" required value="' + escapeHtml(place.name) + '">' +
+          '<div class="row">' +
+            '<div><label for="e-lat">Latitude</label><input type="number" id="e-lat" step="any" required value="' + place.lat + '"></div>' +
+            '<div><label for="e-lon">Longitude</label><input type="number" id="e-lon" step="any" required value="' + place.lon + '"></div>' +
+          '</div>' +
+          '<label for="e-category">Category</label>' +
+          editSelectOrNewHtml('e-category', cats, place.category) +
+          '<label for="e-country">Country (optional)</label>' +
+          '<input type="text" id="e-country" value="' + escapeHtml(place.country || '') + '">' +
+          '<label for="e-note">Note (optional)</label>' +
+          '<textarea id="e-note">' + escapeHtml(place.note || '') + '</textarea>' +
+          '<label for="e-local-name">Local name (optional)</label>' +
+          '<input type="text" id="e-local-name" value="' + escapeHtml(place.local_name || '') + '">' +
+          '<label for="e-sources">Sources (optional, one URL per line)</label>' +
+          '<textarea id="e-sources">' + escapeHtml(sourcesText) + '</textarea>' +
+          '<div class="checkbox-row"><input type="checkbox" id="e-visited"' + (place.visited ? ' checked' : '') + '><label for="e-visited">I&rsquo;ve visited this place</label></div>' +
+          '<div class="modal-error" id="edit-error"></div>' +
+          '<div class="modal-actions">' +
+            '<button type="button" class="session-revoke" id="e-delete">Delete</button>' +
+            '<span style="flex:1"></span>' +
+            '<button type="button" class="modal-close">Cancel</button>' +
+            '<button type="submit" class="primary" id="e-submit">Save</button>' +
+          '</div>' +
+        '</form>',
+        function() {
+          wireEditSelectOrNew('e-category');
+          document.getElementById('e-delete').addEventListener('click', function() {
+            if (!confirm('Delete place "' + place.name + '"?')) return;
+            this.disabled = true;
+            api('DELETE', '/places', { name: place.name })
+              .then(() => refreshPlaces())
+              .then(() => { closeModal(); router(); })
+              .catch(err => {
+                this.disabled = false;
+                document.getElementById('edit-error').textContent = err.message;
+                document.getElementById('edit-error').classList.add('visible');
+              });
+          });
+          document.getElementById('edit-place-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const sel = document.getElementById('e-category');
+            const inp = document.getElementById('e-category-new');
+            const category = sel.value === '__new__' ? (inp.value || '').trim() : sel.value;
+            if (!category) { showModalError('Pick or add a category.'); return; }
+            const sourcesRaw = document.getElementById('e-sources').value.trim();
+            const sources = sourcesRaw ? sourcesRaw.split('\n').map(s => s.trim()).filter(Boolean) : null;
+            const payload = {
+              name: document.getElementById('e-name').value.trim(),
+              lat: parseFloat(document.getElementById('e-lat').value),
+              lon: parseFloat(document.getElementById('e-lon').value),
+              category: category,
+              visited: document.getElementById('e-visited').checked,
+            };
+            const country = document.getElementById('e-country').value.trim();
+            const note = document.getElementById('e-note').value.trim();
+            const localName = document.getElementById('e-local-name').value.trim();
+            if (country) payload.country = country;
+            if (note) payload.note = note;
+            if (localName) payload.local_name = localName;
+            if (sources && sources.length) payload.sources = sources;
+            const submit = document.getElementById('e-submit');
+            submit.disabled = true;
+            api('PUT', '/places', { original_name: place.name, place: payload })
+              .then(() => refreshPlaces())
+              .then(() => { closeModal(); router(); })
+              .catch(err => { submit.disabled = false; showModalError(err.message); });
+          });
+        }
+      );
+
+      function showModalError(msg) {
+        const el = document.getElementById('edit-error');
+        if (el) { el.textContent = msg; el.classList.add('visible'); }
+      }
+    }
+
+    function editSelectOrNewHtml(id, options, current) {
+      const inOptions = options.includes(current);
+      const opts = options.map(v => '<option value="' + escapeHtml(v) + '"' + (v === current ? ' selected' : '') + '>' + escapeHtml(displayCategory(v)) + '</option>').join('');
+      const newSelected = !inOptions ? ' selected' : '';
+      return '<div class="select-or-new" data-id="' + id + '">' +
+        '<select id="' + id + '" required>' +
+          opts +
+          '<option value="__new__"' + newSelected + '>+ Add new&hellip;</option>' +
+        '</select>' +
+        '<input type="text" class="new-input" id="' + id + '-new" placeholder="Type new value" value="' + (inOptions ? '' : escapeHtml(current)) + '"' + (inOptions ? ' hidden' : '') + '>' +
+      '</div>';
+    }
+    function wireEditSelectOrNew(id) {
+      const sel = document.getElementById(id);
+      const input = document.getElementById(id + '-new');
+      if (!sel || !input) return;
+      const sync = () => {
+        if (sel.value === '__new__') {
+          input.hidden = false;
+          input.required = true;
+        } else {
+          input.hidden = true;
+          input.required = false;
+        }
+      };
+      sel.addEventListener('change', sync);
+      sync();
+    }
+
+    function applyMapFilters() {
+      const map = state.currentMap;
+      if (!map) return;
+
+      // Places
+      const cg = state._placeClusterGroup;
+      if (cg) {
+        cg.clearLayers();
+        if (state._placeMarkers) {
+          for (const m of state._placeMarkers) {
+            const p = m._placeData;
+            if (state.hiddenCategories.has(p.category)) continue;
+            if (p.visited && !state.showVisited) continue;
+            if (!p.visited && !state.showWant) continue;
+            cg.addLayer(m);
+          }
+        }
+        if (!map.hasLayer(cg)) map.addLayer(cg);
+      }
+
+      // Trails
+      const gc = state._trailGroupCompleted;
+      const gp = state._trailGroupPlanned;
+      if (gc) {
+        if (state.showCompleted && !map.hasLayer(gc)) map.addLayer(gc);
+        else if (!state.showCompleted && map.hasLayer(gc)) map.removeLayer(gc);
+      }
+      if (gp) {
+        if (state.showPlanned && !map.hasLayer(gp)) map.addLayer(gp);
+        else if (!state.showPlanned && map.hasLayer(gp)) map.removeLayer(gp);
+      }
+    }
+
+    function initUnifiedSearch(map) {
+      const input = document.getElementById('map-search-input');
+      const results = document.getElementById('map-search-results');
+
+      function render(q) {
+        if (!q) { results.classList.remove('visible'); results.innerHTML = ''; return; }
+        const lower = q.toLowerCase();
+        const placeMatches = state.places ? state.places.filter(p =>
+          p.name.toLowerCase().includes(lower)
+          || (p.note && p.note.toLowerCase().includes(lower))
+          || p.category.toLowerCase().includes(lower)
+          || (p.country && p.country.toLowerCase().includes(lower))
+        ).slice(0, 6) : [];
+        const trailMatches = state.manifest ? state.manifest.regions.flatMap(r =>
+          r.routes.filter(route => route.name.toLowerCase().includes(lower) || r.name.toLowerCase().includes(lower)).map(route => ({ route, region: r.name }))
+        ).slice(0, 6) : [];
+
+        if (!placeMatches.length && !trailMatches.length) {
+          results.classList.remove('visible');
+          results.innerHTML = '';
+          return;
+        }
+
+        let html = '';
+        for (const p of placeMatches) {
+          const color = state.categoryColors[p.category];
+          html += '<div class="map-search-result" data-type="place" data-name="' + escapeHtml(p.name) + '">';
+          html += '<span class="result-dot" style="background:' + color + '"></span>';
+          html += escapeHtml(p.name);
+          html += '<span class="result-meta">' + escapeHtml(p.country || '') + '</span></div>';
+        }
+        for (const t of trailMatches) {
+          const color = t.route.completed ? COMPLETED_COLOR : PLANNED_COLOR;
+          html += '<div class="map-search-result" data-type="trail" data-key="' + escapeHtml(t.route.key) + '">';
+          html += '<span class="result-line" style="background:' + color + '"></span>';
+          html += escapeHtml(t.route.name);
+          html += '<span class="result-meta">' + escapeHtml(t.region) + '</span></div>';
+        }
+        results.innerHTML = html;
+        results.classList.add('visible');
+      }
+
+      input.addEventListener('input', function() { render(this.value.trim()); });
+
+      results.addEventListener('click', function(e) {
+        const row = e.target.closest('.map-search-result');
+        if (!row) return;
+        if (row.dataset.type === 'place') {
+          const name = row.dataset.name;
+          const marker = state._placeMarkers.find(m => m._placeData.name === name);
+          if (marker) {
+            const p = marker._placeData;
+            map.setView([p.lat, p.lon], 12);
+            marker.openPopup();
+            history.replaceState(null, '', '#/?focus=place:' + encodeURIComponent(name));
+          }
+        } else {
+          const key = row.dataset.key;
+          const entry = state._trailLayers.find(t => t.route.key === key);
+          if (entry) {
+            // Find inner polyline bounds via the GPX layer
+            const layers = [];
+            entry.layer.eachLayer(l => { if (l.getBounds) layers.push(l); });
+            if (layers.length) {
+              const b = layers[0].getBounds();
+              if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
+              if (entry.layer.openPopup) entry.layer.openPopup(b.getCenter());
+            }
+            history.replaceState(null, '', '#/?focus=trail:' + encodeURIComponent(key));
+          }
+        }
+        input.value = '';
+        results.classList.remove('visible');
+        results.innerHTML = '';
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('#map-search')) results.classList.remove('visible');
+      });
+    }
+
+    // ----- Places browse list -----
+    function renderPlacesIndex() {
+      setActiveTab('places');
+      setCrumb('', false);
+      cleanupMap();
+      const app = document.getElementById('app');
+      if (!state.places) { document.getElementById('nav-info').innerHTML = ''; app.innerHTML = '<div class="loading">Loading places...</div>'; return; }
+
+      const places = state.places;
+      const visited = places.filter(p => p.visited).length;
+      const total = places.length;
+      const cats = Object.keys(state.categoryColors).sort();
+
+      document.getElementById('nav-info').innerHTML =
+        '<div class="nav-group">' +
+        '<div class="nav-stat"><span class="value">' + visited + '/' + total + ' visited</span></div>' +
+        '<div class="nav-stat"><span class="value">' + cats.length + ' categories</span></div>' +
+        '<div class="nav-stat"><span class="value">' + [...new Set(places.map(p => p.country).filter(Boolean))].length + ' countries</span></div>' +
+        '</div>';
+
+      app.innerHTML =
+        '<div class="index-controls">' +
+        '<input type="text" id="search-input" placeholder="Filter places...">' +
+        '<div class="group-toggle">' +
+        '<button data-group="category"' + (state.groupBy === 'category' ? ' class="active"' : '') + '>Category</button>' +
+        '<button data-group="country"' + (state.groupBy === 'country' ? ' class="active"' : '') + '>Country</button>' +
+        '</div>' +
+        '</div>' +
+        '<div class="category-grid" id="place-list"></div>';
+      renderPlaceList('');
+
+      document.getElementById('search-input').addEventListener('input', function() { renderPlaceList(this.value); });
+      document.querySelector('.group-toggle').addEventListener('click', function(e) {
+        if (!e.target.dataset.group) return;
+        state.groupBy = e.target.dataset.group;
+        this.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.group === state.groupBy));
+        const input = document.getElementById('search-input');
+        renderPlaceList(input ? input.value : '');
+      });
+    }
+
+    function renderPlaceList(query) {
+      const q = query.toLowerCase().trim();
+      const byCategory = state.groupBy === 'category';
+      const filtered = q
+        ? state.places.filter(p => p.name.toLowerCase().includes(q) || (p.note && p.note.toLowerCase().includes(q)) || p.category.toLowerCase().includes(q) || (p.country && p.country.toLowerCase().includes(q)))
+        : state.places;
+      const grouped = {};
+      for (const p of filtered) {
+        const key = byCategory ? p.category : (p.country || 'Other');
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(p);
+      }
+      const keys = Object.keys(grouped).sort();
+      let html = '';
+      for (const key of keys) {
+        const items = grouped[key];
+        const keyVisited = items.filter(p => p.visited).length;
+        html += '<div class="category-group fade-in">';
+        html += '<div class="category-label">';
+        html += escapeHtml(byCategory ? displayCategory(key) : key);
+        html += '<span class="place-count">(' + keyVisited + '/' + items.length + ')</span>';
+        html += '</div>';
+        html += '<div class="place-grid">';
+        for (const p of items) {
+          const statusClass = p.visited ? 'visited' : 'want';
+          const href = '#/?focus=place:' + encodeURIComponent(p.name);
+          html += '<div class="place-card" onclick="location.hash=\'' + href.replace(/'/g, "\\'") + '\'">';
+          html += '<span class="status-dot ' + statusClass + '"></span>';
+          html += '<div class="place-text">';
+          html += '<div class="name">' + escapeHtml(p.name) + '</div>';
+          if (p.note) html += '<div class="note">' + escapeHtml(p.note) + '</div>';
+          html += '</div></div>';
+        }
+        html += '</div></div>';
+      }
+      if (!html) html = '<div class="loading">No matches</div>';
+      document.getElementById('place-list').innerHTML = html;
+    }
+
+    // ----- Trails browse list -----
+    function renderTrailsIndex() {
+      setActiveTab('trails');
+      setCrumb('', false);
+      cleanupMap();
+      const app = document.getElementById('app');
+      if (!state.manifest) { document.getElementById('nav-info').innerHTML = ''; app.innerHTML = '<div class="loading">Loading routes...</div>'; return; }
+
+      const regions = state.manifest.regions;
+      const allRoutes = regions.flatMap(r => r.routes);
+      const total = allRoutes.length;
+      const completed = allRoutes.filter(r => r.completed).length;
+
+      document.getElementById('nav-info').innerHTML =
+        '<div class="nav-group">' +
+        '<div class="nav-stat"><span class="value">' + completed + '/' + total + ' completed</span></div>' +
+        '<div class="nav-stat"><span class="value">' + regions.length + ' regions</span></div>' +
+        '</div>';
+
+      let html = '<div class="region-grid">';
+      for (const region of regions) {
+        const regionCompleted = region.routes.filter(r => r.completed).length;
+        html += '<div class="region-group fade-in">';
+        html += '<div class="region-label">';
+        html += escapeHtml(region.name);
+        html += '<span class="route-count">(' + regionCompleted + '/' + region.routes.length + ')</span>';
+        html += '</div>';
+        html += '<div class="route-grid">';
+        for (const route of region.routes) {
+          const href = '#/trails/route/' + encodeURIComponent(route.key);
+          const statusClass = route.completed ? 'completed' : 'planned';
+          html += '<div class="route-card" onclick="location.hash=\'' + href.replace(/'/g, "\\'") + '\'">';
+          html += '<span class="status-dot ' + statusClass + '"></span>';
+          html += '<span class="name">' + escapeHtml(route.name) + '</span>';
+          html += '</div>';
+        }
+        html += '</div></div>';
+      }
+      html += '</div>';
+      app.innerHTML = html;
+    }
+
+    // ----- Trail detail (elevation) -----
+    function parseGpxTracks(xmlText) {
+      const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
+      const ns = 'http://www.topografix.com/GPX/1/1';
+      let tracks = doc.getElementsByTagNameNS(ns, 'trk');
+      if (tracks.length === 0) tracks = doc.getElementsByTagName('trk');
+      const result = [];
+      for (let i = 0; i < tracks.length; i++) {
+        const trk = tracks[i];
+        const nameEl = trk.getElementsByTagNameNS(ns, 'name')[0] || trk.getElementsByTagName('name')[0];
+        const name = nameEl ? nameEl.textContent : 'Track ' + (i + 1);
+        const points = [];
+        let trkpts = trk.getElementsByTagNameNS(ns, 'trkpt');
+        if (trkpts.length === 0) trkpts = trk.getElementsByTagName('trkpt');
+        for (let j = 0; j < trkpts.length; j++) {
+          const pt = trkpts[j];
+          const lat = parseFloat(pt.getAttribute('lat'));
+          const lon = parseFloat(pt.getAttribute('lon'));
+          const eleEl = pt.getElementsByTagNameNS(ns, 'ele')[0] || pt.getElementsByTagName('ele')[0];
+          const ele = eleEl ? parseFloat(eleEl.textContent) : null;
+          points.push({ lat, lon, ele });
+        }
+        result.push({ name, points });
+      }
+      return result;
+    }
+
+    function computeTrackStats(points) {
+      let distance = 0, gain = 0, loss = 0, maxEle = -Infinity;
+      for (let i = 1; i < points.length; i++) {
+        const prev = points[i - 1], curr = points[i];
+        distance += L.latLng(prev.lat, prev.lon).distanceTo(L.latLng(curr.lat, curr.lon));
+        if (curr.ele !== null && prev.ele !== null) {
+          const diff = curr.ele - prev.ele;
+          if (diff > 0) gain += diff; else loss -= diff;
+          if (curr.ele > maxEle) maxEle = curr.ele;
+        }
+      }
+      if (points.length > 0 && points[0].ele !== null && points[0].ele > maxEle) maxEle = points[0].ele;
+      return { distance, gain, loss, maxEle };
+    }
+
+    function trackToGeoJSON(track) {
+      return {
+        type: 'Feature',
+        geometry: { type: 'LineString', coordinates: track.points.map(p => [p.lon, p.lat, p.ele]) },
+        properties: {},
+      };
+    }
+
+    function populateStats(s) {
+      const items = [{ l: 'Dist', v: formatDistance(s.dist) }];
+      if (s.tracks) items.unshift({ l: 'Tracks', v: s.tracks });
+      if (s.gain !== undefined) {
+        const hours = (s.dist / 1000) / 5 + s.gain / 600;
+        const h = Math.floor(hours), m = Math.round((hours - h) * 60);
+        items.push({ l: 'Gain', v: '+' + formatElevation(s.gain) });
+        items.push({ l: 'Loss', v: '-' + formatElevation(s.loss) });
+        items.push({ l: 'Peak', v: formatElevation(s.max) });
+        items.push({ l: 'Est.', v: h > 0 ? h + 'h ' + m + 'min' : m + 'min' });
+      }
+      const navEl = document.getElementById('nav-stats-dynamic');
+      if (navEl) navEl.innerHTML = items.map(i => '<div class="nav-stat"><span class="label">' + i.l + '</span><span class="value">' + i.v + '</span></div>').join('');
+      const mobEl = document.getElementById('mobile-stats');
+      if (mobEl) {
+        let metaHtml = '';
+        if (s.status) {
+          const sc = s.completed ? 'var(--completed)' : 'var(--planned)';
+          metaHtml += '<div class="stat"><span class="value" style="color:' + sc + '">' + s.status + '</span></div>';
+          if (s.region) metaHtml += '<div class="stat"><span class="value">' + s.region + '</span></div>';
+        }
+        const dataHtml = items.map(i => '<div class="stat"><span class="label">' + i.l + '</span><span class="value">' + i.v + '</span></div>').join('');
+        mobEl.innerHTML = '<div class="stats-meta">' + metaHtml + '</div><div class="stats-data">' + dataHtml + '</div>';
+      }
+    }
+
+    function renderTrailDetail(routeKey) {
+      setActiveTab('trails');
+      cleanupMap();
+      const app = document.getElementById('app');
+      if (!state.manifest) { app.innerHTML = '<div class="loading">Loading routes...</div>'; return; }
+
+      let route = null, regionName = '';
+      for (const region of state.manifest.regions) {
+        for (const r of region.routes) {
+          if (r.key === routeKey) { route = r; regionName = region.name; break; }
+        }
+        if (route) break;
+      }
+      if (!route) { setCrumb('Not found', true); app.innerHTML = '<div class="loading">Route not found</div>'; return; }
+
+      setCrumb(route.name, true);
+
+      const color = ROUTE_COLOR;
+      const statusLabel = route.completed ? 'Completed' : 'Planned';
+
+      let navHtml = '';
+      navHtml += '<div class="nav-group nav-route-meta">';
+      navHtml += '<div class="nav-stat"><span class="value" style="color:' + (route.completed ? 'var(--completed)' : 'var(--planned)') + '">' + statusLabel + '</span></div>';
+      navHtml += '<div class="nav-stat"><span class="value">' + escapeHtml(regionName) + '</span></div>';
+      navHtml += '</div>';
+      navHtml += '<div class="nav-group" id="nav-stats-dynamic"></div>';
+      if (route.source) {
+        navHtml += '<div class="nav-group">';
+        navHtml += '<div class="nav-stat"><span class="value"><a href="' + escapeHtml(route.source) + '" target="_blank" rel="noopener">Source &#x2197;</a></span></div>';
+        navHtml += '</div>';
+      }
+      document.getElementById('nav-info').innerHTML = navHtml;
+
+      const isMultiTrack = route.trackCount && route.trackCount > 1;
+
+      let html = '<div class="detail-layout">';
+      html += '<div id="map"></div>';
+      html += '<div class="mobile-stats" id="mobile-stats"></div>';
+      if (isMultiTrack) {
+        html += '<div id="track-legend"></div>';
+        html += '<div id="multi-elevation-container"></div>';
+      } else {
+        if (route.hasElevation) html += '<div class="elevation-wrap" id="elevation-container"></div>';
+        else html += '<div class="no-elevation-notice">No elevation data available for this route</div>';
+      }
+      html += '</div>';
+      app.innerHTML = html;
+
+      const dvt = state.config.default_view_trails || DEFAULT_CONFIG.default_view_trails;
+      const map = L.map('map', {
+        zoomControl: true,
+        attributionControl: false,
+        maxBounds: [[-90, -200], [90, 200]],
+        maxBoundsViscosity: 1.0
+      }).setView(dvt.center, dvt.zoom);
+      L.control.attribution({ prefix: false }).addTo(map);
+      state.currentMap = map;
+      addTileLayersToMap(map);
+
+      if (route.plannedFile && route.completed) {
+        new L.GPX('gpx/' + route.plannedFile, {
+          async: true,
+          polyline_options: { color: ROUTE_COLOR, opacity: 0.35, weight: 4, dashArray: '8 6' },
+          markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
+        }).addTo(map);
+      }
+
+      if (isMultiTrack) renderMultiTrack(map, route);
+      else renderSingleTrack(map, route, color);
+    }
+
+    function renderSingleTrack(map, route, color) {
+      let elevationControl = null;
+      if (route.hasElevation) {
+        elevationControl = L.control.elevation({
+          theme: 'custom-theme',
+          detached: true,
+          elevationDiv: '#elevation-container',
+          height: 200,
+          slope: false, speed: false, acceleration: false, time: false,
+          legend: false, summary: false, ruler: false, downloadLink: false,
+          almostOver: false, distanceMarkers: false,
+          polyline: { color: color, opacity: 0.9, weight: 5 },
+        }).addTo(map);
+        state.currentElevation = elevationControl;
+      }
+
+      const gpxUrl = 'gpx/' + route.file;
+      new L.GPX(gpxUrl, {
+        async: true,
+        polyline_options: { color: color, opacity: 0.9, weight: 5 },
+        markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
+      }).on('loaded', function(e) {
+        const gpx = e.target;
+        const bounds = gpx.getBounds();
+        if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
+
+        const layers = [];
+        gpx.eachLayer(function(layer) { if (layer.getLatLngs) layers.push(layer); });
+        if (layers.length > 0) {
+          const latlngs = layers[0].getLatLngs();
+          const flat = Array.isArray(latlngs[0]) ? latlngs.flat() : latlngs;
+          if (flat.length > 1) addStartEndMarkers(map, flat[0], flat[flat.length - 1]);
+        }
+
+        const dist = gpx.get_distance();
+        const stats = { dist: dist, status: route.completed ? 'Completed' : 'Planned', completed: route.completed, region: route.key.split('/')[0] };
+        if (route.hasElevation) {
+          stats.gain = gpx.get_elevation_gain();
+          stats.loss = gpx.get_elevation_loss();
+          stats.max = gpx.get_elevation_max();
+        }
+        populateStats(stats);
+      }).on('addline', function(e) {
+        if (elevationControl) elevationControl.addData(e.line);
+      }).addTo(map);
+    }
+
+    function renderMultiTrack(map, route) {
+      fetch('gpx/' + route.file)
+        .then(r => r.text())
+        .then(function(xmlText) {
+          const tracks = parseGpxTracks(xmlText);
+          if (tracks.length === 0) return;
+
+          const elevHeight = 200;
+          const elevControls = [];
+          const allStats = [];
+          const bounds = L.latLngBounds();
+
+          const container = document.getElementById('multi-elevation-container');
+          if (container) {
+            let panelsHtml = '';
+            for (let i = 0; i < tracks.length; i++) {
+              const tc = TRACK_COLORS[i % TRACK_COLORS.length];
+              const collapsed = i > 0 ? ' collapsed' : '';
+              panelsHtml += '<div class="elevation-track-panel' + collapsed + '" style="--track-color:' + tc + '">';
+              panelsHtml += '<div class="elevation-track-label" onclick="var p=this.parentElement;if(p.classList.contains(\'collapsed\')){p.parentElement.querySelectorAll(\'.elevation-track-panel:not(.collapsed)\').forEach(function(s){s.classList.add(\'collapsed\')});p.classList.remove(\'collapsed\')}else{p.classList.add(\'collapsed\')}"><span class="color-dot" style="background:' + tc + '"></span>' + escapeHtml(tracks[i].name) + '</div>';
+              panelsHtml += '<div class="elevation-track-chart" id="elevation-track-' + i + '"></div>';
+              panelsHtml += '</div>';
+            }
+            container.innerHTML = panelsHtml;
+          }
+
+          for (let i = 0; i < tracks.length; i++) {
+            const track = tracks[i];
+            const tc = TRACK_COLORS[i % TRACK_COLORS.length];
+            const stats = computeTrackStats(track.points);
+            allStats.push(stats);
+            for (const p of track.points) bounds.extend([p.lat, p.lon]);
+            const latlngs = track.points.map(p => [p.lat, p.lon]);
+            L.polyline(latlngs, { color: tc, opacity: 0.9, weight: 5 }).addTo(map);
+            const hasEle = track.points.some(p => p.ele !== null);
+            if (hasEle && container) {
+              const ctrl = L.control.elevation({
+                theme: 'custom-theme', detached: true,
+                elevationDiv: '#elevation-track-' + i,
+                height: elevHeight,
+                slope: false, speed: false, acceleration: false, time: false,
+                legend: false, summary: false, ruler: false, downloadLink: false,
+                almostOver: false, distanceMarkers: false,
+                polyline: false,
+              }).addTo(map);
+              ctrl.addData(trackToGeoJSON(track));
+              elevControls.push(ctrl);
+            }
+          }
+          state.currentElevation = elevControls;
+          if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
+          const firstTrack = tracks[0];
+          const lastTrack = tracks[tracks.length - 1];
+          if (firstTrack.points.length > 0 && lastTrack.points.length > 0) {
+            const sp = firstTrack.points[0];
+            const ep = lastTrack.points[lastTrack.points.length - 1];
+            addStartEndMarkers(map, L.latLng(sp.lat, sp.lon), L.latLng(ep.lat, ep.lon));
+          }
+          const legendEl = document.getElementById('track-legend');
+          if (legendEl) {
+            let legendHtml = '';
+            for (let i = 0; i < tracks.length; i++) {
+              const tc = TRACK_COLORS[i % TRACK_COLORS.length];
+              const s = allStats[i];
+              legendHtml += '<div class="track-legend-item">';
+              legendHtml += '<span class="track-legend-color" style="background:' + tc + '"></span>';
+              legendHtml += '<span class="track-name">' + escapeHtml(tracks[i].name) + '</span>';
+              legendHtml += '<span class="track-stat">' + formatDistance(s.distance) + '</span>';
+              if (s.gain > 0) legendHtml += '<span class="track-stat">+' + formatElevation(s.gain) + '</span>';
+              legendHtml += '</div>';
+            }
+            legendEl.innerHTML = legendHtml;
+          }
+          const totals = allStats.reduce((acc, s) => ({
+            distance: acc.distance + s.distance, gain: acc.gain + s.gain, loss: acc.loss + s.loss, maxEle: Math.max(acc.maxEle, s.maxEle)
+          }), { distance: 0, gain: 0, loss: 0, maxEle: -Infinity });
+          const ps = { dist: totals.distance, tracks: tracks.length, status: route.completed ? 'Completed' : 'Planned', completed: route.completed, region: route.key.split('/')[0] };
+          if (totals.gain > 0) { ps.gain = totals.gain; ps.loss = totals.loss; ps.max = totals.maxEle; }
+          populateStats(ps);
+        });
+    }
+
+    // ----- Router -----
+    function parseFocus(hash) {
+      const q = hash.split('?')[1];
+      if (!q) return null;
+      const params = new URLSearchParams(q);
+      const focus = params.get('focus');
+      if (!focus) return null;
+      const colon = focus.indexOf(':');
+      if (colon === -1) return null;
+      return { type: focus.slice(0, colon), name: decodeURIComponent(focus.slice(colon + 1)) };
+    }
+
+    function router() {
+      const hash = location.hash || '#/';
+      const base = hash.split('?')[0];
+      if (base === '#/' || base === '#' || base === '#/map') return renderUnifiedMap(parseFocus(hash));
+      if (base === '#/places') return renderPlacesIndex();
+      if (base === '#/trails') return renderTrailsIndex();
+      if (base.startsWith('#/trails/route/')) {
+        const key = decodeURIComponent(base.replace('#/trails/route/', ''));
+        return renderTrailDetail(key);
+      }
+      renderUnifiedMap(null);
+    }
+    window.addEventListener('hashchange', router);
+
+    // ----- Theme -----
+    function getStoredTheme() {
+      try { return localStorage.getItem('atlas-theme') || 'system'; }
+      catch { return 'system'; }
+    }
+    function applyTheme(choice) {
+      const eff = choice === 'system'
+        ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+        : choice;
+      document.documentElement.setAttribute('data-theme', eff);
+    }
+    applyTheme(getStoredTheme());
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+        if (getStoredTheme() === 'system') applyTheme('system');
+      });
+    }
+
+    // ----- Auth + API client -----
+    function apiUrl(path) {
+      const base = (state.config.api_base || '/api').replace(/\/$/, '');
+      return base + path;
+    }
+
+    function api(method, path, body) {
+      const opts = { method, credentials: 'same-origin', headers: {} };
+      if (body !== undefined && !(body instanceof Blob)) {
+        opts.headers['Content-Type'] = 'application/json';
+        opts.body = JSON.stringify(body);
+      } else if (body instanceof Blob) {
+        opts.body = body;
+      }
+      return fetch(apiUrl(path), opts).then(async r => {
+        let data = null;
+        try { data = await r.json(); } catch {}
+        if (!r.ok) {
+          const err = new Error((data && data.error) || ('HTTP ' + r.status));
+          err.status = r.status;
+          err.body = data;
+          throw err;
+        }
+        return data;
+      });
+    }
+
+    function refreshAuthState() {
+      return fetch(apiUrl('/state'), { credentials: 'same-origin' })
+        .then(r => r.ok ? r.json() : null)
+        .then(s => { if (s) state.auth = s; renderAuthWidget(); })
+        .catch(() => { renderAuthWidget(); });
+    }
+
+    function renderAuthWidget() {
+      const el = document.getElementById('auth-widget');
+      if (!el) return;
+      if (state.auth.authenticated) {
+        el.innerHTML =
+          '<button id="auth-menu-btn" title="Account menu">' +
+            '<span>Menu</span><span class="caret">&#x25BE;</span>' +
+          '</button>' +
+          '<div class="auth-menu" id="auth-menu" hidden>' +
+            '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>' +
+            '<button data-action="settings">Settings</button>' +
+            '<button data-action="signout">Sign out</button>' +
+          '</div>';
+        const btn = document.getElementById('auth-menu-btn');
+        const menu = document.getElementById('auth-menu');
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          menu.hidden = !menu.hidden;
+        });
+        menu.addEventListener('click', function(e) {
+          const action = e.target.closest('button[data-action]');
+          if (!action) return;
+          menu.hidden = true;
+          if (action.dataset.action === 'signout') {
+            api('POST', '/logout').then(refreshAuthState).then(router);
+          } else if (action.dataset.action === 'settings') {
+            openSettingsModal();
+          }
+        });
+        document.addEventListener('click', function closer(e) {
+          if (!el.contains(e.target)) {
+            menu.hidden = true;
+            document.removeEventListener('click', closer);
+          }
+        });
+      } else {
+        el.innerHTML = '<button id="auth-signin">Sign in</button>';
+        document.getElementById('auth-signin').addEventListener('click', openSignInModal);
+      }
+    }
+
+    // ----- Settings modal -----
+    function deviceLabel(ua) {
+      if (!ua) return 'Unknown device';
+      const s = ua.toLowerCase();
+      if (s.includes('iphone')) return 'iPhone';
+      if (s.includes('ipad')) return 'iPad';
+      if (s.includes('android')) return 'Android';
+      if (s.includes('mac os x') || s.includes('macintosh')) return 'macOS';
+      if (s.includes('windows')) return 'Windows';
+      if (s.includes('linux')) return 'Linux';
+      if (s.startsWith('curl/')) return 'curl';
+      return ua.slice(0, 32) + (ua.length > 32 ? '…' : '');
+    }
+    function timeAgo(unixSec) {
+      const d = Math.max(0, Math.floor(Date.now() / 1000) - unixSec);
+      if (d < 60) return d + 's ago';
+      if (d < 3600) return Math.floor(d / 60) + 'm ago';
+      if (d < 86400) return Math.floor(d / 3600) + 'h ago';
+      if (d < 86400 * 30) return Math.floor(d / 86400) + 'd ago';
+      const dt = new Date(unixSec * 1000);
+      return dt.toISOString().slice(0, 10);
+    }
+
+    function openSettingsModal() {
+      const isOp = state.auth.is_operator;
+      const regOpen = state.auth.registration_open;
+      const theme = getStoredTheme();
+      openModal(
+        '<h2>Settings<button class="modal-close">&times;</button></h2>' +
+        '<h3 class="settings-h">Appearance</h3>' +
+        '<div class="radio-row">' +
+          ['system', 'dark', 'light'].map(v =>
+            '<label><input type="radio" name="theme" value="' + v + '"' + (theme === v ? ' checked' : '') + '> ' + v.charAt(0).toUpperCase() + v.slice(1) + '</label>'
+          ).join('') +
+        '</div>' +
+        '<h3 class="settings-h">Password</h3>' +
+        '<form id="settings-pw-form">' +
+          '<label for="s-current">Current password</label>' +
+          '<input type="password" id="s-current" autocomplete="current-password" required>' +
+          '<label for="s-new">New password</label>' +
+          '<input type="password" id="s-new" autocomplete="new-password" required>' +
+          '<div class="hint">12 to 256 characters. Other sessions on this account will be signed out.</div>' +
+          '<div class="modal-error" id="s-error"></div>' +
+          '<div class="modal-actions">' +
+            '<button type="submit" class="primary" id="s-submit">Change password</button>' +
+          '</div>' +
+        '</form>' +
+        '<h3 class="settings-h">Active sessions</h3>' +
+        '<div id="s-sessions">Loading&hellip;</div>' +
+        (isOp ?
+          '<h3 class="settings-h">Registration</h3>' +
+          '<div class="checkbox-row"><input type="checkbox" id="s-reg"' + (regOpen ? ' checked' : '') + '><label for="s-reg">Allow new users to register</label></div>' +
+          '<div class="hint">Off by default after the first account is created. Turn on temporarily to invite someone.</div>'
+        : '') +
+        '<div class="modal-actions" style="margin-top:1rem">' +
+          '<button type="button" class="modal-close">Close</button>' +
+        '</div>',
+        function() {
+          document.getElementById('settings-pw-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const cur = document.getElementById('s-current').value;
+            const nw = document.getElementById('s-new').value;
+            const submit = document.getElementById('s-submit');
+            submit.disabled = true;
+            api('POST', '/change-password', { current_password: cur, new_password: nw })
+              .then(() => {
+                document.getElementById('s-current').value = '';
+                document.getElementById('s-new').value = '';
+                submit.disabled = false;
+                submit.textContent = 'Password changed';
+                setTimeout(() => { submit.textContent = 'Change password'; }, 2000);
+                renderSessions();
+              })
+              .catch(err => {
+                submit.disabled = false;
+                const e = document.getElementById('s-error');
+                e.textContent = err.message;
+                e.classList.add('visible');
+              });
+          });
+          const reg = document.getElementById('s-reg');
+          if (reg) {
+            reg.addEventListener('change', function() {
+              api('POST', '/settings/registration', { mode: this.checked ? 'open' : 'closed' })
+                .then(() => refreshAuthState())
+                .catch(err => { alert('Failed: ' + err.message); this.checked = !this.checked; });
+            });
+          }
+          renderSessions();
+          document.querySelectorAll('input[name="theme"]').forEach(r => {
+            r.addEventListener('change', function() {
+              if (!this.checked) return;
+              try { localStorage.setItem('atlas-theme', this.value); } catch {}
+              applyTheme(this.value);
+            });
+          });
+        }
+      );
+    }
+
+    function renderSessions() {
+      const el = document.getElementById('s-sessions');
+      if (!el) return;
+      api('GET', '/sessions').then(data => {
+        if (!data.sessions || !data.sessions.length) {
+          el.innerHTML = '<div class="hint">No sessions.</div>';
+          return;
+        }
+        el.innerHTML = '<ul class="session-list">' + data.sessions.map(s => {
+          const label = escapeHtml(deviceLabel(s.user_agent));
+          const ip = s.ip ? escapeHtml(s.ip) : '?';
+          const ago = escapeHtml(timeAgo(s.last_seen_at || s.created_at));
+          const current = s.current ? '<span class="session-current">This device</span>' : '';
+          const revoke = s.current ? '' : '<button class="session-revoke" data-id="' + escapeHtml(s.id) + '">Revoke</button>';
+          return '<li class="session-row">' +
+            '<div class="session-meta">' +
+              '<div class="session-device">' + label + ' ' + current + '</div>' +
+              '<div class="session-sub">' + ip + ' &middot; ' + ago + '</div>' +
+            '</div>' +
+            revoke +
+          '</li>';
+        }).join('') + '</ul>';
+        el.querySelectorAll('.session-revoke').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            this.disabled = true;
+            api('POST', '/sessions/revoke', { id: id })
+              .then(renderSessions)
+              .catch(err => { this.disabled = false; alert('Failed: ' + err.message); });
+          });
+        });
+      }).catch(() => {
+        el.innerHTML = '<div class="hint">Could not load sessions.</div>';
+      });
+    }
+
+    function refreshPlaces() {
+      return fetch('places.json').then(r => r.ok ? r.json() : []).then(data => {
+        state.places = data;
+        state.categoryColors = assignCategoryColors(data);
+      });
+    }
+
+    function refreshRoutes() {
+      return fetch('routes.json').then(r => r.ok ? r.json() : null).then(data => {
+        if (!data) return;
+        data.regions.sort((a, b) => a.name.localeCompare(b.name));
+        for (const region of data.regions) region.routes.sort((a, b) => a.name.localeCompare(b.name));
+        state.manifest = data;
+      });
+    }
+
+    // ----- Modal infrastructure -----
+    function openModal(html, onMount) {
+      const root = document.getElementById('modal-root');
+      root.innerHTML = '<div class="modal-backdrop" id="modal-backdrop"><div class="modal">' + html + '</div></div>';
+      const backdrop = document.getElementById('modal-backdrop');
+      backdrop.addEventListener('click', function(e) { if (e.target === backdrop) closeModal(); });
+      const close = backdrop.querySelector('.modal-close');
+      if (close) close.addEventListener('click', closeModal);
+      document.addEventListener('keydown', escClose);
+      if (onMount) onMount(backdrop);
+    }
+    function closeModal() {
+      document.getElementById('modal-root').innerHTML = '';
+      document.removeEventListener('keydown', escClose);
+    }
+    function escClose(e) { if (e.key === 'Escape') closeModal(); }
+    function showModalError(msg) {
+      const el = document.querySelector('.modal-error');
+      if (el) { el.textContent = msg; el.classList.add('visible'); }
+    }
+
+    // ----- Sign-in / register modal -----
+    function openSignInModal() {
+      const canRegister = state.auth.registration_open;
+      let mode = state.auth.has_users ? 'login' : 'register';
+      openModal(
+        '<h2><span id="modal-title">Sign in</span><button class="modal-close">&times;</button></h2>' +
+        '<div class="modal-tabs" id="auth-tabs">' +
+          '<button data-mode="login" class="active">Sign in</button>' +
+          (canRegister ? '<button data-mode="register">Register</button>' : '') +
+        '</div>' +
+        '<form id="auth-form">' +
+          '<label for="auth-username">Username</label>' +
+          '<input type="text" id="auth-username" autocomplete="username" required>' +
+          '<label for="auth-password">Password</label>' +
+          '<input type="password" id="auth-password" autocomplete="current-password" required>' +
+          '<div id="setup-token-row" hidden>' +
+            '<label for="auth-setup-token">Setup token</label>' +
+            '<input type="text" id="auth-setup-token" autocomplete="off">' +
+            '<div class="hint">Required for first registration. Check the API server logs.</div>' +
+          '</div>' +
+          '<div class="hint" id="auth-hint"></div>' +
+          '<div class="modal-error" id="auth-error"></div>' +
+          '<div class="modal-actions">' +
+            '<button type="button" class="modal-close">Cancel</button>' +
+            '<button type="submit" class="primary" id="auth-submit">Sign in</button>' +
+          '</div>' +
+        '</form>',
+        function() {
+          setMode(mode);
+          document.querySelectorAll('#auth-tabs button[data-mode]').forEach(b => {
+            b.addEventListener('click', function() { setMode(this.dataset.mode); });
+          });
+          document.getElementById('auth-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            submit();
+          });
+          document.getElementById('auth-username').focus();
+        }
+      );
+
+      function setMode(m) {
+        mode = m;
+        document.querySelectorAll('#auth-tabs button[data-mode]').forEach(b => {
+          b.classList.toggle('active', b.dataset.mode === m);
+        });
+        document.getElementById('modal-title').textContent = m === 'register' ? 'Register' : 'Sign in';
+        document.getElementById('auth-submit').textContent = m === 'register' ? 'Register' : 'Sign in';
+        document.getElementById('auth-password').setAttribute('autocomplete', m === 'register' ? 'new-password' : 'current-password');
+        document.getElementById('auth-hint').textContent = m === 'register' ? 'Password must be 12 to 256 characters.' : '';
+        const tokenRow = document.getElementById('setup-token-row');
+        const tokenInput = document.getElementById('auth-setup-token');
+        const needsToken = m === 'register' && state.auth.requires_setup_token;
+        tokenRow.hidden = !needsToken;
+        if (tokenInput) tokenInput.required = needsToken;
+      }
+      function submit() {
+        const u = document.getElementById('auth-username').value.trim();
+        const p = document.getElementById('auth-password').value;
+        const payload = { username: u, password: p };
+        if (mode === 'register' && state.auth.requires_setup_token) {
+          payload.setup_token = document.getElementById('auth-setup-token').value.trim();
+        }
+        const submitBtn = document.getElementById('auth-submit');
+        submitBtn.disabled = true;
+        api('POST', '/' + mode, payload)
+          .then(() => refreshAuthState())
+          .then(() => { closeModal(); router(); })
+          .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
+      }
+    }
+
+    // ----- Add place / GPX modal -----
+    function openAddModal(prefillCoords, initialTab) {
+      let tab = initialTab || 'place';
+      openModal(
+        '<h2>Add <button class="modal-close">&times;</button></h2>' +
+        '<div class="modal-tabs" id="add-tabs">' +
+          '<button data-tab="place"' + (tab === 'place' ? ' class="active"' : '') + '>Place</button>' +
+          '<button data-tab="trail"' + (tab === 'trail' ? ' class="active"' : '') + '>Trail (GPX)</button>' +
+        '</div>' +
+        '<div id="add-body"></div>',
+        function() {
+          document.querySelectorAll('#add-tabs button[data-tab]').forEach(b => {
+            b.addEventListener('click', function() {
+              tab = this.dataset.tab;
+              document.querySelectorAll('#add-tabs button[data-tab]').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
+              renderTab();
+            });
+          });
+          renderTab();
+        }
+      );
+
+      function renderTab() {
+        const body = document.getElementById('add-body');
+        if (tab === 'place') body.innerHTML = placeFormHtml();
+        else body.innerHTML = gpxFormHtml();
+        if (tab === 'place') wirePlaceForm();
+        else wireGpxForm();
+      }
+
+      function placeFormHtml() {
+        const cats = Object.keys(state.categoryColors).sort();
+        const c = prefillCoords;
+        return '<form id="place-form">' +
+          '<label for="p-name">Name</label>' +
+          '<input type="text" id="p-name" required>' +
+          '<div class="row">' +
+            '<div><label for="p-lat">Latitude</label><input type="number" id="p-lat" step="any" required value="' + (c ? c.lat.toFixed(6) : '') + '"></div>' +
+            '<div><label for="p-lon">Longitude</label><input type="number" id="p-lon" step="any" required value="' + (c ? c.lng.toFixed(6) : '') + '"></div>' +
+          '</div>' +
+          '<div class="pick-row"><button type="button" id="pick-on-map">Pick on map</button></div>' +
+          '<label for="p-category">Category</label>' +
+          selectOrNewHtml('p-category', cats, displayCategory) +
+          '<label for="p-country">Country (optional)</label>' +
+          '<input type="text" id="p-country">' +
+          '<label for="p-note">Note (optional)</label>' +
+          '<textarea id="p-note"></textarea>' +
+          '<label for="p-local-name">Local name (optional)</label>' +
+          '<input type="text" id="p-local-name">' +
+          '<label for="p-sources">Sources (optional, one URL per line)</label>' +
+          '<textarea id="p-sources" placeholder="https://example.com/source"></textarea>' +
+          '<div class="checkbox-row"><input type="checkbox" id="p-visited"><label for="p-visited">I&rsquo;ve visited this place</label></div>' +
+          '<div class="modal-error" id="add-error"></div>' +
+          '<div class="modal-actions">' +
+            '<button type="button" class="modal-close">Cancel</button>' +
+            '<button type="submit" class="primary" id="place-submit">Add place</button>' +
+          '</div>' +
+        '</form>';
+      }
+
+      function gpxFormHtml() {
+        const regions = state.manifest ? state.manifest.regions.map(r => r.name).sort() : [];
+        return '<form id="gpx-form">' +
+          '<label for="g-file">GPX file</label>' +
+          '<input type="file" id="g-file" accept=".gpx,application/gpx+xml,text/xml" required>' +
+          '<label for="g-region">Region</label>' +
+          selectOrNewHtml('g-region', regions, null) +
+          '<label for="g-name">Trail name</label>' +
+          '<input type="text" id="g-name" required placeholder="will be the filename">' +
+          '<div class="hint">Server will strip PII (timestamps, author, creator) before saving.</div>' +
+          '<div class="modal-error" id="add-error"></div>' +
+          '<div class="modal-actions">' +
+            '<button type="button" class="modal-close">Cancel</button>' +
+            '<button type="submit" class="primary" id="gpx-submit">Upload trail</button>' +
+          '</div>' +
+        '</form>';
+      }
+
+      function selectOrNewHtml(id, options, labelFn) {
+        const opts = options.map(v => '<option value="' + escapeHtml(v) + '">' + escapeHtml(labelFn ? labelFn(v) : v) + '</option>').join('');
+        // No empty placeholder: first real option preselects; if no options exist,
+        // the "Add new" entry preselects and reveals the input on mount.
+        return '<div class="select-or-new" data-id="' + id + '">' +
+          '<select id="' + id + '" required>' +
+            opts +
+            '<option value="__new__">+ Add new&hellip;</option>' +
+          '</select>' +
+          '<input type="text" class="new-input" id="' + id + '-new" placeholder="Type new value" hidden>' +
+        '</div>';
+      }
+
+      function wireSelectOrNew(id) {
+        const sel = document.getElementById(id);
+        const input = document.getElementById(id + '-new');
+        if (!sel || !input) return;
+        const sync = () => {
+          if (sel.value === '__new__') {
+            input.hidden = false;
+            input.required = true;
+          } else {
+            input.hidden = true;
+            input.required = false;
+            input.value = '';
+          }
+        };
+        sel.addEventListener('change', sync);
+        sync();  // handle the case where "+ Add new…" is the only/initial choice
+      }
+
+      function readSelectOrNew(id) {
+        const sel = document.getElementById(id);
+        const input = document.getElementById(id + '-new');
+        if (!sel) return '';
+        if (sel.value === '__new__') return (input.value || '').trim();
+        return sel.value;
+      }
+
+      function wirePlaceForm() {
+        wireSelectOrNew('p-category');
+        document.getElementById('pick-on-map').addEventListener('click', function() {
+          closeModal();
+          enterPickCoordsMode();
+        });
+        document.getElementById('place-form').addEventListener('submit', function(e) {
+          e.preventDefault();
+          const sourcesRaw = document.getElementById('p-sources').value.trim();
+          const sources = sourcesRaw ? sourcesRaw.split('\n').map(s => s.trim()).filter(Boolean) : null;
+          const category = readSelectOrNew('p-category');
+          if (!category) { showModalError('Pick or add a category.'); return; }
+          const payload = {
+            name: document.getElementById('p-name').value.trim(),
+            lat: parseFloat(document.getElementById('p-lat').value),
+            lon: parseFloat(document.getElementById('p-lon').value),
+            category: category,
+            visited: document.getElementById('p-visited').checked,
+          };
+          const country = document.getElementById('p-country').value.trim();
+          const note = document.getElementById('p-note').value.trim();
+          const localName = document.getElementById('p-local-name').value.trim();
+          if (country) payload.country = country;
+          if (note) payload.note = note;
+          if (localName) payload.local_name = localName;
+          if (sources && sources.length) payload.sources = sources;
+          const submitBtn = document.getElementById('place-submit');
+          submitBtn.disabled = true;
+          api('POST', '/places', payload)
+            .then(() => refreshPlaces())
+            .then(() => { closeModal(); router(); })
+            .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
+        });
+      }
+
+      function wireGpxForm() {
+        wireSelectOrNew('g-region');
+        document.getElementById('gpx-form').addEventListener('submit', function(e) {
+          e.preventDefault();
+          const file = document.getElementById('g-file').files[0];
+          const region = readSelectOrNew('g-region');
+          const name = document.getElementById('g-name').value.trim();
+          if (!file) { showModalError('Pick a GPX file first.'); return; }
+          if (!region) { showModalError('Pick or add a region.'); return; }
+          const submitBtn = document.getElementById('gpx-submit');
+          submitBtn.disabled = true;
+          const qs = '?region=' + encodeURIComponent(region) + '&name=' + encodeURIComponent(name);
+          fetch(apiUrl('/gpx') + qs, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/gpx+xml' },
+            body: file,
+          }).then(async r => {
+            const data = await r.json().catch(() => null);
+            if (!r.ok) throw new Error((data && data.error) || 'HTTP ' + r.status);
+            return data;
+          })
+          .then(() => refreshRoutes())
+          .then(() => { closeModal(); router(); })
+          .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
+        });
+      }
+    }
+
+    // ----- Pick coordinates on the map -----
+    function enterPickCoordsMode() {
+      // Make sure we're on the unified map. If not, navigate there first.
+      const base = (location.hash || '#/').split('?')[0];
+      if (base !== '#/' && base !== '#/map' && base !== '#') {
+        location.hash = '#/';
+        setTimeout(enterPickCoordsMode, 250);
+        return;
+      }
+      const banner = document.createElement('div');
+      banner.className = 'pick-coords-banner';
+      banner.textContent = 'Click on the map to set coordinates (or click here to cancel)';
+      banner.addEventListener('click', cleanup);
+      document.body.appendChild(banner);
+      const map = state.currentMap;
+      if (!map) { cleanup(); return; }
+      function onClick(e) {
+        cleanup();
+        openAddModal(e.latlng);
+      }
+      function cleanup() {
+        map.off('click', onClick);
+        if (banner.parentNode) banner.parentNode.removeChild(banner);
+        if (map.getContainer()) map.getContainer().style.cursor = '';
+      }
+      map.getContainer().style.cursor = 'crosshair';
+      map.once('click', onClick);
+    }
+
+    // Floating "+" button on the unified map view, when authed.
+    function maybeMountFab() {
+      const app = document.getElementById('app');
+      const existing = app.querySelector('.fab-add');
+      if (existing) existing.remove();
+      if (!state.auth.authenticated) return;
+      const base = (location.hash || '#/').split('?')[0];
+      if (!(base === '#/' || base === '#' || base === '#/map')) return;
+      const fab = document.createElement('button');
+      fab.className = 'fab-add';
+      fab.title = 'Add place or trail';
+      fab.innerHTML = '+';
+      fab.addEventListener('click', function() { openAddModal(null); });
+      app.appendChild(fab);
+    }
+
+    // Hook into router so the FAB re-mounts on each view change.
+    const _origRouter = typeof router !== 'undefined' ? router : null;
+    function wrappedRouter() {
+      if (_origRouter) _origRouter(); else router();
+      maybeMountFab();
+    }
+    window.removeEventListener('hashchange', router);
+    window.addEventListener('hashchange', wrappedRouter);
+
+    // ----- Init -----
+    function applyConfig(cfg) {
+      state.config = Object.assign({}, DEFAULT_CONFIG, cfg || {});
+      document.title = state.config.brand || 'Atlas';
+      const brandEl = document.getElementById('nav-brand-text');
+      if (brandEl) brandEl.textContent = state.config.brand || 'Atlas';
+    }
+
+    Promise.allSettled([
+      fetch('site-config.json').then(r => r.ok ? r.json() : null),
+      fetch('places.json').then(r => r.ok ? r.json() : Promise.reject()),
+      fetch('routes.json').then(r => r.ok ? r.json() : Promise.reject()),
+      fetch(apiUrl('/state'), { credentials: 'same-origin' }).then(r => r.ok ? r.json() : null).catch(() => null),
+    ]).then(function(results) {
+      const [configRes, placesRes, routesRes, stateRes] = results;
+      applyConfig(configRes.status === 'fulfilled' ? configRes.value : null);
+      if (placesRes.status === 'fulfilled') {
+        state.places = placesRes.value;
+        state.categoryColors = assignCategoryColors(placesRes.value);
+      }
+      if (routesRes.status === 'fulfilled') {
+        const data = routesRes.value;
+        data.regions.sort((a, b) => a.name.localeCompare(b.name));
+        for (const region of data.regions) region.routes.sort((a, b) => a.name.localeCompare(b.name));
+        state.manifest = data;
+      }
+      if (stateRes.status === 'fulfilled' && stateRes.value) {
+        state.auth = stateRes.value;
+      }
+      renderAuthWidget();
+      if (!state.places && !state.manifest) {
+        document.getElementById('app').innerHTML = '<div class="loading">Failed to load data</div>';
+        return;
+      }
+      wrappedRouter();
+    });
+  </script>
+</body>
+</html>

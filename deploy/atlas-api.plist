@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  macOS launchd plist for Atlas API.
+  Install to ~/Library/LaunchAgents/local.atlas-api.plist (per-user)
+  or /Library/LaunchDaemons/local.atlas-api.plist (system).
+  Then: launchctl load ~/Library/LaunchAgents/local.atlas-api.plist
+
+  Adjust the paths below to your install. No socket activation; the process
+  runs continuously and respects idle_exit_seconds in config if you want it
+  to exit when inactive (KeepAlive will then restart it on the next request,
+  which isn't ideal on launchd; for true on-demand on macOS use Sockets keys).
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>local.atlas-api</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>/Users/YOU/atlas/tools/api.py</string>
+    <string>--config</string>
+    <string>/Users/YOU/atlas/tools/config.json</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/YOU/atlas</string>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/Users/YOU/atlas/tools/atlas-api.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/YOU/atlas/tools/atlas-api.log</string>
+</dict>
+</plist>

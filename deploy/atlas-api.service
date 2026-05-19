@@ -1,0 +1,38 @@
+[Unit]
+Description=Atlas API
+Requires=atlas-api.socket
+After=network.target
+
+[Service]
+Type=simple
+# Adjust these to your install:
+User=atlas
+Group=atlas
+WorkingDirectory=/srv/atlas
+ExecStart=/usr/bin/python3 /srv/atlas/tools/api.py --config /srv/atlas/tools/config.json
+Restart=on-failure
+RestartSec=2
+
+# Socket activation: systemd hands us fd 3.
+# The Python script honors LISTEN_FDS automatically.
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/atlas
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

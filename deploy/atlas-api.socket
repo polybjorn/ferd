@@ -1,0 +1,10 @@
+[Unit]
+Description=Atlas API listening socket
+
+[Socket]
+# Loopback only by default. Reverse-proxy (nginx) handles TLS + public exposure.
+ListenStream=127.0.0.1:8091
+Accept=no
+
+[Install]
+WantedBy=sockets.target
