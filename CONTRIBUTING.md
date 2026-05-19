@@ -22,28 +22,9 @@ Open `http://127.0.0.1:8090/`. Click "Sign in", register the first account, then
 
 To start completely fresh, delete `tools/atlas.db*`. Any data you added through the API lives in `places.json` and `gpx/`, which are gitignored.
 
-## Repository layout
+## How it fits together
 
-```
-index.html               # the app (HTML/CSS/JS in one file)
-site-config.example.json # branding, default view, category labels, API base
-gpx-manifest.sh          # generates routes.json from gpx/<Region>/<Trail>.gpx
-tools/
-  api.py                 # stdlib-only API server (auth + write endpoints)
-  config.example.json    # API config template
-deploy/
-  atlas-api.socket       # systemd socket unit
-  atlas-api.service      # systemd service unit
-  atlas-api.plist        # macOS launchd template
-  nginx.example.conf     # nginx server block
-docs/
-  configure.md           # config field reference
-  install.md             # install walk-through
-  themes.md              # theme system + how to add one
-SECURITY.md              # account model, setup token, threat notes
-```
-
-The repo intentionally has no build step, no JS framework, no bundler. Edits to `index.html` show up on reload.
+For repo layout, data flow, and the design rules (no build step, stdlib only, no framework), see [docs/architecture.md](docs/architecture.md). Edits to `index.html` show up on reload.
 
 ## Tests
 

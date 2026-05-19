@@ -4,7 +4,7 @@ A self-hosted Leaflet map for travel places and GPX trails. Single-file static f
 
 ![Unified map view](docs/screenshots/map.png)
 
-**Docs:** [Install](docs/install.md) · [Configuration](docs/configure.md) · [Themes](docs/themes.md)
+**Docs:** [Install](docs/install.md) · [Configuration](docs/configure.md) · [Themes](docs/themes.md) · [Architecture](docs/architecture.md)
 
 ## Features
 
