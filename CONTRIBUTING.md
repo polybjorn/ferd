@@ -45,9 +45,19 @@ SECURITY.md              # account model, setup token, threat notes
 
 The repo intentionally has no build step, no JS framework, no bundler. Edits to `index.html` show up on reload.
 
-## Smoke tests
+## Tests
 
-There is no formal test suite. The PRs I review against locally run the curl sequences in the [phase 1](SECURITY.md#auth-api-sanity) and [phase 2](SECURITY.md#write-api-sanity) sections of the security doc. If your change touches auth or write endpoints, walk through those before opening a PR.
+Unit tests for `tools/api.py` pure helpers and file utilities live in `tests/`. Run from the repo root:
+
+```sh
+python3 -m unittest discover -s tests
+```
+
+Stdlib only, no deps, ~0.5s. Covers `validate_place`, the username/password validators, `safe_path_component`, `resolve_under`, `write_json_file` / `load_json_file`, `atomic_write_bytes`, `strip_gpx_pii`, password hashing, and bind parsing. Run this before opening a PR; if your change touches one of those, add a case.
+
+For end-to-end coverage, the PRs I review against locally walk through the curl sequences in the [phase 1](SECURITY.md#auth-api-sanity) and [phase 2](SECURITY.md#write-api-sanity) sections of the security doc, and the UI flows below.
+
+## UI smoke walk
 
 To verify the static side end to end, run the dev server above, sign in, and do all of: add a place from the map ("Pick on map" then form), edit a place from its popup, delete a place, upload a GPX, delete a trail, switch themes, change your password, revoke a session.
 
