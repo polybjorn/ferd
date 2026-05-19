@@ -162,15 +162,6 @@ Open the site. If you didn't pre-seed `initial_user` and `initial_password`, reg
 
 If you set `require_setup_token: true` in the API config, the first registration also needs the one-time token printed to the API log on startup. Recommended when deploying to the open internet. See [security.md](security.md).
 
-## Verifying the source
-
-If you'd rather verify what you're installing:
-
-- Read the install script before running. It does not call out to the network.
-- Inspect `tools/api.py` (single file, no dependencies beyond the Python stdlib).
-- Inspect the systemd units in `deploy/`; the service unit uses standard hardening (`NoNewPrivileges`, `ProtectSystem=strict`, empty `CapabilityBoundingSet`).
-- Signed release tags: not yet set up (WIP). Once in place, `git verify-tag <tag>` will be the canonical check.
-
 ## Updating
 
 ```sh
