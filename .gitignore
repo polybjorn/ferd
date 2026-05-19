@@ -1,9 +1,14 @@
+# OS / editor state
 .DS_Store
+.claude/
+
+# App data + per-deployment config
 places.json
-gpx
 routes.json
+gpx
 site-config.json
-.atlas-*.lock
-tools/atlas.db
-tools/atlas.db-*
 tools/config.json
+tools/atlas.db*
+
+# Runtime
+.atlas-*.lock
