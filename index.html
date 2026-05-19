@@ -1002,6 +1002,8 @@
     }
     .leaflet-popup-content .popup-share-corner:hover { opacity: 1; }
     .leaflet-popup-content .popup-local { font-size: 0.75rem; color: var(--muted); font-weight: 300; font-style: italic; }
+    .leaflet-popup-content .cat-text { color: var(--c); }
+    [data-mode="light"] .leaflet-popup-content .cat-text { color: var(--cl); }
     .leaflet-popup-content .popup-note { color: var(--muted); font-size: 0.75rem; }
     .leaflet-popup-content .popup-sources { font-size: 0.65rem; margin-top: 0.3rem; }
     .leaflet-popup-content .popup-sources a { color: var(--accent); }
@@ -1472,7 +1474,9 @@
   <script src="https://unpkg.com/@raruto/leaflet-elevation@2.5.2/dist/leaflet-elevation.js"></script>
   <script>
     // ----- Shared -----
-    const COLORS = ['#6aaeee', '#c792ea', '#ffbd2e', '#89ddff', '#f78c6c', '#c3e88d', '#ff5370', '#82b1ff', '#f07178', '#c17e70'];
+    const COLORS       = ['#6aaeee', '#c792ea', '#ffbd2e', '#89ddff', '#f78c6c', '#c3e88d', '#ff5370', '#82b1ff', '#f07178', '#c17e70'];
+    const COLORS_LIGHT = ['#1e6fbf', '#7e3fb0', '#8f6200', '#0e7490', '#b34a20', '#4d7a1f', '#c41142', '#2952c4', '#b8313a', '#7a3e30'];
+    if (COLORS.length !== COLORS_LIGHT.length) console.warn('COLORS and COLORS_LIGHT length mismatch');
     const TRACK_COLORS = COLORS;
     const ROUTE_COLOR = '#6aaeee';
     const COMPLETED_COLOR = '#00e05a';
@@ -1541,6 +1545,7 @@
       places: null,
       manifest: null,
       categoryColors: {},
+      categoryColorsLight: {},
       // browse-list state
       groupBy: 'category',
       // unified-map filter state
@@ -1628,9 +1633,13 @@
 
     function assignCategoryColors(places) {
       const cats = [...new Set(places.map(p => p.category))].sort();
-      const map = {};
-      cats.forEach((c, i) => { map[c] = COLORS[i % COLORS.length]; });
-      return map;
+      const dark = {}, light = {};
+      cats.forEach((c, i) => {
+        const idx = i % COLORS.length;
+        dark[c] = COLORS[idx];
+        light[c] = COLORS_LIGHT[idx];
+      });
+      return { dark, light };
     }
 
     function createTileLayers() {
@@ -1832,13 +1841,15 @@
       if (state.places && placesEnabled()) {
         for (const p of state.places) {
           const color = state.categoryColors[p.category];
+          const colorLight = state.categoryColorsLight[p.category];
+          const catStyle = '--c:' + color + ';--cl:' + colorLight;
           const marker = L.marker([p.lat, p.lon], { icon: createMarkerIcon(color, p.visited) });
           let popupHtml = '<a href="#" class="popup-share-corner popup-share" data-type="place" data-id="' + escapeHtml(p._slug || p.name) + '">Copy link</a>';
-          popupHtml += '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local" style="color:' + color + '">&middot; ' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
+          popupHtml += '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local cat-text" style="' + catStyle + '">&middot; ' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
           if (p.note) popupHtml += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
           if (p.sources && p.sources.length) popupHtml += '<div class="popup-sources">' + renderSources(p.sources) + '</div>';
           popupHtml += '<div class="popup-meta">' +
-            '<span style="color:' + color + '">' + escapeHtml(p.category) + '</span>' +
+            '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(p.category) + '</span>' +
             '<span style="color:' + (p.visited ? 'var(--green)' : 'var(--red)') + '">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
             (state.auth.authenticated ? '<a href="#" class="popup-edit" data-place="' + escapeHtml(p.name) + '">Edit</a>' : '') +
           '</div>';
@@ -3345,7 +3356,9 @@
       return fetch('places.json').then(r => r.ok ? r.json() : []).then(data => {
         state.places = data;
         assignPlaceSlugs(state.places);
-        state.categoryColors = assignCategoryColors(data);
+        const cc = assignCategoryColors(data);
+        state.categoryColors = cc.dark;
+        state.categoryColorsLight = cc.light;
       });
     }
 
@@ -3751,7 +3764,9 @@
         if (places) {
           state.places = places;
           assignPlaceSlugs(state.places);
-          state.categoryColors = assignCategoryColors(places);
+          const cc = assignCategoryColors(places);
+          state.categoryColors = cc.dark;
+          state.categoryColorsLight = cc.light;
         }
         if (routes) {
           routes.regions.sort((a, b) => a.name.localeCompare(b.name));
