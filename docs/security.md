@@ -17,7 +17,7 @@ Three ways to close the window:
 - Username/password, hashed with PBKDF2-SHA256 at 600k iterations (OWASP 2024+ guidance for PBKDF2-SHA256), 16-byte salt, 32-byte derived key.
 - Usernames are case-insensitive via `COLLATE NOCASE`. Valid characters: alphanumerics, hyphens, underscores. Max 64 chars.
 - Passwords must be 12 to 256 characters. The upper bound prevents PBKDF2 DoS via huge inputs.
-- The first registered user is marked operator. Operator-only endpoints today: re-opening registration. The model is single-user-friendly; multi-user works mechanically.
+- The first registered user is marked operator. Operator-only endpoints today: re-opening registration, editing `site-config.json` category labels. The model is single-user-friendly; multi-user works mechanically.
 - Registration auto-closes after the first user. The operator can re-open it from Settings.
 
 ## Sessions

@@ -856,6 +856,10 @@
     }
     .fab-add:hover { transform: scale(1.05); }
 
+    body.map-chrome-hidden .leaflet-control-container,
+    body.map-chrome-hidden .fab-add,
+    body.map-chrome-hidden .map-panel { display: none !important; }
+
     /* "Pick on map" inline button for the Add Place form */
     .pick-row {
       display: flex;
@@ -989,7 +993,7 @@
       align-items: center;
       justify-content: space-between;
     }
-    .modal .modal-close {
+    .modal h2 .modal-close {
       background: transparent;
       border: none;
       color: var(--muted);
@@ -998,7 +1002,7 @@
       line-height: 1;
       padding: 0.2rem;
     }
-    .modal .modal-close:hover { color: var(--text); }
+    .modal h2 .modal-close:hover { color: var(--text); }
     .modal-tabs {
       display: flex;
       border-bottom: 1px solid var(--border);
@@ -1051,6 +1055,38 @@
     .modal .checkbox-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; }
     .modal .checkbox-row input { width: auto; }
     .modal .checkbox-row label { margin: 0; text-transform: none; letter-spacing: 0; font-size: 0.8rem; color: var(--text); }
+    .feature-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    .feature-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.4rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .feature-pill { position: relative; }
+    .modal label.feature-pill {
+      display: inline-flex;
+      font-size: 0.8rem;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--muted);
+      margin: 0;
+    }
+    .modal label.feature-pill.active { color: var(--text); }
+    .feature-pill > input[type="checkbox"] { display: none !important; }
+    .feature-pill:hover { border-color: var(--border-hover); color: var(--text); }
+    .feature-pill.active {
+      color: var(--text);
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, var(--surface2));
+    }
     .modal .modal-error {
       margin-top: 0.75rem;
       padding: 0.5rem 0.7rem;
@@ -1068,7 +1104,7 @@
       gap: 0.5rem;
       margin-top: 1.25rem;
     }
-    .modal .modal-actions button {
+    .modal button:not(h2 .modal-close) {
       background: transparent;
       border: 1px solid var(--border);
       color: var(--muted);
@@ -1079,14 +1115,14 @@
       cursor: pointer;
       letter-spacing: 0.05em;
     }
-    .modal .modal-actions button.primary {
+    .modal button.primary {
       background: var(--accent);
       color: var(--fab-text);
       border-color: var(--accent);
     }
-    .modal .modal-actions button:hover:not(:disabled) { color: var(--text); border-color: var(--border-hover); }
-    .modal .modal-actions button.primary:hover { opacity: 0.9; color: var(--fab-text); }
-    .modal .modal-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .modal button:not(h2 .modal-close):hover:not(:disabled) { color: var(--text); border-color: var(--border-hover); }
+    .modal button.primary:hover { opacity: 0.9; color: var(--fab-text); }
+    .modal button:not(h2 .modal-close):disabled { opacity: 0.4; cursor: not-allowed; }
     .modal .hint {
       font-size: 0.7rem;
       color: var(--muted);
@@ -1139,11 +1175,57 @@
 
     const DEFAULT_CONFIG = {
       brand: 'Atlas',
+      features: { places: true, trails: true },
       default_view: { center: [45, 10], zoom: 4 },
       default_view_trails: { center: [59.5, 6.5], zoom: 10 },
       category_labels: {},
       api_base: '/api',
     };
+
+    function placesAvailable() { return state.config.features.places !== false; }
+    function trailsAvailable() { return state.config.features.trails !== false; }
+    function getHiddenFeatures() {
+      try {
+        const raw = localStorage.getItem('atlas-hidden-features');
+        return raw ? new Set(JSON.parse(raw)) : new Set();
+      } catch { return new Set(); }
+    }
+    function setFeatureHidden(name, hidden) {
+      const s = getHiddenFeatures();
+      if (hidden) s.add(name); else s.delete(name);
+      try { localStorage.setItem('atlas-hidden-features', JSON.stringify([...s])); } catch {}
+    }
+    function placesEnabled() { return placesAvailable() && !getHiddenFeatures().has('places'); }
+    function trailsEnabled() { return trailsAvailable() && !getHiddenFeatures().has('trails'); }
+
+    function getPref(key, def) {
+      try { const v = localStorage.getItem(key); return v === null ? def : v; }
+      catch { return def; }
+    }
+    function setPref(key, val) { try { localStorage.setItem(key, val); } catch {} }
+    function getDefaultTileLayer() { return getPref('atlas-tile-layer', 'Satellite'); }
+    function getRememberView() { return getPref('atlas-remember-view', 'true') !== 'false'; }
+    function getUnits() { return getPref('atlas-units', 'metric'); }
+    function getClusterPlaces() { return getPref('atlas-cluster-places', 'true') !== 'false'; }
+    function isImperial() { return getUnits() === 'imperial'; }
+    function loadStoredView() {
+      try {
+        const raw = localStorage.getItem('atlas-last-view');
+        if (!raw) return null;
+        const v = JSON.parse(raw);
+        return (v && Array.isArray(v.center) && typeof v.zoom === 'number') ? v : null;
+      } catch { return null; }
+    }
+    function saveStoredView(view) {
+      try { localStorage.setItem('atlas-last-view', JSON.stringify(view)); } catch {}
+    }
+
+    function refreshTabVisibility() {
+      const tabPlaces = document.getElementById('tab-places');
+      const tabTrails = document.getElementById('tab-trails');
+      if (tabPlaces) tabPlaces.style.display = placesEnabled() ? '' : 'none';
+      if (tabTrails) tabTrails.style.display = trailsEnabled() ? '' : 'none';
+    }
 
     const state = {
       config: DEFAULT_CONFIG,
@@ -1227,7 +1309,8 @@
 
     function addTileLayersToMap(map) {
       const layers = createTileLayers();
-      layers['Satellite'].addTo(map);
+      const def = getDefaultTileLayer();
+      (layers[def] || layers['Satellite']).addTo(map);
       L.control.layers(layers, null, { position: 'topright' }).addTo(map);
     }
 
@@ -1248,8 +1331,17 @@
       state._trailGroupPlanned = null;
     }
 
-    function formatDistance(m) { return m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m'; }
-    function formatElevation(m) { return Math.round(m) + ' m'; }
+    function formatDistance(m) {
+      if (isImperial()) {
+        const mi = m / 1609.344;
+        return mi >= 0.1 ? mi.toFixed(1) + ' mi' : Math.round(m * 3.28084) + ' ft';
+      }
+      return m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m';
+    }
+    function formatElevation(m) {
+      if (isImperial()) return Math.round(m * 3.28084) + ' ft';
+      return Math.round(m) + ' m';
+    }
 
     function setActiveTab(view) {
       ['places', 'trails'].forEach(v => {
@@ -1291,12 +1383,18 @@
       setActiveTab('map');
       setCrumb('', false);
       document.getElementById('nav-info').innerHTML = '';
+      const prevView = state.currentMap
+        ? { center: state.currentMap.getCenter(), zoom: state.currentMap.getZoom() }
+        : null;
+      const storedView = (!prevView && getRememberView()) ? loadStoredView() : null;
       cleanupMap();
 
       const app = document.getElementById('app');
       app.innerHTML = '<div id="map"></div>';
 
-      const dv = state.config.default_view || DEFAULT_CONFIG.default_view;
+      const dv = prevView || storedView || ((!placesEnabled() && trailsEnabled())
+        ? (state.config.default_view_trails || DEFAULT_CONFIG.default_view_trails)
+        : (state.config.default_view || DEFAULT_CONFIG.default_view));
       const map = L.map('map', {
         zoomControl: true,
         attributionControl: false,
@@ -1307,25 +1405,37 @@
       state.currentMap = map;
       addTileLayersToMap(map);
 
+      if (getRememberView()) {
+        map.on('moveend zoomend', function() {
+          const c = map.getCenter();
+          saveStoredView({ center: [c.lat, c.lng], zoom: map.getZoom() });
+        });
+      }
+
       // Places
-      const clusterGroup = L.markerClusterGroup({
-        maxClusterRadius: 40,
-        spiderfyOnMaxZoom: true,
-        showCoverageOnHover: false,
-      });
-      clusterGroup.on('clustermouseover', function(e) {
-        const names = e.layer.getAllChildMarkers().map(m => m._placeData.name).sort().slice(0, 10);
-        const total = e.layer.getChildCount();
-        let label = names.join('\n');
-        if (total > 10) label += '\n+' + (total - 10) + ' more';
-        e.layer.bindTooltip(label, { direction: 'top', sticky: true }).openTooltip();
-      });
+      const useClusters = getClusterPlaces();
+      const clusterGroup = useClusters
+        ? L.markerClusterGroup({
+            maxClusterRadius: 40,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+          })
+        : L.featureGroup();
+      if (useClusters) {
+        clusterGroup.on('clustermouseover', function(e) {
+          const names = e.layer.getAllChildMarkers().map(m => m._placeData.name).sort().slice(0, 10);
+          const total = e.layer.getChildCount();
+          let label = names.join('\n');
+          if (total > 10) label += '\n+' + (total - 10) + ' more';
+          e.layer.bindTooltip(label, { direction: 'top', sticky: true }).openTooltip();
+        });
+      }
 
       const placeMarkers = [];
       const placeBounds = L.latLngBounds();
       let focusPlace = null;
 
-      if (state.places) {
+      if (state.places && placesEnabled()) {
         for (const p of state.places) {
           const color = state.categoryColors[p.category];
           const marker = L.marker([p.lat, p.lon], { icon: createMarkerIcon(color, p.visited) });
@@ -1361,7 +1471,7 @@
       let focusTrailKey = (focus && focus.type === 'trail') ? focus.name : null;
       let focusTrailLayer = null;
 
-      if (state.manifest) {
+      if (state.manifest && trailsEnabled()) {
         for (const region of state.manifest.regions) {
           for (const route of region.routes) {
             const color = route.completed ? COMPLETED_COLOR : PLANNED_COLOR;
@@ -1407,7 +1517,7 @@
           map.setView([focusPlace._placeData.lat, focusPlace._placeData.lon], 12);
           focusPlace.openPopup();
         }, 300);
-      } else if (!focusTrailKey) {
+      } else if (!focusTrailKey && !prevView && !storedView) {
         const combined = L.latLngBounds();
         if (placeBounds.isValid()) combined.extend(placeBounds);
         if (trailBounds.isValid()) combined.extend(trailBounds);
@@ -1420,49 +1530,56 @@
         onAdd: function() {
           const div = L.DomUtil.create('div', 'map-panel');
           div.id = 'map-panel';
+          const searchPlaceholder = placesEnabled() && trailsEnabled()
+            ? 'Search places + trails...'
+            : (placesEnabled() ? 'Search places...' : 'Search trails...');
           div.innerHTML =
             '<div class="panel-search" id="map-search">' +
-            '<input type="text" id="map-search-input" placeholder="Search places + trails...">' +
+            '<input type="text" id="map-search-input" placeholder="' + searchPlaceholder + '">' +
             '<div class="map-search-results" id="map-search-results"></div>' +
             '</div>' +
-            '<div class="panel-section collapsed" id="places-section">' +
-            '<div class="panel-section-header" data-section="places-section">Places' +
-            '<span class="panel-section-actions">' +
-            '<span class="panel-action" id="places-toggle-all">Toggle</span>' +
-            '<span class="section-arrow">&#x25BC;</span>' +
-            '</span>' +
-            '</div>' +
-            '<div class="panel-section-body" id="places-body"></div>' +
-            '</div>' +
-            '<div class="panel-section collapsed" id="trails-section">' +
-            '<div class="panel-section-header" data-section="trails-section">Trails' +
-            '<span class="panel-section-actions">' +
-            '<span class="panel-action" id="trails-toggle-all">Toggle</span>' +
-            '<span class="section-arrow">&#x25BC;</span>' +
-            '</span>' +
-            '</div>' +
-            '<div class="panel-section-body" id="trails-body"></div>' +
-            '</div>';
+            (placesEnabled() ?
+              '<div class="panel-section collapsed" id="places-section">' +
+              '<div class="panel-section-header" data-section="places-section">Places' +
+              '<span class="panel-section-actions">' +
+              '<span class="panel-action" id="places-toggle-all">Toggle</span>' +
+              '<span class="section-arrow">&#x25BC;</span>' +
+              '</span>' +
+              '</div>' +
+              '<div class="panel-section-body" id="places-body"></div>' +
+              '</div>'
+              : '') +
+            (trailsEnabled() ?
+              '<div class="panel-section collapsed" id="trails-section">' +
+              '<div class="panel-section-header" data-section="trails-section">Trails' +
+              '<span class="panel-section-actions">' +
+              '<span class="panel-action" id="trails-toggle-all">Toggle</span>' +
+              '<span class="section-arrow">&#x25BC;</span>' +
+              '</span>' +
+              '</div>' +
+              '<div class="panel-section-body" id="trails-body"></div>' +
+              '</div>'
+              : '');
           L.DomEvent.disableClickPropagation(div);
           L.DomEvent.disableScrollPropagation(div);
           return div;
         }
       });
-      map.addControl(new PanelControl());
-
-      bindFilterPanel();
-      refreshFilterPanel();
-      initUnifiedSearch(map);
+      if (placesEnabled() || trailsEnabled()) {
+        map.addControl(new PanelControl());
+        bindFilterPanel();
+        refreshFilterPanel();
+        initUnifiedSearch(map);
+      }
       bindPopupActions(map);
 
       // Nav summary
       const placeCount = state.places ? state.places.length : 0;
       const trailCount = state.manifest ? state.manifest.regions.reduce((n, r) => n + r.routes.length, 0) : 0;
-      document.getElementById('nav-info').innerHTML =
-        '<div class="nav-group">' +
-        '<div class="nav-stat"><span class="value">' + placeCount + ' places</span></div>' +
-        '<div class="nav-stat"><span class="value">' + trailCount + ' trails</span></div>' +
-        '</div>';
+      let stats = '';
+      if (placesEnabled()) stats += '<div class="nav-stat"><span class="value">' + placeCount + ' places</span></div>';
+      if (trailsEnabled()) stats += '<div class="nav-stat"><span class="value">' + trailCount + ' trails</span></div>';
+      document.getElementById('nav-info').innerHTML = '<div class="nav-group">' + stats + '</div>';
     }
 
     function refreshFilterPanel() {
@@ -2102,6 +2219,7 @@
           detached: true,
           elevationDiv: '#elevation-container',
           height: 200,
+          imperial: isImperial(),
           slope: false, speed: false, acceleration: false, time: false,
           legend: false, summary: false, ruler: false, downloadLink: false,
           almostOver: false, distanceMarkers: false,
@@ -2181,6 +2299,7 @@
                 theme: 'custom-theme', detached: true,
                 elevationDiv: '#elevation-track-' + i,
                 height: elevHeight,
+                imperial: isImperial(),
                 slope: false, speed: false, acceleration: false, time: false,
                 legend: false, summary: false, ruler: false, downloadLink: false,
                 almostOver: false, distanceMarkers: false,
@@ -2239,9 +2358,16 @@
       const hash = location.hash || '#/';
       const base = hash.split('?')[0];
       if (base === '#/' || base === '#' || base === '#/map') return renderUnifiedMap(parseFocus(hash));
-      if (base === '#/places') return renderPlacesIndex();
-      if (base === '#/trails') return renderTrailsIndex();
+      if (base === '#/places') {
+        if (!placesEnabled()) { location.hash = '#/'; return; }
+        return renderPlacesIndex();
+      }
+      if (base === '#/trails') {
+        if (!trailsEnabled()) { location.hash = '#/'; return; }
+        return renderTrailsIndex();
+      }
       if (base.startsWith('#/trails/route/')) {
+        if (!trailsEnabled()) { location.hash = '#/'; return; }
         const key = decodeURIComponent(base.replace('#/trails/route/', ''));
         return renderTrailDetail(key);
       }
@@ -2371,12 +2497,48 @@
       const theme = getStoredTheme();
       openModal(
         '<h2>Settings<button class="modal-close">&times;</button></h2>' +
-        '<h3 class="settings-h">Appearance</h3>' +
+        ((placesAvailable() || trailsAvailable()) ?
+          '<h3 class="settings-h">Visible features</h3>' +
+          '<div class="feature-pills">' +
+            (placesAvailable() ?
+              '<label class="feature-pill' + (placesEnabled() ? ' active' : '') + '"><input type="checkbox" id="s-feat-places"' + (placesEnabled() ? ' checked' : '') + '>Places</label>'
+              : '') +
+            (trailsAvailable() ?
+              '<label class="feature-pill' + (trailsEnabled() ? ' active' : '') + '"><input type="checkbox" id="s-feat-trails"' + (trailsEnabled() ? ' checked' : '') + '>Trails</label>'
+              : '') +
+          '</div>'
+        : '') +
+        '<h3 class="settings-h">Map</h3>' +
+        '<label for="s-tile">Default tile layer</label>' +
+        '<select id="s-tile">' +
+          ['OpenTopoMap', 'CyclOSM', 'Satellite', 'Dark', 'OpenStreetMap'].map(n =>
+            '<option value="' + n + '"' + (getDefaultTileLayer() === n ? ' selected' : '') + '>' + n + '</option>'
+          ).join('') +
+        '</select>' +
+        (placesAvailable() ?
+          '<div class="feature-pills">' +
+            '<label class="feature-pill' + (getClusterPlaces() ? ' active' : '') + '"><input type="checkbox" id="s-cluster"' + (getClusterPlaces() ? ' checked' : '') + '>Cluster nearby places</label>' +
+            '<label class="feature-pill' + (getRememberView() ? ' active' : '') + '"><input type="checkbox" id="s-remember-view"' + (getRememberView() ? ' checked' : '') + '>Remember last map view</label>' +
+          '</div>'
+          : '<div class="feature-pills">' +
+            '<label class="feature-pill' + (getRememberView() ? ' active' : '') + '"><input type="checkbox" id="s-remember-view"' + (getRememberView() ? ' checked' : '') + '>Remember last map view</label>' +
+          '</div>') +
+        '<h3 class="settings-h">Units</h3>' +
         '<div class="radio-row">' +
-          ['system', 'dark', 'light'].map(v =>
-            '<label><input type="radio" name="theme" value="' + v + '"' + (theme === v ? ' checked' : '') + '> ' + v.charAt(0).toUpperCase() + v.slice(1) + '</label>'
+          [['metric', 'Metric (km, m)'], ['imperial', 'Imperial (mi, ft)']].map(([v, label]) =>
+            '<label><input type="radio" name="units" value="' + v + '"' + (getUnits() === v ? ' checked' : '') + '> ' + label + '</label>'
           ).join('') +
         '</div>' +
+        '<h3 class="settings-h">Language</h3>' +
+        '<select id="s-language" disabled>' +
+          '<option value="en" selected>English</option>' +
+        '</select>' +
+        '<h3 class="settings-h">Theme</h3>' +
+        '<select id="s-theme">' +
+          ['system', 'dark', 'light'].map(v =>
+            '<option value="' + v + '"' + (theme === v ? ' selected' : '') + '>' + v.charAt(0).toUpperCase() + v.slice(1) + '</option>'
+          ).join('') +
+        '</select>' +
         '<h3 class="settings-h">Password</h3>' +
         '<form id="settings-pw-form">' +
           '<label for="s-current">Current password</label>' +
@@ -2391,6 +2553,11 @@
         '</form>' +
         '<h3 class="settings-h">Active sessions</h3>' +
         '<div id="s-sessions">Loading&hellip;</div>' +
+        (isOp && placesAvailable() ?
+          '<h3 class="settings-h">Categories</h3>' +
+          '<div class="hint">Edit display labels for place categories. Unlabeled slugs fall back to title case.</div>' +
+          '<div class="modal-actions" style="margin-top:0.5rem"><button type="button" id="s-manage-cats">Manage categories</button></div>'
+        : '') +
         (isOp ?
           '<h3 class="settings-h">Registration</h3>' +
           '<div class="checkbox-row"><input type="checkbox" id="s-reg"' + (regOpen ? ' checked' : '') + '><label for="s-reg">Allow new users to register</label></div>' +
@@ -2431,12 +2598,138 @@
             });
           }
           renderSessions();
-          document.querySelectorAll('input[name="theme"]').forEach(r => {
+          const themeSel = document.getElementById('s-theme');
+          if (themeSel) themeSel.addEventListener('change', function() {
+            try { localStorage.setItem('atlas-theme', this.value); } catch {}
+            applyTheme(this.value);
+          });
+          ['places', 'trails'].forEach(function(feat) {
+            const cb = document.getElementById('s-feat-' + feat);
+            if (!cb) return;
+            cb.addEventListener('change', function() {
+              setFeatureHidden(feat, !this.checked);
+              const pill = this.closest('.feature-pill');
+              if (pill) pill.classList.toggle('active', this.checked);
+              refreshTabVisibility();
+              wrappedRouter();
+            });
+          });
+          const tileSel = document.getElementById('s-tile');
+          if (tileSel) tileSel.addEventListener('change', function() {
+            setPref('atlas-tile-layer', this.value);
+            wrappedRouter();
+          });
+          [['s-cluster', 'atlas-cluster-places'], ['s-remember-view', 'atlas-remember-view']].forEach(function([id, key]) {
+            const cb = document.getElementById(id);
+            if (!cb) return;
+            cb.addEventListener('change', function() {
+              setPref(key, this.checked ? 'true' : 'false');
+              const pill = this.closest('.feature-pill');
+              if (pill) pill.classList.toggle('active', this.checked);
+              if (key === 'atlas-remember-view' && !this.checked) {
+                try { localStorage.removeItem('atlas-last-view'); } catch {}
+              }
+              wrappedRouter();
+            });
+          });
+          document.querySelectorAll('input[name="units"]').forEach(r => {
             r.addEventListener('change', function() {
               if (!this.checked) return;
-              try { localStorage.setItem('atlas-theme', this.value); } catch {}
-              applyTheme(this.value);
+              setPref('atlas-units', this.value);
+              wrappedRouter();
             });
+          });
+          const manageCats = document.getElementById('s-manage-cats');
+          if (manageCats) manageCats.addEventListener('click', openManageCategoriesModal);
+        }
+      );
+    }
+
+    function openManageCategoriesModal() {
+      const labels = state.config.category_labels || {};
+      const slugsFromPlaces = state.places ? [...new Set(state.places.map(p => p.category))] : [];
+      const allSlugs = [...new Set([...Object.keys(labels), ...slugsFromPlaces])].sort();
+      const rows = allSlugs.map(slug => ({ slug, display: labels[slug] || '' }));
+
+      openModal(
+        '<h2>Manage categories<button class="modal-close">&times;</button></h2>' +
+        '<div class="hint">Set a display label for each slug. Clear a label to fall back to title case. Slugs in use by places cannot be removed here.</div>' +
+        '<div id="cat-rows" style="margin-top:0.75rem"></div>' +
+        '<div class="hint" style="margin-top:1rem">Add new label</div>' +
+        '<div class="row" style="margin-top:0.25rem">' +
+          '<input type="text" id="cat-new-slug" placeholder="slug (e.g. waterfall)">' +
+          '<input type="text" id="cat-new-display" placeholder="Display (e.g. Waterfalls)">' +
+          '<button type="button" id="cat-add" style="flex:0 0 auto">Add</button>' +
+        '</div>' +
+        '<div class="modal-error" id="cat-error"></div>' +
+        '<div class="modal-actions" style="margin-top:1rem">' +
+          '<button type="button" class="modal-close">Cancel</button>' +
+          '<button type="button" class="primary" id="cat-save">Save</button>' +
+        '</div>',
+        function() {
+          const inUse = new Set(slugsFromPlaces);
+          function rerender() {
+            const container = document.getElementById('cat-rows');
+            if (!rows.length) {
+              container.innerHTML = '<div class="hint">No categories yet.</div>';
+              return;
+            }
+            container.innerHTML = rows.map((r, i) => {
+              const removable = !inUse.has(r.slug);
+              return '<div class="row" style="margin-top:0.4rem;align-items:center">' +
+                '<input type="text" value="' + escapeHtml(r.slug) + '" disabled style="flex:0 0 35%">' +
+                '<input type="text" data-i="' + i + '" class="cat-display" value="' + escapeHtml(r.display) + '" placeholder="(falls back to title case)">' +
+                '<button type="button" data-i="' + i + '" class="cat-remove" style="flex:0 0 auto"' + (removable ? '' : ' disabled title="In use by places"') + '>Remove</button>' +
+              '</div>';
+            }).join('');
+            container.querySelectorAll('.cat-display').forEach(inp => {
+              inp.addEventListener('input', function() {
+                rows[+this.dataset.i].display = this.value;
+              });
+            });
+            container.querySelectorAll('.cat-remove').forEach(btn => {
+              btn.addEventListener('click', function() {
+                if (this.disabled) return;
+                rows.splice(+this.dataset.i, 1);
+                rerender();
+              });
+            });
+          }
+          rerender();
+
+          document.getElementById('cat-add').addEventListener('click', function() {
+            const slug = document.getElementById('cat-new-slug').value.trim();
+            const display = document.getElementById('cat-new-display').value.trim();
+            const err = document.getElementById('cat-error');
+            err.classList.remove('visible');
+            if (!slug) { err.textContent = 'Slug required'; err.classList.add('visible'); return; }
+            if (rows.some(r => r.slug === slug)) { err.textContent = 'Slug already exists'; err.classList.add('visible'); return; }
+            rows.push({ slug, display });
+            rows.sort((a, b) => a.slug.localeCompare(b.slug));
+            document.getElementById('cat-new-slug').value = '';
+            document.getElementById('cat-new-display').value = '';
+            rerender();
+          });
+
+          document.getElementById('cat-save').addEventListener('click', function() {
+            const submit = this;
+            submit.disabled = true;
+            const payload = {};
+            for (const r of rows) {
+              if (r.display.trim()) payload[r.slug] = r.display.trim();
+            }
+            api('PUT', '/site-config/category-labels', { category_labels: payload })
+              .then(res => {
+                state.config.category_labels = res.category_labels || payload;
+                closeModal();
+                wrappedRouter();
+              })
+              .catch(err => {
+                submit.disabled = false;
+                const e = document.getElementById('cat-error');
+                e.textContent = err.message;
+                e.classList.add('visible');
+              });
           });
         }
       );
@@ -2500,8 +2793,7 @@
       root.innerHTML = '<div class="modal-backdrop" id="modal-backdrop"><div class="modal">' + html + '</div></div>';
       const backdrop = document.getElementById('modal-backdrop');
       backdrop.addEventListener('click', function(e) { if (e.target === backdrop) closeModal(); });
-      const close = backdrop.querySelector('.modal-close');
-      if (close) close.addEventListener('click', closeModal);
+      backdrop.querySelectorAll('.modal-close').forEach(el => el.addEventListener('click', closeModal));
       document.addEventListener('keydown', escClose);
       if (onMount) onMount(backdrop);
     }
@@ -2588,13 +2880,20 @@
 
     // ----- Add place / GPX modal -----
     function openAddModal(prefillCoords, initialTab) {
-      let tab = initialTab || 'place';
+      const showPlaces = placesEnabled();
+      const showTrails = trailsEnabled();
+      if (!showPlaces && !showTrails) return;
+      let tab = initialTab || (showPlaces ? 'place' : 'trail');
+      if (tab === 'place' && !showPlaces) tab = 'trail';
+      if (tab === 'trail' && !showTrails) tab = 'place';
       openModal(
         '<h2>Add <button class="modal-close">&times;</button></h2>' +
-        '<div class="modal-tabs" id="add-tabs">' +
-          '<button data-tab="place"' + (tab === 'place' ? ' class="active"' : '') + '>Place</button>' +
-          '<button data-tab="trail"' + (tab === 'trail' ? ' class="active"' : '') + '>Trail (GPX)</button>' +
-        '</div>' +
+        (showPlaces && showTrails ?
+          '<div class="modal-tabs" id="add-tabs">' +
+            '<button data-tab="place"' + (tab === 'place' ? ' class="active"' : '') + '>Place</button>' +
+            '<button data-tab="trail"' + (tab === 'trail' ? ' class="active"' : '') + '>Trail (GPX)</button>' +
+          '</div>'
+          : '') +
         '<div id="add-body"></div>',
         function() {
           document.querySelectorAll('#add-tabs button[data-tab]').forEach(b => {
@@ -2804,9 +3103,12 @@
       if (!state.auth.authenticated) return;
       const base = (location.hash || '#/').split('?')[0];
       if (!(base === '#/' || base === '#' || base === '#/map')) return;
+      if (!placesEnabled() && !trailsEnabled()) return;
       const fab = document.createElement('button');
       fab.className = 'fab-add';
-      fab.title = 'Add place or trail';
+      fab.title = placesEnabled() && trailsEnabled()
+        ? 'Add place or trail'
+        : (placesEnabled() ? 'Add place' : 'Add trail');
       fab.innerHTML = '+';
       fab.addEventListener('click', function() { openAddModal(null); });
       app.appendChild(fab);
@@ -2821,42 +3123,61 @@
     window.removeEventListener('hashchange', router);
     window.addEventListener('hashchange', wrappedRouter);
 
+    // Spacebar: toggle map chrome (FAB, filter panel, leaflet controls).
+    document.addEventListener('keydown', function(e) {
+      if (e.key !== ' ' && e.code !== 'Space') return;
+      if (!state.currentMap) return;
+      if (document.getElementById('modal-root').children.length) return;
+      const t = e.target;
+      const tag = t && t.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+      e.preventDefault();
+      document.body.classList.toggle('map-chrome-hidden');
+    });
+
     // ----- Init -----
     function applyConfig(cfg) {
       state.config = Object.assign({}, DEFAULT_CONFIG, cfg || {});
+      state.config.features = Object.assign({}, DEFAULT_CONFIG.features, (cfg && cfg.features) || {});
       document.title = state.config.brand || 'Atlas';
       const brandEl = document.getElementById('nav-brand-text');
       if (brandEl) brandEl.textContent = state.config.brand || 'Atlas';
+      refreshTabVisibility();
     }
 
-    Promise.allSettled([
-      fetch('site-config.json').then(r => r.ok ? r.json() : null),
-      fetch('places.json').then(r => r.ok ? r.json() : Promise.reject()),
-      fetch('routes.json').then(r => r.ok ? r.json() : Promise.reject()),
-      fetch(apiUrl('/state'), { credentials: 'same-origin' }).then(r => r.ok ? r.json() : null).catch(() => null),
-    ]).then(function(results) {
-      const [configRes, placesRes, routesRes, stateRes] = results;
-      applyConfig(configRes.status === 'fulfilled' ? configRes.value : null);
-      if (placesRes.status === 'fulfilled') {
-        state.places = placesRes.value;
-        state.categoryColors = assignCategoryColors(placesRes.value);
-      }
-      if (routesRes.status === 'fulfilled') {
-        const data = routesRes.value;
-        data.regions.sort((a, b) => a.name.localeCompare(b.name));
-        for (const region of data.regions) region.routes.sort((a, b) => a.name.localeCompare(b.name));
-        state.manifest = data;
-      }
-      if (stateRes.status === 'fulfilled' && stateRes.value) {
-        state.auth = stateRes.value;
-      }
-      renderAuthWidget();
-      if (!state.places && !state.manifest) {
-        document.getElementById('app').innerHTML = '<div class="loading">Failed to load data</div>';
-        return;
-      }
-      wrappedRouter();
-    });
+    fetch('site-config.json')
+      .then(r => r.ok ? r.json() : null)
+      .catch(() => null)
+      .then(function(cfg) {
+        applyConfig(cfg);
+        const placesP = placesAvailable()
+          ? fetch('places.json').then(r => r.ok ? r.json() : Promise.reject()).catch(() => null)
+          : Promise.resolve(null);
+        const routesP = trailsAvailable()
+          ? fetch('routes.json').then(r => r.ok ? r.json() : Promise.reject()).catch(() => null)
+          : Promise.resolve(null);
+        const stateP = fetch(apiUrl('/state'), { credentials: 'same-origin' })
+          .then(r => r.ok ? r.json() : null).catch(() => null);
+        return Promise.all([placesP, routesP, stateP]);
+      })
+      .then(function([places, routes, authState]) {
+        if (places) {
+          state.places = places;
+          state.categoryColors = assignCategoryColors(places);
+        }
+        if (routes) {
+          routes.regions.sort((a, b) => a.name.localeCompare(b.name));
+          for (const region of routes.regions) region.routes.sort((a, b) => a.name.localeCompare(b.name));
+          state.manifest = routes;
+        }
+        if (authState) state.auth = authState;
+        renderAuthWidget();
+        if ((placesAvailable() && !state.places) && (trailsAvailable() && !state.manifest)) {
+          document.getElementById('app').innerHTML = '<div class="loading">Failed to load data</div>';
+          return;
+        }
+        wrappedRouter();
+      });
   </script>
 </body>
 </html>

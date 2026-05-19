@@ -509,6 +509,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     path = urlparse(self.path).path
     if path == "/api/places":
       return self._h_places_update()
+    if path == "/api/site-config/category-labels":
+      return self._h_site_config_category_labels()
     self._error(HTTPStatus.NOT_FOUND, "not found")
 
   def do_DELETE(self):
@@ -675,6 +677,62 @@ class Handler(http.server.BaseHTTPRequestHandler):
     with self.write_lock:
       setting_set(self.conn, "registration", mode)
     self._send_json(HTTPStatus.OK, {"registration": mode})
+
+  def _h_site_config_category_labels(self):
+    user = self._current_user()
+    if not user:
+      return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
+    if not user["is_operator"]:
+      return self._error(HTTPStatus.FORBIDDEN, "operator only")
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    labels = body.get("category_labels")
+    if not isinstance(labels, dict):
+      return self._error(HTTPStatus.BAD_REQUEST, "category_labels must be an object")
+    if len(labels) > 200:
+      return self._error(HTTPStatus.BAD_REQUEST, "too many category labels (max 200)")
+    cleaned: dict[str, str] = {}
+    for slug, display in labels.items():
+      if not isinstance(slug, str) or not isinstance(display, str):
+        return self._error(HTTPStatus.BAD_REQUEST, "category_labels keys and values must be strings")
+      slug_clean = slug.strip()
+      display_clean = display.strip()
+      if not slug_clean or not display_clean:
+        continue
+      if len(slug_clean) > 64:
+        return self._error(HTTPStatus.BAD_REQUEST, f"slug too long: {slug_clean[:32]}...")
+      if len(display_clean) > 80:
+        return self._error(HTTPStatus.BAD_REQUEST, f"display too long for slug '{slug_clean}'")
+      if not PATH_COMPONENT_RE.match(slug_clean):
+        return self._error(HTTPStatus.BAD_REQUEST, f"slug contains disallowed characters: {slug_clean}")
+      cleaned[slug_clean] = display_clean
+
+    data_dir = Path(self.cfg["data_dir"]).resolve()
+    config_path = data_dir / "site-config.json"
+    lock_path = data_dir / ".atlas-site-config.lock"
+
+    def do_update():
+      existing: dict = {}
+      if config_path.exists():
+        try:
+          loaded = json.loads(config_path.read_text(encoding="utf-8"))
+          if not isinstance(loaded, dict):
+            raise ValidationError("site-config.json must be a JSON object")
+          existing = loaded
+        except json.JSONDecodeError as e:
+          raise ValidationError(f"existing site-config.json is not valid JSON: {e}")
+      existing["category_labels"] = cleaned
+      atomic_write_bytes(config_path, (json.dumps(existing, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+
+    try:
+      with_file_lock(lock_path, do_update)
+    except ValidationError as e:
+      return self._error(HTTPStatus.CONFLICT, str(e))
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write site-config.json: {e}")
+
+    self._send_json(HTTPStatus.OK, {"ok": True, "category_labels": cleaned})
 
   # ---- phase 2: write endpoints ----
 

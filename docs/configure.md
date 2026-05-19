@@ -12,6 +12,7 @@ Every key in `tools/config.json` can also be set via an `ATLAS_<UPPER>` environm
 | Field | Default | Notes |
 |---|---|---|
 | `brand` | `"Atlas"` | Page title and the brand text in the nav. |
+| `features` | `{ "places": true, "trails": true }` | Hard switch. Turning a feature off hides its tab, skips its data fetch, and drops its layer/panel from the unified map. With only `trails` on, the unified map opens at `default_view_trails`. Signed-in users can additionally hide an available feature per-browser from Settings (data is still fetched in that case). |
 | `default_view` | `{ "center": [45, 10], "zoom": 4 }` | Initial map center and zoom for the unified view. |
 | `default_view_trails` | `{ "center": [59.5, 6.5], "zoom": 10 }` | Initial center/zoom used by the trail detail view before the GPX bounds are known. |
 | `category_labels` | `{}` | Maps a raw category slug (the value in `places.json`) to a display label. Anything not mapped is title-cased. |
