@@ -13,53 +13,362 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:           #1e2228;
-      --surface:      #252a31;
-      --surface2:     #2a2e35;
-      --border:       #363b44;
-      --border-hover: #4a5060;
-      --text:         #dde1e7;
-      --muted:        #888;
-      --accent:       #6aaeee;
-      --red:          #ff5f57;
-      --yellow:       #ffbd2e;
-      --green:        #28ca41;
+      --bg:           #2e3440;
+      --surface:      #3b4252;
+      --surface2:     #434c5e;
+      --border:       #4c566a;
+      --border-hover: #5e6779;
+      --text:         #eceff4;
+      --muted:        #9ba4b4;
+      --accent:       #88c0d0;
+      --red:          #bf616a;
+      --yellow:       #ebcb8b;
+      --green:        #a3be8c;
       --radius:       6px;
 
-      --completed:    #00e05a;
-      --planned:      #ff6b6b;
+      --completed:    #a3be8c;
+      --planned:      #bf616a;
 
       --attribution-bg: var(--attribution-bg);
-      --cluster-fill:   rgba(106, 174, 238, 0.6);
-      --cluster-halo:   rgba(106, 174, 238, 0.25);
+      --cluster-fill:   rgba(136, 192, 208, 0.6);
+      --cluster-halo:   rgba(136, 192, 208, 0.25);
       --shadow:         rgba(0, 0, 0, 0.4);
-      --backdrop:       rgba(0, 0, 0, 0.55);
-      --fab-text:       #1a1a1a;
+      --backdrop:       rgba(46, 52, 64, 0.6);
+      --fab-text:       #2e3440;
     }
 
-    [data-theme="light"] {
-      --bg:           #f3f5f8;
-      --surface:      #ffffff;
-      --surface2:     #eaedf2;
-      --border:       #d4d9e0;
-      --border-hover: #aab2c0;
-      --text:         #1a1f28;
-      --muted:        #5e6772;
-      --accent:       #2566a8;
-      --red:          #c8302a;
-      --yellow:       #a87600;
-      --green:        #1f8a35;
+    [data-theme="nord"][data-mode="dark"] {
+      --bg:           #2e3440;
+      --surface:      #3b4252;
+      --surface2:     #434c5e;
+      --border:       #4c566a;
+      --border-hover: #5e6779;
+      --text:         #eceff4;
+      --muted:        #9ba4b4;
+      --accent:       #88c0d0;
+      --red:          #bf616a;
+      --yellow:       #ebcb8b;
+      --green:        #a3be8c;
 
-      --completed:    #1f8a35;
-      --planned:      #c8302a;
+      --completed:    #a3be8c;
+      --planned:      #bf616a;
+
+      --cluster-fill:   rgba(136, 192, 208, 0.6);
+      --cluster-halo:   rgba(136, 192, 208, 0.25);
+      --shadow:         rgba(0, 0, 0, 0.4);
+      --backdrop:       rgba(46, 52, 64, 0.6);
+      --fab-text:       #2e3440;
+    }
+
+    [data-theme="nord"][data-mode="light"] {
+      --bg:           #eceff4;
+      --surface:      #ffffff;
+      --surface2:     #e5e9f0;
+      --border:       #d8dee9;
+      --border-hover: #b8c0cc;
+      --text:         #2e3440;
+      --muted:        #4c566a;
+      --accent:       #5e81ac;
+      --red:          #a04149;
+      --yellow:       #8c6e1f;
+      --green:        #6f8b5d;
+
+      --completed:    #6f8b5d;
+      --planned:      #a04149;
 
       --attribution-bg: rgba(255, 255, 255, 0.9);
-      --cluster-fill:   rgba(37, 102, 168, 0.65);
-      --cluster-halo:   rgba(37, 102, 168, 0.25);
+      --cluster-fill:   rgba(94, 129, 172, 0.65);
+      --cluster-halo:   rgba(94, 129, 172, 0.25);
       --shadow:         rgba(0, 0, 0, 0.12);
-      --backdrop:       rgba(0, 0, 0, 0.4);
+      --backdrop:       rgba(46, 52, 64, 0.4);
       --fab-text:       #ffffff;
     }
+
+    [data-theme="solarized"][data-mode="dark"] {
+      --bg:           #002b36;
+      --surface:      #073642;
+      --surface2:     #0a3a47;
+      --border:       #586e75;
+      --border-hover: #657b83;
+      --text:         #93a1a1;
+      --muted:        #839496;
+      --accent:       #268bd2;
+      --red:          #dc322f;
+      --yellow:       #b58900;
+      --green:        #859900;
+
+      --completed:    #859900;
+      --planned:      #dc322f;
+
+      --cluster-fill:   rgba(38, 139, 210, 0.6);
+      --cluster-halo:   rgba(38, 139, 210, 0.25);
+      --shadow:         rgba(0, 0, 0, 0.4);
+      --backdrop:       rgba(0, 43, 54, 0.6);
+      --fab-text:       #002b36;
+    }
+
+    [data-theme="solarized"][data-mode="light"] {
+      --bg:           #fdf6e3;
+      --surface:      #ffffff;
+      --surface2:     #eee8d5;
+      --border:       #d8d3bd;
+      --border-hover: #93a1a1;
+      --text:         #073642;
+      --muted:        #657b83;
+      --accent:       #268bd2;
+      --red:          #dc322f;
+      --yellow:       #b58900;
+      --green:        #859900;
+
+      --completed:    #859900;
+      --planned:      #dc322f;
+
+      --attribution-bg: rgba(255, 255, 255, 0.9);
+      --cluster-fill:   rgba(38, 139, 210, 0.65);
+      --cluster-halo:   rgba(38, 139, 210, 0.25);
+      --shadow:         rgba(0, 0, 0, 0.12);
+      --backdrop:       rgba(0, 43, 54, 0.4);
+      --fab-text:       #ffffff;
+    }
+
+    [data-theme="gruvbox"][data-mode="dark"] {
+      --bg:           #282828;
+      --surface:      #3c3836;
+      --surface2:     #504945;
+      --border:       #665c54;
+      --border-hover: #7c6f64;
+      --text:         #ebdbb2;
+      --muted:        #a89984;
+      --accent:       #fe8019;
+      --red:          #fb4934;
+      --yellow:       #fabd2f;
+      --green:        #b8bb26;
+
+      --completed:    #b8bb26;
+      --planned:      #fb4934;
+
+      --cluster-fill:   rgba(254, 128, 25, 0.6);
+      --cluster-halo:   rgba(254, 128, 25, 0.25);
+      --shadow:         rgba(0, 0, 0, 0.4);
+      --backdrop:       rgba(40, 40, 40, 0.6);
+      --fab-text:       #282828;
+    }
+
+    [data-theme="gruvbox"][data-mode="light"] {
+      --bg:           #fbf1c7;
+      --surface:      #f9f5d7;
+      --surface2:     #ebdbb2;
+      --border:       #d5c4a1;
+      --border-hover: #bdae93;
+      --text:         #3c3836;
+      --muted:        #7c6f64;
+      --accent:       #d65d0e;
+      --red:          #cc241d;
+      --yellow:       #b57614;
+      --green:        #79740e;
+
+      --completed:    #79740e;
+      --planned:      #cc241d;
+
+      --attribution-bg: rgba(251, 241, 199, 0.9);
+      --cluster-fill:   rgba(214, 93, 14, 0.65);
+      --cluster-halo:   rgba(214, 93, 14, 0.25);
+      --shadow:         rgba(0, 0, 0, 0.12);
+      --backdrop:       rgba(60, 56, 54, 0.4);
+      --fab-text:       #fbf1c7;
+    }
+
+    [data-theme="catppuccin"][data-mode="dark"] {
+      --bg:           #1e1e2e;
+      --surface:      #313244;
+      --surface2:     #45475a;
+      --border:       #585b70;
+      --border-hover: #6c7086;
+      --text:         #cdd6f4;
+      --muted:        #a6adc8;
+      --accent:       #cba6f7;
+      --red:          #f38ba8;
+      --yellow:       #f9e2af;
+      --green:        #a6e3a1;
+
+      --completed:    #a6e3a1;
+      --planned:      #f38ba8;
+
+      --cluster-fill:   rgba(203, 166, 247, 0.6);
+      --cluster-halo:   rgba(203, 166, 247, 0.25);
+      --shadow:         rgba(0, 0, 0, 0.4);
+      --backdrop:       rgba(30, 30, 46, 0.6);
+      --fab-text:       #1e1e2e;
+    }
+
+    [data-theme="catppuccin"][data-mode="light"] {
+      --bg:           #eff1f5;
+      --surface:      #ffffff;
+      --surface2:     #e6e9ef;
+      --border:       #ccd0da;
+      --border-hover: #9ca0b0;
+      --text:         #4c4f69;
+      --muted:        #6c6f85;
+      --accent:       #8839ef;
+      --red:          #d20f39;
+      --yellow:       #df8e1d;
+      --green:        #40a02b;
+
+      --completed:    #40a02b;
+      --planned:      #d20f39;
+
+      --attribution-bg: rgba(255, 255, 255, 0.9);
+      --cluster-fill:   rgba(136, 57, 239, 0.65);
+      --cluster-halo:   rgba(136, 57, 239, 0.25);
+      --shadow:         rgba(0, 0, 0, 0.12);
+      --backdrop:       rgba(76, 79, 105, 0.4);
+      --fab-text:       #ffffff;
+    }
+
+    [data-theme="rose-pine"][data-mode="dark"] {
+      --bg:           #191724;
+      --surface:      #1f1d2e;
+      --surface2:     #26233a;
+      --border:       #403d52;
+      --border-hover: #524f67;
+      --text:         #e0def4;
+      --muted:        #908caa;
+      --accent:       #c4a7e7;
+      --red:          #eb6f92;
+      --yellow:       #f6c177;
+      --green:        #9ccfd8;
+
+      --completed:    #9ccfd8;
+      --planned:      #eb6f92;
+
+      --cluster-fill:   rgba(196, 167, 231, 0.6);
+      --cluster-halo:   rgba(196, 167, 231, 0.25);
+      --shadow:         rgba(0, 0, 0, 0.4);
+      --backdrop:       rgba(25, 23, 36, 0.6);
+      --fab-text:       #191724;
+    }
+
+    [data-theme="tokyo-night"][data-mode="dark"] {
+      --bg:           #1a1b26;
+      --surface:      #24283b;
+      --surface2:     #292e42;
+      --border:       #3b4261;
+      --border-hover: #414868;
+      --text:         #c0caf5;
+      --muted:        #737aa2;
+      --accent:       #7aa2f7;
+      --red:          #f7768e;
+      --yellow:       #e0af68;
+      --green:        #9ece6a;
+
+      --completed:    #9ece6a;
+      --planned:      #f7768e;
+
+      --cluster-fill:   rgba(122, 162, 247, 0.6);
+      --cluster-halo:   rgba(122, 162, 247, 0.25);
+      --shadow:         rgba(0, 0, 0, 0.4);
+      --backdrop:       rgba(26, 27, 38, 0.6);
+      --fab-text:       #1a1b26;
+    }
+
+    [data-theme="tokyo-night"][data-mode="light"] {
+      --bg:           #d5d6db;
+      --surface:      #e1e2e7;
+      --surface2:     #cbccd1;
+      --border:       #a8aecb;
+      --border-hover: #8990b3;
+      --text:         #343b58;
+      --muted:        #4c505e;
+      --accent:       #2e7de9;
+      --red:          #f52a65;
+      --yellow:       #8c6c3e;
+      --green:        #587539;
+
+      --completed:    #587539;
+      --planned:      #f52a65;
+
+      --attribution-bg: rgba(225, 226, 231, 0.9);
+      --cluster-fill:   rgba(46, 125, 233, 0.65);
+      --cluster-halo:   rgba(46, 125, 233, 0.25);
+      --shadow:         rgba(0, 0, 0, 0.12);
+      --backdrop:       rgba(52, 59, 88, 0.4);
+      --fab-text:       #ffffff;
+    }
+
+    [data-theme="dracula"][data-mode="dark"] {
+      --bg:           #282a36;
+      --surface:      #343746;
+      --surface2:     #44475a;
+      --border:       #6272a4;
+      --border-hover: #7d8aba;
+      --text:         #f8f8f2;
+      --muted:        #6272a4;
+      --accent:       #bd93f9;
+      --red:          #ff5555;
+      --yellow:       #f1fa8c;
+      --green:        #50fa7b;
+
+      --completed:    #50fa7b;
+      --planned:      #ff5555;
+
+      --cluster-fill:   rgba(189, 147, 249, 0.6);
+      --cluster-halo:   rgba(189, 147, 249, 0.25);
+      --shadow:         rgba(0, 0, 0, 0.4);
+      --backdrop:       rgba(40, 42, 54, 0.6);
+      --fab-text:       #282a36;
+    }
+
+    [data-theme="dracula"][data-mode="light"] {
+      --bg:           #f8f8f2;
+      --surface:      #ffffff;
+      --surface2:     #cfcfde;
+      --border:       #b8b8c8;
+      --border-hover: #9090a0;
+      --text:         #1f1f1f;
+      --muted:        #635d87;
+      --accent:       #644ac9;
+      --red:          #cb3a2a;
+      --yellow:       #846e15;
+      --green:        #14710a;
+
+      --completed:    #14710a;
+      --planned:      #cb3a2a;
+
+      --attribution-bg: rgba(255, 255, 255, 0.9);
+      --cluster-fill:   rgba(100, 74, 201, 0.65);
+      --cluster-halo:   rgba(100, 74, 201, 0.25);
+      --shadow:         rgba(0, 0, 0, 0.12);
+      --backdrop:       rgba(31, 31, 31, 0.4);
+      --fab-text:       #ffffff;
+    }
+
+    [data-theme="rose-pine"][data-mode="light"] {
+      --bg:           #faf4ed;
+      --surface:      #fffaf3;
+      --surface2:     #f2e9e1;
+      --border:       #dfdad9;
+      --border-hover: #cecacd;
+      --text:         #575279;
+      --muted:        #797593;
+      --accent:       #907aa9;
+      --red:          #b4637a;
+      --yellow:       #ea9d34;
+      --green:        #56949f;
+
+      --completed:    #56949f;
+      --planned:      #b4637a;
+
+      --attribution-bg: rgba(255, 250, 243, 0.9);
+      --cluster-fill:   rgba(144, 122, 169, 0.65);
+      --cluster-halo:   rgba(144, 122, 169, 0.25);
+      --shadow:         rgba(0, 0, 0, 0.12);
+      --backdrop:       rgba(87, 82, 121, 0.4);
+      --fab-text:       #fffaf3;
+    }
+
+    .leaflet-div-icon { background: transparent; border: none; }
+    [data-tile-filter="desaturated"] .leaflet-tile { filter: saturate(0.5); }
+    [data-tile-filter="muted"] .leaflet-tile { filter: saturate(0.35) brightness(0.95) contrast(0.95); }
 
     html, body {
       height: 100%;
@@ -70,18 +379,6 @@
       font-weight: 300;
     }
 
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 48px 48px;
-      opacity: 0.18;
-      pointer-events: none;
-      z-index: 0;
-    }
 
     a { color: var(--accent); text-decoration: none; }
     a:hover { opacity: 0.8; }
@@ -736,7 +1033,7 @@
     .elevation-detached:not(:hover) .mouse-focus-label { display: none; }
     .leaflet-elevation-pane .elevation-summary { background: var(--surface) !important; color: var(--text) !important; }
     .elevation-control .close-button, .elevation-control .elevation-toggle-icon, .elevation-detached .leaflet-close { display: none !important; }
-    .leaflet-interactive { filter: drop-shadow(0 0 3px rgba(0,0,0,0.5)); }
+    .leaflet-overlay-pane .leaflet-interactive { filter: drop-shadow(0 0 3px rgba(0,0,0,0.5)); }
     .marker-start, .marker-end { background: none !important; border: none !important; }
 
     @media (max-width: 900px) {
@@ -885,11 +1182,9 @@
 
     /* Settings modal sub-sections */
     .modal h3.settings-h {
-      font-size: 0.7rem;
+      font-size: 0.95rem;
       font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--muted);
+      color: var(--text);
       margin-top: 1.25rem;
       margin-bottom: 0.5rem;
       padding-top: 0.75rem;
@@ -1023,10 +1318,8 @@
     .modal-tabs button:hover:not(.active) { color: var(--text); }
     .modal label {
       display: block;
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--muted);
+      font-size: 0.8rem;
+      color: var(--text);
       margin-bottom: 0.3rem;
       margin-top: 0.75rem;
     }
@@ -1355,20 +1648,63 @@
     }
 
     function createMarkerIcon(color, visited) {
-      const size = 18, cx = size / 2, cy = size / 2;
-      let svg;
-      if (visited) {
+      const size = getMarkerSize(), cx = size / 2, cy = size / 2;
+      const style = getPinStyle();
+      let svg, iconSize, iconAnchor;
+      if (style === 'pin') {
+        const w = size + 4;
+        const h = Math.round(w * 33 / 24);
+        const pinPath = 'M12 0C5.37 0 0 5.37 0 12c0 9 12 21 12 21s12-12 12-21C24 5.37 18.63 0 12 0z';
+        if (visited) {
+          svg = '<svg viewBox="0 0 24 33" width="' + w + '" height="' + h + '">' +
+            '<path d="' + pinPath + '" fill="' + color + '"/>' +
+            '<circle cx="12" cy="12" r="4" fill="#fff"/>' +
+            '</svg>';
+        } else {
+          svg = '<svg viewBox="-1.5 -1.5 27 36" width="' + w + '" height="' + h + '">' +
+            '<path d="' + pinPath + '" fill="' + color + '" fill-opacity="0.25" stroke="' + color + '" stroke-width="2"/>' +
+            '</svg>';
+        }
+        iconSize = [w, h];
+        iconAnchor = [w / 2, h];
+      } else if (style === 'dot') {
+        const r = Math.max(3, Math.round(size * 0.35));
         svg = '<svg viewBox="0 0 ' + size + ' ' + size + '" width="' + size + '" height="' + size + '">' +
-          '<circle cx="' + cx + '" cy="' + cy + '" r="' + (size/2 - 1) + '" fill="' + color + '" stroke="#1a1a1a" stroke-width="2"/>' +
+          '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="' + color + '"' + (visited ? '' : ' fill-opacity="0.5"') + '/>' +
+          '</svg>';
+        iconSize = [size, size];
+        iconAnchor = [size / 2, size / 2];
+      } else if (style === 'tag') {
+        const w = size + 6;
+        const h = Math.round(w * 24 / 22);
+        const flagPath = 'M0 0 L22 0 L22 10 L2 10 L2 24 L0 24 Z';
+        if (visited) {
+          svg = '<svg viewBox="0 0 22 24" width="' + w + '" height="' + h + '">' +
+            '<path d="' + flagPath + '" fill="' + color + '"/>' +
+            '</svg>';
+        } else {
+          svg = '<svg viewBox="-1.5 -1.5 25 27" width="' + w + '" height="' + h + '">' +
+            '<path d="' + flagPath + '" fill="' + color + '" fill-opacity="0.25" stroke="' + color + '" stroke-width="2"/>' +
+            '</svg>';
+        }
+        iconSize = [w, h];
+        iconAnchor = [1, h];
+      } else if (visited) {
+        svg = '<svg viewBox="0 0 ' + size + ' ' + size + '" width="' + size + '" height="' + size + '">' +
+          '<circle cx="' + cx + '" cy="' + cy + '" r="' + (size/2 - 1) + '" fill="' + color + '"/>' +
           '<circle cx="' + cx + '" cy="' + cy + '" r="' + (size/2 - 1) + '" fill="none" stroke="#fff" stroke-width="1" opacity="0.6"/>' +
           '</svg>';
+        iconSize = [size, size];
+        iconAnchor = [size / 2, size / 2];
       } else {
         svg = '<svg viewBox="0 0 ' + size + ' ' + size + '" width="' + size + '" height="' + size + '">' +
-          '<circle cx="' + cx + '" cy="' + cy + '" r="' + (size/2 - 2) + '" fill="' + color + '" fill-opacity="0.25" stroke="#1a1a1a" stroke-width="2.5"/>' +
+          '<circle cx="' + cx + '" cy="' + cy + '" r="' + (size/2 - 2) + '" fill="' + color + '" fill-opacity="0.25"/>' +
           '<circle cx="' + cx + '" cy="' + cy + '" r="' + (size/2 - 2) + '" fill="none" stroke="' + color + '" stroke-width="2"/>' +
           '</svg>';
+        iconSize = [size, size];
+        iconAnchor = [size / 2, size / 2];
       }
-      return L.divIcon({ className: '', html: svg, iconSize: [size, size], iconAnchor: [size/2, size/2] });
+      return L.divIcon({ className: '', html: svg, iconSize: iconSize, iconAnchor: iconAnchor });
     }
 
     function addStartEndMarkers(map, startLatLng, endLatLng) {
@@ -1479,7 +1815,7 @@
             const gpxUrl = 'gpx/' + route.file;
             const gpxLayer = new L.GPX(gpxUrl, {
               async: true,
-              polyline_options: { color: color, opacity: 0.85, weight: 4 },
+              polyline_options: { color: color, opacity: 0.85, weight: 4 * getTrailWeightFactor() },
               markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
             });
             gpxLayer.on('loaded', function(e) {
@@ -2202,7 +2538,7 @@
       if (route.plannedFile && route.completed) {
         new L.GPX('gpx/' + route.plannedFile, {
           async: true,
-          polyline_options: { color: ROUTE_COLOR, opacity: 0.35, weight: 4, dashArray: '8 6' },
+          polyline_options: { color: ROUTE_COLOR, opacity: 0.35, weight: 4 * getTrailWeightFactor(), dashArray: '8 6' },
           markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
         }).addTo(map);
       }
@@ -2223,7 +2559,7 @@
           slope: false, speed: false, acceleration: false, time: false,
           legend: false, summary: false, ruler: false, downloadLink: false,
           almostOver: false, distanceMarkers: false,
-          polyline: { color: color, opacity: 0.9, weight: 5 },
+          polyline: { color: color, opacity: 0.9, weight: 5 * getTrailWeightFactor() },
         }).addTo(map);
         state.currentElevation = elevationControl;
       }
@@ -2231,7 +2567,7 @@
       const gpxUrl = 'gpx/' + route.file;
       new L.GPX(gpxUrl, {
         async: true,
-        polyline_options: { color: color, opacity: 0.9, weight: 5 },
+        polyline_options: { color: color, opacity: 0.9, weight: 5 * getTrailWeightFactor() },
         markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
       }).on('loaded', function(e) {
         const gpx = e.target;
@@ -2292,7 +2628,7 @@
             allStats.push(stats);
             for (const p of track.points) bounds.extend([p.lat, p.lon]);
             const latlngs = track.points.map(p => [p.lat, p.lon]);
-            L.polyline(latlngs, { color: tc, opacity: 0.9, weight: 5 }).addTo(map);
+            L.polyline(latlngs, { color: tc, opacity: 0.9, weight: 5 * getTrailWeightFactor() }).addTo(map);
             const hasEle = track.points.some(p => p.ele !== null);
             if (hasEle && container) {
               const ctrl = L.control.elevation({
@@ -2376,20 +2712,74 @@
     window.addEventListener('hashchange', router);
 
     // ----- Theme -----
+    const THEMES = ['catppuccin', 'dracula', 'gruvbox', 'nord', 'rose-pine', 'solarized', 'tokyo-night'];
+    const MODES = ['system', 'light', 'dark'];
+    (function migrateTheme() {
+      try {
+        const old = localStorage.getItem('atlas-theme');
+        if (old && MODES.includes(old)) {
+          localStorage.setItem('atlas-mode', old);
+          localStorage.setItem('atlas-theme', 'nord');
+        } else if (old && !THEMES.includes(old)) {
+          localStorage.setItem('atlas-theme', 'nord');
+        }
+      } catch {}
+    })();
     function getStoredTheme() {
-      try { return localStorage.getItem('atlas-theme') || 'system'; }
-      catch { return 'system'; }
+      try {
+        const v = localStorage.getItem('atlas-theme');
+        return THEMES.includes(v) ? v : 'nord';
+      } catch { return 'nord'; }
     }
-    function applyTheme(choice) {
-      const eff = choice === 'system'
+    function getStoredMode() {
+      try {
+        const v = localStorage.getItem('atlas-mode');
+        return MODES.includes(v) ? v : 'system';
+      } catch { return 'system'; }
+    }
+    function applyTheme(theme, mode) {
+      const eff = mode === 'system'
         ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
-        : choice;
-      document.documentElement.setAttribute('data-theme', eff);
+        : mode;
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.setAttribute('data-mode', eff);
     }
-    applyTheme(getStoredTheme());
+    const PIN_STYLES = ['ring', 'pin', 'dot', 'tag'];
+    function getPinStyle() {
+      try {
+        const v = localStorage.getItem('atlas-pin-style');
+        return PIN_STYLES.includes(v) ? v : 'ring';
+      } catch { return 'ring'; }
+    }
+    const MARKER_SIZES = { small: 14, default: 18, large: 24 };
+    const TRAIL_WEIGHT_FACTORS = { thin: 0.7, default: 1, thick: 1.4 };
+    const TILE_FILTERS = ['none', 'desaturated', 'muted'];
+    function getMarkerSizeKey() {
+      try {
+        const v = localStorage.getItem('atlas-marker-size');
+        return MARKER_SIZES[v] ? v : 'default';
+      } catch { return 'default'; }
+    }
+    function getMarkerSize() { return MARKER_SIZES[getMarkerSizeKey()]; }
+    function getTrailWeightKey() {
+      try {
+        const v = localStorage.getItem('atlas-trail-weight');
+        return TRAIL_WEIGHT_FACTORS[v] ? v : 'default';
+      } catch { return 'default'; }
+    }
+    function getTrailWeightFactor() { return TRAIL_WEIGHT_FACTORS[getTrailWeightKey()]; }
+    function getTileFilter() {
+      try {
+        const v = localStorage.getItem('atlas-tile-filter');
+        return TILE_FILTERS.includes(v) ? v : 'none';
+      } catch { return 'none'; }
+    }
+    function applyTileFilter(v) { document.documentElement.setAttribute('data-tile-filter', v); }
+    applyTheme(getStoredTheme(), getStoredMode());
+    applyTileFilter(getTileFilter());
     if (window.matchMedia) {
       window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
-        if (getStoredTheme() === 'system') applyTheme('system');
+        if (getStoredMode() === 'system') applyTheme(getStoredTheme(), 'system');
       });
     }
 
@@ -2495,6 +2885,20 @@
       const isOp = state.auth.is_operator;
       const regOpen = state.auth.registration_open;
       const theme = getStoredTheme();
+      const mode = getStoredMode();
+      const pinStyle = getPinStyle();
+      const markerSize = getMarkerSizeKey();
+      const trailWeight = getTrailWeightKey();
+      const tileFilter = getTileFilter();
+      const themeLabels = {
+        nord: 'Nord',
+        solarized: 'Solarized',
+        gruvbox: 'Gruvbox',
+        catppuccin: 'Catppuccin',
+        'rose-pine': 'Rosé Pine',
+        'tokyo-night': 'Tokyo Night',
+        dracula: 'Dracula'
+      };
       openModal(
         '<h2>Settings<button class="modal-close">&times;</button></h2>' +
         ((placesAvailable() || trailsAvailable()) ?
@@ -2533,12 +2937,43 @@
         '<select id="s-language" disabled>' +
           '<option value="en" selected>English</option>' +
         '</select>' +
-        '<h3 class="settings-h">Theme</h3>' +
+        '<h3 class="settings-h">Appearance</h3>' +
+        '<label for="s-theme">Theme</label>' +
         '<select id="s-theme">' +
-          ['system', 'dark', 'light'].map(v =>
-            '<option value="' + v + '"' + (theme === v ? ' selected' : '') + '>' + v.charAt(0).toUpperCase() + v.slice(1) + '</option>'
+          THEMES.map(v =>
+            '<option value="' + v + '"' + (theme === v ? ' selected' : '') + '>' + (themeLabels[v] || v) + '</option>'
           ).join('') +
         '</select>' +
+        '<label for="s-mode">Mode</label>' +
+        '<select id="s-mode">' +
+          MODES.map(v =>
+            '<option value="' + v + '"' + (mode === v ? ' selected' : '') + '>' + v.charAt(0).toUpperCase() + v.slice(1) + '</option>'
+          ).join('') +
+        '</select>' +
+        '<label>Pin style</label>' +
+        '<div class="radio-row">' +
+          [['ring', 'Ring'], ['pin', 'Pin'], ['dot', 'Dot'], ['tag', 'Tag']].map(([v, l]) =>
+            '<label><input type="radio" name="pin-style" value="' + v + '"' + (pinStyle === v ? ' checked' : '') + '> ' + l + '</label>'
+          ).join('') +
+        '</div>' +
+        '<label>Marker size</label>' +
+        '<div class="radio-row">' +
+          [['small', 'Small'], ['default', 'Default'], ['large', 'Large']].map(([v, l]) =>
+            '<label><input type="radio" name="marker-size" value="' + v + '"' + (markerSize === v ? ' checked' : '') + '> ' + l + '</label>'
+          ).join('') +
+        '</div>' +
+        '<label>Trail line thickness</label>' +
+        '<div class="radio-row">' +
+          [['thin', 'Thin'], ['default', 'Default'], ['thick', 'Thick']].map(([v, l]) =>
+            '<label><input type="radio" name="trail-weight" value="' + v + '"' + (trailWeight === v ? ' checked' : '') + '> ' + l + '</label>'
+          ).join('') +
+        '</div>' +
+        '<label>Map tile style</label>' +
+        '<div class="radio-row">' +
+          [['none', 'None'], ['desaturated', 'Desaturated'], ['muted', 'Muted']].map(([v, l]) =>
+            '<label><input type="radio" name="tile-filter" value="' + v + '"' + (tileFilter === v ? ' checked' : '') + '> ' + l + '</label>'
+          ).join('') +
+        '</div>' +
         '<h3 class="settings-h">Password</h3>' +
         '<form id="settings-pw-form">' +
           '<label for="s-current">Current password</label>' +
@@ -2601,7 +3036,40 @@
           const themeSel = document.getElementById('s-theme');
           if (themeSel) themeSel.addEventListener('change', function() {
             try { localStorage.setItem('atlas-theme', this.value); } catch {}
-            applyTheme(this.value);
+            applyTheme(this.value, getStoredMode());
+          });
+          const modeSel = document.getElementById('s-mode');
+          if (modeSel) modeSel.addEventListener('change', function() {
+            try { localStorage.setItem('atlas-mode', this.value); } catch {}
+            applyTheme(getStoredTheme(), this.value);
+          });
+          document.querySelectorAll('input[name="pin-style"]').forEach(r => {
+            r.addEventListener('change', function() {
+              if (!this.checked) return;
+              setPref('atlas-pin-style', this.value);
+              wrappedRouter();
+            });
+          });
+          document.querySelectorAll('input[name="marker-size"]').forEach(r => {
+            r.addEventListener('change', function() {
+              if (!this.checked) return;
+              setPref('atlas-marker-size', this.value);
+              wrappedRouter();
+            });
+          });
+          document.querySelectorAll('input[name="trail-weight"]').forEach(r => {
+            r.addEventListener('change', function() {
+              if (!this.checked) return;
+              setPref('atlas-trail-weight', this.value);
+              wrappedRouter();
+            });
+          });
+          document.querySelectorAll('input[name="tile-filter"]').forEach(r => {
+            r.addEventListener('change', function() {
+              if (!this.checked) return;
+              setPref('atlas-tile-filter', this.value);
+              applyTileFilter(this.value);
+            });
           });
           ['places', 'trails'].forEach(function(feat) {
             const cb = document.getElementById('s-feat-' + feat);
