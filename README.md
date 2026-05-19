@@ -98,6 +98,7 @@ Same shape, but use `deploy/atlas-api.plist` (template; replace `/Users/YOU/atla
 ## TODO
 
 - UI to manage trail regions (rename, move trails between regions, delete), like the existing category-label editor.
+- Per-user maps. Each user has their own places + trails, fully isolated from other users; the operator's job narrows to user management and instance-wide settings. Replaces the current single-shared-map model. Includes an export feature so users can take their data with them, and an optional per-user "publish my map" toggle that exposes a read-only public URL (no login required to view a published map). Until this lands, writes are operator-only.
 
 ## Read-only deploy
 

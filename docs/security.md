@@ -35,8 +35,9 @@ Three ways to close the window:
 
 ## Write endpoints
 
-- All writes require an authenticated session.
+- All writes require an authenticated session **and** the operator role. Non-operator accounts can sign in but cannot create, edit, or delete places or GPX trails. This is an interim guarantee until the per-user-maps model lands (see README TODO); at that point writes will be scoped to the signed-in user's own map instead of operator-gated.
 - Place writes go through schema validation: required/optional field names checked, lat in `[-90, 90]`, lon in `[-180, 180]`, string length caps. Unknown fields rejected with 400.
+- `sources` entries are restricted to `http://` or `https://` URLs. Other schemes (`javascript:`, `data:`, `mailto:`, ...) are rejected at the API. The frontend re-checks the protocol when rendering source links and falls back to inert text if it isn't http(s), so legacy data from before this check can't be turned into a clickable script URL.
 - Writes are atomic: tmp file in the target directory, fsync, `os.replace`, fsync directory. Symlinks are resolved so writes land on the real file and the link stays intact.
 - A file lock (`fcntl.flock`) serializes concurrent writes to `places.json` and the `gpx/` tree.
 - GPX uploads are XML-parsed before saving; non-GPX content is rejected. PII is stripped server-side: `<time>` and `<author>` elements removed, `creator=` attribute on `<gpx>` dropped. Never trusts client-side stripping.

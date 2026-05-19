@@ -740,6 +740,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     user = self._current_user()
     if not user:
       return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
+    if not user["is_operator"]:
+      return self._error(HTTPStatus.FORBIDDEN, "operator only")
     body = self._read_body_or_400()
     if body is None:
       return
@@ -779,6 +781,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     user = self._current_user()
     if not user:
       return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
+    if not user["is_operator"]:
+      return self._error(HTTPStatus.FORBIDDEN, "operator only")
     body = self._read_body_or_400()
     if body is None:
       return
@@ -826,6 +830,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     user = self._current_user()
     if not user:
       return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
+    if not user["is_operator"]:
+      return self._error(HTTPStatus.FORBIDDEN, "operator only")
     body = self._read_body_or_400()
     if body is None:
       return
@@ -863,6 +869,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     user = self._current_user()
     if not user:
       return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
+    if not user["is_operator"]:
+      return self._error(HTTPStatus.FORBIDDEN, "operator only")
     body = self._read_body_or_400()
     if body is None:
       return
@@ -914,6 +922,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     user = self._current_user()
     if not user:
       return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
+    if not user["is_operator"]:
+      return self._error(HTTPStatus.FORBIDDEN, "operator only")
 
     qs = parse_qs(urlparse(self.path).query)
     try:
@@ -1112,6 +1122,8 @@ def validate_place(p: object) -> dict:
     for s in p["sources"]:
       if not isinstance(s, str) or len(s) > 500:
         raise ValidationError("each source must be a string (<=500 chars)")
+      if urlparse(s).scheme.lower() not in ("http", "https"):
+        raise ValidationError("each source must be an http(s) URL")
   # Return a normalized copy: trimmed strings, defaulted booleans.
   out = {
     "name": name.strip(),
