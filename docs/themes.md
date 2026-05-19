@@ -41,7 +41,7 @@ Everything theme-related lives in `index.html`:
 - `themeLabels` object (~line 3006): display names for the Settings dropdown.
 - `applyTheme(theme, mode)` (~line 2842): sets the two HTML attributes and resolves "system" via `matchMedia`.
 - `COLORS` / `COLORS_LIGHT` (~line 1475): category palette, indexed by sorted category position. See [Category palette](#category-palette).
-- `COMPLETED_COLOR` / `PLANNED_COLOR` (~line 1478): hardcoded trail status colors used in popup text. **Not theme-aware** (see [known gaps](#known-gaps)).
+- `trailStatusColor(completed)` (~line 1485): reads `--completed` / `--planned` from the active theme at call time. Used for Leaflet polyline strokes and popup color. Legend dots and search-result lines use `.completed` / `.planned` CSS classes that reference the same vars directly.
 
 ### CSS variable contract
 
@@ -127,4 +127,4 @@ Recommended sanity checks:
 
 ### Open theme-related TODOs
 
-Tracked in the [main README TODO](../README.md#todo). Currently: trail-status colors are not theme-aware, and category-color assignment isn't stable across category-set changes.
+Tracked in the [main README TODO](../README.md#todo). Currently: category-color assignment isn't stable across category-set changes.
