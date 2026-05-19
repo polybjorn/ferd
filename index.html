@@ -594,7 +594,7 @@
       gap: 0.5rem;
     }
 
-    .place-card {
+    .place-card, .route-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -602,10 +602,10 @@
       cursor: pointer;
       transition: border-color 0.15s;
       display: flex;
-      align-items: flex-start;
       gap: 0.5rem;
     }
-    .place-card:hover { border-color: var(--border-hover); }
+    .place-card:hover, .route-card:hover { border-color: var(--border-hover); }
+    .place-card { align-items: flex-start; }
     .place-card .status-dot { margin-top: 0.35rem; }
     .place-card .place-text { min-width: 0; flex: 1; }
     .place-card .name { font-size: 0.85rem; font-weight: 300; }
@@ -629,18 +629,7 @@
       gap: 0.5rem;
     }
 
-    .route-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 0.75rem 1rem;
-      cursor: pointer;
-      transition: border-color 0.15s;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .route-card:hover { border-color: var(--border-hover); }
+    .route-card { align-items: center; }
     .route-card .name {
       font-size: 0.85rem;
       font-weight: 300;
@@ -789,6 +778,8 @@
 
     .legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
     .legend-line { width: 14px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+    .legend-line.completed, .result-line.completed { background: var(--completed); }
+    .legend-line.planned, .result-line.planned { background: var(--planned); }
 
     .legend-status {
       display: flex;
@@ -1479,8 +1470,29 @@
     if (COLORS.length !== COLORS_LIGHT.length) console.warn('COLORS and COLORS_LIGHT length mismatch');
     const TRACK_COLORS = COLORS;
     const ROUTE_COLOR = '#6aaeee';
-    const COMPLETED_COLOR = '#00e05a';
-    const PLANNED_COLOR = '#ff6b6b';
+    const GPX_NS = 'http://www.topografix.com/GPX/1/1';
+    const DATA_FILES = { places: 'places.json', routes: 'routes.json', siteConfig: 'site-config.json' };
+
+    function trailStatusColor(completed) {
+      // Read live so polyline draws pick up the active theme.
+      const prop = completed ? '--completed' : '--planned';
+      return getComputedStyle(document.documentElement).getPropertyValue(prop).trim() || (completed ? '#a3be8c' : '#bf616a');
+    }
+
+    function fetchJson(url, fallback) {
+      return fetch(url).then(r => r.ok ? r.json() : fallback).catch(() => fallback);
+    }
+
+    function panelSectionHtml(id, label) {
+      return '<div class="panel-section collapsed" id="' + id + '-section">' +
+        '<div class="panel-section-header" data-section="' + id + '-section">' + label +
+        '<span class="panel-section-actions">' +
+        '<span class="panel-action" id="' + id + '-toggle-all">Toggle</span>' +
+        '<span class="section-arrow">&#x25BC;</span>' +
+        '</span></div>' +
+        '<div class="panel-section-body" id="' + id + '-body"></div>' +
+        '</div>';
+    }
 
     const DEFAULT_CONFIG = {
       brand: 'Atlas',
@@ -1879,7 +1891,7 @@
       if (state.manifest && trailsEnabled()) {
         for (const region of state.manifest.regions) {
           for (const route of region.routes) {
-            const color = route.completed ? COMPLETED_COLOR : PLANNED_COLOR;
+            const color = trailStatusColor(route.completed);
             const parent = route.completed ? groupCompleted : groupPlanned;
             const gpxUrl = 'gpx/' + route.file;
             const gpxLayer = new L.GPX(gpxUrl, {
@@ -1946,28 +1958,8 @@
             '<input type="text" id="map-search-input" placeholder="' + searchPlaceholder + '">' +
             '<div class="map-search-results" id="map-search-results"></div>' +
             '</div>' +
-            (placesEnabled() ?
-              '<div class="panel-section collapsed" id="places-section">' +
-              '<div class="panel-section-header" data-section="places-section">Places' +
-              '<span class="panel-section-actions">' +
-              '<span class="panel-action" id="places-toggle-all">Toggle</span>' +
-              '<span class="section-arrow">&#x25BC;</span>' +
-              '</span>' +
-              '</div>' +
-              '<div class="panel-section-body" id="places-body"></div>' +
-              '</div>'
-              : '') +
-            (trailsEnabled() ?
-              '<div class="panel-section collapsed" id="trails-section">' +
-              '<div class="panel-section-header" data-section="trails-section">Trails' +
-              '<span class="panel-section-actions">' +
-              '<span class="panel-action" id="trails-toggle-all">Toggle</span>' +
-              '<span class="section-arrow">&#x25BC;</span>' +
-              '</span>' +
-              '</div>' +
-              '<div class="panel-section-body" id="trails-body"></div>' +
-              '</div>'
-              : '');
+            (placesEnabled() ? panelSectionHtml('places', 'Places') : '') +
+            (trailsEnabled() ? panelSectionHtml('trails', 'Trails') : '');
           L.DomEvent.disableClickPropagation(div);
           L.DomEvent.disableScrollPropagation(div);
           return div;
@@ -2015,10 +2007,10 @@
       if (trailsBody) {
         let html = '<div class="legend-cats" style="grid-template-columns:1fr">';
         html += '<div class="legend-item' + (state.showCompleted ? '' : ' disabled') + '" data-trail-status="completed">';
-        html += '<span class="legend-line" style="background:' + COMPLETED_COLOR + '"></span>Completed';
+        html += '<span class="legend-line completed"></span>Completed';
         html += '</div>';
         html += '<div class="legend-item' + (state.showPlanned ? '' : ' disabled') + '" data-trail-status="planned">';
-        html += '<span class="legend-line" style="background:' + PLANNED_COLOR + '"></span>Planned';
+        html += '<span class="legend-line planned"></span>Planned';
         html += '</div>';
         html += '</div>';
         trailsBody.innerHTML = html;
@@ -2319,9 +2311,9 @@
           html += '<span class="result-meta">' + escapeHtml(p.country || '') + '</span></div>';
         }
         for (const t of trailMatches) {
-          const color = t.route.completed ? COMPLETED_COLOR : PLANNED_COLOR;
+          const statusClass = t.route.completed ? 'completed' : 'planned';
           html += '<div class="map-search-result" data-type="trail" data-key="' + escapeHtml(t.route.key) + '">';
-          html += '<span class="result-line" style="background:' + color + '"></span>';
+          html += '<span class="result-line ' + statusClass + '"></span>';
           html += escapeHtml(t.route.name);
           html += '<span class="result-meta">' + escapeHtml(t.region) + '</span></div>';
         }
@@ -2493,13 +2485,12 @@
     // ----- Trail detail (elevation) -----
     function parseGpxTracks(xmlText) {
       const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
-      const ns = 'http://www.topografix.com/GPX/1/1';
-      let tracks = doc.getElementsByTagNameNS(ns, 'trk');
+      let tracks = doc.getElementsByTagNameNS(GPX_NS, 'trk');
       if (tracks.length === 0) tracks = doc.getElementsByTagName('trk');
       const result = [];
       for (let i = 0; i < tracks.length; i++) {
         const trk = tracks[i];
-        const nameEl = trk.getElementsByTagNameNS(ns, 'name')[0] || trk.getElementsByTagName('name')[0];
+        const nameEl = trk.getElementsByTagNameNS(GPX_NS, 'name')[0] || trk.getElementsByTagName('name')[0];
         const name = nameEl ? nameEl.textContent : 'Track ' + (i + 1);
         const points = [];
         let trkpts = trk.getElementsByTagNameNS(ns, 'trkpt');
@@ -3353,7 +3344,7 @@
     }
 
     function refreshPlaces() {
-      return fetch('places.json').then(r => r.ok ? r.json() : []).then(data => {
+      return fetchJson(DATA_FILES.places, []).then(data => {
         state.places = data;
         assignPlaceSlugs(state.places);
         const cc = assignCategoryColors(data);
@@ -3363,7 +3354,7 @@
     }
 
     function refreshRoutes() {
-      return fetch('routes.json').then(r => r.ok ? r.json() : null).then(data => {
+      return fetchJson(DATA_FILES.routes, null).then(data => {
         if (!data) return;
         data.regions.sort((a, b) => a.name.localeCompare(b.name));
         for (const region of data.regions) region.routes.sort((a, b) => a.name.localeCompare(b.name));
@@ -3745,17 +3736,11 @@
       refreshTabVisibility();
     }
 
-    fetch('site-config.json')
-      .then(r => r.ok ? r.json() : null)
-      .catch(() => null)
+    fetchJson(DATA_FILES.siteConfig, null)
       .then(function(cfg) {
         applyConfig(cfg);
-        const placesP = placesAvailable()
-          ? fetch('places.json').then(r => r.ok ? r.json() : Promise.reject()).catch(() => null)
-          : Promise.resolve(null);
-        const routesP = trailsAvailable()
-          ? fetch('routes.json').then(r => r.ok ? r.json() : Promise.reject()).catch(() => null)
-          : Promise.resolve(null);
+        const placesP = placesAvailable() ? fetchJson(DATA_FILES.places, null) : Promise.resolve(null);
+        const routesP = trailsAvailable() ? fetchJson(DATA_FILES.routes, null) : Promise.resolve(null);
         const stateP = fetch(apiUrl('/state'), { credentials: 'same-origin' })
           .then(r => r.ok ? r.json() : null).catch(() => null);
         return Promise.all([placesP, routesP, stateP]);
