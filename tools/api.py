@@ -394,6 +394,17 @@ class Handler(http.server.BaseHTTPRequestHandler):
         pass
     return user
 
+  def _require_operator(self) -> sqlite3.Row | None:
+    """Return current user if operator, else send 401/403 and return None."""
+    user = self._current_user()
+    if not user:
+      self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
+      return None
+    if not user["is_operator"]:
+      self._error(HTTPStatus.FORBIDDEN, "operator only")
+      return None
+    return user
+
   def _client_ip(self) -> str:
     return self.client_address[0] if self.client_address else "?"
 
@@ -663,11 +674,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"ok": True})
 
   def _h_settings_registration(self):
-    user = self._current_user()
-    if not user:
-      return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
-    if not user["is_operator"]:
-      return self._error(HTTPStatus.FORBIDDEN, "operator only")
+    if self._require_operator() is None:
+      return
     body = self._read_body_or_400()
     if body is None:
       return
@@ -679,11 +687,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"registration": mode})
 
   def _h_site_config_category_labels(self):
-    user = self._current_user()
-    if not user:
-      return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
-    if not user["is_operator"]:
-      return self._error(HTTPStatus.FORBIDDEN, "operator only")
+    if self._require_operator() is None:
+      return
     body = self._read_body_or_400()
     if body is None:
       return
@@ -723,7 +728,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         except json.JSONDecodeError as e:
           raise ValidationError(f"existing site-config.json is not valid JSON: {e}")
       existing["category_labels"] = cleaned
-      atomic_write_bytes(config_path, (json.dumps(existing, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+      write_json_file(config_path, existing)
 
     try:
       with_file_lock(lock_path, do_update)
@@ -737,11 +742,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
   # ---- phase 2: write endpoints ----
 
   def _h_places_create(self):
-    user = self._current_user()
-    if not user:
-      return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
-    if not user["is_operator"]:
-      return self._error(HTTPStatus.FORBIDDEN, "operator only")
+    if self._require_operator() is None:
+      return
     body = self._read_body_or_400()
     if body is None:
       return
@@ -765,7 +767,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         except json.JSONDecodeError as e:
           raise ValidationError(f"existing places.json is not valid JSON: {e}")
       existing.append(place)
-      atomic_write_bytes(places_path, (json.dumps(existing, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+      write_json_file(places_path, existing)
       return len(existing)
 
     try:
@@ -778,11 +780,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.CREATED, {"ok": True, "total_places": total, "place": place})
 
   def _h_places_update(self):
-    user = self._current_user()
-    if not user:
-      return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
-    if not user["is_operator"]:
-      return self._error(HTTPStatus.FORBIDDEN, "operator only")
+    if self._require_operator() is None:
+      return
     body = self._read_body_or_400()
     if body is None:
       return
@@ -815,7 +814,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       if validated["name"] != original_name and any(p.get("name") == validated["name"] for i, p in enumerate(existing) if i != idx):
         raise ValidationError(f"a different place already uses the name '{validated['name']}'")
       existing[idx] = validated
-      atomic_write_bytes(places_path, (json.dumps(existing, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+      write_json_file(places_path, existing)
 
     try:
       with_file_lock(lock_path, do_update)
@@ -827,11 +826,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"ok": True, "place": validated})
 
   def _h_places_delete(self):
-    user = self._current_user()
-    if not user:
-      return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
-    if not user["is_operator"]:
-      return self._error(HTTPStatus.FORBIDDEN, "operator only")
+    if self._require_operator() is None:
+      return
     body = self._read_body_or_400()
     if body is None:
       return
@@ -853,7 +849,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       new_list = [p for p in existing if not (isinstance(p, dict) and p.get("name") == target_name)]
       if len(new_list) == original_count:
         raise ValidationError(f"place not found: {target_name}")
-      atomic_write_bytes(places_path, (json.dumps(new_list, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+      write_json_file(places_path, new_list)
       return len(new_list)
 
     try:
@@ -866,11 +862,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"ok": True, "total_places": total})
 
   def _h_gpx_delete(self):
-    user = self._current_user()
-    if not user:
-      return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
-    if not user["is_operator"]:
-      return self._error(HTTPStatus.FORBIDDEN, "operator only")
+    if self._require_operator() is None:
+      return
     body = self._read_body_or_400()
     if body is None:
       return
@@ -919,11 +912,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"ok": True, "removed": removed, "manifest": manifest_status})
 
   def _h_gpx_upload(self):
-    user = self._current_user()
-    if not user:
-      return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
-    if not user["is_operator"]:
-      return self._error(HTTPStatus.FORBIDDEN, "operator only")
+    if self._require_operator() is None:
+      return
 
     qs = parse_qs(urlparse(self.path).query)
     try:
@@ -1038,6 +1028,11 @@ def resolve_under(base: Path, *parts: str) -> Path:
   if base_resolved != candidate and base_resolved not in candidate.parents:
     raise ValidationError("path escapes base directory")
   return candidate
+
+
+def write_json_file(path: Path, data) -> None:
+  """Serialize `data` as pretty JSON with trailing newline and write atomically."""
+  atomic_write_bytes(path, (json.dumps(data, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
 
 
 def atomic_write_bytes(path: Path, data: bytes) -> None:
