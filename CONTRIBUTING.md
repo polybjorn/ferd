@@ -38,14 +38,16 @@ deploy/
   nginx.example.conf     # nginx server block
 docs/
   configure.md           # config field reference
-  security.md            # account model, setup token, threat notes
+  install.md             # install walk-through
+  themes.md              # theme system + how to add one
+SECURITY.md              # account model, setup token, threat notes
 ```
 
 The repo intentionally has no build step, no JS framework, no bundler. Edits to `index.html` show up on reload.
 
 ## Smoke tests
 
-There is no formal test suite. The PRs I review against locally run the curl sequences in the [phase 1](docs/security.md#auth-api-sanity) and [phase 2](docs/security.md#write-api-sanity) sections of the security doc. If your change touches auth or write endpoints, walk through those before opening a PR.
+There is no formal test suite. The PRs I review against locally run the curl sequences in the [phase 1](SECURITY.md#auth-api-sanity) and [phase 2](SECURITY.md#write-api-sanity) sections of the security doc. If your change touches auth or write endpoints, walk through those before opening a PR.
 
 To verify the static side end to end, run the dev server above, sign in, and do all of: add a place from the map ("Pick on map" then form), edit a place from its popup, delete a place, upload a GPX, delete a trail, switch themes, change your password, revoke a session.
 

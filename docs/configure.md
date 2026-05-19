@@ -30,7 +30,7 @@ Every key in `tools/config.json` can also be set via an `ATLAS_<UPPER>` environm
 | `max_body_bytes` | `ATLAS_MAX_BODY_BYTES` | `1048576` | Cap on JSON request bodies. GPX uploads have a separate hard cap of 10 MiB. |
 | `static_dir` | `ATLAS_STATIC_DIR` | `null` | If set, the API also serves static files from this directory for any non-`/api/*` GET. Use this only for development; in production let nginx serve static. |
 | `idle_exit_seconds` | `ATLAS_IDLE_EXIT_SECONDS` | `0` | If > 0, the process exits after this many seconds with no requests. Pair with systemd socket activation for zero-idle RAM. |
-| `require_setup_token` | `ATLAS_REQUIRE_SETUP_TOKEN` | `false` | If true and no users exist, generate a one-time token printed to stderr; the first registration must supply it. See [security](security.md). |
+| `require_setup_token` | `ATLAS_REQUIRE_SETUP_TOKEN` | `false` | If true and no users exist, generate a one-time token printed to stderr; the first registration must supply it. See [SECURITY](../SECURITY.md). |
 | `initial_user` | `ATLAS_INITIAL_USER` | `null` | If set with `initial_password`, the operator account is created on first start. Both fields are ignored on later starts once any user exists. |
 | `initial_password` | `ATLAS_INITIAL_PASSWORD` | `null` | See `initial_user`. Must be at least 12 characters. |
 

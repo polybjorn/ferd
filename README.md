@@ -4,7 +4,7 @@ A self-hosted Leaflet map for travel places and GPX trails. Single-file static f
 
 ![Unified map view](docs/screenshots/map.png)
 
-**Docs:** [Install](docs/install.md) · [Configuration](docs/configure.md) · [Security](docs/security.md) · [Contributing](CONTRIBUTING.md)
+**Docs:** [Install](docs/install.md) · [Configuration](docs/configure.md) · [Themes](docs/themes.md)
 
 ## Features
 
@@ -32,3 +32,5 @@ See [docs/install.md](docs/install.md) for the full walk-through.
 
 - UI to manage trail regions (rename, move trails between regions, delete), like the existing category-label editor.
 - Per-user maps. Each user has their own places + trails, fully isolated from other users; the operator's job narrows to user management and instance-wide settings. Replaces the current single-shared-map model. Includes an export feature so users can take their data with them, and an optional per-user "publish my map" toggle that exposes a read-only public URL (no login required to view a published map). Until this lands, writes are operator-only.
+- Theme trail-status colors. Popup text for "Completed" / "Planned" trails uses raw `COMPLETED_COLOR` / `PLANNED_COLOR` constants (tuned for dark backgrounds) instead of `var(--completed)` / `var(--planned)`. Same legibility issue the category palette had before the light-mode fix.
+- Stable category colors. Pin/text colors are currently assigned by sorted category position, so adding a new category alphabetically before existing ones reshuffles colors for everything after it. Persist assignments in `site-config.json` to fix.
