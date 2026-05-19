@@ -1,0 +1,33 @@
+# Atlas: Caddy site block.
+#
+# Caddy provisions and renews a Let's Encrypt certificate automatically.
+# Replace atlas.example.com and /srv/atlas with your values.
+#
+# Place this in /etc/caddy/Caddyfile (or import it from there), then:
+#   sudo caddy validate --config /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+
+atlas.example.com {
+    root * /srv/atlas
+    encode zstd gzip
+
+    # GPX uploads are capped at 10 MiB by the API. 12 MiB gives headroom.
+    request_body {
+        max_size 12MB
+    }
+
+    # Proxy the API. Stock Caddy has no rate_limit directive, so unlike the
+    # nginx example there is no proxy-layer login throttle here. The API
+    # enforces its own per-IP login rate limit, which is the actual defense;
+    # the nginx rule is just belt-and-suspenders. If you want a matching
+    # outer limit, add the caddy-ratelimit community module.
+    reverse_proxy /api/* 127.0.0.1:8091
+
+    # Block direct access to the SQLite DB and API config.
+    @blocked path /tools/atlas.db /tools/config.json
+    respond @blocked 404
+
+    # Static site with SPA-style fallback.
+    try_files {path} {path}/ /index.html
+    file_server
+}
