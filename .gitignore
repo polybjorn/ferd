@@ -1,6 +1,7 @@
 # OS / editor state
 .DS_Store
 .claude/
+CLAUDE.md
 
 # App data + per-deployment config
 places.json
