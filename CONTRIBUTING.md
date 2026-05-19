@@ -47,15 +47,15 @@ The repo intentionally has no build step, no JS framework, no bundler. Edits to 
 
 ## Tests
 
-Unit tests for `tools/api.py` pure helpers and file utilities live in `tests/`. Run from the repo root:
+Tests live in `tests/`. Run from the repo root:
 
 ```sh
 python3 -m unittest discover -s tests
 ```
 
-Stdlib only, no deps, ~0.5s. Covers `validate_place`, the username/password validators, `safe_path_component`, `resolve_under`, `write_json_file` / `load_json_file`, `atomic_write_bytes`, `strip_gpx_pii`, password hashing, and bind parsing. Run this before opening a PR; if your change touches one of those, add a case.
+Stdlib only, no deps. Two layers: unit tests for pure helpers and file utilities in `tools/api.py`, and integration tests that launch the API in a subprocess and hit endpoints over HTTP. Run before opening a PR. If your change touches the API surface or one of the helpers, add a case.
 
-For end-to-end coverage, the PRs I review against locally walk through the curl sequences in the [phase 1](SECURITY.md#auth-api-sanity) and [phase 2](SECURITY.md#write-api-sanity) sections of the security doc, and the UI flows below.
+The PRs I review against locally also walk through the curl sequences in the [phase 1](SECURITY.md#auth-api-sanity) and [phase 2](SECURITY.md#write-api-sanity) sections of the security doc, plus the UI flows below.
 
 ## UI smoke walk
 
