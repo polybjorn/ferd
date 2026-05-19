@@ -612,15 +612,16 @@
     .place-card .note { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; }
 
     .status-dot {
-      width: 6px;
-      height: 6px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       flex-shrink: 0;
+      box-sizing: border-box;
     }
     .status-dot.visited { background: var(--green); }
-    .status-dot.want { background: var(--red); }
     .status-dot.completed { background: var(--completed); }
-    .status-dot.planned { background: var(--planned); }
+    .status-dot.want { background: transparent; border: 1.5px solid var(--red); }
+    .status-dot.planned { background: transparent; border: 1.5px solid var(--planned); }
 
     /* Trails index */
     .route-grid {
