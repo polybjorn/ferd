@@ -988,24 +988,36 @@
       box-shadow: 0 2px 8px var(--shadow) !important;
     }
     .leaflet-popup-tip { background: var(--surface) !important; }
-    .leaflet-popup-content { font-size: 0.8rem; font-weight: 300; margin: 10px 14px; }
+    .leaflet-popup-content { font-size: 0.8rem; font-weight: 300; margin: 10px 14px; position: relative; }
     .leaflet-popup-content a { color: var(--accent); }
-    .leaflet-popup-content .popup-name { font-weight: 400; font-size: 0.85rem; margin-bottom: 0.25rem; }
+    .leaflet-popup-content .popup-name { font-weight: 400; font-size: 0.85rem; margin-bottom: 0.25rem; padding-right: 4.5rem; }
+    .leaflet-popup-content .popup-share-corner {
+      position: absolute;
+      top: 0;
+      right: 0;
+      font-size: 0.7rem;
+      color: inherit;
+      cursor: pointer;
+      opacity: 0.7;
+    }
+    .leaflet-popup-content .popup-share-corner:hover { opacity: 1; }
     .leaflet-popup-content .popup-local { font-size: 0.75rem; color: var(--muted); font-weight: 300; font-style: italic; }
     .leaflet-popup-content .popup-note { color: var(--muted); font-size: 0.75rem; }
-    .leaflet-popup-content .popup-category { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.35rem; }
     .leaflet-popup-content .popup-sources { font-size: 0.65rem; margin-top: 0.3rem; }
     .leaflet-popup-content .popup-sources a { color: var(--accent); }
-    .leaflet-popup-content .popup-actions {
+    .leaflet-popup-content .popup-meta {
       margin-top: 0.5rem;
       padding-top: 0.4rem;
       border-top: 1px solid var(--border);
       display: flex;
+      justify-content: space-between;
+      align-items: center;
       gap: 0.6rem;
-      font-size: 0.7rem;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
     }
-    .leaflet-popup-content .popup-actions a { color: var(--accent); cursor: pointer; }
-    .leaflet-popup-content .popup-actions .popup-trail-delete { color: var(--red); }
+    .leaflet-popup-content .popup-meta a { color: inherit; cursor: pointer; text-transform: none; letter-spacing: normal; font-size: 0.7rem; }
 
     .leaflet-control-layers { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: var(--radius) !important; color: var(--text) !important; padding: 0 !important; }
     .leaflet-control-layers-toggle { width: 36px !important; height: 36px !important; padding: 6px !important; background-size: 24px 24px !important; }
@@ -1563,9 +1575,55 @@
       catch { return url; }
     }
 
+    function slugify(s) {
+      if (!s) return '';
+      const cleaned = s
+        .toLowerCase()
+        .replace(/æ/g, 'ae').replace(/ø/g, 'o').replace(/å/g, 'a')
+        .replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ß/g, 'ss')
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      return cleaned || encodeURIComponent(s.toLowerCase());
+    }
+
+    function assignPlaceSlugs(places) {
+      if (!places) return;
+      const used = new Set();
+      for (const p of places) {
+        const base = slugify(p.name);
+        let slug = base;
+        let n = 2;
+        while (used.has(slug)) { slug = base + '-' + n; n++; }
+        used.add(slug);
+        p._slug = slug;
+      }
+    }
+
+    function assignTrailSlugs(manifest) {
+      if (!manifest || !manifest.regions) return;
+      const used = new Set();
+      for (const region of manifest.regions) {
+        region._slug = slugify(region.name);
+        for (const route of region.routes) {
+          const base = region._slug + '/' + slugify(route.name);
+          let slug = base;
+          let n = 2;
+          while (used.has(slug)) { slug = base + '-' + n; n++; }
+          used.add(slug);
+          route._slug = slug;
+        }
+      }
+    }
+
     function renderSources(sources) {
       if (!sources || sources.length === 0) return '';
-      return sources.map(s => '<a href="' + escapeHtml(s) + '" target="_blank" rel="noopener">' + escapeHtml(domainFromUrl(s)) + ' &#x2197;</a>').join(' &middot; ');
+      return sources.map(s => {
+        let url;
+        try { url = new URL(s, location.href); } catch { return escapeHtml(s); }
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') return escapeHtml(s);
+        return '<a href="' + escapeHtml(url.href) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(domainFromUrl(s)) + ' &#x2197;</a>';
+      }).join(' &middot; ');
     }
 
     function assignCategoryColors(places) {
@@ -1775,19 +1833,19 @@
         for (const p of state.places) {
           const color = state.categoryColors[p.category];
           const marker = L.marker([p.lat, p.lon], { icon: createMarkerIcon(color, p.visited) });
-          let popupHtml = '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local" style="color:' + color + '">&middot; ' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
+          let popupHtml = '<a href="#" class="popup-share-corner popup-share" data-type="place" data-id="' + escapeHtml(p._slug || p.name) + '">Copy link</a>';
+          popupHtml += '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local" style="color:' + color + '">&middot; ' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
           if (p.note) popupHtml += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
-          popupHtml += '<div class="popup-category"><span style="color:' + color + '">' + escapeHtml(p.category) + '</span> &middot; <span style="color:' + (p.visited ? 'var(--green)' : 'var(--red)') + '">' + (p.visited ? 'Visited' : 'Want to visit') + '</span></div>';
           if (p.sources && p.sources.length) popupHtml += '<div class="popup-sources">' + renderSources(p.sources) + '</div>';
-          if (state.auth.authenticated) {
-            popupHtml += '<div class="popup-actions">' +
-              '<a href="#" class="popup-edit" data-place="' + escapeHtml(p.name) + '">Edit</a>' +
-            '</div>';
-          }
-          marker.bindPopup(popupHtml);
-          marker.on('click', (function(name) {
-            return function() { history.replaceState(null, '', '#/?focus=place:' + encodeURIComponent(name)); };
-          })(p.name));
+          popupHtml += '<div class="popup-meta">' +
+            '<span style="color:' + color + '">' + escapeHtml(p.category) + '</span>' +
+            '<span style="color:' + (p.visited ? 'var(--green)' : 'var(--red)') + '">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
+            (state.auth.authenticated ? '<a href="#" class="popup-edit" data-place="' + escapeHtml(p.name) + '">Edit</a>' : '') +
+          '</div>';
+          marker.bindPopup(popupHtml, { closeButton: false });
+          marker.on('click', (function(slug) {
+            return function() { history.replaceState(null, '', focusHash('place', slug)); };
+          })(p._slug || p.name));
           marker.bindTooltip(escapeHtml(p.name), { direction: 'top', offset: [0, -6] });
           marker._placeData = p;
           placeMarkers.push(marker);
@@ -1826,15 +1884,18 @@
                 if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
               }
             }).bindPopup(
+              '<a href="#" class="popup-share-corner popup-share" data-type="trail" data-id="' + escapeHtml(route._slug || route.key) + '">Copy link</a>' +
               '<div class="popup-name">' + escapeHtml(route.name) + '</div>' +
-              '<div class="popup-category"><span style="color:' + color + '">' + (route.completed ? 'Completed' : 'Planned') + '</span> &middot; ' + escapeHtml(region.name) + '</div>' +
               '<div class="popup-sources"><a href="#/trails/route/' + encodeURIComponent(route.key) + '">View details &#x2197;</a></div>' +
-              (state.auth.authenticated ?
-                '<div class="popup-actions">' +
-                  '<a href="#" class="popup-trail-delete" data-region="' + escapeHtml(region.name) + '" data-name="' + escapeHtml(route.name) + '">Delete</a>' +
-                '</div>'
-                : '')
-            );
+              '<div class="popup-meta">' +
+                '<span style="color:' + color + '">' + (route.completed ? 'Completed' : 'Planned') + '</span>' +
+                '<span>' + escapeHtml(region.name) + '</span>' +
+                (state.auth.authenticated ? '<a href="#" class="popup-trail-delete" data-region="' + escapeHtml(region.name) + '" data-name="' + escapeHtml(route.name) + '">Delete</a>' : '') +
+              '</div>',
+              { closeButton: false }
+            ).on('click', (function(slug) {
+              return function() { history.replaceState(null, '', focusHash('trail', slug)); };
+            })(route._slug || route.key));
             parent.addLayer(gpxLayer);
             trailLayers.push({ route, region: region.name, layer: gpxLayer, completed: route.completed });
           }
@@ -2034,6 +2095,24 @@
           if (place) {
             map.closePopup();
             openEditPlaceModal(place);
+          }
+          return;
+        }
+        const share = e.target.closest('.popup-share');
+        if (share) {
+          e.preventDefault();
+          const type = share.dataset.type;
+          const id = share.dataset.id;
+          const url = location.origin + location.pathname + focusHash(type, id);
+          const done = () => {
+            const original = share.textContent;
+            share.textContent = 'Copied!';
+            setTimeout(() => { share.textContent = original; }, 1500);
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(done, () => prompt('Copy this link:', url));
+          } else {
+            prompt('Copy this link:', url);
           }
           return;
         }
@@ -2679,20 +2758,43 @@
     }
 
     // ----- Router -----
+    function focusHash(type, slug) { return '#/' + type + '/' + slug; }
+
     function parseFocus(hash) {
+      const base = hash.split('?')[0];
+      if (base.startsWith('#/place/')) {
+        const slug = decodeURIComponent(base.slice('#/place/'.length));
+        const place = (state.places || []).find(p => p._slug === slug || p.name === slug);
+        return { type: 'place', name: place ? place.name : slug };
+      }
+      if (base.startsWith('#/trail/')) {
+        const slug = decodeURIComponent(base.slice('#/trail/'.length));
+        if (state.manifest && state.manifest.regions) {
+          for (const r of state.manifest.regions) {
+            for (const route of r.routes) {
+              if (route._slug === slug || route.key === slug) return { type: 'trail', name: route.key };
+            }
+          }
+        }
+        return { type: 'trail', name: slug };
+      }
+      // Legacy: #/?focus=type:id
       const q = hash.split('?')[1];
-      if (!q) return null;
-      const params = new URLSearchParams(q);
-      const focus = params.get('focus');
-      if (!focus) return null;
-      const colon = focus.indexOf(':');
-      if (colon === -1) return null;
-      return { type: focus.slice(0, colon), name: decodeURIComponent(focus.slice(colon + 1)) };
+      if (q) {
+        const params = new URLSearchParams(q);
+        const focus = params.get('focus');
+        if (focus) {
+          const colon = focus.indexOf(':');
+          if (colon !== -1) return { type: focus.slice(0, colon), name: decodeURIComponent(focus.slice(colon + 1)) };
+        }
+      }
+      return null;
     }
 
     function router() {
       const hash = location.hash || '#/';
       const base = hash.split('?')[0];
+      if (base.startsWith('#/place/') || base.startsWith('#/trail/')) return renderUnifiedMap(parseFocus(hash));
       if (base === '#/' || base === '#' || base === '#/map') return renderUnifiedMap(parseFocus(hash));
       if (base === '#/places') {
         if (!placesEnabled()) { location.hash = '#/'; return; }
@@ -3242,6 +3344,7 @@
     function refreshPlaces() {
       return fetch('places.json').then(r => r.ok ? r.json() : []).then(data => {
         state.places = data;
+        assignPlaceSlugs(state.places);
         state.categoryColors = assignCategoryColors(data);
       });
     }
@@ -3252,6 +3355,7 @@
         data.regions.sort((a, b) => a.name.localeCompare(b.name));
         for (const region of data.regions) region.routes.sort((a, b) => a.name.localeCompare(b.name));
         state.manifest = data;
+        assignTrailSlugs(state.manifest);
       });
     }
 
@@ -3603,6 +3707,21 @@
       document.body.classList.toggle('map-chrome-hidden');
     });
 
+    // Long-press on the map (touch only): same toggle as spacebar.
+    let lastPointerType = 'mouse';
+    document.addEventListener('pointerdown', function(e) { lastPointerType = e.pointerType; }, true);
+    document.addEventListener('contextmenu', function(e) {
+      if (lastPointerType !== 'touch' && lastPointerType !== 'pen') return;
+      if (!state.currentMap) return;
+      if (document.getElementById('modal-root').children.length) return;
+      const t = e.target;
+      if (!t.closest('.leaflet-container')) return;
+      if (t.closest('.leaflet-marker-icon, .leaflet-control, .leaflet-popup, .map-panel')) return;
+      e.preventDefault();
+      document.body.classList.toggle('map-chrome-hidden');
+      if (navigator.vibrate) navigator.vibrate(15);
+    });
+
     // ----- Init -----
     function applyConfig(cfg) {
       state.config = Object.assign({}, DEFAULT_CONFIG, cfg || {});
@@ -3631,12 +3750,14 @@
       .then(function([places, routes, authState]) {
         if (places) {
           state.places = places;
+          assignPlaceSlugs(state.places);
           state.categoryColors = assignCategoryColors(places);
         }
         if (routes) {
           routes.regions.sort((a, b) => a.name.localeCompare(b.name));
           for (const region of routes.regions) region.routes.sort((a, b) => a.name.localeCompare(b.name));
           state.manifest = routes;
+          assignTrailSlugs(state.manifest);
         }
         if (authState) state.auth = authState;
         renderAuthWidget();
