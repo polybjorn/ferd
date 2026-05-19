@@ -1491,6 +1491,66 @@
         ).join('') + '</div>';
     }
 
+    function selectOrNewHtml(id, options, current, labelFn) {
+      const labelOf = labelFn || (v => v);
+      const inList = current != null && options.includes(current);
+      const opts = options.map(v =>
+        '<option value="' + escapeHtml(v) + '"' + (v === current ? ' selected' : '') + '>' + escapeHtml(labelOf(v)) + '</option>'
+      ).join('');
+      const newSelected = (current != null && !inList) ? ' selected' : '';
+      const inputValue = (current != null && !inList) ? escapeHtml(current) : '';
+      const inputHidden = current == null || inList;
+      return '<div class="select-or-new" data-id="' + id + '">' +
+        '<select id="' + id + '" required>' + opts +
+          '<option value="__new__"' + newSelected + '>+ Add new&hellip;</option>' +
+        '</select>' +
+        '<input type="text" class="new-input" id="' + id + '-new" placeholder="Type new value" value="' + inputValue + '"' + (inputHidden ? ' hidden' : '') + '>' +
+      '</div>';
+    }
+
+    function wireSelectOrNew(id) {
+      const sel = document.getElementById(id);
+      const input = document.getElementById(id + '-new');
+      if (!sel || !input) return;
+      const sync = () => {
+        input.hidden = sel.value !== '__new__';
+        input.required = sel.value === '__new__';
+      };
+      sel.addEventListener('change', sync);
+      sync();
+    }
+
+    function readSelectOrNew(id) {
+      const sel = document.getElementById(id);
+      const input = document.getElementById(id + '-new');
+      if (!sel) return '';
+      if (sel.value === '__new__') return (input.value || '').trim();
+      return sel.value;
+    }
+
+    function readPlaceFormFields(prefix) {
+      const $ = id => document.getElementById(prefix + '-' + id);
+      const category = readSelectOrNew(prefix + '-category');
+      if (!category) return { error: 'Pick or add a category.' };
+      const sourcesRaw = $('sources').value.trim();
+      const sources = sourcesRaw ? sourcesRaw.split('\n').map(s => s.trim()).filter(Boolean) : null;
+      const payload = {
+        name: $('name').value.trim(),
+        lat: parseFloat($('lat').value),
+        lon: parseFloat($('lon').value),
+        category,
+        visited: $('visited').checked,
+      };
+      const country = $('country').value.trim();
+      const note = $('note').value.trim();
+      const localName = $('local-name').value.trim();
+      if (country) payload.country = country;
+      if (note) payload.note = note;
+      if (localName) payload.local_name = localName;
+      if (sources && sources.length) payload.sources = sources;
+      return { payload };
+    }
+
     function panelSectionHtml(id, label) {
       return '<div class="panel-section collapsed" id="' + id + '-section">' +
         '<div class="panel-section-header" data-section="' + id + '-section">' + label +
@@ -2164,7 +2224,7 @@
             '<div><label for="e-lon">Longitude</label><input type="number" id="e-lon" step="any" required value="' + place.lon + '"></div>' +
           '</div>' +
           '<label for="e-category">Category</label>' +
-          editSelectOrNewHtml('e-category', cats, place.category) +
+          selectOrNewHtml('e-category', cats, place.category, displayCategory) +
           '<label for="e-country">Country (optional)</label>' +
           '<input type="text" id="e-country" value="' + escapeHtml(place.country || '') + '">' +
           '<label for="e-note">Note (optional)</label>' +
@@ -2183,7 +2243,7 @@
           '</div>' +
         '</form>',
         function() {
-          wireEditSelectOrNew('e-category');
+          wireSelectOrNew('e-category');
           document.getElementById('e-delete').addEventListener('click', function() {
             if (!confirm('Delete place "' + place.name + '"?')) return;
             this.disabled = true;
@@ -2194,64 +2254,17 @@
           });
           document.getElementById('edit-place-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            const sel = document.getElementById('e-category');
-            const inp = document.getElementById('e-category-new');
-            const category = sel.value === '__new__' ? (inp.value || '').trim() : sel.value;
-            if (!category) { showModalError('Pick or add a category.'); return; }
-            const sourcesRaw = document.getElementById('e-sources').value.trim();
-            const sources = sourcesRaw ? sourcesRaw.split('\n').map(s => s.trim()).filter(Boolean) : null;
-            const payload = {
-              name: document.getElementById('e-name').value.trim(),
-              lat: parseFloat(document.getElementById('e-lat').value),
-              lon: parseFloat(document.getElementById('e-lon').value),
-              category: category,
-              visited: document.getElementById('e-visited').checked,
-            };
-            const country = document.getElementById('e-country').value.trim();
-            const note = document.getElementById('e-note').value.trim();
-            const localName = document.getElementById('e-local-name').value.trim();
-            if (country) payload.country = country;
-            if (note) payload.note = note;
-            if (localName) payload.local_name = localName;
-            if (sources && sources.length) payload.sources = sources;
+            const r = readPlaceFormFields('e');
+            if (r.error) { showModalError(r.error); return; }
             const submit = document.getElementById('e-submit');
             submit.disabled = true;
-            api('PUT', '/places', { original_name: place.name, place: payload })
+            api('PUT', '/places', { original_name: place.name, place: r.payload })
               .then(() => refreshPlaces())
               .then(() => { closeModal(); router(); })
               .catch(err => { submit.disabled = false; showModalError(err.message); });
           });
         }
       );
-    }
-
-    function editSelectOrNewHtml(id, options, current) {
-      const inOptions = options.includes(current);
-      const opts = options.map(v => '<option value="' + escapeHtml(v) + '"' + (v === current ? ' selected' : '') + '>' + escapeHtml(displayCategory(v)) + '</option>').join('');
-      const newSelected = !inOptions ? ' selected' : '';
-      return '<div class="select-or-new" data-id="' + id + '">' +
-        '<select id="' + id + '" required>' +
-          opts +
-          '<option value="__new__"' + newSelected + '>+ Add new&hellip;</option>' +
-        '</select>' +
-        '<input type="text" class="new-input" id="' + id + '-new" placeholder="Type new value" value="' + (inOptions ? '' : escapeHtml(current)) + '"' + (inOptions ? ' hidden' : '') + '>' +
-      '</div>';
-    }
-    function wireEditSelectOrNew(id) {
-      const sel = document.getElementById(id);
-      const input = document.getElementById(id + '-new');
-      if (!sel || !input) return;
-      const sync = () => {
-        if (sel.value === '__new__') {
-          input.hidden = false;
-          input.required = true;
-        } else {
-          input.hidden = true;
-          input.required = false;
-        }
-      };
-      sel.addEventListener('change', sync);
-      sync();
     }
 
     function applyMapFilters() {
@@ -3461,7 +3474,7 @@
           '</div>' +
           '<div class="pick-row"><button type="button" id="pick-on-map">Pick on map</button></div>' +
           '<label for="p-category">Category</label>' +
-          selectOrNewHtml('p-category', cats, displayCategory) +
+          selectOrNewHtml('p-category', cats, null, displayCategory) +
           '<label for="p-country">Country (optional)</label>' +
           '<input type="text" id="p-country">' +
           '<label for="p-note">Note (optional)</label>' +
@@ -3497,45 +3510,6 @@
         '</form>';
       }
 
-      function selectOrNewHtml(id, options, labelFn) {
-        const opts = options.map(v => '<option value="' + escapeHtml(v) + '">' + escapeHtml(labelFn ? labelFn(v) : v) + '</option>').join('');
-        // No empty placeholder: first real option preselects; if no options exist,
-        // the "Add new" entry preselects and reveals the input on mount.
-        return '<div class="select-or-new" data-id="' + id + '">' +
-          '<select id="' + id + '" required>' +
-            opts +
-            '<option value="__new__">+ Add new&hellip;</option>' +
-          '</select>' +
-          '<input type="text" class="new-input" id="' + id + '-new" placeholder="Type new value" hidden>' +
-        '</div>';
-      }
-
-      function wireSelectOrNew(id) {
-        const sel = document.getElementById(id);
-        const input = document.getElementById(id + '-new');
-        if (!sel || !input) return;
-        const sync = () => {
-          if (sel.value === '__new__') {
-            input.hidden = false;
-            input.required = true;
-          } else {
-            input.hidden = true;
-            input.required = false;
-            input.value = '';
-          }
-        };
-        sel.addEventListener('change', sync);
-        sync();  // handle the case where "+ Add new…" is the only/initial choice
-      }
-
-      function readSelectOrNew(id) {
-        const sel = document.getElementById(id);
-        const input = document.getElementById(id + '-new');
-        if (!sel) return '';
-        if (sel.value === '__new__') return (input.value || '').trim();
-        return sel.value;
-      }
-
       function wirePlaceForm() {
         wireSelectOrNew('p-category');
         document.getElementById('pick-on-map').addEventListener('click', function() {
@@ -3544,27 +3518,11 @@
         });
         document.getElementById('place-form').addEventListener('submit', function(e) {
           e.preventDefault();
-          const sourcesRaw = document.getElementById('p-sources').value.trim();
-          const sources = sourcesRaw ? sourcesRaw.split('\n').map(s => s.trim()).filter(Boolean) : null;
-          const category = readSelectOrNew('p-category');
-          if (!category) { showModalError('Pick or add a category.'); return; }
-          const payload = {
-            name: document.getElementById('p-name').value.trim(),
-            lat: parseFloat(document.getElementById('p-lat').value),
-            lon: parseFloat(document.getElementById('p-lon').value),
-            category: category,
-            visited: document.getElementById('p-visited').checked,
-          };
-          const country = document.getElementById('p-country').value.trim();
-          const note = document.getElementById('p-note').value.trim();
-          const localName = document.getElementById('p-local-name').value.trim();
-          if (country) payload.country = country;
-          if (note) payload.note = note;
-          if (localName) payload.local_name = localName;
-          if (sources && sources.length) payload.sources = sources;
+          const r = readPlaceFormFields('p');
+          if (r.error) { showModalError(r.error); return; }
           const submitBtn = document.getElementById('place-submit');
           submitBtn.disabled = true;
-          api('POST', '/places', payload)
+          api('POST', '/places', r.payload)
             .then(() => refreshPlaces())
             .then(() => { closeModal(); router(); })
             .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
