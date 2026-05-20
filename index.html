@@ -483,6 +483,20 @@
     .view-tabs a:hover { color: var(--text); opacity: 1; }
     .view-tabs a.active { background: var(--surface2); color: var(--text); }
 
+    .nav-actions { display: flex; align-items: center; gap: 0.5rem; }
+    .nav-actions:empty { display: none; }
+    .nav-action-btn {
+      font: inherit;
+      font-size: 0.7rem;
+      padding: 0.4rem 0.8rem;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+    .nav-action-btn:hover { filter: brightness(1.1); }
+
     /* App container */
     #app {
       position: relative;
@@ -822,10 +836,58 @@
       max-width: none;
       margin: 0 auto;
       box-sizing: border-box;
+      overflow-y: auto;
     }
     .detail-layout #map {
-      flex: 1;
-      min-height: 200px;
+      flex: 1 0 320px;
+      min-height: 320px;
+    }
+    .detail-layout > :not(#map) {
+      transition: max-height 0.3s ease, opacity 0.2s ease, margin 0.3s ease, padding 0.3s ease, border-width 0.3s ease;
+      max-height: 70vh;
+      overflow: hidden;
+    }
+    .detail-layout.map-expanded > :not(#map) {
+      max-height: 0 !important;
+      opacity: 0;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      border-top-width: 0 !important;
+      border-bottom-width: 0 !important;
+      pointer-events: none;
+    }
+    .detail-layout.map-expanded #map { flex: 1 1 auto; }
+    @media (prefers-reduced-motion: reduce) {
+      .detail-layout > :not(#map) { transition: none; }
+    }
+
+    .map-expand-btn {
+      position: relative;
+      display: block !important;
+      width: 30px;
+      height: 30px;
+      color: var(--text);
+      background: var(--surface);
+      text-decoration: none;
+    }
+    .map-expand-btn:hover { background: var(--surface2); color: var(--accent); }
+    .map-expand-btn svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin: -8px 0 0 -8px;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .map-expand-btn .icon-collapse { opacity: 0; transform: scale(0.7); }
+    .detail-layout.map-expanded .map-expand-btn .icon-expand { opacity: 0; transform: scale(0.7); }
+    .detail-layout.map-expanded .map-expand-btn .icon-collapse { opacity: 1; transform: scale(1); }
+    @media (prefers-reduced-motion: reduce) {
+      .map-expand-btn svg { transition: none; }
     }
 
     .elevation-wrap {
@@ -842,7 +904,7 @@
     .elevation-wrap .elevation-detached .elevation-toggle-icon { display: none !important; }
 
     .mobile-stats {
-      display: none;
+      display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 0.4rem 0.75rem;
@@ -854,16 +916,95 @@
       flex-shrink: 0;
     }
     .mobile-stats .stats-meta { display: flex; gap: 0.5rem; align-items: center; }
-    .mobile-stats .stats-data { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .mobile-stats .stats-data { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
     .mobile-stats .stat { display: flex; align-items: center; gap: 0.25rem; white-space: nowrap; }
     .mobile-stats .stat .label { font-size: 0.55rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
     .mobile-stats .stat .value { color: var(--text); font-weight: 300; }
+    .mobile-stats .stats-source { margin-left: auto; }
+    .mobile-stats .stats-source a { color: var(--accent); text-decoration: none; }
+    .mobile-stats .stats-source a:hover { text-decoration: underline; }
 
     .no-elevation-notice {
       font-size: 0.75rem;
       color: var(--muted);
       font-style: italic;
       margin-top: 0.75rem;
+    }
+
+    .trail-meta-panel {
+      margin-top: 0.5rem;
+      padding: 0.75rem 0.9rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      font-size: 0.75rem;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+    .trail-meta-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem 1.25rem;
+      justify-content: space-between;
+    }
+    .trail-meta-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0 0.5rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+    .trail-meta-line .fact {
+      display: inline-flex;
+      align-items: center;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .trail-meta-line .fact .dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 0.4rem;
+    }
+    .trail-meta-line .sep {
+      color: var(--border);
+      user-select: none;
+    }
+    .trail-meta-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem 0.5rem;
+    }
+    .trail-meta-tags .tag {
+      font-size: 0.7rem;
+      color: var(--muted);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.05rem 0.5rem;
+    }
+    .trail-meta-notes {
+      font-size: 0.75rem;
+      color: var(--text);
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding-top: 0.6rem;
+      border-top: 1px solid var(--border);
+    }
+    .trail-meta-notes-label {
+      display: block;
+      font-size: 0.55rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
     }
 
     /* Multi-track */
@@ -1069,6 +1210,12 @@
     .elevation-control .mouse-focus-line { stroke: var(--text); }
     .elevation-detached:not(:hover) .mouse-focus-line,
     .elevation-detached:not(:hover) .mouse-focus-label { display: none; }
+    /* Hide leaflet-elevation's on-map position marker when no elevation chart is hovered.
+       The library leaves it dangling at the last hovered point after mouseleave. */
+    .leaflet-container:not(.elev-hover) .height-focus,
+    .leaflet-container:not(.elev-hover) .height-focus-marker,
+    .leaflet-container:not(.elev-hover) .height-focus-label,
+    .leaflet-container:not(.elev-hover) .leaflet-marker-pane > .height-focus { display: none !important; }
     .leaflet-elevation-pane .elevation-summary { background: var(--surface) !important; color: var(--text) !important; }
     .elevation-control .close-button, .elevation-control .elevation-toggle-icon, .elevation-detached .leaflet-close { display: none !important; }
     .leaflet-overlay-pane .leaflet-interactive { filter: drop-shadow(0 0 3px rgba(0,0,0,0.5)); }
@@ -1083,9 +1230,7 @@
       .nav-group { gap: 0.4rem; }
       .nav-group + .nav-group { padding-left: 0.4rem; }
       .nav-stat .label { font-size: 0.5rem; }
-      .nav-route-meta { display: none; }
       #nav-stats-dynamic { display: none; }
-      .mobile-stats { display: flex; }
       #track-legend { gap: 0.4rem; padding: 0.4rem 0.5rem; }
       .track-legend-item .track-stat { display: none; }
       #multi-elevation-container { max-height: 40vh; }
@@ -1485,6 +1630,7 @@
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
+      <div class="nav-actions" id="nav-actions"></div>
       <div class="view-tabs">
         <a href="#/places" data-view="places" id="tab-places">Places</a>
         <a href="#/trails" data-view="trails" id="tab-trails">Trails</a>
@@ -2262,10 +2408,7 @@
 
       // Initial bounds: places + trails, prefer focus
       if (focusPlace) {
-        setTimeout(function() {
-          map.setView([focusPlace._placeData.lat, focusPlace._placeData.lon], 12);
-          focusPlace.openPopup();
-        }, 300);
+        setTimeout(function() { revealPlaceMarker(map, focusPlace); }, 300);
       } else if (!focusTrailKey && !prevView && !storedView) {
         const combined = L.latLngBounds();
         if (placeBounds.isValid()) combined.extend(placeBounds);
@@ -2547,6 +2690,20 @@
       );
     }
 
+    // Pan/zoom to a place marker and open its popup. With clustering on, a plain
+    // setView+openPopup leaves the marker buried inside an unexpanded cluster;
+    // zoomToShowLayer breaks the cluster apart first.
+    function revealPlaceMarker(map, marker) {
+      const p = marker._placeData;
+      const cg = state._placeClusterGroup;
+      if (cg && typeof cg.zoomToShowLayer === 'function' && cg.hasLayer(marker)) {
+        cg.zoomToShowLayer(marker, function() { marker.openPopup(); });
+      } else {
+        map.setView([p.lat, p.lon], Math.max(map.getZoom(), 12));
+        marker.openPopup();
+      }
+    }
+
     function applyMapFilters() {
       const map = state.currentMap;
       if (!map) return;
@@ -2635,9 +2792,7 @@
           const name = row.dataset.name;
           const marker = state._placeMarkers.find(m => m._placeData.name === name);
           if (marker) {
-            const p = marker._placeData;
-            map.setView([p.lat, p.lon], 12);
-            marker.openPopup();
+            revealPlaceMarker(map, marker);
             history.replaceState(null, '', '#/?focus=place:' + encodeURIComponent(name));
           }
         } else {
@@ -2884,14 +3039,12 @@
       if (navEl) navEl.innerHTML = items.map(i => '<div class="nav-stat"><span class="label">' + i.l + '</span><span class="value">' + i.v + '</span></div>').join('');
       const mobEl = document.getElementById('mobile-stats');
       if (mobEl) {
-        let metaHtml = '';
-        if (s.status) {
-          const sc = s.completed ? 'var(--completed)' : 'var(--planned)';
-          metaHtml += '<div class="stat"><span class="value" style="color:' + sc + '">' + s.status + '</span></div>';
-          if (s.region) metaHtml += '<div class="stat"><span class="value">' + s.region + '</span></div>';
-        }
         const dataHtml = items.map(i => '<div class="stat"><span class="label">' + i.l + '</span><span class="value">' + i.v + '</span></div>').join('');
-        mobEl.innerHTML = '<div class="stats-meta">' + metaHtml + '</div><div class="stats-data">' + dataHtml + '</div>';
+        let sourceHtml = '';
+        if (state._routeSourceHref) {
+          sourceHtml = '<div class="stats-source"><a href="' + escapeHtml(state._routeSourceHref) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(state._routeSourceDomain) + ' &#x2197;</a></div>';
+        }
+        mobEl.innerHTML = '<div class="stats-data">' + dataHtml + '</div>' + sourceHtml;
       }
     }
 
@@ -2915,51 +3068,48 @@
       const color = ROUTE_COLOR;
       const statusLabel = route.completed ? 'Completed' : 'Planned';
 
-      let navHtml = '';
-      navHtml += '<div class="nav-group nav-route-meta">';
-      navHtml += '<div class="nav-stat"><span class="value" style="color:' + (route.completed ? 'var(--completed)' : 'var(--planned)') + '">' + statusLabel + '</span></div>';
-      navHtml += '<div class="nav-stat"><span class="value">' + escapeHtml(regionName) + '</span></div>';
-      if (route.difficulty) navHtml += '<div class="nav-stat"><span class="value">' + escapeHtml(DIFFICULTY_LABELS[route.difficulty] || route.difficulty) + '</span></div>';
-      if (route.rating) navHtml += '<div class="nav-stat"><span class="value" title="' + route.rating + '/5">' + ratingStarsText(route.rating) + '</span></div>';
-      if (route.date_hiked) navHtml += '<div class="nav-stat"><span class="value">Hiked ' + escapeHtml(route.date_hiked) + '</span></div>';
-      navHtml += '</div>';
-      navHtml += '<div class="nav-group" id="nav-stats-dynamic"></div>';
-      if (route.tags && route.tags.length) {
-        navHtml += '<div class="nav-group">';
-        navHtml += '<div class="nav-stat"><span class="value">' + route.tags.map(t => '#' + escapeHtml(t)).join(' ') + '</span></div>';
-        navHtml += '</div>';
-      }
-      if (route.notes) {
-        navHtml += '<div class="nav-group">';
-        navHtml += '<div class="nav-stat"><span class="value">' + escapeHtml(route.notes) + '</span></div>';
-        navHtml += '</div>';
-      }
+      document.getElementById('nav-info').innerHTML = '';
+      let routeSourceHref = '';
       if (route.source) {
-        navHtml += '<div class="nav-group">';
-        navHtml += '<div class="nav-stat"><span class="value"><a href="' + escapeHtml(route.source) + '" target="_blank" rel="noopener">Source &#x2197;</a></span></div>';
-        navHtml += '</div>';
+        try {
+          const u = new URL(route.source, location.href);
+          if (u.protocol === 'http:' || u.protocol === 'https:') routeSourceHref = u.href;
+        } catch {}
       }
-      if (state.auth.authenticated && !isReadOnly()) {
-        navHtml += '<div class="nav-group">';
-        navHtml += '<div class="nav-stat"><a href="#" id="trail-edit-btn" class="value">Edit trail &hellip;</a></div>';
-        navHtml += '<div class="nav-stat"><a href="#" id="trail-delete-btn" class="value" style="color:var(--red)">Delete trail</a></div>';
-        navHtml += '</div>';
+      state._routeSourceHref = routeSourceHref;
+      state._routeSourceDomain = routeSourceHref ? domainFromUrl(route.source) : '';
+
+      const facts = [];
+      facts.push('<span class="fact"><span class="dot" style="background:' + (route.completed ? 'var(--completed)' : 'var(--planned)') + '"></span>' + statusLabel + '</span>');
+      facts.push('<span class="fact">' + escapeHtml(regionName) + '</span>');
+      if (route.difficulty) facts.push('<span class="fact">' + escapeHtml(DIFFICULTY_LABELS[route.difficulty] || route.difficulty) + '</span>');
+      if (route.rating) facts.push('<span class="fact" title="' + route.rating + '/5">' + ratingStarsText(route.rating) + '</span>');
+      if (route.date_hiked) facts.push('<span class="fact">' + escapeHtml(route.date_hiked) + '</span>');
+
+      const showActions = state.auth.authenticated && !isReadOnly();
+      const hasTags = route.tags && route.tags.length;
+      const hasNotes = !!route.notes;
+      let metaHtml = '';
+      if (facts.length || hasTags || hasNotes) {
+        metaHtml = '<div class="trail-meta-panel">';
+        metaHtml += '<div class="trail-meta-header">';
+        metaHtml += '<div class="trail-meta-line">' + facts.join('<span class="sep">&middot;</span>') + '</div>';
+        if (hasTags) {
+          metaHtml += '<div class="trail-meta-tags">' + route.tags.map(t => '<span class="tag">#' + escapeHtml(t) + '</span>').join('') + '</div>';
+        }
+        metaHtml += '</div>';
+        if (hasNotes) {
+          metaHtml += '<div class="trail-meta-notes"><span class="trail-meta-notes-label">Notes</span>' + escapeHtml(route.notes) + '</div>';
+        }
+        metaHtml += '</div>';
       }
-      document.getElementById('nav-info').innerHTML = navHtml;
-      const editBtn = document.getElementById('trail-edit-btn');
-      if (editBtn) editBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        openEditTrailMetadataModal(route, regionName);
-      });
-      const delBtn = document.getElementById('trail-delete-btn');
-      if (delBtn) delBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        delBtn.style.pointerEvents = 'none';
-        deleteTrail(route, regionName).then(function(deleted) {
-          if (deleted) { location.hash = '#/trails'; }
-          else { delBtn.style.pointerEvents = ''; }
-        });
-      });
+
+      const navActionsEl = document.getElementById('nav-actions');
+      if (navActionsEl) {
+        navActionsEl.innerHTML = showActions
+          ? '<button type="button" id="trail-edit-btn" class="nav-action-btn">Edit</button>'
+          : '';
+      }
 
       const isMultiTrack = route.trackCount && route.trackCount > 1;
 
@@ -2973,8 +3123,15 @@
         if (route.hasElevation) html += '<div class="elevation-wrap" id="elevation-container"></div>';
         else html += '<div class="no-elevation-notice">No elevation data available for this route</div>';
       }
+      html += metaHtml;
       html += '</div>';
       app.innerHTML = html;
+
+      const editBtn = document.getElementById('trail-edit-btn');
+      if (editBtn) editBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        openEditTrailMetadataModal(route, regionName);
+      });
 
       const dvt = state.config.default_view_trails || DEFAULT_CONFIG.default_view_trails;
       const map = L.map('map', {
@@ -2986,6 +3143,55 @@
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
       addTileLayersToMap(map);
+
+      // Show the on-map elevation position marker only while an elevation chart is hovered.
+      const mapEl = map.getContainer();
+      ['elevation-container', 'multi-elevation-container'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('mouseenter', function() { mapEl.classList.add('elev-hover'); });
+        el.addEventListener('mouseleave', function() { mapEl.classList.remove('elev-hover'); });
+      });
+
+      // Expand-map toggle: hides the elevation chart and metadata panel.
+      const layoutEl = document.querySelector('.detail-layout');
+      const ExpandControl = L.Control.extend({
+        options: { position: 'topright' },
+        onAdd: function() {
+          const btn = L.DomUtil.create('a', 'leaflet-bar leaflet-control map-expand-btn');
+          btn.href = '#';
+          btn.title = 'Expand map';
+          btn.setAttribute('role', 'button');
+          btn.setAttribute('aria-label', 'Expand map');
+          btn.innerHTML =
+            '<svg class="icon-expand" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+            + '<polyline points="2,6 2,2 6,2"/><polyline points="14,6 14,2 10,2"/><polyline points="2,10 2,14 6,14"/><polyline points="14,10 14,14 10,14"/>'
+            + '</svg>'
+            + '<svg class="icon-collapse" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+            + '<polyline points="6,2 6,6 2,6"/><polyline points="10,2 10,6 14,6"/><polyline points="6,14 6,10 2,10"/><polyline points="10,14 10,10 14,10"/>'
+            + '</svg>';
+          L.DomEvent.disableClickPropagation(btn);
+          L.DomEvent.on(btn, 'click', function(e) {
+            L.DomEvent.preventDefault(e);
+            const expanded = layoutEl.classList.toggle('map-expanded');
+            btn.title = expanded ? 'Collapse map' : 'Expand map';
+            btn.setAttribute('aria-label', btn.title);
+            const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (reduce) {
+              map.invalidateSize();
+            } else {
+              const start = performance.now();
+              const tick = function(now) {
+                map.invalidateSize({ animate: false, pan: false });
+                if (now - start < 320) requestAnimationFrame(tick);
+              };
+              requestAnimationFrame(tick);
+            }
+          });
+          return btn;
+        }
+      });
+      map.addControl(new ExpandControl());
 
       if (route.plannedFile && route.completed) {
         new L.GPX(gpxUrlFor(route.plannedFile), {
@@ -3165,6 +3371,8 @@
     }
 
     function router() {
+      const navActions = document.getElementById('nav-actions');
+      if (navActions) navActions.innerHTML = '';
       const hash = location.hash || '#/';
       const base = hash.split('?')[0];
       if (base.startsWith('#/place/') || base.startsWith('#/trail/')) return renderUnifiedMap(parseFocus(hash));
