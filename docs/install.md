@@ -4,14 +4,14 @@ Atlas has two reasonable install shapes, in increasing order of moving parts. Pi
 
 | Tier | API | Reverse proxy | TLS | Good for |
 |---|---|---|---|---|
-| [1. Local / private network](#1-local--private-network) | yes | no | no | LAN, Tailscale, Wireguard |
+| [1. Local / private network](#1-local--private-network) | yes | no | no | LAN, VPN, mesh overlay |
 | [2. Public internet](#2-public-internet) | yes | yes | yes | the open web |
 
 Prerequisites are minimal: Python 3.9+ on the host. No build step, no Docker, no Node. The API is required: every data read and write goes through it.
 
 ## 1. Local / private network
 
-If the host is only reachable on your LAN or via Tailscale/Wireguard, the API can listen directly. No reverse proxy, no certs.
+If the host is only reachable on your LAN or via a private VPN / mesh overlay (e.g. WireGuard, Tailscale, ZeroTier), the API can listen directly. No reverse proxy, no certs.
 
 ```sh
 git clone https://github.com/polybjorn/atlas.git
@@ -33,7 +33,7 @@ Edit `tools/config.json`:
 }
 ```
 
-`secure_cookies: false` is required for plain HTTP. Bind to `0.0.0.0` to accept LAN connections, or to your Tailscale IP to limit exposure to the tailnet.
+`secure_cookies: false` is required for plain HTTP. Bind to `0.0.0.0` to accept LAN connections, or to a specific interface IP (e.g. a VPN-assigned address) to limit exposure to that network.
 
 Run it:
 

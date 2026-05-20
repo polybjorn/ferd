@@ -23,7 +23,7 @@ A self-hosted Leaflet map for travel places and GPX trails. Single-file static f
 Three tiers, pick the one that matches your use case:
 
 - **Static only** - drop the files on any static host, no Python, no editing in-browser.
-- **Local / private network** - run `python3 tools/api.py` directly; good for LAN or Tailscale.
+- **Local / private network** - run `python3 tools/api.py` directly; good for LAN or a VPN/mesh overlay (e.g. WireGuard, Tailscale, ZeroTier).
 - **Public internet** - reverse proxy (Caddy or nginx), socket-activated systemd, TLS. Guided installer in `deploy/install.sh` or step-by-step manual instructions.
 
 See [docs/install.md](docs/install.md) for the full walk-through.
