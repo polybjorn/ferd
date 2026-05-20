@@ -567,14 +567,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if path.startswith("/api/gpx/"):
       parts = path[len("/api/gpx/"):].split("/", 1)
       if len(parts) == 2:
-        return self._h_gpx_get(parts[0], parts[1])
+        return self._h_gpx_get(unquote(parts[0]), unquote(parts[1]))
       return self._error(HTTPStatus.NOT_FOUND, "not found")
     if path.startswith("/api/u/"):
       rest = path[len("/api/u/"):]
       seg = rest.split("/", 1)
       if len(seg) < 2:
         return self._error(HTTPStatus.NOT_FOUND, "not found")
-      uname, tail = seg[0], seg[1]
+      uname, tail = unquote(seg[0]), seg[1]
       if tail == "places":
         return self._h_public_places(uname)
       if tail == "routes":
@@ -584,7 +584,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       if tail.startswith("gpx/"):
         gparts = tail[len("gpx/"):].split("/", 1)
         if len(gparts) == 2:
-          return self._h_public_gpx(uname, gparts[0], gparts[1])
+          return self._h_public_gpx(uname, unquote(gparts[0]), unquote(gparts[1]))
       return self._error(HTTPStatus.NOT_FOUND, "not found")
     if path.startswith("/api/"):
       return self._error(HTTPStatus.NOT_FOUND, "not found")
