@@ -329,12 +329,12 @@ class RateLimiter:
 # ---------- http helpers ----------
 
 class Handler(http.server.BaseHTTPRequestHandler):
-  conn: sqlite3.Connection = None  # set on server
   cfg: dict = None
   login_limiter: RateLimiter = None
-  # Serializes read-then-write critical sections across worker threads, since we
-  # share one sqlite connection. SQLite gives row-level safety; this gives
-  # transaction-level safety without needing per-request connections.
+  # Serializes register-and-create_user (and similar read-then-write critical
+  # sections) across worker threads. Each request opens its own SQLite
+  # connection, so this lock is for application-level invariants, not
+  # connection safety.
   write_lock: threading.Lock = None
   # Monotonic timestamp of the most recent request; consumed by the idle watcher.
   last_request: float = 0.0
@@ -344,7 +344,29 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
   def handle_one_request(self):
     Handler.last_request = time.monotonic()
-    return super().handle_one_request()
+    self._req_conn = None
+    try:
+      return super().handle_one_request()
+    finally:
+      if self._req_conn is not None:
+        try:
+          self._req_conn.close()
+        except Exception:
+          pass
+        self._req_conn = None
+
+  @property
+  def conn(self) -> sqlite3.Connection:
+    """Per-request SQLite connection. Python 3.9's stdlib sqlite3 module
+    ships with threadsafety=1 on macOS, so a shared connection across the
+    ThreadingHTTPServer workers can corrupt internal state during concurrent
+    parses. Open one per request, close it in handle_one_request()."""
+    if self._req_conn is None:
+      c = sqlite3.connect(self.cfg["db_path"], isolation_level=None)
+      c.execute("PRAGMA foreign_keys=ON")
+      c.row_factory = sqlite3.Row
+      self._req_conn = c
+    return self._req_conn
 
   def log_message(self, fmt, *args):
     sys.stderr.write(f"[atlas-api] {self.address_string()} {fmt % args}\n")
@@ -1188,8 +1210,9 @@ def main() -> int:
   db_init(conn)
   db_migrate(conn)
   seed_initial_user(conn, cfg)
+  # Boot conn is done with; handlers open per-request connections.
+  conn.close()
 
-  Handler.conn = conn
   Handler.cfg = cfg
   Handler.login_limiter = RateLimiter(RATE_LIMIT_MAX_FAILS, RATE_LIMIT_WINDOW)
   Handler.write_lock = threading.Lock()
@@ -1234,7 +1257,6 @@ def main() -> int:
     print("[atlas-api] shutting down", file=sys.stderr)
   finally:
     server.server_close()
-    conn.close()
   return 0
 
 
