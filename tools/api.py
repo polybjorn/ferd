@@ -46,7 +46,10 @@ RATE_LIMIT_MAX_FAILS = 10
 # Phase 2 (writes)
 GPX_MAX_BYTES = 10 * 1024 * 1024  # 10 MiB cap for GPX uploads
 GPX_NS = "http://www.topografix.com/GPX/1/1"
-PATH_COMPONENT_RE = re.compile(r"^[A-Za-z0-9 _.\-()æøåÆØÅäöüÄÖÜ]{1,80}$")
+# Allow any non-control, non-separator character. The real security boundary
+# is resolve_under() (the resolved path must stay inside the base). The dot/
+# dot-dot whole-string rejection lives in safe_path_component itself.
+PATH_COMPONENT_RE = re.compile(r"^[^\x00-\x1f/\\]{1,255}$")
 PLACE_REQUIRED = {"name", "lat", "lon", "category"}
 PLACE_OPTIONAL = {"country", "visited", "note", "sources", "local_name"}
 PLACE_ALL = PLACE_REQUIRED | PLACE_OPTIONAL
