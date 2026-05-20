@@ -32,4 +32,4 @@ See [docs/install.md](docs/install.md) for the full walk-through.
 
 - UI to manage trail regions (rename, move trails between regions, delete), like the existing category-label editor.
 - Stable category colors. Pin/text colors are currently assigned by sorted category position, so adding a new category alphabetically before existing ones reshuffles colors for everything after it. Persist assignments in `site-config.json` to fix.
-- Per-route metadata editor in the UI. `metadata.json` (per-trail source URL and other overrides) is still hand-edited on disk; once maps went per-user there's no path for non-operator users to set it.
+- Tidy up the trail detail view. The nav-info stack got busy after the per-trail metadata fields landed (status, region, difficulty, rating, date, tags, notes, source, edit/delete) and needs a layout pass.

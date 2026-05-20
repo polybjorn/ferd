@@ -57,6 +57,12 @@ PLACE_REQUIRED = {"name", "lat", "lon", "category"}
 PLACE_OPTIONAL = {"country", "visited", "note", "sources", "local_name"}
 PLACE_ALL = PLACE_REQUIRED | PLACE_OPTIONAL
 
+# Trail metadata fields and their constraints (used by /api/metadata).
+TRAIL_META_FIELDS = {"source", "date_hiked", "rating", "notes", "tags", "difficulty"}
+TRAIL_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+TRAIL_TAG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
+TRAIL_DIFFICULTIES = ("easy", "moderate", "hard", "expert")
+
 # Precomputed dummy hash used to equalize timing when a username doesn't exist.
 _DUMMY_SALT = b"\x00" * SALT_BYTES
 _DUMMY_HASH = pbkdf2_hmac("sha256", b"unused", _DUMMY_SALT, PBKDF2_ITERATIONS, dklen=PBKDF2_DKLEN)
@@ -666,6 +672,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_places_update()
     if path == "/api/me/prefs":
       return self._h_prefs_put()
+    if path == "/api/metadata":
+      return self._h_metadata_put()
     if path == "/api/site-config/category-labels":
       return self._h_site_config_category_labels()
     self._error(HTTPStatus.NOT_FOUND, "not found")
@@ -1157,6 +1165,57 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
     self._send_json(HTTPStatus.OK, data or {})
 
+  def _h_metadata_put(self):
+    """Upsert metadata for one trail. Body: {key, metadata}. Empty metadata
+    deletes the key. Triggers a manifest regen so routes.json picks up the
+    change."""
+    user = self._require_user()
+    if user is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    key = (body.get("key") or "").strip()
+    if not key:
+      return self._error(HTTPStatus.BAD_REQUEST, "key required")
+    if len(key) > 256:
+      return self._error(HTTPStatus.BAD_REQUEST, "key too long")
+    # Key shape: "Region/Trail" (two safe path components). Defense in depth;
+    # the value never touches the filesystem on this path, but rejecting weird
+    # input keeps metadata.json clean.
+    parts = key.split("/")
+    if len(parts) != 2:
+      return self._error(HTTPStatus.BAD_REQUEST, "key must be 'Region/Trail name'")
+    try:
+      for p in parts:
+        safe_path_component(p)
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, f"invalid key: {e}")
+    try:
+      entry = validate_trail_metadata(body.get("metadata") or {})
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, str(e))
+
+    udir = self._user_dir(user["username"])
+    meta_path = udir / "metadata.json"
+    lock_path = udir / ".atlas-metadata.lock"
+
+    def do_write():
+      existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
+      if entry:
+        existing[key] = entry
+      else:
+        existing.pop(key, None)
+      write_json_file(meta_path, existing)
+      return existing
+
+    try:
+      with_file_lock(lock_path, do_write)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write metadata.json: {e}")
+    manifest_status = self._regenerate_manifest(udir)
+    self._send_json(HTTPStatus.OK, {"ok": True, "key": key, "metadata": entry, "manifest": manifest_status})
+
   def _h_gpx_get(self, region: str, fname: str):
     """Serve an owned GPX file. Path components are validated."""
     user = self._require_user()
@@ -1468,6 +1527,86 @@ def validate_place(p: object) -> dict:
   for k in ("country", "note", "local_name", "sources"):
     if k in p and p[k] is not None:
       out[k] = p[k].strip() if isinstance(p[k], str) else p[k]
+  return out
+
+
+def validate_trail_metadata(m: object) -> dict:
+  """Validate a per-trail metadata payload. Returns a normalized dict containing
+  only the fields that have a non-empty value. Raises ValidationError on any
+  invalid input."""
+  if not isinstance(m, dict):
+    raise ValidationError("metadata must be an object")
+  unknown = set(m.keys()) - TRAIL_META_FIELDS
+  if unknown:
+    raise ValidationError(f"unknown fields: {sorted(unknown)}")
+  out: dict = {}
+
+  src = m.get("source")
+  if src is not None and src != "":
+    if not isinstance(src, str):
+      raise ValidationError("source must be a string")
+    s = src.strip()
+    if s:
+      if len(s) > 500:
+        raise ValidationError("source too long (max 500 chars)")
+      try:
+        parsed = urlparse(s)
+      except ValueError:
+        raise ValidationError("source is not a valid URL")
+      if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        raise ValidationError("source must be an http or https URL")
+      out["source"] = s
+
+  d = m.get("date_hiked")
+  if d is not None and d != "":
+    if not isinstance(d, str) or not TRAIL_DATE_RE.match(d):
+      raise ValidationError("date_hiked must be YYYY-MM-DD")
+    out["date_hiked"] = d
+
+  r = m.get("rating")
+  if r is not None and r != "":
+    if isinstance(r, bool) or not isinstance(r, int) or not 1 <= r <= 5:
+      raise ValidationError("rating must be an integer 1-5")
+    out["rating"] = r
+
+  n = m.get("notes")
+  if n is not None and n != "":
+    if not isinstance(n, str):
+      raise ValidationError("notes must be a string")
+    ns = n.strip()
+    if ns:
+      if len(ns) > 2000:
+        raise ValidationError("notes too long (max 2000 chars)")
+      out["notes"] = ns
+
+  tags = m.get("tags")
+  if tags:
+    if not isinstance(tags, list):
+      raise ValidationError("tags must be a list of strings")
+    cleaned: list[str] = []
+    seen: set[str] = set()
+    for t in tags:
+      if not isinstance(t, str):
+        raise ValidationError("each tag must be a string")
+      tn = t.strip().lower()
+      if not tn:
+        continue
+      if not TRAIL_TAG_RE.match(tn):
+        raise ValidationError(f"invalid tag: {tn!r} (lowercase alphanumerics + hyphen, 1-32 chars, starts with alphanumeric)")
+      if tn not in seen:
+        seen.add(tn)
+        cleaned.append(tn)
+    if len(cleaned) > 10:
+      raise ValidationError("too many tags (max 10)")
+    if cleaned:
+      out["tags"] = cleaned
+
+  diff = m.get("difficulty")
+  if diff is not None and diff != "":
+    if diff not in TRAIL_DIFFICULTIES:
+      raise ValidationError(f"difficulty must be one of: {', '.join(TRAIL_DIFFICULTIES)}")
+    out["difficulty"] = diff
+
   return out
 
 

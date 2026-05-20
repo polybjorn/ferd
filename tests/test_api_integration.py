@@ -372,6 +372,81 @@ class TestGpx(unittest.TestCase):
     self.assertEqual(status, 404)
 
 
+class TestTrailMetadata(unittest.TestCase):
+  KEY = "Region/Trail"
+
+  def setUp(self):
+    self.c = admin_client()
+    # Clear any prior state from a previous test in this same session.
+    meta_path = admin_dir() / "metadata.json"
+    if meta_path.exists():
+      meta_path.unlink()
+
+  def _put(self, metadata):
+    return self.c.request("PUT", "/api/metadata", {"key": self.KEY, "metadata": metadata})
+
+  def test_anon_blocked(self):
+    c = Client(_server.base_url)  # type: ignore[union-attr]
+    status, _ = c.request("PUT", "/api/metadata", {"key": self.KEY, "metadata": {"rating": 4}})
+    self.assertEqual(status, 401)
+
+  def test_full_roundtrip(self):
+    payload = {
+      "source": "https://example.com/x",
+      "date_hiked": "2024-08-15",
+      "rating": 4,
+      "notes": "Loved it. Stunning views.",
+      "tags": ["summit", "panorama"],
+      "difficulty": "moderate",
+    }
+    status, body = self._put(payload)
+    self.assertEqual(status, 200)
+    self.assertEqual(body["metadata"], payload)
+    status, all_meta = self.c.request("GET", "/api/metadata")
+    self.assertEqual(status, 200)
+    self.assertEqual(all_meta[self.KEY], payload)
+
+  def test_empty_metadata_deletes_key(self):
+    self._put({"rating": 3})
+    status, body = self._put({})
+    self.assertEqual(status, 200)
+    self.assertEqual(body["metadata"], {})
+    status, all_meta = self.c.request("GET", "/api/metadata")
+    self.assertNotIn(self.KEY, all_meta)
+
+  def test_bad_source_scheme(self):
+    status, body = self._put({"source": "javascript:alert(1)"})
+    self.assertEqual(status, 400)
+    self.assertIn("http", body["error"])
+
+  def test_bad_rating(self):
+    self.assertEqual(self._put({"rating": 0})[0], 400)
+    self.assertEqual(self._put({"rating": 9})[0], 400)
+    self.assertEqual(self._put({"rating": "five"})[0], 400)
+
+  def test_bad_date(self):
+    status, _ = self._put({"date_hiked": "yesterday"})
+    self.assertEqual(status, 400)
+
+  def test_bad_difficulty(self):
+    status, _ = self._put({"difficulty": "brutal"})
+    self.assertEqual(status, 400)
+
+  def test_bad_tags(self):
+    self.assertEqual(self._put({"tags": ["Has Space"]})[0], 400)
+    self.assertEqual(self._put({"tags": ["a" * 33]})[0], 400)
+    self.assertEqual(self._put({"tags": [f"tag{i}" for i in range(11)]})[0], 400)
+
+  def test_unknown_field_rejected(self):
+    status, body = self._put({"weather": "sunny"})
+    self.assertEqual(status, 400)
+    self.assertIn("unknown", body["error"])
+
+  def test_bad_key_shape(self):
+    status, _ = self.c.request("PUT", "/api/metadata", {"key": "no-slash", "metadata": {"rating": 3}})
+    self.assertEqual(status, 400)
+
+
 class TestPerUserIsolation(unittest.TestCase):
   """Two authenticated users get separate folders + separate data."""
 

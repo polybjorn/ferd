@@ -26,6 +26,33 @@ def has_elevation(path):
         pass
     return False
 
+def bbox(path):
+    """Return [minLat, minLon, maxLat, maxLon] for a GPX file, or None on parse failure."""
+    mn_lat = mn_lon = float("inf")
+    mx_lat = mx_lon = float("-inf")
+    found = False
+    try:
+        for _, elem in ET.iterparse(path, events=("end",)):
+            tag = elem.tag.rsplit("}", 1)[-1]
+            if tag == "trkpt" or tag == "rtept" or tag == "wpt":
+                try:
+                    lat = float(elem.attrib.get("lat", ""))
+                    lon = float(elem.attrib.get("lon", ""))
+                except (TypeError, ValueError):
+                    elem.clear()
+                    continue
+                if lat < mn_lat: mn_lat = lat
+                if lon < mn_lon: mn_lon = lon
+                if lat > mx_lat: mx_lat = lat
+                if lon > mx_lon: mx_lon = lon
+                found = True
+            elem.clear()
+    except ET.ParseError:
+        return None
+    if not found:
+        return None
+    return [round(mn_lat, 6), round(mn_lon, 6), round(mx_lat, 6), round(mx_lon, 6)]
+
 def get_tracks_info(path):
     ns = "{http://www.topografix.com/GPX/1/1}"
     try:
@@ -75,6 +102,9 @@ for key, route in routes.items():
 
     primary_path = os.path.join(GPX_DIR, route["file"])
     route["hasElevation"] = has_elevation(primary_path)
+    bb = bbox(primary_path)
+    if bb is not None:
+        route["bbox"] = bb
 
     track_count, track_names = get_tracks_info(primary_path)
     if track_count > 1:
@@ -82,8 +112,9 @@ for key, route in routes.items():
         route["trackNames"] = track_names
 
     meta = metadata.get(key, {})
-    if "source" in meta:
-        route["source"] = meta["source"]
+    for f in ("source", "date_hiked", "rating", "notes", "tags", "difficulty"):
+        if f in meta:
+            route[f] = meta[f]
 
 REGION_NAMES = {
     "Tyrkia": "Turkey",
@@ -97,13 +128,16 @@ for route in routes.values():
 
     entry = {"key": route["key"], "file": route["file"], "name": route["name"],
              "hasElevation": route["hasElevation"], "completed": route["completed"]}
+    if "bbox" in route:
+        entry["bbox"] = route["bbox"]
     if "plannedFile" in route:
         entry["plannedFile"] = route["plannedFile"]
     if "trackCount" in route:
         entry["trackCount"] = route["trackCount"]
         entry["trackNames"] = route["trackNames"]
-    if "source" in route:
-        entry["source"] = route["source"]
+    for f in ("source", "date_hiked", "rating", "notes", "tags", "difficulty"):
+        if f in route:
+            entry[f] = route[f]
     regions[rname]["routes"].append(entry)
 
 output = {"regions": sorted(regions.values(), key=lambda r: r["name"])}

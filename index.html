@@ -11,6 +11,10 @@
   <link rel="stylesheet" href="https://unpkg.com/@raruto/leaflet-elevation@2.5.2/dist/leaflet-elevation.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    /* Tell native controls (date picker, radios, scrollbars) which palette to
+       follow. The data-mode attribute is set by applyTheme(). */
+    [data-mode="dark"] { color-scheme: dark; }
+    [data-mode="light"] { color-scheme: light; }
 
     :root {
       --bg:           #2e3440;
@@ -529,6 +533,8 @@
       align-items: center;
       gap: 0.5rem;
     }
+    .category-label.clickable, .region-label.clickable { cursor: pointer; }
+    .category-label.clickable:hover, .region-label.clickable:hover { color: var(--accent); border-bottom-color: var(--accent); }
 
     .place-count,
     .route-count {
@@ -980,38 +986,64 @@
       box-shadow: 0 2px 8px var(--shadow) !important;
     }
     .leaflet-popup-tip { background: var(--surface) !important; }
-    .leaflet-popup-content { font-size: 0.8rem; font-weight: 300; margin: 10px 14px; position: relative; }
+    .leaflet-popup-content { font-size: 0.8rem; font-weight: 300; margin: 10px 14px; position: relative; min-width: 220px; }
     .leaflet-popup-content a { color: var(--accent); }
-    .leaflet-popup-content .popup-name { font-weight: 400; font-size: 0.85rem; margin-bottom: 0.25rem; padding-right: 4.5rem; }
+    .leaflet-popup-content .popup-name { font-weight: 400; font-size: 0.85rem; margin-bottom: 0.25rem; padding-right: 1.6rem; display: block; }
+    .leaflet-popup-content a.popup-name-link { color: var(--text); text-decoration: none; }
+    .leaflet-popup-content a.popup-name-link:hover { color: var(--accent); }
     .leaflet-popup-content .popup-share-corner {
       position: absolute;
       top: 0;
       right: 0;
-      font-size: 0.7rem;
+      width: 1.1rem;
+      height: 1.1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       color: inherit;
       cursor: pointer;
-      opacity: 0.7;
+      opacity: 0.55;
+      text-decoration: none;
     }
-    .leaflet-popup-content .popup-share-corner:hover { opacity: 1; }
+    .leaflet-popup-content .popup-share-corner:hover { opacity: 1; color: var(--accent); }
+    .leaflet-popup-content .popup-share-corner.copied { opacity: 1; color: var(--green); }
+    .leaflet-popup-content .popup-share-corner svg { width: 0.95rem; height: 0.95rem; display: block; }
     .leaflet-popup-content .popup-local { font-size: 0.75rem; color: var(--muted); font-weight: 300; font-style: italic; }
     .leaflet-popup-content .cat-text { color: var(--c); }
     [data-mode="light"] .leaflet-popup-content .cat-text { color: var(--cl); }
-    .leaflet-popup-content .popup-note { color: var(--muted); font-size: 0.75rem; }
+    .leaflet-popup-content .popup-note { color: var(--text); font-size: 0.75rem; margin-top: 0.3rem; }
+    .leaflet-popup-content .popup-summary {
+      color: var(--text);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.5rem;
+    }
+    .leaflet-popup-content .popup-summary > span { justify-self: start; }
+    .leaflet-popup-content .popup-summary > span:nth-child(2) { justify-self: center; }
+    .leaflet-popup-content .popup-summary > span:last-child { justify-self: end; }
+    .leaflet-popup-content .popup-tags { color: var(--text); font-size: 0.7rem; margin-top: 0.25rem; text-align: center; }
     .leaflet-popup-content .popup-sources { font-size: 0.65rem; margin-top: 0.3rem; }
+    .leaflet-popup-content .popup-sources-center { text-align: center; }
     .leaflet-popup-content .popup-sources a { color: var(--accent); }
     .leaflet-popup-content .popup-meta {
       margin-top: 0.5rem;
       padding-top: 0.4rem;
       border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
       align-items: center;
       gap: 0.6rem;
       font-size: 0.6rem;
       text-transform: uppercase;
       letter-spacing: 0.1em;
     }
+    .leaflet-popup-content .popup-meta > * { justify-self: start; }
+    .leaflet-popup-content .popup-meta > :nth-child(2) { justify-self: center; }
+    .leaflet-popup-content .popup-meta > :last-child { justify-self: end; }
     .leaflet-popup-content .popup-meta a { color: inherit; cursor: pointer; text-transform: none; letter-spacing: normal; font-size: 0.7rem; }
+    .leaflet-popup-content .popup-meta a:hover { color: var(--accent); }
 
     .leaflet-control-layers { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: var(--radius) !important; color: var(--text) !important; padding: 0 !important; }
     .leaflet-control-layers-toggle { width: 36px !important; height: 36px !important; padding: 6px !important; background-size: 24px 24px !important; }
@@ -1333,6 +1365,9 @@
     .modal input[type="password"],
     .modal input[type="number"],
     .modal input[type="file"],
+    .modal input[type="url"],
+    .modal input[type="email"],
+    .modal input[type="date"],
     .modal textarea,
     .modal select {
       width: 100%;
@@ -1665,6 +1700,7 @@
       groupBy: 'category',
       // unified-map filter state
       hiddenCategories: new Set(),
+      hiddenRegions: new Set(),
       showVisited: true,
       showWant: true,
       showCompleted: true,
@@ -1889,12 +1925,18 @@
       return L.divIcon({ className: '', html: svg, iconSize: iconSize, iconAnchor: iconAnchor });
     }
 
+    const SHARE_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+
+    function shareCornerHtml(type, id) {
+      return '<a href="#" class="popup-share-corner popup-share" data-type="' + type + '" data-id="' + escapeHtml(id) + '" title="Copy link to clipboard" aria-label="Copy link">' + SHARE_ICON_SVG + '</a>';
+    }
+
     function createPlaceMarker(p) {
       const color = state.categoryColors[p.category];
       const colorLight = state.categoryColorsLight[p.category];
       const catStyle = '--c:' + color + ';--cl:' + colorLight;
       const marker = L.marker([p.lat, p.lon], { icon: createMarkerIcon(color, p.visited) });
-      let popupHtml = '<a href="#" class="popup-share-corner popup-share" data-type="place" data-id="' + escapeHtml(p._slug || p.name) + '">Copy link</a>';
+      let popupHtml = shareCornerHtml('place', p._slug || p.name);
       popupHtml += '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local cat-text" style="' + catStyle + '">&middot; ' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
       if (p.note) popupHtml += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
       if (p.sources && p.sources.length) popupHtml += '<div class="popup-sources">' + renderSources(p.sources) + '</div>';
@@ -1939,6 +1981,146 @@
       applyMapFilters();
     }
 
+    const DIFFICULTY_LABELS = { easy: 'Easy', moderate: 'Moderate', hard: 'Hard', expert: 'Expert' };
+
+    function trailMetadataKey(route, regionName) {
+      // The manifest keys metadata by the on-disk region directory, not the
+      // display name. region.name on a route entry already holds the display
+      // name; the on-disk segment is route.file's first path component.
+      const seg = (route.file || '').split('/')[0] || regionName;
+      return seg + '/' + route.name;
+    }
+
+    function ratingStarsText(rating) {
+      // Returns HTML, not plain text, so the empty stars stay glyph-identical
+      // to the filled ones (☆ and ★ render at different widths in most fonts).
+      if (!rating) return '';
+      const filled = '★'.repeat(rating);
+      const empty = 5 - rating;
+      if (!empty) return filled;
+      return filled + '<span style="opacity:0.35">' + '★'.repeat(empty) + '</span>';
+    }
+
+    function trailPopupHtml(route, region, color) {
+      const regionName = region.name;
+      let html = shareCornerHtml('trail', route._slug || route.key);
+      html += '<a class="popup-name popup-name-link" href="#/trails/route/' + encodeURIComponent(route.key) + '">' + escapeHtml(route.name) + '</a>';
+      // First meta line: difficulty / rating / date arranged left / center / right.
+      // Render each slot even if empty so the columns hold their position.
+      const diffSlot = route.difficulty ? escapeHtml(DIFFICULTY_LABELS[route.difficulty] || route.difficulty) : '';
+      const rateSlot = route.rating ? '<span title="' + route.rating + '/5">' + ratingStarsText(route.rating) + '</span>' : '';
+      const dateSlot = route.date_hiked ? escapeHtml(route.date_hiked) : '';
+      if (diffSlot || rateSlot || dateSlot) {
+        html += '<div class="popup-summary">' +
+          '<span>' + diffSlot + '</span>' +
+          '<span>' + rateSlot + '</span>' +
+          '<span>' + dateSlot + '</span>' +
+        '</div>';
+      }
+      if (route.tags && route.tags.length) {
+        html += '<div class="popup-tags">' + route.tags.map(t => '#' + escapeHtml(t)).join(' ') + '</div>';
+      }
+      if (route.notes) html += '<div class="popup-note">' + escapeHtml(route.notes) + '</div>';
+      if (route.source) {
+        let safeHref = '';
+        try {
+          const u = new URL(route.source, location.href);
+          if (u.protocol === 'http:' || u.protocol === 'https:') safeHref = u.href;
+        } catch {}
+        if (safeHref) {
+          html += '<div class="popup-sources popup-sources-center"><a href="' + escapeHtml(safeHref) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(domainFromUrl(route.source)) + '</a></div>';
+        }
+      }
+      html += '<div class="popup-meta">' +
+        '<span style="color:' + color + '">' + (route.completed ? 'Completed' : 'Planned') + '</span>' +
+        '<span>' + escapeHtml(regionName) + '</span>' +
+        (state.auth.authenticated && !isReadOnly() ?
+          '<a href="#" class="popup-trail-edit" data-key="' + escapeHtml(route.key) + '">Edit</a>'
+        : '') +
+        '</div>';
+      return html;
+    }
+
+    function deleteTrail(route, regionName) {
+      if (!confirm('Delete trail "' + route.name + '" (region: ' + regionName + ')? This removes the GPX file.')) return Promise.resolve(false);
+      return api('DELETE', '/gpx', { region: regionName, name: route.name })
+        .then(() => refreshRoutes())
+        .then(() => true)
+        .catch(err => { alert('Failed: ' + err.message); return false; });
+    }
+
+    function findRouteByKey(key) {
+      if (!state.manifest) return null;
+      for (const region of state.manifest.regions) {
+        for (const route of region.routes) {
+          if (route.key === key) return { route, region };
+        }
+      }
+      return null;
+    }
+
+    function openEditTrailMetadataModal(route, regionName) {
+      const key = trailMetadataKey(route, regionName);
+      openModal(
+        '<h2>Edit trail<button class="modal-close">&times;</button></h2>' +
+        '<div class="hint">' + escapeHtml(route.name) + ' &middot; ' + escapeHtml(regionName) + '</div>' +
+        '<form id="trail-meta-form">' +
+          '<label for="tm-date">Date hiked</label>' +
+          '<input type="date" id="tm-date" value="' + escapeHtml(route.date_hiked || '') + '">' +
+          '<label for="tm-rating">Rating</label>' +
+          radioGroupHtml('tm-rating', [['', 'None'], ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5']], String(route.rating || '')) +
+          '<label for="tm-difficulty">Difficulty</label>' +
+          radioGroupHtml('tm-difficulty', [['', 'None'], ['easy', 'Easy'], ['moderate', 'Moderate'], ['hard', 'Hard'], ['expert', 'Expert']], route.difficulty || '') +
+          '<label for="tm-tags">Tags (comma-separated, lowercase)</label>' +
+          '<input type="text" id="tm-tags" value="' + escapeHtml((route.tags || []).join(', ')) + '" placeholder="summit, panorama, via-ferrata">' +
+          '<label for="tm-source">Source URL (optional)</label>' +
+          '<input type="url" id="tm-source" value="' + escapeHtml(route.source || '') + '" placeholder="https://example.com/trail">' +
+          '<label for="tm-notes">Notes</label>' +
+          '<textarea id="tm-notes" maxlength="2000">' + escapeHtml(route.notes || '') + '</textarea>' +
+          '<div class="modal-error" id="tm-error"></div>' +
+          '<div class="modal-actions">' +
+            '<button type="button" class="session-revoke" id="tm-delete">Delete</button>' +
+            '<span style="flex:1"></span>' +
+            '<button type="button" class="modal-close">Cancel</button>' +
+            '<button type="submit" class="primary" id="tm-submit">Save</button>' +
+          '</div>' +
+        '</form>',
+        function() {
+          document.getElementById('tm-delete').addEventListener('click', function() {
+            const btn = this;
+            btn.disabled = true;
+            deleteTrail(route, regionName).then(function(deleted) {
+              if (deleted) { closeModal(); wrappedRouter(); }
+              else { btn.disabled = false; }
+            });
+          });
+          document.getElementById('trail-meta-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const dateVal = document.getElementById('tm-date').value.trim();
+            const ratingRaw = (document.querySelector('input[name="tm-rating"]:checked') || {}).value || '';
+            const difficulty = (document.querySelector('input[name="tm-difficulty"]:checked') || {}).value || '';
+            const tagsRaw = document.getElementById('tm-tags').value;
+            const tags = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
+            const source = document.getElementById('tm-source').value.trim();
+            const notes = document.getElementById('tm-notes').value;
+            const metadata = {};
+            if (dateVal) metadata.date_hiked = dateVal;
+            if (ratingRaw) metadata.rating = parseInt(ratingRaw, 10);
+            if (difficulty) metadata.difficulty = difficulty;
+            if (tags.length) metadata.tags = tags;
+            if (source) metadata.source = source;
+            if (notes.trim()) metadata.notes = notes;
+            const submit = document.getElementById('tm-submit');
+            submit.disabled = true;
+            api('PUT', '/metadata', { key: key, metadata: metadata })
+              .then(() => refreshRoutes())
+              .then(() => { closeModal(); wrappedRouter(); })
+              .catch(err => { submit.disabled = false; showModalError(err.message); });
+          });
+        }
+      );
+    }
+
     function addStartEndMarkers(map, startLatLng, endLatLng) {
       const startIcon = L.divIcon({ className: 'marker-start', html: '<svg viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="6" fill="#00e05a" stroke="#fff" stroke-width="2"/></svg>', iconSize: [16, 16], iconAnchor: [8, 8] });
       const endIcon = L.divIcon({ className: 'marker-end', html: '<svg viewBox="0 0 32 32" width="32" height="32"><rect x="4" y="2" width="2" height="28" rx="1" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><path d="M6 3h12c1 0 1.5.5 1 1.5L17 8l2 3.5c.5 1 0 1.5-1 1.5H6V3z" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><rect x="7" y="4" width="4.5" height="4" fill="#2d333b"/><rect x="11.5" y="4" width="4.5" height="4" fill="#fff"/><rect x="7" y="8" width="4.5" height="4" fill="#fff"/><rect x="11.5" y="8" width="4.5" height="4" fill="#2d333b"/></svg>', iconSize: [32, 32], iconAnchor: [5, 30] });
@@ -1954,7 +2136,14 @@
       const prevView = state.currentMap
         ? { center: state.currentMap.getCenter(), zoom: state.currentMap.getZoom() }
         : null;
-      const storedView = (!prevView && getRememberView()) ? loadStoredView() : null;
+      // If any filter is active, ignore the persisted "remember last view" so
+      // the initial fit zooms to the filtered subset instead of restoring an
+      // unrelated location.
+      const anyFilterActive = (state.hiddenRegions && state.hiddenRegions.size > 0)
+        || (state.hiddenCategories && state.hiddenCategories.size > 0)
+        || !state.showVisited || !state.showWant
+        || !state.showCompleted || !state.showPlanned;
+      const storedView = (!prevView && getRememberView() && !anyFilterActive) ? loadStoredView() : null;
       cleanupMap();
 
       const app = document.getElementById('app');
@@ -2007,7 +2196,10 @@
         for (const p of state.places) {
           const marker = createPlaceMarker(p);
           placeMarkers.push(marker);
-          placeBounds.extend([p.lat, p.lon]);
+          const filteredOut = state.hiddenCategories.has(p.category)
+            || (p.visited && !state.showVisited)
+            || (!p.visited && !state.showWant);
+          if (!filteredOut) placeBounds.extend([p.lat, p.lon]);
           if (focus && focus.type === 'place' && focus.name === p.name) focusPlace = marker;
         }
       }
@@ -2029,6 +2221,15 @@
             const color = trailStatusColor(route.completed);
             const parent = route.completed ? groupCompleted : groupPlanned;
             const gpxUrl = gpxUrlFor(route.file);
+            // Use the manifest-supplied bbox synchronously so initial map
+            // bounds reflect filtered trails without waiting on GPX async load.
+            const visibleStatus = route.completed ? state.showCompleted : state.showPlanned;
+            if (route.bbox && route.bbox.length === 4
+                && !state.hiddenRegions.has(region.name)
+                && visibleStatus) {
+              trailBounds.extend([route.bbox[0], route.bbox[1]]);
+              trailBounds.extend([route.bbox[2], route.bbox[3]]);
+            }
             const gpxLayer = new L.GPX(gpxUrl, {
               async: true,
               polyline_options: { color: color, opacity: 0.85, weight: 4 * getTrailWeightFactor() },
@@ -2042,14 +2243,7 @@
                 if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
               }
             }).bindPopup(
-              '<a href="#" class="popup-share-corner popup-share" data-type="trail" data-id="' + escapeHtml(route._slug || route.key) + '">Copy link</a>' +
-              '<div class="popup-name">' + escapeHtml(route.name) + '</div>' +
-              '<div class="popup-sources"><a href="#/trails/route/' + encodeURIComponent(route.key) + '">View details &#x2197;</a></div>' +
-              '<div class="popup-meta">' +
-                '<span style="color:' + color + '">' + (route.completed ? 'Completed' : 'Planned') + '</span>' +
-                '<span>' + escapeHtml(region.name) + '</span>' +
-                (state.auth.authenticated && !isReadOnly() ? '<a href="#" class="popup-trail-delete" data-region="' + escapeHtml(region.name) + '" data-name="' + escapeHtml(route.name) + '">Delete</a>' : '') +
-              '</div>',
+              trailPopupHtml(route, region, color),
               { closeButton: false }
             ).on('click', (function(slug) {
               return function() { history.replaceState(null, '', focusHash('trail', slug)); };
@@ -2148,6 +2342,17 @@
         html += '<span class="legend-line planned"></span>Planned';
         html += '</div>';
         html += '</div>';
+        const regions = state.manifest && state.manifest.regions ? state.manifest.regions.map(r => r.name) : [];
+        if (regions.length) {
+          html += '<div class="legend-cats" style="margin-top:0.4rem">';
+          for (const r of regions) {
+            const hidden = state.hiddenRegions.has(r);
+            html += '<div class="legend-item' + (hidden ? ' disabled' : '') + '" data-region="' + escapeHtml(r) + '">';
+            html += escapeHtml(r);
+            html += '</div>';
+          }
+          html += '</div>';
+        }
         trailsBody.innerHTML = html;
       }
     }
@@ -2178,13 +2383,19 @@
         applyMapFilters();
       });
 
-      // Toggle-all (trails)
+      // Toggle-all (trails) - mirrors Places: covers regions + completed/planned.
       const trailsToggle = document.getElementById('trails-toggle-all');
       if (trailsToggle) trailsToggle.addEventListener('click', function(e) {
         e.stopPropagation();
-        const allOn = state.showCompleted && state.showPlanned;
-        state.showCompleted = !allOn;
-        state.showPlanned = !allOn;
+        const regions = state.manifest ? state.manifest.regions.map(r => r.name) : [];
+        const allOn = state.hiddenRegions.size === 0 && state.showCompleted && state.showPlanned;
+        if (allOn) {
+          regions.forEach(r => state.hiddenRegions.add(r));
+          state.showCompleted = false; state.showPlanned = false;
+        } else {
+          state.hiddenRegions.clear();
+          state.showCompleted = true; state.showPlanned = true;
+        }
         refreshFilterPanel();
         applyMapFilters();
       });
@@ -2212,12 +2423,21 @@
       const trailsBody = document.getElementById('trails-body');
       if (trailsBody) trailsBody.addEventListener('click', function(e) {
         const item = e.target.closest('.legend-item[data-trail-status]');
-        if (!item) return;
-        const s = item.dataset.trailStatus;
-        if (s === 'completed') state.showCompleted = !state.showCompleted;
-        else state.showPlanned = !state.showPlanned;
-        item.classList.toggle('disabled');
-        applyMapFilters();
+        if (item) {
+          const s = item.dataset.trailStatus;
+          if (s === 'completed') state.showCompleted = !state.showCompleted;
+          else state.showPlanned = !state.showPlanned;
+          item.classList.toggle('disabled');
+          applyMapFilters();
+          return;
+        }
+        const region = e.target.closest('.legend-item[data-region]');
+        if (region) {
+          const r = region.dataset.region;
+          if (state.hiddenRegions.has(r)) { state.hiddenRegions.delete(r); region.classList.remove('disabled'); }
+          else { state.hiddenRegions.add(r); region.classList.add('disabled'); }
+          applyMapFilters();
+        }
       });
     }
 
@@ -2236,6 +2456,16 @@
           }
           return;
         }
+        const trailEdit = e.target.closest('.popup-trail-edit');
+        if (trailEdit) {
+          e.preventDefault();
+          const found = findRouteByKey(trailEdit.dataset.key);
+          if (found) {
+            map.closePopup();
+            openEditTrailMetadataModal(found.route, found.region.name);
+          }
+          return;
+        }
         const share = e.target.closest('.popup-share');
         if (share) {
           e.preventDefault();
@@ -2243,9 +2473,10 @@
           const id = share.dataset.id;
           const url = location.origin + location.pathname + focusHash(type, id);
           const done = () => {
-            const original = share.textContent;
-            share.textContent = 'Copied!';
-            setTimeout(() => { share.textContent = original; }, 1500);
+            const original = share.getAttribute('title') || '';
+            share.setAttribute('title', 'Copied!');
+            share.classList.add('copied');
+            setTimeout(() => { share.setAttribute('title', original); share.classList.remove('copied'); }, 1500);
           };
           if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(url).then(done, () => prompt('Copy this link:', url));
@@ -2253,17 +2484,6 @@
             prompt('Copy this link:', url);
           }
           return;
-        }
-        const trailDel = e.target.closest('.popup-trail-delete');
-        if (trailDel) {
-          e.preventDefault();
-          const region = trailDel.dataset.region;
-          const name = trailDel.dataset.name;
-          if (!confirm('Delete trail "' + name + '" (region: ' + region + ')? This removes the GPX file.')) return;
-          api('DELETE', '/gpx', { region: region, name: name })
-            .then(() => refreshRoutes())
-            .then(() => { map.closePopup(); router(); })
-            .catch(err => alert('Failed: ' + err.message));
         }
       });
     }
@@ -2350,13 +2570,17 @@
       // Trails
       const gc = state._trailGroupCompleted;
       const gp = state._trailGroupPlanned;
-      if (gc) {
-        if (state.showCompleted && !map.hasLayer(gc)) map.addLayer(gc);
-        else if (!state.showCompleted && map.hasLayer(gc)) map.removeLayer(gc);
-      }
-      if (gp) {
-        if (state.showPlanned && !map.hasLayer(gp)) map.addLayer(gp);
-        else if (!state.showPlanned && map.hasLayer(gp)) map.removeLayer(gp);
+      if (gc && gp && state._trailLayers) {
+        gc.clearLayers();
+        gp.clearLayers();
+        for (const t of state._trailLayers) {
+          if (state.hiddenRegions.has(t.region)) continue;
+          if (t.completed && !state.showCompleted) continue;
+          if (!t.completed && !state.showPlanned) continue;
+          (t.completed ? gc : gp).addLayer(t.layer);
+        }
+        if (!map.hasLayer(gc)) map.addLayer(gc);
+        if (!map.hasLayer(gp)) map.addLayer(gp);
       }
     }
 
@@ -2500,7 +2724,11 @@
         const items = grouped[key];
         const keyVisited = items.filter(p => p.visited).length;
         html += '<div class="category-group fade-in">';
-        html += '<div class="category-label">';
+        // Only category grouping wires the label as a map filter today; country
+        // grouping isn't a filterable axis yet.
+        const labelClass = 'category-label' + (byCategory ? ' clickable' : '');
+        const labelAttrs = byCategory ? ' data-filter-cat="' + escapeHtml(key) + '" title="Show only this category on the map"' : '';
+        html += '<div class="' + labelClass + '"' + labelAttrs + '>';
         html += escapeHtml(byCategory ? displayCategory(key) : key);
         html += '<span class="place-count">(' + keyVisited + '/' + items.length + ')</span>';
         html += '</div>';
@@ -2518,7 +2746,22 @@
         html += '</div></div>';
       }
       if (!html) html = '<div class="loading">No matches</div>';
-      document.getElementById('place-list').innerHTML = html;
+      const listEl = document.getElementById('place-list');
+      listEl.innerHTML = html;
+      listEl.querySelectorAll('.category-label.clickable').forEach(function(label) {
+        label.addEventListener('click', function() {
+          const cat = label.dataset.filterCat;
+          const allCats = Object.keys(state.categoryColors);
+          state.hiddenCategories = new Set(allCats.filter(c => c !== cat));
+          // Strong intent: "show only this category". Hide all trails too;
+          // user can re-enable from the filter panel.
+          const allRegions = state.manifest ? state.manifest.regions.map(r => r.name) : [];
+          state.hiddenRegions = new Set(allRegions);
+          state.showVisited = true;
+          state.showWant = true;
+          location.hash = '#/';
+        });
+      });
     }
 
     // ----- Trails browse list -----
@@ -2544,7 +2787,7 @@
       for (const region of regions) {
         const regionCompleted = region.routes.filter(r => r.completed).length;
         html += '<div class="region-group fade-in">';
-        html += '<div class="region-label">';
+        html += '<div class="region-label clickable" data-filter-region="' + escapeHtml(region.name) + '" title="Show only this region on the map">';
         html += escapeHtml(region.name);
         html += '<span class="route-count">(' + regionCompleted + '/' + region.routes.length + ')</span>';
         html += '</div>';
@@ -2561,6 +2804,20 @@
       }
       html += '</div>';
       app.innerHTML = html;
+      app.querySelectorAll('.region-label.clickable').forEach(function(label) {
+        label.addEventListener('click', function() {
+          const r = label.dataset.filterRegion;
+          const allRegions = regions.map(x => x.name);
+          state.hiddenRegions = new Set(allRegions.filter(x => x !== r));
+          // Strong intent: "show only this region". Hide all places too;
+          // user can re-enable from the filter panel.
+          const allCats = Object.keys(state.categoryColors);
+          state.hiddenCategories = new Set(allCats);
+          state.showCompleted = true;
+          state.showPlanned = true;
+          location.hash = '#/';
+        });
+      });
     }
 
     // ----- Trail detail (elevation) -----
@@ -2662,14 +2919,47 @@
       navHtml += '<div class="nav-group nav-route-meta">';
       navHtml += '<div class="nav-stat"><span class="value" style="color:' + (route.completed ? 'var(--completed)' : 'var(--planned)') + '">' + statusLabel + '</span></div>';
       navHtml += '<div class="nav-stat"><span class="value">' + escapeHtml(regionName) + '</span></div>';
+      if (route.difficulty) navHtml += '<div class="nav-stat"><span class="value">' + escapeHtml(DIFFICULTY_LABELS[route.difficulty] || route.difficulty) + '</span></div>';
+      if (route.rating) navHtml += '<div class="nav-stat"><span class="value" title="' + route.rating + '/5">' + ratingStarsText(route.rating) + '</span></div>';
+      if (route.date_hiked) navHtml += '<div class="nav-stat"><span class="value">Hiked ' + escapeHtml(route.date_hiked) + '</span></div>';
       navHtml += '</div>';
       navHtml += '<div class="nav-group" id="nav-stats-dynamic"></div>';
+      if (route.tags && route.tags.length) {
+        navHtml += '<div class="nav-group">';
+        navHtml += '<div class="nav-stat"><span class="value">' + route.tags.map(t => '#' + escapeHtml(t)).join(' ') + '</span></div>';
+        navHtml += '</div>';
+      }
+      if (route.notes) {
+        navHtml += '<div class="nav-group">';
+        navHtml += '<div class="nav-stat"><span class="value">' + escapeHtml(route.notes) + '</span></div>';
+        navHtml += '</div>';
+      }
       if (route.source) {
         navHtml += '<div class="nav-group">';
         navHtml += '<div class="nav-stat"><span class="value"><a href="' + escapeHtml(route.source) + '" target="_blank" rel="noopener">Source &#x2197;</a></span></div>';
         navHtml += '</div>';
       }
+      if (state.auth.authenticated && !isReadOnly()) {
+        navHtml += '<div class="nav-group">';
+        navHtml += '<div class="nav-stat"><a href="#" id="trail-edit-btn" class="value">Edit trail &hellip;</a></div>';
+        navHtml += '<div class="nav-stat"><a href="#" id="trail-delete-btn" class="value" style="color:var(--red)">Delete trail</a></div>';
+        navHtml += '</div>';
+      }
       document.getElementById('nav-info').innerHTML = navHtml;
+      const editBtn = document.getElementById('trail-edit-btn');
+      if (editBtn) editBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        openEditTrailMetadataModal(route, regionName);
+      });
+      const delBtn = document.getElementById('trail-delete-btn');
+      if (delBtn) delBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        delBtn.style.pointerEvents = 'none';
+        deleteTrail(route, regionName).then(function(deleted) {
+          if (deleted) { location.hash = '#/trails'; }
+          else { delBtn.style.pointerEvents = ''; }
+        });
+      });
 
       const isMultiTrack = route.trackCount && route.trackCount > 1;
 

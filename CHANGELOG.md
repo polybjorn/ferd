@@ -8,6 +8,12 @@ Until then, every change lands under `[Unreleased]` and `main` is the only branc
 
 ### Added
 
+- Per-trail metadata editor in the UI. Trail popups and the trail detail page expose an Edit button that opens a modal with: date hiked, rating (1-5), notes (up to 2000 chars), tags (up to 10, lowercase), difficulty (easy / moderate / hard / expert), and source URL. Backed by `PUT /api/metadata` keyed on `Region/Trail name`; the manifest regenerates so `routes.json` picks up changes immediately.
+- Click-to-filter on list views. Clicking a region header in the trails list (or a category header in the places list) jumps to the map showing only that region's trails (or that category's places). Other axis is hidden; user re-enables from the filter panel.
+- Region chips in the trails filter panel, matching the existing category chips for places. The Trails toggle-all now mirrors Places: clears region hides and resets completed/planned together.
+- `bbox` field per route in `routes.json` (computed from GPX trkpts during `gpx-manifest.sh`). Used to fit the map to a filtered region without waiting on async GPX loads.
+- Trail title in popups is now a link to the trail detail page. Replaces the standalone "View details" row.
+- Trail Delete moved into the Edit modal (matching the place Edit modal pattern) and added to the trail detail page; removed from the popup to reduce misclick risk on the small marker bubble.
 - Per-user maps. Each user owns an isolated `users/<username>/` folder (places, routes, GPX, prefs, metadata). Any authenticated user can write to their own folder; the operator role no longer gates writes.
 - Per-user "publish my map" toggle in Settings. With it on, anyone can read the user's map at `/u/<username>/`; with it off, all read endpoints under `/api/u/<username>/...` return 404.
 - Per-user zip export from Settings.
@@ -27,7 +33,7 @@ Until then, every change lands under `[Unreleased]` and `main` is the only branc
 
 ### Fixed
 
-- (none yet)
+- URL-decode path segments in `/api/gpx/<region>/<file>` and `/api/u/<username>/gpx/...` before resolving them on disk. GPX files with accented or spaced names (`Himakånå.gpx`, `Mahmutlar - Kargicak.gpx`) returned 404 because the percent-encoded URL string was being treated as the literal filename.
 
 ### Security
 
