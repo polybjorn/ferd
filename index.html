@@ -1472,7 +1472,32 @@
     const TRACK_COLORS = COLORS;
     const ROUTE_COLOR = '#6aaeee';
     const GPX_NS = 'http://www.topografix.com/GPX/1/1';
-    const DATA_FILES = { places: 'places.json', routes: 'routes.json', siteConfig: 'site-config.json' };
+    const DATA_FILES = { siteConfig: 'site-config.json' };
+
+    // viewer mode: 'public' when the URL is /u/<username>/..., else 'owner'
+    // (read+write against /api/places etc. for the signed-in user).
+    function detectViewer() {
+      const m = (location.pathname || '/').match(/^\/u\/([A-Za-z0-9_-]+)(?:\/|$)/);
+      if (m) return { mode: 'public', username: m[1] };
+      return { mode: 'owner', username: null };
+    }
+
+    function dataUrl(kind) {
+      // kind: 'places' | 'routes' | 'metadata'
+      const v = state.viewer;
+      if (v && v.mode === 'public') return apiUrl('/u/' + encodeURIComponent(v.username) + '/' + kind);
+      return apiUrl('/' + kind);
+    }
+
+    function gpxUrlFor(file) {
+      const v = state.viewer;
+      if (v && v.mode === 'public') return apiUrl('/u/' + encodeURIComponent(v.username) + '/gpx/' + file);
+      return apiUrl('/gpx/' + file);
+    }
+
+    function isReadOnly() {
+      return !!(state.viewer && state.viewer.mode === 'public');
+    }
 
     function trailStatusColor(completed) {
       // Read live so polyline draws pick up the active theme.
@@ -1627,7 +1652,8 @@
 
     const state = {
       config: DEFAULT_CONFIG,
-      auth: { authenticated: false, username: null, is_operator: false, registration_open: true, has_users: false, requires_setup_token: false },
+      auth: { authenticated: false, username: null, is_operator: false, published: false, registration_open: true, has_users: false, requires_setup_token: false },
+      viewer: detectViewer(),
       currentMap: null,
       currentElevation: null,
       // data
@@ -1875,7 +1901,7 @@
       popupHtml += '<div class="popup-meta">' +
         '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(p.category) + '</span>' +
         '<span style="color:' + (p.visited ? 'var(--green)' : 'var(--red)') + '">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
-        (state.auth.authenticated ? '<a href="#" class="popup-edit" data-place="' + escapeHtml(p.name) + '">Edit</a>' : '') +
+        (state.auth.authenticated && !isReadOnly() ? '<a href="#" class="popup-edit" data-place="' + escapeHtml(p.name) + '">Edit</a>' : '') +
       '</div>';
       marker.bindPopup(popupHtml, { closeButton: false });
       marker.on('click', (function(slug) {
@@ -2002,7 +2028,7 @@
           for (const route of region.routes) {
             const color = trailStatusColor(route.completed);
             const parent = route.completed ? groupCompleted : groupPlanned;
-            const gpxUrl = 'gpx/' + route.file;
+            const gpxUrl = gpxUrlFor(route.file);
             const gpxLayer = new L.GPX(gpxUrl, {
               async: true,
               polyline_options: { color: color, opacity: 0.85, weight: 4 * getTrailWeightFactor() },
@@ -2022,7 +2048,7 @@
               '<div class="popup-meta">' +
                 '<span style="color:' + color + '">' + (route.completed ? 'Completed' : 'Planned') + '</span>' +
                 '<span>' + escapeHtml(region.name) + '</span>' +
-                (state.auth.authenticated ? '<a href="#" class="popup-trail-delete" data-region="' + escapeHtml(region.name) + '" data-name="' + escapeHtml(route.name) + '">Delete</a>' : '') +
+                (state.auth.authenticated && !isReadOnly() ? '<a href="#" class="popup-trail-delete" data-region="' + escapeHtml(region.name) + '" data-name="' + escapeHtml(route.name) + '">Delete</a>' : '') +
               '</div>',
               { closeButton: false }
             ).on('click', (function(slug) {
@@ -2672,7 +2698,7 @@
       addTileLayersToMap(map);
 
       if (route.plannedFile && route.completed) {
-        new L.GPX('gpx/' + route.plannedFile, {
+        new L.GPX(gpxUrlFor(route.plannedFile), {
           async: true,
           polyline_options: { color: ROUTE_COLOR, opacity: 0.35, weight: 4 * getTrailWeightFactor(), dashArray: '8 6' },
           markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
@@ -2700,7 +2726,7 @@
         state.currentElevation = elevationControl;
       }
 
-      const gpxUrl = 'gpx/' + route.file;
+      const gpxUrl = gpxUrlFor(route.file);
       new L.GPX(gpxUrl, {
         async: true,
         polyline_options: { color: color, opacity: 0.9, weight: 5 * getTrailWeightFactor() },
@@ -2732,7 +2758,7 @@
     }
 
     function renderMultiTrack(map, route) {
-      fetch('gpx/' + route.file)
+      fetch(gpxUrlFor(route.file))
         .then(r => r.text())
         .then(function(xmlText) {
           const tracks = parseGpxTracks(xmlText);
@@ -3000,7 +3026,7 @@
           if (!action) return;
           menu.hidden = true;
           if (action.dataset.action === 'signout') {
-            api('POST', '/logout').then(refreshAuthState).then(router);
+            api('POST', '/logout').then(function() { location.reload(); });
           } else if (action.dataset.action === 'settings') {
             openSettingsModal();
           }
@@ -3125,6 +3151,12 @@
             '<button type="submit" class="primary" id="s-submit">Change password</button>' +
           '</div>' +
         '</form>' +
+        '<h3 class="settings-h">Publish my map</h3>' +
+        '<div class="checkbox-row"><input type="checkbox" id="s-publish"' + (state.auth.published ? ' checked' : '') + '><label for="s-publish">Make my map publicly readable at <code>/u/' + escapeHtml(state.auth.username || '') + '/</code></label></div>' +
+        '<div class="hint">Anyone with the link can view; no editing. Turn off any time.</div>' +
+        '<h3 class="settings-h">Export</h3>' +
+        '<div class="hint">Download a zip of your places, trails, and preferences.</div>' +
+        '<div class="modal-actions" style="margin-top:0.5rem"><a id="s-export" class="primary" style="text-decoration:none;display:inline-block;padding:0.4rem 0.9rem" href="' + apiUrl('/me/export') + '">Download export</a></div>' +
         '<h3 class="settings-h">Active sessions</h3>' +
         '<div id="s-sessions">Loading&hellip;</div>' +
         (isOp && placesAvailable() ?
@@ -3167,6 +3199,14 @@
           if (reg) {
             reg.addEventListener('change', function() {
               api('POST', '/settings/registration', { mode: this.checked ? 'open' : 'closed' })
+                .then(() => refreshAuthState())
+                .catch(err => { alert('Failed: ' + err.message); this.checked = !this.checked; });
+            });
+          }
+          const pub = document.getElementById('s-publish');
+          if (pub) {
+            pub.addEventListener('change', function() {
+              api('POST', '/me/publish', { published: this.checked })
                 .then(() => refreshAuthState())
                 .catch(err => { alert('Failed: ' + err.message); this.checked = !this.checked; });
             });
@@ -3349,18 +3389,18 @@
     }
 
     function refreshPlaces() {
-      return fetchJson(DATA_FILES.places, []).then(data => {
-        state.places = data;
+      return fetchJson(dataUrl('places'), []).then(data => {
+        state.places = Array.isArray(data) ? data : [];
         assignPlaceSlugs(state.places);
-        const cc = assignCategoryColors(data);
+        const cc = assignCategoryColors(state.places);
         state.categoryColors = cc.dark;
         state.categoryColorsLight = cc.light;
       });
     }
 
     function refreshRoutes() {
-      return fetchJson(DATA_FILES.routes, null).then(data => {
-        if (!data) return;
+      return fetchJson(dataUrl('routes'), null).then(data => {
+        if (!data || !Array.isArray(data.regions)) return;
         data.regions.sort((a, b) => a.name.localeCompare(b.name));
         for (const region of data.regions) region.routes.sort((a, b) => a.name.localeCompare(b.name));
         state.manifest = data;
@@ -3454,7 +3494,7 @@
         submitBtn.disabled = true;
         api('POST', '/' + mode, payload)
           .then(() => refreshAuthState())
-          .then(() => { closeModal(); router(); })
+          .then(() => { closeModal(); return loadDataAndRender(); })
           .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
       }
     }
@@ -3627,7 +3667,7 @@
       const app = document.getElementById('app');
       const existing = app.querySelector('.fab-add');
       if (existing) existing.remove();
-      if (!state.auth.authenticated) return;
+      if (!state.auth.authenticated || isReadOnly()) return;
       const base = (location.hash || '#/').split('?')[0];
       if (!(base === '#/' || base === '#' || base === '#/map')) return;
       if (!placesEnabled() && !trailsEnabled()) return;
@@ -3687,36 +3727,57 @@
       refreshTabVisibility();
     }
 
-    fetchJson(DATA_FILES.siteConfig, null)
-      .then(function(cfg) {
-        applyConfig(cfg);
-        const placesP = placesAvailable() ? fetchJson(DATA_FILES.places, null) : Promise.resolve(null);
-        const routesP = trailsAvailable() ? fetchJson(DATA_FILES.routes, null) : Promise.resolve(null);
-        const stateP = fetch(apiUrl('/state'), { credentials: 'same-origin' })
-          .then(r => r.ok ? r.json() : null).catch(() => null);
-        return Promise.all([placesP, routesP, stateP]);
-      })
-      .then(function([places, routes, authState]) {
-        if (places) {
+    function loadDataAndRender() {
+      const v = state.viewer;
+      const placesP = placesAvailable()
+        ? fetchJson(dataUrl('places'), null).catch(() => null)
+        : Promise.resolve(null);
+      const routesP = trailsAvailable()
+        ? fetchJson(dataUrl('routes'), null).catch(() => null)
+        : Promise.resolve(null);
+      return Promise.all([placesP, routesP]).then(function([places, routes]) {
+        if (Array.isArray(places)) {
           state.places = places;
           assignPlaceSlugs(state.places);
           const cc = assignCategoryColors(places);
           state.categoryColors = cc.dark;
           state.categoryColorsLight = cc.light;
         }
-        if (routes) {
+        if (routes && Array.isArray(routes.regions)) {
           routes.regions.sort((a, b) => a.name.localeCompare(b.name));
           for (const region of routes.regions) region.routes.sort((a, b) => a.name.localeCompare(b.name));
           state.manifest = routes;
           assignTrailSlugs(state.manifest);
         }
-        if (authState) state.auth = authState;
-        renderAuthWidget();
         if ((placesAvailable() && !state.places) && (trailsAvailable() && !state.manifest)) {
+          if (v.mode === 'public') {
+            document.getElementById('app').innerHTML = '<div class="loading">Map not found, or owner has not published it.</div>';
+            return;
+          }
           document.getElementById('app').innerHTML = '<div class="loading">Failed to load data</div>';
           return;
         }
         wrappedRouter();
+      });
+    }
+
+    fetchJson(DATA_FILES.siteConfig, null)
+      .then(function(cfg) {
+        applyConfig(cfg);
+        return fetch(apiUrl('/state'), { credentials: 'same-origin' })
+          .then(r => r.ok ? r.json() : null).catch(() => null);
+      })
+      .then(function(authState) {
+        if (authState) state.auth = authState;
+        renderAuthWidget();
+        const v = state.viewer;
+        if (v.mode === 'owner' && !state.auth.authenticated) {
+          document.getElementById('app').innerHTML =
+            '<div class="loading">Sign in to view your map.</div>';
+          openSignInModal();
+          return;
+        }
+        return loadDataAndRender();
       });
   </script>
 </body>

@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
-cd "$(dirname "$0")"
+# Per-user data dir as $1; default to script's dir for ad-hoc CLI runs against
+# legacy single-shared-map layouts.
+cd "${1:-$(dirname "$0")}"
 
 python3 - <<'PYEOF'
 import json, os, xml.etree.ElementTree as ET

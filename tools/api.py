@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Atlas API server.
 
-Stdlib-only. Provides auth (register/login/logout/change-password/state) backed
-by SQLite. Write endpoints land in phase 2.
+Stdlib-only. Provides auth (register/login/logout/change-password/state) and
+per-user data endpoints (places, GPX trails, prefs, publish toggle, export)
+backed by SQLite for accounts and a per-user folder for content.
 
 Run: python3 tools/api.py [--config tools/config.json]
 """
@@ -13,6 +14,7 @@ import argparse
 import fcntl
 import http.cookies
 import http.server
+import io
 import json
 import os
 import re
@@ -25,6 +27,7 @@ import tempfile
 import threading
 import time
 import xml.etree.ElementTree as ET
+import zipfile
 from hashlib import pbkdf2_hmac
 from http import HTTPStatus
 from pathlib import Path
@@ -150,7 +153,7 @@ def db_connect(path: str) -> sqlite3.Connection:
 
 
 def db_migrate(conn: sqlite3.Connection) -> None:
-  """Forward-compatible column adds for sessions table."""
+  """Forward-compatible column adds."""
   cols = {r["name"] for r in conn.execute("PRAGMA table_info(sessions)")}
   if "last_seen_at" not in cols:
     conn.execute("ALTER TABLE sessions ADD COLUMN last_seen_at INTEGER NOT NULL DEFAULT 0")
@@ -158,6 +161,9 @@ def db_migrate(conn: sqlite3.Connection) -> None:
     conn.execute("ALTER TABLE sessions ADD COLUMN ip TEXT")
   if "user_agent" not in cols:
     conn.execute("ALTER TABLE sessions ADD COLUMN user_agent TEXT")
+  user_cols = {r["name"] for r in conn.execute("PRAGMA table_info(users)")}
+  if "published" not in user_cols:
+    conn.execute("ALTER TABLE users ADD COLUMN published INTEGER NOT NULL DEFAULT 0")
 
 
 def db_init(conn: sqlite3.Connection) -> None:
@@ -254,6 +260,69 @@ def seed_initial_user(conn: sqlite3.Connection, cfg: dict) -> None:
   if user_count(conn) == 0:
     create_user(conn, user, pw, is_operator=True)
     print(f"[atlas-api] seeded initial operator '{user}'", file=sys.stderr)
+
+
+def user_dir(cfg: dict, username: str) -> Path:
+  """Per-user data folder: <data_dir>/users/<username>/. Caller must already
+  have validated that `username` is one of the real DB usernames; we still run
+  it through safe_path_component as defense-in-depth."""
+  base = Path(cfg["data_dir"]).resolve() / "users"
+  return base / safe_path_component(username)
+
+
+def ensure_user_dir(cfg: dict, username: str) -> Path:
+  d = user_dir(cfg, username)
+  d.mkdir(parents=True, exist_ok=True)
+  (d / "gpx").mkdir(exist_ok=True)
+  return d
+
+
+def user_published(conn: sqlite3.Connection, username: str) -> bool:
+  row = conn.execute("SELECT published FROM users WHERE username=?", (username,)).fetchone()
+  return bool(row and row["published"])
+
+
+def set_user_published(conn: sqlite3.Connection, user_id: int, value: bool) -> None:
+  conn.execute("UPDATE users SET published=? WHERE id=?", (1 if value else 0, user_id))
+
+
+def migrate_legacy_data(conn: sqlite3.Connection, cfg: dict) -> None:
+  """One-shot: move legacy shared `places.json` + `gpx/` + `metadata.json` +
+  `routes.json` into the first operator's folder. For each file: skipped if
+  the source doesn't exist or a non-empty destination is already there
+  (so an already-migrated install or a user with their own data is left
+  alone). Run before ensure_user_dir so the freshly-created empty
+  per-user folder doesn't block the move."""
+  data_dir = Path(cfg["data_dir"]).resolve()
+  row = conn.execute(
+    "SELECT username FROM users WHERE is_operator=1 ORDER BY id LIMIT 1"
+  ).fetchone()
+  if not row:
+    return
+  admin = row["username"]
+  try:
+    dest = user_dir(cfg, admin)
+  except ValidationError:
+    return
+  dest.mkdir(parents=True, exist_ok=True)
+  candidates = ["places.json", "routes.json", "metadata.json", "gpx"]
+  moved = []
+  for name in candidates:
+    src = data_dir / name
+    dst = dest / name
+    if not src.exists() and not src.is_symlink():
+      continue
+    if dst.exists():
+      # Treat an empty directory as absent so a freshly seeded user folder
+      # doesn't block the gpx tree from being migrated.
+      if dst.is_dir() and not any(dst.iterdir()):
+        dst.rmdir()
+      else:
+        continue
+    src.rename(dst)
+    moved.append(name)
+  if moved:
+    print(f"[atlas-api] migrated legacy {moved} -> users/{admin}/", file=sys.stderr)
 
 
 # ---------- sessions ----------
@@ -430,6 +499,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return None
     return user
 
+  def _require_user(self) -> sqlite3.Row | None:
+    """Return any authenticated user, else send 401 and return None."""
+    user = self._current_user()
+    if not user:
+      self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
+      return None
+    return user
+
+  def _user_dir(self, username: str) -> Path:
+    """Get + ensure the per-user data dir."""
+    return ensure_user_dir(self.cfg, username)
+
   def _client_ip(self) -> str:
     return self.client_address[0] if self.client_address else "?"
 
@@ -473,6 +554,38 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_state()
     if path == "/api/sessions":
       return self._h_sessions_list()
+    if path == "/api/places":
+      return self._h_places_get()
+    if path == "/api/routes":
+      return self._h_routes_get()
+    if path == "/api/metadata":
+      return self._h_metadata_get()
+    if path == "/api/me/prefs":
+      return self._h_prefs_get()
+    if path == "/api/me/export":
+      return self._h_export_get()
+    if path.startswith("/api/gpx/"):
+      parts = path[len("/api/gpx/"):].split("/", 1)
+      if len(parts) == 2:
+        return self._h_gpx_get(parts[0], parts[1])
+      return self._error(HTTPStatus.NOT_FOUND, "not found")
+    if path.startswith("/api/u/"):
+      rest = path[len("/api/u/"):]
+      seg = rest.split("/", 1)
+      if len(seg) < 2:
+        return self._error(HTTPStatus.NOT_FOUND, "not found")
+      uname, tail = seg[0], seg[1]
+      if tail == "places":
+        return self._h_public_places(uname)
+      if tail == "routes":
+        return self._h_public_routes(uname)
+      if tail == "metadata":
+        return self._h_public_metadata(uname)
+      if tail.startswith("gpx/"):
+        gparts = tail[len("gpx/"):].split("/", 1)
+        if len(gparts) == 2:
+          return self._h_public_gpx(uname, gparts[0], gparts[1])
+      return self._error(HTTPStatus.NOT_FOUND, "not found")
     if path.startswith("/api/"):
       return self._error(HTTPStatus.NOT_FOUND, "not found")
     return self._serve_static(path)
@@ -483,6 +596,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.NOT_FOUND, "not found")
     base = Path(static_dir)
     if path in ("", "/"):
+      path = "/index.html"
+    # Public per-user URLs (`/u/<username>/...`) all serve the SPA shell; the
+    # frontend reads the path and fetches the right /api/u/<username>/... data.
+    if path.startswith("/u/"):
       path = "/index.html"
     # URL-decode percent-escapes (e.g. spaces, accented chars).
     rel = unquote(path.lstrip("/"))
@@ -537,6 +654,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_places_create()
     if path == "/api/gpx":
       return self._h_gpx_upload()
+    if path == "/api/me/publish":
+      return self._h_publish_post()
     if path == "/api/sessions/revoke":
       return self._h_sessions_revoke()
     self._error(HTTPStatus.NOT_FOUND, "not found")
@@ -545,6 +664,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     path = urlparse(self.path).path
     if path == "/api/places":
       return self._h_places_update()
+    if path == "/api/me/prefs":
+      return self._h_prefs_put()
     if path == "/api/site-config/category-labels":
       return self._h_site_config_category_labels()
     self._error(HTTPStatus.NOT_FOUND, "not found")
@@ -561,10 +682,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
   def _h_state(self):
     user = self._current_user()
+    published = False
+    if user:
+      published = user_published(self.conn, user["username"])
     self._send_json(HTTPStatus.OK, {
       "authenticated": bool(user),
       "username": user["username"] if user else None,
       "is_operator": bool(user["is_operator"]) if user else False,
+      "published": published,
       "registration_open": registration_open(self.conn),
       "has_users": user_count(self.conn) > 0,
       "requires_setup_token": Handler.setup_token is not None and user_count(self.conn) == 0,
@@ -598,6 +723,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       token = session_create(self.conn, user_id, ip=self._client_ip(), user_agent=self.headers.get("User-Agent"))
       if first_user:
         Handler.setup_token = None  # Token no longer relevant.
+    ensure_user_dir(self.cfg, username)
     cookie = self._set_session_cookie(token, SESSION_DAYS * 86400)
     self._send_json(HTTPStatus.CREATED, {"username": username, "is_operator": first_user}, [cookie])
 
@@ -756,10 +882,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     self._send_json(HTTPStatus.OK, {"ok": True, "category_labels": cleaned})
 
-  # ---- phase 2: write endpoints ----
+  # ---- write endpoints (per-user) ----
 
   def _h_places_create(self):
-    if self._require_operator() is None:
+    user = self._require_user()
+    if user is None:
       return
     body = self._read_body_or_400()
     if body is None:
@@ -769,9 +896,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    data_dir = Path(self.cfg["data_dir"]).resolve()
-    places_path = data_dir / "places.json"
-    lock_path = data_dir / ".atlas-places.lock"
+    udir = self._user_dir(user["username"])
+    places_path = udir / "places.json"
+    lock_path = udir / ".atlas-places.lock"
 
     def do_append():
       existing = load_json_file(places_path, expected_type=list, required=False, label="places.json")
@@ -789,7 +916,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.CREATED, {"ok": True, "total_places": total, "place": place})
 
   def _h_places_update(self):
-    if self._require_operator() is None:
+    user = self._require_user()
+    if user is None:
       return
     body = self._read_body_or_400()
     if body is None:
@@ -805,9 +933,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    data_dir = Path(self.cfg["data_dir"]).resolve()
-    places_path = data_dir / "places.json"
-    lock_path = data_dir / ".atlas-places.lock"
+    udir = self._user_dir(user["username"])
+    places_path = udir / "places.json"
+    lock_path = udir / ".atlas-places.lock"
 
     def do_update():
       existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
@@ -831,7 +959,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"ok": True, "place": validated})
 
   def _h_places_delete(self):
-    if self._require_operator() is None:
+    user = self._require_user()
+    if user is None:
       return
     body = self._read_body_or_400()
     if body is None:
@@ -840,9 +969,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if not target_name:
       return self._error(HTTPStatus.BAD_REQUEST, "name required")
 
-    data_dir = Path(self.cfg["data_dir"]).resolve()
-    places_path = data_dir / "places.json"
-    lock_path = data_dir / ".atlas-places.lock"
+    udir = self._user_dir(user["username"])
+    places_path = udir / "places.json"
+    lock_path = udir / ".atlas-places.lock"
 
     def do_delete():
       existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
@@ -863,7 +992,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"ok": True, "total_places": total})
 
   def _h_gpx_delete(self):
-    if self._require_operator() is None:
+    user = self._require_user()
+    if user is None:
       return
     body = self._read_body_or_400()
     if body is None:
@@ -876,15 +1006,15 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if name.lower().endswith(".gpx"):
       name = name[:-4]
 
-    data_dir = Path(self.cfg["data_dir"]).resolve()
-    gpx_root = data_dir / "gpx"
+    udir = self._user_dir(user["username"])
+    gpx_root = udir / "gpx"
     try:
       target = resolve_under(gpx_root, region, name + ".gpx")
       planned = resolve_under(gpx_root, region, name + ".planned.gpx")
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    lock_path = data_dir / ".atlas-gpx.lock"
+    lock_path = udir / ".atlas-gpx.lock"
     removed = []
 
     def do_delete():
@@ -909,11 +1039,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
     if not removed:
       return self._error(HTTPStatus.NOT_FOUND, "no matching GPX file")
-    manifest_status = self._regenerate_manifest(data_dir)
+    manifest_status = self._regenerate_manifest(udir)
     self._send_json(HTTPStatus.OK, {"ok": True, "removed": removed, "manifest": manifest_status})
 
   def _h_gpx_upload(self):
-    if self._require_operator() is None:
+    user = self._require_user()
+    if user is None:
       return
 
     qs = parse_qs(urlparse(self.path).query)
@@ -939,14 +1070,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    data_dir = Path(self.cfg["data_dir"]).resolve()
-    gpx_root = data_dir / "gpx"
+    udir = self._user_dir(user["username"])
+    gpx_root = udir / "gpx"
     try:
       target = resolve_under(gpx_root, region, name + ".gpx")
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    lock_path = data_dir / ".atlas-gpx.lock"
+    lock_path = udir / ".atlas-gpx.lock"
 
     def do_write():
       target.parent.mkdir(parents=True, exist_ok=True)
@@ -957,7 +1088,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     except OSError as e:
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write GPX: {e}")
 
-    manifest_status = self._regenerate_manifest(data_dir)
+    manifest_status = self._regenerate_manifest(udir)
     self._send_json(HTTPStatus.CREATED, {
       "ok": True,
       "saved": f"gpx/{region}/{name}.gpx",
@@ -965,13 +1096,20 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "manifest": manifest_status,
     })
 
-  def _regenerate_manifest(self, data_dir: Path) -> dict:
+  def _regenerate_manifest(self, target_dir: Path) -> dict:
     cmd = self.cfg.get("manifest_cmd")
     if not cmd:
       return {"ran": False, "reason": "no manifest_cmd configured"}
+    # Resolve cmd relative to the *original* data_dir (where the script lives)
+    # so that switching cwd to a per-user dir doesn't break the path.
+    repo_dir = Path(self.cfg["data_dir"]).resolve()
+    cmd_path = Path(cmd)
+    if not cmd_path.is_absolute():
+      cmd_path = (repo_dir / cmd).resolve()
     try:
       proc = subprocess.run(
-        [cmd], shell=False, check=False, timeout=60, cwd=str(data_dir),
+        [str(cmd_path), str(target_dir)],
+        shell=False, check=False, timeout=60, cwd=str(target_dir),
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
       )
     except FileNotFoundError:
@@ -983,6 +1121,189 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "exit_code": proc.returncode,
       "stderr_tail": proc.stderr.decode("utf-8", "replace")[-400:],
     }
+
+  # ---- per-user read + account endpoints ----
+
+  def _h_places_get(self):
+    user = self._require_user()
+    if user is None:
+      return
+    udir = self._user_dir(user["username"])
+    try:
+      data = load_json_file(udir / "places.json", expected_type=list, required=False, label="places.json")
+    except ValidationError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+    self._send_json(HTTPStatus.OK, data)
+
+  def _h_routes_get(self):
+    user = self._require_user()
+    if user is None:
+      return
+    udir = self._user_dir(user["username"])
+    try:
+      data = load_json_file(udir / "routes.json", expected_type=dict, required=False, label="routes.json")
+    except ValidationError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+    self._send_json(HTTPStatus.OK, data or {"regions": []})
+
+  def _h_metadata_get(self):
+    user = self._require_user()
+    if user is None:
+      return
+    udir = self._user_dir(user["username"])
+    try:
+      data = load_json_file(udir / "metadata.json", expected_type=dict, required=False, label="metadata.json")
+    except ValidationError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+    self._send_json(HTTPStatus.OK, data or {})
+
+  def _h_gpx_get(self, region: str, fname: str):
+    """Serve an owned GPX file. Path components are validated."""
+    user = self._require_user()
+    if user is None:
+      return
+    self._serve_gpx(self._user_dir(user["username"]), region, fname)
+
+  def _h_prefs_get(self):
+    user = self._require_user()
+    if user is None:
+      return
+    udir = self._user_dir(user["username"])
+    try:
+      data = load_json_file(udir / "prefs.json", expected_type=dict, required=False, label="prefs.json")
+    except ValidationError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+    self._send_json(HTTPStatus.OK, data or {})
+
+  def _h_prefs_put(self):
+    user = self._require_user()
+    if user is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    if not isinstance(body, dict):
+      return self._error(HTTPStatus.BAD_REQUEST, "prefs must be an object")
+    udir = self._user_dir(user["username"])
+    try:
+      write_json_file(udir / "prefs.json", body)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write prefs: {e}")
+    self._send_json(HTTPStatus.OK, {"ok": True})
+
+  def _h_publish_post(self):
+    user = self._require_user()
+    if user is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    val = body.get("published")
+    if not isinstance(val, bool):
+      return self._error(HTTPStatus.BAD_REQUEST, "published (bool) required")
+    with self.write_lock:
+      set_user_published(self.conn, user["id"], val)
+    self._send_json(HTTPStatus.OK, {"ok": True, "published": val})
+
+  def _h_export_get(self):
+    user = self._require_user()
+    if user is None:
+      return
+    udir = self._user_dir(user["username"])
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+      for path in sorted(udir.rglob("*")):
+        if not path.is_file():
+          continue
+        if path.name.startswith(".atlas-"):
+          continue  # locks
+        zf.write(path, arcname=str(path.relative_to(udir)))
+    payload = buf.getvalue()
+    fname = f"atlas-{user['username']}-export.zip"
+    self.send_response(HTTPStatus.OK)
+    self.send_header("Content-Type", "application/zip")
+    self.send_header("Content-Length", str(len(payload)))
+    self.send_header("Content-Disposition", f'attachment; filename="{fname}"')
+    self.send_header("Cache-Control", "no-store")
+    self.end_headers()
+    self.wfile.write(payload)
+
+  # ---- public read endpoints under /api/u/<username>/ ----
+
+  def _public_user_dir(self, username: str) -> Path | None:
+    """Return the user dir iff that user exists and has publish=ON. Else None
+    (caller should 404). Username is sanitized as a path component too."""
+    try:
+      safe_path_component(username)
+    except ValidationError:
+      return None
+    if not user_published(self.conn, username):
+      return None
+    try:
+      return user_dir(self.cfg, username)
+    except ValidationError:
+      return None
+
+  def _h_public_places(self, username: str):
+    udir = self._public_user_dir(username)
+    if udir is None:
+      return self._error(HTTPStatus.NOT_FOUND, "not found")
+    try:
+      data = load_json_file(udir / "places.json", expected_type=list, required=False, label="places.json")
+    except ValidationError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+    self._send_json(HTTPStatus.OK, data)
+
+  def _h_public_routes(self, username: str):
+    udir = self._public_user_dir(username)
+    if udir is None:
+      return self._error(HTTPStatus.NOT_FOUND, "not found")
+    try:
+      data = load_json_file(udir / "routes.json", expected_type=dict, required=False, label="routes.json")
+    except ValidationError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+    self._send_json(HTTPStatus.OK, data or {"regions": []})
+
+  def _h_public_metadata(self, username: str):
+    udir = self._public_user_dir(username)
+    if udir is None:
+      return self._error(HTTPStatus.NOT_FOUND, "not found")
+    try:
+      data = load_json_file(udir / "metadata.json", expected_type=dict, required=False, label="metadata.json")
+    except ValidationError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+    self._send_json(HTTPStatus.OK, data or {})
+
+  def _h_public_gpx(self, username: str, region: str, fname: str):
+    udir = self._public_user_dir(username)
+    if udir is None:
+      return self._error(HTTPStatus.NOT_FOUND, "not found")
+    self._serve_gpx(udir, region, fname)
+
+  def _serve_gpx(self, udir: Path, region: str, fname: str):
+    try:
+      region_safe = safe_path_component(region)
+      file_safe = safe_path_component(fname)
+    except ValidationError:
+      return self._error(HTTPStatus.BAD_REQUEST, "invalid path")
+    if not file_safe.lower().endswith(".gpx"):
+      return self._error(HTTPStatus.BAD_REQUEST, "expected .gpx")
+    try:
+      target = resolve_under(udir / "gpx", region_safe, file_safe)
+    except ValidationError:
+      return self._error(HTTPStatus.BAD_REQUEST, "invalid path")
+    if not target.exists() or not target.is_file():
+      return self._error(HTTPStatus.NOT_FOUND, "not found")
+    try:
+      data = target.read_bytes()
+    except OSError:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, "read failed")
+    self.send_response(HTTPStatus.OK)
+    self.send_header("Content-Type", "application/gpx+xml")
+    self.send_header("Content-Length", str(len(data)))
+    self.send_header("Cache-Control", "no-cache")
+    self.end_headers()
+    self.wfile.write(data)
 
 
 class BodyTooLarge(Exception):
@@ -1002,7 +1323,7 @@ def _valid_password(pw: str) -> bool:
   return PASSWORD_MIN <= len(pw) <= PASSWORD_MAX
 
 
-# ---------- phase 2: file + write helpers ----------
+# ---------- file + write helpers ----------
 
 class ValidationError(Exception):
   pass
@@ -1213,6 +1534,13 @@ def main() -> int:
   db_init(conn)
   db_migrate(conn)
   seed_initial_user(conn, cfg)
+  migrate_legacy_data(conn, cfg)
+  # Ensure every existing user has a data dir (no-op for already-set-up ones).
+  for r in conn.execute("SELECT username FROM users").fetchall():
+    try:
+      ensure_user_dir(cfg, r["username"])
+    except ValidationError:
+      pass
   # Boot conn is done with; handlers open per-request connections.
   conn.close()
 

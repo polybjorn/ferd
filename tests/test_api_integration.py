@@ -142,10 +142,19 @@ def admin_client() -> Client:
   return c
 
 
+def admin_dir() -> Path:
+  """Per-user data dir for the seeded admin."""
+  return _server.data_dir / "users" / SEED_USER  # type: ignore[union-attr]
+
+
 def fresh_places(items: list | None = None) -> None:
-  """Replace places.json on disk so tests can assume a known state."""
-  path = _server.data_dir / "places.json"  # type: ignore[union-attr]
-  path.write_text(json.dumps(items or [], ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+  """Replace the admin's places.json on disk so tests can assume a known state."""
+  d = admin_dir()
+  d.mkdir(parents=True, exist_ok=True)
+  (d / "places.json").write_text(
+    json.dumps(items or [], ensure_ascii=False, indent=2) + "\n",
+    encoding="utf-8",
+  )
 
 
 # ---------- tests ----------
@@ -245,7 +254,7 @@ class TestPlacesCRUD(unittest.TestCase):
     self.assertEqual(status, 201)
     self.assertTrue(body["ok"])
     self.assertEqual(body["total_places"], 1)
-    on_disk = json.loads((_server.data_dir / "places.json").read_text())  # type: ignore[union-attr]
+    on_disk = json.loads((admin_dir() / "places.json").read_text())
     self.assertEqual(len(on_disk), 1)
     self.assertEqual(on_disk[0]["name"], "P1")
 
@@ -262,7 +271,7 @@ class TestPlacesCRUD(unittest.TestCase):
                                {"original_name": "Old",
                                 "place": {"name": "New", "lat": 0, "lon": 0, "category": "cat"}})
     self.assertEqual(status, 200)
-    on_disk = json.loads((_server.data_dir / "places.json").read_text())  # type: ignore[union-attr]
+    on_disk = json.loads((admin_dir() / "places.json").read_text())
     self.assertEqual(on_disk[0]["name"], "New")
 
   def test_update_collision(self):
@@ -340,7 +349,7 @@ class TestGpx(unittest.TestCase):
     status, _ = c.request("POST", "/api/gpx?region=TestRegion&name=trail-a",
                           raw_body=GPX_BODY, content_type="application/gpx+xml")
     self.assertEqual(status, 201)
-    on_disk = (_server.data_dir / "gpx" / "TestRegion" / "trail-a.gpx").read_bytes()  # type: ignore[union-attr]
+    on_disk = (admin_dir() / "gpx" / "TestRegion" / "trail-a.gpx").read_bytes()
     self.assertNotIn(b"<time>", on_disk)
     self.assertNotIn(b"creator=", on_disk)
     self.assertIn(b"<trk", on_disk)
@@ -361,6 +370,79 @@ class TestGpx(unittest.TestCase):
     status, _ = c.request("DELETE", "/api/gpx",
                           {"region": "Nowhere", "name": "ghost"})
     self.assertEqual(status, 404)
+
+
+class TestPerUserIsolation(unittest.TestCase):
+  """Two authenticated users get separate folders + separate data."""
+
+  def setUp(self):
+    self.c = admin_client()
+    # Open registration via the operator endpoint, register a second user, close it back up.
+    self.c.request("POST", "/api/settings/registration", {"mode": "open"})
+    self.peer = Client(_server.base_url)  # type: ignore[union-attr]
+    status, _ = self.peer.request("POST", "/api/register",
+                                  {"username": "peer", "password": "peer-password-1234"})
+    assert status in (200, 201, 409), f"unexpected register status: {status}"
+    if status == 409:
+      # Pre-existing peer from a prior test; just log in.
+      assert self.peer.login("peer", "peer-password-1234")[0] == 200
+    self.c.request("POST", "/api/settings/registration", {"mode": "closed"})
+
+  def test_places_isolated(self):
+    fresh_places([])
+    # Admin adds a place; peer should not see it.
+    self.c.request("POST", "/api/places",
+                   {"name": "AdminOnly", "lat": 1, "lon": 2, "category": "x"})
+    status, admin_places = self.c.request("GET", "/api/places")
+    self.assertEqual(status, 200)
+    self.assertTrue(any(p["name"] == "AdminOnly" for p in admin_places))
+    status, peer_places = self.peer.request("GET", "/api/places")
+    self.assertEqual(status, 200)
+    self.assertFalse(any(p.get("name") == "AdminOnly" for p in peer_places))
+
+  def test_public_blocked_when_unpublished(self):
+    # No publish => admin's data is not reachable through /api/u/<user>/.
+    self.c.request("POST", "/api/me/publish", {"published": False})
+    c_anon = Client(_server.base_url)  # type: ignore[union-attr]
+    status, _ = c_anon.request("GET", "/api/u/admin/places")
+    self.assertEqual(status, 404)
+
+  def test_public_allowed_when_published(self):
+    fresh_places([{"name": "Pub", "lat": 0, "lon": 0, "category": "x"}])
+    self.c.request("POST", "/api/me/publish", {"published": True})
+    try:
+      c_anon = Client(_server.base_url)  # type: ignore[union-attr]
+      status, body = c_anon.request("GET", "/api/u/admin/places")
+      self.assertEqual(status, 200)
+      self.assertTrue(any(p["name"] == "Pub" for p in body))
+    finally:
+      self.c.request("POST", "/api/me/publish", {"published": False})
+
+
+class TestPrefs(unittest.TestCase):
+  def test_prefs_roundtrip(self):
+    c = admin_client()
+    payload = {"theme": "nord", "marker_size": "large"}
+    status, _ = c.request("PUT", "/api/me/prefs", payload)
+    self.assertEqual(status, 200)
+    status, body = c.request("GET", "/api/me/prefs")
+    self.assertEqual(status, 200)
+    self.assertEqual(body, payload)
+
+
+class TestExport(unittest.TestCase):
+  def test_export_returns_zip(self):
+    c = admin_client()
+    fresh_places([{"name": "Inside", "lat": 0, "lon": 0, "category": "x"}])
+    url = _server.base_url + "/api/me/export"  # type: ignore[union-attr]
+    req = urllib.request.Request(url)
+    # Reuse the client's cookie jar so we're authenticated.
+    with c.opener.open(req) as r:
+      self.assertEqual(r.status, 200)
+      self.assertEqual(r.headers.get("Content-Type"), "application/zip")
+      payload = r.read()
+    # ZIP magic bytes.
+    self.assertEqual(payload[:2], b"PK")
 
 
 if __name__ == "__main__":
