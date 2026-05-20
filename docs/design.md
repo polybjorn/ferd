@@ -2,6 +2,21 @@
 
 Atlas is a single-file frontend (`index.html`) with no framework, plus a small Python API. The patterns below are repo-wide; when adding UI, reuse existing selectors and behaviors rather than inventing new ones.
 
+## Platform targets
+
+These are floors, not stretch goals. Drift from them needs a real reason.
+
+- **Browsers:** Baseline Widely Available. If a feature isn't there yet (caniuse.com / web-platform-dx baseline), don't use it.
+- **Viewport:** desktop primary (>=1024 px), mobile portrait must work down to 320 px, tablet handled by responsive scaling. No separate mobile build, no PWA, no native wrapper.
+- **JavaScript:** track baseline. `fetch`, `async/await`, optional chaining (`?.`), nullish coalescing (`??`), `structuredClone`, dynamic `import()`, modern array methods. No transpilation step; if a feature isn't in baseline, it isn't usable yet.
+- **CSS:** baseline only. `:has()`, `:is()`, `:where()`, grid, flex, custom properties, logical properties, `aspect-ratio`, `prefers-color-scheme`, `prefers-reduced-motion` are in. Container queries, subgrid, `color-mix()`, anchor positioning are still too new - revisit when they reach baseline.
+- **Build pipeline:** none today (single-file frontend, vendor scripts via pinned CDN URLs). A future bundler/transpiler is allowed if it earns its keep, but the default answer is no.
+- **Accessibility:** required, not optional. Semantic HTML, labels on every form input, Esc closes modals, `prefers-reduced-motion` respected, WCAG AA contrast (>=4.5:1 on body text) on every theme.
+- **Network:** online-only. If the API is unreachable, surface a visible error - no service worker, no offline queueing, no silent retries.
+- **Performance budget:** soft target of <1s first paint on a 5-year-old laptop and <500 KB of initial JS+CSS+HTML excluding map tiles and GPX. Crossing the threshold isn't a block, it's a trigger for a conversation.
+- **i18n:** UI text is English today. The language `<select>` infrastructure is kept active so localization can be added later without a rewrite. Data (place names, trail names, GPX content) must round-trip arbitrary Unicode unchanged regardless.
+- **Third-party services at runtime:** none, with one contractual exception for map tile providers (OpenTopoMap, CyclOSM, Satellite, OSM, etc. - the app is a map). No analytics, no third-party fonts, no external APIs called from the page. Self-hosted by default.
+
 ## Modal anatomy
 
 - Title row: `<h2>Title<button class="modal-close">&times;</button></h2>`. The X in the corner (and Esc) closes the modal. Modals do not have a second "Close" button at the bottom.
@@ -69,3 +84,9 @@ Atlas supports multiple color themes x light/dark modes (see [themes.md](themes.
 ## Where to extend this guide
 
 When a new repeating pattern emerges - a new modal section type, a new feedback style, a new button variant - capture it here in the same shape (selector, when to use, example). The goal is to keep `index.html` consistent over time without re-deriving conventions every session.
+
+## Future upgrades
+
+Items intentionally left out of current scope, parked here so they're not re-relitigated from scratch:
+
+- **Print / PDF.** No print stylesheet today. A future minimal print stylesheet could produce something readable for `Ctrl-P` of a trail detail page or a places list. Low priority - map-heavy content doesn't print well, and the screen view is the primary interface.
