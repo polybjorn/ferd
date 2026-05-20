@@ -1,34 +1,67 @@
 # Atlas
 
-A self-hosted Leaflet map for travel places and GPX trails. Single-file static frontend, optional Python API for in-browser editing. No build step.
+Your own map of where you've been, where you want to go, and the journeys between them.
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue)
+![Status: 1.0](https://img.shields.io/badge/status-1.0-brightgreen)
 
 ![Unified map view](docs/screenshots/map.png)
 
-**Docs:** [Install](docs/install.md) · [Docker](docs/deploy-docker.md) · [Configuration](docs/configure.md) · [Themes](docs/themes.md) · [Architecture](docs/architecture.md)
+## Quick start
+
+```sh
+git clone https://github.com/polybjorn/atlas.git
+cd atlas
+cp site-config.example.json site-config.json
+python3 tools/api.py
+```
+
+Open http://localhost:8090 and sign in with the seeded admin account (see [docs/install.md](docs/install.md) for default credentials and first-run setup).
+
+**Requirements:** Python 3.9+, a modern browser. No build step, no Node, no database server (SQLite file).
 
 ## Features
 
+**Map and data**
 - One world map with clustered place pins and GPX trail polylines.
 - Filter panel: per-category place toggles, visited / want chips, completed / planned trail chips.
-- Browse views: places grouped by category or country, trails grouped by region.
+- Browse views: places by category or country, trails by region.
 - Trail detail view with elevation profile and route stats.
+
+**Editing and multi-user**
 - Sign in to add, edit, or delete places and trails from the browser. Server strips PII from uploaded GPX (timestamps, author, creator).
-- Per-user maps. Each user has their own isolated places and trails; the operator's only extra power is toggling site-wide registration. Each user can optionally publish a read-only public copy at `/u/<username>/` and download a zip export of their own data.
-- Seven themes (Catppuccin, Dracula, Gruvbox, Nord, Rosé Pine, Solarized, Tokyo Night), each with system / light / dark mode.
-- Per-deployment toggle to run as places-only or trails-only; per-browser settings for default tile layer, distance units (metric / imperial), marker clustering, remembering the last map view, pin style (ring / pin / dot / flag), marker size, trail line thickness, and map tile filter.
-- Operator can edit category display labels from the Settings UI.
+- Per-user data isolation. Each account has its own places and trails; the operator's only extra power is toggling site-wide registration.
+- Each user can optionally publish a read-only public copy of their map.
+- Zip import/export of your own data.
+
+**Customization**
+- Multiple built-in themes, each with light and dark modes.
+- Per-deployment toggle to run as places-only or trails-only.
+- Per-browser settings for tile layer, distance units, marker clustering, pin style, marker size, trail thickness, and tile filter.
 
 ## Install
 
-Three tiers, pick the one that matches your use case:
+Three paths, pick the one that fits:
 
-- **Static only** - drop the files on any static host, no Python, no editing in-browser.
-- **Local / private network** - run `python3 tools/api.py` directly; good for LAN or a VPN/mesh overlay (e.g. WireGuard, Tailscale, ZeroTier).
-- **Public internet** - reverse proxy (Caddy or nginx), socket-activated systemd, TLS. Guided installer in `deploy/install.sh` or step-by-step manual instructions.
+- **Static only.** Drop the files on any static host. No Python, no in-browser editing.
+- **Local / private network.** Run `python3 tools/api.py` directly. Good for LAN or a mesh overlay (WireGuard, Tailscale, ZeroTier).
+- **Public internet.** Reverse proxy in front, socket-activated systemd, TLS. Guided installer at `deploy/install.sh` or step-by-step manual instructions.
 
-See [docs/install.md](docs/install.md) for the full walk-through, or [docs/deploy-docker.md](docs/deploy-docker.md) for the Docker Compose path.
+Full walk-through in [docs/install.md](docs/install.md). Docker Compose path in [docs/deploy-docker.md](docs/deploy-docker.md).
 
-## TODO
+## Roadmap
 
-- UI to manage trail regions (rename, move trails between regions, delete), like the existing category-label editor.
-- Stable category colors. Pin/text colors are currently assigned by sorted category position, so adding a new category alphabetically before existing ones reshuffles colors for everything after it. Persist assignments in `site-config.json` to fix.
+- UI to manage trail regions (rename, move trails between regions, delete), mirroring the existing category-label editor.
+- Stable category colors across config edits. Colors can currently shift when categories are added or reordered.
+
+## Documentation
+
+| Guide | Covers |
+| --- | --- |
+| [Install](docs/install.md) | How to set up Atlas on your own server. |
+| [Docker](docs/deploy-docker.md) | How to run Atlas in a container. |
+| [Configuration](docs/configure.md) | Settings and feature flags you can tweak. |
+| [Themes](docs/themes.md) | Look and feel options, and how to add your own. |
+| [Architecture](docs/architecture.md) | How the code is organized and where data lives. |
+
