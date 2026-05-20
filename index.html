@@ -1863,6 +1863,56 @@
       return L.divIcon({ className: '', html: svg, iconSize: iconSize, iconAnchor: iconAnchor });
     }
 
+    function createPlaceMarker(p) {
+      const color = state.categoryColors[p.category];
+      const colorLight = state.categoryColorsLight[p.category];
+      const catStyle = '--c:' + color + ';--cl:' + colorLight;
+      const marker = L.marker([p.lat, p.lon], { icon: createMarkerIcon(color, p.visited) });
+      let popupHtml = '<a href="#" class="popup-share-corner popup-share" data-type="place" data-id="' + escapeHtml(p._slug || p.name) + '">Copy link</a>';
+      popupHtml += '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local cat-text" style="' + catStyle + '">&middot; ' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
+      if (p.note) popupHtml += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
+      if (p.sources && p.sources.length) popupHtml += '<div class="popup-sources">' + renderSources(p.sources) + '</div>';
+      popupHtml += '<div class="popup-meta">' +
+        '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(p.category) + '</span>' +
+        '<span style="color:' + (p.visited ? 'var(--green)' : 'var(--red)') + '">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
+        (state.auth.authenticated ? '<a href="#" class="popup-edit" data-place="' + escapeHtml(p.name) + '">Edit</a>' : '') +
+      '</div>';
+      marker.bindPopup(popupHtml, { closeButton: false });
+      marker.on('click', (function(slug) {
+        return function() { history.replaceState(null, '', focusHash('place', slug)); };
+      })(p._slug || p.name));
+      marker.bindTooltip(escapeHtml(p.name), { direction: 'top', offset: [0, -6] });
+      marker._placeData = p;
+      return marker;
+    }
+
+    // Incrementally reconcile place markers with state.places after a CRUD write.
+    // Falls back to a full marker rebuild if the category palette shifted (a new
+    // category can re-index the color assignments). Skips when no map is mounted.
+    function syncPlacesOnMap(prevColors) {
+      if (!state._placeClusterGroup || !state._placeMarkers) return;
+      const newColors = state.categoryColors || {};
+      const prev = prevColors || {};
+      let paletteChanged = false;
+      const keys = new Set([...Object.keys(prev), ...Object.keys(newColors)]);
+      for (const k of keys) {
+        if (prev[k] !== newColors[k]) { paletteChanged = true; break; }
+      }
+      const oldByName = new Map(state._placeMarkers.map(m => [m._placeData.name, m]));
+      const next = [];
+      for (const p of (state.places || [])) {
+        const existing = !paletteChanged ? oldByName.get(p.name) : null;
+        if (existing && JSON.stringify(existing._placeData) === JSON.stringify(p)) {
+          next.push(existing);
+        } else {
+          next.push(createPlaceMarker(p));
+        }
+      }
+      state._placeMarkers = next;
+      refreshFilterPanel();
+      applyMapFilters();
+    }
+
     function addStartEndMarkers(map, startLatLng, endLatLng) {
       const startIcon = L.divIcon({ className: 'marker-start', html: '<svg viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="6" fill="#00e05a" stroke="#fff" stroke-width="2"/></svg>', iconSize: [16, 16], iconAnchor: [8, 8] });
       const endIcon = L.divIcon({ className: 'marker-end', html: '<svg viewBox="0 0 32 32" width="32" height="32"><rect x="4" y="2" width="2" height="28" rx="1" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><path d="M6 3h12c1 0 1.5.5 1 1.5L17 8l2 3.5c.5 1 0 1.5-1 1.5H6V3z" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><rect x="7" y="4" width="4.5" height="4" fill="#2d333b"/><rect x="11.5" y="4" width="4.5" height="4" fill="#fff"/><rect x="7" y="8" width="4.5" height="4" fill="#fff"/><rect x="11.5" y="8" width="4.5" height="4" fill="#2d333b"/></svg>', iconSize: [32, 32], iconAnchor: [5, 30] });
@@ -1929,25 +1979,7 @@
 
       if (state.places && placesEnabled()) {
         for (const p of state.places) {
-          const color = state.categoryColors[p.category];
-          const colorLight = state.categoryColorsLight[p.category];
-          const catStyle = '--c:' + color + ';--cl:' + colorLight;
-          const marker = L.marker([p.lat, p.lon], { icon: createMarkerIcon(color, p.visited) });
-          let popupHtml = '<a href="#" class="popup-share-corner popup-share" data-type="place" data-id="' + escapeHtml(p._slug || p.name) + '">Copy link</a>';
-          popupHtml += '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local cat-text" style="' + catStyle + '">&middot; ' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
-          if (p.note) popupHtml += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
-          if (p.sources && p.sources.length) popupHtml += '<div class="popup-sources">' + renderSources(p.sources) + '</div>';
-          popupHtml += '<div class="popup-meta">' +
-            '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(p.category) + '</span>' +
-            '<span style="color:' + (p.visited ? 'var(--green)' : 'var(--red)') + '">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
-            (state.auth.authenticated ? '<a href="#" class="popup-edit" data-place="' + escapeHtml(p.name) + '">Edit</a>' : '') +
-          '</div>';
-          marker.bindPopup(popupHtml, { closeButton: false });
-          marker.on('click', (function(slug) {
-            return function() { history.replaceState(null, '', focusHash('place', slug)); };
-          })(p._slug || p.name));
-          marker.bindTooltip(escapeHtml(p.name), { direction: 'top', offset: [0, -6] });
-          marker._placeData = p;
+          const marker = createPlaceMarker(p);
           placeMarkers.push(marker);
           placeBounds.extend([p.lat, p.lon]);
           if (focus && focus.type === 'place' && focus.name === p.name) focusPlace = marker;
@@ -2247,9 +2279,10 @@
           document.getElementById('e-delete').addEventListener('click', function() {
             if (!confirm('Delete place "' + place.name + '"?')) return;
             this.disabled = true;
+            const prevColors = Object.assign({}, state.categoryColors);
             api('DELETE', '/places', { name: place.name })
               .then(() => refreshPlaces())
-              .then(() => { closeModal(); router(); })
+              .then(() => { closeModal(); syncPlacesOnMap(prevColors); })
               .catch(err => { this.disabled = false; showModalError(err.message); });
           });
           document.getElementById('edit-place-form').addEventListener('submit', function(e) {
@@ -2258,9 +2291,10 @@
             if (r.error) { showModalError(r.error); return; }
             const submit = document.getElementById('e-submit');
             submit.disabled = true;
+            const prevColors = Object.assign({}, state.categoryColors);
             api('PUT', '/places', { original_name: place.name, place: r.payload })
               .then(() => refreshPlaces())
-              .then(() => { closeModal(); router(); })
+              .then(() => { closeModal(); syncPlacesOnMap(prevColors); })
               .catch(err => { submit.disabled = false; showModalError(err.message); });
           });
         }
@@ -3522,9 +3556,10 @@
           if (r.error) { showModalError(r.error); return; }
           const submitBtn = document.getElementById('place-submit');
           submitBtn.disabled = true;
+          const prevColors = Object.assign({}, state.categoryColors);
           api('POST', '/places', r.payload)
             .then(() => refreshPlaces())
-            .then(() => { closeModal(); router(); })
+            .then(() => { closeModal(); syncPlacesOnMap(prevColors); })
             .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
         });
       }
