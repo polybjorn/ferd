@@ -13,10 +13,10 @@ A self-hosted Leaflet map for travel places and GPX trails. Single-file static f
 - Browse views: places grouped by category or country, trails grouped by region.
 - Trail detail view with elevation profile and route stats.
 - Sign in to add, edit, or delete places and trails from the browser. Server strips PII from uploaded GPX (timestamps, author, creator).
+- Per-user maps. Each user has their own isolated places and trails; the operator's only extra power is toggling site-wide registration. Each user can optionally publish a read-only public copy at `/u/<username>/` and download a zip export of their own data.
 - Seven themes (Catppuccin, Dracula, Gruvbox, Nord, Rosé Pine, Solarized, Tokyo Night), each with system / light / dark mode.
 - Per-deployment toggle to run as places-only or trails-only; per-browser settings for default tile layer, distance units (metric / imperial), marker clustering, remembering the last map view, pin style (ring / pin / dot / flag), marker size, trail line thickness, and map tile filter.
 - Operator can edit category display labels from the Settings UI.
-- Works read-only without the API; the static site loads `places.json` and `routes.json` directly.
 
 ## Install
 
@@ -31,6 +31,5 @@ See [docs/install.md](docs/install.md) for the full walk-through.
 ## TODO
 
 - UI to manage trail regions (rename, move trails between regions, delete), like the existing category-label editor.
-- Per-user maps. Each user has their own places + trails, fully isolated from other users; the operator's job narrows to user management and instance-wide settings. Replaces the current single-shared-map model. Includes an export feature so users can take their data with them, and an optional per-user "publish my map" toggle that exposes a read-only public URL (no login required to view a published map). Until this lands, writes are operator-only.
 - Stable category colors. Pin/text colors are currently assigned by sorted category position, so adding a new category alphabetically before existing ones reshuffles colors for everything after it. Persist assignments in `site-config.json` to fix.
-- Avoid full map re-render on place CRUD. Add/edit/delete currently calls `router()` after a successful write, which tears down and rebuilds the Leaflet layers. Add/remove only the affected marker (and refresh cluster + filter panel) instead.
+- Per-route metadata editor in the UI. `metadata.json` (per-trail source URL and other overrides) is still hand-edited on disk; once maps went per-user there's no path for non-operator users to set it.

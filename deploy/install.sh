@@ -81,8 +81,8 @@ fi
 echo "[2/4] will copy application files to $PREFIX"
 if [ -e "$PREFIX" ]; then
     echo "  $PREFIX exists. Files with the same name will be OVERWRITTEN."
-    echo "  Files already present and not in the source tree are kept (places.json,"
-    echo "  gpx/, routes.json, tools/atlas.db, tools/config.json, site-config.json)."
+    echo "  Files already present and not in the source tree are kept (users/,"
+    echo "  tools/atlas.db, tools/config.json, site-config.json)."
 fi
 if confirm "  proceed?"; then
     install -d -m 0755 -o "$SVC_USER" -g "$SVC_USER" "$PREFIX"
@@ -157,8 +157,10 @@ echo "  1. Edit $PREFIX/tools/config.json (paths, secure_cookies, initial_user).
 echo "  2. Pick a reverse proxy:"
 echo "       Caddy:  cp $PREFIX/deploy/Caddyfile.example /etc/caddy/Caddyfile  (then edit + reload)"
 echo "       nginx:  see $PREFIX/deploy/nginx.example.conf"
-echo "  3. Drop your data: $PREFIX/places.json, $PREFIX/gpx/*.gpx, then run $PREFIX/gpx-manifest.sh."
-echo "  4. Open the site and register the first account."
+echo "  3. Open the site and register the first account. They become the operator."
+echo "     Each user manages their own places/trails through the in-browser UI;"
+echo "     any pre-existing $PREFIX/places.json or $PREFIX/gpx/ is auto-migrated"
+echo "     into that operator's $PREFIX/users/<operator>/ folder on first start."
 echo
 echo "Logs:    journalctl -u atlas-api.service -f"
 echo "Uninstall: $PREFIX/deploy/uninstall.sh"

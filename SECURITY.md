@@ -17,8 +17,8 @@ Three ways to close the window:
 - Username/password, hashed with PBKDF2-SHA256 at 600k iterations (OWASP 2024+ guidance for PBKDF2-SHA256), 16-byte salt, 32-byte derived key.
 - Usernames are case-insensitive via `COLLATE NOCASE`. Valid characters: alphanumerics, hyphens, underscores. Max 64 chars.
 - Passwords must be 12 to 256 characters. The upper bound prevents PBKDF2 DoS via huge inputs.
-- The first registered user is marked operator. Operator-only endpoints today: re-opening registration, editing `site-config.json` category labels. The model is single-user-friendly; multi-user works mechanically.
-- Registration auto-closes after the first user. The operator can re-open it from Settings.
+- The first registered user is marked operator. Operator-only endpoints today: re-opening registration, editing `site-config.json` category labels. Every other account has the same powers within its own `users/<username>/` folder; the operator does not have an admin view of other users' data.
+- Registration auto-closes after the first user. The operator can re-open it from Settings to invite someone.
 
 ## Sessions
 
@@ -35,17 +35,17 @@ Three ways to close the window:
 
 ## Write endpoints
 
-- All writes require an authenticated session **and** the operator role. Non-operator accounts can sign in but cannot create, edit, or delete places or GPX trails. This is an interim guarantee until the per-user-maps model lands (see README TODO); at that point writes will be scoped to the signed-in user's own map instead of operator-gated.
+- All writes require an authenticated session. Writes land in the calling user's `users/<username>/` folder; nothing in the API lets one user write to another user's data. Read endpoints follow the same scope, plus an explicit public read path (`/api/u/<username>/...`) that returns 404 unless that user's `published` flag is on.
 - Place writes go through schema validation: required/optional field names checked, lat in `[-90, 90]`, lon in `[-180, 180]`, string length caps. Unknown fields rejected with 400.
 - `sources` entries are restricted to `http://` or `https://` URLs. Other schemes (`javascript:`, `data:`, `mailto:`, ...) are rejected at the API. The frontend re-checks the protocol when rendering source links and falls back to inert text if it isn't http(s), so legacy data from before this check can't be turned into a clickable script URL.
 - Writes are atomic: tmp file in the target directory, fsync, `os.replace`, fsync directory. Symlinks are resolved so writes land on the real file and the link stays intact.
-- A file lock (`fcntl.flock`) serializes concurrent writes to `places.json` and the `gpx/` tree.
+- A file lock (`fcntl.flock`) serializes concurrent writes to `places.json` and the `gpx/` tree within each user's folder.
 - GPX uploads are XML-parsed before saving; non-GPX content is rejected. PII is stripped server-side: `<time>` and `<author>` elements removed, `creator=` attribute on `<gpx>` dropped. Never trusts client-side stripping.
-- GPX region and filename are validated against a strict character set, normalized, and confirmed to resolve inside the `gpx/` root.
+- GPX region and filename are validated against a strict character set, normalized, and confirmed to resolve inside the user's `gpx/` root. The public read path applies the same validation to the username and path components before resolving.
 
 ## What's served by the dev `static_dir`
 
-The integrated dev mode serves files from `static_dir`. The handler refuses any path containing `..`, any URL-decoded NUL byte, and any path whose first segment is `tools/`, `deploy/`, or `.git/`. Symlinks within `static_dir` are allowed and intentionally not resolved, so the `gpx/` and `places.json` symlinks into your data store work.
+The integrated dev mode serves files from `static_dir`. The handler refuses any path containing `..`, any URL-decoded NUL byte, and any path whose first segment is `tools/`, `deploy/`, or `.git/`. Paths under `/u/<username>/` are rewritten to `index.html` so the SPA can pick up the per-user public view; the actual per-user content is reachable only through the API. Symlinks within `static_dir` are allowed and intentionally not resolved, so symlinks pointing into your data store work.
 
 In production, nginx serves the static content directly. The example config in `deploy/nginx.example.conf` has matching `deny` rules for the sensitive paths.
 
@@ -64,13 +64,12 @@ Backup includes this file. The whole users + sessions state lives in three files
 
 ## Backups
 
-Three paths matter:
+Two paths matter:
 
-- `places.json` (or wherever its symlink points)
-- `gpx/` tree (or wherever its symlink points)
-- `tools/atlas.db*` (users + sessions)
+- `users/` (everyone's places, trails, and prefs; symlinks within are followed at write time)
+- `tools/atlas.db*` (users, sessions, publish flags, site-wide settings)
 
-Lose the first two and you lose your data. Lose the third and you have to register a new account but your data survives.
+Lose the first and you lose data. Lose the second and you have to register a new account but your data survives. Each user can also download a per-user zip export from Settings.
 
 ---
 

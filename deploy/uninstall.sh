@@ -1,8 +1,8 @@
 #!/bin/sh
 # Atlas uninstaller. Stops the service, removes the systemd units, and
 # optionally removes the system user and install prefix. Data files
-# (places.json, gpx/, atlas.db, config.json) are NEVER auto-removed; the
-# script tells you what to delete by hand if you want a full wipe.
+# (users/, atlas.db, config.json) are NEVER auto-removed; the script tells
+# you what to delete by hand if you want a full wipe.
 #
 # Usage:
 #   sudo ./uninstall.sh                # interactive
@@ -68,7 +68,7 @@ fi
 
 echo "[4/4] $PREFIX"
 if [ "$PURGE" = "yes" ]; then
-    echo "  --purge: will recursively delete $PREFIX (INCLUDING places.json, gpx/, atlas.db)"
+    echo "  --purge: will recursively delete $PREFIX (INCLUDING users/, atlas.db)"
     if confirm "  REALLY proceed? this is destructive"; then
         rm -rf "$PREFIX"
     fi
