@@ -19,6 +19,7 @@ import json
 import os
 import re
 import secrets
+import shutil
 import socket
 import sqlite3
 import subprocess
@@ -48,6 +49,9 @@ RATE_LIMIT_MAX_FAILS = 10
 
 # Phase 2 (writes)
 GPX_MAX_BYTES = 10 * 1024 * 1024  # 10 MiB cap for GPX uploads
+IMPORT_MAX_BYTES = 50 * 1024 * 1024  # 50 MiB cap for zip imports
+IMPORT_MAX_UNCOMPRESSED = 200 * 1024 * 1024  # 200 MiB uncompressed (zip-bomb guard)
+IMPORT_TOP_FILES = ("places.json", "routes.json", "metadata.json", "prefs.json")
 GPX_NS = "http://www.topografix.com/GPX/1/1"
 # Allow any non-control, non-separator character. The real security boundary
 # is resolve_under() (the resolved path must stay inside the base). The dot/
@@ -662,8 +666,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_gpx_upload()
     if path == "/api/me/publish":
       return self._h_publish_post()
+    if path == "/api/me/import":
+      return self._h_import_post()
     if path == "/api/sessions/revoke":
       return self._h_sessions_revoke()
+    if path == "/api/sessions/revoke-others":
+      return self._h_sessions_revoke_others()
     self._error(HTTPStatus.NOT_FOUND, "not found")
 
   def do_PUT(self):
@@ -831,6 +839,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
         (user["id"], target, current_token),
       )
     self._send_json(HTTPStatus.OK, {"ok": True})
+
+  def _h_sessions_revoke_others(self):
+    user = self._current_user()
+    if not user:
+      return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
+    current_token = self._cookie_token()
+    with self.write_lock:
+      cur = self.conn.execute(
+        "DELETE FROM sessions WHERE user_id=? AND token!=?",
+        (user["id"], current_token),
+      )
+      removed = cur.rowcount
+    self._send_json(HTTPStatus.OK, {"ok": True, "removed": removed})
 
   def _h_settings_registration(self):
     if self._require_operator() is None:
@@ -1286,6 +1307,164 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self.send_header("Cache-Control", "no-store")
     self.end_headers()
     self.wfile.write(payload)
+
+  def _h_import_post(self):
+    user = self._require_user()
+    if user is None:
+      return
+
+    qs = parse_qs(urlparse(self.path).query)
+    mode = (qs.get("mode") or ["replace"])[0]
+    if mode not in ("replace", "merge"):
+      return self._error(HTTPStatus.BAD_REQUEST, "mode must be 'replace' or 'merge'")
+
+    ctype = (self.headers.get("Content-Type") or "").split(";")[0].strip()
+    if ctype not in ("application/zip", "application/octet-stream"):
+      return self._error(HTTPStatus.BAD_REQUEST, "expected application/zip body")
+
+    try:
+      raw = self._read_raw(IMPORT_MAX_BYTES)
+    except BodyTooLarge as e:
+      return self._error(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, f"body too large ({e.length} > {e.cap})")
+    except ValueError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, str(e))
+    if not raw:
+      return self._error(HTTPStatus.BAD_REQUEST, "empty body")
+
+    try:
+      zf = zipfile.ZipFile(io.BytesIO(raw))
+    except zipfile.BadZipFile as e:
+      return self._error(HTTPStatus.BAD_REQUEST, f"invalid zip: {e}")
+
+    staged: dict[str, bytes] = {}
+    total_uncompressed = 0
+    for info in zf.infolist():
+      if info.is_dir():
+        continue
+      name = info.filename
+      if name.startswith("/") or "\\" in name or ".." in name.split("/"):
+        return self._error(HTTPStatus.BAD_REQUEST, f"invalid entry: {name}")
+      parts = name.split("/")
+      if name in IMPORT_TOP_FILES:
+        pass
+      elif len(parts) == 3 and parts[0] == "gpx" and parts[2].endswith(".gpx"):
+        try:
+          safe_path_component(parts[1])
+          safe_path_component(parts[2][:-4])
+        except ValidationError as e:
+          return self._error(HTTPStatus.BAD_REQUEST, f"invalid gpx path '{name}': {e}")
+      else:
+        return self._error(HTTPStatus.BAD_REQUEST, f"unexpected file in zip: {name}")
+      total_uncompressed += info.file_size
+      if total_uncompressed > IMPORT_MAX_UNCOMPRESSED:
+        return self._error(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "uncompressed size exceeds limit")
+      try:
+        with zf.open(info) as fh:
+          staged[name] = fh.read()
+      except Exception as e:
+        return self._error(HTTPStatus.BAD_REQUEST, f"failed reading {name}: {e}")
+
+    def parse_json(arcname: str, expected_type: type):
+      if arcname not in staged:
+        return None
+      try:
+        data = json.loads(staged[arcname].decode("utf-8"))
+      except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        raise ValidationError(f"{arcname} not valid JSON: {e}")
+      if not isinstance(data, expected_type):
+        kind = "an array" if expected_type is list else "an object"
+        raise ValidationError(f"{arcname} must be {kind}")
+      return data
+
+    try:
+      new_places = parse_json("places.json", list)
+      new_routes = parse_json("routes.json", dict)
+      new_metadata = parse_json("metadata.json", dict)
+      new_prefs = parse_json("prefs.json", dict)
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, str(e))
+
+    if new_places is not None:
+      for i, p in enumerate(new_places):
+        try:
+          validate_place(p)
+        except ValidationError as e:
+          return self._error(HTTPStatus.BAD_REQUEST, f"places.json[{i}]: {e}")
+
+    cleaned_gpx: dict[str, bytes] = {}
+    for arcname, data in staged.items():
+      if not arcname.startswith("gpx/"):
+        continue
+      try:
+        cleaned_gpx[arcname] = strip_gpx_pii(data)
+      except ValidationError as e:
+        return self._error(HTTPStatus.BAD_REQUEST, f"{arcname}: {e}")
+
+    udir = self._user_dir(user["username"])
+    lock_path = udir / ".atlas-import.lock"
+
+    def do_import():
+      if mode == "replace":
+        for name in IMPORT_TOP_FILES:
+          p = udir / name
+          if p.exists():
+            p.unlink()
+        gpx_root = udir / "gpx"
+        if gpx_root.exists():
+          shutil.rmtree(gpx_root)
+        for arcname in IMPORT_TOP_FILES:
+          if arcname in staged:
+            atomic_write_bytes(udir / arcname, staged[arcname])
+        for arcname, data in cleaned_gpx.items():
+          target = udir / arcname
+          target.parent.mkdir(parents=True, exist_ok=True)
+          atomic_write_bytes(target, data)
+        return {"added_places": len(new_places or [])}
+      # merge
+      added = 0
+      if new_places is not None:
+        places_path = udir / "places.json"
+        existing = load_json_file(places_path, expected_type=list, required=False, label="places.json")
+        existing_names = {p.get("name") for p in existing if isinstance(p, dict)}
+        for p in new_places:
+          if p.get("name") not in existing_names:
+            existing.append(p)
+            existing_names.add(p.get("name"))
+            added += 1
+        write_json_file(places_path, existing)
+      if new_metadata is not None:
+        meta_path = udir / "metadata.json"
+        existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
+        existing.update(new_metadata)
+        write_json_file(meta_path, existing)
+      if new_prefs is not None:
+        prefs_path = udir / "prefs.json"
+        existing = load_json_file(prefs_path, expected_type=dict, required=False, label="prefs.json")
+        existing.update(new_prefs)
+        write_json_file(prefs_path, existing)
+      for arcname, data in cleaned_gpx.items():
+        target = udir / arcname
+        target.parent.mkdir(parents=True, exist_ok=True)
+        atomic_write_bytes(target, data)
+      return {"added_places": added}
+
+    try:
+      result = with_file_lock(lock_path, do_import)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"import failed: {e}")
+
+    manifest = self._regenerate_manifest(udir)
+    self._send_json(HTTPStatus.OK, {
+      "ok": True,
+      "mode": mode,
+      "imported": {
+        "places": result["added_places"],
+        "gpx": len(cleaned_gpx),
+        "metadata": len(new_metadata or {}),
+        "prefs": len(new_prefs or {}),
+      },
+      "manifest": manifest,
+    })
 
   # ---- public read endpoints under /api/u/<username>/ ----
 

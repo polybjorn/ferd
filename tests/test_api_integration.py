@@ -8,6 +8,7 @@ Run with: python3 -m unittest discover -s tests
 
 from __future__ import annotations
 
+import io
 import json
 import socket
 import subprocess
@@ -17,6 +18,7 @@ import time
 import unittest
 import urllib.error
 import urllib.request
+import zipfile
 from http.cookiejar import CookieJar
 from pathlib import Path
 
@@ -518,6 +520,122 @@ class TestExport(unittest.TestCase):
       payload = r.read()
     # ZIP magic bytes.
     self.assertEqual(payload[:2], b"PK")
+
+
+class TestSessionsRevokeOthers(unittest.TestCase):
+  def test_revoke_others_keeps_current(self):
+    c1 = admin_client()
+    c2 = admin_client()
+    status, body = c1.request("GET", "/api/sessions")
+    self.assertEqual(status, 200)
+    self.assertGreaterEqual(len(body["sessions"]), 2)
+    status, body = c1.request("POST", "/api/sessions/revoke-others")
+    self.assertEqual(status, 200)
+    self.assertGreaterEqual(body["removed"], 1)
+    status, body = c1.request("GET", "/api/sessions")
+    self.assertEqual(status, 200)
+    self.assertEqual(len(body["sessions"]), 1)
+    self.assertTrue(body["sessions"][0]["current"])
+    status, _ = c2.request("GET", "/api/state")
+    self.assertEqual(status, 200)
+
+
+class TestImport(unittest.TestCase):
+  def _make_zip(self, files: dict[str, bytes]) -> bytes:
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+      for name, data in files.items():
+        zf.writestr(name, data)
+    return buf.getvalue()
+
+  def _post_zip(self, c: Client, mode: str, payload: bytes):
+    return c.request("POST", f"/api/me/import?mode={mode}",
+                     raw_body=payload, content_type="application/zip")
+
+  def _gpx_bytes(self, name: str) -> bytes:
+    return (
+      f'<?xml version="1.0" encoding="UTF-8"?>'
+      f'<gpx version="1.1" creator="test" xmlns="http://www.topografix.com/GPX/1/1">'
+      f'<trk><name>{name}</name><trkseg>'
+      f'<trkpt lat="0" lon="0"><ele>1</ele></trkpt>'
+      f'<trkpt lat="0.001" lon="0.001"><ele>2</ele></trkpt>'
+      f'</trkseg></trk></gpx>'
+    ).encode("utf-8")
+
+  def setUp(self):
+    self.c = admin_client()
+    fresh_places([])
+
+  def test_replace_mode_overwrites_places(self):
+    fresh_places([{"name": "Existing", "lat": 1, "lon": 2, "category": "old"}])
+    zip_payload = self._make_zip({
+      "places.json": json.dumps([
+        {"name": "Fresh1", "lat": 10, "lon": 20, "category": "new"},
+        {"name": "Fresh2", "lat": 11, "lon": 21, "category": "new"},
+      ]).encode("utf-8"),
+    })
+    status, body = self._post_zip(self.c, "replace", zip_payload)
+    self.assertEqual(status, 200, body)
+    self.assertEqual(body["imported"]["places"], 2)
+    status, listing = self.c.request("GET", "/api/places")
+    self.assertEqual(status, 200)
+    names = sorted(p["name"] for p in listing)
+    self.assertEqual(names, ["Fresh1", "Fresh2"])
+
+  def test_merge_mode_dedupes_by_name(self):
+    fresh_places([{"name": "Keep", "lat": 1, "lon": 2, "category": "old"}])
+    zip_payload = self._make_zip({
+      "places.json": json.dumps([
+        {"name": "Keep", "lat": 50, "lon": 50, "category": "ignored"},
+        {"name": "Add", "lat": 5, "lon": 6, "category": "new"},
+      ]).encode("utf-8"),
+    })
+    status, body = self._post_zip(self.c, "merge", zip_payload)
+    self.assertEqual(status, 200, body)
+    self.assertEqual(body["imported"]["places"], 1)
+    status, listing = self.c.request("GET", "/api/places")
+    self.assertEqual(status, 200)
+    names = sorted(p["name"] for p in listing)
+    self.assertEqual(names, ["Add", "Keep"])
+
+  def test_rejects_path_traversal(self):
+    zip_payload = self._make_zip({"../escape.json": b"{}"})
+    status, body = self._post_zip(self.c, "replace", zip_payload)
+    self.assertEqual(status, 400, body)
+
+  def test_rejects_unexpected_file(self):
+    zip_payload = self._make_zip({"random.bin": b"\x00\x01"})
+    status, body = self._post_zip(self.c, "replace", zip_payload)
+    self.assertEqual(status, 400, body)
+
+  def test_rejects_invalid_place(self):
+    zip_payload = self._make_zip({
+      "places.json": json.dumps([{"name": "BadLat", "lat": 999, "lon": 0, "category": "x"}]).encode("utf-8"),
+    })
+    status, body = self._post_zip(self.c, "replace", zip_payload)
+    self.assertEqual(status, 400, body)
+
+  def test_rejects_bad_mode(self):
+    zip_payload = self._make_zip({"places.json": b"[]"})
+    status, body = self._post_zip(self.c, "wipe", zip_payload)
+    self.assertEqual(status, 400, body)
+
+  def test_anon_blocked(self):
+    anon = Client(_server.base_url)  # type: ignore[union-attr]
+    zip_payload = self._make_zip({"places.json": b"[]"})
+    status, _ = self._post_zip(anon, "replace", zip_payload)
+    self.assertEqual(status, 401)
+
+  def test_gpx_roundtrip(self):
+    arc = "gpx/regionA/trail1.gpx"
+    zip_payload = self._make_zip({
+      "places.json": b"[]",
+      arc: self._gpx_bytes("trail1"),
+    })
+    status, body = self._post_zip(self.c, "replace", zip_payload)
+    self.assertEqual(status, 200, body)
+    self.assertEqual(body["imported"]["gpx"], 1)
+    self.assertTrue((admin_dir() / arc).exists())
 
 
 if __name__ == "__main__":

@@ -1373,7 +1373,8 @@
       padding-top: 0.75rem;
       border-top: 1px solid var(--border);
     }
-    .modal h3.settings-h:first-of-type {
+    .modal h3.settings-h:first-of-type,
+    .modal [data-panel] > h3.settings-h:first-child {
       border-top: none;
       padding-top: 0;
       margin-top: 0;
@@ -1486,10 +1487,23 @@
       border-bottom: 1px solid var(--border);
       margin-bottom: 1rem;
     }
-    .modal-tabs button {
+    .modal-backdrop:has(#settings-tabs) { padding-top: 3rem; padding-bottom: 3rem; }
+    .modal-backdrop:has(#settings-tabs) .modal { max-height: calc(100vh - 6rem); }
+    .modal .modal-desc { font-size: 0.85rem; color: var(--text); margin-top: 0.4rem; }
+    .modal .file-picker { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.5rem; }
+    .modal .file-picker .file-name { font-size: 0.85rem; color: var(--muted); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .modal .file-picker .file-name.has-file { color: var(--text); }
+    .modal input[type="file"].file-input-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+    .modal .backup-sub { font-size: 0.78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .modal .modal-success { font-size: 0.85rem; color: var(--green, #6db26d); margin-top: 0.5rem; }
+    .modal h3.sessions-h { display: flex; align-items: baseline; gap: 0.75rem; }
+    .modal button.sessions-revoke-others:not(h2 .modal-close) { margin-left: auto; font-size: 0.75rem; font-weight: 400; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0; letter-spacing: 0; }
+    .modal button.sessions-revoke-others:not(h2 .modal-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
+    .modal .modal-tabs button:not(h2 .modal-close) {
       background: transparent;
       border: none;
       border-bottom: 2px solid transparent;
+      border-radius: 0;
       color: var(--muted);
       font-family: inherit;
       font-size: 0.75rem;
@@ -1497,8 +1511,8 @@
       cursor: pointer;
       letter-spacing: 0.05em;
     }
-    .modal-tabs button.active { color: var(--text); border-bottom-color: var(--accent); }
-    .modal-tabs button:hover:not(.active) { color: var(--text); }
+    .modal .modal-tabs button:not(h2 .modal-close).active { color: var(--text); border-bottom-color: var(--accent); }
+    .modal .modal-tabs button:not(h2 .modal-close):hover:not(.active) { color: var(--text); }
     .modal label {
       display: block;
       font-size: 0.8rem;
@@ -1594,7 +1608,7 @@
       cursor: pointer;
       letter-spacing: 0.05em;
     }
-    .modal button.primary {
+    .modal button.primary:not(h2 .modal-close) {
       background: var(--accent);
       color: var(--fab-text);
       border-color: var(--accent);
@@ -3584,6 +3598,13 @@
       };
       openModal(
         '<h2>Settings<button class="modal-close">&times;</button></h2>' +
+        '<div class="modal-tabs" id="settings-tabs">' +
+          '<button data-tab="general" class="active">General</button>' +
+          '<button data-tab="appearance">Appearance</button>' +
+          '<button data-tab="account">Account</button>' +
+          (isOp ? '<button data-tab="admin">Admin</button>' : '') +
+        '</div>' +
+        '<div data-panel="general">' +
         ((placesAvailable() || trailsAvailable()) ?
           '<h3 class="settings-h">Visible features</h3>' +
           '<div class="feature-pills">' +
@@ -3616,6 +3637,8 @@
         '<select id="s-language" disabled>' +
           '<option value="en" selected>English</option>' +
         '</select>' +
+        '</div>' +
+        '<div data-panel="appearance" hidden>' +
         '<h3 class="settings-h">Appearance</h3>' +
         '<label for="s-theme">Theme</label>' +
         '<select id="s-theme">' +
@@ -3637,39 +3660,62 @@
         radioGroupHtml('trail-weight', [['thin', 'Thin'], ['default', 'Default'], ['thick', 'Thick']], trailWeight) +
         '<label>Map tile style</label>' +
         radioGroupHtml('tile-filter', [['none', 'None'], ['desaturated', 'Desaturated'], ['muted', 'Muted']], tileFilter) +
+        '</div>' +
+        '<div data-panel="account" hidden>' +
+        '<h3 class="settings-h">Sharing</h3>' +
+        '<div class="checkbox-row"><input type="checkbox" id="s-publish"' + (state.auth.published ? ' checked' : '') + '><label for="s-publish">Make my map publicly readable at <code>/u/' + escapeHtml(state.auth.username || '') + '/</code></label></div>' +
+        '<div class="modal-desc">Anyone with the link can view; no editing. Turn off any time.</div>' +
+        '<h3 class="settings-h">Backup</h3>' +
+        '<div class="backup-sub">Export</div>' +
+        '<div style="display:flex;align-items:center;gap:1rem">' +
+          '<div class="modal-desc" style="flex:1;margin:0">Places, trails, and preferences as a zip.</div>' +
+          '<button type="button" class="primary" id="s-export">Export</button>' +
+        '</div>' +
+        '<div class="modal-error" id="s-export-error"></div>' +
+        '<div class="backup-sub" style="margin-top:1rem">Import</div>' +
+        '<div class="modal-desc">Restore from a previous export.</div>' +
+        '<div style="display:flex;align-items:center;gap:1rem;margin-top:0.4rem">' +
+          '<div class="file-picker" style="flex:1;margin:0">' +
+            '<input type="file" id="s-import-file" accept=".zip,application/zip" class="file-input-hidden">' +
+            '<button type="button" id="s-import-pick">Choose file</button>' +
+            '<span class="file-name" id="s-import-name">No file selected</span>' +
+          '</div>' +
+          '<button type="button" class="primary" id="s-import">Import</button>' +
+        '</div>' +
+        '<div style="display:flex;gap:1rem;margin-top:0.4rem;font-size:0.85rem">' +
+          '<label style="display:inline-flex;align-items:center;gap:0.3rem;margin:0"><input type="radio" name="import-mode" value="merge" checked>Merge into existing</label>' +
+          '<label style="display:inline-flex;align-items:center;gap:0.3rem;margin:0"><input type="radio" name="import-mode" value="replace">Replace all</label>' +
+        '</div>' +
+        '<div class="modal-error" id="s-import-error"></div>' +
+        '<div id="s-import-success" class="import-success" hidden></div>' +
         '<h3 class="settings-h">Password</h3>' +
         '<form id="settings-pw-form">' +
           '<label for="s-current">Current password</label>' +
           '<input type="password" id="s-current" autocomplete="current-password" required>' +
           '<label for="s-new">New password</label>' +
           '<input type="password" id="s-new" autocomplete="new-password" required>' +
-          '<div class="hint">12 to 256 characters. Other sessions on this account will be signed out.</div>' +
+          '<div class="modal-desc">At least 12 characters. Other sessions on this account will be signed out.</div>' +
           '<div class="modal-error" id="s-error"></div>' +
+          '<div class="modal-success" id="s-pw-success" hidden></div>' +
           '<div class="modal-actions">' +
             '<button type="submit" class="primary" id="s-submit">Change password</button>' +
           '</div>' +
         '</form>' +
-        '<h3 class="settings-h">Publish my map</h3>' +
-        '<div class="checkbox-row"><input type="checkbox" id="s-publish"' + (state.auth.published ? ' checked' : '') + '><label for="s-publish">Make my map publicly readable at <code>/u/' + escapeHtml(state.auth.username || '') + '/</code></label></div>' +
-        '<div class="hint">Anyone with the link can view; no editing. Turn off any time.</div>' +
-        '<h3 class="settings-h">Export</h3>' +
-        '<div class="hint">Download a zip of your places, trails, and preferences.</div>' +
-        '<div class="modal-actions" style="margin-top:0.5rem"><a id="s-export" class="primary" style="text-decoration:none;display:inline-block;padding:0.4rem 0.9rem" href="' + apiUrl('/me/export') + '">Download export</a></div>' +
-        '<h3 class="settings-h">Active sessions</h3>' +
+        '<h3 class="settings-h sessions-h">Active sessions<button type="button" class="sessions-revoke-others" id="s-revoke-others" hidden>Sign out others</button></h3>' +
         '<div id="s-sessions">Loading&hellip;</div>' +
-        (isOp && placesAvailable() ?
-          '<h3 class="settings-h">Categories</h3>' +
-          '<div class="hint">Edit display labels for place categories. Unlabeled slugs fall back to title case.</div>' +
-          '<div class="modal-actions" style="margin-top:0.5rem"><button type="button" id="s-manage-cats">Manage categories</button></div>'
-        : '') +
+        '</div>' +
         (isOp ?
+          '<div data-panel="admin" hidden>' +
+          (placesAvailable() ?
+            '<h3 class="settings-h">Categories</h3>' +
+            '<div class="modal-desc">Edit display labels for place categories. Unlabeled slugs fall back to title case.</div>' +
+            '<div class="modal-actions"><button type="button" id="s-manage-cats">Manage categories</button></div>'
+          : '') +
           '<h3 class="settings-h">Registration</h3>' +
           '<div class="checkbox-row"><input type="checkbox" id="s-reg"' + (regOpen ? ' checked' : '') + '><label for="s-reg">Allow new users to register</label></div>' +
-          '<div class="hint">Off by default after the first account is created. Turn on temporarily to invite someone.</div>'
-        : '') +
-        '<div class="modal-actions" style="margin-top:1rem">' +
-          '<button type="button" class="modal-close">Close</button>' +
-        '</div>',
+          '<div class="modal-desc">Off by default after the first account is created. Turn on temporarily to invite someone.</div>' +
+          '</div>'
+        : ''),
         function() {
           document.getElementById('settings-pw-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -3682,15 +3728,18 @@
                 document.getElementById('s-current').value = '';
                 document.getElementById('s-new').value = '';
                 submit.disabled = false;
-                submit.textContent = 'Password changed';
-                setTimeout(() => { submit.textContent = 'Change password'; }, 2000);
+                const okBox = document.getElementById('s-pw-success');
+                okBox.textContent = 'Password changed. Other sessions on this account have been signed out.';
+                okBox.hidden = false;
+                document.getElementById('s-error').classList.remove('visible');
                 renderSessions();
               })
               .catch(err => {
                 submit.disabled = false;
-                const e = document.getElementById('s-error');
-                e.textContent = err.message;
-                e.classList.add('visible');
+                const errEl = document.getElementById('s-error');
+                errEl.textContent = err.message;
+                errEl.classList.add('visible');
+                document.getElementById('s-pw-success').hidden = true;
               });
           });
           const reg = document.getElementById('s-reg');
@@ -3756,6 +3805,119 @@
           bindRadioPref('units', 'atlas-units', wrappedRouter);
           const manageCats = document.getElementById('s-manage-cats');
           if (manageCats) manageCats.addEventListener('click', openManageCategoriesModal);
+          const exportBtn = document.getElementById('s-export');
+          if (exportBtn) exportBtn.addEventListener('click', function() {
+            const errBox = document.getElementById('s-export-error');
+            errBox.classList.remove('visible');
+            const originalLabel = exportBtn.textContent;
+            exportBtn.disabled = true;
+            exportBtn.textContent = 'Exporting…';
+            fetch(apiUrl('/me/export'), { credentials: 'same-origin' }).then(async r => {
+              if (!r.ok) {
+                let msg = 'HTTP ' + r.status;
+                try { const j = await r.json(); if (j && j.error) msg = j.error; } catch {}
+                throw new Error(msg);
+              }
+              const disp = r.headers.get('Content-Disposition') || '';
+              const m = /filename="([^"]+)"/.exec(disp);
+              const fname = m ? m[1] : 'atlas-export.zip';
+              const blob = await r.blob();
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = fname;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+              URL.revokeObjectURL(url);
+            }).catch(err => {
+              errBox.textContent = err.message;
+              errBox.classList.add('visible');
+            }).finally(() => {
+              exportBtn.disabled = false;
+              exportBtn.textContent = originalLabel;
+            });
+          });
+          const revokeOthersBtn = document.getElementById('s-revoke-others');
+          if (revokeOthersBtn) revokeOthersBtn.addEventListener('click', function() {
+            if (!confirm('Sign out all other sessions for this account?')) return;
+            this.disabled = true;
+            api('POST', '/sessions/revoke-others')
+              .then(renderSessions)
+              .catch(err => { alert('Failed: ' + err.message); })
+              .finally(() => { this.disabled = false; });
+          });
+          const pickBtn = document.getElementById('s-import-pick');
+          const fileInputEl = document.getElementById('s-import-file');
+          const fileNameEl = document.getElementById('s-import-name');
+          if (pickBtn) pickBtn.addEventListener('click', function() { fileInputEl.click(); });
+          if (fileInputEl) fileInputEl.addEventListener('change', function() {
+            const f = this.files && this.files[0];
+            if (f) {
+              fileNameEl.textContent = f.name;
+              fileNameEl.classList.add('has-file');
+            } else {
+              fileNameEl.textContent = 'No file selected';
+              fileNameEl.classList.remove('has-file');
+            }
+            const successEl = document.getElementById('s-import-success');
+            if (successEl) successEl.hidden = true;
+          });
+          const importBtn = document.getElementById('s-import');
+          if (importBtn) importBtn.addEventListener('click', function() {
+            const fileInput = document.getElementById('s-import-file');
+            const errBox = document.getElementById('s-import-error');
+            const file = fileInput.files && fileInput.files[0];
+            errBox.classList.remove('visible');
+            if (!file) {
+              errBox.textContent = 'Choose a zip file first.';
+              errBox.classList.add('visible');
+              return;
+            }
+            const mode = document.querySelector('input[name="import-mode"]:checked').value;
+            if (mode === 'replace' && !confirm('Replace all current places, trails, and preferences with the contents of this zip?')) {
+              return;
+            }
+            importBtn.disabled = true;
+            const originalLabel = importBtn.textContent;
+            importBtn.textContent = 'Importing…';
+            fetch(apiUrl('/me/import?mode=' + mode), {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'Content-Type': 'application/zip' },
+              body: file,
+            }).then(async r => {
+              const data = await r.json().catch(() => null);
+              if (!r.ok) throw new Error((data && data.error) || ('HTTP ' + r.status));
+              return data;
+            }).then(data => {
+              const c = data.imported || {};
+              const successEl = document.getElementById('s-import-success');
+              successEl.textContent = 'Imported ' + (c.places || 0) + ' places, ' + (c.gpx || 0) + ' trails, ' + (c.metadata || 0) + ' metadata entries, ' + (c.prefs || 0) + ' prefs.';
+              successEl.hidden = false;
+              fileInputEl.value = '';
+              fileNameEl.textContent = 'No file selected';
+              fileNameEl.classList.remove('has-file');
+              Promise.all([refreshPlaces(), refreshRoutes()]).then(() => { wrappedRouter(); });
+              importBtn.disabled = false;
+              importBtn.textContent = originalLabel;
+            }).catch(err => {
+              importBtn.disabled = false;
+              importBtn.textContent = originalLabel;
+              errBox.textContent = err.message;
+              errBox.classList.add('visible');
+            });
+          });
+          document.querySelectorAll('#settings-tabs button[data-tab]').forEach(b => {
+            b.addEventListener('click', function() {
+              const tab = this.dataset.tab;
+              document.querySelectorAll('#settings-tabs button[data-tab]').forEach(x =>
+                x.classList.toggle('active', x.dataset.tab === tab));
+              document.querySelectorAll('.modal [data-panel]').forEach(p => {
+                p.hidden = p.dataset.panel !== tab;
+              });
+            });
+          });
         }
       );
     }
@@ -3854,6 +4016,9 @@
       const el = document.getElementById('s-sessions');
       if (!el) return;
       api('GET', '/sessions').then(data => {
+        const others = data.sessions ? data.sessions.filter(s => !s.current) : [];
+        const revokeOthersBtn = document.getElementById('s-revoke-others');
+        if (revokeOthersBtn) revokeOthersBtn.hidden = others.length === 0;
         if (!data.sessions || !data.sessions.length) {
           el.innerHTML = '<div class="hint">No sessions.</div>';
           return;
@@ -3864,10 +4029,11 @@
           const ago = escapeHtml(timeAgo(s.last_seen_at || s.created_at));
           const current = s.current ? '<span class="session-current">This device</span>' : '';
           const revoke = s.current ? '' : '<button class="session-revoke" data-id="' + escapeHtml(s.id) + '">Revoke</button>';
+          const sub = s.current ? ip : (ip + ' &middot; ' + ago);
           return '<li class="session-row">' +
             '<div class="session-meta">' +
               '<div class="session-device">' + label + ' ' + current + '</div>' +
-              '<div class="session-sub">' + ip + ' &middot; ' + ago + '</div>' +
+              '<div class="session-sub">' + sub + '</div>' +
             '</div>' +
             revoke +
           '</li>';
@@ -3974,7 +4140,7 @@
         document.getElementById('modal-title').textContent = m === 'register' ? 'Register' : 'Sign in';
         document.getElementById('auth-submit').textContent = m === 'register' ? 'Register' : 'Sign in';
         document.getElementById('auth-password').setAttribute('autocomplete', m === 'register' ? 'new-password' : 'current-password');
-        document.getElementById('auth-hint').textContent = m === 'register' ? 'Password must be 12 to 256 characters.' : '';
+        document.getElementById('auth-hint').textContent = m === 'register' ? 'Password must be at least 12 characters.' : '';
         const tokenRow = document.getElementById('setup-token-row');
         const tokenInput = document.getElementById('auth-setup-token');
         const needsToken = m === 'register' && state.auth.requires_setup_token;
