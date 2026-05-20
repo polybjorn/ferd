@@ -371,8 +371,10 @@
     }
 
     .leaflet-div-icon { background: transparent; border: none; }
-    [data-tile-filter="desaturated"] .leaflet-tile { filter: saturate(0.5); }
     [data-tile-filter="muted"] .leaflet-tile { filter: saturate(0.35) brightness(0.95) contrast(0.95); }
+    [data-tile-filter="grayscale"] .leaflet-tile { filter: grayscale(1); }
+    [data-tile-filter="sepia"] .leaflet-tile { filter: sepia(0.7); }
+    [data-tile-filter="contrast"] .leaflet-tile { filter: contrast(1.15) saturate(1.1); }
 
     html, body {
       height: 100%;
@@ -584,6 +586,56 @@
     }
     .index-controls input[type="text"]::placeholder { color: var(--muted); }
     .index-controls input[type="text"]:focus { border-color: var(--accent); }
+    .index-controls select {
+      flex-shrink: 0;
+      padding: 0.55rem 0.7rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.8rem;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .index-controls select:focus { border-color: var(--accent); }
+    .filter-dropdown { position: relative; flex-shrink: 0; }
+    .filter-dropdown .filter-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.8rem;
+      padding: 0.55rem 0.85rem;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .filter-dropdown .filter-btn:hover { border-color: var(--border-hover); }
+    .filter-dropdown .filter-btn.has-active { border-color: var(--accent); color: var(--accent); }
+    .filter-popover {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      z-index: 100;
+      min-width: 200px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      box-shadow: 0 8px 24px var(--shadow);
+    }
+    .filter-popover[hidden] { display: none; }
+    .filter-popover label { display: block; font-size: 0.7rem; color: var(--muted); margin-bottom: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .filter-popover select { width: 100%; padding: 0.45rem 0.6rem; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 0.85rem; font-family: inherit; cursor: pointer; outline: none; }
+    .filter-popover select:focus { border-color: var(--accent); }
+    .filter-popover .filter-clear { background: transparent; border: none; color: var(--muted); font-size: 0.75rem; cursor: pointer; padding: 0; text-align: left; }
+    .filter-popover .filter-clear:hover { color: var(--text); text-decoration: underline; }
+    .filter-popover .filter-divider { height: 1px; background: var(--border); margin: 0.2rem -0.25rem; }
 
     .group-toggle {
       display: flex;
@@ -596,10 +648,10 @@
       background: transparent;
       border: none;
       color: var(--muted);
-      font-size: 0.7rem;
+      font-size: 0.8rem;
       font-weight: 400;
       font-family: inherit;
-      padding: 0.45rem 0.65rem;
+      padding: 0.55rem 0.85rem;
       cursor: pointer;
       transition: background 0.15s, color 0.15s;
       letter-spacing: 0.03em;
@@ -1180,7 +1232,7 @@
       text-transform: uppercase;
       letter-spacing: 0.1em;
     }
-    .leaflet-popup-content .popup-meta > * { justify-self: start; }
+    .leaflet-popup-content .popup-meta > * { justify-self: start; white-space: nowrap; }
     .leaflet-popup-content .popup-meta > :nth-child(2) { justify-self: center; }
     .leaflet-popup-content .popup-meta > :last-child { justify-self: end; }
     .leaflet-popup-content .popup-meta a { color: inherit; cursor: pointer; text-transform: none; letter-spacing: normal; font-size: 0.7rem; }
@@ -1273,7 +1325,6 @@
       border-color: var(--border-hover);
       opacity: 1;
     }
-    .auth-widget .caret { font-size: 0.55rem; opacity: 0.7; }
     .auth-menu {
       position: absolute;
       top: calc(100% + 0.4rem);
@@ -1368,17 +1419,57 @@
       font-size: 0.95rem;
       font-weight: 600;
       color: var(--text);
-      margin-top: 1.25rem;
+      margin-top: 1.5rem;
       margin-bottom: 0.5rem;
-      padding-top: 0.75rem;
-      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-hover, var(--border));
     }
-    .modal h3.settings-h:first-of-type,
     .modal [data-panel] > h3.settings-h:first-child {
       border-top: none;
       padding-top: 0;
       margin-top: 0;
     }
+
+    /* Toggle switch: stylized checkbox with a sliding knob.
+       Markup: <input type="checkbox" class="settings-toggle"> */
+    .modal input[type="checkbox"].settings-toggle {
+      appearance: none;
+      -webkit-appearance: none;
+      position: relative;
+      width: 36px;
+      height: 20px;
+      margin: 0;
+      background: var(--border);
+      border: 1px solid var(--border-hover, var(--border));
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      flex: 0 0 auto;
+    }
+    .modal input[type="checkbox"].settings-toggle::after {
+      content: '';
+      position: absolute;
+      top: 1px;
+      left: 1px;
+      width: 16px;
+      height: 16px;
+      background: var(--surface);
+      border-radius: 50%;
+      transition: transform 0.15s, background 0.15s;
+    }
+    .modal input[type="checkbox"].settings-toggle:checked {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .modal input[type="checkbox"].settings-toggle:checked::after {
+      transform: translateX(16px);
+      background: var(--surface);
+    }
+    .modal input[type="checkbox"].settings-toggle:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .settings-inline-row > .settings-toggle { justify-self: start; }
 
     .session-list {
       list-style: none;
@@ -1424,9 +1515,31 @@
 
     .radio-row {
       display: flex;
-      gap: 1rem;
+      row-gap: 0.4rem;
+      column-gap: 1rem;
       flex-wrap: wrap;
     }
+    /* Two-column row pairing two selects (or two columns of settings) side-by-side. */
+    .settings-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 1rem;
+      align-items: end;
+    }
+    .settings-grid-2 > * { margin: 0; }
+    .settings-grid-2 > label { margin-top: 0.75rem; margin-bottom: 0.3rem; }
+    /* Inline label + control row: label left (fixed width), control fills the rest.
+       Wraps on narrow viewports so the control drops under the label. */
+    .settings-inline-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem 1rem;
+      align-items: center;
+      margin-top: 0.75rem;
+    }
+    .settings-inline-row > label { margin: 0; }
+    .settings-inline-row > .radio-row { margin: 0; column-gap: 0.75rem; }
+    .settings-inline-row > select { width: 100%; }
     .radio-row label {
       display: inline-flex;
       align-items: center;
@@ -1591,6 +1704,19 @@
       display: none;
     }
     .modal .modal-error.visible { display: block; }
+    .modal .modal-success-box {
+      margin-top: 0.75rem;
+      padding: 0.5rem 0.7rem;
+      background: color-mix(in srgb, var(--green) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--green) 35%, transparent);
+      border-radius: var(--radius);
+      color: var(--green);
+      font-size: 0.85rem;
+    }
+    .modal select:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
     .modal .modal-actions {
       display: flex;
       justify-content: flex-end;
@@ -1608,6 +1734,22 @@
       cursor: pointer;
       letter-spacing: 0.05em;
     }
+    /* Theme-aware primary button outside the modal (e.g. list-page Add buttons).
+       Inside the modal, the higher-specificity rule above still wins. */
+    button.primary {
+      background: var(--accent);
+      border: 1px solid var(--accent);
+      color: var(--fab-text);
+      font-family: inherit;
+      font-size: 0.75rem;
+      padding: 0.5rem 0.9rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: opacity 0.15s;
+    }
+    button.primary:hover:not(:disabled) { opacity: 0.9; }
+    button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
     .modal button.primary:not(h2 .modal-close) {
       background: var(--accent);
       color: var(--fab-text);
@@ -1822,6 +1964,8 @@
       });
     }
     function getDefaultTileLayer() { return getPref('atlas-tile-layer', 'Satellite'); }
+    function getShowTilePicker() { return getPref('atlas-tile-picker', 'true') !== 'false'; }
+    function getShowMapAddButton() { return getPref('atlas-map-add-button', 'true') !== 'false'; }
     function getRememberView() { return getPref('atlas-remember-view', 'true') !== 'false'; }
     function getUnits() { return getPref('atlas-units', 'metric'); }
     function getClusterPlaces() { return getPref('atlas-cluster-places', 'true') !== 'false'; }
@@ -1982,7 +2126,11 @@
       const layers = createTileLayers();
       const def = getDefaultTileLayer();
       (layers[def] || layers['Satellite']).addTo(map);
-      L.control.layers(layers, null, { position: 'topright' }).addTo(map);
+      state.tilePickerLayers = layers;
+      state.tilePickerCtrl = null;
+      if (getShowTilePicker()) {
+        state.tilePickerCtrl = L.control.layers(layers, null, { position: 'topright' }).addTo(map);
+      }
     }
 
     function cleanupMap() {
@@ -1995,6 +2143,8 @@
         state.currentMap.remove();
         state.currentMap = null;
       }
+      state.tilePickerCtrl = null;
+      state.tilePickerLayers = null;
       state._placeMarkers = null;
       state._placeClusterGroup = null;
       state._trailLayers = null;
@@ -2032,15 +2182,15 @@
       if (style === 'pin') {
         const w = size + 4;
         const h = Math.round(w * 33 / 24);
-        const pinPath = 'M12 0C5.37 0 0 5.37 0 12c0 9 12 21 12 21s12-12 12-21C24 5.37 18.63 0 12 0z';
         if (visited) {
           svg = '<svg viewBox="0 0 24 33" width="' + w + '" height="' + h + '">' +
-            '<path d="' + pinPath + '" fill="' + color + '"/>' +
-            '<circle cx="12" cy="12" r="4" fill="#fff"/>' +
+            '<line x1="12" y1="14" x2="12" y2="33" stroke="' + color + '" stroke-width="2.5" stroke-linecap="round"/>' +
+            '<circle cx="12" cy="9" r="7" fill="' + color + '"/>' +
             '</svg>';
         } else {
           svg = '<svg viewBox="-1.5 -1.5 27 36" width="' + w + '" height="' + h + '">' +
-            '<path d="' + pinPath + '" fill="' + color + '" fill-opacity="0.25" stroke="' + color + '" stroke-width="2"/>' +
+            '<line x1="12" y1="14" x2="12" y2="33" stroke="' + color + '" stroke-width="2.5" stroke-linecap="round"/>' +
+            '<circle cx="12" cy="9" r="7" fill="' + color + '" fill-opacity="0.25" stroke="' + color + '" stroke-width="2"/>' +
             '</svg>';
         }
         iconSize = [w, h];
@@ -2083,6 +2233,27 @@
         iconAnchor = [size / 2, size / 2];
       }
       return L.divIcon({ className: '', html: svg, iconSize: iconSize, iconAnchor: iconAnchor });
+    }
+
+    // Apply current pin-style + marker-size to all live place markers without
+    // rebuilding the map. Falls back to a full router pass if markers aren't
+    // mounted (e.g. on the trail-detail view).
+    function refreshPlaceMarkerIcons() {
+      if (!state._placeMarkers) { wrappedRouter(); return; }
+      for (const m of state._placeMarkers) {
+        const p = m._placeData;
+        if (!p) continue;
+        m.setIcon(createMarkerIcon(state.categoryColors[p.category], p.visited));
+      }
+    }
+
+    // Apply current trail-weight to all live trail polylines without rebuilding.
+    function refreshTrailWeights() {
+      if (!state._trailLayers) { wrappedRouter(); return; }
+      const w = 4 * getTrailWeightFactor();
+      for (const t of state._trailLayers) {
+        try { t.layer.setStyle({ weight: w }); } catch (e) {}
+      }
     }
 
     const SHARE_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
@@ -2854,33 +3025,114 @@
         '<div class="nav-stat"><span class="value">' + [...new Set(places.map(p => p.country).filter(Boolean))].length + ' countries</span></div>' +
         '</div>';
 
+      const canAdd = state.auth.authenticated && !isReadOnly();
+      const countries = [...new Set(places.map(p => p.country).filter(Boolean))].sort((a, b) => a.localeCompare(b));
       app.innerHTML =
         '<div class="index-controls">' +
         '<input type="text" id="search-input" placeholder="Filter places...">' +
-        '<div class="group-toggle">' +
-        '<button data-group="category"' + (state.groupBy === 'category' ? ' class="active"' : '') + '>Category</button>' +
-        '<button data-group="country"' + (state.groupBy === 'country' ? ' class="active"' : '') + '>Country</button>' +
+        '<div class="filter-dropdown">' +
+          '<button type="button" class="filter-btn" id="filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
+          '<div class="filter-popover" id="filter-popover" hidden>' +
+            '<select id="filter-status">' +
+              '<option value="all">All statuses</option>' +
+              '<option value="visited">Visited</option>' +
+              '<option value="want">Want to visit</option>' +
+            '</select>' +
+            '<select id="filter-category">' +
+              '<option value="all">All categories</option>' +
+              cats.map(c => '<option value="' + escapeHtml(c) + '">' + escapeHtml(displayCategory(c)) + '</option>').join('') +
+            '</select>' +
+            (countries.length ?
+              '<select id="filter-country">' +
+                '<option value="all">All countries</option>' +
+                countries.map(c => '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>').join('') +
+              '</select>'
+              : '') +
+            '<div class="filter-divider"></div>' +
+            '<select id="filter-group-by">' +
+              '<option value="category"' + (state.groupBy === 'category' ? ' selected' : '') + '>Group by category</option>' +
+              '<option value="country"' + (state.groupBy === 'country' ? ' selected' : '') + '>Group by country</option>' +
+            '</select>' +
+            '<button type="button" class="filter-clear" id="filter-clear">Clear filters</button>' +
+          '</div>' +
         '</div>' +
+        (canAdd ? '<button type="button" class="primary" id="add-place-btn">Add place</button>' : '') +
         '</div>' +
         '<div class="category-grid" id="place-list"></div>';
       renderPlaceList('');
 
-      document.getElementById('search-input').addEventListener('input', function() { renderPlaceList(this.value); });
-      document.querySelector('.group-toggle').addEventListener('click', function(e) {
-        if (!e.target.dataset.group) return;
-        state.groupBy = e.target.dataset.group;
-        this.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.group === state.groupBy));
-        const input = document.getElementById('search-input');
-        renderPlaceList(input ? input.value : '');
+      const addBtn = document.getElementById('add-place-btn');
+      if (addBtn) addBtn.addEventListener('click', function() { openAddModal(null, 'place'); });
+      const placesSearchInput = document.getElementById('search-input');
+      const statusSel = document.getElementById('filter-status');
+      const catSel = document.getElementById('filter-category');
+      const countrySel = document.getElementById('filter-country');
+      const filterBtn = document.getElementById('filter-btn');
+      const filterPop = document.getElementById('filter-popover');
+      const filterClear = document.getElementById('filter-clear');
+      const filterSels = [statusSel, catSel, countrySel].filter(Boolean);
+      function updateFilterBtnLabel() {
+        const n = filterSels.reduce((acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
+        if (filterBtn) {
+          filterBtn.textContent = n > 0 ? 'Filters (' + n + ')' : 'Filters';
+          filterBtn.classList.toggle('has-active', n > 0);
+        }
+      }
+      function rerender() {
+        renderPlaceList(placesSearchInput ? placesSearchInput.value : '');
+        updateFilterBtnLabel();
+      }
+      if (placesSearchInput) placesSearchInput.addEventListener('input', rerender);
+      filterSels.forEach(s => s.addEventListener('change', rerender));
+      const groupBySel = document.getElementById('filter-group-by');
+      if (groupBySel) groupBySel.addEventListener('change', function() {
+        state.groupBy = this.value;
+        rerender();
       });
+      if (filterBtn && filterPop) {
+        filterBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const open = filterPop.hidden;
+          filterPop.hidden = !open;
+          filterBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        document.addEventListener('click', function(e) {
+          if (!filterPop.hidden && !filterPop.contains(e.target) && e.target !== filterBtn) {
+            filterPop.hidden = true;
+            filterBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+        filterPop.addEventListener('click', function(e) { e.stopPropagation(); });
+      }
+      if (filterClear) filterClear.addEventListener('click', function() {
+        filterSels.forEach(s => { s.value = 'all'; });
+        rerender();
+      });
+      updateFilterBtnLabel();
     }
 
     function renderPlaceList(query) {
       const q = query.toLowerCase().trim();
       const byCategory = state.groupBy === 'category';
-      const filtered = q
-        ? state.places.filter(p => p.name.toLowerCase().includes(q) || (p.note && p.note.toLowerCase().includes(q)) || p.category.toLowerCase().includes(q) || (p.country && p.country.toLowerCase().includes(q)))
-        : state.places;
+      const statusEl = document.getElementById('filter-status');
+      const catEl = document.getElementById('filter-category');
+      const countryEl = document.getElementById('filter-country');
+      const wantStatus = statusEl ? statusEl.value : 'all';
+      const wantCat = catEl ? catEl.value : 'all';
+      const wantCountry = countryEl ? countryEl.value : 'all';
+      const filtered = state.places.filter(p => {
+        if (q && !(
+          p.name.toLowerCase().includes(q) ||
+          (p.note && p.note.toLowerCase().includes(q)) ||
+          p.category.toLowerCase().includes(q) ||
+          (p.country && p.country.toLowerCase().includes(q))
+        )) return false;
+        if (wantStatus === 'visited' && !p.visited) return false;
+        if (wantStatus === 'want' && p.visited) return false;
+        if (wantCat !== 'all' && p.category !== wantCat) return false;
+        if (wantCountry !== 'all' && p.country !== wantCountry) return false;
+        return true;
+      });
       const grouped = {};
       for (const p of filtered) {
         const key = byCategory ? p.category : (p.country || 'Other');
@@ -2952,10 +3204,59 @@
         '<div class="nav-stat"><span class="value">' + regions.length + ' regions</span></div>' +
         '</div>';
 
-      let html = '<div class="region-grid">';
+      const canAddTrail = state.auth.authenticated && !isReadOnly();
+      const difficulties = ['easy', 'moderate', 'hard', 'expert'];
+      const regionNames = regions.map(r => r.name).slice().sort((a, b) => a.localeCompare(b));
+      const tagSet = new Set();
+      for (const region of regions) {
+        for (const route of region.routes) {
+          if (Array.isArray(route.tags)) for (const t of route.tags) if (t) tagSet.add(String(t).toLowerCase());
+        }
+      }
+      const allTags = [...tagSet].sort((a, b) => a.localeCompare(b));
+      let html = '<div class="index-controls">' +
+        '<input type="text" id="search-input" placeholder="Filter trails...">' +
+        '<div class="filter-dropdown">' +
+          '<button type="button" class="filter-btn" id="filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
+          '<div class="filter-popover" id="filter-popover" hidden>' +
+            '<select id="filter-status">' +
+              '<option value="all">All statuses</option>' +
+              '<option value="completed">Completed</option>' +
+              '<option value="planned">Planned</option>' +
+            '</select>' +
+            '<select id="filter-region">' +
+              '<option value="all">All regions</option>' +
+              regionNames.map(n => '<option value="' + escapeHtml(n.toLowerCase()) + '">' + escapeHtml(n) + '</option>').join('') +
+            '</select>' +
+            '<select id="filter-difficulty">' +
+              '<option value="all">Any difficulty</option>' +
+              difficulties.map(d => '<option value="' + d + '">' + d[0].toUpperCase() + d.slice(1) + '</option>').join('') +
+            '</select>' +
+            '<select id="filter-rating">' +
+              '<option value="all">Any rating</option>' +
+              '<option value="unrated">Unrated</option>' +
+              '<option value="1">1 star</option>' +
+              '<option value="2">2 stars</option>' +
+              '<option value="3">3 stars</option>' +
+              '<option value="4">4 stars</option>' +
+              '<option value="5">5 stars</option>' +
+            '</select>' +
+            (allTags.length ?
+              '<select id="filter-tag">' +
+                '<option value="all">Any tag</option>' +
+                allTags.map(t => '<option value="' + escapeHtml(t) + '">' + escapeHtml(t) + '</option>').join('') +
+              '</select>'
+              : '') +
+            '<button type="button" class="filter-clear" id="filter-clear">Clear filters</button>' +
+          '</div>' +
+        '</div>' +
+        (canAddTrail ? '<button type="button" class="primary" id="add-trail-btn">Add trail</button>' : '') +
+        '</div>';
+      html += '<div class="region-grid">';
       for (const region of regions) {
         const regionCompleted = region.routes.filter(r => r.completed).length;
-        html += '<div class="region-group fade-in">';
+        const regionSearch = region.name.toLowerCase();
+        html += '<div class="region-group fade-in" data-region-search="' + escapeHtml(regionSearch) + '">';
         html += '<div class="region-label clickable" data-filter-region="' + escapeHtml(region.name) + '" title="Show only this region on the map">';
         html += escapeHtml(region.name);
         html += '<span class="route-count">(' + regionCompleted + '/' + region.routes.length + ')</span>';
@@ -2964,7 +3265,11 @@
         for (const route of region.routes) {
           const href = '#/trails/route/' + encodeURIComponent(route.key);
           const statusClass = route.completed ? 'completed' : 'planned';
-          html += '<div class="route-card" onclick="location.hash=\'' + href.replace(/'/g, "\\'") + '\'">';
+          const diffAttr = route.difficulty ? ' data-route-difficulty="' + escapeHtml(route.difficulty) + '"' : '';
+          const ratingAttr = route.rating ? ' data-route-rating="' + Number(route.rating) + '"' : '';
+          const tagAttr = (Array.isArray(route.tags) && route.tags.length) ? ' data-route-tags="' + escapeHtml(route.tags.map(t => String(t).toLowerCase()).join(',')) + '"' : '';
+          const regionAttr = ' data-route-region="' + escapeHtml(region.name.toLowerCase()) + '"';
+          html += '<div class="route-card" data-route-search="' + escapeHtml(route.name.toLowerCase()) + '" data-route-status="' + statusClass + '"' + regionAttr + diffAttr + ratingAttr + tagAttr + ' onclick="location.hash=\'' + href.replace(/'/g, "\\'") + '\'">';
           html += '<span class="status-dot ' + statusClass + '"></span>';
           html += '<span class="name">' + escapeHtml(route.name) + '</span>';
           html += '</div>';
@@ -2973,6 +3278,75 @@
       }
       html += '</div>';
       app.innerHTML = html;
+      const addTrailBtn = document.getElementById('add-trail-btn');
+      if (addTrailBtn) addTrailBtn.addEventListener('click', function() { openAddModal(null, 'trail'); });
+      const searchInput = document.getElementById('search-input');
+      const statusSel = document.getElementById('filter-status');
+      const regionSel = document.getElementById('filter-region');
+      const diffSel = document.getElementById('filter-difficulty');
+      const ratingSel = document.getElementById('filter-rating');
+      const tagSel = document.getElementById('filter-tag');
+      const filterBtn = document.getElementById('filter-btn');
+      const filterPop = document.getElementById('filter-popover');
+      const filterClear = document.getElementById('filter-clear');
+      const filterSels = [statusSel, regionSel, diffSel, ratingSel, tagSel].filter(Boolean);
+      function updateFilterBtnLabel() {
+        const n = filterSels.reduce((acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
+        if (filterBtn) {
+          filterBtn.textContent = n > 0 ? 'Filters (' + n + ')' : 'Filters';
+          filterBtn.classList.toggle('has-active', n > 0);
+        }
+      }
+      function applyTrailFilters() {
+        const q = (searchInput && searchInput.value.trim().toLowerCase()) || '';
+        const wantStatus = statusSel ? statusSel.value : 'all';
+        const wantRegion = regionSel ? regionSel.value : 'all';
+        const wantDiff = diffSel ? diffSel.value : 'all';
+        const wantRating = ratingSel ? ratingSel.value : 'all';
+        const wantTag = tagSel ? tagSel.value : 'all';
+        app.querySelectorAll('.region-group').forEach(function(group) {
+          const regionMatch = !q || group.dataset.regionSearch.includes(q);
+          let visibleCount = 0;
+          group.querySelectorAll('.route-card').forEach(function(card) {
+            const textMatch = !q || regionMatch || card.dataset.routeSearch.includes(q);
+            const statusMatch = wantStatus === 'all' || card.dataset.routeStatus === wantStatus;
+            const regionOk = wantRegion === 'all' || card.dataset.routeRegion === wantRegion;
+            const diffMatch = wantDiff === 'all' || card.dataset.routeDifficulty === wantDiff;
+            const ratingOk = wantRating === 'all'
+              || (wantRating === 'unrated' && !card.dataset.routeRating)
+              || (card.dataset.routeRating === wantRating);
+            const tagOk = wantTag === 'all'
+              || (card.dataset.routeTags && card.dataset.routeTags.split(',').includes(wantTag));
+            const match = textMatch && statusMatch && regionOk && diffMatch && ratingOk && tagOk;
+            card.style.display = match ? '' : 'none';
+            if (match) visibleCount++;
+          });
+          group.style.display = visibleCount > 0 ? '' : 'none';
+        });
+        updateFilterBtnLabel();
+      }
+      if (searchInput) searchInput.addEventListener('input', applyTrailFilters);
+      filterSels.forEach(s => s.addEventListener('change', applyTrailFilters));
+      if (filterBtn && filterPop) {
+        filterBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const open = filterPop.hidden;
+          filterPop.hidden = !open;
+          filterBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        document.addEventListener('click', function(e) {
+          if (!filterPop.hidden && !filterPop.contains(e.target) && e.target !== filterBtn) {
+            filterPop.hidden = true;
+            filterBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+        filterPop.addEventListener('click', function(e) { e.stopPropagation(); });
+      }
+      if (filterClear) filterClear.addEventListener('click', function() {
+        filterSels.forEach(s => { s.value = 'all'; });
+        applyTrailFilters();
+      });
+      updateFilterBtnLabel();
       app.querySelectorAll('.region-label.clickable').forEach(function(label) {
         label.addEventListener('click', function() {
           const r = label.dataset.filterRegion;
@@ -3410,7 +3784,7 @@
 
     // ----- Theme -----
     const THEMES = ['catppuccin', 'dracula', 'gruvbox', 'nord', 'rose-pine', 'solarized', 'tokyo-night'];
-    const MODES = ['system', 'light', 'dark'];
+    const MODES = ['dark', 'light', 'system'];
     (function migrateTheme() {
       try {
         const old = localStorage.getItem('atlas-theme');
@@ -3450,7 +3824,7 @@
     }
     const MARKER_SIZES = { small: 14, default: 18, large: 24 };
     const TRAIL_WEIGHT_FACTORS = { thin: 0.7, default: 1, thick: 1.4 };
-    const TILE_FILTERS = ['none', 'desaturated', 'muted'];
+    const TILE_FILTERS = ['none', 'muted', 'grayscale', 'sepia', 'contrast'];
     function getMarkerSizeKey() {
       try {
         const v = localStorage.getItem('atlas-marker-size');
@@ -3519,9 +3893,7 @@
       if (!el) return;
       if (state.auth.authenticated) {
         el.innerHTML =
-          '<button id="auth-menu-btn" title="Account menu">' +
-            '<span>Menu</span><span class="caret">&#x25BE;</span>' +
-          '</button>' +
+          '<button id="auth-menu-btn" title="Account menu">Menu</button>' +
           '<div class="auth-menu" id="auth-menu" hidden>' +
             '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>' +
             '<button data-action="settings">Settings</button>' +
@@ -3616,21 +3988,6 @@
               : '') +
           '</div>'
         : '') +
-        '<h3 class="settings-h">Map</h3>' +
-        '<label for="s-tile">Default tile layer</label>' +
-        '<select id="s-tile">' +
-          ['OpenTopoMap', 'CyclOSM', 'Satellite', 'Dark', 'OpenStreetMap'].map(n =>
-            '<option value="' + n + '"' + (getDefaultTileLayer() === n ? ' selected' : '') + '>' + n + '</option>'
-          ).join('') +
-        '</select>' +
-        (placesAvailable() ?
-          '<div class="feature-pills">' +
-            '<label class="feature-pill' + (getClusterPlaces() ? ' active' : '') + '"><input type="checkbox" id="s-cluster"' + (getClusterPlaces() ? ' checked' : '') + '>Cluster nearby places</label>' +
-            '<label class="feature-pill' + (getRememberView() ? ' active' : '') + '"><input type="checkbox" id="s-remember-view"' + (getRememberView() ? ' checked' : '') + '>Remember last map view</label>' +
-          '</div>'
-          : '<div class="feature-pills">' +
-            '<label class="feature-pill' + (getRememberView() ? ' active' : '') + '"><input type="checkbox" id="s-remember-view"' + (getRememberView() ? ' checked' : '') + '>Remember last map view</label>' +
-          '</div>') +
         '<h3 class="settings-h">Units</h3>' +
         radioGroupHtml('units', [['metric', 'Metric (km, m)'], ['imperial', 'Imperial (mi, ft)']], getUnits()) +
         '<h3 class="settings-h">Language</h3>' +
@@ -3639,42 +3996,81 @@
         '</select>' +
         '</div>' +
         '<div data-panel="appearance" hidden>' +
-        '<h3 class="settings-h">Appearance</h3>' +
-        '<label for="s-theme">Theme</label>' +
-        '<select id="s-theme">' +
-          THEMES.map(v =>
-            '<option value="' + v + '"' + (theme === v ? ' selected' : '') + '>' + (themeLabels[v] || v) + '</option>'
-          ).join('') +
-        '</select>' +
-        '<label for="s-mode">Mode</label>' +
-        '<select id="s-mode">' +
-          MODES.map(v =>
-            '<option value="' + v + '"' + (mode === v ? ' selected' : '') + '>' + v.charAt(0).toUpperCase() + v.slice(1) + '</option>'
-          ).join('') +
-        '</select>' +
-        '<label>Pin style</label>' +
-        radioGroupHtml('pin-style', [['ring', 'Ring'], ['pin', 'Pin'], ['dot', 'Dot'], ['tag', 'Tag']], pinStyle) +
-        '<label>Marker size</label>' +
-        radioGroupHtml('marker-size', [['small', 'Small'], ['default', 'Default'], ['large', 'Large']], markerSize) +
-        '<label>Trail line thickness</label>' +
-        radioGroupHtml('trail-weight', [['thin', 'Thin'], ['default', 'Default'], ['thick', 'Thick']], trailWeight) +
-        '<label>Map tile style</label>' +
-        radioGroupHtml('tile-filter', [['none', 'None'], ['desaturated', 'Desaturated'], ['muted', 'Muted']], tileFilter) +
+        '<div class="settings-grid-2">' +
+          '<label for="s-theme">Theme</label>' +
+          '<label for="s-mode">Mode</label>' +
+          '<select id="s-theme">' +
+            THEMES.map(v =>
+              '<option value="' + v + '"' + (theme === v ? ' selected' : '') + '>' + (themeLabels[v] || v) + '</option>'
+            ).join('') +
+          '</select>' +
+          '<select id="s-mode">' +
+            MODES.map(v =>
+              '<option value="' + v + '"' + (mode === v ? ' selected' : '') + '>' + v.charAt(0).toUpperCase() + v.slice(1) + '</option>'
+            ).join('') +
+          '</select>' +
+        '</div>' +
+        '<h3 class="settings-h">Markers and trails</h3>' +
+        '<div class="settings-inline-row"><label for="s-pin-style">Pin style</label>' +
+          '<select id="s-pin-style">' +
+            [['dot', 'Dot'], ['tag', 'Flag'], ['pin', 'Pin'], ['ring', 'Ring']].map(([v, l]) =>
+              '<option value="' + v + '"' + (pinStyle === v ? ' selected' : '') + '>' + l + '</option>'
+            ).join('') +
+          '</select>' +
+        '</div>' +
+        '<div class="settings-inline-row"><label>Marker size</label>' +
+          radioGroupHtml('marker-size', [['small', 'Small'], ['default', 'Default'], ['large', 'Large']], markerSize) +
+        '</div>' +
+        '<div class="settings-inline-row"><label>Trail line thickness</label>' +
+          radioGroupHtml('trail-weight', [['thin', 'Thin'], ['default', 'Default'], ['thick', 'Thick']], trailWeight) +
+        '</div>' +
+        '<h3 class="settings-h">Map</h3>' +
+        '<div class="settings-inline-row"><label for="s-tile">Default tile layer</label>' +
+          '<select id="s-tile">' +
+            ['CyclOSM', 'Dark', 'OpenStreetMap', 'OpenTopoMap', 'Satellite'].map(n =>
+              '<option value="' + n + '"' + (getDefaultTileLayer() === n ? ' selected' : '') + '>' + n + '</option>'
+            ).join('') +
+          '</select>' +
+        '</div>' +
+        '<div class="settings-inline-row"><label for="s-tile-filter">Tile style</label>' +
+          '<select id="s-tile-filter">' +
+            [['none', 'None'], ['contrast', 'Contrast'], ['grayscale', 'Grayscale'], ['muted', 'Muted'], ['sepia', 'Sepia']].map(([v, l]) =>
+              '<option value="' + v + '"' + (tileFilter === v ? ' selected' : '') + '>' + l + '</option>'
+            ).join('') +
+          '</select>' +
+        '</div>' +
+        (placesAvailable() ?
+          '<div class="settings-inline-row"><label for="s-cluster">Cluster nearby places</label>' +
+            '<input type="checkbox" class="settings-toggle" id="s-cluster"' + (getClusterPlaces() ? ' checked' : '') + '>' +
+          '</div>'
+          : '') +
+        '<div class="settings-inline-row"><label for="s-remember-view">Remember last map view</label>' +
+          '<input type="checkbox" class="settings-toggle" id="s-remember-view"' + (getRememberView() ? ' checked' : '') + '>' +
+        '</div>' +
+        '<div class="settings-inline-row"><label for="s-tile-picker">Show tile-layer picker on map</label>' +
+          '<input type="checkbox" class="settings-toggle" id="s-tile-picker"' + (getShowTilePicker() ? ' checked' : '') + '>' +
+        '</div>' +
+        '<div class="settings-inline-row"><label for="s-map-add">Show Add button on map</label>' +
+          '<input type="checkbox" class="settings-toggle" id="s-map-add"' + (getShowMapAddButton() ? ' checked' : '') + '>' +
+        '</div>' +
         '</div>' +
         '<div data-panel="account" hidden>' +
         '<h3 class="settings-h">Sharing</h3>' +
         '<div class="checkbox-row"><input type="checkbox" id="s-publish"' + (state.auth.published ? ' checked' : '') + '><label for="s-publish">Make my map publicly readable at <code>/u/' + escapeHtml(state.auth.username || '') + '/</code></label></div>' +
-        '<div class="modal-desc">Anyone with the link can view; no editing. Turn off any time.</div>' +
-        '<h3 class="settings-h">Backup</h3>' +
-        '<div class="backup-sub">Export</div>' +
+        '<div class="modal-desc">Anyone with the link can view; no editing.</div>' +
+        '<h3 class="settings-h">Export</h3>' +
         '<div style="display:flex;align-items:center;gap:1rem">' +
-          '<div class="modal-desc" style="flex:1;margin:0">Places, trails, and preferences as a zip.</div>' +
+          '<div class="modal-desc" style="flex:1;margin:0">Download your places, trails, and preferences as a zip.</div>' +
           '<button type="button" class="primary" id="s-export">Export</button>' +
         '</div>' +
         '<div class="modal-error" id="s-export-error"></div>' +
-        '<div class="backup-sub" style="margin-top:1rem">Import</div>' +
+        '<h3 class="settings-h">Import</h3>' +
         '<div class="modal-desc">Restore from a previous export.</div>' +
-        '<div style="display:flex;align-items:center;gap:1rem;margin-top:0.4rem">' +
+        '<div class="radio-row" style="margin-top:0.5rem">' +
+          '<label><input type="radio" name="import-mode" value="merge" checked> Merge into existing</label>' +
+          '<label><input type="radio" name="import-mode" value="replace"> Replace all</label>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:1rem;margin-top:0.75rem">' +
           '<div class="file-picker" style="flex:1;margin:0">' +
             '<input type="file" id="s-import-file" accept=".zip,application/zip" class="file-input-hidden">' +
             '<button type="button" id="s-import-pick">Choose file</button>' +
@@ -3682,24 +4078,20 @@
           '</div>' +
           '<button type="button" class="primary" id="s-import">Import</button>' +
         '</div>' +
-        '<div style="display:flex;gap:1rem;margin-top:0.4rem;font-size:0.85rem">' +
-          '<label style="display:inline-flex;align-items:center;gap:0.3rem;margin:0"><input type="radio" name="import-mode" value="merge" checked>Merge into existing</label>' +
-          '<label style="display:inline-flex;align-items:center;gap:0.3rem;margin:0"><input type="radio" name="import-mode" value="replace">Replace all</label>' +
-        '</div>' +
         '<div class="modal-error" id="s-import-error"></div>' +
-        '<div id="s-import-success" class="import-success" hidden></div>' +
+        '<div id="s-import-success" class="modal-success-box" hidden></div>' +
         '<h3 class="settings-h">Password</h3>' +
         '<form id="settings-pw-form">' +
           '<label for="s-current">Current password</label>' +
           '<input type="password" id="s-current" autocomplete="current-password" required>' +
           '<label for="s-new">New password</label>' +
           '<input type="password" id="s-new" autocomplete="new-password" required>' +
-          '<div class="modal-desc">At least 12 characters. Other sessions on this account will be signed out.</div>' +
-          '<div class="modal-error" id="s-error"></div>' +
-          '<div class="modal-success" id="s-pw-success" hidden></div>' +
-          '<div class="modal-actions">' +
+          '<div style="display:flex;align-items:flex-start;gap:1rem;margin-top:0.5rem">' +
+            '<div class="modal-desc" style="flex:1;margin:0">At least 12 characters.</div>' +
             '<button type="submit" class="primary" id="s-submit">Change password</button>' +
           '</div>' +
+          '<div class="modal-error" id="s-error"></div>' +
+          '<div class="modal-success" id="s-pw-success" hidden></div>' +
         '</form>' +
         '<h3 class="settings-h sessions-h">Active sessions<button type="button" class="sessions-revoke-others" id="s-revoke-others" hidden>Sign out others</button></h3>' +
         '<div id="s-sessions">Loading&hellip;</div>' +
@@ -3708,12 +4100,14 @@
           '<div data-panel="admin" hidden>' +
           (placesAvailable() ?
             '<h3 class="settings-h">Categories</h3>' +
-            '<div class="modal-desc">Edit display labels for place categories. Unlabeled slugs fall back to title case.</div>' +
-            '<div class="modal-actions"><button type="button" id="s-manage-cats">Manage categories</button></div>'
+            '<div style="display:flex;align-items:center;gap:1rem">' +
+              '<div class="modal-desc" style="flex:1;margin:0">Edit display labels for place categories. Unlabeled slugs fall back to title case.</div>' +
+              '<button type="button" class="primary" id="s-manage-cats">Manage categories</button>' +
+            '</div>'
           : '') +
           '<h3 class="settings-h">Registration</h3>' +
           '<div class="checkbox-row"><input type="checkbox" id="s-reg"' + (regOpen ? ' checked' : '') + '><label for="s-reg">Allow new users to register</label></div>' +
-          '<div class="modal-desc">Off by default after the first account is created. Turn on temporarily to invite someone.</div>' +
+          '<div class="modal-desc">Anyone with the URL can sign up while this is on.</div>' +
           '</div>'
         : ''),
         function() {
@@ -3769,10 +4163,18 @@
             try { localStorage.setItem('atlas-mode', this.value); } catch {}
             applyTheme(getStoredTheme(), this.value);
           });
-          bindRadioPref('pin-style', 'atlas-pin-style', wrappedRouter);
-          bindRadioPref('marker-size', 'atlas-marker-size', wrappedRouter);
-          bindRadioPref('trail-weight', 'atlas-trail-weight', wrappedRouter);
-          bindRadioPref('tile-filter', 'atlas-tile-filter', applyTileFilter);
+          const pinSel = document.getElementById('s-pin-style');
+          if (pinSel) pinSel.addEventListener('change', function() {
+            setPref('atlas-pin-style', this.value);
+            refreshPlaceMarkerIcons();
+          });
+          bindRadioPref('marker-size', 'atlas-marker-size', refreshPlaceMarkerIcons);
+          bindRadioPref('trail-weight', 'atlas-trail-weight', refreshTrailWeights);
+          const tfSel = document.getElementById('s-tile-filter');
+          if (tfSel) tfSel.addEventListener('change', function() {
+            setPref('atlas-tile-filter', this.value);
+            applyTileFilter(this.value);
+          });
           ['places', 'trails'].forEach(function(feat) {
             const cb = document.getElementById('s-feat-' + feat);
             if (!cb) return;
@@ -3789,7 +4191,7 @@
             setPref('atlas-tile-layer', this.value);
             wrappedRouter();
           });
-          [['s-cluster', 'atlas-cluster-places'], ['s-remember-view', 'atlas-remember-view']].forEach(function([id, key]) {
+          [['s-cluster', 'atlas-cluster-places'], ['s-remember-view', 'atlas-remember-view'], ['s-tile-picker', 'atlas-tile-picker'], ['s-map-add', 'atlas-map-add-button']].forEach(function([id, key]) {
             const cb = document.getElementById(id);
             if (!cb) return;
             cb.addEventListener('change', function() {
@@ -3798,6 +4200,25 @@
               if (pill) pill.classList.toggle('active', this.checked);
               if (key === 'atlas-remember-view' && !this.checked) {
                 try { localStorage.removeItem('atlas-last-view'); } catch {}
+              }
+              // Tile-picker is a pure on-map control add/remove; no need to
+              // rebuild the map (which causes a visible blink).
+              if (key === 'atlas-tile-picker') {
+                if (state.currentMap && state.tilePickerLayers) {
+                  if (this.checked && !state.tilePickerCtrl) {
+                    state.tilePickerCtrl = L.control.layers(state.tilePickerLayers, null, { position: 'topright' }).addTo(state.currentMap);
+                  } else if (!this.checked && state.tilePickerCtrl) {
+                    state.currentMap.removeControl(state.tilePickerCtrl);
+                    state.tilePickerCtrl = null;
+                  }
+                }
+                return;
+              }
+              // Map add-button is a single DOM node; mount/unmount in place
+              // instead of re-running the router (which would blink the map).
+              if (key === 'atlas-map-add-button') {
+                maybeMountFab();
+                return;
               }
               wrappedRouter();
             });
@@ -3893,7 +4314,14 @@
             }).then(data => {
               const c = data.imported || {};
               const successEl = document.getElementById('s-import-success');
-              successEl.textContent = 'Imported ' + (c.places || 0) + ' places, ' + (c.gpx || 0) + ' trails, ' + (c.metadata || 0) + ' metadata entries, ' + (c.prefs || 0) + ' prefs.';
+              const parts = [];
+              if (c.places)   parts.push(c.places   + ' places');
+              if (c.gpx)      parts.push(c.gpx      + ' trails');
+              if (c.metadata) parts.push(c.metadata + ' metadata entries');
+              if (c.prefs)    parts.push(c.prefs    + ' prefs');
+              successEl.textContent = parts.length
+                ? 'Imported ' + parts.join(', ') + '.'
+                : 'Nothing was imported.';
               successEl.hidden = false;
               fileInputEl.value = '';
               fileNameEl.textContent = 'No file selected';
@@ -4332,6 +4760,7 @@
       const existing = app.querySelector('.fab-add');
       if (existing) existing.remove();
       if (!state.auth.authenticated || isReadOnly()) return;
+      if (!getShowMapAddButton()) return;
       const base = (location.hash || '#/').split('?')[0];
       if (!(base === '#/' || base === '#' || base === '#/map')) return;
       if (!placesEnabled() && !trailsEnabled()) return;

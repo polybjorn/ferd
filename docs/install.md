@@ -7,7 +7,9 @@ Atlas has two reasonable install shapes, in increasing order of moving parts. Pi
 | [1. Local / private network](#1-local--private-network) | yes | no | no | LAN, VPN, mesh overlay |
 | [2. Public internet](#2-public-internet) | yes | yes | yes | the open web |
 
-Prerequisites are minimal: Python 3.9+ on the host. No build step, no Docker, no Node. The API is required: every data read and write goes through it.
+Prerequisites are minimal: Python 3.9+ on the host. No build step, no Node. The API is required: every data read and write goes through it.
+
+Prefer containers? Atlas also ships a Docker Compose path that maps onto the same two tiers. See [deploy-docker.md](deploy-docker.md).
 
 ## 1. Local / private network
 

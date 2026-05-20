@@ -42,6 +42,9 @@ gpx-manifest.sh          # generates routes.json from gpx/<Region>/<Trail>.gpx
 tools/
   api.py                 # stdlib-only API server (auth + write endpoints)
   config.example.json    # API config template
+Dockerfile               # container image for the Docker Compose path
+compose.yml              # Docker Compose service definition
+.dockerignore            # files excluded from the image build context
 deploy/
   atlas-api.socket       # systemd socket unit
   atlas-api.service      # systemd service unit
@@ -50,8 +53,10 @@ deploy/
   install.sh             # guided installer
 docs/
   install.md             # install walk-through
+  deploy-docker.md       # Docker Compose deploy walk-through
   configure.md           # config field reference
   themes.md              # theme system + how to add one
+  design.md              # UI conventions (modals, buttons, forms, status feedback)
   architecture.md        # this file
   screenshots/           # images for README and docs
 tests/

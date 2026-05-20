@@ -1,0 +1,32 @@
+# Atlas - Docker Compose deployment.
+#
+# Quickstart:
+#   mkdir -p data
+#   cp site-config.example.json data/site-config.json
+#   docker compose up -d
+#   # open http://localhost:8090 and register the first account
+#
+# See docs/deploy-docker.md for the full walk-through.
+
+services:
+  atlas:
+    build: .
+    image: atlas:local
+    container_name: atlas
+    restart: unless-stopped
+    ports:
+      # Override the host port via ATLAS_HOST_PORT if 8090 is taken.
+      - "${ATLAS_HOST_PORT:-8090}:8090"
+    volumes:
+      - ./data:/data
+    environment:
+      # Set to "false" for local HTTP-only testing. Keep "true" when behind a
+      # reverse proxy with TLS.
+      ATLAS_SECURE_COOKIES: "false"
+      # Uncomment to seed an operator account on first start. Ignored once any
+      # user exists. Change the password before the first launch.
+      # ATLAS_INITIAL_USER: admin
+      # ATLAS_INITIAL_PASSWORD: change-me
+      # Uncomment for public deploys to require a one-time setup token on the
+      # first registration. Token is printed to the container log at startup.
+      # ATLAS_REQUIRE_SETUP_TOKEN: "true"

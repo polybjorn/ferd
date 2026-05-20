@@ -1,0 +1,26 @@
+.git
+.gitignore
+.github
+
+# Operator state - never bake into the image.
+tools/config.json
+tools/atlas.db
+tools/atlas.db-wal
+tools/atlas.db-shm
+site-config.json
+users/
+gpx/
+data/
+
+# Dev artifacts.
+tests/
+docs/
+*.md
+!LICENSE
+.DS_Store
+
+# Editor / OS noise.
+.vscode/
+.idea/
+__pycache__/
+*.pyc

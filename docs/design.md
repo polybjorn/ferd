@@ -33,23 +33,38 @@ Floors, not stretch goals. Drift from these needs a real reason.
 | (default) | Secondary actions | Outlined |
 | `.sessions-revoke-others` style | Inline text-link next to a header | Transparent, underline on hover |
 
-Placement: form-bottom submits in `<div class="modal-actions">`. Description+button or input+button pairs use inline flex rows.
+Placement: form-bottom submits in `<div class="modal-actions">`. Description+button or input+button pairs use inline flex rows. When the row pairs a wrapped description with a button, set `align-items: flex-start` so the description sits at the top of the row instead of being pulled down to match the button height.
+
+`.primary` is themed for both modal and non-modal contexts (e.g. list-page Add buttons): the modal selector wins inside modals via specificity, the bare `button.primary` rule covers everywhere else.
 
 ## Forms and inputs
 
 - `<label>` block above the input. Helper text in `.modal-desc` below.
 - File pickers: hide native input with `.file-input-hidden`, render a styled `<button>Choose file</button>` + `.file-name` span. Canonical example: Backup -> Import.
-- Settings input types: pills (`.feature-pill`) for binary toggles, radios for small fixed sets, `<select>` for growing or many-option selects.
+- Settings input types: `.settings-toggle` (styled checkbox) for binary on/off, radios for small fixed sets (2-3 options with short labels), `<select>` for many-option selects. The legacy `.feature-pill` style is still used for the "Visible features" row in General; new toggles should prefer `.settings-toggle`.
+- Settings layout primitives: `.settings-grid-2` pairs two short selects side-by-side (label row above, control row below). `.settings-inline-row` puts label left, control right on one row; the radio row's column-gap is tightened inside it so 3-radio groups fit without wrapping.
+
+## Toggle switch
+
+Markup: `<input type="checkbox" class="settings-toggle" id="…">`. The input itself becomes the styled toggle via `appearance: none` + a `::after` knob, scoped with `.modal input[type="checkbox"].settings-toggle` so it wins over `.modal label`. The track uses `var(--border)` (off) and `var(--accent)` (on); the knob is `var(--surface)` in both states. Place it inside a `.settings-inline-row` with a clickable `<label for="…">` on the left.
 
 ## Status feedback
 
 - `.modal-error` for failures (red box, toggle `.visible`).
 - `.modal-success` for confirmations (green text, toggle `hidden`). Clear the inputs so the message reads as the new resting state.
+- `.modal-success-box` for confirmations that need the same visual weight as an error (multi-line counts, post-import summary). Mirrors `.modal-error` shape in green; toggle `hidden`.
 - Don't put transient confirmation in a button label - easy to miss.
+- Disabled `<select>` shows muted opacity and a not-allowed cursor (`.modal select:disabled`). Use when an input is reserved for future functionality (e.g. the language picker) so it looks intentional, not broken.
 
 ## Themes and colors
 
 Multiple themes x light/dark (see [themes.md](themes.md)). Always use CSS variables (`--text`, `--muted`, `--accent`, `--border`, `--surface`, `--surface2`, `--red`, `--green`). Never hardcode hex values.
+
+## List-page index controls
+
+`.index-controls` is the top row on the Places and Trails list pages: search input (flex:1), optional Filters popover, primary Add button. Keep the row to three slots on mobile by folding additional controls (grouping, secondary filters) into the popover rather than adding side-by-side widgets.
+
+Filters popover: `.filter-dropdown` wraps a `.filter-btn` and a `.filter-popover` anchored to the button's right edge. The popover holds a vertical stack of compact `<select>`s with their first option naming the dimension ("All statuses", "Any difficulty"), so no per-select labels are needed. View-mode controls (e.g. Group by) sit below a `.filter-divider` line. A `.filter-clear` text-link button at the bottom resets every select. The button shows a `Filters (N)` badge with accent border when one or more narrowing filters are active.
 
 ## UI copy
 

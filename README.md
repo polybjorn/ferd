@@ -1,10 +1,10 @@
 # Atlas
 
-A self-hosted Leaflet map for travel places and GPX trails. Single-file static frontend, optional Python API for in-browser editing. No build step, no Docker.
+A self-hosted Leaflet map for travel places and GPX trails. Single-file static frontend, optional Python API for in-browser editing. No build step.
 
 ![Unified map view](docs/screenshots/map.png)
 
-**Docs:** [Install](docs/install.md) · [Configuration](docs/configure.md) · [Themes](docs/themes.md) · [Architecture](docs/architecture.md)
+**Docs:** [Install](docs/install.md) · [Docker](docs/deploy-docker.md) · [Configuration](docs/configure.md) · [Themes](docs/themes.md) · [Architecture](docs/architecture.md)
 
 ## Features
 
@@ -26,7 +26,7 @@ Three tiers, pick the one that matches your use case:
 - **Local / private network** - run `python3 tools/api.py` directly; good for LAN or a VPN/mesh overlay (e.g. WireGuard, Tailscale, ZeroTier).
 - **Public internet** - reverse proxy (Caddy or nginx), socket-activated systemd, TLS. Guided installer in `deploy/install.sh` or step-by-step manual instructions.
 
-See [docs/install.md](docs/install.md) for the full walk-through.
+See [docs/install.md](docs/install.md) for the full walk-through, or [docs/deploy-docker.md](docs/deploy-docker.md) for the Docker Compose path.
 
 ## TODO
 
