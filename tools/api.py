@@ -163,7 +163,7 @@ def db_connect(path: str) -> sqlite3.Connection:
 
 
 def db_migrate(conn: sqlite3.Connection) -> None:
-  """Forward-compatible column adds."""
+  """Forward-compatible column adds and renames."""
   cols = {r["name"] for r in conn.execute("PRAGMA table_info(sessions)")}
   if "last_seen_at" not in cols:
     conn.execute("ALTER TABLE sessions ADD COLUMN last_seen_at INTEGER NOT NULL DEFAULT 0")
@@ -174,6 +174,8 @@ def db_migrate(conn: sqlite3.Connection) -> None:
   user_cols = {r["name"] for r in conn.execute("PRAGMA table_info(users)")}
   if "published" not in user_cols:
     conn.execute("ALTER TABLE users ADD COLUMN published INTEGER NOT NULL DEFAULT 0")
+  if "is_operator" in user_cols and "is_admin" not in user_cols:
+    conn.execute("ALTER TABLE users RENAME COLUMN is_operator TO is_admin")
 
 
 def db_init(conn: sqlite3.Connection) -> None:
@@ -183,7 +185,7 @@ def db_init(conn: sqlite3.Connection) -> None:
       username TEXT NOT NULL UNIQUE COLLATE NOCASE,
       pw_salt BLOB NOT NULL,
       pw_hash BLOB NOT NULL,
-      is_operator INTEGER NOT NULL DEFAULT 0,
+      is_admin INTEGER NOT NULL DEFAULT 0,
       created_at INTEGER NOT NULL
     );
     CREATE TABLE IF NOT EXISTS sessions (
@@ -251,14 +253,14 @@ def dummy_verify(password: str) -> bool:
 def create_user(conn: sqlite3.Connection, username: str, password: str, is_admin: bool = False) -> int:
   salt, digest = hash_password(password)
   cur = conn.execute(
-    "INSERT INTO users(username, pw_salt, pw_hash, is_operator, created_at) VALUES (?, ?, ?, ?, ?)",
+    "INSERT INTO users(username, pw_salt, pw_hash, is_admin, created_at) VALUES (?, ?, ?, ?, ?)",
     (username, salt, digest, 1 if is_admin else 0, int(time.time())),
   )
   return cur.lastrowid
 
 
 def find_user(conn: sqlite3.Connection, username: str) -> sqlite3.Row | None:
-  return conn.execute("SELECT *, is_operator AS is_admin FROM users WHERE username=?", (username,)).fetchone()
+  return conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
 
 
 def seed_initial_user(conn: sqlite3.Connection, cfg: dict) -> None:
@@ -305,7 +307,7 @@ def migrate_legacy_data(conn: sqlite3.Connection, cfg: dict) -> None:
   per-user folder doesn't block the move."""
   data_dir = Path(cfg["data_dir"]).resolve()
   row = conn.execute(
-    "SELECT username FROM users WHERE is_operator=1 ORDER BY id LIMIT 1"
+    "SELECT username FROM users WHERE is_admin=1 ORDER BY id LIMIT 1"
   ).fetchone()
   if not row:
     return
@@ -352,7 +354,7 @@ def session_lookup(conn: sqlite3.Connection, token: str) -> sqlite3.Row | None:
   if not token:
     return None
   row = conn.execute(
-    "SELECT u.id AS id, u.username AS username, u.is_operator AS is_admin, "
+    "SELECT u.id AS id, u.username AS username, u.is_admin AS is_admin, "
     "s.expires_at AS expires_at "
     "FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token=?",
     (token,),
