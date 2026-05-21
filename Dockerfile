@@ -1,16 +1,22 @@
-# Atlas - private self-hosted Leaflet map.
+# Atlas - self-hosted Leaflet map for places and GPX trails.
 # Stdlib-only Python; no pip install step.
 
 FROM python:3.12-slim
 
-# bash is needed by gpx-manifest.sh; tini gives clean signal handling.
+LABEL org.opencontainers.image.title="Atlas" \
+      org.opencontainers.image.description="Self-hosted personal map for places and GPX trails." \
+      org.opencontainers.image.source="https://github.com/polybjorn/atlas" \
+      org.opencontainers.image.licenses="MIT"
+
+# tini gives clean signal handling. gosu drops privileges in the entrypoint
+# after handling PUID/PGID. No bash; gpx-manifest.sh is POSIX sh.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends bash tini \
+ && apt-get install -y --no-install-recommends tini gosu \
  && rm -rf /var/lib/apt/lists/*
 
-# Non-root runtime user. UID 1000 matches a typical host user so bind-mounted
-# data ends up owned by you on the host.
-RUN useradd --system --uid 1000 --home /app --shell /usr/sbin/nologin atlas
+# Non-root runtime user. UID/GID 1000 by default; overridable via PUID/PGID
+# env vars handled in docker-entrypoint.sh.
+RUN useradd --uid 1000 --home /app --shell /usr/sbin/nologin atlas
 
 WORKDIR /app
 COPY --chown=atlas:atlas . /app
@@ -21,9 +27,9 @@ COPY --chown=atlas:atlas . /app
 RUN rm -f /app/site-config.json \
  && ln -s /data/site-config.json /app/site-config.json \
  && rm -f /app/tools/config.json \
- && install -d -o atlas -g atlas /data
+ && install -d -o atlas -g atlas /data \
+ && install -m 0755 /app/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
-USER atlas
 EXPOSE 8090
 
 ENV ATLAS_BIND=0.0.0.0:8090 \
@@ -33,5 +39,8 @@ ENV ATLAS_BIND=0.0.0.0:8090 \
     ATLAS_MANIFEST_CMD=/app/gpx-manifest.sh \
     ATLAS_SECURE_COOKIES=true
 
-ENTRYPOINT ["/usr/bin/tini", "--"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD python3 -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/', timeout=3)" || exit 1
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["python3", "tools/api.py"]

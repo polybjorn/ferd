@@ -11,6 +11,7 @@ site-config.json
 users/
 gpx/
 data/
+.env
 
 # Dev artifacts.
 tests/

@@ -48,19 +48,20 @@ Three paths, pick the one that fits:
 - **Local / private network.** Run `python3 tools/api.py` directly. Good for LAN or a mesh overlay (WireGuard, Tailscale, ZeroTier).
 - **Public internet.** Reverse proxy in front, socket-activated systemd, TLS. Guided installer at `deploy/install.sh` or step-by-step manual instructions.
 
-Full walk-through in [docs/install.md](docs/install.md). Docker Compose path in [docs/deploy-docker.md](docs/deploy-docker.md).
+Full walk-through in [docs/install.md](docs/install.md). Docker path in [docs/docker.md](docs/docker.md).
 
 ## Roadmap
 
 - UI to manage trail regions (rename, move trails between regions, delete), mirroring the existing category-label editor.
 - Stable category colors across config edits. Colors can currently shift when categories are added or reordered.
+- Publish a prebuilt multi-arch container image so deployments can `docker compose pull` instead of building from source.
 
 ## Documentation
 
 | Guide | Covers |
 | --- | --- |
 | [Install](docs/install.md) | How to set up Atlas on your own server. |
-| [Docker](docs/deploy-docker.md) | How to run Atlas in a container. |
+| [Docker](docs/docker.md) | How to run Atlas in a container. |
 | [Configuration](docs/configure.md) | Settings and feature flags you can tweak. |
 | [Themes](docs/themes.md) | Look and feel options, and how to add your own. |
 | [Architecture](docs/architecture.md) | How the code is organized and where data lives. |

@@ -53,7 +53,7 @@ deploy/
   install.sh             # guided installer
 docs/
   install.md             # install walk-through
-  deploy-docker.md       # Docker Compose deploy walk-through
+  docker.md              # installing with Docker
   configure.md           # config field reference
   themes.md              # theme system + how to add one
   design.md              # UI conventions (modals, buttons, forms, status feedback)

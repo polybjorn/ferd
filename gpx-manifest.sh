@@ -1,5 +1,5 @@
-#!/bin/bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 # Per-user data dir as $1; default to script's dir for ad-hoc CLI runs against
 # legacy single-shared-map layouts.
 cd "${1:-$(dirname "$0")}"

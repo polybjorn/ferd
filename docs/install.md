@@ -9,7 +9,7 @@ Atlas has two reasonable install shapes, in increasing order of moving parts. Pi
 
 Prerequisites are minimal: Python 3.9+ on the host. No build step, no Node. The API is required: every data read and write goes through it.
 
-Prefer containers? Atlas also ships a Docker Compose path that maps onto the same two tiers. See [deploy-docker.md](deploy-docker.md).
+Prefer containers? Atlas also ships a Docker path that maps onto the same two tiers. See [docker.md](docker.md).
 
 ## 1. Local / private network
 

@@ -17,3 +17,6 @@ tools/atlas.db*
 
 # Docker Compose bind mount (compose.yml -> ./data:/data)
 data/
+
+# Compose environment overrides (secrets / per-deployment values)
+.env
