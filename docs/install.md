@@ -156,4 +156,4 @@ sudo ./deploy/install.sh --yes
 sudo systemctl restart atlas-api.service
 ```
 
-The installer never overwrites operator config (`tools/config.json`, `site-config.json`) or data (`users/`, `tools/atlas.db`). Only application files and the systemd units are replaced.
+The installer never overwrites your config (`tools/config.json`, `site-config.json`) or data (`users/`, `tools/atlas.db`). Only application files and the systemd units are replaced.
