@@ -704,7 +704,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {
       "authenticated": bool(user),
       "username": user["username"] if user else None,
-      "is_operator": bool(user["is_admin"]) if user else False,
+      "is_admin": bool(user["is_admin"]) if user else False,
       "published": published,
       "registration_open": registration_open(self.conn),
       "has_users": user_count(self.conn) > 0,
@@ -741,7 +741,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         Handler.setup_token = None  # Token no longer relevant.
     ensure_user_dir(self.cfg, username)
     cookie = self._set_session_cookie(token, SESSION_DAYS * 86400)
-    self._send_json(HTTPStatus.CREATED, {"username": username, "is_operator": first_user}, [cookie])
+    self._send_json(HTTPStatus.CREATED, {"username": username, "is_admin": first_user}, [cookie])
 
   def _h_login(self):
     ip = self._client_ip()
@@ -764,7 +764,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self.login_limiter.clear(ip)
     token = session_create(self.conn, user["id"], ip=ip, user_agent=self.headers.get("User-Agent"))
     cookie = self._set_session_cookie(token, SESSION_DAYS * 86400)
-    self._send_json(HTTPStatus.OK, {"username": user["username"], "is_operator": bool(user["is_admin"])}, [cookie])
+    self._send_json(HTTPStatus.OK, {"username": user["username"], "is_admin": bool(user["is_admin"])}, [cookie])
 
   def _h_logout(self):
     token = self._cookie_token()
