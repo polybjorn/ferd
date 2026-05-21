@@ -3,7 +3,7 @@
 Atlas has two config files. Both are gitignored; copy the `.example` versions to start.
 
 - `site-config.json`: read by the browser. Brand, default map view, category labels, API base path.
-- `tools/config.json`: read by the API server. Listen address, paths, password/cookie/body-size policy, optional pre-seeded operator credentials.
+- `tools/config.json`: read by the API server. Listen address, paths, password/cookie/body-size policy, optional pre-seeded admin credentials.
 
 Every key in `tools/config.json` can also be set via an `ATLAS_<UPPER>` environment variable. Env wins over the file.
 
@@ -31,7 +31,7 @@ Every key in `tools/config.json` can also be set via an `ATLAS_<UPPER>` environm
 | `static_dir` | `ATLAS_STATIC_DIR` | `null` | If set, the API also serves static files from this directory for any non-`/api/*` GET. Use this only for development; in production let nginx serve static. |
 | `idle_exit_seconds` | `ATLAS_IDLE_EXIT_SECONDS` | `0` | If > 0, the process exits after this many seconds with no requests. Pair with systemd socket activation for zero-idle RAM. |
 | `require_setup_token` | `ATLAS_REQUIRE_SETUP_TOKEN` | `false` | If true and no users exist, generate a one-time token printed to stderr; the first registration must supply it. See [SECURITY](../SECURITY.md). |
-| `initial_user` | `ATLAS_INITIAL_USER` | `null` | If set with `initial_password`, the operator account is created on first start. Both fields are ignored on later starts once any user exists. |
+| `initial_user` | `ATLAS_INITIAL_USER` | `null` | If set with `initial_password`, the admin account is created on first start. Both fields are ignored on later starts once any user exists. |
 | `initial_password` | `ATLAS_INITIAL_PASSWORD` | `null` | See `initial_user`. Must be at least 12 characters. |
 
 ## Data files
@@ -47,7 +47,7 @@ These are not config but the API and frontend assume they exist at these paths. 
 | `users/<u>/prefs.json` | API (`/api/me/prefs`) | Per-user UI preferences that should follow the account across browsers. |
 | `site-config.json` | API read+write (`/api/site-config/*`) | Site-wide config: brand, feature flags, category labels. Read by the browser at boot. |
 
-On first start after upgrading from the single-shared-map layout, any `places.json`, `routes.json`, `metadata.json`, or `gpx/` at the `data_dir` root is moved into the first operator's `users/<operator>/` folder. The move runs once and is silent thereafter.
+On first start after upgrading from the single-shared-map layout, any `places.json`, `routes.json`, `metadata.json`, or `gpx/` at the `data_dir` root is moved into the first admin's `users/<admin>/` folder. The move runs once and is silent thereafter.
 
 ## Per-user publish
 
