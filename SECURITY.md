@@ -1,15 +1,15 @@
 # Security
 
-Atlas is a self-hosted single-instance app. The threat model assumes the operator controls the box and the network gate (nginx + TLS, or a VPN). This page documents what the app does to harden itself within that assumption, and where the operator still has to think.
+Atlas is a self-hosted single-instance app. The threat model assumes the admin controls the box and the network gate (nginx + TLS, or a VPN). This page documents what the app does to harden itself within that assumption, and where the admin still has to think.
 
 ## First-run window
 
-Before the first user registers, registration is open. If the site is reachable from the open internet during the window between deploy and first registration, a stranger can race you to claim the operator account.
+Before the first user registers, registration is open. If the site is reachable from the open internet during the window between deploy and first registration, a stranger can race you to claim the admin account.
 
 Three ways to close the window:
 
 1. **Don't expose Atlas to the public internet until you've registered.** Easiest for private deploys behind a VPN or LAN.
-2. **Pre-seed the operator account.** Set `initial_user` and `initial_password` in `tools/config.json`. On first start with no users, the account is created and registration is already closed by the time the API accepts its first request.
+2. **Pre-seed the admin account.** Set `initial_user` and `initial_password` in `tools/config.json`. On first start with no users, the account is created and registration is already closed by the time the API accepts its first request.
 3. **Require a setup token.** Set `require_setup_token: true`. On first start the API generates a random token and prints it to stderr. Registration is open but the first registration must supply the token. The token is consumed once the first account exists.
 
 ## Account model
@@ -17,8 +17,8 @@ Three ways to close the window:
 - Username/password, hashed with PBKDF2-SHA256 at 600k iterations (OWASP 2024+ guidance for PBKDF2-SHA256), 16-byte salt, 32-byte derived key.
 - Usernames are case-insensitive via `COLLATE NOCASE`. Valid characters: alphanumerics, hyphens, underscores. Max 64 chars.
 - Passwords must be 12 to 256 characters. The upper bound prevents PBKDF2 DoS via huge inputs.
-- The first registered user is marked operator. Operator-only endpoints today: re-opening registration, editing `site-config.json` category labels. Every other account has the same powers within its own `users/<username>/` folder; the operator does not have an admin view of other users' data.
-- Registration auto-closes after the first user. The operator can re-open it from Settings to invite someone.
+- The first registered user is marked admin. Admin-only endpoints today: re-opening registration, editing `site-config.json` category labels. Every other account has the same powers within its own `users/<username>/` folder; the admin cannot read or modify other users' data.
+- Registration auto-closes after the first user. The admin can re-open it from Settings to invite someone.
 
 ## Sessions
 
@@ -57,7 +57,7 @@ Backup includes this file. The whole users + sessions state lives in three files
 
 ## What Atlas does not protect against
 
-- A malicious operator. The model is "single-user, trusted operator".
+- A malicious admin. The model is "single-user, trusted admin".
 - A compromise of the box. Anything on the host can read the DB and the data files.
 - A network attacker between you and the site if you skip TLS. Always front Atlas with HTTPS in production.
 - Cross-site request forgery on browsers older than 2020 that ignore `SameSite=Lax`. The modern major browsers respect it; we don't carry a CSRF token.

@@ -70,7 +70,7 @@ When it finishes:
 
 1. Edit `/srv/atlas/tools/config.json` (see [docs/configure.md](configure.md)). At minimum set `secure_cookies: true` and decide between pre-seeded credentials (`initial_user` + `initial_password`) or in-browser registration.
 2. Set up the reverse proxy (see [2c](#2c-reverse-proxy)).
-3. Open the site, register the first account (or log in with the seeded credentials). The first registrant becomes the operator. Existing data living at the `data_dir` root (`places.json`, `routes.json`, `metadata.json`, `gpx/`) is moved into that operator's `users/<operator>/` folder on first start.
+3. Open the site, register the first account (or log in with the seeded credentials). The first registrant becomes the admin. Existing data living at the `data_dir` root (`places.json`, `routes.json`, `metadata.json`, `gpx/`) is moved into that admin's `users/<admin>/` folder on first start.
 
 To reverse it: `sudo /srv/atlas/deploy/uninstall.sh` (add `--purge` to also delete the install prefix and its data).
 
@@ -143,7 +143,7 @@ Same shape, but use `deploy/atlas-api.plist` (template; replace `/Users/YOU/atla
 
 ## First sign-in
 
-Open the site. If you didn't pre-seed `initial_user` and `initial_password`, register the first account; that user becomes the operator and registration auto-closes after that. From the menu, "Settings" lets you toggle visible features, pick a default tile layer, switch units, customize appearance (theme, mode, pin style, marker size, trail thickness, tile filter), publish your map at `/u/<your-username>/`, download a zip export of your data, change your password, manage active sessions, and (as operator) edit category labels or re-open registration to invite someone.
+Open the site. If you didn't pre-seed `initial_user` and `initial_password`, register the first account; that user becomes the admin and registration auto-closes after that. From the menu, "Settings" lets you toggle visible features, pick a default tile layer, switch units, customize appearance (theme, mode, pin style, marker size, trail thickness, tile filter), publish your map at `/u/<your-username>/`, download a zip export of your data, change your password, manage active sessions, and (as admin) edit category labels or re-open registration to invite someone.
 
 If you set `require_setup_token: true` in the API config, the first registration also needs the one-time token printed to the API log on startup. Recommended when deploying to the open internet. See [SECURITY.md](../SECURITY.md).
 

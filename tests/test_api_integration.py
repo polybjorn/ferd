@@ -168,7 +168,7 @@ class TestState(unittest.TestCase):
     status, body = c.request("GET", "/api/state")
     self.assertEqual(status, 200)
     self.assertFalse(body["authenticated"])
-    self.assertFalse(body["is_operator"])
+    self.assertFalse(body["is_admin"])
 
 
 class TestAuth(unittest.TestCase):
@@ -187,7 +187,7 @@ class TestAuth(unittest.TestCase):
     status, body = c.request("GET", "/api/state")
     self.assertEqual(status, 200)
     self.assertTrue(body["authenticated"])
-    self.assertTrue(body["is_operator"])
+    self.assertTrue(body["is_admin"])
     self.assertEqual(body["username"], SEED_USER)
 
   def test_logout(self):
@@ -454,7 +454,7 @@ class TestPerUserIsolation(unittest.TestCase):
 
   def setUp(self):
     self.c = admin_client()
-    # Open registration via the operator endpoint, register a second user, close it back up.
+    # Open registration via the admin endpoint, register a second user, close it back up.
     self.c.request("POST", "/api/settings/registration", {"mode": "open"})
     self.peer = Client(_server.base_url)  # type: ignore[union-attr]
     status, _ = self.peer.request("POST", "/api/register",

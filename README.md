@@ -31,7 +31,7 @@ Open http://localhost:8090 and sign in with the seeded admin account (see [docs/
 
 **Editing and multi-user**
 - Sign in to add, edit, or delete places and trails from the browser. Server strips PII from uploaded GPX (timestamps, author, creator).
-- Per-user data isolation. Each account has its own places and trails; the operator's only extra power is toggling site-wide registration.
+- Per-user data isolation. Each account has its own places and trails; the admin's only extra power is toggling site-wide registration.
 - Each user can optionally publish a read-only public copy of their map.
 - Zip import/export of your own data.
 

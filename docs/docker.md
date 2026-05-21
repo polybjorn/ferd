@@ -19,7 +19,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Open http://localhost:8090 and register the first account. That account becomes the operator (the one user who can change site-wide settings).
+Open http://localhost:8090 and register the first account. The first user is the one who can change site-wide settings; everyone after is a regular user.
 
 To reach it from other devices on your LAN, the container already listens on every interface, so use `http://<host-ip>:8090`. `ATLAS_SECURE_COOKIES` defaults to `false` in `.env.example` because the quickstart assumes plain HTTP.
 
@@ -31,8 +31,8 @@ If you want to reach Atlas at an `https://` URL on your own domain, put a revers
 
 Two common setups:
 
-- **You already run a proxy on the host.** Keep the `ports: 8090:8090` mapping in `compose.yml` and tell your existing proxy to forward to `http://127.0.0.1:8090`. [`deploy/Caddyfile.example`](../deploy/Caddyfile.example) and [`deploy/nginx.example.conf`](../deploy/nginx.example.conf) are starting points.
-- **You run the proxy as a second container next to Atlas.** Add a Caddy, nginx, or Traefik service to `compose.yml`, remove the `ports:` block from the `atlas` service so only the proxy can reach it, and tell the proxy to forward to `atlas:8090`.
+- **You already run a proxy on the host.** Keep the `ports: 8090:8090` mapping in [`compose.yml`](../compose.yml) and tell your existing proxy to forward to `http://127.0.0.1:8090`. [`deploy/Caddyfile.example`](../deploy/Caddyfile.example) and [`deploy/nginx.example.conf`](../deploy/nginx.example.conf) are starting points.
+- **You run the proxy as a second container next to Atlas.** Add a Caddy, nginx, or Traefik service to [`compose.yml`](../compose.yml), remove the `ports:` block from the `atlas` service so only the proxy can reach it, and tell the proxy to forward to `atlas:8090`.
 
 Either way, set `ATLAS_SECURE_COOKIES=true` in `.env` once you're on HTTPS. This tells Atlas to mark login cookies as HTTPS-only so they can't leak over plain HTTP by accident.
 
@@ -54,8 +54,8 @@ Per-deployment settings live in `.env` on the host (gitignored; `.env.example` i
 | Variable | Default | What it does |
 |---|---|---|
 | `ATLAS_SECURE_COOKIES` | `true` in image, `false` in `.env.example` | Set to `false` only for plain-HTTP localhost. `true` whenever there's a reverse proxy with TLS in front. |
-| `ATLAS_INITIAL_USER` | unset | Pre-create an operator account on first start, instead of registering through the web UI. Used together with `ATLAS_INITIAL_PASSWORD`. Ignored once any user exists. |
-| `ATLAS_INITIAL_PASSWORD` | unset | Password for the seeded operator account. |
+| `ATLAS_INITIAL_USER` | unset | Pre-create an admin account on first start, instead of registering through the web UI. Used together with `ATLAS_INITIAL_PASSWORD`. Ignored once any user exists. |
+| `ATLAS_INITIAL_PASSWORD` | unset | Password for the seeded admin account. |
 | `ATLAS_REQUIRE_SETUP_TOKEN` | `false` | When `true`, the first registration requires a one-time token printed to the container log at startup. Recommended for anything internet-facing. |
 | `PUID` / `PGID` | auto-detect | Pin the container's uid/gid instead of adopting the owner of `./data/`. See the Permissions section above. |
 

@@ -105,7 +105,7 @@ if confirm "  proceed?"; then
         fi
     done
 
-    # Seed config files only if missing. Never clobber operator-edited config.
+    # Seed config files only if missing. Never clobber admin-edited config.
     if [ ! -f "$PREFIX/tools/config.json" ]; then
         cp "$SRC_DIR/tools/config.example.json" "$PREFIX/tools/config.json"
         chown "$SVC_USER:$SVC_USER" "$PREFIX/tools/config.json"
@@ -157,10 +157,10 @@ echo "  1. Edit $PREFIX/tools/config.json (paths, secure_cookies, initial_user).
 echo "  2. Pick a reverse proxy:"
 echo "       Caddy:  cp $PREFIX/deploy/Caddyfile.example /etc/caddy/Caddyfile  (then edit + reload)"
 echo "       nginx:  see $PREFIX/deploy/nginx.example.conf"
-echo "  3. Open the site and register the first account. They become the operator."
+echo "  3. Open the site and register the first account. They become the admin."
 echo "     Each user manages their own places/trails through the in-browser UI;"
 echo "     any pre-existing $PREFIX/places.json or $PREFIX/gpx/ is auto-migrated"
-echo "     into that operator's $PREFIX/users/<operator>/ folder on first start."
+echo "     into that admin's $PREFIX/users/<admin>/ folder on first start."
 echo
 echo "Logs:    journalctl -u atlas-api.service -f"
 echo "Uninstall: $PREFIX/deploy/uninstall.sh"

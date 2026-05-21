@@ -163,7 +163,7 @@ def db_connect(path: str) -> sqlite3.Connection:
 
 
 def db_migrate(conn: sqlite3.Connection) -> None:
-  """Forward-compatible column adds."""
+  """Forward-compatible column adds and renames."""
   cols = {r["name"] for r in conn.execute("PRAGMA table_info(sessions)")}
   if "last_seen_at" not in cols:
     conn.execute("ALTER TABLE sessions ADD COLUMN last_seen_at INTEGER NOT NULL DEFAULT 0")
@@ -174,6 +174,8 @@ def db_migrate(conn: sqlite3.Connection) -> None:
   user_cols = {r["name"] for r in conn.execute("PRAGMA table_info(users)")}
   if "published" not in user_cols:
     conn.execute("ALTER TABLE users ADD COLUMN published INTEGER NOT NULL DEFAULT 0")
+  if "is_operator" in user_cols and "is_admin" not in user_cols:
+    conn.execute("ALTER TABLE users RENAME COLUMN is_operator TO is_admin")
 
 
 def db_init(conn: sqlite3.Connection) -> None:
@@ -183,7 +185,7 @@ def db_init(conn: sqlite3.Connection) -> None:
       username TEXT NOT NULL UNIQUE COLLATE NOCASE,
       pw_salt BLOB NOT NULL,
       pw_hash BLOB NOT NULL,
-      is_operator INTEGER NOT NULL DEFAULT 0,
+      is_admin INTEGER NOT NULL DEFAULT 0,
       created_at INTEGER NOT NULL
     );
     CREATE TABLE IF NOT EXISTS sessions (
@@ -248,11 +250,11 @@ def dummy_verify(password: str) -> bool:
   return secrets.compare_digest(digest, _DUMMY_HASH)
 
 
-def create_user(conn: sqlite3.Connection, username: str, password: str, is_operator: bool = False) -> int:
+def create_user(conn: sqlite3.Connection, username: str, password: str, is_admin: bool = False) -> int:
   salt, digest = hash_password(password)
   cur = conn.execute(
-    "INSERT INTO users(username, pw_salt, pw_hash, is_operator, created_at) VALUES (?, ?, ?, ?, ?)",
-    (username, salt, digest, 1 if is_operator else 0, int(time.time())),
+    "INSERT INTO users(username, pw_salt, pw_hash, is_admin, created_at) VALUES (?, ?, ?, ?, ?)",
+    (username, salt, digest, 1 if is_admin else 0, int(time.time())),
   )
   return cur.lastrowid
 
@@ -268,8 +270,8 @@ def seed_initial_user(conn: sqlite3.Connection, cfg: dict) -> None:
   if not user or not pw:
     return
   if user_count(conn) == 0:
-    create_user(conn, user, pw, is_operator=True)
-    print(f"[atlas-api] seeded initial operator '{user}'", file=sys.stderr)
+    create_user(conn, user, pw, is_admin=True)
+    print(f"[atlas-api] seeded initial admin '{user}'", file=sys.stderr)
 
 
 def user_dir(cfg: dict, username: str) -> Path:
@@ -298,14 +300,14 @@ def set_user_published(conn: sqlite3.Connection, user_id: int, value: bool) -> N
 
 def migrate_legacy_data(conn: sqlite3.Connection, cfg: dict) -> None:
   """One-shot: move legacy shared `places.json` + `gpx/` + `metadata.json` +
-  `routes.json` into the first operator's folder. For each file: skipped if
+  `routes.json` into the first admin's folder. For each file: skipped if
   the source doesn't exist or a non-empty destination is already there
   (so an already-migrated install or a user with their own data is left
   alone). Run before ensure_user_dir so the freshly-created empty
   per-user folder doesn't block the move."""
   data_dir = Path(cfg["data_dir"]).resolve()
   row = conn.execute(
-    "SELECT username FROM users WHERE is_operator=1 ORDER BY id LIMIT 1"
+    "SELECT username FROM users WHERE is_admin=1 ORDER BY id LIMIT 1"
   ).fetchone()
   if not row:
     return
@@ -352,7 +354,7 @@ def session_lookup(conn: sqlite3.Connection, token: str) -> sqlite3.Row | None:
   if not token:
     return None
   row = conn.execute(
-    "SELECT u.id AS id, u.username AS username, u.is_operator AS is_operator, "
+    "SELECT u.id AS id, u.username AS username, u.is_admin AS is_admin, "
     "s.expires_at AS expires_at "
     "FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token=?",
     (token,),
@@ -498,14 +500,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
         pass
     return user
 
-  def _require_operator(self) -> sqlite3.Row | None:
-    """Return current user if operator, else send 401/403 and return None."""
+  def _require_admin(self) -> sqlite3.Row | None:
+    """Return current user if admin, else send 401/403 and return None."""
     user = self._current_user()
     if not user:
       self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
       return None
-    if not user["is_operator"]:
-      self._error(HTTPStatus.FORBIDDEN, "operator only")
+    if not user["is_admin"]:
+      self._error(HTTPStatus.FORBIDDEN, "admin only")
       return None
     return user
 
@@ -704,7 +706,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {
       "authenticated": bool(user),
       "username": user["username"] if user else None,
-      "is_operator": bool(user["is_operator"]) if user else False,
+      "is_admin": bool(user["is_admin"]) if user else False,
       "published": published,
       "registration_open": registration_open(self.conn),
       "has_users": user_count(self.conn) > 0,
@@ -735,13 +737,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
       if first_user and Handler.setup_token is not None:
         if not supplied_token or not secrets.compare_digest(supplied_token, Handler.setup_token):
           return self._error(HTTPStatus.FORBIDDEN, "setup token required or incorrect")
-      user_id = create_user(self.conn, username, password, is_operator=first_user)
+      user_id = create_user(self.conn, username, password, is_admin=first_user)
       token = session_create(self.conn, user_id, ip=self._client_ip(), user_agent=self.headers.get("User-Agent"))
       if first_user:
         Handler.setup_token = None  # Token no longer relevant.
     ensure_user_dir(self.cfg, username)
     cookie = self._set_session_cookie(token, SESSION_DAYS * 86400)
-    self._send_json(HTTPStatus.CREATED, {"username": username, "is_operator": first_user}, [cookie])
+    self._send_json(HTTPStatus.CREATED, {"username": username, "is_admin": first_user}, [cookie])
 
   def _h_login(self):
     ip = self._client_ip()
@@ -764,7 +766,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self.login_limiter.clear(ip)
     token = session_create(self.conn, user["id"], ip=ip, user_agent=self.headers.get("User-Agent"))
     cookie = self._set_session_cookie(token, SESSION_DAYS * 86400)
-    self._send_json(HTTPStatus.OK, {"username": user["username"], "is_operator": bool(user["is_operator"])}, [cookie])
+    self._send_json(HTTPStatus.OK, {"username": user["username"], "is_admin": bool(user["is_admin"])}, [cookie])
 
   def _h_logout(self):
     token = self._cookie_token()
@@ -854,7 +856,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"ok": True, "removed": removed})
 
   def _h_settings_registration(self):
-    if self._require_operator() is None:
+    if self._require_admin() is None:
       return
     body = self._read_body_or_400()
     if body is None:
@@ -867,7 +869,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"registration": mode})
 
   def _h_site_config_category_labels(self):
-    if self._require_operator() is None:
+    if self._require_admin() is None:
       return
     body = self._read_body_or_400()
     if body is None:
@@ -1868,7 +1870,7 @@ def main() -> int:
   Handler.last_request = time.monotonic()
 
   # Setup token: if enabled and no users exist yet, generate one and require it
-  # on /api/register. Print to stderr only; the operator copies it from logs.
+  # on /api/register. Print to stderr only; the admin copies it from logs.
   Handler.setup_token = None
   if cfg.get("require_setup_token") and user_count(conn) == 0:
     Handler.setup_token = secrets.token_urlsafe(24)

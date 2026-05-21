@@ -1991,7 +1991,7 @@
 
     const state = {
       config: DEFAULT_CONFIG,
-      auth: { authenticated: false, username: null, is_operator: false, published: false, registration_open: true, has_users: false, requires_setup_token: false },
+      auth: { authenticated: false, username: null, is_admin: false, published: false, registration_open: true, has_users: false, requires_setup_token: false },
       viewer: detectViewer(),
       currentMap: null,
       currentElevation: null,
@@ -3951,7 +3951,7 @@
     }
 
     function openSettingsModal() {
-      const isOp = state.auth.is_operator;
+      const isAdmin = state.auth.is_admin;
       const regOpen = state.auth.registration_open;
       const theme = getStoredTheme();
       const mode = getStoredMode();
@@ -3974,7 +3974,7 @@
           '<button data-tab="general" class="active">General</button>' +
           '<button data-tab="appearance">Appearance</button>' +
           '<button data-tab="account">Account</button>' +
-          (isOp ? '<button data-tab="admin">Admin</button>' : '') +
+          (isAdmin ? '<button data-tab="admin">Admin</button>' : '') +
         '</div>' +
         '<div data-panel="general">' +
         ((placesAvailable() || trailsAvailable()) ?
@@ -4096,7 +4096,7 @@
         '<h3 class="settings-h sessions-h">Active sessions<button type="button" class="sessions-revoke-others" id="s-revoke-others" hidden>Sign out others</button></h3>' +
         '<div id="s-sessions">Loading&hellip;</div>' +
         '</div>' +
-        (isOp ?
+        (isAdmin ?
           '<div data-panel="admin" hidden>' +
           (placesAvailable() ?
             '<h3 class="settings-h">Categories</h3>' +
