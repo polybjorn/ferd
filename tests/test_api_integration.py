@@ -967,5 +967,73 @@ class TestAdmin(unittest.TestCase):
     self.assertEqual(status, 409)
 
 
+class TestAuditLogs(unittest.TestCase):
+  """Admin audit log endpoint and event capture."""
+
+  def setUp(self):
+    self.c = admin_client()
+
+  def _actions(self, limit: int = 50) -> list[str]:
+    status, body = self.c.request("GET", f"/api/admin/logs?limit={limit}")
+    self.assertEqual(status, 200)
+    return [r["action"] for r in body["logs"]]
+
+  def test_anon_blocked(self):
+    anon = Client(_server.base_url)  # type: ignore[union-attr]
+    status, _ = anon.request("GET", "/api/admin/logs")
+    self.assertEqual(status, 401)
+
+  def test_non_admin_blocked(self):
+    self.c.request("POST", "/api/settings/registration", {"mode": "open"})
+    user_c = Client(_server.base_url)  # type: ignore[union-attr]
+    status, _ = user_c.request("POST", "/api/register",
+                               {"username": "logviewer", "password": "logviewer-password"})
+    if status == 409:
+      user_c.login("logviewer", "logviewer-password")
+    self.c.request("POST", "/api/settings/registration", {"mode": "closed"})
+    try:
+      status, _ = user_c.request("GET", "/api/admin/logs")
+      self.assertEqual(status, 403)
+    finally:
+      for u in self.c.request("GET", "/api/admin/users")[1].get("users") or []:
+        if u["username"] != SEED_USER:
+          self.c.request("DELETE", f"/api/admin/users/{u['id']}")
+
+  def test_login_success_logged(self):
+    Client(_server.base_url).login(SEED_USER, "test-password-1234")  # type: ignore[union-attr]
+    self.assertIn("auth.login_success", self._actions())
+
+  def test_login_failure_logged(self):
+    bad = Client(_server.base_url)  # type: ignore[union-attr]
+    status, _ = bad.request("POST", "/api/login",
+                            {"username": "ghost-user-xyz", "password": "nope"})
+    self.assertEqual(status, 401)
+    self.assertIn("auth.login_failure", self._actions())
+
+  def test_publish_toggle_logged(self):
+    self.c.request("POST", "/api/me/publish", {"published": True})
+    self.c.request("POST", "/api/me/publish", {"published": False})
+    actions = self._actions()
+    self.assertEqual(actions.count("user.publish_toggle"), actions.count("user.publish_toggle"))
+    self.assertIn("user.publish_toggle", actions)
+
+  def test_pagination_cursor(self):
+    # Generate a handful of events.
+    for _ in range(3):
+      self.c.request("POST", "/api/me/publish", {"published": True})
+      self.c.request("POST", "/api/me/publish", {"published": False})
+    status, body = self.c.request("GET", "/api/admin/logs?limit=2")
+    self.assertEqual(status, 200)
+    self.assertEqual(len(body["logs"]), 2)
+    self.assertIsNotNone(body["next_before_id"])
+    first_ids = [r["id"] for r in body["logs"]]
+    status, body2 = self.c.request("GET", f"/api/admin/logs?limit=2&before_id={body['next_before_id']}")
+    self.assertEqual(status, 200)
+    second_ids = [r["id"] for r in body2["logs"]]
+    self.assertFalse(set(first_ids) & set(second_ids))
+    # Newest-first ordering preserved across pages.
+    self.assertGreater(min(first_ids), max(second_ids))
+
+
 if __name__ == "__main__":
   unittest.main()
