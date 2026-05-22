@@ -227,14 +227,15 @@ def log_event(conn: sqlite3.Connection, actor: str | None, action: str,
       "INSERT INTO audit_log(ts, actor, action, target, details) VALUES (?, ?, ?, ?, ?)",
       (int(time.time()), actor, action, target, details_json),
     )
-    # Prune in batches once the cap is exceeded so we amortize the cost.
-    row = conn.execute("SELECT COUNT(*) AS n FROM audit_log").fetchone()
-    if row["n"] > AUDIT_LOG_CAP + AUDIT_LOG_PRUNE_BATCH:
+    # Prune in batches once the id span exceeds the cap. MIN(id) + MAX(id)
+    # are O(1) via the primary key, so this runs on every insert without a
+    # table scan. Gaps from prior prunes only trigger pruning slightly
+    # earlier, which is harmless.
+    row = conn.execute("SELECT MIN(id) AS lo, MAX(id) AS hi FROM audit_log").fetchone()
+    if row["lo"] is not None and row["hi"] - row["lo"] > AUDIT_LOG_CAP + AUDIT_LOG_PRUNE_BATCH:
       conn.execute(
-        "DELETE FROM audit_log WHERE id IN ("
-        "  SELECT id FROM audit_log ORDER BY id ASC LIMIT ?"
-        ")",
-        (row["n"] - AUDIT_LOG_CAP,),
+        "DELETE FROM audit_log WHERE id < ?",
+        (row["hi"] - AUDIT_LOG_CAP + 1,),
       )
   except sqlite3.Error as e:
     print(f"[atlas-api] audit log failed: {e}", file=sys.stderr)
@@ -345,14 +346,33 @@ def admin_count(conn: sqlite3.Connection) -> int:
   return conn.execute("SELECT COUNT(*) AS n FROM users WHERE is_admin=1").fetchone()["n"]
 
 
+def _walk_follow_symlinks(path: Path):
+  """os.walk(followlinks=True) with cycle protection. Yields (root, files)
+  pairs, deduping directories by (dev, ino) so a self-referential symlink
+  inside `path` can't hang the walker or double-count its target."""
+  if not path.exists():
+    return
+  seen: set[tuple[int, int]] = set()
+  for root, dirs, files in os.walk(path, followlinks=True):
+    try:
+      st = os.stat(root)
+    except OSError:
+      dirs[:] = []
+      continue
+    key = (st.st_dev, st.st_ino)
+    if key in seen:
+      dirs[:] = []
+      continue
+    seen.add(key)
+    yield root, files
+
+
 def dir_size_bytes(path: Path) -> int:
   """Walk a directory tree and return total bytes of regular files. Follows
-  symlinks (the documented dev pattern symlinks user data dirs into a Vault).
-  Best effort: any per-file stat error is skipped."""
+  symlinks (the documented dev pattern symlinks user data dirs into a Vault)
+  with cycle protection. Best effort: any per-file stat error is skipped."""
   total = 0
-  if not path.exists():
-    return 0
-  for root, dirs, files in os.walk(path, followlinks=True):
+  for root, files in _walk_follow_symlinks(path):
     for fname in files:
       try:
         total += (Path(root) / fname).stat().st_size
@@ -1153,8 +1173,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return
     with self.write_lock:
       self.conn.execute("DELETE FROM audit_log")
-    # Record the wipe itself so admins can see who cleared the log.
-    log_event(self.conn, actor=admin["username"], action="admin.logs_clear")
+      # Record the wipe itself inside the lock so a racing log_event from
+      # another handler can't sneak a row in between DELETE and INSERT.
+      log_event(self.conn, actor=admin["username"], action="admin.logs_clear")
     self._send_json(HTTPStatus.OK, {"ok": True})
 
   def _h_admin_user_role(self, uid: int):
@@ -1923,10 +1944,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
     udir = self._user_dir(user["username"])
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-      # followlinks=True so a symlinked gpx/ dir (the documented dev pattern)
+      # Follow symlinks so a symlinked gpx/ dir (the documented dev pattern)
       # is included. Path.rglob silently skips into symlinked directories.
-      for root, dirs, files in os.walk(udir, followlinks=True):
-        dirs.sort()
+      for root, files in _walk_follow_symlinks(udir):
         root_p = Path(root)
         for fname in sorted(files):
           if fname.startswith("."):
