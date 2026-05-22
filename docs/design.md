@@ -19,11 +19,13 @@ Floors, not stretch goals. Drift from these needs a real reason.
 
 ## Modal anatomy
 
-- Title row: `<h2>Title<button class="modal-close">&times;</button></h2>`. X (and Esc) closes. No bottom Close button.
+- Title row: `<h2>Title<button class="modal-close">&times;</button></h2>`. X (and Esc) closes. No bottom Close button. Exception: the Add modal uses a floating `.modal-close-floating` in the modal corner instead of an h2, so the Place/Trail tabs sit at the top.
 - Tabs: `<div class="modal-tabs">` + `<button data-tab="X">` children. Panels are `<div data-panel="X">` toggled via `hidden`. Render all panels at openModal time so handlers stay wired across switches.
 - Section headers: `<h3 class="settings-h">`. Noun phrases ("Sharing", "Backup") - never verb phrases ("Publish my map").
 - Section descriptions: `<div class="modal-desc">`. Don't use `.hint` (muted gray) inside settings.
-- Settings modal: tabs are General / Appearance / Account / Admin. Each panel has `min-height: 500px` so tab switches don't shift the modal vertically. Backdrop reserves 3rem top + 3rem bottom.
+- Settings modal: tabs are General / Appearance / Account / Admin. Each panel has `min-height: 500px` so tab switches don't shift the modal vertically. Backdrop is pinned to the top (`align-items: flex-start`) with 3rem top + 3rem bottom padding so different panel heights don't recenter the modal.
+- Stacking: modals form a stack (`modalStack`). `openModal` appends a new backdrop; `closeTopModal()` removes the topmost. Each modal gets `z-index: 2000 + 10*depth` so nested confirms (`openConfirmModal`) sit above the modal that opened them. Closing animates over 100ms before the backdrop is removed.
+- Confirm dialogs: use `openConfirmModal({ title, body, confirmLabel, danger })`. Returns a Promise<boolean>. Pair destructive actions (delete, force-unpublish, demote, revoke sessions) with `danger: true` so the confirm button uses `.danger-btn` styling. Enter confirms, Esc / Cancel / X / backdrop cancels.
 
 ## Buttons
 
@@ -74,14 +76,29 @@ Filters popover: `.filter-dropdown` wraps a `.filter-btn` and a `.filter-popover
 - Descriptions: state what the section contains, not what the button does. No "Click to..." prefixes.
 - No em dashes, en dashes, or unicode arrows. Plain hyphens and `->`.
 
+## Animations
+
+Durations 100-180ms, easing `ease-out` for entry / `ease-in` for exit. All wrapped in `@media (prefers-reduced-motion: reduce) { ... animation: none !important; transition: none !important; }` so reduced-motion users get instant transitions.
+
+Patterns:
+- **Entry from a class** (FAB appearing, tile picker opening): add class on creation, then call `playEnter(el, cls)` which strips the class after a forced reflow so the transition runs from class-state to base-state. Skipping the reflow batches both styles in one paint and kills the transition.
+- **Leave to a class** (FAB disappearing, tile picker closing): call `playLeave(el, cls, done)`. Adds the class, listens for `transitionend`, falls back to a 300ms timer in case the transition is suppressed (reduced-motion or display:none ancestor).
+- **One-shot keyframe pulse** (chip toggle feedback): `pulseChip(el)` removes any existing pulse class, forces reflow via `forceReflow(el)`, re-adds it. Cleans up on `animationend`.
+- **Modal open/close**: animated by CSS keyframes on `.modal-backdrop` (fade) and `.modal-backdrop > .modal` (scale 0.96 -> 1). Close adds `.closing` which fills-forward to the leaving state.
+- **Tab fade**: `.modal [data-panel]:not([hidden]) { animation: tab-fade-in 160ms; }`. Runs whenever a panel becomes visible.
+
+Don't animate map view transitions on settings changes - those are user-initiated state changes, not UI affordances.
+
 ## CSS specificity gotcha
 
-The generic rule `.modal button:not(h2 .modal-close)` is (0,2,2) because `:not()` takes the highest specificity of its argument. To win, repeat the `:not()` on your selector:
+The generic rule `.modal button:not(.modal-close)` is (0,2,2) because `:not()` takes the highest specificity of its argument. To win, repeat the `:not()` on your selector:
 
 ```css
-.modal .modal-tabs button:not(h2 .modal-close) { ... }
-.modal button.primary:not(h2 .modal-close) { ... }
+.modal .modal-tabs button:not(.modal-close) { ... }
+.modal button.primary:not(.modal-close) { ... }
 ```
+
+The `:not(.modal-close)` exclusion deliberately matches any element with `.modal-close`, in or out of an h2, so adding a free-standing `.modal-close` (the Add modal's floating × is the canonical example) automatically opts out of the bordered button styling.
 
 ## Future upgrades
 
