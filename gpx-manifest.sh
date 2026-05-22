@@ -77,14 +77,11 @@ for root, _, files in os.walk(GPX_DIR):
             continue
         rel = os.path.relpath(os.path.join(root, fname), GPX_DIR)
         region = os.path.dirname(rel)
-        if not region:
-            continue
+        # region == "" means a root-level GPX (no region); supported.
 
         is_planned = fname.endswith(".planned.gpx")
-        if is_planned:
-            base = os.path.join(region, fname.removesuffix(".planned.gpx"))
-        else:
-            base = os.path.join(region, fname.removesuffix(".gpx"))
+        stem = fname.removesuffix(".planned.gpx") if is_planned else fname.removesuffix(".gpx")
+        base = os.path.join(region, stem) if region else stem
 
         if base not in routes:
             routes[base] = {"key": base, "region": region, "name": os.path.basename(base)}
@@ -112,7 +109,7 @@ for key, route in routes.items():
         route["trackNames"] = track_names
 
     meta = metadata.get(key, {})
-    for f in ("source", "date_hiked", "rating", "notes", "tags", "difficulty"):
+    for f in ("source", "date_hiked", "rating", "notes", "tags", "difficulty", "local_name"):
         if f in meta:
             route[f] = meta[f]
 
@@ -135,12 +132,14 @@ for route in routes.values():
     if "trackCount" in route:
         entry["trackCount"] = route["trackCount"]
         entry["trackNames"] = route["trackNames"]
-    for f in ("source", "date_hiked", "rating", "notes", "tags", "difficulty"):
+    for f in ("source", "date_hiked", "rating", "notes", "tags", "difficulty", "local_name"):
         if f in route:
             entry[f] = route[f]
     regions[rname]["routes"].append(entry)
 
-output = {"regions": sorted(regions.values(), key=lambda r: r["name"])}
+# Sort regions alphabetically, but push the no-region group ("") to the end
+# so legends/lists don't lead with the fallback bucket.
+output = {"regions": sorted(regions.values(), key=lambda r: (r["name"] == "", r["name"]))}
 for region in output["regions"]:
     region["routes"].sort(key=lambda r: r["name"])
 

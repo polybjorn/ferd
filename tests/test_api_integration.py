@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import io
 import json
+import shutil
 import socket
 import subprocess
 import sys
@@ -304,29 +305,87 @@ class TestPlacesCRUD(unittest.TestCase):
     status, _ = self.c.request("DELETE", "/api/places", {"name": "never-was"})
     self.assertEqual(status, 404)
 
+  def test_create_without_category(self):
+    status, _ = self.c.request("POST", "/api/places",
+                               {"name": "NoCat", "lat": 0, "lon": 0})
+    self.assertEqual(status, 201)
+    on_disk = json.loads((admin_dir() / "places.json").read_text())
+    self.assertEqual(on_disk[0]["name"], "NoCat")
+    self.assertNotIn("category", on_disk[0])
 
-class TestSiteConfig(unittest.TestCase):
-  def test_category_labels_anon_blocked(self):
+  def test_create_with_empty_category_strips_field(self):
+    status, _ = self.c.request("POST", "/api/places",
+                               {"name": "Blank", "lat": 0, "lon": 0, "category": ""})
+    self.assertEqual(status, 201)
+    on_disk = json.loads((admin_dir() / "places.json").read_text())
+    self.assertNotIn("category", on_disk[0])
+
+  def test_clear_category_bulk(self):
+    for name in ("A", "B", "C"):
+      self.c.request("POST", "/api/places",
+                     {"name": name, "lat": 0, "lon": 0, "category": "beach"})
+    self.c.request("POST", "/api/places",
+                   {"name": "Keep", "lat": 0, "lon": 0, "category": "castle"})
+    status, body = self.c.request("POST", "/api/places/clear-category",
+                                  {"category": "beach"})
+    self.assertEqual(status, 200)
+    self.assertEqual(body["cleared"], 3)
+    on_disk = json.loads((admin_dir() / "places.json").read_text())
+    by_name = {p["name"]: p for p in on_disk}
+    self.assertNotIn("category", by_name["A"])
+    self.assertNotIn("category", by_name["B"])
+    self.assertNotIn("category", by_name["C"])
+    self.assertEqual(by_name["Keep"]["category"], "castle")
+
+  def test_clear_category_missing_arg(self):
+    status, _ = self.c.request("POST", "/api/places/clear-category", {})
+    self.assertEqual(status, 400)
+
+
+class TestCategoryLabels(unittest.TestCase):
+  def test_anon_blocked(self):
     c = Client(_server.base_url)  # type: ignore[union-attr]
-    status, _ = c.request("PUT", "/api/site-config/category-labels",
+    status, _ = c.request("PUT", "/api/me/category-labels",
                           {"category_labels": {"food": "Food"}})
     self.assertEqual(status, 401)
+    status, _ = c.request("GET", "/api/me/category-labels")
+    self.assertEqual(status, 401)
 
-  def test_category_labels_update(self):
+  def test_update_and_read(self):
     c = admin_client()
-    status, body = c.request("PUT", "/api/site-config/category-labels",
+    status, body = c.request("PUT", "/api/me/category-labels",
                              {"category_labels": {"food": "Food", "hike": "Hiking"}})
     self.assertEqual(status, 200)
     self.assertEqual(body["category_labels"], {"food": "Food", "hike": "Hiking"})
-    on_disk = json.loads((_server.data_dir / "site-config.json").read_text())  # type: ignore[union-attr]
-    self.assertEqual(on_disk["category_labels"]["food"], "Food")
+    on_disk = json.loads((admin_dir() / "category-labels.json").read_text())
+    self.assertEqual(on_disk["food"], "Food")
+    status, body = c.request("GET", "/api/me/category-labels")
+    self.assertEqual(status, 200)
+    self.assertEqual(body["category_labels"]["hike"], "Hiking")
 
-  def test_category_labels_validation(self):
+  def test_validation(self):
     c = admin_client()
-    # Non-dict payload.
-    status, _ = c.request("PUT", "/api/site-config/category-labels",
+    status, _ = c.request("PUT", "/api/me/category-labels",
                           {"category_labels": "not a dict"})
     self.assertEqual(status, 400)
+
+  def test_public_read_when_published(self):
+    c = admin_client()
+    c.request("PUT", "/api/me/category-labels",
+              {"category_labels": {"beach": "Beaches"}})
+    c.request("POST", "/api/me/publish", {"published": True})
+    anon = Client(_server.base_url)  # type: ignore[union-attr]
+    try:
+      status, body = anon.request("GET", f"/api/u/{SEED_USER}/category-labels")
+      self.assertEqual(status, 200)
+      self.assertEqual(body["category_labels"]["beach"], "Beaches")
+    finally:
+      c.request("POST", "/api/me/publish", {"published": False})
+
+  def test_public_read_blocked_when_unpublished(self):
+    anon = Client(_server.base_url)  # type: ignore[union-attr]
+    status, _ = anon.request("GET", f"/api/u/{SEED_USER}/category-labels")
+    self.assertEqual(status, 404)
 
 
 GPX_BODY = (
@@ -346,20 +405,30 @@ class TestGpx(unittest.TestCase):
                           raw_body=GPX_BODY, content_type="application/gpx+xml")
     self.assertEqual(status, 401)
 
-  def test_upload_strips_pii_and_deletes(self):
+  def test_upload_preserves_pii_by_default(self):
+    """PII stripping is opt-in; an unflagged upload keeps timestamps/creator."""
     c = admin_client()
     status, _ = c.request("POST", "/api/gpx?region=TestRegion&name=trail-a",
                           raw_body=GPX_BODY, content_type="application/gpx+xml")
     self.assertEqual(status, 201)
     on_disk = (admin_dir() / "gpx" / "TestRegion" / "trail-a.gpx").read_bytes()
-    self.assertNotIn(b"<time>", on_disk)
-    self.assertNotIn(b"creator=", on_disk)
-    self.assertIn(b"<trk", on_disk)
+    self.assertIn(b"<time>", on_disk)
     # Delete it.
     status, body = c.request("DELETE", "/api/gpx",
                              {"region": "TestRegion", "name": "trail-a"})
     self.assertEqual(status, 200)
     self.assertIn("trail-a.gpx", body["removed"])
+
+  def test_upload_strips_pii_when_requested(self):
+    c = admin_client()
+    status, _ = c.request("POST", "/api/gpx?region=TestRegion&name=trail-b&strip_pii=true",
+                          raw_body=GPX_BODY, content_type="application/gpx+xml")
+    self.assertEqual(status, 201)
+    on_disk = (admin_dir() / "gpx" / "TestRegion" / "trail-b.gpx").read_bytes()
+    self.assertNotIn(b"<time>", on_disk)
+    self.assertNotIn(b"creator=", on_disk)
+    self.assertIn(b"<trk", on_disk)
+    c.request("DELETE", "/api/gpx", {"region": "TestRegion", "name": "trail-b"})
 
   def test_upload_rejects_non_gpx(self):
     c = admin_client()
@@ -372,6 +441,107 @@ class TestGpx(unittest.TestCase):
     status, _ = c.request("DELETE", "/api/gpx",
                           {"region": "Nowhere", "name": "ghost"})
     self.assertEqual(status, 404)
+
+  def test_upload_serve_delete_without_region(self):
+    """Region is optional: GPX can live at gpx/<file>.gpx (root-level)."""
+    c = admin_client()
+    status, body = c.request("POST", "/api/gpx?name=loose-trail",
+                             raw_body=GPX_BODY, content_type="application/gpx+xml")
+    self.assertEqual(status, 201)
+    self.assertEqual(body["saved"], "gpx/loose-trail.gpx")
+    self.assertTrue((admin_dir() / "gpx" / "loose-trail.gpx").exists())
+    # Serve via single-segment URL (binary body, so skip the JSON client).
+    req = urllib.request.Request(_server.base_url + "/api/gpx/loose-trail.gpx")  # type: ignore[union-attr]
+    with c.opener.open(req) as r:
+      self.assertEqual(r.status, 200)
+      self.assertIn(b"<trk", r.read())
+    # Delete: omit region from the body.
+    status, body = c.request("DELETE", "/api/gpx", {"name": "loose-trail"})
+    self.assertEqual(status, 200)
+    self.assertFalse((admin_dir() / "gpx" / "loose-trail.gpx").exists())
+
+
+class TestRegions(unittest.TestCase):
+  def setUp(self):
+    self.c = admin_client()
+    # Clean slate.
+    gpx_root = admin_dir() / "gpx"
+    if gpx_root.exists():
+      shutil.rmtree(gpx_root)
+
+  def test_rename_moves_dir_and_metadata(self):
+    # Upload one trail under Old, then rename to New.
+    self.c.request("POST", "/api/gpx?region=Old&name=t",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    self.c.request("PUT", "/api/metadata",
+                   {"key": "Old/t", "metadata": {"rating": 4}})
+    status, body = self.c.request("POST", "/api/regions/rename",
+                                  {"from": "Old", "to": "New"})
+    self.assertEqual(status, 200)
+    self.assertEqual(body["trails"], 1)
+    self.assertEqual(body["metadata"], 1)
+    self.assertFalse((admin_dir() / "gpx" / "Old").exists())
+    self.assertTrue((admin_dir() / "gpx" / "New" / "t.gpx").exists())
+    meta = json.loads((admin_dir() / "metadata.json").read_text())
+    self.assertIn("New/t", meta)
+    self.assertNotIn("Old/t", meta)
+
+  def test_rename_to_existing_conflicts(self):
+    for r in ("A", "B"):
+      self.c.request("POST", f"/api/gpx?region={r}&name=x",
+                     raw_body=GPX_BODY, content_type="application/gpx+xml")
+    status, _ = self.c.request("POST", "/api/regions/rename", {"from": "A", "to": "B"})
+    self.assertEqual(status, 409)
+
+  def test_rename_missing(self):
+    status, _ = self.c.request("POST", "/api/regions/rename",
+                               {"from": "Nope", "to": "Whatever"})
+    self.assertEqual(status, 404)
+
+  def test_delete_empty(self):
+    # Upload then delete the trail, leaving the dir empty.
+    self.c.request("POST", "/api/gpx?region=Solo&name=trail",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    self.c.request("DELETE", "/api/gpx", {"region": "Solo", "name": "trail"})
+    # Delete-trail already prunes the empty dir; recreate it for this test.
+    (admin_dir() / "gpx" / "Solo").mkdir(parents=True, exist_ok=True)
+    status, _ = self.c.request("POST", "/api/regions/delete", {"name": "Solo"})
+    self.assertEqual(status, 200)
+    self.assertFalse((admin_dir() / "gpx" / "Solo").exists())
+
+  def test_delete_non_empty_blocked(self):
+    self.c.request("POST", "/api/gpx?region=Full&name=t",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    status, _ = self.c.request("POST", "/api/regions/delete", {"name": "Full"})
+    self.assertEqual(status, 409)
+
+  def test_clear_moves_trails_to_root(self):
+    self.c.request("POST", "/api/gpx?region=Drop&name=a",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    self.c.request("POST", "/api/gpx?region=Drop&name=b",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    self.c.request("PUT", "/api/metadata",
+                   {"key": "Drop/a", "metadata": {"rating": 3}})
+    status, body = self.c.request("POST", "/api/regions/clear", {"name": "Drop"})
+    self.assertEqual(status, 200)
+    self.assertEqual(body["trails"], 2)
+    self.assertFalse((admin_dir() / "gpx" / "Drop").exists())
+    self.assertTrue((admin_dir() / "gpx" / "a.gpx").exists())
+    self.assertTrue((admin_dir() / "gpx" / "b.gpx").exists())
+    meta = json.loads((admin_dir() / "metadata.json").read_text())
+    self.assertIn("a", meta)
+    self.assertNotIn("Drop/a", meta)
+
+  def test_clear_conflict_with_existing_root_file(self):
+    # A trail "x" exists at root (no region); clearing a region that contains
+    # another "x.gpx" must fail rather than silently overwriting.
+    self.c.request("POST", "/api/gpx?name=x",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    self.c.request("POST", "/api/gpx?region=Coll&name=x",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    status, body = self.c.request("POST", "/api/regions/clear", {"name": "Coll"})
+    self.assertEqual(status, 409)
+    self.assertIn("x.gpx", body["error"])
 
 
 class TestTrailMetadata(unittest.TestCase):
@@ -444,8 +614,14 @@ class TestTrailMetadata(unittest.TestCase):
     self.assertEqual(status, 400)
     self.assertIn("unknown", body["error"])
 
-  def test_bad_key_shape(self):
+  def test_root_level_key_accepted(self):
+    # No-region trails use a 1-part key (no slash).
     status, _ = self.c.request("PUT", "/api/metadata", {"key": "no-slash", "metadata": {"rating": 3}})
+    self.assertEqual(status, 200)
+
+  def test_too_many_parts_rejected(self):
+    status, _ = self.c.request("PUT", "/api/metadata",
+                               {"key": "a/b/c", "metadata": {"rating": 3}})
     self.assertEqual(status, 400)
 
 

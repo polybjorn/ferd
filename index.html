@@ -1512,6 +1512,39 @@
     }
     .session-revoke:hover:not(:disabled) { border-color: var(--red); }
     .session-revoke:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-x {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      width: 1.6rem;
+      height: 1.6rem;
+      padding: 0;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 1rem;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-x:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
+    .btn-x:disabled { opacity: 0.4; cursor: not-allowed; }
+    .modal input.dirty { border-color: var(--accent); }
+    .row-tag {
+      font-size: 0.7rem;
+      color: var(--muted);
+      flex: 0 0 5rem;
+      text-align: right;
+    }
+    .row-tag.dirty {
+      color: var(--accent);
+      animation: rowTagIn 0.2s ease-out;
+    }
+    @keyframes rowTagIn {
+      from { opacity: 0; transform: translateX(6px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
 
     .radio-row {
       display: flex;
@@ -1532,14 +1565,37 @@
        Wraps on narrow viewports so the control drops under the label. */
     .settings-inline-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.5rem 1rem;
+      /* Fixed label column so the control side starts at the same x in every
+         row — pill groups line up across rows. Width is tuned to fit "Trail
+         line thickness" while leaving enough room for 3 pill-style options. */
+      grid-template-columns: 9rem 1fr;
+      gap: 0.5rem 0.75rem;
       align-items: center;
       margin-top: 0.75rem;
     }
     .settings-inline-row > label { margin: 0; }
     .settings-inline-row > .radio-row { margin: 0; column-gap: 0.75rem; }
     .settings-inline-row > select { width: 100%; }
+    /* Rows whose right-hand control is a slide toggle: switch from grid to
+       flex so the toggle can sit immediately to the left of the label. */
+    .settings-inline-row:has(> .settings-toggle) {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .settings-inline-row:has(> .settings-toggle) > .settings-toggle {
+      order: -1;
+      flex: 0 0 auto;
+    }
+    .settings-inline-row:has(> .settings-toggle) > label { flex: 1; }
+    /* Two-column wrapper for stacking related toggles side by side. */
+    .toggle-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem 1rem;
+      margin-top: 0.5rem;
+    }
+    .toggle-grid > .settings-inline-row { margin-top: 0; }
     .radio-row label {
       display: inline-flex;
       align-items: center;
@@ -1552,6 +1608,46 @@
       cursor: pointer;
     }
     .radio-row input { width: auto; }
+    /* Pill variant of radio-row: each option is a clickable pill, the checked
+       one picks up the accent border + background. Single-select. */
+    .radio-row.radio-pills > label {
+      padding: 0.35rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface2);
+      color: var(--muted);
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .radio-row.radio-pills > label:hover { border-color: var(--border-hover); color: var(--text); }
+    .radio-row.radio-pills > label:has(input:checked) {
+      border-color: var(--accent);
+      color: var(--text);
+      background: color-mix(in srgb, var(--accent) 12%, var(--surface2));
+    }
+    .radio-row.radio-pills input { display: none; }
+    /* Clickable star rating: filled stars use accent, empty are muted.
+       Hovering the row previews the rating up to the cursor via .preview. */
+    .star-rating {
+      display: inline-flex;
+      gap: 0.15rem;
+      font-size: 1.25rem;
+      line-height: 1;
+      user-select: none;
+    }
+    .star-rating .star { color: var(--muted); cursor: pointer; transition: color 0.1s, transform 0.1s; }
+    .star-rating .star.filled,
+    .star-rating .star.preview { color: var(--accent); }
+    .star-rating .star:hover { transform: scale(1.1); }
+    .star-rating .star-clear {
+      align-self: center;
+      margin-left: 0.5rem;
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .star-rating .star-clear:hover { color: var(--text); }
+    .star-rating[data-value=""] .star-clear { visibility: hidden; }
 
     /* Modal */
     .modal-backdrop {
@@ -1602,10 +1698,25 @@
     }
     .modal-backdrop:has(#settings-tabs) { padding-top: 3rem; padding-bottom: 3rem; }
     .modal-backdrop:has(#settings-tabs) .modal { max-height: calc(100vh - 6rem); }
+    /* Pin the Add modal to the top so switching Place <-> Trail (different
+       form heights) doesn't shift the modal vertically. The body itself
+       animates height between renders. */
+    .modal-backdrop:has(#add-tabs) { align-items: flex-start; padding-top: 4rem; padding-bottom: 4rem; }
+    .modal-backdrop:has(#add-tabs) .modal { max-height: calc(100vh - 8rem); scrollbar-gutter: stable; }
+    #add-body { overflow: hidden; transition: height 0.25s ease; }
     .modal .modal-desc { font-size: 0.85rem; color: var(--text); margin-top: 0.4rem; }
     .modal .file-picker { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.5rem; }
-    .modal .file-picker .file-name { font-size: 0.85rem; color: var(--muted); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .modal .file-picker .file-name.has-file { color: var(--text); }
+    .modal .file-picker .file-name { font-size: 0.85rem; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* Collapsible block. Toggle the .expanded class to animate height + opacity.
+       Uses grid-template-rows 0fr -> 1fr (smooth, no max-height guessing). */
+    .collapsible {
+      display: grid;
+      grid-template-rows: 0fr;
+      opacity: 0;
+      transition: grid-template-rows 0.25s ease, opacity 0.25s ease;
+    }
+    .collapsible.expanded { grid-template-rows: 1fr; opacity: 1; }
+    .collapsible > .collapsible-inner { overflow: hidden; min-height: 0; }
     .modal input[type="file"].file-input-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
     .modal .backup-sub { font-size: 0.78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
     .modal .modal-success { font-size: 0.85rem; color: var(--green, #6db26d); margin-top: 0.5rem; }
@@ -1655,6 +1766,11 @@
       transition: border-color 0.15s;
     }
     .modal input:focus, .modal textarea:focus, .modal select:focus { border-color: var(--accent); }
+    /* Suppress the browser-native spinner on number inputs (Lat/Long) — the
+       up/down arrows aren't theme-aware and look out of place. */
+    .modal input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+    .modal input[type="number"]::-webkit-inner-spin-button,
+    .modal input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     .modal textarea { min-height: 60px; resize: vertical; }
     .modal .row { display: flex; gap: 0.5rem; }
     .modal .row > * { flex: 1; }
@@ -1662,6 +1778,8 @@
     .modal .checkbox-row input { width: auto; }
     .modal .checkbox-row label { margin: 0; text-transform: none; letter-spacing: 0; font-size: 0.8rem; color: var(--text); }
     .feature-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    /* Optional fields row: even spacing across the panel width. */
+    .feature-pills:has(input[data-field]) { justify-content: space-between; }
     .feature-pill {
       display: inline-flex;
       align-items: center;
@@ -1720,8 +1838,17 @@
     .modal .modal-actions {
       display: flex;
       justify-content: flex-end;
+      align-items: center;
       gap: 0.5rem;
       margin-top: 1.25rem;
+    }
+    /* Inline warning that sits to the left of the action buttons. */
+    .modal .modal-actions .action-warning {
+      flex: 1;
+      min-width: 0;
+      font-size: 0.78rem;
+      color: var(--red);
+      margin: 0;
     }
     .modal button:not(h2 .modal-close) {
       background: transparent;
@@ -1826,6 +1953,12 @@
       return apiUrl('/' + kind);
     }
 
+    function categoryLabelsUrl() {
+      const v = state.viewer;
+      if (v && v.mode === 'public') return apiUrl('/u/' + encodeURIComponent(v.username) + '/category-labels');
+      return apiUrl('/me/category-labels');
+    }
+
     function gpxUrlFor(file) {
       const v = state.viewer;
       if (v && v.mode === 'public') return apiUrl('/u/' + encodeURIComponent(v.username) + '/gpx/' + file);
@@ -1853,20 +1986,94 @@
         ).join('') + '</div>';
     }
 
-    function selectOrNewHtml(id, options, current, labelFn) {
+    // Pill-style radio group: same shape as radioGroupHtml but each option
+    // renders as a single-select pill. Used for things like Difficulty.
+    function radioPillsHtml(name, options, selected) {
+      return '<div class="radio-row radio-pills">' +
+        options.map(([v, l]) =>
+          '<label><input type="radio" name="' + name + '" value="' + v + '"' + (selected === v ? ' checked' : '') + '>' + l + '</label>'
+        ).join('') + '</div>';
+    }
+
+    // Clickable 1-5 star widget. Reads/writes value via dataset on the wrapper.
+    function starRatingHtml(name, current) {
+      const val = current ? String(current) : '';
+      let html = '<div class="star-rating" data-name="' + name + '" data-value="' + escapeHtml(val) + '">';
+      for (let i = 1; i <= 5; i++) {
+        const filled = current && i <= current;
+        // ★ for filled, ☆ for empty — distinct glyphs make the state obvious
+        // regardless of color contrast in the active theme.
+        html += '<span class="star' + (filled ? ' filled' : '') + '" data-v="' + i + '">' + (filled ? '&#9733;' : '&#9734;') + '</span>';
+      }
+      html += '<a href="#" class="star-clear">clear</a>';
+      html += '</div>';
+      return html;
+    }
+    function wireStarRating(name) {
+      const wrap = document.querySelector('.star-rating[data-name="' + name + '"]');
+      if (!wrap) return;
+      const stars = wrap.querySelectorAll('.star');
+      const FILLED = '★';
+      const EMPTY = '☆';
+      // Set both class and glyph so the state is unmistakable.
+      const setStar = (s, on, preview) => {
+        s.classList.toggle('filled', on && !preview);
+        s.classList.toggle('preview', !!preview);
+        s.innerHTML = (on || preview) ? FILLED : EMPTY;
+      };
+      const paint = (n, preview) => stars.forEach(s => {
+        setStar(s, !preview && (+s.dataset.v) <= n, preview && (+s.dataset.v) <= n);
+      });
+      const repaint = () => {
+        const cur = parseInt(wrap.dataset.value, 10) || 0;
+        stars.forEach(s => setStar(s, (+s.dataset.v) <= cur, false));
+      };
+      stars.forEach(star => {
+        star.addEventListener('mouseenter', function() { paint(+this.dataset.v, true); });
+        star.addEventListener('mouseleave', repaint);
+        star.addEventListener('click', function() {
+          const v = +this.dataset.v;
+          wrap.dataset.value = (wrap.dataset.value == String(v) ? '' : String(v));
+          repaint();
+        });
+      });
+      const clear = wrap.querySelector('.star-clear');
+      if (clear) clear.addEventListener('click', function(e) {
+        e.preventDefault();
+        wrap.dataset.value = '';
+        repaint();
+      });
+    }
+    function readStarRating(name) {
+      const wrap = document.querySelector('.star-rating[data-name="' + name + '"]');
+      return wrap ? wrap.dataset.value : '';
+    }
+
+    function selectOrNewHtml(id, options, current, labelFn, emptyLabel, newPlaceholder) {
       const labelOf = labelFn || (v => v);
-      const inList = current != null && options.includes(current);
+      // When emptyLabel is set, an empty-string option is allowed at the top
+      // and `required` is dropped from the select (the field is optional).
+      const hasEmpty = emptyLabel != null;
+      const isEmpty = current == null || current === '';
+      const inList = !isEmpty && options.includes(current);
       const opts = options.map(v =>
         '<option value="' + escapeHtml(v) + '"' + (v === current ? ' selected' : '') + '>' + escapeHtml(labelOf(v)) + '</option>'
       ).join('');
-      const newSelected = (current != null && !inList) ? ' selected' : '';
-      const inputValue = (current != null && !inList) ? escapeHtml(current) : '';
-      const inputHidden = current == null || inList;
+      const newSelected = (!isEmpty && !inList) ? ' selected' : '';
+      const inputValue = (!isEmpty && !inList) ? escapeHtml(current) : '';
+      const inputHidden = isEmpty || inList;
+      // The empty option exists so "no selection" is a valid state, but it's
+      // hidden from the dropdown list — the select just shows blank when it's
+      // selected. Picking a real option replaces the placeholder.
+      const emptyOpt = hasEmpty
+        ? '<option value="" hidden' + (isEmpty ? ' selected' : '') + '>' + escapeHtml(emptyLabel) + '</option>'
+        : '';
+      const requiredAttr = hasEmpty ? '' : ' required';
       return '<div class="select-or-new" data-id="' + id + '">' +
-        '<select id="' + id + '" required>' + opts +
-          '<option value="__new__"' + newSelected + '>+ Add new&hellip;</option>' +
+        '<select id="' + id + '"' + requiredAttr + '>' + emptyOpt + opts +
+          '<option value="__new__"' + newSelected + '>+ Add new</option>' +
         '</select>' +
-        '<input type="text" class="new-input" id="' + id + '-new" placeholder="Type new value" value="' + inputValue + '"' + (inputHidden ? ' hidden' : '') + '>' +
+        '<input type="text" class="new-input" id="' + id + '-new" placeholder="' + escapeHtml(newPlaceholder || 'New value') + '" value="' + inputValue + '"' + (inputHidden ? ' hidden' : '') + '>' +
       '</div>';
     }
 
@@ -1892,24 +2099,36 @@
 
     function readPlaceFormFields(prefix) {
       const $ = id => document.getElementById(prefix + '-' + id);
+      const val = id => { const el = $(id); return el ? el.value : ''; };
       const category = readSelectOrNew(prefix + '-category');
-      if (!category) return { error: 'Pick or add a category.' };
-      const sourcesRaw = $('sources').value.trim();
+      const sourcesRaw = val('sources').trim();
       const sources = sourcesRaw ? sourcesRaw.split('\n').map(s => s.trim()).filter(Boolean) : null;
+      const lat = parseFloat(val('lat'));
+      const lon = parseFloat(val('lon'));
+      if (Number.isNaN(lat) || Number.isNaN(lon)) {
+        return { error: 'Pick a location on the map (or enter coordinates manually).' };
+      }
       const payload = {
-        name: $('name').value.trim(),
-        lat: parseFloat($('lat').value),
-        lon: parseFloat($('lon').value),
-        category,
+        name: val('name').trim(),
+        lat,
+        lon,
         visited: $('visited').checked,
       };
-      const country = $('country').value.trim();
-      const note = $('note').value.trim();
-      const localName = $('local-name').value.trim();
+      if (category) payload.category = category;
+      const country = val('country').trim();
+      const note = val('note').trim();
+      const localName = val('local-name').trim();
+      const dateVisited = val('date-visited').trim();
+      const ratingRaw = readStarRating(prefix + '-rating');
       if (country) payload.country = country;
       if (note) payload.note = note;
       if (localName) payload.local_name = localName;
       if (sources && sources.length) payload.sources = sources;
+      // Visit-only metadata: ignore if the visited toggle is off.
+      if (payload.visited) {
+        if (dateVisited) payload.date_visited = dateVisited;
+        if (ratingRaw) payload.rating = parseInt(ratingRaw, 10);
+      }
       return { payload };
     }
 
@@ -1969,6 +2188,8 @@
     function getRememberView() { return getPref('atlas-remember-view', 'true') !== 'false'; }
     function getUnits() { return getPref('atlas-units', 'metric'); }
     function getClusterPlaces() { return getPref('atlas-cluster-places', 'true') !== 'false'; }
+    // Optional form fields — let the user hide ones they never use. All default ON.
+    function getShowField(name) { return getPref('atlas-show-' + name, 'true') !== 'false'; }
     function isImperial() { return getUnits() === 'imperial'; }
     function loadStoredView() {
       try {
@@ -2026,8 +2247,13 @@
     }
 
     function displayCategory(cat) {
+      if (!cat) return 'Uncategorized';
       const labels = (state.config && state.config.category_labels) || {};
       return labels[cat] || cat.charAt(0).toUpperCase() + cat.slice(1);
+    }
+
+    function displayRegion(name) {
+      return name || 'No region';
     }
 
     function domainFromUrl(url) {
@@ -2086,14 +2312,30 @@
       }).join(' &middot; ');
     }
 
+    // Sort category slugs alphabetically, but always push uncategorized ('') last
+    // so legends/filters don't lead with the fallback bucket.
+    function sortedCategorySlugs(slugs) {
+      return [...slugs].sort((a, b) => {
+        if (a === '') return 1;
+        if (b === '') return -1;
+        return a.localeCompare(b);
+      });
+    }
+
     function assignCategoryColors(places) {
-      const cats = [...new Set(places.map(p => p.category))].sort();
+      // Uncategorized ('') gets a fixed muted color so the palette cycle stays
+      // stable when uncategorized places come and go.
+      const cats = [...new Set(places.map(p => p.category))]
+        .filter(c => c !== '').sort();
       const dark = {}, light = {};
       cats.forEach((c, i) => {
         const idx = i % COLORS.length;
         dark[c] = COLORS[idx];
         light[c] = COLORS_LIGHT[idx];
       });
+      const mutedDark = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || '#888';
+      dark[''] = mutedDark;
+      light[''] = mutedDark;
       return { dark, light };
     }
 
@@ -2262,27 +2504,52 @@
       return '<a href="#" class="popup-share-corner popup-share" data-type="' + type + '" data-id="' + escapeHtml(id) + '" title="Copy link to clipboard" aria-label="Copy link">' + SHARE_ICON_SVG + '</a>';
     }
 
-    function createPlaceMarker(p) {
+    function placePopupHtml(p) {
       const color = state.categoryColors[p.category];
       const colorLight = state.categoryColorsLight[p.category];
       const catStyle = '--c:' + color + ';--cl:' + colorLight;
-      const marker = L.marker([p.lat, p.lon], { icon: createMarkerIcon(color, p.visited) });
-      let popupHtml = shareCornerHtml('place', p._slug || p.name);
-      popupHtml += '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local cat-text" style="' + catStyle + '">&middot; ' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
-      if (p.note) popupHtml += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
-      if (p.sources && p.sources.length) popupHtml += '<div class="popup-sources">' + renderSources(p.sources) + '</div>';
-      popupHtml += '<div class="popup-meta">' +
-        '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(p.category) + '</span>' +
+      let html = shareCornerHtml('place', p._slug || p.name);
+      html += '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local cat-text" style="' + catStyle + '">&middot; ' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
+      if (p.note) html += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
+      if (p.sources && p.sources.length) html += '<div class="popup-sources">' + renderSources(p.sources) + '</div>';
+      html += '<div class="popup-meta">' +
+        '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(displayCategory(p.category)) + '</span>' +
         '<span style="color:' + (p.visited ? 'var(--green)' : 'var(--red)') + '">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
         (state.auth.authenticated && !isReadOnly() ? '<a href="#" class="popup-edit" data-place="' + escapeHtml(p.name) + '">Edit</a>' : '') +
       '</div>';
-      marker.bindPopup(popupHtml, { closeButton: false });
+      return html;
+    }
+
+    function createPlaceMarker(p) {
+      const color = state.categoryColors[p.category];
+      const marker = L.marker([p.lat, p.lon], { icon: createMarkerIcon(color, p.visited) });
+      marker.bindPopup(placePopupHtml(p), { closeButton: false });
       marker.on('click', (function(slug) {
         return function() { history.replaceState(null, '', focusHash('place', slug)); };
       })(p._slug || p.name));
       marker.bindTooltip(escapeHtml(p.name), { direction: 'top', offset: [0, -6] });
       marker._placeData = p;
       return marker;
+    }
+
+    // Refresh place markers in-place after label edits or bulk-clears. Avoids
+    // the full router rebuild (which blinks the map). Mirrors what changed:
+    // category color palette, marker icon (if a place's category changed),
+    // popup HTML (labels), and the filter panel legend.
+    function refreshPlacesPresentation() {
+      if (state._placeMarkers && state.places) {
+        const cc = assignCategoryColors(state.places);
+        state.categoryColors = cc.dark;
+        state.categoryColorsLight = cc.light;
+        for (const m of state._placeMarkers) {
+          const p = m._placeData;
+          if (!p) continue;
+          m.setIcon(createMarkerIcon(state.categoryColors[p.category], p.visited));
+          m.setPopupContent(placePopupHtml(p));
+        }
+        if (typeof refreshFilterPanel === 'function') refreshFilterPanel();
+      }
+      if ((location.hash || '#/').startsWith('#/places')) wrappedRouter();
     }
 
     // Incrementally reconcile place markers with state.places after a CRUD write.
@@ -2316,10 +2583,12 @@
 
     function trailMetadataKey(route, regionName) {
       // The manifest keys metadata by the on-disk region directory, not the
-      // display name. region.name on a route entry already holds the display
-      // name; the on-disk segment is route.file's first path component.
-      const seg = (route.file || '').split('/')[0] || regionName;
-      return seg + '/' + route.name;
+      // display name. For a trail in a region, route.file is "Region/Trail.gpx"
+      // and we use the first segment. For a no-region (root-level) trail,
+      // route.file is just "Trail.gpx" and the key omits the region prefix.
+      const file = route.file || '';
+      if (!file.includes('/')) return route.name;
+      return file.split('/')[0] + '/' + route.name;
     }
 
     function ratingStarsText(rating) {
@@ -2335,7 +2604,7 @@
     function trailPopupHtml(route, region, color) {
       const regionName = region.name;
       let html = shareCornerHtml('trail', route._slug || route.key);
-      html += '<a class="popup-name popup-name-link" href="#/trails/route/' + encodeURIComponent(route.key) + '">' + escapeHtml(route.name) + '</a>';
+      html += '<a class="popup-name popup-name-link" href="#/trails/route/' + encodeURIComponent(route.key) + '">' + escapeHtml(route.name) + (route.local_name ? ' <span class="popup-local">&middot; ' + escapeHtml(route.local_name) + '</span>' : '') + '</a>';
       // First meta line: difficulty / rating / date arranged left / center / right.
       // Render each slot even if empty so the columns hold their position.
       const diffSlot = route.difficulty ? escapeHtml(DIFFICULTY_LABELS[route.difficulty] || route.difficulty) : '';
@@ -2364,7 +2633,7 @@
       }
       html += '<div class="popup-meta">' +
         '<span style="color:' + color + '">' + (route.completed ? 'Completed' : 'Planned') + '</span>' +
-        '<span>' + escapeHtml(regionName) + '</span>' +
+        '<span>' + escapeHtml(displayRegion(regionName)) + '</span>' +
         (state.auth.authenticated && !isReadOnly() ?
           '<a href="#" class="popup-trail-edit" data-key="' + escapeHtml(route.key) + '">Edit</a>'
         : '') +
@@ -2373,7 +2642,7 @@
     }
 
     function deleteTrail(route, regionName) {
-      if (!confirm('Delete trail "' + route.name + '" (region: ' + regionName + ')? This removes the GPX file.')) return Promise.resolve(false);
+      if (!confirm('Delete trail "' + route.name + '" (' + displayRegion(regionName) + ')? This removes the GPX file.')) return Promise.resolve(false);
       return api('DELETE', '/gpx', { region: regionName, name: route.name })
         .then(() => refreshRoutes())
         .then(() => true)
@@ -2394,20 +2663,30 @@
       const key = trailMetadataKey(route, regionName);
       openModal(
         '<h2>Edit trail<button class="modal-close">&times;</button></h2>' +
-        '<div class="hint">' + escapeHtml(route.name) + ' &middot; ' + escapeHtml(regionName) + '</div>' +
+        '<div class="hint">' + escapeHtml(route.name) + ' &middot; ' + escapeHtml(displayRegion(regionName)) + '</div>' +
         '<form id="trail-meta-form">' +
-          '<label for="tm-date">Date hiked</label>' +
-          '<input type="date" id="tm-date" value="' + escapeHtml(route.date_hiked || '') + '">' +
-          '<label for="tm-rating">Rating</label>' +
-          radioGroupHtml('tm-rating', [['', 'None'], ['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5']], String(route.rating || '')) +
+          (getShowField('native-name') ?
+            '<label for="tm-local-name">Native name (optional)</label>' +
+            '<input type="text" id="tm-local-name" placeholder="e.g. 金閣寺路" value="' + escapeHtml(route.local_name || '') + '">'
+          : '') +
+          (getShowField('date') ?
+            '<label for="tm-date">Date hiked</label>' +
+            '<input type="date" id="tm-date" value="' + escapeHtml(route.date_hiked || '') + '">'
+          : '') +
+          (getShowField('rating') ?
+            '<label for="tm-rating">Rating</label>' +
+            starRatingHtml('tm-rating', route.rating || '')
+          : '') +
           '<label for="tm-difficulty">Difficulty</label>' +
-          radioGroupHtml('tm-difficulty', [['', 'None'], ['easy', 'Easy'], ['moderate', 'Moderate'], ['hard', 'Hard'], ['expert', 'Expert']], route.difficulty || '') +
+          radioPillsHtml('tm-difficulty', [['', 'None'], ['easy', 'Easy'], ['moderate', 'Moderate'], ['hard', 'Hard'], ['expert', 'Expert']], route.difficulty || '') +
           '<label for="tm-tags">Tags (comma-separated, lowercase)</label>' +
           '<input type="text" id="tm-tags" value="' + escapeHtml((route.tags || []).join(', ')) + '" placeholder="summit, panorama, via-ferrata">' +
           '<label for="tm-source">Source URL (optional)</label>' +
           '<input type="url" id="tm-source" value="' + escapeHtml(route.source || '') + '" placeholder="https://example.com/trail">' +
-          '<label for="tm-notes">Notes</label>' +
-          '<textarea id="tm-notes" maxlength="2000">' + escapeHtml(route.notes || '') + '</textarea>' +
+          (getShowField('note') ?
+            '<label for="tm-notes">Notes</label>' +
+            '<textarea id="tm-notes" maxlength="2000">' + escapeHtml(route.notes || '') + '</textarea>'
+          : '') +
           '<div class="modal-error" id="tm-error"></div>' +
           '<div class="modal-actions">' +
             '<button type="button" class="session-revoke" id="tm-delete">Delete</button>' +
@@ -2417,6 +2696,7 @@
           '</div>' +
         '</form>',
         function() {
+          wireStarRating('tm-rating');
           document.getElementById('tm-delete').addEventListener('click', function() {
             const btn = this;
             btn.disabled = true;
@@ -2427,13 +2707,15 @@
           });
           document.getElementById('trail-meta-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            const dateVal = document.getElementById('tm-date').value.trim();
-            const ratingRaw = (document.querySelector('input[name="tm-rating"]:checked') || {}).value || '';
+            const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+            const dateVal = get('tm-date').trim();
+            const ratingRaw = readStarRating('tm-rating');
             const difficulty = (document.querySelector('input[name="tm-difficulty"]:checked') || {}).value || '';
-            const tagsRaw = document.getElementById('tm-tags').value;
+            const tagsRaw = get('tm-tags');
             const tags = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
-            const source = document.getElementById('tm-source').value.trim();
-            const notes = document.getElementById('tm-notes').value;
+            const source = get('tm-source').trim();
+            const notes = get('tm-notes');
+            const localName = get('tm-local-name').trim();
             const metadata = {};
             if (dateVal) metadata.date_hiked = dateVal;
             if (ratingRaw) metadata.rating = parseInt(ratingRaw, 10);
@@ -2441,6 +2723,7 @@
             if (tags.length) metadata.tags = tags;
             if (source) metadata.source = source;
             if (notes.trim()) metadata.notes = notes;
+            if (localName) metadata.local_name = localName;
             const submit = document.getElementById('tm-submit');
             submit.disabled = true;
             api('PUT', '/metadata', { key: key, metadata: metadata })
@@ -2523,14 +2806,20 @@
       const placeBounds = L.latLngBounds();
       let focusPlace = null;
 
-      if (state.places && placesEnabled()) {
+      // Build markers regardless of the Visible-features toggle so that the
+      // toggle can flip layer visibility without forcing a map rebuild. The
+      // cluster group is only added to the map by applyMapFilters when
+      // placesEnabled() is true.
+      if (state.places) {
         for (const p of state.places) {
           const marker = createPlaceMarker(p);
           placeMarkers.push(marker);
-          const filteredOut = state.hiddenCategories.has(p.category)
-            || (p.visited && !state.showVisited)
-            || (!p.visited && !state.showWant);
-          if (!filteredOut) placeBounds.extend([p.lat, p.lon]);
+          if (placesEnabled()) {
+            const filteredOut = state.hiddenCategories.has(p.category)
+              || (p.visited && !state.showVisited)
+              || (!p.visited && !state.showWant);
+            if (!filteredOut) placeBounds.extend([p.lat, p.lon]);
+          }
           if (focus && focus.type === 'place' && focus.name === p.name) focusPlace = marker;
         }
       }
@@ -2546,7 +2835,9 @@
       let focusTrailKey = (focus && focus.type === 'trail') ? focus.name : null;
       let focusTrailLayer = null;
 
-      if (state.manifest && trailsEnabled()) {
+      // Same rationale as places: always build the GPX layers; visibility is
+      // controlled by applyMapFilters.
+      if (state.manifest) {
         for (const region of state.manifest.regions) {
           for (const route of region.routes) {
             const color = trailStatusColor(route.completed);
@@ -2642,7 +2933,7 @@
     function refreshFilterPanel() {
       const placesBody = document.getElementById('places-body');
       if (placesBody) {
-        const cats = Object.keys(state.categoryColors).sort();
+        const cats = sortedCategorySlugs(Object.keys(state.categoryColors));
         let html = '<div class="legend-cats">';
         for (const cat of cats) {
           const color = state.categoryColors[cat];
@@ -2676,7 +2967,7 @@
           for (const r of regions) {
             const hidden = state.hiddenRegions.has(r);
             html += '<div class="legend-item' + (hidden ? ' disabled' : '') + '" data-region="' + escapeHtml(r) + '">';
-            html += escapeHtml(r);
+            html += escapeHtml(displayRegion(r));
             html += '</div>';
           }
           html += '</div>';
@@ -2818,28 +3109,51 @@
 
     // ----- Edit place modal -----
     function openEditPlaceModal(place) {
-      const cats = Object.keys(state.categoryColors).sort();
+      // Exclude the uncategorized bucket ('') from the picker — "no category"
+      // is the default state of the empty option, not a pickable category.
+      const cats = sortedCategorySlugs(Object.keys(state.categoryColors).filter(c => c !== ''));
       const sourcesText = (place.sources || []).join('\n');
       openModal(
         '<h2>Edit place<button class="modal-close">&times;</button></h2>' +
         '<form id="edit-place-form">' +
           '<label for="e-name">Name</label>' +
           '<input type="text" id="e-name" required value="' + escapeHtml(place.name) + '">' +
+          (getShowField('native-name') ?
+            '<label for="e-local-name">Native name (optional)</label>' +
+            '<input type="text" id="e-local-name" placeholder="e.g. 東京" value="' + escapeHtml(place.local_name || '') + '">'
+          : '') +
           '<div class="row">' +
             '<div><label for="e-lat">Latitude</label><input type="number" id="e-lat" step="any" required value="' + place.lat + '"></div>' +
             '<div><label for="e-lon">Longitude</label><input type="number" id="e-lon" step="any" required value="' + place.lon + '"></div>' +
           '</div>' +
           '<label for="e-category">Category</label>' +
-          selectOrNewHtml('e-category', cats, place.category, displayCategory) +
+          selectOrNewHtml('e-category', cats, place.category, displayCategory, '', 'New category name') +
           '<label for="e-country">Country (optional)</label>' +
           '<input type="text" id="e-country" value="' + escapeHtml(place.country || '') + '">' +
-          '<label for="e-note">Note (optional)</label>' +
-          '<textarea id="e-note">' + escapeHtml(place.note || '') + '</textarea>' +
-          '<label for="e-local-name">Local name (optional)</label>' +
-          '<input type="text" id="e-local-name" value="' + escapeHtml(place.local_name || '') + '">' +
+          (getShowField('note') ?
+            '<label for="e-note">Note (optional)</label>' +
+            '<textarea id="e-note" style="min-height:40px">' + escapeHtml(place.note || '') + '</textarea>'
+          : '') +
           '<label for="e-sources">Sources (optional, one URL per line)</label>' +
-          '<textarea id="e-sources">' + escapeHtml(sourcesText) + '</textarea>' +
-          '<div class="checkbox-row"><input type="checkbox" id="e-visited"' + (place.visited ? ' checked' : '') + '><label for="e-visited">I&rsquo;ve visited this place</label></div>' +
+          '<textarea id="e-sources" style="min-height:40px">' + escapeHtml(sourcesText) + '</textarea>' +
+          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
+            '<input type="checkbox" class="settings-toggle" id="e-visited"' + (place.visited ? ' checked' : '') + '>' +
+            '<label for="e-visited" style="margin:0">I&rsquo;ve visited this place</label>' +
+          '</div>' +
+          ((getShowField('date') || getShowField('rating')) ?
+            '<div class="collapsible' + (place.visited ? ' expanded' : '') + '" id="e-visited-extras">' +
+              '<div class="collapsible-inner">' +
+                (getShowField('date') ?
+                  '<label for="e-date-visited">Date visited</label>' +
+                  '<input type="date" id="e-date-visited" value="' + escapeHtml(place.date_visited || '') + '">'
+                : '') +
+                (getShowField('rating') ?
+                  '<label for="e-rating">Rating</label>' +
+                  starRatingHtml('e-rating', place.rating || '')
+                : '') +
+              '</div>' +
+            '</div>'
+          : '') +
           '<div class="modal-error" id="edit-error"></div>' +
           '<div class="modal-actions">' +
             '<button type="button" class="session-revoke" id="e-delete">Delete</button>' +
@@ -2850,6 +3164,14 @@
         '</form>',
         function() {
           wireSelectOrNew('e-category');
+          wireStarRating('e-rating');
+          const eVisitedCb = document.getElementById('e-visited');
+          const eVisitedExtras = document.getElementById('e-visited-extras');
+          if (eVisitedCb && eVisitedExtras) {
+            eVisitedCb.addEventListener('change', function() {
+              eVisitedExtras.classList.toggle('expanded', this.checked);
+            });
+          }
           document.getElementById('e-delete').addEventListener('click', function() {
             if (!confirm('Delete place "' + place.name + '"?')) return;
             this.disabled = true;
@@ -2897,7 +3219,7 @@
       const cg = state._placeClusterGroup;
       if (cg) {
         cg.clearLayers();
-        if (state._placeMarkers) {
+        if (placesEnabled() && state._placeMarkers) {
           for (const m of state._placeMarkers) {
             const p = m._placeData;
             if (state.hiddenCategories.has(p.category)) continue;
@@ -2906,7 +3228,11 @@
             cg.addLayer(m);
           }
         }
-        if (!map.hasLayer(cg)) map.addLayer(cg);
+        if (placesEnabled()) {
+          if (!map.hasLayer(cg)) map.addLayer(cg);
+        } else if (map.hasLayer(cg)) {
+          map.removeLayer(cg);
+        }
       }
 
       // Trails
@@ -2915,14 +3241,19 @@
       if (gc && gp && state._trailLayers) {
         gc.clearLayers();
         gp.clearLayers();
-        for (const t of state._trailLayers) {
-          if (state.hiddenRegions.has(t.region)) continue;
-          if (t.completed && !state.showCompleted) continue;
-          if (!t.completed && !state.showPlanned) continue;
-          (t.completed ? gc : gp).addLayer(t.layer);
+        if (trailsEnabled()) {
+          for (const t of state._trailLayers) {
+            if (state.hiddenRegions.has(t.region)) continue;
+            if (t.completed && !state.showCompleted) continue;
+            if (!t.completed && !state.showPlanned) continue;
+            (t.completed ? gc : gp).addLayer(t.layer);
+          }
+          if (!map.hasLayer(gc)) map.addLayer(gc);
+          if (!map.hasLayer(gp)) map.addLayer(gp);
+        } else {
+          if (map.hasLayer(gc)) map.removeLayer(gc);
+          if (map.hasLayer(gp)) map.removeLayer(gp);
         }
-        if (!map.hasLayer(gc)) map.addLayer(gc);
-        if (!map.hasLayer(gp)) map.addLayer(gp);
       }
     }
 
@@ -3016,12 +3347,14 @@
       const places = state.places;
       const visited = places.filter(p => p.visited).length;
       const total = places.length;
-      const cats = Object.keys(state.categoryColors).sort();
+      const cats = sortedCategorySlugs(Object.keys(state.categoryColors));
+      // The uncategorized bucket isn't a real category — exclude from the count.
+      const realCatsCount = cats.filter(c => c !== '').length;
 
       document.getElementById('nav-info').innerHTML =
         '<div class="nav-group">' +
         '<div class="nav-stat"><span class="value">' + visited + '/' + total + ' visited</span></div>' +
-        '<div class="nav-stat"><span class="value">' + cats.length + ' categories</span></div>' +
+        '<div class="nav-stat"><span class="value">' + realCatsCount + ' categories</span></div>' +
         '<div class="nav-stat"><span class="value">' + [...new Set(places.map(p => p.country).filter(Boolean))].length + ' countries</span></div>' +
         '</div>';
 
@@ -3206,7 +3539,11 @@
 
       const canAddTrail = state.auth.authenticated && !isReadOnly();
       const difficulties = ['easy', 'moderate', 'hard', 'expert'];
-      const regionNames = regions.map(r => r.name).slice().sort((a, b) => a.localeCompare(b));
+      const regionNames = regions.map(r => r.name).slice().sort((a, b) => {
+        if (a === '') return 1;
+        if (b === '') return -1;
+        return a.localeCompare(b);
+      });
       const tagSet = new Set();
       for (const region of regions) {
         for (const route of region.routes) {
@@ -3226,7 +3563,7 @@
             '</select>' +
             '<select id="filter-region">' +
               '<option value="all">All regions</option>' +
-              regionNames.map(n => '<option value="' + escapeHtml(n.toLowerCase()) + '">' + escapeHtml(n) + '</option>').join('') +
+              regionNames.map(n => '<option value="' + escapeHtml(n.toLowerCase()) + '">' + escapeHtml(displayRegion(n)) + '</option>').join('') +
             '</select>' +
             '<select id="filter-difficulty">' +
               '<option value="all">Any difficulty</option>' +
@@ -3258,7 +3595,7 @@
         const regionSearch = region.name.toLowerCase();
         html += '<div class="region-group fade-in" data-region-search="' + escapeHtml(regionSearch) + '">';
         html += '<div class="region-label clickable" data-filter-region="' + escapeHtml(region.name) + '" title="Show only this region on the map">';
-        html += escapeHtml(region.name);
+        html += escapeHtml(displayRegion(region.name));
         html += '<span class="route-count">(' + regionCompleted + '/' + region.routes.length + ')</span>';
         html += '</div>';
         html += '<div class="route-grid">';
@@ -3469,7 +3806,7 @@
 
       const facts = [];
       facts.push('<span class="fact"><span class="dot" style="background:' + (route.completed ? 'var(--completed)' : 'var(--planned)') + '"></span>' + statusLabel + '</span>');
-      facts.push('<span class="fact">' + escapeHtml(regionName) + '</span>');
+      facts.push('<span class="fact">' + escapeHtml(displayRegion(regionName)) + '</span>');
       if (route.difficulty) facts.push('<span class="fact">' + escapeHtml(DIFFICULTY_LABELS[route.difficulty] || route.difficulty) + '</span>');
       if (route.rating) facts.push('<span class="fact" title="' + route.rating + '/5">' + ratingStarsText(route.rating) + '</span>');
       if (route.date_hiked) facts.push('<span class="fact">' + escapeHtml(route.date_hiked) + '</span>');
@@ -3988,12 +4325,35 @@
               : '') +
           '</div>'
         : '') +
+        (!isReadOnly() ?
+          '<h3 class="settings-h">Optional fields</h3>' +
+          '<div class="feature-pills">' +
+            [['native-name', 'Native name'], ['note', 'Note'], ['rating', 'Rating'], ['date', 'Date']]
+              .map(([key, label]) =>
+                '<label class="feature-pill' + (getShowField(key) ? ' active' : '') + '"><input type="checkbox" data-field="' + key + '"' + (getShowField(key) ? ' checked' : '') + '>' + label + '</label>'
+              ).join('') +
+          '</div>'
+        : '') +
         '<h3 class="settings-h">Units</h3>' +
-        radioGroupHtml('units', [['metric', 'Metric (km, m)'], ['imperial', 'Imperial (mi, ft)']], getUnits()) +
+        radioPillsHtml('units', [['metric', 'Metric (km, m)'], ['imperial', 'Imperial (mi, ft)']], getUnits()) +
         '<h3 class="settings-h">Language</h3>' +
         '<select id="s-language" disabled>' +
           '<option value="en" selected>English</option>' +
         '</select>' +
+        (placesAvailable() && !isReadOnly() ?
+          '<h3 class="settings-h">Categories</h3>' +
+          '<div style="display:flex;align-items:center;gap:1rem">' +
+            '<div class="modal-desc" style="flex:1;margin:0">Group your places on the map and in the list.</div>' +
+            '<button type="button" class="primary" id="s-manage-cats">Manage</button>' +
+          '</div>'
+        : '') +
+        (trailsAvailable() && !isReadOnly() ?
+          '<h3 class="settings-h">Regions</h3>' +
+          '<div style="display:flex;align-items:center;gap:1rem">' +
+            '<div class="modal-desc" style="flex:1;margin:0">Group your trails on the map and in the list.</div>' +
+            '<button type="button" class="primary" id="s-manage-regions">Manage</button>' +
+          '</div>'
+        : '') +
         '</div>' +
         '<div data-panel="appearance" hidden>' +
         '<div class="settings-grid-2">' +
@@ -4019,10 +4379,10 @@
           '</select>' +
         '</div>' +
         '<div class="settings-inline-row"><label>Marker size</label>' +
-          radioGroupHtml('marker-size', [['small', 'Small'], ['default', 'Default'], ['large', 'Large']], markerSize) +
+          radioPillsHtml('marker-size', [['small', 'Small'], ['default', 'Default'], ['large', 'Large']], markerSize) +
         '</div>' +
         '<div class="settings-inline-row"><label>Trail line thickness</label>' +
-          radioGroupHtml('trail-weight', [['thin', 'Thin'], ['default', 'Default'], ['thick', 'Thick']], trailWeight) +
+          radioPillsHtml('trail-weight', [['thin', 'Thin'], ['default', 'Default'], ['thick', 'Thick']], trailWeight) +
         '</div>' +
         '<h3 class="settings-h">Map</h3>' +
         '<div class="settings-inline-row"><label for="s-tile">Default tile layer</label>' +
@@ -4039,25 +4399,34 @@
             ).join('') +
           '</select>' +
         '</div>' +
-        (placesAvailable() ?
-          '<div class="settings-inline-row"><label for="s-cluster">Cluster nearby places</label>' +
-            '<input type="checkbox" class="settings-toggle" id="s-cluster"' + (getClusterPlaces() ? ' checked' : '') + '>' +
-          '</div>'
-          : '') +
-        '<div class="settings-inline-row"><label for="s-remember-view">Remember last map view</label>' +
-          '<input type="checkbox" class="settings-toggle" id="s-remember-view"' + (getRememberView() ? ' checked' : '') + '>' +
-        '</div>' +
-        '<div class="settings-inline-row"><label for="s-tile-picker">Show tile-layer picker on map</label>' +
-          '<input type="checkbox" class="settings-toggle" id="s-tile-picker"' + (getShowTilePicker() ? ' checked' : '') + '>' +
-        '</div>' +
-        '<div class="settings-inline-row"><label for="s-map-add">Show Add button on map</label>' +
-          '<input type="checkbox" class="settings-toggle" id="s-map-add"' + (getShowMapAddButton() ? ' checked' : '') + '>' +
+        '<div class="toggle-grid">' +
+          (placesAvailable() ?
+            '<div class="settings-inline-row"><label for="s-cluster">Cluster places</label>' +
+              '<input type="checkbox" class="settings-toggle" id="s-cluster"' + (getClusterPlaces() ? ' checked' : '') + '>' +
+            '</div>'
+            : '') +
+          '<div class="settings-inline-row"><label for="s-remember-view">Remember last view</label>' +
+            '<input type="checkbox" class="settings-toggle" id="s-remember-view"' + (getRememberView() ? ' checked' : '') + '>' +
+          '</div>' +
+          '<div class="settings-inline-row"><label for="s-tile-picker">Tile-layer picker</label>' +
+            '<input type="checkbox" class="settings-toggle" id="s-tile-picker"' + (getShowTilePicker() ? ' checked' : '') + '>' +
+          '</div>' +
+          '<div class="settings-inline-row"><label for="s-map-add">Add button on map</label>' +
+            '<input type="checkbox" class="settings-toggle" id="s-map-add"' + (getShowMapAddButton() ? ' checked' : '') + '>' +
+          '</div>' +
         '</div>' +
         '</div>' +
         '<div data-panel="account" hidden>' +
-        '<h3 class="settings-h">Sharing</h3>' +
-        '<div class="checkbox-row"><input type="checkbox" id="s-publish"' + (state.auth.published ? ' checked' : '') + '><label for="s-publish">Make my map publicly readable at <code>/u/' + escapeHtml(state.auth.username || '') + '/</code></label></div>' +
-        '<div class="modal-desc">Anyone with the link can view; no editing.</div>' +
+        '<h3 class="settings-h">Public sharing</h3>' +
+        '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem">' +
+          '<input type="checkbox" class="settings-toggle" id="s-publish"' + (state.auth.published ? ' checked' : '') + '>' +
+          '<label for="s-publish" style="margin:0">Make my map public</label>' +
+        '</div>' +
+        '<div class="modal-desc">When on, anyone with the link can view your places and trails. They can\'t edit.</div>' +
+        '<div id="s-publish-link" style="display:' + (state.auth.published ? 'flex' : 'none') + ';align-items:center;gap:0.5rem;margin-top:0.5rem">' +
+          '<input type="text" id="s-publish-url" readonly value="' + escapeHtml(location.origin + '/u/' + (state.auth.username || '') + '/') + '" style="flex:1;font-size:0.75rem">' +
+          '<button type="button" class="primary" id="s-publish-copy" style="flex:0 0 auto">Copy</button>' +
+        '</div>' +
         '<h3 class="settings-h">Export</h3>' +
         '<div style="display:flex;align-items:center;gap:1rem">' +
           '<div class="modal-desc" style="flex:1;margin:0">Download your places, trails, and preferences as a zip.</div>' +
@@ -4066,14 +4435,14 @@
         '<div class="modal-error" id="s-export-error"></div>' +
         '<h3 class="settings-h">Import</h3>' +
         '<div class="modal-desc">Restore from a previous export.</div>' +
-        '<div class="radio-row" style="margin-top:0.5rem">' +
-          '<label><input type="radio" name="import-mode" value="merge" checked> Merge into existing</label>' +
-          '<label><input type="radio" name="import-mode" value="replace"> Replace all</label>' +
+        '<div class="radio-row radio-pills" style="margin-top:0.5rem">' +
+          '<label><input type="radio" name="import-mode" value="merge" checked>Merge into existing</label>' +
+          '<label><input type="radio" name="import-mode" value="replace">Replace all</label>' +
         '</div>' +
         '<div style="display:flex;align-items:center;gap:1rem;margin-top:0.75rem">' +
           '<div class="file-picker" style="flex:1;margin:0">' +
             '<input type="file" id="s-import-file" accept=".zip,application/zip" class="file-input-hidden">' +
-            '<button type="button" id="s-import-pick">Choose file</button>' +
+            '<button type="button" class="primary" id="s-import-pick">Choose file</button>' +
             '<span class="file-name" id="s-import-name">No file selected</span>' +
           '</div>' +
           '<button type="button" class="primary" id="s-import">Import</button>' +
@@ -4098,16 +4467,11 @@
         '</div>' +
         (isAdmin ?
           '<div data-panel="admin" hidden>' +
-          (placesAvailable() ?
-            '<h3 class="settings-h">Categories</h3>' +
-            '<div style="display:flex;align-items:center;gap:1rem">' +
-              '<div class="modal-desc" style="flex:1;margin:0">Edit display labels for place categories. Unlabeled slugs fall back to title case.</div>' +
-              '<button type="button" class="primary" id="s-manage-cats">Manage categories</button>' +
-            '</div>'
-          : '') +
           '<h3 class="settings-h">Registration</h3>' +
-          '<div class="checkbox-row"><input type="checkbox" id="s-reg"' + (regOpen ? ' checked' : '') + '><label for="s-reg">Allow new users to register</label></div>' +
-          '<div class="modal-desc">Anyone with the URL can sign up while this is on.</div>' +
+          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem">' +
+            '<input type="checkbox" class="settings-toggle" id="s-reg"' + (regOpen ? ' checked' : '') + '>' +
+            '<label for="s-reg" style="margin:0">Allow new users to register</label>' +
+          '</div>' +
           '</div>'
         : ''),
         function() {
@@ -4145,11 +4509,33 @@
             });
           }
           const pub = document.getElementById('s-publish');
+          const pubLink = document.getElementById('s-publish-link');
           if (pub) {
             pub.addEventListener('change', function() {
-              api('POST', '/me/publish', { published: this.checked })
-                .then(() => refreshAuthState())
-                .catch(err => { alert('Failed: ' + err.message); this.checked = !this.checked; });
+              const wanted = this.checked;
+              api('POST', '/me/publish', { published: wanted })
+                .then(() => {
+                  if (pubLink) pubLink.style.display = wanted ? 'flex' : 'none';
+                  return refreshAuthState();
+                })
+                .catch(err => { alert('Failed: ' + err.message); this.checked = !wanted; });
+            });
+          }
+          const pubCopy = document.getElementById('s-publish-copy');
+          if (pubCopy) {
+            pubCopy.addEventListener('click', function() {
+              const input = document.getElementById('s-publish-url');
+              if (!input) return;
+              const original = this.textContent;
+              navigator.clipboard.writeText(input.value).then(() => {
+                this.textContent = 'Copied';
+                setTimeout(() => { this.textContent = original; }, 1500);
+              }).catch(() => {
+                input.select();
+                document.execCommand('copy');
+                this.textContent = 'Copied';
+                setTimeout(() => { this.textContent = original; }, 1500);
+              });
             });
           }
           renderSessions();
@@ -4183,7 +4569,10 @@
               const pill = this.closest('.feature-pill');
               if (pill) pill.classList.toggle('active', this.checked);
               refreshTabVisibility();
-              wrappedRouter();
+              // Layer groups are pre-built; apply visibility in place to avoid
+              // tearing down the map (which would blink while Settings is open).
+              if (state.currentMap) applyMapFilters();
+              else wrappedRouter();
             });
           });
           const tileSel = document.getElementById('s-tile');
@@ -4223,9 +4612,21 @@
               wrappedRouter();
             });
           });
-          bindRadioPref('units', 'atlas-units', wrappedRouter);
+          // Units only affect formatting (distance/elevation in popups + detail view).
+          // No need to tear down the map — the next render naturally picks up the
+          // new units. Avoiding wrappedRouter here removes the modal-open blink.
+          bindRadioPref('units', 'atlas-units');
           const manageCats = document.getElementById('s-manage-cats');
           if (manageCats) manageCats.addEventListener('click', openManageCategoriesModal);
+          const manageRegions = document.getElementById('s-manage-regions');
+          if (manageRegions) manageRegions.addEventListener('click', openManageRegionsModal);
+          document.querySelectorAll('.feature-pill input[data-field]').forEach(cb => {
+            cb.addEventListener('change', function() {
+              setPref('atlas-show-' + this.dataset.field, this.checked ? 'true' : 'false');
+              const pill = this.closest('.feature-pill');
+              if (pill) pill.classList.toggle('active', this.checked);
+            });
+          });
           const exportBtn = document.getElementById('s-export');
           if (exportBtn) exportBtn.addEventListener('click', function() {
             const errBox = document.getElementById('s-export-error');
@@ -4350,29 +4751,73 @@
       );
     }
 
+    function slugifyCategory(s) {
+      return (s || '').toLowerCase().trim()
+        .replace(/[^a-z0-9_-]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 64);
+    }
+
     function openManageCategoriesModal() {
       const labels = state.config.category_labels || {};
-      const slugsFromPlaces = state.places ? [...new Set(state.places.map(p => p.category))] : [];
+      // Uncategorized ('') isn't a manageable slug — drop it.
+      const slugsFromPlaces = state.places ? [...new Set(state.places.map(p => p.category).filter(Boolean))] : [];
       const allSlugs = [...new Set([...Object.keys(labels), ...slugsFromPlaces])].sort();
-      const rows = allSlugs.map(slug => ({ slug, display: labels[slug] || '' }));
+      const placeCountBySlug = {};
+      if (state.places) {
+        for (const p of state.places) {
+          if (!p.category) continue;
+          placeCountBySlug[p.category] = (placeCountBySlug[p.category] || 0) + 1;
+        }
+      }
+      const rows = allSlugs.map(slug => {
+        const display = labels[slug] || '';
+        return { slug, display, original: display, count: placeCountBySlug[slug] || 0 };
+      });
 
       openModal(
         '<h2>Manage categories<button class="modal-close">&times;</button></h2>' +
-        '<div class="hint">Set a display label for each slug. Clear a label to fall back to title case. Slugs in use by places cannot be removed here.</div>' +
-        '<div id="cat-rows" style="margin-top:0.75rem"></div>' +
-        '<div class="hint" style="margin-top:1rem">Add new label</div>' +
+        '<h3 class="settings-h" style="margin-top:0.75rem">Add</h3>' +
         '<div class="row" style="margin-top:0.25rem">' +
-          '<input type="text" id="cat-new-slug" placeholder="slug (e.g. waterfall)">' +
-          '<input type="text" id="cat-new-display" placeholder="Display (e.g. Waterfalls)">' +
-          '<button type="button" id="cat-add" style="flex:0 0 auto">Add</button>' +
+          '<input type="text" id="cat-new-display" placeholder="e.g. Waterfalls">' +
+          '<button type="button" class="primary" id="cat-add" style="flex:0 0 auto">Add</button>' +
         '</div>' +
+        '<div class="hint" id="cat-new-slug-preview" hidden></div>' +
         '<div class="modal-error" id="cat-error"></div>' +
+        '<h3 class="settings-h" style="margin-top:1.25rem">Categories</h3>' +
+        '<div id="cat-rows"></div>' +
         '<div class="modal-actions" style="margin-top:1rem">' +
-          '<button type="button" class="modal-close">Cancel</button>' +
-          '<button type="button" class="primary" id="cat-save">Save</button>' +
+          '<div id="cat-clear-warning" class="action-warning" hidden></div>' +
+          '<button type="button" class="primary" id="cat-save" hidden>Save</button>' +
         '</div>',
         function() {
           const inUse = new Set(slugsFromPlaces);
+          const pendingClears = new Set();  // in-use slugs the user removed; will bulk-clear on Save
+          const initialRowKeys = new Set(rows.map(r => r.slug));
+          function hasChanges() {
+            if (pendingClears.size) return true;
+            // Added or label-edited?
+            if (rows.length !== initialRowKeys.size) return true;
+            for (const r of rows) {
+              if (!initialRowKeys.has(r.slug)) return true;
+              if (r.display !== r.original) return true;
+            }
+            return false;
+          }
+          function refreshSaveBtn() {
+            const btn = document.getElementById('cat-save');
+            if (btn) btn.hidden = !hasChanges();
+          }
+          function refreshClearWarning() {
+            const banner = document.getElementById('cat-clear-warning');
+            if (!banner) return;
+            if (!pendingClears.size) { banner.hidden = true; return; }
+            const slugs = [...pendingClears];
+            const total = state.places.filter(p => slugs.includes(p.category)).length;
+            const slugList = slugs.map(s => '"' + s + '"').join(', ');
+            banner.textContent = 'On Save: ' + total + ' place' + (total === 1 ? '' : 's') + ' will lose their category (' + slugList + ').';
+            banner.hidden = false;
+          }
           function rerender() {
             const container = document.getElementById('cat-rows');
             if (!rows.length) {
@@ -4380,40 +4825,81 @@
               return;
             }
             container.innerHTML = rows.map((r, i) => {
-              const removable = !inUse.has(r.slug);
-              return '<div class="row" style="margin-top:0.4rem;align-items:center">' +
-                '<input type="text" value="' + escapeHtml(r.slug) + '" disabled style="flex:0 0 35%">' +
-                '<input type="text" data-i="' + i + '" class="cat-display" value="' + escapeHtml(r.display) + '" placeholder="(falls back to title case)">' +
-                '<button type="button" data-i="' + i + '" class="cat-remove" style="flex:0 0 auto"' + (removable ? '' : ' disabled title="In use by places"') + '>Remove</button>' +
+              const dirty = r.display !== r.original;
+              const tag = dirty ? '<span class="row-tag dirty">edited</span>'
+                        : r.count === 0 ? '<span class="row-tag">unused</span>'
+                        : '<span class="row-tag">' + r.count + ' place' + (r.count === 1 ? '' : 's') + '</span>';
+              return '<div style="display:flex;gap:0.6rem;align-items:center;margin-top:0.5rem">' +
+                '<input type="text" data-i="' + i + '" class="cat-display' + (dirty ? ' dirty' : '') + '" value="' + escapeHtml(r.display) + '" placeholder="(falls back to title case)" title="' + escapeHtml('slug: ' + r.slug) + '" style="flex:1;min-width:0">' +
+                tag +
+                '<button type="button" data-i="' + i + '" class="cat-remove btn-x" aria-label="Remove" title="Remove" style="flex:0 0 auto">&times;</button>' +
               '</div>';
             }).join('');
             container.querySelectorAll('.cat-display').forEach(inp => {
               inp.addEventListener('input', function() {
-                rows[+this.dataset.i].display = this.value;
+                const i = +this.dataset.i;
+                const r = rows[i];
+                r.display = this.value;
+                const dirty = r.display !== r.original;
+                this.classList.toggle('dirty', dirty);
+                // Update the tag in this row without a full rerender (avoids
+                // stealing focus while typing).
+                const tagEl = this.parentElement.querySelector('.row-tag');
+                if (!tagEl) return;
+                if (dirty) {
+                  tagEl.textContent = 'edited';
+                  tagEl.classList.add('dirty');
+                } else {
+                  tagEl.classList.remove('dirty');
+                  tagEl.textContent = r.count === 0
+                    ? 'unused'
+                    : (r.count + ' place' + (r.count === 1 ? '' : 's'));
+                }
+                refreshSaveBtn();
               });
             });
             container.querySelectorAll('.cat-remove').forEach(btn => {
               btn.addEventListener('click', function() {
                 if (this.disabled) return;
-                rows.splice(+this.dataset.i, 1);
+                const i = +this.dataset.i;
+                const slug = rows[i].slug;
+                if (inUse.has(slug)) pendingClears.add(slug);
+                rows.splice(i, 1);
                 rerender();
+                refreshClearWarning();
+                refreshSaveBtn();
               });
             });
           }
           rerender();
+          refreshSaveBtn();
+
+          const newDisplay = document.getElementById('cat-new-display');
+          const slugPreview = document.getElementById('cat-new-slug-preview');
+          newDisplay.addEventListener('input', function() {
+            const s = slugifyCategory(this.value);
+            if (s) {
+              slugPreview.innerHTML = 'Will be saved as slug <code>' + escapeHtml(s) + '</code>.';
+              slugPreview.hidden = false;
+            } else {
+              slugPreview.hidden = true;
+            }
+          });
 
           document.getElementById('cat-add').addEventListener('click', function() {
-            const slug = document.getElementById('cat-new-slug').value.trim();
-            const display = document.getElementById('cat-new-display').value.trim();
+            const display = newDisplay.value.trim();
             const err = document.getElementById('cat-error');
             err.classList.remove('visible');
-            if (!slug) { err.textContent = 'Slug required'; err.classList.add('visible'); return; }
-            if (rows.some(r => r.slug === slug)) { err.textContent = 'Slug already exists'; err.classList.add('visible'); return; }
-            rows.push({ slug, display });
+            if (!display) { err.textContent = 'Display label required'; err.classList.add('visible'); return; }
+            const slug = slugifyCategory(display);
+            if (!slug) { err.textContent = 'Display label has no usable letters or digits for a slug'; err.classList.add('visible'); return; }
+            if (rows.some(r => r.slug === slug)) { err.textContent = 'A category with slug "' + slug + '" already exists'; err.classList.add('visible'); return; }
+            rows.push({ slug, display, original: '', count: 0 });
             rows.sort((a, b) => a.slug.localeCompare(b.slug));
-            document.getElementById('cat-new-slug').value = '';
-            document.getElementById('cat-new-display').value = '';
+            newDisplay.value = '';
+            slugPreview.hidden = true;
             rerender();
+            refreshSaveBtn();
           });
 
           document.getElementById('cat-save').addEventListener('click', function() {
@@ -4423,11 +4909,25 @@
             for (const r of rows) {
               if (r.display.trim()) payload[r.slug] = r.display.trim();
             }
-            api('PUT', '/site-config/category-labels', { category_labels: payload })
+            // Bulk-clear any in-use slugs the user removed, then PUT labels.
+            // Clear failures abort the save so the label map and place data
+            // don't get out of sync.
+            const clears = [...pendingClears].map(slug =>
+              api('POST', '/places/clear-category', { category: slug })
+            );
+            Promise.all(clears)
+              .then(() => api('PUT', '/me/category-labels', { category_labels: payload }))
               .then(res => {
                 state.config.category_labels = res.category_labels || payload;
-                closeModal();
-                wrappedRouter();
+                if (pendingClears.size && state.places) {
+                  // The server cleared `category` for these slugs; mirror it
+                  // locally so we don't have to refetch and rebuild markers.
+                  for (const p of state.places) {
+                    if (pendingClears.has(p.category)) p.category = '';
+                  }
+                }
+                refreshPlacesPresentation();
+                openSettingsModal();
               })
               .catch(err => {
                 submit.disabled = false;
@@ -4436,7 +4936,163 @@
                 e.classList.add('visible');
               });
           });
-        }
+        },
+        // Closing this modal (X / backdrop / ESC) returns to Settings rather
+        // than the map — this is a sub-modal opened from Settings.
+        openSettingsModal
+      );
+    }
+
+    function openManageRegionsModal() {
+      const regions = (state.manifest && state.manifest.regions) ? state.manifest.regions : [];
+      // Exclude the synthetic no-region group; it's not a renamable directory.
+      const rows = regions
+        .filter(r => r.name)
+        .map(r => ({ name: r.name, original: r.name, count: r.routes.length }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+      // Empty regions: Save calls delete-region. Non-empty regions: Save calls
+      // clear-region, which moves the trails to "No region" and removes the dir.
+      const pendingDeletes = new Set();   // empty regions removed by X
+      const pendingClears = new Set();    // non-empty regions removed by X
+
+      openModal(
+        '<h2>Manage regions<button class="modal-close">&times;</button></h2>' +
+        '<h3 class="settings-h" style="margin-top:0.75rem">Regions</h3>' +
+        '<div id="rgn-rows"></div>' +
+        '<div id="rgn-empty" class="hint" hidden>No regions yet. Upload a trail with a region to create one.</div>' +
+        '<div class="modal-error" id="rgn-error"></div>' +
+        '<div class="modal-actions" style="margin-top:1rem">' +
+          '<div id="rgn-clear-warning" class="action-warning" hidden></div>' +
+          '<button type="button" class="primary" id="rgn-save" hidden>Save</button>' +
+        '</div>',
+        function() {
+          function hasChanges() {
+            if (pendingDeletes.size || pendingClears.size) return true;
+            for (const r of rows) if (r.name !== r.original) return true;
+            return false;
+          }
+          function refreshSaveBtn() {
+            const btn = document.getElementById('rgn-save');
+            if (btn) btn.hidden = !hasChanges();
+          }
+          function refreshClearWarning() {
+            const banner = document.getElementById('rgn-clear-warning');
+            if (!banner) return;
+            if (!pendingClears.size) { banner.hidden = true; return; }
+            const slugs = [...pendingClears];
+            const total = slugs.reduce((n, name) => {
+              const region = regions.find(x => x.name === name);
+              return n + (region ? region.routes.length : 0);
+            }, 0);
+            const slugList = slugs.map(s => '"' + s + '"').join(', ');
+            banner.textContent = 'On Save: ' + total + ' trail' + (total === 1 ? '' : 's') +
+              ' will move to No region (' + slugList + ').';
+            banner.hidden = false;
+          }
+          function rerender() {
+            const container = document.getElementById('rgn-rows');
+            const emptyMsg = document.getElementById('rgn-empty');
+            if (!rows.length) {
+              container.innerHTML = '';
+              emptyMsg.hidden = false;
+              return;
+            }
+            emptyMsg.hidden = true;
+            container.innerHTML = rows.map((r, i) => {
+              const dirty = r.name !== r.original;
+              const empty = r.count === 0;
+              const tag = dirty ? '<span class="row-tag dirty">edited</span>'
+                        : empty ? '<span class="row-tag">empty</span>'
+                        : '<span class="row-tag">' + r.count + ' trail' + (r.count === 1 ? '' : 's') + '</span>';
+              const xTitle = empty ? 'Remove empty region' : 'Remove region (trails will move to No region)';
+              return '<div style="display:flex;gap:0.6rem;align-items:center;margin-top:0.5rem">' +
+                '<input type="text" data-i="' + i + '" class="rgn-name' + (dirty ? ' dirty' : '') + '" value="' + escapeHtml(r.name) + '" style="flex:1;min-width:0">' +
+                tag +
+                '<button type="button" data-i="' + i + '" class="rgn-remove btn-x" aria-label="Remove" title="' + xTitle + '" style="flex:0 0 auto">&times;</button>' +
+              '</div>';
+            }).join('');
+            container.querySelectorAll('.rgn-name').forEach(inp => {
+              inp.addEventListener('input', function() {
+                const i = +this.dataset.i;
+                const r = rows[i];
+                r.name = this.value;
+                const dirty = r.name !== r.original;
+                this.classList.toggle('dirty', dirty);
+                const tagEl = this.parentElement.querySelector('.row-tag');
+                if (!tagEl) return;
+                if (dirty) {
+                  tagEl.textContent = 'edited';
+                  tagEl.classList.add('dirty');
+                } else {
+                  tagEl.classList.remove('dirty');
+                  tagEl.textContent = r.count === 0 ? 'empty' : (r.count + ' trail' + (r.count === 1 ? '' : 's'));
+                }
+                refreshSaveBtn();
+              });
+            });
+            container.querySelectorAll('.rgn-remove').forEach(btn => {
+              btn.addEventListener('click', function() {
+                if (this.disabled) return;
+                const i = +this.dataset.i;
+                const r = rows[i];
+                if (r.count === 0) pendingDeletes.add(r.original);
+                else pendingClears.add(r.original);
+                rows.splice(i, 1);
+                rerender();
+                refreshSaveBtn();
+                refreshClearWarning();
+              });
+            });
+          }
+          rerender();
+          refreshSaveBtn();
+
+          document.getElementById('rgn-save').addEventListener('click', function() {
+            const submit = this;
+            submit.disabled = true;
+            const err = document.getElementById('rgn-error');
+            err.classList.remove('visible');
+
+            // Build the list of renames. Reject if any new name collides with
+            // an existing (non-renamed) region or with another rename target.
+            const renames = [];
+            const seen = new Set(rows.map(r => r.name.trim().toLowerCase()));
+            if (seen.size !== rows.length) {
+              err.textContent = 'Two regions have the same name.';
+              err.classList.add('visible');
+              submit.disabled = false;
+              return;
+            }
+            for (const r of rows) {
+              const trimmed = r.name.trim();
+              if (!trimmed) {
+                err.textContent = 'Region name cannot be empty.';
+                err.classList.add('visible');
+                submit.disabled = false;
+                return;
+              }
+              if (trimmed !== r.original) renames.push({ from: r.original, to: trimmed });
+            }
+
+            // Run clears + deletes first so a rename can reuse a freed name.
+            const clears = [...pendingClears].map(name =>
+              api('POST', '/regions/clear', { name })
+            );
+            const deletes = [...pendingDeletes].map(name =>
+              api('POST', '/regions/delete', { name })
+            );
+            Promise.all([...clears, ...deletes])
+              .then(() => Promise.all(renames.map(r => api('POST', '/regions/rename', r))))
+              .then(() => refreshRoutes())
+              .then(() => { wrappedRouter(); openSettingsModal(); })
+              .catch(e => {
+                submit.disabled = false;
+                err.textContent = e.message;
+                err.classList.add('visible');
+              });
+          });
+        },
+        openSettingsModal
       );
     }
 
@@ -4501,20 +5157,31 @@
     }
 
     // ----- Modal infrastructure -----
-    function openModal(html, onMount) {
+    // Per-modal close override. openModal sets this to onClose (if provided)
+    // or the default close. closeModal and escClose go through it so X /
+    // backdrop / ESC all route the same way.
+    let activeCloseHandler = null;
+    function openModal(html, onMount, onClose) {
       const root = document.getElementById('modal-root');
       root.innerHTML = '<div class="modal-backdrop" id="modal-backdrop"><div class="modal">' + html + '</div></div>';
       const backdrop = document.getElementById('modal-backdrop');
-      backdrop.addEventListener('click', function(e) { if (e.target === backdrop) closeModal(); });
-      backdrop.querySelectorAll('.modal-close').forEach(el => el.addEventListener('click', closeModal));
+      activeCloseHandler = onClose || null;
+      const closeIt = () => (activeCloseHandler ? activeCloseHandler() : closeModal());
+      backdrop.addEventListener('click', function(e) { if (e.target === backdrop) closeIt(); });
+      backdrop.querySelectorAll('.modal-close').forEach(el => el.addEventListener('click', closeIt));
       document.addEventListener('keydown', escClose);
       if (onMount) onMount(backdrop);
     }
     function closeModal() {
+      activeCloseHandler = null;
       document.getElementById('modal-root').innerHTML = '';
       document.removeEventListener('keydown', escClose);
     }
-    function escClose(e) { if (e.key === 'Escape') closeModal(); }
+    function escClose(e) {
+      if (e.key !== 'Escape') return;
+      if (activeCloseHandler) activeCloseHandler();
+      else closeModal();
+    }
     function showModalError(msg) {
       const el = document.querySelector('.modal-error');
       if (el) { el.textContent = msg; el.classList.add('visible'); }
@@ -4604,7 +5271,7 @@
         (showPlaces && showTrails ?
           '<div class="modal-tabs" id="add-tabs">' +
             '<button data-tab="place"' + (tab === 'place' ? ' class="active"' : '') + '>Place</button>' +
-            '<button data-tab="trail"' + (tab === 'trail' ? ' class="active"' : '') + '>Trail (GPX)</button>' +
+            '<button data-tab="trail"' + (tab === 'trail' ? ' class="active"' : '') + '>Trail</button>' +
           '</div>'
           : '') +
         '<div id="add-body"></div>',
@@ -4622,34 +5289,84 @@
 
       function renderTab() {
         const body = document.getElementById('add-body');
-        if (tab === 'place') body.innerHTML = placeFormHtml();
-        else body.innerHTML = gpxFormHtml();
+        const firstRender = body.dataset.rendered !== '1';
+        const oldH = firstRender ? 0 : body.offsetHeight;
+        body.innerHTML = tab === 'place' ? placeFormHtml() : gpxFormHtml();
         if (tab === 'place') wirePlaceForm();
         else wireGpxForm();
+        body.dataset.rendered = '1';
+        if (firstRender) return;
+        // Measure the new content size, then animate from old to new height.
+        // After the transition completes, release back to auto so the form can
+        // grow naturally (e.g. when the Completed extras expand).
+        body.style.height = 'auto';
+        const newH = body.offsetHeight;
+        body.style.height = oldH + 'px';
+        body.offsetHeight;  // force reflow so the transition catches the change
+        body.style.height = newH + 'px';
+        const onEnd = function(e) {
+          if (e.target !== body || e.propertyName !== 'height') return;
+          body.style.height = 'auto';
+          body.removeEventListener('transitionend', onEnd);
+        };
+        body.addEventListener('transitionend', onEnd);
       }
 
       function placeFormHtml() {
-        const cats = Object.keys(state.categoryColors).sort();
+        // Exclude the uncategorized bucket ('') — "no category" is already the
+        // default state of the empty placeholder option.
+        const cats = sortedCategorySlugs(Object.keys(state.categoryColors).filter(c => c !== ''));
         const c = prefillCoords;
         return '<form id="place-form">' +
           '<label for="p-name">Name</label>' +
-          '<input type="text" id="p-name" required>' +
-          '<div class="row">' +
-            '<div><label for="p-lat">Latitude</label><input type="number" id="p-lat" step="any" required value="' + (c ? c.lat.toFixed(6) : '') + '"></div>' +
-            '<div><label for="p-lon">Longitude</label><input type="number" id="p-lon" step="any" required value="' + (c ? c.lng.toFixed(6) : '') + '"></div>' +
+          '<input type="text" id="p-name" required placeholder="e.g. Acropolis">' +
+          (getShowField('native-name') ?
+            '<label for="p-local-name">Native name (optional)</label>' +
+            '<input type="text" id="p-local-name" placeholder="e.g. Ακρόπολη">'
+          : '') +
+          '<label>Coordinates</label>' +
+          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem">' +
+            '<button type="button" class="primary" id="pick-on-map" style="flex:0 0 auto">' + (c ? 'Re-pick on map' : 'Pick on map') + '</button>' +
+            (c
+              ? '<span id="p-coords-display" style="font-size:0.78rem;color:var(--text)">' + c.lat.toFixed(6) + ', ' + c.lng.toFixed(6) + '</span>'
+              : '<a href="#" id="p-coords-manual" style="font-size:0.7rem;color:var(--muted);text-decoration:underline">or enter manually</a>') +
           '</div>' +
-          '<div class="pick-row"><button type="button" id="pick-on-map">Pick on map</button></div>' +
+          '<div class="collapsible" id="p-coords-fields">' +
+            '<div class="collapsible-inner">' +
+              '<div class="row" style="margin-top:0.4rem">' +
+                '<div><label for="p-lat">Latitude</label><input type="number" id="p-lat" step="any" value="' + (c ? c.lat.toFixed(6) : '') + '"></div>' +
+                '<div><label for="p-lon">Longitude</label><input type="number" id="p-lon" step="any" value="' + (c ? c.lng.toFixed(6) : '') + '"></div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
           '<label for="p-category">Category</label>' +
-          selectOrNewHtml('p-category', cats, null, displayCategory) +
+          selectOrNewHtml('p-category', cats, null, displayCategory, '', 'New category name') +
           '<label for="p-country">Country (optional)</label>' +
           '<input type="text" id="p-country">' +
-          '<label for="p-note">Note (optional)</label>' +
-          '<textarea id="p-note"></textarea>' +
-          '<label for="p-local-name">Local name (optional)</label>' +
-          '<input type="text" id="p-local-name">' +
+          (getShowField('note') ?
+            '<label for="p-note">Note (optional)</label>' +
+            '<textarea id="p-note" style="min-height:40px"></textarea>'
+          : '') +
           '<label for="p-sources">Sources (optional, one URL per line)</label>' +
-          '<textarea id="p-sources" placeholder="https://example.com/source"></textarea>' +
-          '<div class="checkbox-row"><input type="checkbox" id="p-visited"><label for="p-visited">I&rsquo;ve visited this place</label></div>' +
+          '<textarea id="p-sources" style="min-height:40px" placeholder="https://example.com/source"></textarea>' +
+          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
+            '<input type="checkbox" class="settings-toggle" id="p-visited">' +
+            '<label for="p-visited" style="margin:0">I&rsquo;ve visited this place</label>' +
+          '</div>' +
+          ((getShowField('date') || getShowField('rating')) ?
+            '<div class="collapsible" id="p-visited-extras">' +
+              '<div class="collapsible-inner">' +
+                (getShowField('date') ?
+                  '<label for="p-date-visited">Date visited</label>' +
+                  '<input type="date" id="p-date-visited">'
+                : '') +
+                (getShowField('rating') ?
+                  '<label for="p-rating">Rating</label>' +
+                  starRatingHtml('p-rating', '')
+                : '') +
+              '</div>' +
+            '</div>'
+          : '') +
           '<div class="modal-error" id="add-error"></div>' +
           '<div class="modal-actions">' +
             '<button type="button" class="modal-close">Cancel</button>' +
@@ -4659,15 +5376,53 @@
       }
 
       function gpxFormHtml() {
-        const regions = state.manifest ? state.manifest.regions.map(r => r.name).sort() : [];
+        // Skip the synthetic no-region group ("") when listing existing regions.
+        const regions = state.manifest ? state.manifest.regions.map(r => r.name).filter(Boolean).sort() : [];
         return '<form id="gpx-form">' +
-          '<label for="g-file">GPX file</label>' +
-          '<input type="file" id="g-file" accept=".gpx,application/gpx+xml,text/xml" required>' +
+          '<label for="g-name">Name</label>' +
+          '<input type="text" id="g-name" required placeholder="e.g. Summit Loop">' +
+          (getShowField('native-name') ?
+            '<label for="g-local-name">Native name (optional)</label>' +
+            '<input type="text" id="g-local-name" placeholder="e.g. 金閣寺路">'
+          : '') +
+          '<label>GPX file</label>' +
+          '<div class="file-picker">' +
+            '<input type="file" id="g-file" accept=".gpx,application/gpx+xml,text/xml" class="file-input-hidden" required>' +
+            '<button type="button" class="primary" id="g-file-pick">Choose file</button>' +
+            '<span class="file-name" id="g-file-name">No file selected</span>' +
+          '</div>' +
           '<label for="g-region">Region</label>' +
-          selectOrNewHtml('g-region', regions, null) +
-          '<label for="g-name">Trail name</label>' +
-          '<input type="text" id="g-name" required placeholder="will be the filename">' +
-          '<div class="hint">Server will strip PII (timestamps, author, creator) before saving.</div>' +
+          selectOrNewHtml('g-region', regions, null, null, '', 'New region name') +
+          '<label for="g-source">Source URL (optional)</label>' +
+          '<input type="url" id="g-source" placeholder="https://example.com/trail">' +
+          '<label for="g-difficulty">Difficulty</label>' +
+          radioPillsHtml('g-difficulty', [['', 'None'], ['easy', 'Easy'], ['moderate', 'Moderate'], ['hard', 'Hard'], ['expert', 'Expert']], '') +
+          (getShowField('note') ?
+            '<label for="g-notes">Notes (optional)</label>' +
+            '<textarea id="g-notes" style="min-height:40px" maxlength="2000"></textarea>'
+          : '') +
+          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
+            '<input type="checkbox" class="settings-toggle" id="g-strip-pii">' +
+            '<label for="g-strip-pii" title="Removes timestamps, author, and creator from the GPX file" style="margin:0">Strip personal data from GPX</label>' +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
+            '<input type="checkbox" class="settings-toggle" id="g-completed">' +
+            '<label for="g-completed" style="margin:0">I&rsquo;ve completed this trail</label>' +
+          '</div>' +
+          ((getShowField('date') || getShowField('rating')) ?
+            '<div class="collapsible" id="g-completed-extras">' +
+              '<div class="collapsible-inner">' +
+                (getShowField('date') ?
+                  '<label for="g-date">Date hiked</label>' +
+                  '<input type="date" id="g-date">'
+                : '') +
+                (getShowField('rating') ?
+                  '<label for="g-rating">Rating</label>' +
+                  starRatingHtml('g-rating', '')
+                : '') +
+              '</div>' +
+            '</div>'
+          : '') +
           '<div class="modal-error" id="add-error"></div>' +
           '<div class="modal-actions">' +
             '<button type="button" class="modal-close">Cancel</button>' +
@@ -4678,10 +5433,33 @@
 
       function wirePlaceForm() {
         wireSelectOrNew('p-category');
+        wireStarRating('p-rating');
+        const visitedCb = document.getElementById('p-visited');
+        const visitedExtras = document.getElementById('p-visited-extras');
+        if (visitedCb && visitedExtras) {
+          visitedCb.addEventListener('change', function() {
+            visitedExtras.classList.toggle('expanded', this.checked);
+          });
+        }
         document.getElementById('pick-on-map').addEventListener('click', function() {
           closeModal();
           enterPickCoordsMode();
         });
+        // "or enter manually" reveals the lat/lon inputs with the same
+        // collapsible animation used elsewhere.
+        const manualLink = document.getElementById('p-coords-manual');
+        const coordsBox = document.getElementById('p-coords-fields');
+        // If coords were prefilled (user came from a map pick), keep the
+        // inputs available immediately so the user can fine-tune.
+        if (prefillCoords) coordsBox.classList.add('expanded');
+        if (manualLink && coordsBox) {
+          manualLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            coordsBox.classList.add('expanded');
+            this.style.display = 'none';
+          });
+          if (coordsBox.classList.contains('expanded')) manualLink.style.display = 'none';
+        }
         document.getElementById('place-form').addEventListener('submit', function(e) {
           e.preventDefault();
           const r = readPlaceFormFields('p');
@@ -4698,16 +5476,64 @@
 
       function wireGpxForm() {
         wireSelectOrNew('g-region');
+        wireStarRating('g-rating');
+        const fileInput = document.getElementById('g-file');
+        const filePick = document.getElementById('g-file-pick');
+        const fileName = document.getElementById('g-file-name');
+        if (filePick) filePick.addEventListener('click', function() { fileInput.click(); });
+        if (fileInput) fileInput.addEventListener('change', function() {
+          const f = this.files && this.files[0];
+          if (f) {
+            fileName.textContent = f.name;
+            fileName.classList.add('has-file');
+          } else {
+            fileName.textContent = 'No file selected';
+            fileName.classList.remove('has-file');
+          }
+        });
+        const completedCb = document.getElementById('g-completed');
+        const completedExtras = document.getElementById('g-completed-extras');
+        if (completedCb && completedExtras) {
+          completedCb.addEventListener('change', function() {
+            completedExtras.classList.toggle('expanded', this.checked);
+          });
+        }
         document.getElementById('gpx-form').addEventListener('submit', function(e) {
           e.preventDefault();
           const file = document.getElementById('g-file').files[0];
           const region = readSelectOrNew('g-region');
           const name = document.getElementById('g-name').value.trim();
           if (!file) { showModalError('Pick a GPX file first.'); return; }
-          if (!region) { showModalError('Pick or add a region.'); return; }
+          const stripPii = document.getElementById('g-strip-pii').checked;
+          const completed = document.getElementById('g-completed').checked;
+          // Default is "planned": file lands as <name>.planned.gpx, rendered as a
+          // dashed overlay. Toggling "completed" saves the walked variant.
+          const storedName = completed ? name : (name + '.planned');
+
+          // Optional metadata. date_hiked + rating only apply to completed trails.
+          // Each field may be hidden by user preference; guard with optional chaining.
+          const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+          const source = get('g-source').trim();
+          const notes = get('g-notes');
+          const localName = get('g-local-name').trim();
+          const difficulty = (document.querySelector('input[name="g-difficulty"]:checked') || {}).value || '';
+          const metadata = {};
+          if (source) metadata.source = source;
+          if (notes.trim()) metadata.notes = notes;
+          if (localName) metadata.local_name = localName;
+          if (difficulty) metadata.difficulty = difficulty;
+          if (completed) {
+            const dateVal = get('g-date').trim();
+            const ratingRaw = readStarRating('g-rating');
+            if (dateVal) metadata.date_hiked = dateVal;
+            if (ratingRaw) metadata.rating = parseInt(ratingRaw, 10);
+          }
+          const metaKey = region ? region + '/' + name : name;
+
           const submitBtn = document.getElementById('gpx-submit');
           submitBtn.disabled = true;
-          const qs = '?region=' + encodeURIComponent(region) + '&name=' + encodeURIComponent(name);
+          let qs = (region ? '?region=' + encodeURIComponent(region) + '&' : '?') + 'name=' + encodeURIComponent(storedName);
+          if (stripPii) qs += '&strip_pii=true';
           fetch(apiUrl('/gpx') + qs, {
             method: 'POST',
             credentials: 'same-origin',
@@ -4717,6 +5543,10 @@
             const data = await r.json().catch(() => null);
             if (!r.ok) throw new Error((data && data.error) || 'HTTP ' + r.status);
             return data;
+          })
+          .then(() => {
+            if (Object.keys(metadata).length === 0) return null;
+            return api('PUT', '/metadata', { key: metaKey, metadata: metadata });
           })
           .then(() => refreshRoutes())
           .then(() => { closeModal(); router(); })
@@ -4828,8 +5658,18 @@
       const routesP = trailsAvailable()
         ? fetchJson(dataUrl('routes'), null).catch(() => null)
         : Promise.resolve(null);
-      return Promise.all([placesP, routesP]).then(function([places, routes]) {
+      const labelsP = placesAvailable()
+        ? fetchJson(categoryLabelsUrl(), null).catch(() => null)
+        : Promise.resolve(null);
+      return Promise.all([placesP, routesP, labelsP]).then(function([places, routes, labels]) {
+        if (labels && labels.category_labels) {
+          state.config.category_labels = labels.category_labels;
+        }
         if (Array.isArray(places)) {
+          // Normalize: missing/empty category is the "uncategorized" bucket
+          // (key ''), so the rest of the UI can treat p.category as a plain
+          // string without sprinkling null checks everywhere.
+          for (const p of places) { if (p.category == null) p.category = ''; }
           state.places = places;
           assignPlaceSlugs(state.places);
           const cc = assignCategoryColors(places);

@@ -135,11 +135,20 @@ class TestValidatePlace(unittest.TestCase):
       api.validate_place(self.minimal(extra="nope"))
 
   def test_missing_required(self):
-    for missing in ("name", "lat", "lon", "category"):
+    for missing in ("name", "lat", "lon"):
       p = self.minimal()
       del p[missing]
       with self.assertRaises(api.ValidationError):
         api.validate_place(p)
+
+  def test_category_optional(self):
+    # Omitted, null, or "" all mean uncategorized — the field is stripped.
+    for absent in ({}, {"category": None}, {"category": ""}):
+      p = self.minimal()
+      del p["category"]
+      p.update(absent)
+      out = api.validate_place(p)
+      self.assertNotIn("category", out)
 
   def test_name_bad(self):
     for bad in ("", "   ", "x" * 201, 123, None):
@@ -157,9 +166,28 @@ class TestValidatePlace(unittest.TestCase):
         api.validate_place(self.minimal(lon=bad))
 
   def test_category_bad(self):
-    for bad in ("", "   ", "x" * 65, 123, None):
+    # "" and None are now treated as "uncategorized" (see test_category_optional).
+    # Bad values are non-string types or strings that are whitespace-only / too long.
+    for bad in ("   ", "x" * 65, 123):
       with self.assertRaises(api.ValidationError):
         api.validate_place(self.minimal(category=bad))
+
+  def test_date_visited_and_rating_ok(self):
+    out = api.validate_place(self.minimal(date_visited="2024-07-15", rating=4))
+    self.assertEqual(out["date_visited"], "2024-07-15")
+    self.assertEqual(out["rating"], 4)
+
+  def test_date_visited_bad(self):
+    # Regex-level validation (matches the trail date_hiked behavior). Bogus
+    # months like 2024-13-01 pass the regex; that's a known limitation.
+    for bad in ("2024/07/15", "yesterday", "07-15-2024", 123):
+      with self.assertRaises(api.ValidationError):
+        api.validate_place(self.minimal(date_visited=bad))
+
+  def test_rating_bad(self):
+    for bad in (0, 6, "4", True, 3.5):
+      with self.assertRaises(api.ValidationError):
+        api.validate_place(self.minimal(rating=bad))
 
   def test_country_bad(self):
     with self.assertRaises(api.ValidationError):
