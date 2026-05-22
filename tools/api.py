@@ -51,18 +51,18 @@ RATE_LIMIT_MAX_FAILS = 10
 GPX_MAX_BYTES = 10 * 1024 * 1024  # 10 MiB cap for GPX uploads
 IMPORT_MAX_BYTES = 50 * 1024 * 1024  # 50 MiB cap for zip imports
 IMPORT_MAX_UNCOMPRESSED = 200 * 1024 * 1024  # 200 MiB uncompressed (zip-bomb guard)
-IMPORT_TOP_FILES = ("places.json", "routes.json", "metadata.json", "prefs.json")
+IMPORT_TOP_FILES = ("places.json", "routes.json", "metadata.json", "prefs.json", "category-labels.json")
 GPX_NS = "http://www.topografix.com/GPX/1/1"
 # Allow any non-control, non-separator character. The real security boundary
 # is resolve_under() (the resolved path must stay inside the base). The dot/
 # dot-dot whole-string rejection lives in safe_path_component itself.
 PATH_COMPONENT_RE = re.compile(r"^[^\x00-\x1f/\\]{1,255}$")
-PLACE_REQUIRED = {"name", "lat", "lon", "category"}
-PLACE_OPTIONAL = {"country", "visited", "note", "sources", "local_name"}
+PLACE_REQUIRED = {"name", "lat", "lon"}
+PLACE_OPTIONAL = {"category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating"}
 PLACE_ALL = PLACE_REQUIRED | PLACE_OPTIONAL
 
 # Trail metadata fields and their constraints (used by /api/metadata).
-TRAIL_META_FIELDS = {"source", "date_hiked", "rating", "notes", "tags", "difficulty"}
+TRAIL_META_FIELDS = {"source", "date_hiked", "rating", "notes", "tags", "difficulty", "local_name"}
 TRAIL_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 TRAIL_TAG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
 TRAIL_DIFFICULTIES = ("easy", "moderate", "hard", "expert")
@@ -336,6 +336,30 @@ def migrate_legacy_data(conn: sqlite3.Connection, cfg: dict) -> None:
   if moved:
     print(f"[atlas-api] migrated legacy {moved} -> users/{admin}/", file=sys.stderr)
 
+  # One-shot: move site-config's `category_labels` into the admin's per-user
+  # file (where labels live since 2026-05-22). Skipped if the admin already has
+  # a labels file or if site-config doesn't carry any.
+  site_cfg_path = data_dir / "site-config.json"
+  if site_cfg_path.exists():
+    try:
+      cfg_data = json.loads(site_cfg_path.read_text("utf-8"))
+    except (OSError, json.JSONDecodeError):
+      return
+    legacy_labels = cfg_data.get("category_labels") if isinstance(cfg_data, dict) else None
+    if isinstance(legacy_labels, dict) and legacy_labels:
+      dst_labels = dest / "category-labels.json"
+      if not dst_labels.exists():
+        try:
+          write_json_file(dst_labels, legacy_labels)
+        except OSError:
+          return
+      try:
+        cfg_data.pop("category_labels", None)
+        atomic_write_bytes(site_cfg_path, (json.dumps(cfg_data, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+        print(f"[atlas-api] migrated site-config category_labels -> users/{admin}/category-labels.json", file=sys.stderr)
+      except OSError:
+        pass
+
 
 # ---------- sessions ----------
 
@@ -574,12 +598,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_metadata_get()
     if path == "/api/me/prefs":
       return self._h_prefs_get()
+    if path == "/api/me/category-labels":
+      return self._h_me_category_labels_get()
     if path == "/api/me/export":
       return self._h_export_get()
     if path.startswith("/api/gpx/"):
       parts = path[len("/api/gpx/"):].split("/", 1)
       if len(parts) == 2:
         return self._h_gpx_get(unquote(parts[0]), unquote(parts[1]))
+      if len(parts) == 1 and parts[0]:
+        return self._h_gpx_get("", unquote(parts[0]))
       return self._error(HTTPStatus.NOT_FOUND, "not found")
     if path.startswith("/api/u/"):
       rest = path[len("/api/u/"):]
@@ -593,10 +621,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
         return self._h_public_routes(uname)
       if tail == "metadata":
         return self._h_public_metadata(uname)
+      if tail == "category-labels":
+        return self._h_public_category_labels(uname)
       if tail.startswith("gpx/"):
         gparts = tail[len("gpx/"):].split("/", 1)
         if len(gparts) == 2:
           return self._h_public_gpx(uname, unquote(gparts[0]), unquote(gparts[1]))
+        if len(gparts) == 1 and gparts[0]:
+          return self._h_public_gpx(uname, "", unquote(gparts[0]))
       return self._error(HTTPStatus.NOT_FOUND, "not found")
     if path.startswith("/api/"):
       return self._error(HTTPStatus.NOT_FOUND, "not found")
@@ -664,8 +696,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_settings_registration()
     if path == "/api/places":
       return self._h_places_create()
+    if path == "/api/places/clear-category":
+      return self._h_places_clear_category()
     if path == "/api/gpx":
       return self._h_gpx_upload()
+    if path == "/api/regions/rename":
+      return self._h_region_rename()
+    if path == "/api/regions/delete":
+      return self._h_region_delete()
+    if path == "/api/regions/clear":
+      return self._h_region_clear()
     if path == "/api/me/publish":
       return self._h_publish_post()
     if path == "/api/me/import":
@@ -684,8 +724,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_prefs_put()
     if path == "/api/metadata":
       return self._h_metadata_put()
-    if path == "/api/site-config/category-labels":
-      return self._h_site_config_category_labels()
+    if path == "/api/me/category-labels":
+      return self._h_me_category_labels_put()
     self._error(HTTPStatus.NOT_FOUND, "not found")
 
   def do_DELETE(self):
@@ -868,50 +908,65 @@ class Handler(http.server.BaseHTTPRequestHandler):
       setting_set(self.conn, "registration", mode)
     self._send_json(HTTPStatus.OK, {"registration": mode})
 
-  def _h_site_config_category_labels(self):
-    if self._require_admin() is None:
+  def _h_me_category_labels_get(self):
+    user = self._require_user()
+    if user is None:
+      return
+    udir = self._user_dir(user["username"])
+    try:
+      data = load_json_file(udir / "category-labels.json", expected_type=dict, required=False, label="category-labels.json")
+    except ValidationError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+    self._send_json(HTTPStatus.OK, {"category_labels": data or {}})
+
+  def _h_me_category_labels_put(self):
+    user = self._require_user()
+    if user is None:
       return
     body = self._read_body_or_400()
     if body is None:
       return
-    labels = body.get("category_labels")
+    cleaned = self._clean_category_labels(body.get("category_labels"))
+    if isinstance(cleaned, tuple):  # error tuple (status, msg)
+      return self._error(cleaned[0], cleaned[1])
+
+    udir = self._user_dir(user["username"])
+    labels_path = udir / "category-labels.json"
+    lock_path = udir / ".atlas-category-labels.lock"
+
+    def do_update():
+      write_json_file(labels_path, cleaned)
+
+    try:
+      with_file_lock(lock_path, do_update)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write category-labels.json: {e}")
+
+    self._send_json(HTTPStatus.OK, {"ok": True, "category_labels": cleaned})
+
+  def _clean_category_labels(self, labels):
+    """Validate and normalize a category_labels payload. Returns the cleaned
+    dict, or a (status, message) tuple for the caller to turn into an error."""
     if not isinstance(labels, dict):
-      return self._error(HTTPStatus.BAD_REQUEST, "category_labels must be an object")
+      return (HTTPStatus.BAD_REQUEST, "category_labels must be an object")
     if len(labels) > 200:
-      return self._error(HTTPStatus.BAD_REQUEST, "too many category labels (max 200)")
+      return (HTTPStatus.BAD_REQUEST, "too many category labels (max 200)")
     cleaned: dict[str, str] = {}
     for slug, display in labels.items():
       if not isinstance(slug, str) or not isinstance(display, str):
-        return self._error(HTTPStatus.BAD_REQUEST, "category_labels keys and values must be strings")
+        return (HTTPStatus.BAD_REQUEST, "category_labels keys and values must be strings")
       slug_clean = slug.strip()
       display_clean = display.strip()
       if not slug_clean or not display_clean:
         continue
       if len(slug_clean) > 64:
-        return self._error(HTTPStatus.BAD_REQUEST, f"slug too long: {slug_clean[:32]}...")
+        return (HTTPStatus.BAD_REQUEST, f"slug too long: {slug_clean[:32]}...")
       if len(display_clean) > 80:
-        return self._error(HTTPStatus.BAD_REQUEST, f"display too long for slug '{slug_clean}'")
+        return (HTTPStatus.BAD_REQUEST, f"display too long for slug '{slug_clean}'")
       if not PATH_COMPONENT_RE.match(slug_clean):
-        return self._error(HTTPStatus.BAD_REQUEST, f"slug contains disallowed characters: {slug_clean}")
+        return (HTTPStatus.BAD_REQUEST, f"slug contains disallowed characters: {slug_clean}")
       cleaned[slug_clean] = display_clean
-
-    data_dir = Path(self.cfg["data_dir"]).resolve()
-    config_path = data_dir / "site-config.json"
-    lock_path = data_dir / ".atlas-site-config.lock"
-
-    def do_update():
-      existing = load_json_file(config_path, expected_type=dict, required=False, label="site-config.json")
-      existing["category_labels"] = cleaned
-      write_json_file(config_path, existing)
-
-    try:
-      with_file_lock(lock_path, do_update)
-    except ValidationError as e:
-      return self._error(HTTPStatus.CONFLICT, str(e))
-    except OSError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write site-config.json: {e}")
-
-    self._send_json(HTTPStatus.OK, {"ok": True, "category_labels": cleaned})
+    return cleaned
 
   # ---- write endpoints (per-user) ----
 
@@ -989,6 +1044,42 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write places.json: {e}")
     self._send_json(HTTPStatus.OK, {"ok": True, "place": validated})
 
+  def _h_places_clear_category(self):
+    """Bulk-clear `category` from every place that has the given value. Used
+    by the Manage categories UI when the user removes a category that's still
+    in use; those places become uncategorized rather than blocking the remove."""
+    user = self._require_user()
+    if user is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    target = body.get("category")
+    if not isinstance(target, str) or not target.strip():
+      return self._error(HTTPStatus.BAD_REQUEST, "category required")
+    target = target.strip()
+
+    udir = self._user_dir(user["username"])
+    places_path = udir / "places.json"
+    lock_path = udir / ".atlas-places.lock"
+
+    def do_clear():
+      existing = load_json_file(places_path, expected_type=list, required=False, label="places.json")
+      cleared = 0
+      for p in existing:
+        if isinstance(p, dict) and p.get("category") == target:
+          p.pop("category", None)
+          cleared += 1
+      if cleared:
+        write_json_file(places_path, existing)
+      return cleared
+
+    try:
+      cleared = with_file_lock(lock_path, do_clear)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write places.json: {e}")
+    self._send_json(HTTPStatus.OK, {"ok": True, "cleared": cleared})
+
   def _h_places_delete(self):
     user = self._require_user()
     if user is None:
@@ -1029,8 +1120,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
     body = self._read_body_or_400()
     if body is None:
       return
+    # Region is optional. Empty/missing means a root-level GPX (no region).
+    raw_region = body.get("region") or ""
     try:
-      region = safe_path_component(body.get("region") or "")
+      region = safe_path_component(raw_region) if raw_region else ""
       name = safe_path_component(body.get("name") or "")
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, f"invalid region/name: {e}")
@@ -1039,9 +1132,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     udir = self._user_dir(user["username"])
     gpx_root = udir / "gpx"
+    parts = (region, name + ".gpx") if region else (name + ".gpx",)
+    planned_parts = (region, name + ".planned.gpx") if region else (name + ".planned.gpx",)
     try:
-      target = resolve_under(gpx_root, region, name + ".gpx")
-      planned = resolve_under(gpx_root, region, name + ".planned.gpx")
+      target = resolve_under(gpx_root, *parts)
+      planned = resolve_under(gpx_root, *planned_parts)
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
@@ -1056,13 +1151,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
             removed.append(p.name)
           except OSError as e:
             raise ValidationError(f"failed to delete {p.name}: {e}")
-      # Best-effort: prune now-empty region dir.
-      try:
-        region_dir = target.parent
-        if region_dir.exists() and not any(region_dir.iterdir()):
-          region_dir.rmdir()
-      except OSError:
-        pass
+      # Best-effort: prune now-empty region dir. Only applies when a region was given.
+      if region:
+        try:
+          region_dir = target.parent
+          if region_dir.exists() and region_dir != gpx_root and not any(region_dir.iterdir()):
+            region_dir.rmdir()
+        except OSError:
+          pass
 
     try:
       with_file_lock(lock_path, do_delete)
@@ -1079,13 +1175,17 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return
 
     qs = parse_qs(urlparse(self.path).query)
+    raw_region = (qs.get("region") or [""])[0]
     try:
-      region = safe_path_component((qs.get("region") or [""])[0])
+      region = safe_path_component(raw_region) if raw_region else ""
       name = safe_path_component((qs.get("name") or [""])[0])
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, f"invalid region/name: {e}")
     if name.lower().endswith(".gpx"):
       name = name[:-4]
+    # Opt-in PII stripping (timestamps, author, creator). Off by default so the
+    # client decides; the upload UI exposes the toggle.
+    strip_pii = (qs.get("strip_pii") or ["false"])[0].lower() in ("true", "1", "yes")
 
     try:
       raw = self._read_raw(GPX_MAX_BYTES)
@@ -1097,14 +1197,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.BAD_REQUEST, "empty body")
 
     try:
-      cleaned = strip_gpx_pii(raw)
+      if strip_pii:
+        cleaned = strip_gpx_pii(raw)
+      else:
+        validate_gpx(raw)
+        cleaned = raw
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
     udir = self._user_dir(user["username"])
     gpx_root = udir / "gpx"
+    parts = (region, name + ".gpx") if region else (name + ".gpx",)
     try:
-      target = resolve_under(gpx_root, region, name + ".gpx")
+      target = resolve_under(gpx_root, *parts)
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
@@ -1120,12 +1225,180 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write GPX: {e}")
 
     manifest_status = self._regenerate_manifest(udir)
+    saved_rel = f"gpx/{region}/{name}.gpx" if region else f"gpx/{name}.gpx"
     self._send_json(HTTPStatus.CREATED, {
       "ok": True,
-      "saved": f"gpx/{region}/{name}.gpx",
+      "saved": saved_rel,
       "bytes": len(cleaned),
       "manifest": manifest_status,
     })
+
+  def _h_region_rename(self):
+    """Rename a region: rename the gpx/<from> directory and rewrite any
+    metadata.json keys that referenced the old name. Regenerates the manifest."""
+    user = self._require_user()
+    if user is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    try:
+      old_name = safe_path_component(body.get("from") or "")
+      new_name = safe_path_component(body.get("to") or "")
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, f"invalid region name: {e}")
+    if old_name == new_name:
+      return self._send_json(HTTPStatus.OK, {"ok": True, "renamed": 0})
+
+    udir = self._user_dir(user["username"])
+    gpx_root = udir / "gpx"
+    try:
+      src = resolve_under(gpx_root, old_name)
+      dst = resolve_under(gpx_root, new_name)
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, str(e))
+    if not src.exists() or not src.is_dir():
+      return self._error(HTTPStatus.NOT_FOUND, f"region not found: {old_name}")
+    if dst.exists():
+      return self._error(HTTPStatus.CONFLICT, f"region already exists: {new_name}")
+
+    meta_path = udir / "metadata.json"
+    lock_path = udir / ".atlas-gpx.lock"
+    moved = {"trails": 0, "metadata": 0}
+
+    def do_rename():
+      src.rename(dst)
+      moved["trails"] = sum(1 for p in dst.glob("*.gpx") if p.is_file())
+      if meta_path.exists():
+        existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
+        prefix = old_name + "/"
+        updated = {}
+        for k, v in existing.items():
+          if isinstance(k, str) and k.startswith(prefix):
+            updated[new_name + "/" + k[len(prefix):]] = v
+            moved["metadata"] += 1
+          else:
+            updated[k] = v
+        if moved["metadata"]:
+          write_json_file(meta_path, updated)
+
+    try:
+      with_file_lock(lock_path, do_rename)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"rename failed: {e}")
+    manifest_status = self._regenerate_manifest(udir)
+    self._send_json(HTTPStatus.OK, {
+      "ok": True, "from": old_name, "to": new_name,
+      "trails": moved["trails"], "metadata": moved["metadata"],
+      "manifest": manifest_status,
+    })
+
+  def _h_region_clear(self):
+    """Move every GPX in gpx/<name>/ up to gpx/ (no-region bucket), rewrite
+    matching metadata.json keys, then delete the now-empty directory.
+    Refuses with 409 if any move would overwrite an existing root-level file."""
+    user = self._require_user()
+    if user is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    try:
+      name = safe_path_component(body.get("name") or "")
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, f"invalid region name: {e}")
+
+    udir = self._user_dir(user["username"])
+    gpx_root = udir / "gpx"
+    try:
+      region_dir = resolve_under(gpx_root, name)
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, str(e))
+    if not region_dir.exists() or not region_dir.is_dir():
+      return self._error(HTTPStatus.NOT_FOUND, f"region not found: {name}")
+
+    files = sorted(p for p in region_dir.iterdir() if p.is_file() and p.name.endswith(".gpx"))
+    conflicts = [p.name for p in files if (gpx_root / p.name).exists()]
+    if conflicts:
+      return self._error(HTTPStatus.CONFLICT,
+                         f"cannot clear: filename(s) already exist at root: {', '.join(conflicts)}")
+
+    meta_path = udir / "metadata.json"
+    lock_path = udir / ".atlas-gpx.lock"
+    moved = {"trails": 0, "metadata": 0}
+
+    def do_clear():
+      for p in files:
+        p.rename(gpx_root / p.name)
+        # Count one per unique trail base (collapse .planned siblings).
+        if not p.name.endswith(".planned.gpx"):
+          moved["trails"] += 1
+      # Rewrite metadata keys: "<name>/Trail" -> "Trail"
+      if meta_path.exists():
+        existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
+        prefix = name + "/"
+        updated = {}
+        for k, v in existing.items():
+          if isinstance(k, str) and k.startswith(prefix):
+            updated[k[len(prefix):]] = v
+            moved["metadata"] += 1
+          else:
+            updated[k] = v
+        if moved["metadata"]:
+          write_json_file(meta_path, updated)
+      # Best-effort prune.
+      try:
+        if not any(region_dir.iterdir()):
+          region_dir.rmdir()
+      except OSError:
+        pass
+
+    try:
+      with_file_lock(lock_path, do_clear)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"clear failed: {e}")
+    manifest_status = self._regenerate_manifest(udir)
+    self._send_json(HTTPStatus.OK, {
+      "ok": True, "name": name,
+      "trails": moved["trails"], "metadata": moved["metadata"],
+      "manifest": manifest_status,
+    })
+
+  def _h_region_delete(self):
+    """Delete an empty region directory. Refuses if any files remain."""
+    user = self._require_user()
+    if user is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    try:
+      name = safe_path_component(body.get("name") or "")
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, f"invalid region name: {e}")
+
+    udir = self._user_dir(user["username"])
+    gpx_root = udir / "gpx"
+    try:
+      target = resolve_under(gpx_root, name)
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, str(e))
+    if not target.exists() or not target.is_dir():
+      return self._error(HTTPStatus.NOT_FOUND, f"region not found: {name}")
+    if any(target.iterdir()):
+      return self._error(HTTPStatus.CONFLICT, "region not empty")
+
+    lock_path = udir / ".atlas-gpx.lock"
+
+    def do_delete():
+      target.rmdir()
+
+    try:
+      with_file_lock(lock_path, do_delete)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"delete failed: {e}")
+    manifest_status = self._regenerate_manifest(udir)
+    self._send_json(HTTPStatus.OK, {"ok": True, "name": name, "manifest": manifest_status})
 
   def _regenerate_manifest(self, target_dir: Path) -> dict:
     cmd = self.cfg.get("manifest_cmd")
@@ -1203,12 +1476,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.BAD_REQUEST, "key required")
     if len(key) > 256:
       return self._error(HTTPStatus.BAD_REQUEST, "key too long")
-    # Key shape: "Region/Trail" (two safe path components). Defense in depth;
-    # the value never touches the filesystem on this path, but rejecting weird
-    # input keeps metadata.json clean.
+    # Key shape: "Region/Trail" for regioned trails, or just "Trail" for
+    # root-level (no region). Defense in depth; the value never touches the
+    # filesystem on this path, but rejecting weird input keeps metadata.json clean.
     parts = key.split("/")
-    if len(parts) != 2:
-      return self._error(HTTPStatus.BAD_REQUEST, "key must be 'Region/Trail name'")
+    if len(parts) not in (1, 2):
+      return self._error(HTTPStatus.BAD_REQUEST, "key must be 'Region/Trail name' or 'Trail name'")
     try:
       for p in parts:
         safe_path_component(p)
@@ -1355,6 +1628,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
           safe_path_component(parts[2][:-4])
         except ValidationError as e:
           return self._error(HTTPStatus.BAD_REQUEST, f"invalid gpx path '{name}': {e}")
+      elif len(parts) == 2 and parts[0] == "gpx" and parts[1].endswith(".gpx"):
+        # Root-level GPX (no region).
+        try:
+          safe_path_component(parts[1][:-4])
+        except ValidationError as e:
+          return self._error(HTTPStatus.BAD_REQUEST, f"invalid gpx path '{name}': {e}")
       else:
         return self._error(HTTPStatus.BAD_REQUEST, f"unexpected file in zip: {name}")
       total_uncompressed += info.file_size
@@ -1383,8 +1662,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
       new_routes = parse_json("routes.json", dict)
       new_metadata = parse_json("metadata.json", dict)
       new_prefs = parse_json("prefs.json", dict)
+      new_labels = parse_json("category-labels.json", dict)
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
+
+    if new_labels is not None:
+      cleaned_labels = self._clean_category_labels(new_labels)
+      if isinstance(cleaned_labels, tuple):
+        return self._error(cleaned_labels[0], f"category-labels.json: {cleaned_labels[1]}")
+      # Re-stage the cleaned form so the writer below uses the canonical bytes.
+      staged["category-labels.json"] = (json.dumps(cleaned_labels, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
 
     if new_places is not None:
       for i, p in enumerate(new_places):
@@ -1444,6 +1731,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
         existing = load_json_file(prefs_path, expected_type=dict, required=False, label="prefs.json")
         existing.update(new_prefs)
         write_json_file(prefs_path, existing)
+      if new_labels is not None:
+        labels_path = udir / "category-labels.json"
+        existing = load_json_file(labels_path, expected_type=dict, required=False, label="category-labels.json")
+        existing.update(cleaned_labels)
+        write_json_file(labels_path, existing)
       for arcname, data in cleaned_gpx.items():
         target = udir / arcname
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -1514,6 +1806,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
     self._send_json(HTTPStatus.OK, data or {})
 
+  def _h_public_category_labels(self, username: str):
+    udir = self._public_user_dir(username)
+    if udir is None:
+      return self._error(HTTPStatus.NOT_FOUND, "not found")
+    try:
+      data = load_json_file(udir / "category-labels.json", expected_type=dict, required=False, label="category-labels.json")
+    except ValidationError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+    self._send_json(HTTPStatus.OK, {"category_labels": data or {}})
+
   def _h_public_gpx(self, username: str, region: str, fname: str):
     udir = self._public_user_dir(username)
     if udir is None:
@@ -1522,14 +1824,15 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
   def _serve_gpx(self, udir: Path, region: str, fname: str):
     try:
-      region_safe = safe_path_component(region)
+      region_safe = safe_path_component(region) if region else ""
       file_safe = safe_path_component(fname)
     except ValidationError:
       return self._error(HTTPStatus.BAD_REQUEST, "invalid path")
     if not file_safe.lower().endswith(".gpx"):
       return self._error(HTTPStatus.BAD_REQUEST, "expected .gpx")
+    parts = (region_safe, file_safe) if region_safe else (file_safe,)
     try:
-      target = resolve_under(udir / "gpx", region_safe, file_safe)
+      target = resolve_under(udir / "gpx", *parts)
     except ValidationError:
       return self._error(HTTPStatus.BAD_REQUEST, "invalid path")
     if not target.exists() or not target.is_file():
@@ -1678,9 +1981,12 @@ def validate_place(p: object) -> dict:
   lon = p["lon"]
   if not isinstance(lon, (int, float)) or isinstance(lon, bool) or not (-180 <= lon <= 180):
     raise ValidationError("lon must be a number in [-180, 180]")
-  category = p["category"]
-  if not isinstance(category, str) or not category.strip() or len(category) > 64:
-    raise ValidationError("category must be a non-empty string (<=64 chars)")
+  # Category is optional. An empty string or missing field both mean
+  # "uncategorized" and are stripped from the stored object.
+  category = p.get("category")
+  if category is not None and category != "":
+    if not isinstance(category, str) or not category.strip() or len(category) > 64:
+      raise ValidationError("category, when set, must be a non-empty string (<=64 chars)")
   if "country" in p and p["country"] is not None and not (isinstance(p["country"], str) and len(p["country"]) <= 100):
     raise ValidationError("country must be a string (<=100 chars) or null")
   if "visited" in p and not isinstance(p["visited"], bool):
@@ -1689,6 +1995,13 @@ def validate_place(p: object) -> dict:
     raise ValidationError("note must be a string (<=2000 chars) or null")
   if "local_name" in p and p["local_name"] is not None and not (isinstance(p["local_name"], str) and len(p["local_name"]) <= 200):
     raise ValidationError("local_name must be a string (<=200 chars) or null")
+  if "date_visited" in p and p["date_visited"] is not None and p["date_visited"] != "":
+    if not isinstance(p["date_visited"], str) or not TRAIL_DATE_RE.match(p["date_visited"]):
+      raise ValidationError("date_visited must be YYYY-MM-DD")
+  if "rating" in p and p["rating"] is not None and p["rating"] != "":
+    r = p["rating"]
+    if isinstance(r, bool) or not isinstance(r, int) or not 1 <= r <= 5:
+      raise ValidationError("rating must be an integer 1-5")
   if "sources" in p:
     if not isinstance(p["sources"], list) or len(p["sources"]) > 20:
       raise ValidationError("sources must be a list (<=20 items)")
@@ -1702,12 +2015,17 @@ def validate_place(p: object) -> dict:
     "name": name.strip(),
     "lat": float(lat),
     "lon": float(lon),
-    "category": category.strip(),
     "visited": bool(p.get("visited", False)),
   }
+  if category is not None and category != "":
+    out["category"] = category.strip()
   for k in ("country", "note", "local_name", "sources"):
     if k in p and p[k] is not None:
       out[k] = p[k].strip() if isinstance(p[k], str) else p[k]
+  if "date_visited" in p and p["date_visited"]:
+    out["date_visited"] = p["date_visited"]
+  if "rating" in p and p["rating"] not in (None, ""):
+    out["rating"] = p["rating"]
   return out
 
 
@@ -1788,10 +2106,31 @@ def validate_trail_metadata(m: object) -> dict:
       raise ValidationError(f"difficulty must be one of: {', '.join(TRAIL_DIFFICULTIES)}")
     out["difficulty"] = diff
 
+  ln = m.get("local_name")
+  if ln is not None and ln != "":
+    if not isinstance(ln, str):
+      raise ValidationError("local_name must be a string")
+    lns = ln.strip()
+    if lns:
+      if len(lns) > 200:
+        raise ValidationError("local_name too long (max 200 chars)")
+      out["local_name"] = lns
+
   return out
 
 
 # ---------- gpx PII strip + validation ----------
+
+def validate_gpx(xml_bytes: bytes) -> None:
+  """Parse to confirm well-formed XML with a <gpx> root. Does not modify."""
+  try:
+    root = ET.fromstring(xml_bytes)
+  except ET.ParseError as e:
+    raise ValidationError(f"not valid XML: {e}")
+  root_tag = root.tag.split("}", 1)[-1] if "}" in root.tag else root.tag
+  if root_tag != "gpx":
+    raise ValidationError(f"root element must be <gpx>, got <{root_tag}>")
+
 
 def strip_gpx_pii(xml_bytes: bytes) -> bytes:
   """Parse GPX, drop <time>/<author> elements and creator= attribute, re-serialize.
