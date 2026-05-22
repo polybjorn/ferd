@@ -1011,11 +1011,11 @@ class TestAuditLogs(unittest.TestCase):
     self.assertIn("auth.login_failure", self._actions())
 
   def test_publish_toggle_logged(self):
+    before = self._actions().count("user.publish_toggle")
     self.c.request("POST", "/api/me/publish", {"published": True})
     self.c.request("POST", "/api/me/publish", {"published": False})
-    actions = self._actions()
-    self.assertEqual(actions.count("user.publish_toggle"), actions.count("user.publish_toggle"))
-    self.assertIn("user.publish_toggle", actions)
+    after = self._actions().count("user.publish_toggle")
+    self.assertEqual(after - before, 2)
 
   def test_pagination_cursor(self):
     # Generate a handful of events.
