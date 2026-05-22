@@ -201,7 +201,43 @@ def db_init(conn: sqlite3.Connection) -> None:
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS audit_log (
+      id INTEGER PRIMARY KEY,
+      ts INTEGER NOT NULL,
+      actor TEXT,
+      action TEXT NOT NULL,
+      target TEXT,
+      details TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_audit_log_id_desc ON audit_log(id DESC);
   """)
+
+
+AUDIT_LOG_CAP = 5000
+AUDIT_LOG_PRUNE_BATCH = 500
+
+
+def log_event(conn: sqlite3.Connection, actor: str | None, action: str,
+              target: str | None = None, details: dict | None = None) -> None:
+  """Append an audit log row. Best-effort: never raises out to the caller,
+  since logging failure must not break the underlying action."""
+  try:
+    details_json = json.dumps(details, ensure_ascii=False) if details else None
+    conn.execute(
+      "INSERT INTO audit_log(ts, actor, action, target, details) VALUES (?, ?, ?, ?, ?)",
+      (int(time.time()), actor, action, target, details_json),
+    )
+    # Prune in batches once the cap is exceeded so we amortize the cost.
+    row = conn.execute("SELECT COUNT(*) AS n FROM audit_log").fetchone()
+    if row["n"] > AUDIT_LOG_CAP + AUDIT_LOG_PRUNE_BATCH:
+      conn.execute(
+        "DELETE FROM audit_log WHERE id IN ("
+        "  SELECT id FROM audit_log ORDER BY id ASC LIMIT ?"
+        ")",
+        (row["n"] - AUDIT_LOG_CAP,),
+      )
+  except sqlite3.Error as e:
+    print(f"[atlas-api] audit log failed: {e}", file=sys.stderr)
 
 
 def user_count(conn: sqlite3.Connection) -> int:
@@ -648,6 +684,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_admin_users_list()
     if path == "/api/admin/stats":
       return self._h_admin_stats()
+    if path == "/api/admin/logs":
+      return self._h_admin_logs()
     if path.startswith("/api/gpx/"):
       parts = path[len("/api/gpx/"):].split("/", 1)
       if len(parts) == 2:
@@ -801,6 +839,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       if rest.isdigit():
         return self._h_admin_user_delete(int(rest))
       return self._error(HTTPStatus.NOT_FOUND, "not found")
+    if path == "/api/admin/logs":
+      return self._h_admin_logs_clear()
     self._error(HTTPStatus.NOT_FOUND, "not found")
 
   # ---- handlers ----
@@ -849,6 +889,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       token = session_create(self.conn, user_id, ip=self._client_ip(), user_agent=self.headers.get("User-Agent"))
       if first_user:
         Handler.setup_token = None  # Token no longer relevant.
+    log_event(self.conn, actor=username, action="auth.register",
+              details={"first_user": first_user, "ip": self._client_ip()})
     ensure_user_dir(self.cfg, username)
     cookie = self._set_session_cookie(token, SESSION_DAYS * 86400)
     self._send_json(HTTPStatus.CREATED, {"username": username, "is_admin": first_user}, [cookie])
@@ -867,12 +909,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
       # Burn equivalent CPU so timing doesn't leak username existence.
       dummy_verify(password)
       self.login_limiter.record_failure(ip)
+      log_event(self.conn, actor=None, action="auth.login_failure",
+                target=username, details={"ip": ip, "reason": "no_such_user"})
       return self._error(HTTPStatus.UNAUTHORIZED, "invalid credentials")
     if not verify_password(password, user["pw_salt"], user["pw_hash"]):
       self.login_limiter.record_failure(ip)
+      log_event(self.conn, actor=None, action="auth.login_failure",
+                target=user["username"], details={"ip": ip, "reason": "bad_password"})
       return self._error(HTTPStatus.UNAUTHORIZED, "invalid credentials")
     self.login_limiter.clear(ip)
     token = session_create(self.conn, user["id"], ip=ip, user_agent=self.headers.get("User-Agent"))
+    log_event(self.conn, actor=user["username"], action="auth.login_success",
+              details={"ip": ip})
     cookie = self._set_session_cookie(token, SESSION_DAYS * 86400)
     self._send_json(HTTPStatus.OK, {"username": user["username"], "is_admin": bool(user["is_admin"])}, [cookie])
 
@@ -964,7 +1012,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"ok": True, "removed": removed})
 
   def _h_settings_registration(self):
-    if self._require_admin() is None:
+    admin = self._require_admin()
+    if admin is None:
       return
     body = self._read_body_or_400()
     if body is None:
@@ -974,10 +1023,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.BAD_REQUEST, "mode must be 'open' or 'closed'")
     with self.write_lock:
       setting_set(self.conn, "registration", mode)
+    log_event(self.conn, actor=admin["username"], action="admin.registration_gate",
+              details={"mode": mode})
     self._send_json(HTTPStatus.OK, {"registration": mode})
 
   def _h_admin_settings_publishing(self):
-    if self._require_admin() is None:
+    admin = self._require_admin()
+    if admin is None:
       return
     body = self._read_body_or_400()
     if body is None:
@@ -987,6 +1039,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.BAD_REQUEST, "mode must be 'open' or 'closed'")
     with self.write_lock:
       setting_set(self.conn, "publishing", mode)
+    log_event(self.conn, actor=admin["username"], action="admin.publishing_gate",
+              details={"mode": mode})
     self._send_json(HTTPStatus.OK, {"publishing": mode})
 
   def _admin_user_row(self, row: sqlite3.Row) -> dict:
@@ -1048,6 +1102,61 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "data_bytes": data_bytes,
     })
 
+  def _h_admin_logs(self):
+    if self._require_admin() is None:
+      return
+    qs = parse_qs(urlparse(self.path).query)
+    try:
+      limit = int((qs.get("limit") or ["200"])[0])
+    except ValueError:
+      return self._error(HTTPStatus.BAD_REQUEST, "limit must be an integer")
+    limit = max(1, min(limit, 1000))
+    before_id_raw = (qs.get("before_id") or [""])[0]
+    if before_id_raw:
+      try:
+        before_id = int(before_id_raw)
+      except ValueError:
+        return self._error(HTTPStatus.BAD_REQUEST, "before_id must be an integer")
+      rows = self.conn.execute(
+        "SELECT id, ts, actor, action, target, details FROM audit_log "
+        "WHERE id < ? ORDER BY id DESC LIMIT ?", (before_id, limit + 1),
+      ).fetchall()
+    else:
+      rows = self.conn.execute(
+        "SELECT id, ts, actor, action, target, details FROM audit_log "
+        "ORDER BY id DESC LIMIT ?", (limit + 1,),
+      ).fetchall()
+    has_more = len(rows) > limit
+    rows = rows[:limit]
+    out = []
+    for r in rows:
+      details = None
+      if r["details"]:
+        try:
+          details = json.loads(r["details"])
+        except json.JSONDecodeError:
+          details = {"_raw": r["details"]}
+      out.append({
+        "id": r["id"],
+        "ts": r["ts"],
+        "actor": r["actor"],
+        "action": r["action"],
+        "target": r["target"],
+        "details": details,
+      })
+    next_before_id = rows[-1]["id"] if has_more and rows else None
+    self._send_json(HTTPStatus.OK, {"logs": out, "next_before_id": next_before_id})
+
+  def _h_admin_logs_clear(self):
+    admin = self._require_admin()
+    if admin is None:
+      return
+    with self.write_lock:
+      self.conn.execute("DELETE FROM audit_log")
+    # Record the wipe itself so admins can see who cleared the log.
+    log_event(self.conn, actor=admin["username"], action="admin.logs_clear")
+    self._send_json(HTTPStatus.OK, {"ok": True})
+
   def _h_admin_user_role(self, uid: int):
     admin = self._require_admin()
     if admin is None:
@@ -1065,35 +1174,46 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.CONFLICT, "cannot demote the last admin")
     with self.write_lock:
       self.conn.execute("UPDATE users SET is_admin=? WHERE id=?", (1 if val else 0, uid))
+    log_event(self.conn, actor=admin["username"], action="admin.user_role_change",
+              target=target["username"], details={"is_admin": val})
     self._send_json(HTTPStatus.OK, {"ok": True, "is_admin": val})
 
   def _h_admin_user_unpublish(self, uid: int):
-    if self._require_admin() is None:
+    admin = self._require_admin()
+    if admin is None:
       return
     target = self.conn.execute("SELECT * FROM users WHERE id=?", (uid,)).fetchone()
     if not target:
       return self._error(HTTPStatus.NOT_FOUND, "user not found")
     with self.write_lock:
       set_user_published(self.conn, uid, False)
+    log_event(self.conn, actor=admin["username"], action="admin.user_force_unpublish",
+              target=target["username"])
     self._send_json(HTTPStatus.OK, {"ok": True})
 
   def _h_admin_unpublish_all(self):
-    if self._require_admin() is None:
+    admin = self._require_admin()
+    if admin is None:
       return
     with self.write_lock:
       cur = self.conn.execute("UPDATE users SET published=0 WHERE published=1")
       affected = cur.rowcount
+    log_event(self.conn, actor=admin["username"], action="admin.unpublish_all",
+              details={"affected": affected})
     self._send_json(HTTPStatus.OK, {"ok": True, "affected": affected})
 
   def _h_admin_user_revoke_sessions(self, uid: int):
-    if self._require_admin() is None:
+    admin = self._require_admin()
+    if admin is None:
       return
-    target = self.conn.execute("SELECT id FROM users WHERE id=?", (uid,)).fetchone()
+    target = self.conn.execute("SELECT id, username FROM users WHERE id=?", (uid,)).fetchone()
     if not target:
       return self._error(HTTPStatus.NOT_FOUND, "user not found")
     with self.write_lock:
       cur = self.conn.execute("DELETE FROM sessions WHERE user_id=?", (uid,))
       removed = cur.rowcount
+    log_event(self.conn, actor=admin["username"], action="admin.user_revoke_sessions",
+              target=target["username"], details={"removed": removed})
     self._send_json(HTTPStatus.OK, {"ok": True, "removed": removed})
 
   def _h_admin_user_delete(self, uid: int):
@@ -1131,6 +1251,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     except (OSError, ValidationError) as e:
       cleanup_warning = f"data dir cleanup failed: {e}"
       print(f"[atlas-api] delete user {uname}: {e}", file=sys.stderr)
+    log_event(self.conn, actor=admin["username"], action="admin.user_delete",
+              target=uname, details={"cleanup_warning": cleanup_warning} if cleanup_warning else None)
     payload = {"ok": True}
     if cleanup_warning:
       payload["cleanup_warning"] = cleanup_warning
@@ -1790,6 +1912,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.FORBIDDEN, "publishing is disabled by the admin")
     with self.write_lock:
       set_user_published(self.conn, user["id"], val)
+    log_event(self.conn, actor=user["username"], action="user.publish_toggle",
+              details={"published": val})
     self._send_json(HTTPStatus.OK, {"ok": True, "published": val})
 
   def _h_export_get(self):
@@ -1991,6 +2115,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
     except OSError as e:
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"import failed: {e}")
 
+    log_event(self.conn, actor=user["username"], action="user.import", details={
+      "mode": mode,
+      "places": result["added_places"],
+      "gpx": len(cleaned_gpx),
+      "metadata": result["changed_meta"],
+      "prefs": result["changed_prefs"],
+    })
     manifest = self._regenerate_manifest(udir)
     self._send_json(HTTPStatus.OK, {
       "ok": True,
