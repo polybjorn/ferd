@@ -24,7 +24,7 @@ Per-user content lives under `users/<username>/`. Site-wide config lives at the 
 | `users/<u>/category-labels.json` | API writes via `/api/me/category-labels` | Per-user map of category slug -> display label. |
 | `users/<u>/prefs.json` | API writes via `/api/me/prefs` | Per-user UI prefs persisted across browsers (currently small; localStorage still drives most settings). |
 | `site-config.json` | Manual edits | Site-wide branding, default map view, feature flags. No longer carries category labels (per-user since 2026-05-22). |
-| `tools/atlas.db` | API writes | SQLite: users (incl. `published` flag), sessions, rate-limit counters, site settings. |
+| `tools/atlas.db` | API writes | SQLite: users (incl. `published` flag), sessions, audit log (capped at 5000 rows), site settings. Login rate-limit counters are in-memory, not persisted. |
 
 The split between SQLite (auth, runtime state, publish flag) and JSON/GPX on disk (content) is deliberate: content stays human-editable and version-controllable; auth stays in a real database with constraints and locking. Per-user folders make export trivial (zip the folder).
 

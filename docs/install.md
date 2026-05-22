@@ -143,7 +143,7 @@ Same shape, but use `deploy/atlas-api.plist` (template; replace `/Users/YOU/atla
 
 ## First sign-in
 
-Open the site. If you didn't pre-seed `initial_user` and `initial_password`, register the first account; that user becomes the admin and registration auto-closes after that. From the menu, "Settings" lets you toggle visible features, pick a default tile layer, switch units, customize appearance (theme, mode, pin style, marker size, trail thickness, tile filter), publish your map at `/u/<your-username>/`, download a zip export of your data, change your password, manage active sessions, and (as admin) edit category labels or re-open registration to invite someone.
+Open the site. If you didn't pre-seed `initial_user` and `initial_password`, register the first account; that user becomes the admin and registration auto-closes after that. From the menu, "Settings" lets you toggle visible features, pick a default tile layer, switch units, customize appearance (theme, mode, pin style, marker size, trail thickness, tile filter), publish your map at `/u/<your-username>/`, download a zip export of your data, change your password, manage active sessions, and (as admin) edit category labels, manage other users, toggle site-wide registration and publishing, and review the audit log.
 
 If you set `require_setup_token: true` in the API config, the first registration also needs the one-time token printed to the API log on startup. Recommended when deploying to the open internet. See [SECURITY.md](../SECURITY.md).
 

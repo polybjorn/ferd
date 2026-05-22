@@ -34,14 +34,14 @@ Picked from Settings (gear icon, bottom-right). Mode can be "Light", "Dark", or 
 
 ### File layout
 
-Everything theme-related lives in `index.html`:
+Everything theme-related lives in `index.html`. Find by name (line numbers drift):
 
-- CSS variable blocks (lines ~20-370): one block per `[data-theme="X"][data-mode="Y"]` pair, plus a base `:root` block (Nord dark) as fallback.
-- `THEMES` array (~line 2828): registered theme keys.
-- `themeLabels` object (~line 3006): display names for the Settings dropdown.
-- `applyTheme(theme, mode)` (~line 2842): sets the two HTML attributes and resolves "system" via `matchMedia`.
-- `COLORS` / `COLORS_LIGHT` (~line 1475): category palette, indexed by sorted category position. See [Category palette](#category-palette).
-- `trailStatusColor(completed)` (~line 1485): reads `--completed` / `--planned` from the active theme at call time. Used for Leaflet polyline strokes and popup color. Legend dots and search-result lines use `.completed` / `.planned` CSS classes that reference the same vars directly.
+- CSS variable blocks: one per `[data-theme="X"][data-mode="Y"]` pair near the top of the file, plus a base `:root` block (Nord dark) as fallback.
+- `THEMES` array: registered theme keys.
+- `themeLabels` object: display names for the Settings dropdown.
+- `applyTheme(theme, mode)`: sets the two HTML attributes, resolves "system" via `matchMedia`, and invalidates the trail-color cache.
+- `COLORS` / `COLORS_LIGHT`: category palette, indexed by sorted category position. See [Category palette](#category-palette).
+- `trailStatusColor(completed)`: returns `--completed` / `--planned` from the active theme. The values are cached after the first read and invalidated in `applyTheme`, so polyline draws don't pay for a `getComputedStyle` per route. Legend dots and search-result lines use `.completed` / `.planned` CSS classes that reference the same vars directly.
 
 ### CSS variable contract
 
@@ -84,7 +84,7 @@ Light blocks additionally define `--attribution-bg` (light themes use a differen
 
 ### Category palette
 
-Separate from themes. Defined at index.html:1475:
+Separate from themes. Defined in `index.html` as `COLORS` and `COLORS_LIGHT`:
 
 ```js
 const COLORS       = ['#6aaeee', '#c792ea', '#ffbd2e', '#89ddff', '#f78c6c', '#c3e88d', '#ff5370', '#82b1ff', '#f07178', '#c17e70'];
@@ -113,8 +113,8 @@ Implications:
      /* full contract above, plus --attribution-bg */
    }
    ```
-3. Append the key to `THEMES` (index.html:2828).
-4. Add a display label to `themeLabels` (index.html:3006).
+3. Append the key to the `THEMES` array.
+4. Add a display label to `themeLabels`.
 5. Hard-reload and verify in Settings.
 
 Recommended sanity checks:
@@ -127,4 +127,4 @@ Recommended sanity checks:
 
 ### Open theme-related TODOs
 
-Tracked in the [main README TODO](../README.md#todo). Currently: category-color assignment isn't stable across category-set changes.
+Tracked in the [main README roadmap](../README.md#roadmap). Currently: category-color assignment isn't stable across category-set changes.
