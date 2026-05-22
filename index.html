@@ -5347,7 +5347,7 @@
                   }
                 }
                 refreshPlacesPresentation();
-                openSettingsModal();
+                closeTopModal();
               })
               .catch(err => {
                 submit.disabled = false;
@@ -5356,10 +5356,7 @@
                 e.classList.add('visible');
               });
           });
-        },
-        // Closing this modal (X / backdrop / ESC) returns to Settings rather
-        // than the map — this is a sub-modal opened from Settings.
-        openSettingsModal
+        }
       );
     }
 
@@ -5504,15 +5501,14 @@
             Promise.all([...clears, ...deletes])
               .then(() => Promise.all(renames.map(r => api('POST', '/regions/rename', r))))
               .then(() => refreshRoutes())
-              .then(() => { wrappedRouter(); openSettingsModal(); })
+              .then(() => { wrappedRouter(); closeTopModal(); })
               .catch(e => {
                 submit.disabled = false;
                 err.textContent = e.message;
                 err.classList.add('visible');
               });
           });
-        },
-        openSettingsModal
+        }
       );
     }
 
