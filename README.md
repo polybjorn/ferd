@@ -35,6 +35,7 @@ Open http://localhost:8090 and sign in with the seeded admin account (see [docs/
 - Each user can optionally publish a read-only public copy of their map.
 - Zip import/export of your own data.
 - Admin tab: instance stats (users, places, trails, data and DB size), per-user management (promote/demote, revoke sessions, force-unpublish, delete), site-wide registration and publishing toggles.
+- Logs tab: audit trail of auth events, publish toggles, imports, and admin actions, kept to the last 5000 entries.
 
 **Customization**
 - Multiple built-in themes, each with light and dark modes.
