@@ -30,7 +30,7 @@ Open http://localhost:8090 and sign in with the seeded admin account (see [docs/
 - Trail detail view with elevation profile and route stats.
 
 **Editing and multi-user**
-- Sign in to add, edit, or delete places and trails from the browser. Server strips PII from uploaded GPX (timestamps, author, creator).
+- Sign in to add, edit, or delete places and trails from the browser. Optional GPX PII strip (timestamps, author, creator) on upload.
 - Per-user data isolation. Each account has its own places and trails; the admin's only extra power is toggling site-wide registration.
 - Each user can optionally publish a read-only public copy of their map.
 - Zip import/export of your own data.
@@ -52,7 +52,7 @@ Full walk-through in [docs/install.md](docs/install.md). Docker path in [docs/do
 
 ## Roadmap
 
-- UI to manage trail regions (rename, move trails between regions, delete), mirroring the existing category-label editor.
+- Move trails between regions from the trail edit modal (rename/delete-empty/clear-region already shipped via Manage regions).
 - Stable category colors across config edits. Colors can currently shift when categories are added or reordered.
 - Publish a prebuilt multi-arch container image so deployments can `docker compose pull` instead of building from source.
 

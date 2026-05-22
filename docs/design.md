@@ -41,12 +41,13 @@ Placement: form-bottom submits in `<div class="modal-actions">`. Description+but
 
 - `<label>` block above the input. Helper text in `.modal-desc` below.
 - File pickers: hide native input with `.file-input-hidden`, render a styled `<button>Choose file</button>` + `.file-name` span. Canonical example: Backup -> Import.
-- Settings input types: `.settings-toggle` (styled checkbox) for binary on/off, radios for small fixed sets (2-3 options with short labels), `<select>` for many-option selects. The legacy `.feature-pill` style is still used for the "Visible features" row in General; new toggles should prefer `.settings-toggle`.
-- Settings layout primitives: `.settings-grid-2` pairs two short selects side-by-side (label row above, control row below). `.settings-inline-row` puts label left, control right on one row; the radio row's column-gap is tightened inside it so 3-radio groups fit without wrapping.
+- Settings input types: `.settings-toggle` (styled checkbox) for binary on/off, `.radio-row.radio-pills` for small fixed single-select sets (use `radioPillsHtml`), `.star-rating` for 1-5 ratings (use `starRatingHtml` + `wireStarRating` + `readStarRating`), `<select>` for many-option selects. `.feature-pill` is for multi-select toggle groups (Visible features, Optional fields). `.btn-x` is the small × icon button for row-level removes (categories/regions managers).
+- Settings layout primitives: `.settings-grid-2` pairs two short selects side-by-side (label row above, control row below). `.settings-inline-row` puts label left, control right on one row (fixed 9rem label column so pill groups align across rows; switches to flex with `order: -1` on the toggle so slider sits left of label). `.toggle-grid` stacks toggle rows in a 2-column grid to save vertical space.
+- Collapsible reveal: `<div class="collapsible">` wraps an inner `<div class="collapsible-inner">`. Toggle the `.expanded` class on the outer to animate height (250ms grid-rows + opacity). Used for conditional fields (Visited -> date/rating, Completed -> date/rating).
 
 ## Toggle switch
 
-Markup: `<input type="checkbox" class="settings-toggle" id="…">`. The input itself becomes the styled toggle via `appearance: none` + a `::after` knob, scoped with `.modal input[type="checkbox"].settings-toggle` so it wins over `.modal label`. The track uses `var(--border)` (off) and `var(--accent)` (on); the knob is `var(--surface)` in both states. Place it inside a `.settings-inline-row` with a clickable `<label for="…">` on the left.
+Markup: `<input type="checkbox" class="settings-toggle" id="…">`. The input itself becomes the styled toggle via `appearance: none` + a `::after` knob, scoped with `.modal input[type="checkbox"].settings-toggle` so it wins over `.modal label`. The track uses `var(--border)` (off) and `var(--accent)` (on); the knob is `var(--surface)` in both states. Convention: slider sits to the left of its `<label for="…">`. `.settings-inline-row` handles this automatically (rule: when the row contains a `.settings-toggle`, switch to flex with `order: -1` on the toggle).
 
 ## Status feedback
 
