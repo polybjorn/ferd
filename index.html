@@ -1424,6 +1424,17 @@
     body.map-chrome-hidden .leaflet-control-container,
     body.map-chrome-hidden .fab-add,
     body.map-chrome-hidden .map-panel { display: none !important; }
+    /* Per-control persistent toggles (Settings > Appearance > On-map controls).
+       Animate opacity/transform rather than display:none so the toggle is
+       visible. The spacebar (.map-chrome-hidden) above still hard-hides. */
+    .map-panel { transform-origin: bottom left; transition: transform 0.18s ease-out, opacity 0.18s ease-out; }
+    .leaflet-control-zoom { transform-origin: top left; transition: transform 0.18s ease-out, opacity 0.18s ease-out; }
+    body.hide-map-filter .map-panel,
+    body.hide-map-zoom .leaflet-control-zoom {
+      opacity: 0;
+      transform: scale(0.5);
+      pointer-events: none;
+    }
 
     /* "Pick on map" inline button for the Add Place form */
     .pick-row {
@@ -1607,7 +1618,8 @@
       align-items: center;
       margin-top: 0.75rem;
     }
-    .settings-inline-row > label { margin: 0; }
+    /* Out-specifies the later `.modal label { margin-top/bottom: ... }` rule. */
+    .modal .settings-inline-row > label { margin: 0; }
     .settings-inline-row > .radio-row { margin: 0; column-gap: 0.75rem; }
     .settings-inline-row > select { width: 100%; }
     /* Rows whose right-hand control is a slide toggle: switch from grid to
@@ -1621,7 +1633,13 @@
       order: -1;
       flex: 0 0 auto;
     }
-    .settings-inline-row:has(> .settings-toggle) > label { flex: 1; }
+    .settings-inline-row:has(> .settings-toggle) > label {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      min-height: 20px;
+      line-height: 1;
+    }
     /* Two-column wrapper for stacking related toggles side by side. */
     .toggle-grid {
       display: grid;
@@ -2361,6 +2379,12 @@
     function getDefaultTileLayer() { return getPref('atlas-tile-layer', 'Satellite'); }
     function getShowTilePicker() { return getPref('atlas-tile-picker', 'true') !== 'false'; }
     function getShowMapAddButton() { return getPref('atlas-map-add-button', 'true') !== 'false'; }
+    function getShowFilterPanel() { return getPref('atlas-map-filter', 'true') !== 'false'; }
+    function getShowZoomControls() { return getPref('atlas-map-zoom', 'true') !== 'false'; }
+    function applyControlVisibility() {
+      document.body.classList.toggle('hide-map-filter', !getShowFilterPanel());
+      document.body.classList.toggle('hide-map-zoom', !getShowZoomControls());
+    }
     function getRememberView() { return getPref('atlas-remember-view', 'true') !== 'false'; }
     function getUnits() { return getPref('atlas-units', 'metric'); }
     function getClusterPlaces() { return getPref('atlas-cluster-places', 'true') !== 'false'; }
@@ -4432,6 +4456,7 @@
     }
     function applyTileFilter(v) { document.documentElement.setAttribute('data-tile-filter', v); }
     applyTheme(getStoredTheme(), getStoredMode());
+    applyControlVisibility();
     applyTileFilter(getTileFilter());
     if (window.matchMedia) {
       window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
@@ -4632,6 +4657,11 @@
         '<div class="settings-inline-row"><label>Trail line thickness</label>' +
           radioPillsHtml('trail-weight', [['thin', 'Thin'], ['default', 'Default'], ['thick', 'Thick']], trailWeight) +
         '</div>' +
+        (placesAvailable() ?
+          '<div class="settings-inline-row"><label for="s-cluster">Cluster places</label>' +
+            '<input type="checkbox" class="settings-toggle" id="s-cluster"' + (getClusterPlaces() ? ' checked' : '') + '>' +
+          '</div>'
+          : '') +
         '<h3 class="settings-h">Map</h3>' +
         '<div class="settings-inline-row"><label for="s-tile">Default tile layer</label>' +
           '<select id="s-tile">' +
@@ -4647,20 +4677,22 @@
             ).join('') +
           '</select>' +
         '</div>' +
+        '<div class="settings-inline-row"><label for="s-remember-view">Remember last view</label>' +
+          '<input type="checkbox" class="settings-toggle" id="s-remember-view"' + (getRememberView() ? ' checked' : '') + '>' +
+        '</div>' +
+        '<h3 class="settings-h">On-map controls</h3>' +
         '<div class="toggle-grid">' +
-          (placesAvailable() ?
-            '<div class="settings-inline-row"><label for="s-cluster">Cluster places</label>' +
-              '<input type="checkbox" class="settings-toggle" id="s-cluster"' + (getClusterPlaces() ? ' checked' : '') + '>' +
-            '</div>'
-            : '') +
-          '<div class="settings-inline-row"><label for="s-remember-view">Remember last view</label>' +
-            '<input type="checkbox" class="settings-toggle" id="s-remember-view"' + (getRememberView() ? ' checked' : '') + '>' +
+          '<div class="settings-inline-row"><label for="s-map-add">Add button</label>' +
+            '<input type="checkbox" class="settings-toggle" id="s-map-add"' + (getShowMapAddButton() ? ' checked' : '') + '>' +
           '</div>' +
           '<div class="settings-inline-row"><label for="s-tile-picker">Tile-layer picker</label>' +
             '<input type="checkbox" class="settings-toggle" id="s-tile-picker"' + (getShowTilePicker() ? ' checked' : '') + '>' +
           '</div>' +
-          '<div class="settings-inline-row"><label for="s-map-add">Add button on map</label>' +
-            '<input type="checkbox" class="settings-toggle" id="s-map-add"' + (getShowMapAddButton() ? ' checked' : '') + '>' +
+          '<div class="settings-inline-row"><label for="s-map-filter">Filter panel</label>' +
+            '<input type="checkbox" class="settings-toggle" id="s-map-filter"' + (getShowFilterPanel() ? ' checked' : '') + '>' +
+          '</div>' +
+          '<div class="settings-inline-row"><label for="s-map-zoom">Zoom buttons</label>' +
+            '<input type="checkbox" class="settings-toggle" id="s-map-zoom"' + (getShowZoomControls() ? ' checked' : '') + '>' +
           '</div>' +
         '</div>' +
         '</div>' +
@@ -4869,7 +4901,7 @@
             setPref('atlas-tile-layer', this.value);
             wrappedRouter();
           });
-          [['s-cluster', 'atlas-cluster-places'], ['s-remember-view', 'atlas-remember-view'], ['s-tile-picker', 'atlas-tile-picker'], ['s-map-add', 'atlas-map-add-button']].forEach(function([id, key]) {
+          [['s-cluster', 'atlas-cluster-places'], ['s-remember-view', 'atlas-remember-view'], ['s-tile-picker', 'atlas-tile-picker'], ['s-map-add', 'atlas-map-add-button'], ['s-map-filter', 'atlas-map-filter'], ['s-map-zoom', 'atlas-map-zoom']].forEach(function([id, key]) {
             const cb = document.getElementById(id);
             if (!cb) return;
             cb.addEventListener('change', function() {
@@ -4908,6 +4940,11 @@
               // instead of re-running the router (which would blink the map).
               if (key === 'atlas-map-add-button') {
                 maybeMountFab();
+                return;
+              }
+              // Filter panel + zoom controls hide via body classes; no map work.
+              if (key === 'atlas-map-filter' || key === 'atlas-map-zoom') {
+                applyControlVisibility();
                 return;
               }
               wrappedRouter();
