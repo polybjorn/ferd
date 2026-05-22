@@ -441,7 +441,8 @@ def migrate_legacy_data(conn: sqlite3.Connection, cfg: dict) -> None:
   if site_cfg_path.exists():
     try:
       cfg_data = json.loads(site_cfg_path.read_text("utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except (OSError, json.JSONDecodeError) as e:
+      print(f"[atlas-api] migration: could not read site-config.json: {e}", file=sys.stderr)
       return
     legacy_labels = cfg_data.get("category_labels") if isinstance(cfg_data, dict) else None
     if isinstance(legacy_labels, dict) and legacy_labels:
@@ -449,14 +450,15 @@ def migrate_legacy_data(conn: sqlite3.Connection, cfg: dict) -> None:
       if not dst_labels.exists():
         try:
           write_json_file(dst_labels, legacy_labels)
-        except OSError:
+        except OSError as e:
+          print(f"[atlas-api] migration: could not write {dst_labels}: {e}", file=sys.stderr)
           return
       try:
         cfg_data.pop("category_labels", None)
         atomic_write_bytes(site_cfg_path, (json.dumps(cfg_data, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
         print(f"[atlas-api] migrated site-config category_labels -> users/{admin}/category-labels.json", file=sys.stderr)
-      except OSError:
-        pass
+      except OSError as e:
+        print(f"[atlas-api] migration: copied labels but could not strip from site-config: {e}", file=sys.stderr)
 
 
 # ---------- sessions ----------
@@ -1297,9 +1299,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
     body = self._read_body_or_400()
     if body is None:
       return
-    cleaned = self._clean_category_labels(body.get("category_labels"))
-    if isinstance(cleaned, tuple):  # error tuple (status, msg)
-      return self._error(cleaned[0], cleaned[1])
+    try:
+      cleaned = self._clean_category_labels(body.get("category_labels"))
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
     udir = self._user_dir(user["username"])
     labels_path = udir / "category-labels.json"
@@ -1316,26 +1319,26 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"ok": True, "category_labels": cleaned})
 
   def _clean_category_labels(self, labels):
-    """Validate and normalize a category_labels payload. Returns the cleaned
-    dict, or a (status, message) tuple for the caller to turn into an error."""
+    """Validate and normalize a category_labels payload. Raises ValidationError
+    (always maps to 400) on bad shape; returns the cleaned dict on success."""
     if not isinstance(labels, dict):
-      return (HTTPStatus.BAD_REQUEST, "category_labels must be an object")
+      raise ValidationError("category_labels must be an object")
     if len(labels) > 200:
-      return (HTTPStatus.BAD_REQUEST, "too many category labels (max 200)")
+      raise ValidationError("too many category labels (max 200)")
     cleaned: dict[str, str] = {}
     for slug, display in labels.items():
       if not isinstance(slug, str) or not isinstance(display, str):
-        return (HTTPStatus.BAD_REQUEST, "category_labels keys and values must be strings")
+        raise ValidationError("category_labels keys and values must be strings")
       slug_clean = slug.strip()
       display_clean = display.strip()
       if not slug_clean or not display_clean:
         continue
       if len(slug_clean) > 64:
-        return (HTTPStatus.BAD_REQUEST, f"slug too long: {slug_clean[:32]}...")
+        raise ValidationError(f"slug too long: {slug_clean[:32]}...")
       if len(display_clean) > 80:
-        return (HTTPStatus.BAD_REQUEST, f"display too long for slug '{slug_clean}'")
+        raise ValidationError(f"display too long for slug '{slug_clean}'")
       if not PATH_COMPONENT_RE.match(slug_clean):
-        return (HTTPStatus.BAD_REQUEST, f"slug contains disallowed characters: {slug_clean}")
+        raise ValidationError(f"slug contains disallowed characters: {slug_clean}")
       cleaned[slug_clean] = display_clean
     return cleaned
 
@@ -1399,7 +1402,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       # Locate by name (unique-ish; we update first match).
       idx = next((i for i, p in enumerate(existing) if isinstance(p, dict) and p.get("name") == original_name), None)
       if idx is None:
-        raise ValidationError(f"place not found: {original_name}")
+        raise NotFoundError(f"place not found: {original_name}")
       # If renaming, ensure no collision with another row.
       if validated["name"] != original_name and any(p.get("name") == validated["name"] for i, p in enumerate(existing) if i != idx):
         raise ValidationError(f"a different place already uses the name '{validated['name']}'")
@@ -1408,9 +1411,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     try:
       with_file_lock(lock_path, do_update)
+    except NotFoundError as e:
+      return self._error(HTTPStatus.NOT_FOUND, str(e))
     except ValidationError as e:
-      status = HTTPStatus.NOT_FOUND if "not found" in str(e) else HTTPStatus.CONFLICT
-      return self._error(status, str(e))
+      return self._error(HTTPStatus.CONFLICT, str(e))
     except OSError as e:
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write places.json: {e}")
     self._send_json(HTTPStatus.OK, {"ok": True, "place": validated})
@@ -1471,15 +1475,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
       original_count = len(existing)
       new_list = [p for p in existing if not (isinstance(p, dict) and p.get("name") == target_name)]
       if len(new_list) == original_count:
-        raise ValidationError(f"place not found: {target_name}")
+        raise NotFoundError(f"place not found: {target_name}")
       write_json_file(places_path, new_list)
       return len(new_list)
 
     try:
       total = with_file_lock(lock_path, do_delete)
+    except NotFoundError as e:
+      return self._error(HTTPStatus.NOT_FOUND, str(e))
     except ValidationError as e:
-      status = HTTPStatus.NOT_FOUND if "not found" in str(e) else HTTPStatus.CONFLICT
-      return self._error(status, str(e))
+      return self._error(HTTPStatus.CONFLICT, str(e))
     except OSError as e:
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write places.json: {e}")
     self._send_json(HTTPStatus.OK, {"ok": True, "total_places": total})
@@ -2046,10 +2051,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
+    cleaned_labels = None
     if new_labels is not None:
-      cleaned_labels = self._clean_category_labels(new_labels)
-      if isinstance(cleaned_labels, tuple):
-        return self._error(cleaned_labels[0], f"category-labels.json: {cleaned_labels[1]}")
+      try:
+        cleaned_labels = self._clean_category_labels(new_labels)
+      except ValidationError as e:
+        return self._error(HTTPStatus.BAD_REQUEST, f"category-labels.json: {e}")
       # Re-stage the cleaned form so the writer below uses the canonical bytes.
       staged["category-labels.json"] = (json.dumps(cleaned_labels, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
 
@@ -2264,6 +2271,12 @@ def _valid_password(pw: str) -> bool:
 # ---------- file + write helpers ----------
 
 class ValidationError(Exception):
+  pass
+
+
+class NotFoundError(ValidationError):
+  """Subclass for the 'this resource doesn't exist' case so callers can map
+  to 404 by type rather than by string-matching the message."""
   pass
 
 
