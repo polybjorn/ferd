@@ -310,17 +310,18 @@ def admin_count(conn: sqlite3.Connection) -> int:
 
 
 def dir_size_bytes(path: Path) -> int:
-  """Walk a directory tree and return total bytes of regular files. Best
-  effort: any per-file stat error is skipped."""
+  """Walk a directory tree and return total bytes of regular files. Follows
+  symlinks (the documented dev pattern symlinks user data dirs into a Vault).
+  Best effort: any per-file stat error is skipped."""
   total = 0
   if not path.exists():
     return 0
-  for entry in path.rglob("*"):
-    try:
-      if entry.is_file() and not entry.is_symlink():
-        total += entry.stat().st_size
-    except OSError:
-      continue
+  for root, dirs, files in os.walk(path, followlinks=True):
+    for fname in files:
+      try:
+        total += (Path(root) / fname).stat().st_size
+      except OSError:
+        continue
   return total
 
 
@@ -1798,12 +1799,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
     udir = self._user_dir(user["username"])
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-      for path in sorted(udir.rglob("*")):
-        if not path.is_file():
-          continue
-        if path.name.startswith(".atlas-"):
-          continue  # locks
-        zf.write(path, arcname=str(path.relative_to(udir)))
+      # followlinks=True so a symlinked gpx/ dir (the documented dev pattern)
+      # is included. Path.rglob silently skips into symlinked directories.
+      for root, dirs, files in os.walk(udir, followlinks=True):
+        dirs.sort()
+        root_p = Path(root)
+        for fname in sorted(files):
+          if fname.startswith("."):
+            continue  # locks (.atlas-*), OS noise (.DS_Store, etc.)
+          path = root_p / fname
+          zf.write(path, arcname=str(path.relative_to(udir)))
     payload = buf.getvalue()
     fname = f"atlas-{user['username']}-export.zip"
     self.send_response(HTTPStatus.OK)
@@ -1939,7 +1944,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
           target = udir / arcname
           target.parent.mkdir(parents=True, exist_ok=True)
           atomic_write_bytes(target, data)
-        return {"added_places": len(new_places or [])}
+        return {
+          "added_places": len(new_places or []),
+          "changed_meta": len(new_metadata or {}),
+          "changed_prefs": len(new_prefs or {}),
+        }
       # merge
       added = 0
       if new_places is not None:
@@ -1952,14 +1961,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
             existing_names.add(p.get("name"))
             added += 1
         write_json_file(places_path, existing)
+      changed_meta = 0
       if new_metadata is not None:
         meta_path = udir / "metadata.json"
         existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
+        changed_meta = sum(1 for k, v in new_metadata.items() if existing.get(k) != v)
         existing.update(new_metadata)
         write_json_file(meta_path, existing)
+      changed_prefs = 0
       if new_prefs is not None:
         prefs_path = udir / "prefs.json"
         existing = load_json_file(prefs_path, expected_type=dict, required=False, label="prefs.json")
+        changed_prefs = sum(1 for k, v in new_prefs.items() if existing.get(k) != v)
         existing.update(new_prefs)
         write_json_file(prefs_path, existing)
       if new_labels is not None:
@@ -1971,7 +1984,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         target = udir / arcname
         target.parent.mkdir(parents=True, exist_ok=True)
         atomic_write_bytes(target, data)
-      return {"added_places": added}
+      return {"added_places": added, "changed_meta": changed_meta, "changed_prefs": changed_prefs}
 
     try:
       result = with_file_lock(lock_path, do_import)
@@ -1985,8 +1998,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "imported": {
         "places": result["added_places"],
         "gpx": len(cleaned_gpx),
-        "metadata": len(new_metadata or {}),
-        "prefs": len(new_prefs or {}),
+        "metadata": result["changed_meta"],
+        "prefs": result["changed_prefs"],
       },
       "manifest": manifest,
     })
