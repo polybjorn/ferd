@@ -2222,25 +2222,25 @@
       return !!(state.viewer && state.viewer.mode === 'public');
     }
 
+    let _trailColorCache = null;
     function trailStatusColor(completed) {
-      // Read live so polyline draws pick up the active theme.
-      const prop = completed ? '--completed' : '--planned';
-      return getComputedStyle(document.documentElement).getPropertyValue(prop).trim() || (completed ? '#a3be8c' : '#bf616a');
+      // Cache both values per theme; applyTheme() invalidates. Avoids one
+      // getComputedStyle (and forced style recalc) per polyline draw.
+      if (!_trailColorCache) {
+        const cs = getComputedStyle(document.documentElement);
+        _trailColorCache = {
+          completed: cs.getPropertyValue('--completed').trim() || '#a3be8c',
+          planned:   cs.getPropertyValue('--planned').trim()   || '#bf616a',
+        };
+      }
+      return completed ? _trailColorCache.completed : _trailColorCache.planned;
     }
 
     function fetchJson(url, fallback) {
       return fetch(url).then(r => r.ok ? r.json() : fallback).catch(() => fallback);
     }
 
-    function radioGroupHtml(name, options, selected) {
-      return '<div class="radio-row">' +
-        options.map(([v, l]) =>
-          '<label><input type="radio" name="' + name + '" value="' + v + '"' + (selected === v ? ' checked' : '') + '> ' + l + '</label>'
-        ).join('') + '</div>';
-    }
-
-    // Pill-style radio group: same shape as radioGroupHtml but each option
-    // renders as a single-select pill. Used for things like Difficulty.
+    // Pill-style radio group: each option renders as a single-select pill.
     function radioPillsHtml(name, options, selected) {
       return '<div class="radio-row radio-pills">' +
         options.map(([v, l]) =>
@@ -4482,6 +4482,7 @@
         : mode;
       document.documentElement.setAttribute('data-theme', theme);
       document.documentElement.setAttribute('data-mode', eff);
+      _trailColorCache = null;
     }
     const PIN_STYLES = ['ring', 'pin', 'dot', 'tag'];
     function getPinStyle() {
@@ -5614,7 +5615,7 @@
             '<div class="user-actions">' +
               (u.published ? '<button data-act="unpublish">Unpublish</button>' : '') +
               (u.sessions ? '<button data-act="revoke">Revoke</button>' : '') +
-              (isSelf ? '' : '<button data-act="role">' + (u.is_admin ? 'Demote' : 'Promote') + '</button>') +
+              (isSelf ? '' : '<button data-act="role" data-promote="' + (u.is_admin ? '0' : '1') + '">' + (u.is_admin ? 'Demote' : 'Promote') + '</button>') +
               (isSelf ? '' : '<button data-act="delete" class="danger-btn">Delete</button>') +
             '</div>' +
             '<div class="user-counts">' +
@@ -5778,7 +5779,7 @@
           api('POST', '/admin/users/' + uid + '/revoke-sessions').then(refresh).catch(fail);
         });
       } else if (act === 'role') {
-        const promote = btn.textContent === 'Promote';
+        const promote = btn.dataset.promote === '1';
         openConfirmModal({
           title: (promote ? 'Promote ' : 'Demote ') + uname,
           body: promote
@@ -5812,9 +5813,11 @@
     function openConfirmModal({ title, body, confirmLabel, danger }) {
       return new Promise(resolve => {
         let settled = false;
+        let onEnter = null;
         const finish = ok => {
           if (settled) return;
           settled = true;
+          if (onEnter) document.removeEventListener('keydown', onEnter, true);
           closeTopModal();
           resolve(ok);
         };
@@ -5831,11 +5834,10 @@
           backdrop.querySelector('[data-role="ok"]').addEventListener('click', () => finish(true));
           backdrop.querySelector('[data-role="cancel"]').addEventListener('click', () => finish(false));
           // Enter to confirm: only while this confirm is the topmost modal.
-          const onEnter = e => {
+          onEnter = e => {
             if (e.key !== 'Enter') return;
             if (modalStack[modalStack.length - 1] && modalStack[modalStack.length - 1].backdrop !== backdrop) return;
             e.preventDefault();
-            document.removeEventListener('keydown', onEnter, true);
             finish(true);
           };
           document.addEventListener('keydown', onEnter, true);
