@@ -878,6 +878,16 @@
     }
     .status-chip.active { border-color: var(--border-hover); color: var(--text); }
     .status-chip:hover { border-color: var(--border-hover); }
+    .legend-item, .status-chip { transform-origin: center; }
+    .legend-item.pulse, .status-chip.pulse { animation: chip-pulse 180ms ease-out; }
+    @keyframes chip-pulse {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .legend-item.pulse, .status-chip.pulse { animation: none !important; }
+    }
 
     /* Trails detail view */
     .detail-layout {
@@ -1373,17 +1383,41 @@
       height: 44px;
       border-radius: 50%;
       background: var(--accent);
-      color: var(--fab-text);
+      color: transparent;
       border: none;
-      font-size: 1.5rem;
-      font-weight: 400;
+      font-size: 0;
       cursor: pointer;
       box-shadow: 0 4px 14px var(--shadow);
       z-index: 1000;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.15s;
+      transform-origin: center;
+      transition: transform 0.18s ease-out, opacity 0.18s ease-out;
+    }
+    .fab-add::before,
+    .fab-add::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      background: var(--fab-text);
+      border-radius: 1px;
+    }
+    .fab-add::before { width: 14px; height: 2px; transform: translate(-50%, -50%); }
+    .fab-add::after  { width: 2px; height: 14px; transform: translate(-50%, -50%); }
+    .fab-add.fab-enter { transform: scale(0.4); opacity: 0; }
+    .fab-add.fab-leave { transform: scale(0.4); opacity: 0; pointer-events: none; }
+
+    /* Tile-picker (Leaflet layers control) enter/leave animation */
+    .leaflet-control-layers {
+      transform-origin: top right;
+      transition: transform 0.18s ease-out, opacity 0.18s ease-out;
+    }
+    .leaflet-control-layers.tile-pick-enter,
+    .leaflet-control-layers.tile-pick-leave {
+      transform: scale(0.5);
+      opacity: 0;
     }
     .fab-add:hover { transform: scale(1.05); }
 
@@ -1659,8 +1693,33 @@
       align-items: center;
       justify-content: center;
       padding: 1rem;
+      animation: modal-backdrop-in 120ms ease-out;
+    }
+    .modal-backdrop > .modal { animation: modal-in 140ms ease-out; }
+    .modal-backdrop.closing { animation: modal-backdrop-out 100ms ease-in forwards; pointer-events: none; }
+    .modal-backdrop.closing > .modal { animation: modal-out 100ms ease-in forwards; }
+    @keyframes modal-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes modal-backdrop-out { to { opacity: 0; } }
+    @keyframes modal-in {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes modal-out {
+      to { opacity: 0; transform: scale(0.97); }
+    }
+    .modal [data-panel]:not([hidden]) { animation: tab-fade-in 160ms ease-out; }
+    @keyframes tab-fade-in {
+      from { opacity: 0; transform: translateY(2px); }
+      to { opacity: 1; transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .modal-backdrop, .modal-backdrop > .modal,
+      .modal-backdrop.closing, .modal-backdrop.closing > .modal,
+      .modal [data-panel]:not([hidden]),
+      .fab-add { animation: none !important; transition: none !important; }
     }
     .modal {
+      position: relative;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -1671,6 +1730,20 @@
       padding: 1.25rem 1.5rem;
       box-shadow: 0 10px 40px var(--shadow);
     }
+    .modal .modal-close-floating {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.5rem;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 1.2rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0.2rem;
+      z-index: 1;
+    }
+    .modal .modal-close-floating:hover { color: var(--text); }
     .modal h2 {
       font-size: 0.95rem;
       font-weight: 400;
@@ -1696,7 +1769,7 @@
       border-bottom: 1px solid var(--border);
       margin-bottom: 1rem;
     }
-    .modal-backdrop:has(#settings-tabs) { padding-top: 3rem; padding-bottom: 3rem; }
+    .modal-backdrop:has(#settings-tabs) { align-items: flex-start; padding-top: 3rem; padding-bottom: 3rem; }
     .modal-backdrop:has(#settings-tabs) .modal { max-height: calc(100vh - 6rem); }
     /* Pin the Add modal to the top so switching Place <-> Trail (different
        form heights) doesn't shift the modal vertically. The body itself
@@ -1723,7 +1796,7 @@
     .modal h3.sessions-h { display: flex; align-items: baseline; gap: 0.75rem; }
     .modal button.sessions-revoke-others:not(h2 .modal-close) { margin-left: auto; font-size: 0.75rem; font-weight: 400; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0; letter-spacing: 0; }
     .modal button.sessions-revoke-others:not(h2 .modal-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
-    .modal .modal-tabs button:not(h2 .modal-close) {
+    .modal .modal-tabs button:not(.modal-close) {
       background: transparent;
       border: none;
       border-bottom: 2px solid transparent;
@@ -1735,8 +1808,8 @@
       cursor: pointer;
       letter-spacing: 0.05em;
     }
-    .modal .modal-tabs button:not(h2 .modal-close).active { color: var(--text); border-bottom-color: var(--accent); }
-    .modal .modal-tabs button:not(h2 .modal-close):hover:not(.active) { color: var(--text); }
+    .modal .modal-tabs button:not(.modal-close).active { color: var(--text); border-bottom-color: var(--accent); }
+    .modal .modal-tabs button:not(.modal-close):hover:not(.active) { color: var(--text); }
     .modal label {
       display: block;
       font-size: 0.8rem;
@@ -1778,8 +1851,6 @@
     .modal .checkbox-row input { width: auto; }
     .modal .checkbox-row label { margin: 0; text-transform: none; letter-spacing: 0; font-size: 0.8rem; color: var(--text); }
     .feature-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
-    /* Optional fields row: even spacing across the panel width. */
-    .feature-pills:has(input[data-field]) { justify-content: space-between; }
     .feature-pill {
       display: inline-flex;
       align-items: center;
@@ -1831,6 +1902,106 @@
       color: var(--green);
       font-size: 0.85rem;
     }
+
+    /* Admin tab: stats grid + users list */
+    .modal .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, auto);
+      grid-auto-flow: column;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .modal .stat-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.55rem 0.7rem;
+      background: var(--surface2);
+      min-width: 0;
+    }
+    .modal .stat-card .stat-val { font-size: 1.1rem; color: var(--text); }
+    .modal .stat-card .stat-lbl {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-top: 0.15rem;
+    }
+    .modal .user-list {
+      list-style: none;
+      padding: 0;
+      margin: 0.5rem 0 0;
+    }
+    .modal .user-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 0.3rem 0.75rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+    }
+    .modal .user-row:last-child { border-bottom: none; }
+    .modal .user-group-h {
+      font-size: 0.68rem;
+      font-weight: 400;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 0.75rem 0 0.1rem;
+    }
+    .modal .user-group-h:first-child { margin-top: 0.25rem; }
+    .modal .user-row .user-name {
+      color: var(--text);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.9rem;
+    }
+    .modal .user-row.self .user-name { color: var(--accent); font-weight: 500; }
+    .modal .user-row .user-counts {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-variant-numeric: tabular-nums;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+    }
+    .modal .user-row .user-counts b { color: var(--text); font-weight: 500; margin-right: 0.3rem; }
+    .modal .user-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      justify-content: flex-end;
+    }
+    .modal .user-actions button:not(.modal-close) {
+      padding: 0.2rem 0.5rem;
+      font-size: 0.72rem;
+    }
+    .modal .user-flag {
+      display: inline-block;
+      font-size: 0.68rem;
+      padding: 0.05rem 0.4rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      white-space: nowrap;
+      margin-left: 0.4rem;
+    }
+    .modal .user-flag.on {
+      color: var(--accent);
+      border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+    .modal .danger-btn:not(h2 .modal-close) {
+      color: var(--red, #c75050);
+      border-color: color-mix(in srgb, var(--red, #c75050) 40%, transparent);
+    }
+    .modal .danger-btn:not(h2 .modal-close):hover:not(:disabled) {
+      background: color-mix(in srgb, var(--red, #c75050) 12%, transparent);
+    }
     .modal select:disabled {
       opacity: 0.55;
       cursor: not-allowed;
@@ -1850,7 +2021,12 @@
       color: var(--red);
       margin: 0;
     }
-    .modal button:not(h2 .modal-close) {
+    /* All non-close buttons inside a modal get the bordered look. The
+       :not(.modal-close) excludes both the in-h2 close (set up via
+       .modal h2 .modal-close below) and any free-standing close (e.g. the
+       floating one used by the Add modal). Adding a new .modal-close anywhere
+       in a modal is intentionally enough to opt out of this styling. */
+    .modal button:not(.modal-close) {
       background: transparent;
       border: 1px solid var(--border);
       color: var(--muted);
@@ -1882,9 +2058,9 @@
       color: var(--fab-text);
       border-color: var(--accent);
     }
-    .modal button:not(h2 .modal-close):hover:not(:disabled) { color: var(--text); border-color: var(--border-hover); }
+    .modal button:not(.modal-close):hover:not(:disabled) { color: var(--text); border-color: var(--border-hover); }
     .modal button.primary:hover { opacity: 0.9; color: var(--fab-text); }
-    .modal button:not(h2 .modal-close):disabled { opacity: 0.4; cursor: not-allowed; }
+    .modal button:not(.modal-close):disabled { opacity: 0.4; cursor: not-allowed; }
     .modal .hint {
       font-size: 0.7rem;
       color: var(--muted);
@@ -2212,7 +2388,7 @@
 
     const state = {
       config: DEFAULT_CONFIG,
-      auth: { authenticated: false, username: null, is_admin: false, published: false, registration_open: true, has_users: false, requires_setup_token: false },
+      auth: { authenticated: false, username: null, is_admin: false, published: false, registration_open: true, publishing_open: true, has_users: false, requires_setup_token: false },
       viewer: detectViewer(),
       currentMap: null,
       currentElevation: null,
@@ -2784,23 +2960,7 @@
       }
 
       // Places
-      const useClusters = getClusterPlaces();
-      const clusterGroup = useClusters
-        ? L.markerClusterGroup({
-            maxClusterRadius: 40,
-            spiderfyOnMaxZoom: true,
-            showCoverageOnHover: false,
-          })
-        : L.featureGroup();
-      if (useClusters) {
-        clusterGroup.on('clustermouseover', function(e) {
-          const names = e.layer.getAllChildMarkers().map(m => m._placeData.name).sort().slice(0, 10);
-          const total = e.layer.getChildCount();
-          let label = names.join('\n');
-          if (total > 10) label += '\n+' + (total - 10) + ' more';
-          e.layer.bindTooltip(label, { direction: 'top', sticky: true }).openTooltip();
-        });
-      }
+      const clusterGroup = createPlaceLayerGroup();
 
       const placeMarkers = [];
       const placeBounds = L.latLngBounds();
@@ -3027,6 +3187,7 @@
           const c = cat.dataset.cat;
           if (state.hiddenCategories.has(c)) { state.hiddenCategories.delete(c); cat.classList.remove('disabled'); }
           else { state.hiddenCategories.add(c); cat.classList.add('disabled'); }
+          pulseChip(cat);
           applyMapFilters();
           return;
         }
@@ -3035,6 +3196,7 @@
           if (chip.dataset.filter === 'visited') state.showVisited = !state.showVisited;
           else state.showWant = !state.showWant;
           chip.classList.toggle('active');
+          pulseChip(chip);
           applyMapFilters();
         }
       });
@@ -3047,6 +3209,7 @@
           if (s === 'completed') state.showCompleted = !state.showCompleted;
           else state.showPlanned = !state.showPlanned;
           item.classList.toggle('disabled');
+          pulseChip(item);
           applyMapFilters();
           return;
         }
@@ -3055,6 +3218,7 @@
           const r = region.dataset.region;
           if (state.hiddenRegions.has(r)) { state.hiddenRegions.delete(r); region.classList.remove('disabled'); }
           else { state.hiddenRegions.add(r); region.classList.add('disabled'); }
+          pulseChip(region);
           applyMapFilters();
         }
       });
@@ -3208,6 +3372,90 @@
       } else {
         map.setView([p.lat, p.lon], Math.max(map.getZoom(), 12));
         marker.openPopup();
+      }
+    }
+
+    // Force a style recalc so a class change is observed as a transition start
+    // rather than batched away. Used for entry animations and for restarting
+    // a keyframe animation on repeated triggers.
+    function forceReflow(el) { void el.offsetWidth; }
+
+    // Append `cls` then strip it on the next tick so the element animates
+    // from the .cls state to its base state. Caller-controlled CSS transition.
+    function playEnter(el, cls) {
+      if (!el) return;
+      el.classList.add(cls);
+      forceReflow(el);
+      el.classList.remove(cls);
+    }
+
+    // Add `cls` (typically a transform/opacity off state), call `done` after
+    // either the resulting transition ends or `fallbackMs` elapses, whichever
+    // is first. Guarantees `done` runs exactly once.
+    function playLeave(el, cls, done, fallbackMs) {
+      if (!el) { done(); return; }
+      el.classList.add(cls);
+      let fired = false;
+      const fire = () => { if (fired) return; fired = true; done(); };
+      el.addEventListener('transitionend', fire, { once: true });
+      setTimeout(fire, fallbackMs || 300);
+    }
+
+    function pulseChip(el) {
+      if (!el) return;
+      el.classList.remove('pulse');
+      // Force reflow so the animation restarts on repeated clicks.
+      forceReflow(el);
+      el.classList.add('pulse');
+      el.addEventListener('animationend', () => el.classList.remove('pulse'), { once: true });
+    }
+
+    function createPlaceLayerGroup() {
+      const useClusters = getClusterPlaces();
+      const group = useClusters
+        ? L.markerClusterGroup({
+            maxClusterRadius: 40,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+          })
+        : L.featureGroup();
+      if (useClusters) {
+        group.on('clustermouseover', function(e) {
+          const names = e.layer.getAllChildMarkers().map(m => m._placeData.name).sort().slice(0, 10);
+          const total = e.layer.getChildCount();
+          let label = names.join('\n');
+          if (total > 10) label += '\n+' + (total - 10) + ' more';
+          e.layer.bindTooltip(label, { direction: 'top', sticky: true }).openTooltip();
+        });
+      }
+      return group;
+    }
+
+    // Swap the place layer group in place when the clustering preference flips,
+    // so the toggle doesn't force a full map rebuild (which scrolls the view).
+    // Brief opacity fade on the marker pane softens the otherwise-instant swap.
+    function swapPlaceClusterGroup() {
+      const map = state.currentMap;
+      const old = state._placeClusterGroup;
+      if (!map || !old) return;
+      const pane = map.getPane('markerPane');
+      const reducedMotion = window.matchMedia
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const swap = () => {
+        if (map.hasLayer(old)) map.removeLayer(old);
+        old.clearLayers();
+        state._placeClusterGroup = createPlaceLayerGroup();
+        applyMapFilters();
+        if (pane && !reducedMotion) {
+          requestAnimationFrame(() => { pane.style.opacity = '1'; });
+        }
+      };
+      if (pane && !reducedMotion) {
+        pane.style.transition = 'opacity 120ms ease-out';
+        pane.style.opacity = '0';
+        setTimeout(swap, 120);
+      } else {
+        swap();
       }
     }
 
@@ -4328,14 +4576,14 @@
         (!isReadOnly() ?
           '<h3 class="settings-h">Optional fields</h3>' +
           '<div class="feature-pills">' +
-            [['native-name', 'Native name'], ['note', 'Note'], ['rating', 'Rating'], ['date', 'Date']]
+            [['date', 'Date'], ['native-name', 'Native name'], ['note', 'Note'], ['rating', 'Rating']]
               .map(([key, label]) =>
                 '<label class="feature-pill' + (getShowField(key) ? ' active' : '') + '"><input type="checkbox" data-field="' + key + '"' + (getShowField(key) ? ' checked' : '') + '>' + label + '</label>'
               ).join('') +
           '</div>'
         : '') +
         '<h3 class="settings-h">Units</h3>' +
-        radioPillsHtml('units', [['metric', 'Metric (km, m)'], ['imperial', 'Imperial (mi, ft)']], getUnits()) +
+        radioPillsHtml('units', [['imperial', 'Imperial (mi, ft)'], ['metric', 'Metric (km, m)']], getUnits()) +
         '<h3 class="settings-h">Language</h3>' +
         '<select id="s-language" disabled>' +
           '<option value="en" selected>English</option>' +
@@ -4417,16 +4665,18 @@
         '</div>' +
         '</div>' +
         '<div data-panel="account" hidden>' +
-        '<h3 class="settings-h">Public sharing</h3>' +
-        '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem">' +
-          '<input type="checkbox" class="settings-toggle" id="s-publish"' + (state.auth.published ? ' checked' : '') + '>' +
-          '<label for="s-publish" style="margin:0">Make my map public</label>' +
-        '</div>' +
-        '<div class="modal-desc">When on, anyone with the link can view your places and trails. They can\'t edit.</div>' +
-        '<div id="s-publish-link" style="display:' + (state.auth.published ? 'flex' : 'none') + ';align-items:center;gap:0.5rem;margin-top:0.5rem">' +
-          '<input type="text" id="s-publish-url" readonly value="' + escapeHtml(location.origin + '/u/' + (state.auth.username || '') + '/') + '" style="flex:1;font-size:0.75rem">' +
-          '<button type="button" class="primary" id="s-publish-copy" style="flex:0 0 auto">Copy</button>' +
-        '</div>' +
+        ((state.auth.publishing_open || isAdmin) ?
+          '<h3 class="settings-h">Public sharing</h3>' +
+          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem">' +
+            '<input type="checkbox" class="settings-toggle" id="s-publish"' + (state.auth.published ? ' checked' : '') + '>' +
+            '<label for="s-publish" style="margin:0">Make my map public</label>' +
+          '</div>' +
+          '<div class="modal-desc">When on, anyone with the link can view your places and trails. They can\'t edit.</div>' +
+          '<div id="s-publish-link" style="display:' + (state.auth.published ? 'flex' : 'none') + ';align-items:center;gap:0.5rem;margin-top:0.5rem">' +
+            '<input type="text" id="s-publish-url" readonly value="' + escapeHtml(location.origin + '/u/' + (state.auth.username || '') + '/') + '" style="flex:1;font-size:0.75rem">' +
+            '<button type="button" class="primary" id="s-publish-copy" style="flex:0 0 auto">Copy</button>' +
+          '</div>'
+        : '') +
         '<h3 class="settings-h">Export</h3>' +
         '<div style="display:flex;align-items:center;gap:1rem">' +
           '<div class="modal-desc" style="flex:1;margin:0">Download your places, trails, and preferences as a zip.</div>' +
@@ -4434,10 +4684,12 @@
         '</div>' +
         '<div class="modal-error" id="s-export-error"></div>' +
         '<h3 class="settings-h">Import</h3>' +
-        '<div class="modal-desc">Restore from a previous export.</div>' +
-        '<div class="radio-row radio-pills" style="margin-top:0.5rem">' +
-          '<label><input type="radio" name="import-mode" value="merge" checked>Merge into existing</label>' +
-          '<label><input type="radio" name="import-mode" value="replace">Replace all</label>' +
+        '<div style="display:flex;align-items:center;gap:1rem">' +
+          '<div class="modal-desc" style="flex:1;margin:0">Restore from a previous export.</div>' +
+          '<div class="radio-row radio-pills" style="margin:0;flex:0 0 auto">' +
+            '<label><input type="radio" name="import-mode" value="merge" checked>Merge</label>' +
+            '<label><input type="radio" name="import-mode" value="replace">Replace all</label>' +
+          '</div>' +
         '</div>' +
         '<div style="display:flex;align-items:center;gap:1rem;margin-top:0.75rem">' +
           '<div class="file-picker" style="flex:1;margin:0">' +
@@ -4467,11 +4719,20 @@
         '</div>' +
         (isAdmin ?
           '<div data-panel="admin" hidden>' +
-          '<h3 class="settings-h">Registration</h3>' +
-          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem">' +
+          '<h3 class="settings-h">Instance</h3>' +
+          '<div class="stats-grid" id="s-admin-stats"><div class="hint" style="grid-column:1/-1">Loading&hellip;</div></div>' +
+          '<h3 class="settings-h">Access</h3>' +
+          '<div class="settings-inline-row">' +
             '<input type="checkbox" class="settings-toggle" id="s-reg"' + (regOpen ? ' checked' : '') + '>' +
-            '<label for="s-reg" style="margin:0">Allow new users to register</label>' +
+            '<label for="s-reg">Allow new users to register</label>' +
           '</div>' +
+          '<div class="settings-inline-row">' +
+            '<input type="checkbox" class="settings-toggle" id="s-publishing"' + (state.auth.publishing_open ? ' checked' : '') + '>' +
+            '<label for="s-publishing">Allow users to publish public maps</label>' +
+          '</div>' +
+          '<div class="modal-desc">Turning this off blocks new publish actions and forces any currently public maps back to private.</div>' +
+          '<h3 class="settings-h">Users</h3>' +
+          '<div id="s-admin-users"><div class="hint">Loading&hellip;</div></div>' +
           '</div>'
         : ''),
         function() {
@@ -4507,6 +4768,34 @@
                 .then(() => refreshAuthState())
                 .catch(err => { alert('Failed: ' + err.message); this.checked = !this.checked; });
             });
+          }
+          const pubGlobal = document.getElementById('s-publishing');
+          if (pubGlobal) {
+            pubGlobal.addEventListener('change', function() {
+              const wanted = this.checked;
+              const apply = () => api('POST', '/admin/settings/publishing', { mode: wanted ? 'open' : 'closed' })
+                .then(() => refreshAuthState())
+                .then(() => { renderAdminUsers(); renderAdminStats(); })
+                .catch(err => { alert('Failed: ' + err.message); this.checked = !wanted; });
+              if (wanted) return apply();
+              // Closing the gate also force-unpublishes anyone currently public.
+              openConfirmModal({
+                title: 'Disable publishing',
+                body: 'New publish actions will be blocked and any currently public maps will be set back to private. Continue?',
+                confirmLabel: 'Disable publishing',
+                danger: true,
+              }).then(ok => {
+                if (!ok) { this.checked = true; return; }
+                api('POST', '/admin/unpublish-all').then(apply).catch(err => {
+                  alert('Failed: ' + err.message);
+                  this.checked = true;
+                });
+              });
+            });
+          }
+          if (isAdmin) {
+            renderAdminStats();
+            renderAdminUsers();
           }
           const pub = document.getElementById('s-publish');
           const pubLink = document.getElementById('s-publish-link');
@@ -4587,18 +4876,30 @@
               setPref(key, this.checked ? 'true' : 'false');
               const pill = this.closest('.feature-pill');
               if (pill) pill.classList.toggle('active', this.checked);
-              if (key === 'atlas-remember-view' && !this.checked) {
-                try { localStorage.removeItem('atlas-last-view'); } catch {}
+              if (key === 'atlas-remember-view') {
+                // Pure persistence preference: only affects save/load on the
+                // next navigation, no current-view rebuild needed.
+                if (!this.checked) {
+                  try { localStorage.removeItem('atlas-last-view'); } catch {}
+                }
+                return;
+              }
+              if (key === 'atlas-cluster-places') {
+                swapPlaceClusterGroup();
+                return;
               }
               // Tile-picker is a pure on-map control add/remove; no need to
               // rebuild the map (which causes a visible blink).
               if (key === 'atlas-tile-picker') {
                 if (state.currentMap && state.tilePickerLayers) {
                   if (this.checked && !state.tilePickerCtrl) {
-                    state.tilePickerCtrl = L.control.layers(state.tilePickerLayers, null, { position: 'topright' }).addTo(state.currentMap);
+                    const ctrl = L.control.layers(state.tilePickerLayers, null, { position: 'topright' }).addTo(state.currentMap);
+                    state.tilePickerCtrl = ctrl;
+                    playEnter(ctrl.getContainer(), 'tile-pick-enter');
                   } else if (!this.checked && state.tilePickerCtrl) {
-                    state.currentMap.removeControl(state.tilePickerCtrl);
+                    const ctrl = state.tilePickerCtrl;
                     state.tilePickerCtrl = null;
+                    playLeave(ctrl.getContainer(), 'tile-pick-leave', () => state.currentMap.removeControl(ctrl));
                   }
                 }
                 return;
@@ -5136,6 +5437,186 @@
       });
     }
 
+    function formatBytes(n) {
+      if (!n || n < 1024) return (n || 0) + ' B';
+      const units = ['KB', 'MB', 'GB', 'TB'];
+      let v = n / 1024;
+      let i = 0;
+      while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+      return (v >= 10 ? v.toFixed(0) : v.toFixed(1)) + ' ' + units[i];
+    }
+
+    function renderAdminStats() {
+      const el = document.getElementById('s-admin-stats');
+      if (!el) return;
+      api('GET', '/admin/stats').then(s => {
+        const tiles = [
+          ['Users', s.users],
+          ['Published', s.published_users],
+          ['Places', s.places],
+          ['Trails', s.trails],
+          ['Files', formatBytes(s.data_bytes)],
+          ['Database', formatBytes(s.db_bytes)],
+        ];
+        el.innerHTML = tiles.map(([lbl, v]) =>
+          '<div class="stat-card"><div class="stat-val">' + escapeHtml(String(v)) + '</div>' +
+          '<div class="stat-lbl">' + escapeHtml(lbl) + '</div></div>'
+        ).join('');
+      }).catch(() => {
+        el.innerHTML = '<div class="hint" style="grid-column:1/-1">Could not load stats.</div>';
+      });
+    }
+
+    function renderAdminUsers() {
+      const el = document.getElementById('s-admin-users');
+      if (!el) return;
+      api('GET', '/admin/users').then(data => {
+        const users = data.users || [];
+        if (!users.length) {
+          el.innerHTML = '<div class="hint">No users.</div>';
+          return;
+        }
+        const meName = state.auth.username;
+        // Sort: current user first, then other admins, then everyone else by id.
+        users.sort((a, b) => {
+          if (a.username === meName) return -1;
+          if (b.username === meName) return 1;
+          if (a.is_admin !== b.is_admin) return a.is_admin ? -1 : 1;
+          return a.id - b.id;
+        });
+        const admins = users.filter(u => u.is_admin);
+        const members = users.filter(u => !u.is_admin);
+        const renderRow = u => {
+          const isSelf = u.username === meName;
+          return '<li class="user-row' + (isSelf ? ' self' : '') + '" data-uid="' + u.id + '" data-uname="' + escapeHtml(u.username) + '">' +
+            '<span class="user-name">' +
+              escapeHtml(u.username) +
+              (u.published ? '<span class="user-flag on">Public</span>' : '') +
+            '</span>' +
+            '<div class="user-actions">' +
+              (u.published ? '<button data-act="unpublish">Unpublish</button>' : '') +
+              (u.sessions ? '<button data-act="revoke">Revoke</button>' : '') +
+              (isSelf ? '' : '<button data-act="role">' + (u.is_admin ? 'Demote' : 'Promote') + '</button>') +
+              (isSelf ? '' : '<button data-act="delete" class="danger-btn">Delete</button>') +
+            '</div>' +
+            '<div class="user-counts">' +
+              '<span><b>' + u.sessions + '</b>sessions</span>' +
+              '<span><b>' + u.places + '</b>places</span>' +
+              '<span><b>' + u.trails + '</b>trails</span>' +
+            '</div>' +
+          '</li>';
+        };
+        let html = '';
+        if (admins.length) {
+          html += '<div class="user-group-h">Admins</div>' +
+            '<ul class="user-list">' + admins.map(renderRow).join('') + '</ul>';
+        }
+        if (members.length) {
+          html += '<div class="user-group-h">Members</div>' +
+            '<ul class="user-list">' + members.map(renderRow).join('') + '</ul>';
+        }
+        el.innerHTML = html;
+        el.querySelectorAll('button[data-act]').forEach(btn => {
+          btn.addEventListener('click', () => handleAdminUserAction(btn));
+        });
+      }).catch(() => {
+        el.innerHTML = '<div class="hint">Could not load users.</div>';
+      });
+    }
+
+    function handleAdminUserAction(btn) {
+      const row = btn.closest('.user-row');
+      const uid = row.dataset.uid;
+      const uname = row.dataset.uname;
+      const act = btn.dataset.act;
+      const refresh = () => { renderAdminUsers(); renderAdminStats(); };
+      const fail = err => alert('Failed: ' + err.message);
+      if (act === 'unpublish') {
+        openConfirmModal({
+          title: 'Force unpublish ' + uname,
+          body: uname + '\'s map will no longer be reachable at the public URL. They can republish if global publishing is on.',
+          confirmLabel: 'Unpublish',
+        }).then(ok => {
+          if (!ok) return;
+          btn.disabled = true;
+          api('POST', '/admin/users/' + uid + '/unpublish').then(refresh).catch(fail);
+        });
+      } else if (act === 'revoke') {
+        openConfirmModal({
+          title: 'Revoke sessions for ' + uname,
+          body: 'Signs ' + uname + ' out on every device they are currently signed in on.',
+          confirmLabel: 'Revoke',
+        }).then(ok => {
+          if (!ok) return;
+          btn.disabled = true;
+          api('POST', '/admin/users/' + uid + '/revoke-sessions').then(refresh).catch(fail);
+        });
+      } else if (act === 'role') {
+        const promote = btn.textContent === 'Promote';
+        openConfirmModal({
+          title: (promote ? 'Promote ' : 'Demote ') + uname,
+          body: promote
+            ? uname + ' will get full admin access, including this Admin tab and the ability to delete other users.'
+            : uname + ' will lose admin access on their next request.',
+          confirmLabel: promote ? 'Promote' : 'Demote',
+        }).then(ok => {
+          if (!ok) return;
+          btn.disabled = true;
+          api('POST', '/admin/users/' + uid + '/role', { is_admin: promote }).then(refresh).catch(fail);
+        });
+      } else if (act === 'delete') {
+        openConfirmModal({
+          title: 'Delete user ' + uname,
+          body: 'Permanently removes ' + uname + ', all their sessions, and their data folder (places, trails, preferences). This cannot be undone.',
+          confirmLabel: 'Delete user',
+          danger: true,
+        }).then(ok => {
+          if (!ok) return;
+          btn.disabled = true;
+          api('DELETE', '/admin/users/' + uid).then(resp => {
+            if (resp && resp.cleanup_warning) {
+              alert('User deleted, but data folder cleanup incomplete: ' + resp.cleanup_warning);
+            }
+            refresh();
+          }).catch(fail);
+        });
+      }
+    }
+
+    function openConfirmModal({ title, body, confirmLabel, danger }) {
+      return new Promise(resolve => {
+        let settled = false;
+        const finish = ok => {
+          if (settled) return;
+          settled = true;
+          closeTopModal();
+          resolve(ok);
+        };
+        const html =
+          '<h2>' + escapeHtml(title) + '<button class="modal-close">&times;</button></h2>' +
+          '<div class="modal-desc" style="font-size:0.85rem">' + escapeHtml(body) + '</div>' +
+          '<div class="modal-actions">' +
+            '<button type="button" data-role="cancel">Cancel</button>' +
+            '<button type="button" class="' + (danger ? 'danger-btn' : 'primary') + '" data-role="ok">' + escapeHtml(confirmLabel || 'Confirm') + '</button>' +
+          '</div>';
+        openModal(html, backdrop => {
+          const modal = backdrop.querySelector('.modal');
+          if (modal) modal.style.maxWidth = '380px';
+          backdrop.querySelector('[data-role="ok"]').addEventListener('click', () => finish(true));
+          backdrop.querySelector('[data-role="cancel"]').addEventListener('click', () => finish(false));
+          // Enter to confirm: only while this confirm is the topmost modal.
+          const onEnter = e => {
+            if (e.key !== 'Enter') return;
+            if (modalStack[modalStack.length - 1] && modalStack[modalStack.length - 1].backdrop !== backdrop) return;
+            e.preventDefault();
+            document.removeEventListener('keydown', onEnter, true);
+            finish(true);
+          };
+          document.addEventListener('keydown', onEnter, true);
+        }, () => finish(false));
+      });
+    }
+
     function refreshPlaces() {
       return fetchJson(dataUrl('places'), []).then(data => {
         state.places = Array.isArray(data) ? data : [];
@@ -5157,30 +5638,54 @@
     }
 
     // ----- Modal infrastructure -----
-    // Per-modal close override. openModal sets this to onClose (if provided)
-    // or the default close. closeModal and escClose go through it so X /
-    // backdrop / ESC all route the same way.
-    let activeCloseHandler = null;
+    // Modals form a stack: each open call appends a new backdrop, each close
+    // removes the topmost. This avoids the race that the innerHTML-replace
+    // approach had (closeModal in-flight while openModal mounts the next one)
+    // and lets confirm dialogs sit on top of an existing modal without
+    // wiping its listeners.
+    const MODAL_CLOSE_MS = 100;
+    const modalStack = [];
+
     function openModal(html, onMount, onClose) {
       const root = document.getElementById('modal-root');
-      root.innerHTML = '<div class="modal-backdrop" id="modal-backdrop"><div class="modal">' + html + '</div></div>';
-      const backdrop = document.getElementById('modal-backdrop');
-      activeCloseHandler = onClose || null;
-      const closeIt = () => (activeCloseHandler ? activeCloseHandler() : closeModal());
-      backdrop.addEventListener('click', function(e) { if (e.target === backdrop) closeIt(); });
-      backdrop.querySelectorAll('.modal-close').forEach(el => el.addEventListener('click', closeIt));
-      document.addEventListener('keydown', escClose);
+      const wrap = document.createElement('div');
+      wrap.innerHTML = '<div class="modal-backdrop"><div class="modal">' + html + '</div></div>';
+      const backdrop = wrap.firstElementChild;
+      // Each modal lives a notch above the one below it so stacking is
+      // explicit (the .modal-backdrop CSS rule has z-index: 2000).
+      backdrop.style.zIndex = 2000 + modalStack.length * 10;
+      root.appendChild(backdrop);
+      const entry = { backdrop, onClose: null };
+      // Default close behavior: tear down this backdrop. onClose overrides
+      // run instead and may call closeModal()/closeTopModal() themselves.
+      entry.onClose = onClose
+        ? () => onClose()
+        : () => closeTopModal();
+      modalStack.push(entry);
+      backdrop.addEventListener('click', e => { if (e.target === backdrop) entry.onClose(); });
+      backdrop.querySelectorAll('.modal-close').forEach(el => el.addEventListener('click', () => entry.onClose()));
+      if (modalStack.length === 1) document.addEventListener('keydown', escClose);
       if (onMount) onMount(backdrop);
+      return backdrop;
     }
-    function closeModal() {
-      activeCloseHandler = null;
-      document.getElementById('modal-root').innerHTML = '';
-      document.removeEventListener('keydown', escClose);
+
+    function closeTopModal() {
+      const entry = modalStack.pop();
+      if (!entry) return;
+      entry.backdrop.classList.add('closing');
+      setTimeout(() => {
+        if (entry.backdrop.parentElement) entry.backdrop.parentElement.removeChild(entry.backdrop);
+      }, MODAL_CLOSE_MS);
+      if (modalStack.length === 0) document.removeEventListener('keydown', escClose);
     }
+
+    // Public alias preserved for the many callers in this file.
+    function closeModal() { closeTopModal(); }
+
     function escClose(e) {
       if (e.key !== 'Escape') return;
-      if (activeCloseHandler) activeCloseHandler();
-      else closeModal();
+      const top = modalStack[modalStack.length - 1];
+      if (top) top.onClose();
     }
     function showModalError(msg) {
       const el = document.querySelector('.modal-error');
@@ -5267,7 +5772,7 @@
       if (tab === 'place' && !showPlaces) tab = 'trail';
       if (tab === 'trail' && !showTrails) tab = 'place';
       openModal(
-        '<h2>Add <button class="modal-close">&times;</button></h2>' +
+        '<button class="modal-close modal-close-floating" aria-label="Close">&times;</button>' +
         (showPlaces && showTrails ?
           '<div class="modal-tabs" id="add-tabs">' +
             '<button data-tab="place"' + (tab === 'place' ? ' class="active"' : '') + '>Place</button>' +
@@ -5369,7 +5874,6 @@
           : '') +
           '<div class="modal-error" id="add-error"></div>' +
           '<div class="modal-actions">' +
-            '<button type="button" class="modal-close">Cancel</button>' +
             '<button type="submit" class="primary" id="place-submit">Add place</button>' +
           '</div>' +
         '</form>';
@@ -5425,7 +5929,6 @@
           : '') +
           '<div class="modal-error" id="add-error"></div>' +
           '<div class="modal-actions">' +
-            '<button type="button" class="modal-close">Cancel</button>' +
             '<button type="submit" class="primary" id="gpx-submit">Upload trail</button>' +
           '</div>' +
         '</form>';
@@ -5587,21 +6090,32 @@
     // Floating "+" button on the unified map view, when authed.
     function maybeMountFab() {
       const app = document.getElementById('app');
-      const existing = app.querySelector('.fab-add');
-      if (existing) existing.remove();
-      if (!state.auth.authenticated || isReadOnly()) return;
-      if (!getShowMapAddButton()) return;
+      const existing = app.querySelector('.fab-add:not(.fab-leave)');
       const base = (location.hash || '#/').split('?')[0];
-      if (!(base === '#/' || base === '#' || base === '#/map')) return;
-      if (!placesEnabled() && !trailsEnabled()) return;
-      const fab = document.createElement('button');
-      fab.className = 'fab-add';
-      fab.title = placesEnabled() && trailsEnabled()
+      const shouldShow = state.auth.authenticated
+        && !isReadOnly()
+        && getShowMapAddButton()
+        && (base === '#/' || base === '#' || base === '#/map')
+        && (placesEnabled() || trailsEnabled());
+      const fabTitle = placesEnabled() && trailsEnabled()
         ? 'Add place or trail'
         : (placesEnabled() ? 'Add place' : 'Add trail');
-      fab.innerHTML = '+';
+      if (shouldShow && existing) {
+        existing.title = fabTitle;
+        return;
+      }
+      if (!shouldShow && existing) {
+        playLeave(existing, 'fab-leave', () => existing.remove());
+        return;
+      }
+      if (!shouldShow) return;
+      const fab = document.createElement('button');
+      fab.className = 'fab-add';
+      fab.title = fabTitle;
+      fab.setAttribute('aria-label', fabTitle);
       fab.addEventListener('click', function() { openAddModal(null); });
       app.appendChild(fab);
+      playEnter(fab, 'fab-enter');
     }
 
     // Hook into router so the FAB re-mounts on each view change.

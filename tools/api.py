@@ -298,6 +298,47 @@ def set_user_published(conn: sqlite3.Connection, user_id: int, value: bool) -> N
   conn.execute("UPDATE users SET published=? WHERE id=?", (1 if value else 0, user_id))
 
 
+def publishing_open(conn: sqlite3.Connection) -> bool:
+  """Admin-controlled global flag: when 'closed', non-admins can't toggle their
+  publish state on (existing published users stay published until an admin
+  unpublishes them). Defaults to open."""
+  return setting_get(conn, "publishing", "open") == "open"
+
+
+def admin_count(conn: sqlite3.Connection) -> int:
+  return conn.execute("SELECT COUNT(*) AS n FROM users WHERE is_admin=1").fetchone()["n"]
+
+
+def dir_size_bytes(path: Path) -> int:
+  """Walk a directory tree and return total bytes of regular files. Best
+  effort: any per-file stat error is skipped."""
+  total = 0
+  if not path.exists():
+    return 0
+  for entry in path.rglob("*"):
+    try:
+      if entry.is_file() and not entry.is_symlink():
+        total += entry.stat().st_size
+    except OSError:
+      continue
+  return total
+
+
+def count_user_places(udir: Path) -> int:
+  try:
+    data = json.loads((udir / "places.json").read_text("utf-8"))
+    return len(data) if isinstance(data, list) else 0
+  except (OSError, json.JSONDecodeError):
+    return 0
+
+
+def count_user_trails(udir: Path) -> int:
+  gpx_root = udir / "gpx"
+  if not gpx_root.exists():
+    return 0
+  return sum(1 for _ in gpx_root.rglob("*.gpx") if _.is_file())
+
+
 def migrate_legacy_data(conn: sqlite3.Connection, cfg: dict) -> None:
   """One-shot: move legacy shared `places.json` + `gpx/` + `metadata.json` +
   `routes.json` into the first admin's folder. For each file: skipped if
@@ -602,6 +643,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_me_category_labels_get()
     if path == "/api/me/export":
       return self._h_export_get()
+    if path == "/api/admin/users":
+      return self._h_admin_users_list()
+    if path == "/api/admin/stats":
+      return self._h_admin_stats()
     if path.startswith("/api/gpx/"):
       parts = path[len("/api/gpx/"):].split("/", 1)
       if len(parts) == 2:
@@ -714,6 +759,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_sessions_revoke()
     if path == "/api/sessions/revoke-others":
       return self._h_sessions_revoke_others()
+    if path == "/api/admin/settings/publishing":
+      return self._h_admin_settings_publishing()
+    if path == "/api/admin/unpublish-all":
+      return self._h_admin_unpublish_all()
+    if path.startswith("/api/admin/users/"):
+      rest = path[len("/api/admin/users/"):]
+      parts = rest.split("/", 1)
+      if len(parts) == 2 and parts[0].isdigit():
+        uid = int(parts[0])
+        if parts[1] == "role":
+          return self._h_admin_user_role(uid)
+        if parts[1] == "unpublish":
+          return self._h_admin_user_unpublish(uid)
+        if parts[1] == "revoke-sessions":
+          return self._h_admin_user_revoke_sessions(uid)
+      return self._error(HTTPStatus.NOT_FOUND, "not found")
     self._error(HTTPStatus.NOT_FOUND, "not found")
 
   def do_PUT(self):
@@ -734,6 +795,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_places_delete()
     if path == "/api/gpx":
       return self._h_gpx_delete()
+    if path.startswith("/api/admin/users/"):
+      rest = path[len("/api/admin/users/"):]
+      if rest.isdigit():
+        return self._h_admin_user_delete(int(rest))
+      return self._error(HTTPStatus.NOT_FOUND, "not found")
     self._error(HTTPStatus.NOT_FOUND, "not found")
 
   # ---- handlers ----
@@ -749,6 +815,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "is_admin": bool(user["is_admin"]) if user else False,
       "published": published,
       "registration_open": registration_open(self.conn),
+      "publishing_open": publishing_open(self.conn),
       "has_users": user_count(self.conn) > 0,
       "requires_setup_token": Handler.setup_token is not None and user_count(self.conn) == 0,
     })
@@ -907,6 +974,166 @@ class Handler(http.server.BaseHTTPRequestHandler):
     with self.write_lock:
       setting_set(self.conn, "registration", mode)
     self._send_json(HTTPStatus.OK, {"registration": mode})
+
+  def _h_admin_settings_publishing(self):
+    if self._require_admin() is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    mode = body.get("mode")
+    if mode not in ("open", "closed"):
+      return self._error(HTTPStatus.BAD_REQUEST, "mode must be 'open' or 'closed'")
+    with self.write_lock:
+      setting_set(self.conn, "publishing", mode)
+    self._send_json(HTTPStatus.OK, {"publishing": mode})
+
+  def _admin_user_row(self, row: sqlite3.Row) -> dict:
+    uname = row["username"]
+    udir = user_dir(self.cfg, uname)
+    sessions = self.conn.execute(
+      "SELECT COUNT(*) AS n FROM sessions WHERE user_id=? AND expires_at > ?",
+      (row["id"], int(time.time())),
+    ).fetchone()["n"]
+    return {
+      "id": row["id"],
+      "username": uname,
+      "is_admin": bool(row["is_admin"]),
+      "published": bool(row["published"]),
+      "created_at": row["created_at"],
+      "sessions": sessions,
+      "places": count_user_places(udir),
+      "trails": count_user_trails(udir),
+    }
+
+  def _h_admin_users_list(self):
+    if self._require_admin() is None:
+      return
+    rows = self.conn.execute(
+      "SELECT id, username, is_admin, published, created_at FROM users ORDER BY id"
+    ).fetchall()
+    out = [self._admin_user_row(r) for r in rows]
+    self._send_json(HTTPStatus.OK, {"users": out})
+
+  def _h_admin_stats(self):
+    if self._require_admin() is None:
+      return
+    users = user_count(self.conn)
+    published_users = self.conn.execute(
+      "SELECT COUNT(*) AS n FROM users WHERE published=1"
+    ).fetchone()["n"]
+    data_dir = Path(self.cfg["data_dir"]).resolve()
+    users_root = data_dir / "users"
+    places_total = 0
+    trails_total = 0
+    if users_root.exists():
+      for child in users_root.iterdir():
+        if not child.is_dir():
+          continue
+        places_total += count_user_places(child)
+        trails_total += count_user_trails(child)
+    db_path = Path(self.cfg["db_path"]).resolve()
+    try:
+      db_bytes = db_path.stat().st_size
+    except OSError:
+      db_bytes = 0
+    data_bytes = dir_size_bytes(users_root)
+    self._send_json(HTTPStatus.OK, {
+      "users": users,
+      "published_users": published_users,
+      "places": places_total,
+      "trails": trails_total,
+      "db_bytes": db_bytes,
+      "data_bytes": data_bytes,
+    })
+
+  def _h_admin_user_role(self, uid: int):
+    admin = self._require_admin()
+    if admin is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    val = body.get("is_admin")
+    if not isinstance(val, bool):
+      return self._error(HTTPStatus.BAD_REQUEST, "is_admin (bool) required")
+    target = self.conn.execute("SELECT * FROM users WHERE id=?", (uid,)).fetchone()
+    if not target:
+      return self._error(HTTPStatus.NOT_FOUND, "user not found")
+    if not val and target["is_admin"] and admin_count(self.conn) <= 1:
+      return self._error(HTTPStatus.CONFLICT, "cannot demote the last admin")
+    with self.write_lock:
+      self.conn.execute("UPDATE users SET is_admin=? WHERE id=?", (1 if val else 0, uid))
+    self._send_json(HTTPStatus.OK, {"ok": True, "is_admin": val})
+
+  def _h_admin_user_unpublish(self, uid: int):
+    if self._require_admin() is None:
+      return
+    target = self.conn.execute("SELECT * FROM users WHERE id=?", (uid,)).fetchone()
+    if not target:
+      return self._error(HTTPStatus.NOT_FOUND, "user not found")
+    with self.write_lock:
+      set_user_published(self.conn, uid, False)
+    self._send_json(HTTPStatus.OK, {"ok": True})
+
+  def _h_admin_unpublish_all(self):
+    if self._require_admin() is None:
+      return
+    with self.write_lock:
+      cur = self.conn.execute("UPDATE users SET published=0 WHERE published=1")
+      affected = cur.rowcount
+    self._send_json(HTTPStatus.OK, {"ok": True, "affected": affected})
+
+  def _h_admin_user_revoke_sessions(self, uid: int):
+    if self._require_admin() is None:
+      return
+    target = self.conn.execute("SELECT id FROM users WHERE id=?", (uid,)).fetchone()
+    if not target:
+      return self._error(HTTPStatus.NOT_FOUND, "user not found")
+    with self.write_lock:
+      cur = self.conn.execute("DELETE FROM sessions WHERE user_id=?", (uid,))
+      removed = cur.rowcount
+    self._send_json(HTTPStatus.OK, {"ok": True, "removed": removed})
+
+  def _h_admin_user_delete(self, uid: int):
+    admin = self._require_admin()
+    if admin is None:
+      return
+    if admin["id"] == uid:
+      return self._error(HTTPStatus.CONFLICT, "cannot delete your own account")
+    target = self.conn.execute("SELECT * FROM users WHERE id=?", (uid,)).fetchone()
+    if not target:
+      return self._error(HTTPStatus.NOT_FOUND, "user not found")
+    if target["is_admin"] and admin_count(self.conn) <= 1:
+      return self._error(HTTPStatus.CONFLICT, "cannot delete the last admin")
+    uname = target["username"]
+    with self.write_lock:
+      # Sessions cascade via FK ON DELETE CASCADE.
+      self.conn.execute("DELETE FROM users WHERE id=?", (uid,))
+    # File cleanup is best-effort. The DB row is gone (so the user can't sign in
+    # or be referenced anywhere), but leftover files on disk shouldn't fail
+    # silently — log loudly and report back so an admin can clean up by hand.
+    cleanup_warning = None
+    try:
+      udir = user_dir(self.cfg, uname)
+      if udir.exists():
+        errors: list[str] = []
+        def on_error(_func, path, excinfo):  # noqa: ANN001
+          errors.append(f"{path}: {excinfo[1]}")
+        shutil.rmtree(udir, onerror=on_error)
+        if errors:
+          cleanup_warning = f"data dir partially removed; {len(errors)} path(s) failed"
+          print(f"[atlas-api] delete user {uname}: rmtree errors: {errors}", file=sys.stderr)
+        elif udir.exists():
+          cleanup_warning = "data dir still present after rmtree"
+          print(f"[atlas-api] delete user {uname}: data dir still present", file=sys.stderr)
+    except (OSError, ValidationError) as e:
+      cleanup_warning = f"data dir cleanup failed: {e}"
+      print(f"[atlas-api] delete user {uname}: {e}", file=sys.stderr)
+    payload = {"ok": True}
+    if cleanup_warning:
+      payload["cleanup_warning"] = cleanup_warning
+    self._send_json(HTTPStatus.OK, payload)
 
   def _h_me_category_labels_get(self):
     user = self._require_user()
@@ -1556,6 +1783,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
     val = body.get("published")
     if not isinstance(val, bool):
       return self._error(HTTPStatus.BAD_REQUEST, "published (bool) required")
+    # Non-admins can always unpublish, but can only publish when the global
+    # flag is open. Admins bypass the gate so they can manage their own state.
+    if val and not user["is_admin"] and not publishing_open(self.conn):
+      return self._error(HTTPStatus.FORBIDDEN, "publishing is disabled by the admin")
     with self.write_lock:
       set_user_published(self.conn, user["id"], val)
     self._send_json(HTTPStatus.OK, {"ok": True, "published": val})
