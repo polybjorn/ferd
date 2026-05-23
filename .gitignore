@@ -10,10 +10,7 @@ gpx
 users/
 site-config.json
 tools/config.json
-tools/atlas.db*
-
-# Runtime
-.atlas-*.lock
+tools/app.db*
 
 # Docker Compose bind mount (compose.yml -> ./data:/data)
 data/

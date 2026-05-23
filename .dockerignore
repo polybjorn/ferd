@@ -4,9 +4,9 @@
 
 # Operator state - never bake into the image.
 tools/config.json
-tools/atlas.db
-tools/atlas.db-wal
-tools/atlas.db-shm
+tools/app.db
+tools/app.db-wal
+tools/app.db-shm
 site-config.json
 users/
 gpx/

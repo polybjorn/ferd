@@ -47,9 +47,9 @@ Dockerfile               # container image for the Docker Compose path
 compose.yml              # Docker Compose service definition
 .dockerignore            # files excluded from the image build context
 deploy/
-  atlas-api.socket       # systemd socket unit
-  atlas-api.service      # systemd service unit
-  atlas-api.plist        # macOS launchd template
+  ferd-api.socket       # systemd socket unit
+  ferd-api.service      # systemd service unit
+  ferd-api.plist        # macOS launchd template
   nginx.example.conf     # nginx server block
   install.sh             # guided installer
 docs/

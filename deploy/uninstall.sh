@@ -1,5 +1,5 @@
 #!/bin/sh
-# Atlas uninstaller. Stops the service, removes the systemd units, and
+# Ferd uninstaller. Stops the service, removes the systemd units, and
 # optionally removes the system user and install prefix. Data files
 # (users/, app.db, config.json) are NEVER auto-removed; the script tells
 # you what to delete by hand if you want a full wipe.
@@ -11,8 +11,8 @@
 
 set -eu
 
-PREFIX="/srv/atlas"
-SVC_USER="atlas"
+PREFIX="/srv/ferd"
+SVC_USER="ferd"
 ASSUME_YES="no"
 PURGE="no"
 
@@ -45,15 +45,15 @@ echo "  user:    $SVC_USER"
 echo "  purge:   $PURGE"
 echo
 
-echo "[1/4] stop and disable atlas-api.socket and atlas-api.service"
+echo "[1/4] stop and disable ferd-api.socket and ferd-api.service"
 if confirm "  proceed?"; then
-    systemctl disable --now atlas-api.socket  2>/dev/null || true
-    systemctl disable --now atlas-api.service 2>/dev/null || true
+    systemctl disable --now ferd-api.socket  2>/dev/null || true
+    systemctl disable --now ferd-api.service 2>/dev/null || true
 fi
 
 echo "[2/4] remove unit files from /etc/systemd/system/"
 if confirm "  proceed?"; then
-    rm -f /etc/systemd/system/atlas-api.service /etc/systemd/system/atlas-api.socket
+    rm -f /etc/systemd/system/ferd-api.service /etc/systemd/system/ferd-api.socket
     systemctl daemon-reload
 fi
 

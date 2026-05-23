@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Atlas</title>
+  <title>Ferd</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
@@ -2162,7 +2162,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Atlas</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -2397,7 +2397,7 @@
     }
 
     const DEFAULT_CONFIG = {
-      brand: 'Atlas',
+      brand: 'Ferd',
       features: { places: true, trails: true },
       default_view: { center: [45, 10], zoom: 4 },
       default_view_trails: { center: [59.5, 6.5], zoom: 10 },
@@ -5104,7 +5104,7 @@
               }
               const disp = r.headers.get('Content-Disposition') || '';
               const m = /filename="([^"]+)"/.exec(disp);
-              const fname = m ? m[1] : 'atlas-export.zip';
+              const fname = m ? m[1] : 'ferd-export.zip';
               const blob = await r.blob();
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
@@ -6444,9 +6444,9 @@
     function applyConfig(cfg) {
       state.config = Object.assign({}, DEFAULT_CONFIG, cfg || {});
       state.config.features = Object.assign({}, DEFAULT_CONFIG.features, (cfg && cfg.features) || {});
-      document.title = state.config.brand || 'Atlas';
+      document.title = state.config.brand || 'Ferd';
       const brandEl = document.getElementById('nav-brand-text');
-      if (brandEl) brandEl.textContent = state.config.brand || 'Atlas';
+      if (brandEl) brandEl.textContent = state.config.brand || 'Ferd';
       refreshTabVisibility();
     }
 

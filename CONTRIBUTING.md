@@ -10,11 +10,11 @@ The API can also serve the static files, so one Python process is the whole stac
 cp tools/config.example.json tools/config.json
 cp site-config.example.json site-config.json
 
-ATLAS_DATA_DIR="$PWD" \
-ATLAS_STATIC_DIR="$PWD" \
-ATLAS_MANIFEST_CMD="$PWD/gpx-manifest.sh" \
-ATLAS_SECURE_COOKIES=false \
-ATLAS_BIND=127.0.0.1:8090 \
+FERD_DATA_DIR="$PWD" \
+FERD_STATIC_DIR="$PWD" \
+FERD_MANIFEST_CMD="$PWD/gpx-manifest.sh" \
+FERD_SECURE_COOKIES=false \
+FERD_BIND=127.0.0.1:8090 \
   python3 tools/api.py
 ```
 

@@ -1,14 +1,14 @@
-# Atlas: Caddy site block.
+# Ferd: Caddy site block.
 #
 # Caddy provisions and renews a Let's Encrypt certificate automatically.
-# Replace atlas.example.com and /srv/atlas with your values.
+# Replace ferd.example.com and /srv/ferd with your values.
 #
 # Place this in /etc/caddy/Caddyfile (or import it from there), then:
 #   sudo caddy validate --config /etc/caddy/Caddyfile
 #   sudo systemctl reload caddy
 
-atlas.example.com {
-    root * /srv/atlas
+ferd.example.com {
+    root * /srv/ferd
     encode zstd gzip
 
     # GPX uploads are capped at 10 MiB by the API. 12 MiB gives headroom.

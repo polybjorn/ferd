@@ -119,7 +119,7 @@ def load_config(path: Path) -> dict:
   if path.exists():
     cfg.update(json.loads(path.read_text()))
   for key in cfg:
-    env_key = "ATLAS_" + key.upper()
+    env_key = "FERD_" + key.upper()
     if env_key in os.environ:
       raw = os.environ[env_key]
       if isinstance(cfg[key], bool):
@@ -2124,7 +2124,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
           path = root_p / fname
           zf.write(path, arcname=str(path.relative_to(udir)))
     payload = buf.getvalue()
-    fname = f"atlas-{user['username']}-export.zip"
+    fname = f"ferd-{user['username']}-export.zip"
     self.send_response(HTTPStatus.OK)
     self.send_header("Content-Type", "application/zip")
     self.send_header("Content-Length", str(len(payload)))

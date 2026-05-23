@@ -1,5 +1,5 @@
 [Unit]
-Description=Atlas API listening socket
+Description=Ferd API listening socket
 
 [Socket]
 # Loopback only by default. Reverse-proxy (nginx) handles TLS + public exposure.

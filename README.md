@@ -1,4 +1,4 @@
-# Atlas
+# Ferd
 
 Your own map of where you've been, where you want to go, and the journeys between them.
 
@@ -11,8 +11,8 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 ## Quick start
 
 ```sh
-git clone https://github.com/polybjorn/atlas.git
-cd atlas
+git clone https://github.com/polybjorn/ferd.git
+cd ferd
 cp site-config.example.json site-config.json
 python3 tools/api.py
 ```
