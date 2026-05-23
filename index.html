@@ -2228,7 +2228,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v36</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v37</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3762,6 +3762,10 @@
         this._canvas = L.DomUtil.create('canvas',
           'place-canvas-layer',
           map.getPane(this.options.pane));
+        // setTransform math (offset + scale) assumes a top-left transform
+        // origin; default of 50% 50% would scale around the canvas center
+        // and miscalculate every pin position during pinch/zoom.
+        this._canvas.style.transformOrigin = '0 0';
         this._sizeCanvas();
         // During movement: CSS-transform the canvas (cheap, smooth, scales
         // pins as you zoom). At rest: redraw so pins land at crisp pixel
