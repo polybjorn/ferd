@@ -13,11 +13,11 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 ```sh
 git clone https://github.com/polybjorn/ferd.git
 cd ferd
-cp site-config.example.json site-config.json
+cp tools/config.example.json tools/config.json
 python3 tools/api.py
 ```
 
-Open http://localhost:8090 and sign in with the seeded admin account (see [docs/install.md](docs/install.md) for default credentials and first-run setup).
+Open http://localhost:8091 and register the first account; that user becomes the admin. See [docs/python.md](docs/python.md) for service install, reverse proxy, and pre-seeded credentials.
 
 **Requirements:** Python 3.9+, a modern browser. No build step, no Node, no database server (SQLite file).
 
@@ -44,13 +44,12 @@ Open http://localhost:8090 and sign in with the seeded admin account (see [docs/
 
 ## Install
 
-Three paths, pick the one that fits:
+Two ways to run it, pick whichever fits:
 
-- **Static only.** Drop the files on any static host. No Python, no in-browser editing.
-- **Local / private network.** Run `python3 tools/api.py` directly. Good for LAN or a mesh overlay (WireGuard, Tailscale, ZeroTier).
-- **Public internet.** Reverse proxy in front, socket-activated systemd, TLS. Guided installer at `deploy/install.sh` or step-by-step manual instructions.
+- **[Docker](docs/docker.md)** - one container, one folder of data on the host. Good if you want isolation or already use Docker.
+- **[Python](docs/python.md)** - two commands, no container. Instant if you have Python 3.9+.
 
-Full walk-through in [docs/install.md](docs/install.md). Docker path in [docs/docker.md](docs/docker.md).
+For a public domain, front either with any reverse proxy. Sample configs in `deploy/`.
 
 ## Roadmap
 
@@ -64,8 +63,8 @@ Full walk-through in [docs/install.md](docs/install.md). Docker path in [docs/do
 
 | Guide | Covers |
 | --- | --- |
-| [Install](docs/install.md) | How to set up on your own server. |
-| [Docker](docs/docker.md) | How to run in a container. |
+| [Docker](docs/docker.md) | Run Ferd in a container. |
+| [Python](docs/python.md) | Run Ferd as a plain Python process (LAN, systemd, launchd). |
 | [Configuration](docs/configure.md) | Settings and feature flags you can tweak. |
 | [Themes](docs/themes.md) | Look and feel options, and how to add your own. |
 | [Architecture](docs/architecture.md) | How the code is organized and where data lives. |

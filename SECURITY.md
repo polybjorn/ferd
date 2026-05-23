@@ -4,7 +4,7 @@ Ferd is a self-hosted single-instance app. The threat model assumes the admin co
 
 ## First-run window
 
-Before the first user registers, registration is open. If the site is reachable from the public internet during the window between deploy and first registration, a stranger can race you to claim the admin account. Close the window via VPN-only access during setup, a pre-seeded admin, or a setup token; see [install.md > First-run hardening](docs/install.md#first-run-hardening) (or [docker.md > Configuration](docs/docker.md#configuration) for the container path).
+Before the first user registers, registration is open. If the site is reachable from the public internet during the window between deploy and first registration, a stranger can race you to claim the admin account. Close the window via VPN-only access during setup, a pre-seeded admin, or a setup token; see [python.md > First-run hardening](docs/python.md#first-run-hardening) (or [docker.md > Configuration](docs/docker.md#configuration) for the container path).
 
 ## Account model
 
@@ -58,4 +58,4 @@ Backup includes this file. The whole users + sessions state lives in three files
 
 ## Backups
 
-See [install.md > Backups](docs/install.md#backups) (bare-metal) or [docker.md > Backups](docs/docker.md#backups) (container) for recipes. The two paths that matter are `users/` (everyone's data) and `tools/app.db*` (auth state plus site-wide settings).
+See [python.md > Backups](docs/python.md#backups) or [docker.md > Backups](docs/docker.md#backups) for recipes. The two paths that matter are `users/` (everyone's data) and `tools/app.db*` (auth state plus site-wide settings).

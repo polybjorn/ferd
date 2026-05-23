@@ -1,25 +1,10 @@
-# Install
+# Running with Python
 
-The fastest way to try Ferd is Docker. If you'd rather not run a container, the bare Python option is two commands. Either works for permanent use on a home network or VPN.
+The bare Python option is two commands. Requires Python 3.9+. No build step, no Node, no `pip install`. Good for permanent use on a home network or VPN; add a reverse proxy in front for a public domain.
 
-## With Docker
+If you'd rather run in a container, see [docker.md](docker.md).
 
-See [docker.md](docker.md) for the full walkthrough. The short version:
-
-```sh
-git clone https://github.com/polybjorn/ferd.git
-cd ferd
-mkdir -p data
-cp site-config.example.json data/site-config.json
-cp .env.example .env
-docker compose up -d
-```
-
-Open http://localhost:8090 and register the first account.
-
-## With plain Python
-
-Requires Python 3.9+. No build step, no Node, no `pip install`.
+## Install
 
 ```sh
 git clone https://github.com/polybjorn/ferd.git
@@ -32,7 +17,7 @@ Open http://localhost:8091 and register the first account. The defaults in `tool
 
 To reach the site from other devices on your network, change `bind` to `0.0.0.0:8090` and set `secure_cookies: false` (required when there's no HTTPS in front).
 
-### Run it as a service
+## Run it as a service
 
 For "always on" without keeping a terminal open, use your usual process manager (systemd `--user`, supervisord, a tmux session). On a Linux server with systemd available system-wide, the repo ships a guided installer that lays files at `/srv/ferd`, creates a `ferd` user, and installs socket-activated units:
 
@@ -46,14 +31,14 @@ Audit the script first if you like (`less deploy/install.sh`); it's a couple of 
 
 Front Ferd with any reverse proxy for TLS and a clean hostname. Sample configs for the two common ones live in [`deploy/Caddyfile.example`](../deploy/Caddyfile.example) (recommended; automatic Let's Encrypt) and [`deploy/nginx.example.conf`](../deploy/nginx.example.conf) (bring your own cert).
 
-Once HTTPS is in front, set `secure_cookies: true` (Python) or `FERD_SECURE_COOKIES=true` (Docker). The proxy forwards to the API's bind address (loopback by default).
+Once HTTPS is in front, set `secure_cookies: true`. The proxy forwards to the API's bind address (loopback by default).
 
 ## First-run hardening
 
 Between starting the API and registering the first account, registration is open. If the site is reachable from the public internet during that window, a stranger can race you to claim the admin account. Three ways to close it; pick one:
 
 1. **Don't expose the site to the internet until you've registered.** Trivial for private deploys behind a VPN or LAN.
-2. **Pre-seed the admin account.** Set `initial_user` and `initial_password` in `tools/config.json` (or `FERD_INITIAL_USER` / `FERD_INITIAL_PASSWORD` for Docker). The account is created on first start and registration is already closed by the time the API accepts its first request.
+2. **Pre-seed the admin account.** Set `initial_user` and `initial_password` in `tools/config.json`. The account is created on first start and registration is already closed by the time the API accepts its first request.
 3. **Require a setup token.** Set `require_setup_token: true`. The API generates a random token at startup and prints it to stderr; the first registration must supply it.
 
 ## First sign-in
@@ -62,8 +47,6 @@ Register the first account; that user becomes the admin and registration auto-cl
 
 ## Updating
 
-Python install:
-
 ```sh
 cd /path/to/source
 git pull
@@ -71,9 +54,7 @@ sudo ./deploy/install.sh --yes        # if you used the guided installer
 sudo systemctl restart ferd-api.service
 ```
 
-Docker: see [docker.md > Updating](docker.md#updating).
-
-Either way, your config and data are never touched.
+Your config and data are never touched.
 
 ## Backups
 
@@ -99,4 +80,4 @@ sudo -u ferd python3 -c "import sqlite3; sqlite3.connect('/srv/ferd/tools/app.db
 sudo rsync -a /srv/ferd/users/ /backup/ferd-users/
 ```
 
-Docker recipe is in [docker.md > Backups](docker.md#backups). Either way, each signed-in user can also download a per-user zip export from Settings.
+Each signed-in user can also download a per-user zip export from Settings.

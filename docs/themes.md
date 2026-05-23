@@ -78,18 +78,13 @@ System mode resolves to `light` or `dark` via `window.matchMedia('(prefers-color
 
 ### Category palette
 
-Separate from themes. Defined in `index.html` as `COLORS` (dark, used everywhere except popup text on light backgrounds) and `COLORS_LIGHT` (HSL-darkened siblings, used for popup text in light mode via `--cl` on `.cat-text` spans). Pins and swatches always use the dark palette.
+`COLORS` and `COLORS_LIGHT` in `index.html`. Pins and swatches use the dark palette; popup text in light mode uses the light palette (via `--cl`).
 
-Source: Tableau 20, reordered so indices 0-9 are the saturated/distinguishable set in hue-spread order (blue, orange, green, red, teal, purple, gold, pink, brown, gray). Indices 10-19 are the paler siblings of the same hues in the same order, used as fallback once 10+ categories accumulate.
+Source is Tableau 20, reordered: indices 0-9 are saturated hues spread across the wheel, 10-19 are paler siblings of the same hues in matching order.
 
-`assignCategoryColors(places)` looks up each category's color from `category-labels.json` (per-user, `{slug: {label, color}}`). Categories not yet assigned a color get `(max stored color + 1) mod COLORS.length` and are persisted back via `PUT /me/category-labels`, so the first N categories you create get the most-distinct N slots and adding or removing categories never reshuffles existing ones.
+Each category's index is stored per-slug in `category-labels.json`. `assignCategoryColors` looks it up; new slugs get `(max+1) % COLORS.length` and the result is PUT back. Colors don't reshuffle when categories come and go; past 20 they wrap.
 
-Implications:
-
-- Colors are stable per slug. Editing the category list (add, rename, remove) doesn't reshuffle previously-assigned colors.
-- The two palettes must stay the same length. A runtime check warns on mismatch.
-- To extend the palette, append the same index to both arrays. Keep the "saturated first, paler siblings second" order intact so the first-N-most-distinct property holds.
-- With more than `COLORS.length` categories, new ones wrap and reuse early indices (predictable collision, not random reshuffle).
+The two arrays must stay the same length (a runtime check warns on mismatch).
 
 ### Adding a new theme
 

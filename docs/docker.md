@@ -1,6 +1,8 @@
-# Installing with Docker
+# Running with Docker
 
-The easiest way to run the app on a server, NAS, or a spare machine at home. One container, one folder of your data on the host, and (if you want it on the public internet) a reverse proxy in front for TLS. The bare-metal install path in [install.md](install.md) is still there if you'd rather skip Docker.
+The easiest way to run the app on a server, NAS, or a spare machine at home. One container, one folder of your data on the host, and (if you want it on the public internet) a reverse proxy in front for TLS.
+
+If you'd rather run it as a plain Python process (no container), see [python.md](python.md).
 
 ## What you get
 
