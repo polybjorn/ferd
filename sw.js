@@ -1,6 +1,6 @@
 // Ferd service worker.
 // Bump CACHE_VERSION on each release that changes the app shell or vendor deps.
-const CACHE_VERSION = 'ferd-v49';
+const CACHE_VERSION = 'ferd-v50';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const TILE_CACHE = `${CACHE_VERSION}-tiles`;
@@ -13,6 +13,10 @@ const SHELL_ASSETS = [
   '/',
   '/index.html',
   '/favicon.svg',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/icon-maskable.png',
+  '/apple-touch-icon.png',
   '/manifest.webmanifest',
   '/vendor/leaflet/leaflet.css',
   '/vendor/leaflet/leaflet.js',
@@ -100,6 +104,10 @@ self.addEventListener('fetch', (event) => {
   if (
     url.pathname.startsWith('/vendor/') ||
     url.pathname === '/favicon.svg' ||
+    url.pathname === '/icon-192.png' ||
+    url.pathname === '/icon-512.png' ||
+    url.pathname === '/icon-maskable.png' ||
+    url.pathname === '/apple-touch-icon.png' ||
     url.pathname === '/manifest.webmanifest'
   ) {
     event.respondWith(cacheFirst(req, SHELL_CACHE));
