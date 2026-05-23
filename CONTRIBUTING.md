@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for considering a contribution. Atlas is a small project; the bar for changes is "fits the existing shape and doesn't break the smoke tests".
+Thanks for considering a contribution. This is a small project; the bar for changes is "fits the existing shape and doesn't break the smoke tests".
 
 ## Run it locally
 
@@ -20,7 +20,7 @@ ATLAS_BIND=127.0.0.1:8090 \
 
 Open `http://127.0.0.1:8090/`. Click "Sign in", register the first account, then use the "+" button on the map. `secure_cookies=false` is required for plain HTTP. Do not expose this server to the network; it bypasses the production hardening assumptions.
 
-To start completely fresh, delete `tools/atlas.db*` and `users/`. Per-user data (places, trails, prefs) lives under `users/<username>/`, which is gitignored.
+To start completely fresh, delete `tools/app.db*` and `users/`. Per-user data (places, trails, prefs) lives under `users/<username>/`, which is gitignored.
 
 ## How it fits together
 

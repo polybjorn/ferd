@@ -1,12 +1,12 @@
 # Installing with Docker
 
-The easiest way to run Atlas on a server, NAS, or a spare machine at home. One container, one folder of your data on the host, and (if you want it on the public internet) a reverse proxy in front for TLS. The bare-metal install path in [install.md](install.md) is still there if you'd rather skip Docker.
+The easiest way to run the app on a server, NAS, or a spare machine at home. One container, one folder of your data on the host, and (if you want it on the public internet) a reverse proxy in front for TLS. The bare-metal install path in [install.md](install.md) is still there if you'd rather skip Docker.
 
 ## What you get
 
 - A single `atlas` container running the API on port 8090.
 - A `./data/` folder on the host that holds everything: the SQLite database, per-user folders (places, GPX files, preferences), and `site-config.json`. Nothing important lives inside the container itself, so rebuilding the image never touches your data.
-- A small image: about 43 MB compressed to pull, around 210 MB on disk after extract. Atlas's own footprint is under 5 MB; the rest is the Debian-slim Python base.
+- A small image: about 43 MB compressed to pull, around 210 MB on disk after extract. The app's own footprint is under 5 MB; the rest is the Debian-slim Python base.
 
 ## Quickstart
 
@@ -27,18 +27,18 @@ There isn't a published image yet (it's on the roadmap). For now the quickstart 
 
 ## Behind a reverse proxy
 
-If you want to reach Atlas at an `https://` URL on your own domain, put a reverse proxy in front of it. Caddy is the friendliest option (it fetches a free Let's Encrypt certificate automatically). nginx, Traefik, and others work the same way.
+To reach the app at an `https://` URL on your own domain, put a reverse proxy in front of it. Caddy is the friendliest option (it fetches a free Let's Encrypt certificate automatically). nginx, Traefik, and others work the same way.
 
 Two common setups:
 
 - **You already run a proxy on the host.** Keep the `ports: 8090:8090` mapping in [`compose.yml`](../compose.yml) and tell your existing proxy to forward to `http://127.0.0.1:8090`. [`deploy/Caddyfile.example`](../deploy/Caddyfile.example) and [`deploy/nginx.example.conf`](../deploy/nginx.example.conf) are starting points.
-- **You run the proxy as a second container next to Atlas.** Add a Caddy, nginx, or Traefik service to [`compose.yml`](../compose.yml), remove the `ports:` block from the `atlas` service so only the proxy can reach it, and tell the proxy to forward to `atlas:8090`.
+- **You run the proxy as a second container alongside the app.** Add a Caddy, nginx, or Traefik service to [`compose.yml`](../compose.yml), remove the `ports:` block from the `atlas` service so only the proxy can reach it, and tell the proxy to forward to `atlas:8090`.
 
-Either way, set `ATLAS_SECURE_COOKIES=true` in `.env` once you're on HTTPS. This tells Atlas to mark login cookies as HTTPS-only so they can't leak over plain HTTP by accident.
+Either way, set `ATLAS_SECURE_COOKIES=true` in `.env` once you're on HTTPS. This marks login cookies as HTTPS-only so they can't leak over plain HTTP by accident.
 
 ## Permissions and the data folder
 
-Bind-mounted data folders are the most common source of "it broke for no reason" issues with Docker. Atlas handles this for you, but here's what's actually happening so nothing looks suspicious if you read the Dockerfile:
+Bind-mounted data folders are the most common source of "it broke for no reason" issues with Docker. The entrypoint handles this for you, but here's what's actually happening so nothing looks suspicious if you read the Dockerfile:
 
 - The container starts as root, then immediately drops to a non-root `atlas` user using `gosu`. It does not stay root.
 - Before dropping, the entrypoint figures out which user/group the `atlas` user should be by reading the owner of `./data/`. That's almost always you, the person who ran `mkdir data`. So the container runs as your uid/gid, and files in `./data/` stay owned by you on the host.
@@ -63,7 +63,7 @@ Every other key in `tools/config.json` can also be set as an `ATLAS_*` environme
 
 ## Health check
 
-The image includes a `HEALTHCHECK` that pings `http://127.0.0.1:8090/` every 30 seconds. `docker ps` will show whether the container is healthy, and a reverse-proxy sidecar can wait for Atlas to be ready using `depends_on: condition: service_healthy`.
+The image includes a `HEALTHCHECK` that pings `http://127.0.0.1:8090/` every 30 seconds. `docker ps` will show whether the container is healthy, and a reverse-proxy sidecar can wait for it to be ready using `depends_on: condition: service_healthy`.
 
 ## Backups
 
@@ -72,14 +72,14 @@ For a single user backing up their own places and trails, the easiest option is 
 For a full-server backup (all users, the database, and `site-config.json`), everything you need is in `./data/`. The simplest way is to tar it:
 
 ```sh
-tar -czf atlas-backup-$(date +%F).tar.gz data/
+tar -czf backup-$(date +%F).tar.gz data/
 ```
 
-For a guaranteed-consistent snapshot, stop the container first. Or use SQLite's online backup, which works while Atlas is running:
+For a guaranteed-consistent snapshot, stop the container first. Or use SQLite's online backup, which works while the server is running:
 
 ```sh
 docker compose exec atlas python3 -c \
-  "import sqlite3; sqlite3.connect('/data/atlas.db').backup(sqlite3.connect('/data/atlas.db.bak'))"
+  "import sqlite3; sqlite3.connect('/data/app.db').backup(sqlite3.connect('/data/app.db.bak'))"
 ```
 
 ## Updating
@@ -111,4 +111,4 @@ docker image rm atlas:local
 
 ## How the image is put together
 
-The base is `python:3.12-slim`. The only added packages are `tini` (clean signal handling) and `gosu` (drop privileges in the entrypoint). Atlas is stdlib-only Python, so there's no `pip install` step and no Python packages baked in.
+The base is `python:3.12-slim`. The only added packages are `tini` (clean signal handling) and `gosu` (drop privileges in the entrypoint). The API is stdlib-only Python, so there's no `pip install` step and no Python packages baked in.

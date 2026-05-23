@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Atlas API server.
+"""API server.
 
 Stdlib-only. Provides auth (register/login/logout/change-password/state) and
 per-user data endpoints (places, GPX trails, prefs, publish toggle, export)
@@ -76,7 +76,7 @@ _DUMMY_HASH = pbkdf2_hmac("sha256", b"unused", _DUMMY_SALT, PBKDF2_ITERATIONS, d
 
 DEFAULT_CONFIG = {
   "bind": "127.0.0.1:8091",
-  "db_path": "tools/atlas.db",
+  "db_path": "tools/app.db",
   "data_dir": ".",
   "manifest_cmd": None,
   "initial_user": None,
@@ -238,7 +238,7 @@ def log_event(conn: sqlite3.Connection, actor: str | None, action: str,
         (row["hi"] - AUDIT_LOG_CAP + 1,),
       )
   except sqlite3.Error as e:
-    print(f"[atlas-api] audit log failed: {e}", file=sys.stderr)
+    print(f"[api] audit log failed: {e}", file=sys.stderr)
 
 
 def user_count(conn: sqlite3.Connection) -> int:
@@ -308,7 +308,7 @@ def seed_initial_user(conn: sqlite3.Connection, cfg: dict) -> None:
     return
   if user_count(conn) == 0:
     create_user(conn, user, pw, is_admin=True)
-    print(f"[atlas-api] seeded initial admin '{user}'", file=sys.stderr)
+    print(f"[api] seeded initial admin '{user}'", file=sys.stderr)
 
 
 def user_dir(cfg: dict, username: str) -> Path:
@@ -432,7 +432,7 @@ def migrate_legacy_data(conn: sqlite3.Connection, cfg: dict) -> None:
     src.rename(dst)
     moved.append(name)
   if moved:
-    print(f"[atlas-api] migrated legacy {moved} -> users/{admin}/", file=sys.stderr)
+    print(f"[api] migrated legacy {moved} -> users/{admin}/", file=sys.stderr)
 
   # One-shot: move site-config's `category_labels` into the admin's per-user
   # file (where labels live since 2026-05-22). Skipped if the admin already has
@@ -442,7 +442,7 @@ def migrate_legacy_data(conn: sqlite3.Connection, cfg: dict) -> None:
     try:
       cfg_data = json.loads(site_cfg_path.read_text("utf-8"))
     except (OSError, json.JSONDecodeError) as e:
-      print(f"[atlas-api] migration: could not read site-config.json: {e}", file=sys.stderr)
+      print(f"[api] migration: could not read site-config.json: {e}", file=sys.stderr)
       return
     legacy_labels = cfg_data.get("category_labels") if isinstance(cfg_data, dict) else None
     if isinstance(legacy_labels, dict) and legacy_labels:
@@ -451,14 +451,14 @@ def migrate_legacy_data(conn: sqlite3.Connection, cfg: dict) -> None:
         try:
           write_json_file(dst_labels, legacy_labels)
         except OSError as e:
-          print(f"[atlas-api] migration: could not write {dst_labels}: {e}", file=sys.stderr)
+          print(f"[api] migration: could not write {dst_labels}: {e}", file=sys.stderr)
           return
       try:
         cfg_data.pop("category_labels", None)
         atomic_write_bytes(site_cfg_path, (json.dumps(cfg_data, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
-        print(f"[atlas-api] migrated site-config category_labels -> users/{admin}/category-labels.json", file=sys.stderr)
+        print(f"[api] migrated site-config category_labels -> users/{admin}/category-labels.json", file=sys.stderr)
       except OSError as e:
-        print(f"[atlas-api] migration: copied labels but could not strip from site-config: {e}", file=sys.stderr)
+        print(f"[api] migration: copied labels but could not strip from site-config: {e}", file=sys.stderr)
 
 
 # ---------- sessions ----------
@@ -577,7 +577,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     return self._req_conn
 
   def log_message(self, fmt, *args):
-    sys.stderr.write(f"[atlas-api] {self.address_string()} {fmt % args}\n")
+    sys.stderr.write(f"[api] {self.address_string()} {fmt % args}\n")
 
   def _read_body(self) -> dict:
     cap = self.cfg.get("max_body_bytes", 1_048_576)
@@ -610,7 +610,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return ""
     jar = http.cookies.SimpleCookie()
     jar.load(raw)
-    morsel = jar.get("atlas_session")
+    morsel = jar.get("session")
     return morsel.value if morsel else ""
 
   def _current_user(self) -> sqlite3.Row | None:
@@ -675,7 +675,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return None
 
   def _set_session_cookie(self, token: str, max_age: int | None = None) -> tuple[str, str]:
-    parts = [f"atlas_session={token}", "Path=/", "HttpOnly", "SameSite=Lax"]
+    parts = [f"session={token}", "Path=/", "HttpOnly", "SameSite=Lax"]
     if self.cfg.get("secure_cookies", True):
       parts.append("Secure")
     if max_age is not None:
@@ -1271,13 +1271,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
         shutil.rmtree(udir, onerror=on_error)
         if errors:
           cleanup_warning = f"data dir partially removed; {len(errors)} path(s) failed"
-          print(f"[atlas-api] delete user {uname}: rmtree errors: {errors}", file=sys.stderr)
+          print(f"[api] delete user {uname}: rmtree errors: {errors}", file=sys.stderr)
         elif udir.exists():
           cleanup_warning = "data dir still present after rmtree"
-          print(f"[atlas-api] delete user {uname}: data dir still present", file=sys.stderr)
+          print(f"[api] delete user {uname}: data dir still present", file=sys.stderr)
     except (OSError, ValidationError) as e:
       cleanup_warning = f"data dir cleanup failed: {e}"
-      print(f"[atlas-api] delete user {uname}: {e}", file=sys.stderr)
+      print(f"[api] delete user {uname}: {e}", file=sys.stderr)
     log_event(self.conn, actor=admin["username"], action="admin.user_delete",
               target=uname, details={"cleanup_warning": cleanup_warning} if cleanup_warning else None)
     payload = {"ok": True}
@@ -1310,7 +1310,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     udir = self._user_dir(user["username"])
     labels_path = udir / "category-labels.json"
-    lock_path = udir / ".atlas-category-labels.lock"
+    lock_path = udir / ".category-labels.lock"
 
     def do_update():
       write_json_file(labels_path, cleaned)
@@ -1362,7 +1362,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     udir = self._user_dir(user["username"])
     places_path = udir / "places.json"
-    lock_path = udir / ".atlas-places.lock"
+    lock_path = udir / ".places.lock"
 
     def do_append():
       existing = load_json_file(places_path, expected_type=list, required=False, label="places.json")
@@ -1399,7 +1399,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     udir = self._user_dir(user["username"])
     places_path = udir / "places.json"
-    lock_path = udir / ".atlas-places.lock"
+    lock_path = udir / ".places.lock"
 
     def do_update():
       existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
@@ -1440,7 +1440,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     udir = self._user_dir(user["username"])
     places_path = udir / "places.json"
-    lock_path = udir / ".atlas-places.lock"
+    lock_path = udir / ".places.lock"
 
     def do_clear():
       existing = load_json_file(places_path, expected_type=list, required=False, label="places.json")
@@ -1472,7 +1472,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     udir = self._user_dir(user["username"])
     places_path = udir / "places.json"
-    lock_path = udir / ".atlas-places.lock"
+    lock_path = udir / ".places.lock"
 
     def do_delete():
       existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
@@ -1520,7 +1520,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    lock_path = udir / ".atlas-gpx.lock"
+    lock_path = udir / ".gpx.lock"
     removed = []
 
     def do_delete():
@@ -1593,7 +1593,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    lock_path = udir / ".atlas-gpx.lock"
+    lock_path = udir / ".gpx.lock"
 
     def do_write():
       target.parent.mkdir(parents=True, exist_ok=True)
@@ -1675,7 +1675,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     new_key = f"{new_region}/{final_name}" if new_region else final_name
     meta_path = udir / "metadata.json"
-    lock_path = udir / ".atlas-gpx.lock"
+    lock_path = udir / ".gpx.lock"
     moved_count = {"n": 0}
 
     def do_move():
@@ -1761,7 +1761,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                            "cannot mark as planned: a planned variant already exists for this trail")
       src, dst = walked, planned
 
-    lock_path = udir / ".atlas-gpx.lock"
+    lock_path = udir / ".gpx.lock"
     def do_set():
       src.rename(dst)
     try:
@@ -1804,7 +1804,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.CONFLICT, f"region already exists: {new_name}")
 
     meta_path = udir / "metadata.json"
-    lock_path = udir / ".atlas-gpx.lock"
+    lock_path = udir / ".gpx.lock"
     moved = {"trails": 0, "metadata": 0}
 
     def do_rename():
@@ -1865,7 +1865,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                          f"cannot clear: filename(s) already exist at root: {', '.join(conflicts)}")
 
     meta_path = udir / "metadata.json"
-    lock_path = udir / ".atlas-gpx.lock"
+    lock_path = udir / ".gpx.lock"
     moved = {"trails": 0, "metadata": 0}
 
     def do_clear():
@@ -1929,7 +1929,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if any(target.iterdir()):
       return self._error(HTTPStatus.CONFLICT, "region not empty")
 
-    lock_path = udir / ".atlas-gpx.lock"
+    lock_path = udir / ".gpx.lock"
 
     def do_delete():
       target.rmdir()
@@ -2035,7 +2035,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     udir = self._user_dir(user["username"])
     meta_path = udir / "metadata.json"
-    lock_path = udir / ".atlas-metadata.lock"
+    lock_path = udir / ".metadata.lock"
 
     def do_write():
       existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
@@ -2120,7 +2120,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         root_p = Path(root)
         for fname in sorted(files):
           if fname.startswith("."):
-            continue  # locks (.atlas-*), OS noise (.DS_Store, etc.)
+            continue  # locks (dotfiles), OS noise (.DS_Store, etc.)
           path = root_p / fname
           zf.write(path, arcname=str(path.relative_to(udir)))
     payload = buf.getvalue()
@@ -2242,7 +2242,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         return self._error(HTTPStatus.BAD_REQUEST, f"{arcname}: {e}")
 
     udir = self._user_dir(user["username"])
-    lock_path = udir / ".atlas-import.lock"
+    lock_path = udir / ".import.lock"
 
     def do_import():
       if mode == "replace":
@@ -2502,7 +2502,7 @@ def atomic_write_bytes(path: Path, data: bytes) -> None:
     target = path
   parent = target.parent
   parent.mkdir(parents=True, exist_ok=True)
-  fd, tmp_path = tempfile.mkstemp(prefix=".atlas-", dir=parent)
+  fd, tmp_path = tempfile.mkstemp(prefix=".tmp-", dir=parent)
   try:
     with os.fdopen(fd, "wb") as f:
       f.write(data)
@@ -2786,8 +2786,8 @@ def main() -> int:
   Handler.setup_token = None
   if cfg.get("require_setup_token") and user_count(conn) == 0:
     Handler.setup_token = secrets.token_urlsafe(24)
-    print(f"[atlas-api] setup token (required for first registration): {Handler.setup_token}", file=sys.stderr)
-    print("[atlas-api] use the 'Setup token' field on the registration page", file=sys.stderr)
+    print(f"[api] setup token (required for first registration): {Handler.setup_token}", file=sys.stderr)
+    print("[api] use the 'Setup token' field on the registration page", file=sys.stderr)
 
   idle_threshold = int(cfg.get("idle_exit_seconds") or 0)
   if idle_threshold > 0:
@@ -2796,7 +2796,7 @@ def main() -> int:
       while True:
         time.sleep(poll)
         if time.monotonic() - Handler.last_request >= idle_threshold:
-          print(f"[atlas-api] idle for {idle_threshold}s, exiting", file=sys.stderr)
+          print(f"[api] idle for {idle_threshold}s, exiting", file=sys.stderr)
           os._exit(0)
     threading.Thread(target=_idle_watcher, name="idle-watcher", daemon=True).start()
 
@@ -2809,15 +2809,15 @@ def main() -> int:
     server = ThreadingHTTPServer((host, port), Handler, bind_and_activate=False)
     server.socket = sock
     server.server_address = sock.getsockname()
-    print("[atlas-api] inherited socket fd 3 from systemd", file=sys.stderr)
+    print("[api] inherited socket fd 3 from systemd", file=sys.stderr)
   else:
     server = ThreadingHTTPServer((host, port), Handler)
-    print(f"[atlas-api] listening on {host}:{port}", file=sys.stderr)
+    print(f"[api] listening on {host}:{port}", file=sys.stderr)
 
   try:
     server.serve_forever()
   except KeyboardInterrupt:
-    print("[atlas-api] shutting down", file=sys.stderr)
+    print("[api] shutting down", file=sys.stderr)
   finally:
     server.server_close()
   return 0

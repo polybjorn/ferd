@@ -1,6 +1,6 @@
 {
   "bind": "127.0.0.1:8091",
-  "db_path": "tools/atlas.db",
+  "db_path": "tools/app.db",
   "data_dir": ".",
   "manifest_cmd": "./gpx-manifest.sh",
   "initial_user": null,

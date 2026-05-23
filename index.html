@@ -2409,14 +2409,14 @@
     function trailsAvailable() { return state.config.features.trails !== false; }
     function getHiddenFeatures() {
       try {
-        const raw = localStorage.getItem('atlas-hidden-features');
+        const raw = localStorage.getItem('hidden-features');
         return raw ? new Set(JSON.parse(raw)) : new Set();
       } catch { return new Set(); }
     }
     function setFeatureHidden(name, hidden) {
       const s = getHiddenFeatures();
       if (hidden) s.add(name); else s.delete(name);
-      try { localStorage.setItem('atlas-hidden-features', JSON.stringify([...s])); } catch {}
+      try { localStorage.setItem('hidden-features', JSON.stringify([...s])); } catch {}
     }
     function placesEnabled() { return placesAvailable() && !getHiddenFeatures().has('places'); }
     function trailsEnabled() { return trailsAvailable() && !getHiddenFeatures().has('trails'); }
@@ -2435,31 +2435,31 @@
         });
       });
     }
-    function getDefaultTileLayer() { return getPref('atlas-tile-layer', 'Satellite'); }
-    function getShowTilePicker() { return getPref('atlas-tile-picker', 'true') !== 'false'; }
-    function getShowMapAddButton() { return getPref('atlas-map-add-button', 'true') !== 'false'; }
-    function getShowFilterPanel() { return getPref('atlas-map-filter', 'true') !== 'false'; }
-    function getShowZoomControls() { return getPref('atlas-map-zoom', 'true') !== 'false'; }
+    function getDefaultTileLayer() { return getPref('tile-layer', 'Satellite'); }
+    function getShowTilePicker() { return getPref('tile-picker', 'true') !== 'false'; }
+    function getShowMapAddButton() { return getPref('map-add-button', 'true') !== 'false'; }
+    function getShowFilterPanel() { return getPref('map-filter', 'true') !== 'false'; }
+    function getShowZoomControls() { return getPref('map-zoom', 'true') !== 'false'; }
     function applyControlVisibility() {
       document.body.classList.toggle('hide-map-filter', !getShowFilterPanel());
       document.body.classList.toggle('hide-map-zoom', !getShowZoomControls());
     }
-    function getRememberView() { return getPref('atlas-remember-view', 'true') !== 'false'; }
-    function getUnits() { return getPref('atlas-units', 'metric'); }
-    function getClusterPlaces() { return getPref('atlas-cluster-places', 'true') !== 'false'; }
+    function getRememberView() { return getPref('remember-view', 'true') !== 'false'; }
+    function getUnits() { return getPref('units', 'metric'); }
+    function getClusterPlaces() { return getPref('cluster-places', 'true') !== 'false'; }
     // Optional form fields — let the user hide ones they never use. All default ON.
-    function getShowField(name) { return getPref('atlas-show-' + name, 'true') !== 'false'; }
+    function getShowField(name) { return getPref('show-' + name, 'true') !== 'false'; }
     function isImperial() { return getUnits() === 'imperial'; }
     function loadStoredView() {
       try {
-        const raw = localStorage.getItem('atlas-last-view');
+        const raw = localStorage.getItem('last-view');
         if (!raw) return null;
         const v = JSON.parse(raw);
         return (v && Array.isArray(v.center) && typeof v.zoom === 'number') ? v : null;
       } catch { return null; }
     }
     function saveStoredView(view) {
-      try { localStorage.setItem('atlas-last-view', JSON.stringify(view)); } catch {}
+      try { localStorage.setItem('last-view', JSON.stringify(view)); } catch {}
     }
 
     function refreshTabVisibility() {
@@ -4514,24 +4514,24 @@
     const MODES = ['dark', 'light', 'system'];
     (function migrateTheme() {
       try {
-        const old = localStorage.getItem('atlas-theme');
+        const old = localStorage.getItem('theme');
         if (old && MODES.includes(old)) {
-          localStorage.setItem('atlas-mode', old);
-          localStorage.setItem('atlas-theme', 'nord');
+          localStorage.setItem('mode', old);
+          localStorage.setItem('theme', 'nord');
         } else if (old && !THEMES.includes(old)) {
-          localStorage.setItem('atlas-theme', 'nord');
+          localStorage.setItem('theme', 'nord');
         }
       } catch {}
     })();
     function getStoredTheme() {
       try {
-        const v = localStorage.getItem('atlas-theme');
+        const v = localStorage.getItem('theme');
         return THEMES.includes(v) ? v : 'nord';
       } catch { return 'nord'; }
     }
     function getStoredMode() {
       try {
-        const v = localStorage.getItem('atlas-mode');
+        const v = localStorage.getItem('mode');
         return MODES.includes(v) ? v : 'system';
       } catch { return 'system'; }
     }
@@ -4546,7 +4546,7 @@
     const PIN_STYLES = ['ring', 'pin', 'dot', 'tag'];
     function getPinStyle() {
       try {
-        const v = localStorage.getItem('atlas-pin-style');
+        const v = localStorage.getItem('pin-style');
         return PIN_STYLES.includes(v) ? v : 'ring';
       } catch { return 'ring'; }
     }
@@ -4555,21 +4555,21 @@
     const TILE_FILTERS = ['none', 'muted', 'grayscale', 'sepia', 'contrast'];
     function getMarkerSizeKey() {
       try {
-        const v = localStorage.getItem('atlas-marker-size');
+        const v = localStorage.getItem('marker-size');
         return MARKER_SIZES[v] ? v : 'default';
       } catch { return 'default'; }
     }
     function getMarkerSize() { return MARKER_SIZES[getMarkerSizeKey()]; }
     function getTrailWeightKey() {
       try {
-        const v = localStorage.getItem('atlas-trail-weight');
+        const v = localStorage.getItem('trail-weight');
         return TRAIL_WEIGHT_FACTORS[v] ? v : 'default';
       } catch { return 'default'; }
     }
     function getTrailWeightFactor() { return TRAIL_WEIGHT_FACTORS[getTrailWeightKey()]; }
     function getTileFilter() {
       try {
-        const v = localStorage.getItem('atlas-tile-filter');
+        const v = localStorage.getItem('tile-filter');
         return TILE_FILTERS.includes(v) ? v : 'none';
       } catch { return 'none'; }
     }
@@ -4986,24 +4986,24 @@
           renderSessions();
           const themeSel = document.getElementById('s-theme');
           if (themeSel) themeSel.addEventListener('change', function() {
-            try { localStorage.setItem('atlas-theme', this.value); } catch {}
+            try { localStorage.setItem('theme', this.value); } catch {}
             applyTheme(this.value, getStoredMode());
           });
           const modeSel = document.getElementById('s-mode');
           if (modeSel) modeSel.addEventListener('change', function() {
-            try { localStorage.setItem('atlas-mode', this.value); } catch {}
+            try { localStorage.setItem('mode', this.value); } catch {}
             applyTheme(getStoredTheme(), this.value);
           });
           const pinSel = document.getElementById('s-pin-style');
           if (pinSel) pinSel.addEventListener('change', function() {
-            setPref('atlas-pin-style', this.value);
+            setPref('pin-style', this.value);
             refreshPlaceMarkerIcons();
           });
-          bindRadioPref('marker-size', 'atlas-marker-size', refreshPlaceMarkerIcons);
-          bindRadioPref('trail-weight', 'atlas-trail-weight', refreshTrailWeights);
+          bindRadioPref('marker-size', 'marker-size', refreshPlaceMarkerIcons);
+          bindRadioPref('trail-weight', 'trail-weight', refreshTrailWeights);
           const tfSel = document.getElementById('s-tile-filter');
           if (tfSel) tfSel.addEventListener('change', function() {
-            setPref('atlas-tile-filter', this.value);
+            setPref('tile-filter', this.value);
             applyTileFilter(this.value);
           });
           ['places', 'trails'].forEach(function(feat) {
@@ -5022,31 +5022,31 @@
           });
           const tileSel = document.getElementById('s-tile');
           if (tileSel) tileSel.addEventListener('change', function() {
-            setPref('atlas-tile-layer', this.value);
+            setPref('tile-layer', this.value);
             wrappedRouter();
           });
-          [['s-cluster', 'atlas-cluster-places'], ['s-remember-view', 'atlas-remember-view'], ['s-tile-picker', 'atlas-tile-picker'], ['s-map-add', 'atlas-map-add-button'], ['s-map-filter', 'atlas-map-filter'], ['s-map-zoom', 'atlas-map-zoom']].forEach(function([id, key]) {
+          [['s-cluster', 'cluster-places'], ['s-remember-view', 'remember-view'], ['s-tile-picker', 'tile-picker'], ['s-map-add', 'map-add-button'], ['s-map-filter', 'map-filter'], ['s-map-zoom', 'map-zoom']].forEach(function([id, key]) {
             const cb = document.getElementById(id);
             if (!cb) return;
             cb.addEventListener('change', function() {
               setPref(key, this.checked ? 'true' : 'false');
               const pill = this.closest('.feature-pill');
               if (pill) pill.classList.toggle('active', this.checked);
-              if (key === 'atlas-remember-view') {
+              if (key === 'remember-view') {
                 // Pure persistence preference: only affects save/load on the
                 // next navigation, no current-view rebuild needed.
                 if (!this.checked) {
-                  try { localStorage.removeItem('atlas-last-view'); } catch {}
+                  try { localStorage.removeItem('last-view'); } catch {}
                 }
                 return;
               }
-              if (key === 'atlas-cluster-places') {
+              if (key === 'cluster-places') {
                 swapPlaceClusterGroup();
                 return;
               }
               // Tile-picker is a pure on-map control add/remove; no need to
               // rebuild the map (which causes a visible blink).
-              if (key === 'atlas-tile-picker') {
+              if (key === 'tile-picker') {
                 if (state.currentMap && state.tilePickerLayers) {
                   if (this.checked && !state.tilePickerCtrl) {
                     const ctrl = L.control.layers(state.tilePickerLayers, null, { position: 'topright' }).addTo(state.currentMap);
@@ -5062,12 +5062,12 @@
               }
               // Map add-button is a single DOM node; mount/unmount in place
               // instead of re-running the router (which would blink the map).
-              if (key === 'atlas-map-add-button') {
+              if (key === 'map-add-button') {
                 maybeMountFab();
                 return;
               }
               // Filter panel + zoom controls hide via body classes; no map work.
-              if (key === 'atlas-map-filter' || key === 'atlas-map-zoom') {
+              if (key === 'map-filter' || key === 'map-zoom') {
                 applyControlVisibility();
                 return;
               }
@@ -5077,14 +5077,14 @@
           // Units only affect formatting (distance/elevation in popups + detail view).
           // No need to tear down the map — the next render naturally picks up the
           // new units. Avoiding wrappedRouter here removes the modal-open blink.
-          bindRadioPref('units', 'atlas-units');
+          bindRadioPref('units', 'units');
           const manageCats = document.getElementById('s-manage-cats');
           if (manageCats) manageCats.addEventListener('click', openManageCategoriesModal);
           const manageRegions = document.getElementById('s-manage-regions');
           if (manageRegions) manageRegions.addEventListener('click', openManageRegionsModal);
           document.querySelectorAll('.feature-pill input[data-field]').forEach(cb => {
             cb.addEventListener('change', function() {
-              setPref('atlas-show-' + this.dataset.field, this.checked ? 'true' : 'false');
+              setPref('show-' + this.dataset.field, this.checked ? 'true' : 'false');
               const pill = this.closest('.feature-pill');
               if (pill) pill.classList.toggle('active', this.checked);
             });

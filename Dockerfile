@@ -33,7 +33,7 @@ RUN rm -f /app/site-config.json \
 EXPOSE 8090
 
 ENV ATLAS_BIND=0.0.0.0:8090 \
-    ATLAS_DB_PATH=/data/atlas.db \
+    ATLAS_DB_PATH=/data/app.db \
     ATLAS_DATA_DIR=/data \
     ATLAS_STATIC_DIR=/app \
     ATLAS_MANIFEST_CMD=/app/gpx-manifest.sh \

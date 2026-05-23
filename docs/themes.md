@@ -1,6 +1,6 @@
 # Themes
 
-Atlas ships seven color themes, each with a light and dark variant. The active theme and mode are stored per-browser in localStorage and applied as `data-theme` / `data-mode` attributes on `<html>`.
+Seven color themes ship in the box, each with a light and dark variant. The active theme and mode are stored per-browser in localStorage and applied as `data-theme` / `data-mode` attributes on `<html>`.
 
 ## For users
 

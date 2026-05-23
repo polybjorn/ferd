@@ -1,6 +1,6 @@
 """Integration tests for tools/api.py.
 
-Spins up a fresh atlas API server in a subprocess against a tempdir
+Spins up a fresh API server in a subprocess against a tempdir
 data dir + sqlite db, then exercises endpoints via urllib.
 
 Run with: python3 -m unittest discover -s tests
@@ -37,7 +37,7 @@ def _free_port() -> int:
 
 
 class _Server:
-  """A subprocess-backed atlas API server with its own tempdir + sqlite."""
+  """A subprocess-backed API server with its own tempdir + sqlite."""
 
   def __init__(self) -> None:
     self.tmp = tempfile.TemporaryDirectory()
@@ -102,7 +102,7 @@ def tearDownModule() -> None:
 
 
 class Client:
-  """Tiny JSON+cookie client tied to a single atlas server."""
+  """Tiny JSON+cookie client tied to a single API server."""
 
   def __init__(self, base_url: str) -> None:
     self.base_url = base_url

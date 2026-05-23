@@ -1,6 +1,6 @@
 # Install
 
-Atlas has two reasonable install shapes, in increasing order of moving parts. Pick the one that matches how you plan to use it.
+Two reasonable install shapes, in increasing order of moving parts. Pick the one that matches how you plan to use it.
 
 | Tier | API | Reverse proxy | TLS | Good for |
 |---|---|---|---|---|
@@ -9,7 +9,7 @@ Atlas has two reasonable install shapes, in increasing order of moving parts. Pi
 
 Prerequisites are minimal: Python 3.9+ on the host. No build step, no Node. The API is required: every data read and write goes through it.
 
-Prefer containers? Atlas also ships a Docker path that maps onto the same two tiers. See [docker.md](docker.md).
+Prefer containers? There's a Docker path too, mapping onto the same two tiers. See [docker.md](docker.md).
 
 ## 1. Local / private network
 
@@ -26,7 +26,7 @@ Edit `tools/config.json`:
 ```json
 {
   "bind": "0.0.0.0:8090",
-  "db_path": "tools/atlas.db",
+  "db_path": "tools/app.db",
   "data_dir": ".",
   "manifest_cmd": "./gpx-manifest.sh",
   "secure_cookies": false,
@@ -90,7 +90,7 @@ sudo chown -R atlas:atlas /srv/atlas
 
 # Edit /srv/atlas/tools/config.json. Minimum:
 #   "bind": "127.0.0.1:8091"
-#   "db_path": "/srv/atlas/tools/atlas.db"
+#   "db_path": "/srv/atlas/tools/app.db"
 #   "data_dir": "/srv/atlas"
 #   "manifest_cmd": "/srv/atlas/gpx-manifest.sh"
 #   "secure_cookies": true
@@ -156,4 +156,4 @@ sudo ./deploy/install.sh --yes
 sudo systemctl restart atlas-api.service
 ```
 
-The installer never overwrites your config (`tools/config.json`, `site-config.json`) or data (`users/`, `tools/atlas.db`). Only application files and the systemd units are replaced.
+The installer never overwrites your config (`tools/config.json`, `site-config.json`) or data (`users/`, `tools/app.db`). Only application files and the systemd units are replaced.

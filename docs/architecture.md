@@ -1,10 +1,10 @@
 # Architecture
 
-A one-page tour of what Atlas is made of and how the pieces fit. If you just want to deploy it, see [install.md](install.md); if you want to change it, start here.
+A one-page tour of what the app is made of and how the pieces fit. If you just want to deploy it, see [install.md](install.md); if you want to change it, start here.
 
 ## Pieces
 
-Atlas is two things glued together at one HTTP origin:
+Two things glued together at one HTTP origin:
 
 1. **A single-file SPA frontend.** `index.html` is the whole app: HTML, CSS, and vanilla JavaScript in one file. It loads Leaflet from a CDN and fetches everything else (`site-config.json`, places, routes, GPX) from the API. No build step, no framework, no bundler.
 2. **The Python API.** `tools/api.py` is a stdlib-only HTTP server (`http.server` + `sqlite3`) that handles auth, per-user reads and writes, and serves the static files so the app runs from one origin.
@@ -24,7 +24,7 @@ Per-user content lives under `users/<username>/`. Site-wide config lives at the 
 | `users/<u>/category-labels.json` | API writes via `/api/me/category-labels` | Per-user map of category slug -> display label. |
 | `users/<u>/prefs.json` | API writes via `/api/me/prefs` | Per-user UI prefs persisted across browsers (currently small; localStorage still drives most settings). |
 | `site-config.json` | Manual edits | Site-wide branding, default map view, feature flags. No longer carries category labels (per-user since 2026-05-22). |
-| `tools/atlas.db` | API writes | SQLite: users (incl. `published` flag), sessions, audit log (capped at 5000 rows), site settings. Login rate-limit counters are in-memory, not persisted. |
+| `tools/app.db` | API writes | SQLite: users (incl. `published` flag), sessions, audit log (capped at 5000 rows), site settings. Login rate-limit counters are in-memory, not persisted. |
 
 The split between SQLite (auth, runtime state, publish flag) and JSON/GPX on disk (content) is deliberate: content stays human-editable and version-controllable; auth stays in a real database with constraints and locking. Per-user folders make export trivial (zip the folder).
 
@@ -74,7 +74,7 @@ CHANGELOG.md             # release notes
 Two-person threshold: the project is small enough that a build step would cost more than it buys. As long as that holds, the rule is:
 
 - Vanilla JS for the frontend.
-- Stdlib only for the API. No `pip install` to run Atlas.
+- Stdlib only for the API. No `pip install` to run the server.
 - No dependency for something that fits in fifty lines.
 
 If you're proposing a change that breaks one of these, lead the PR with the why.

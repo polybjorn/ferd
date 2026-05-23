@@ -3,7 +3,7 @@
 # socket-activated systemd units. Reverse-proxy setup (Caddy or nginx) is
 # manual; this script only prints next steps for it.
 #
-# Run from the unpacked Atlas source tree (the directory containing
+# Run from the unpacked source tree (the directory containing
 # index.html, tools/, deploy/, ...). Re-running is safe; each step checks
 # whether it has already been done.
 #
@@ -59,7 +59,7 @@ confirm() {
 }
 
 echo
-echo "Atlas install plan:"
+echo "Install plan:"
 echo "  source:  $SRC_DIR"
 echo "  prefix:  $PREFIX"
 echo "  user:    $SVC_USER"
@@ -82,7 +82,7 @@ echo "[2/4] will copy application files to $PREFIX"
 if [ -e "$PREFIX" ]; then
     echo "  $PREFIX exists. Files with the same name will be OVERWRITTEN."
     echo "  Files already present and not in the source tree are kept (users/,"
-    echo "  tools/atlas.db, tools/config.json, site-config.json)."
+    echo "  tools/app.db, tools/config.json, site-config.json)."
 fi
 if confirm "  proceed?"; then
     install -d -m 0755 -o "$SVC_USER" -g "$SVC_USER" "$PREFIX"

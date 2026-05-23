@@ -1,6 +1,6 @@
 # Configuration
 
-Atlas has two config files. Both are gitignored; copy the `.example` versions to start.
+Two config files. Both are gitignored; copy the `.example` versions to start.
 
 - `site-config.json`: read by the browser. Brand, default map view, API base path.
 - `tools/config.json`: read by the API server. Listen address, paths, password/cookie/body-size policy, optional pre-seeded admin credentials.
@@ -22,7 +22,7 @@ Every key in `tools/config.json` can also be set via an `ATLAS_<UPPER>` environm
 | Field | Env | Default | Notes |
 |---|---|---|---|
 | `bind` | `ATLAS_BIND` | `"127.0.0.1:8091"` | Host and port to listen on. Loopback by default; expose externally only through a reverse proxy. |
-| `db_path` | `ATLAS_DB_PATH` | `"tools/atlas.db"` | SQLite file for users and sessions. Created mode 0600. |
+| `db_path` | `ATLAS_DB_PATH` | `"tools/app.db"` | SQLite file for users and sessions. Created mode 0600. |
 | `data_dir` | `ATLAS_DATA_DIR` | `"."` | Where `users/<username>/` per-user folders are rooted and where `site-config.json` lives. |
 | `manifest_cmd` | `ATLAS_MANIFEST_CMD` | `null` | Command to run after a successful GPX upload to regenerate that user's `routes.json`. Invoked with `shell=False`, 60s timeout, `cwd=users/<username>/`, with the user's folder passed as `$1`. Relative paths are resolved against `data_dir`. |
 | `secure_cookies` | `ATLAS_SECURE_COOKIES` | `true` | Sets the `Secure` flag on the session cookie. Disable only for plain-HTTP local dev. |
