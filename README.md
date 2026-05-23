@@ -2,10 +2,6 @@
 
 Your own map of where you've been, where you want to go, and the journeys between them.
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue)
-![Status: 1.0](https://img.shields.io/badge/status-1.0-brightgreen)
-
 ![Unified map view](docs/screenshots/map.png)
 
 ## Quick start
@@ -24,23 +20,22 @@ Open http://localhost:8091 and register the first account; that user becomes the
 ## Features
 
 **Map and data**
-- One world map with clustered place pins and GPX trail polylines.
-- Filter panel: per-category place toggles, visited / want chips, completed / planned trail chips.
-- Browse views: places by category or country, trails by region.
-- Trail detail view with elevation profile and route stats.
+- World map with clustered place pins and GPX trail polylines.
+- Filter by category, visit status, and trail completion.
+- Browse places by category or country, trails by region.
+- Trail detail with elevation profile and route stats.
 
 **Editing and multi-user**
-- Sign in to add, edit, or delete places and trails from the browser. Optional GPX PII strip (timestamps, author, creator) on upload.
-- Per-user data isolation. Each account has its own places and trails.
-- Each user can optionally publish a read-only public copy of their map.
-- Zip import/export of your own data.
-- Admin tab: instance stats (users, places, trails, data and DB size), per-user management (promote/demote, revoke sessions, force-unpublish, delete), site-wide registration and publishing toggles.
-- Logs tab: audit trail of auth events, publish toggles, imports, and admin actions, kept to the last 5000 entries.
+- Edit places and trails in the browser; optional GPX PII strip on upload.
+- Per-user data isolation. Each account is its own map.
+- Optional read-only public sharing at `/u/<username>/`.
+- Per-user zip import/export.
+- Admin tools: user management, site stats, registration and publishing toggles, audit log.
 
 **Customization**
-- Multiple built-in themes, each with light and dark modes.
-- Per-deployment toggle to run as places-only or trails-only.
-- Per-browser settings for tile layer, distance units, marker clustering, pin style, marker size, trail thickness, and tile filter.
+- Multiple themes, light and dark.
+- Run places-only, trails-only, or both per deployment.
+- Per-browser settings for tile layer, units, and appearance.
 
 ## Install
 
