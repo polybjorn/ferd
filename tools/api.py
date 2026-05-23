@@ -806,6 +806,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_places_clear_category()
     if path == "/api/gpx":
       return self._h_gpx_upload()
+    if path == "/api/gpx/move":
+      return self._h_gpx_move()
+    if path == "/api/gpx/set-completed":
+      return self._h_gpx_set_completed()
     if path == "/api/regions/rename":
       return self._h_region_rename()
     if path == "/api/regions/delete":
@@ -1606,6 +1610,167 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "ok": True,
       "saved": saved_rel,
       "bytes": len(cleaned),
+      "manifest": manifest_status,
+    })
+
+  def _h_gpx_move(self):
+    """Move and/or rename a trail (and any .planned.gpx sibling). Re-keys
+    its metadata.json entry, prunes the old region dir if empty, and
+    regenerates the manifest. Body: {key, new_region, new_name?}. Key is
+    'Region/Trail' or 'Trail' (no region); new_region is '' for no-region;
+    new_name is optional (defaults to the current trail name)."""
+    user = self._require_user()
+    if user is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    key = body.get("key") or ""
+    new_region_raw = body.get("new_region")
+    new_name_raw = body.get("new_name")
+    if not isinstance(key, str) or not key:
+      return self._error(HTTPStatus.BAD_REQUEST, "key required")
+    if not isinstance(new_region_raw, str):
+      return self._error(HTTPStatus.BAD_REQUEST, "new_region (string, may be empty) required")
+    if new_name_raw is not None and not isinstance(new_name_raw, str):
+      return self._error(HTTPStatus.BAD_REQUEST, "new_name must be a string if provided")
+
+    parts = key.split("/")
+    if len(parts) == 1:
+      old_region, trail_name = "", parts[0]
+    elif len(parts) == 2:
+      old_region, trail_name = parts
+    else:
+      return self._error(HTTPStatus.BAD_REQUEST, f"invalid key: {key}")
+
+    try:
+      if old_region:
+        safe_path_component(old_region)
+      safe_path_component(trail_name)
+      new_region = safe_path_component(new_region_raw) if new_region_raw else ""
+      final_name = safe_path_component((new_name_raw or trail_name).strip())
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, str(e))
+
+    if old_region == new_region and trail_name == final_name:
+      return self._send_json(HTTPStatus.OK, {"ok": True, "old_key": key, "new_key": key, "moved": 0})
+
+    udir = self._user_dir(user["username"])
+    gpx_root = udir / "gpx"
+    src_dir = (gpx_root / old_region) if old_region else gpx_root
+    dst_dir = (gpx_root / new_region) if new_region else gpx_root
+
+    # Move both the walked and planned variants if either exists.
+    pairs = []  # (src_path, dst_path)
+    for suffix in (".gpx", ".planned.gpx"):
+      src = src_dir / f"{trail_name}{suffix}"
+      if src.is_file():
+        pairs.append((src, dst_dir / f"{final_name}{suffix}"))
+    if not pairs:
+      return self._error(HTTPStatus.NOT_FOUND, f"trail not found: {key}")
+    conflicts = [dst.name for src, dst in pairs if dst.exists() and dst != src]
+    if conflicts:
+      return self._error(HTTPStatus.CONFLICT,
+                         f"target already has: {', '.join(conflicts)}")
+
+    new_key = f"{new_region}/{final_name}" if new_region else final_name
+    meta_path = udir / "metadata.json"
+    lock_path = udir / ".atlas-gpx.lock"
+    moved_count = {"n": 0}
+
+    def do_move():
+      if new_region:
+        dst_dir.mkdir(parents=True, exist_ok=True)
+      for src, dst in pairs:
+        src.rename(dst)
+        moved_count["n"] += 1
+      if meta_path.exists():
+        existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
+        if key in existing:
+          existing[new_key] = existing.pop(key)
+          write_json_file(meta_path, existing)
+      # Best-effort prune of an empty old region dir (no-region root never pruned).
+      if old_region:
+        try:
+          if not any(src_dir.iterdir()):
+            src_dir.rmdir()
+        except OSError:
+          pass
+
+    try:
+      with_file_lock(lock_path, do_move)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"move failed: {e}")
+    manifest_status = self._regenerate_manifest(udir)
+    self._send_json(HTTPStatus.OK, {
+      "ok": True, "old_key": key, "new_key": new_key,
+      "moved": moved_count["n"], "manifest": manifest_status,
+    })
+
+  def _h_gpx_set_completed(self):
+    """Flip a trail between completed (.gpx) and planned (.planned.gpx) by
+    renaming the file. Body: {key, completed}. No-op if the trail is already
+    in the requested state. 404 if the trail doesn't exist. 409 if marking
+    a completed trail as planned would collide with an existing
+    .planned.gpx sibling (or vice versa)."""
+    user = self._require_user()
+    if user is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    key = body.get("key") or ""
+    completed = body.get("completed")
+    if not isinstance(key, str) or not key:
+      return self._error(HTTPStatus.BAD_REQUEST, "key required")
+    if not isinstance(completed, bool):
+      return self._error(HTTPStatus.BAD_REQUEST, "completed (bool) required")
+
+    parts = key.split("/")
+    if len(parts) == 1:
+      region, trail_name = "", parts[0]
+    elif len(parts) == 2:
+      region, trail_name = parts
+    else:
+      return self._error(HTTPStatus.BAD_REQUEST, f"invalid key: {key}")
+    try:
+      if region:
+        safe_path_component(region)
+      safe_path_component(trail_name)
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, str(e))
+
+    udir = self._user_dir(user["username"])
+    base_dir = (udir / "gpx" / region) if region else (udir / "gpx")
+    walked = base_dir / f"{trail_name}.gpx"
+    planned = base_dir / f"{trail_name}.planned.gpx"
+
+    if completed:
+      if walked.is_file():
+        return self._send_json(HTTPStatus.OK, {"ok": True, "completed": True, "changed": False})
+      if not planned.is_file():
+        return self._error(HTTPStatus.NOT_FOUND, f"trail not found: {key}")
+      src, dst = planned, walked
+    else:
+      if not walked.is_file():
+        if not planned.is_file():
+          return self._error(HTTPStatus.NOT_FOUND, f"trail not found: {key}")
+        return self._send_json(HTTPStatus.OK, {"ok": True, "completed": False, "changed": False})
+      if planned.is_file():
+        return self._error(HTTPStatus.CONFLICT,
+                           "cannot mark as planned: a planned variant already exists for this trail")
+      src, dst = walked, planned
+
+    lock_path = udir / ".atlas-gpx.lock"
+    def do_set():
+      src.rename(dst)
+    try:
+      with_file_lock(lock_path, do_set)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"set-completed failed: {e}")
+    manifest_status = self._regenerate_manifest(udir)
+    self._send_json(HTTPStatus.OK, {
+      "ok": True, "completed": completed, "changed": True,
       "manifest": manifest_status,
     })
 
