@@ -2228,7 +2228,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v39</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v40</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3210,8 +3210,7 @@
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
         preferCanvas: true,
-        markerZoomAnimation: false,
-        zoomAnimation: false
+        markerZoomAnimation: false
       }).setView(dv.center, dv.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
@@ -3768,12 +3767,14 @@
         // and miscalculate every pin position during pinch/zoom.
         this._canvas.style.transformOrigin = '0 0';
         this._sizeCanvas();
-        // Per-frame redraw on 'move' (mobile pinch + pan both fire 'move'
-        // continuously via L.Map._move). Pins are drawn at their fixed
-        // marker-size every frame, so they don't grow/shrink with zoom.
-        // zoomAnimation: false on the map removes the 250ms desktop CSS
-        // zoom animation that otherwise wouldn't fire 'move' events.
+        // Mobile pinch + pan fire 'move' continuously and we redraw each
+        // frame at the current zoom (pins at fixed size, positions track).
+        // Desktop wheel zoom is a 250ms CSS animation during which 'move'
+        // does not fire; _onZoomAnim drives a rAF loop that redraws at
+        // interpolated zoom/center for the same effect.
         map.on('move', this._redraw, this);
+        map.on('zoomanim', this._onZoomAnim, this);
+        map.on('zoomend', this._stopZoomAnim, this);
         map.on('resize', this._redraw, this);
         map.on('click', this._onClick, this);
         map.on('mousemove', this._onMouseMove, this);
@@ -3790,10 +3791,13 @@
           this._tooltipEl.parentNode.removeChild(this._tooltipEl);
         }
         map.off('move', this._redraw, this);
+        map.off('zoomanim', this._onZoomAnim, this);
+        map.off('zoomend', this._stopZoomAnim, this);
         map.off('resize', this._redraw, this);
         map.off('click', this._onClick, this);
         map.off('mousemove', this._onMouseMove, this);
         map.off('mouseout', this._hideTooltip, this);
+        this._stopZoomAnim();
         this._map = null;
         this._tooltipEl = null;
         return this;
@@ -3848,15 +3852,38 @@
       },
 
       _redraw: function() {
+        this._drawAt(null, null);
+      },
+
+      // Draw at a specific zoom/center, or null/null to use the map's
+      // current state. Used by _onZoomAnim's rAF loop to render at
+      // interpolated zoom during the 250ms desktop animation.
+      _drawAt: function(zoom, center) {
         const map = this._map;
         if (!map || !this._canvas) return;
-        const topLeft = map.containerPointToLayerPoint([0, 0]);
-        L.DomUtil.setPosition(this._canvas, topLeft);
+        const useInterp = (zoom != null && center != null);
+        const z = useInterp ? zoom : map.getZoom();
+        const c = useInterp ? center : map.getCenter();
+
         const ctx = this._canvas.getContext('2d');
         const dpr = this._dpr || 1;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         const size = map.getSize();
         ctx.clearRect(0, 0, size.x, size.y);
+
+        // Position the canvas at viewport top-left in layer coords.
+        // During interpolation we hold the canvas at the current map's
+        // layer origin; pin positions are computed at the interpolated
+        // zoom/center via project().
+        const topLeft = map.containerPointToLayerPoint([0, 0]);
+        L.DomUtil.setPosition(this._canvas, topLeft);
+
+        // Compute pixel origin for the (possibly interpolated) zoom/center.
+        const crs = map.options.crs;
+        const projCenter = crs.latLngToPoint(c, z);
+        const halfSize = size.divideBy(2);
+        const pixelOrigin = projCenter.subtract(halfSize)._round();
+
         const features = this._getCurrentFeatures();
         this._visibleFeatures = features;
         const markerSize = (typeof getMarkerSize === 'function') ? getMarkerSize() : 18;
@@ -3864,7 +3891,8 @@
         const catColors = (state && state.categoryColors) || {};
         for (const f of features) {
           const coords = f.geometry.coordinates;
-          const pt = map.latLngToContainerPoint([coords[1], coords[0]]);
+          const projected = crs.latLngToPoint(L.latLng(coords[1], coords[0]), z);
+          const pt = projected.subtract(pixelOrigin);
           if (f.properties.cluster) {
             this._drawCluster(ctx, pt, f.properties.point_count);
           } else {
@@ -3872,6 +3900,47 @@
             const color = catColors[place.category] || '#888';
             this._drawMarker(ctx, pt, place, color, markerSize, pinStyle);
           }
+        }
+      },
+
+      // Desktop wheel zoom: zoomanim fires once with the target zoom and
+      // center. The map then CSS-animates over 250ms. 'move' doesn't fire
+      // during that window, so we manually interpolate and redraw the
+      // canvas each frame to keep pins tracking at constant size.
+      _onZoomAnim: function(e) {
+        if (!this._map) return;
+        this._stopZoomAnim();
+        const startZoom = this._map.getZoom();
+        const startCenter = this._map.getCenter();
+        const targetZoom = e.zoom;
+        const targetCenter = L.latLng(e.center);
+        const startTime = performance.now();
+        const duration = 250;
+        const tick = () => {
+          if (!this._map) return;
+          const elapsed = performance.now() - startTime;
+          const t = Math.min(elapsed / duration, 1);
+          // cubic-bezier(0, 0, 0.25, 1) approximation (Leaflet's default)
+          const eased = 1 - Math.pow(1 - t, 3);
+          const interpZoom = startZoom + (targetZoom - startZoom) * eased;
+          const interpCenter = L.latLng(
+            startCenter.lat + (targetCenter.lat - startCenter.lat) * eased,
+            startCenter.lng + (targetCenter.lng - startCenter.lng) * eased
+          );
+          this._drawAt(interpZoom, interpCenter);
+          if (t < 1) {
+            this._zoomAnimRaf = requestAnimationFrame(tick);
+          } else {
+            this._zoomAnimRaf = null;
+          }
+        };
+        this._zoomAnimRaf = requestAnimationFrame(tick);
+      },
+
+      _stopZoomAnim: function() {
+        if (this._zoomAnimRaf) {
+          cancelAnimationFrame(this._zoomAnimRaf);
+          this._zoomAnimRaf = null;
         }
       },
 
@@ -4726,8 +4795,7 @@
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
         preferCanvas: true,
-        markerZoomAnimation: false,
-        zoomAnimation: false
+        markerZoomAnimation: false
       }).setView(dvt.center, dvt.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
