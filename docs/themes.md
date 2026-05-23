@@ -2,6 +2,8 @@
 
 Seven color themes ship in the box, each with a light and dark variant. The active theme and mode are stored per-browser in localStorage and applied as `data-theme` / `data-mode` attributes on `<html>`.
 
+This page is split: ["For users"](#for-users) covers picking a theme; ["For contributors"](#for-contributors) covers the CSS variable contract and adding a new theme.
+
 ## For users
 
 ### Available themes
