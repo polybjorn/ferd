@@ -2226,7 +2226,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v45</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v46</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -2902,6 +2902,18 @@
     }
 
     // Apply current trail-weight to all live trail polylines without rebuilding.
+    // Walk a Leaflet layer tree and set vector-effect: non-scaling-stroke
+    // on every SVG <path> we own, so trail strokes render at constant pixel
+    // width through Leaflet's CSS-transform zoom animation.
+    function applyNonScalingStroke(layer) {
+      if (layer && layer._path && layer._path.setAttribute) {
+        layer._path.setAttribute('vector-effect', 'non-scaling-stroke');
+      }
+      if (layer && typeof layer.eachLayer === 'function') {
+        layer.eachLayer(applyNonScalingStroke);
+      }
+    }
+
     function refreshTrailWeights() {
       if (!state._trailLayers) { wrappedRouter(); return; }
       const w = 4 * getTrailWeightFactor();
@@ -3287,12 +3299,8 @@
               }
               // Set vector-effect attribute so stroke renders at constant
               // pixel width regardless of SVG viewBox/transform changes
-              // during zoom. Reaches into Leaflet internals via _path.
-              e.target.eachLayer(function(ly) {
-                if (ly instanceof L.Polyline && ly._path) {
-                  ly._path.setAttribute('vector-effect', 'non-scaling-stroke');
-                }
-              });
+              // during zoom. Recurses since L.GPX nests polylines.
+              applyNonScalingStroke(e.target);
             }).bindPopup(
               trailPopupHtml(route, region, color),
               { closeButton: false }
@@ -4858,11 +4866,7 @@
           polyline_options: { color: ROUTE_COLOR, opacity: 0.35, weight: 4 * getTrailWeightFactor(), dashArray: '8 6' },
           markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
         }).on('loaded', function(e) {
-          e.target.eachLayer(function(ly) {
-            if (ly instanceof L.Polyline && ly._path) {
-              ly._path.setAttribute('vector-effect', 'non-scaling-stroke');
-            }
-          });
+          applyNonScalingStroke(e.target);
         }).addTo(map);
       }
 
@@ -4896,11 +4900,7 @@
         const gpx = e.target;
         const bounds = gpx.getBounds();
         if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
-        gpx.eachLayer(function(ly) {
-          if (ly instanceof L.Polyline && ly._path) {
-            ly._path.setAttribute('vector-effect', 'non-scaling-stroke');
-          }
-        });
+        applyNonScalingStroke(gpx);
 
         const layers = [];
         gpx.eachLayer(function(layer) { if (layer.getLatLngs) layers.push(layer); });
