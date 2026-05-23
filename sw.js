@@ -1,6 +1,6 @@
 // Ferd service worker.
 // Bump CACHE_VERSION on each release that changes the app shell or vendor deps.
-const CACHE_VERSION = 'ferd-v3';
+const CACHE_VERSION = 'ferd-v4';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const TILE_CACHE = `${CACHE_VERSION}-tiles`;
@@ -154,6 +154,7 @@ async function staleWhileRevalidate(req, cacheName) {
   return cached || (await network) || Response.error();
 }
 
+let tilePutCount = 0;
 async function tileCacheFirst(req) {
   const cache = await caches.open(TILE_CACHE);
   const cached = await cache.match(req);
@@ -161,7 +162,11 @@ async function tileCacheFirst(req) {
   try {
     const res = await fetch(req);
     if (res.ok || res.type === 'opaque') {
-      cache.put(req, res.clone()).then(() => trimTileCache());
+      cache.put(req, res.clone()).then(() => {
+        // Only sweep occasionally so the keys() scan doesn't run on every
+        // tile fetch during pinch-zoom.
+        if ((++tilePutCount % 100) === 0) trimTileCache();
+      });
     }
     return res;
   } catch (err) {

@@ -2175,14 +2175,18 @@
       cursor: pointer;
     }
     .pwa-banner button:hover { opacity: 0.85; }
-    /* Subpixel tile gap fix for devices with fractional device-pixel-ratio
-       (most Android phones). Oversamples each tile by 0.5px so adjacent
-       tiles overlap and the seam disappears. Scoped via the .frac-dpr
-       class on <html> set at boot, so integer-DPR displays (most desktops,
-       iOS) aren't affected. */
+    /* Subpixel tile gap fix for Android and fractional-DPR devices.
+       Oversamples each tile by 1px and scales the container slightly
+       so adjacent tiles overlap; eliminates the seam regardless of
+       device pixel ratio. translateZ promotes the layer for GPU
+       compositing so the scale doesn't fall back to CPU paint. */
     html.frac-dpr .leaflet-tile-container img.leaflet-tile {
-      width: 256.5px !important;
-      height: 256.5px !important;
+      width: 257px !important;
+      height: 257px !important;
+    }
+    html.frac-dpr .leaflet-tile-container {
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
     }
   </style>
 </head>
