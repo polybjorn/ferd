@@ -2228,7 +2228,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v31</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v32</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3760,14 +3760,11 @@
           p.style.zIndex = 450; // above tile pane (200), below marker pane (600)
         }
         this._canvas = L.DomUtil.create('canvas',
-          'leaflet-zoom-animated place-canvas-layer',
+          'place-canvas-layer',
           map.getPane(this.options.pane));
         this._sizeCanvas();
-        map.on('moveend', this._redraw, this);
-        map.on('zoomend', this._redraw, this);
-        map.on('zoomanim', this._animateZoom, this);
-        map.on('zoom', this._onZoom, this);
-        map.on('resize', this._onResize, this);
+        map.on('move zoom', this._redrawScheduled, this);
+        map.on('moveend zoomend resize', this._redraw, this);
         map.on('click', this._onClick, this);
         map.on('mousemove', this._onMouseMove, this);
         map.on('mouseout', this._hideTooltip, this);
@@ -3782,11 +3779,8 @@
         if (this._tooltipEl && this._tooltipEl.parentNode) {
           this._tooltipEl.parentNode.removeChild(this._tooltipEl);
         }
-        map.off('moveend', this._redraw, this);
-        map.off('zoomend', this._redraw, this);
-        map.off('zoomanim', this._animateZoom, this);
-        map.off('zoom', this._onZoom, this);
-        map.off('resize', this._onResize, this);
+        map.off('move zoom', this._redrawScheduled, this);
+        map.off('moveend zoomend resize', this._redraw, this);
         map.off('click', this._onClick, this);
         map.off('mousemove', this._onMouseMove, this);
         map.off('mouseout', this._hideTooltip, this);
@@ -3795,32 +3789,14 @@
         return this;
       },
 
-      // Follow the zoom animation by CSS-transforming the canvas to match
-      // the tile pane's scale/offset. Desktop scroll zoom: zoomanim fires
-      // once with the target zoom; restore the default CSS transition so
-      // the canvas smoothly animates over 250ms.
-      _animateZoom: function(e) {
-        if (this._canvas) this._canvas.style.transition = '';
-        this._applyZoomTransform(e.zoom, e.center);
-      },
-
-      // Mobile pinch: Leaflet fires 'zoom' per rAF frame via _move (no
-      // zoomanim during the gesture). With the default CSS transition on
-      // leaflet-zoom-animated, each frame restarts a 250ms interpolation,
-      // so the scale component never catches up and pins appear to only
-      // translate. Disable the transition while the gesture is in flight
-      // and reapply the transform directly each frame.
-      _onZoom: function() {
-        if (this._canvas) this._canvas.style.transition = 'none';
-        this._applyZoomTransform(this._map.getZoom(), this._map.getCenter());
-      },
-
-      _applyZoomTransform: function(zoom, center) {
-        if (!this._canvas || this._renderZoom == null) return;
-        const scale = this._map.getZoomScale(zoom, this._renderZoom);
-        const offset = this._map._latLngBoundsToNewLayerBounds(
-          this._renderBounds, zoom, center).min;
-        L.DomUtil.setTransform(this._canvas, offset, scale);
+      // Schedule a redraw on the next animation frame so per-frame map
+      // events (pan, pinch) coalesce into one canvas draw per frame.
+      _redrawScheduled: function() {
+        if (this._redrawRaf) return;
+        this._redrawRaf = L.Util.requestAnimFrame(() => {
+          this._redrawRaf = null;
+          this._redraw();
+        });
       },
 
       _sizeCanvas: function() {
@@ -3882,9 +3858,6 @@
         ctx.clearRect(0, 0, size.x, size.y);
         const features = this._getCurrentFeatures();
         this._visibleFeatures = features;
-        // Capture state so _animateZoom can compute the right transform.
-        this._renderZoom = map.getZoom();
-        this._renderBounds = map.getBounds();
         const markerSize = (typeof getMarkerSize === 'function') ? getMarkerSize() : 18;
         const pinStyle = (typeof getPinStyle === 'function') ? getPinStyle() : 'ring';
         const catColors = (state && state.categoryColors) || {};
