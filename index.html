@@ -2228,7 +2228,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v28</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v29</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3765,6 +3765,7 @@
         this._sizeCanvas();
         map.on('moveend', this._redraw, this);
         map.on('zoomend', this._redraw, this);
+        map.on('zoomanim', this._animateZoom, this);
         map.on('resize', this._onResize, this);
         map.on('click', this._onClick, this);
         map.on('mousemove', this._onMouseMove, this);
@@ -3782,6 +3783,7 @@
         }
         map.off('moveend', this._redraw, this);
         map.off('zoomend', this._redraw, this);
+        map.off('zoomanim', this._animateZoom, this);
         map.off('resize', this._onResize, this);
         map.off('click', this._onClick, this);
         map.off('mousemove', this._onMouseMove, this);
@@ -3789,6 +3791,17 @@
         this._map = null;
         this._tooltipEl = null;
         return this;
+      },
+
+      // Follow the zoom animation by CSS-transforming the canvas to match
+      // the tile pane's scale/offset. Without this the canvas just teleports
+      // at zoomend, causing visible jank during pinch zoom.
+      _animateZoom: function(e) {
+        if (!this._canvas || this._renderZoom == null) return;
+        const scale = this._map.getZoomScale(e.zoom, this._renderZoom);
+        const offset = this._map._latLngBoundsToNewLayerBounds(
+          this._renderBounds, e.zoom, e.center).min;
+        L.DomUtil.setTransform(this._canvas, offset, scale);
       },
 
       _sizeCanvas: function() {
@@ -3850,6 +3863,9 @@
         ctx.clearRect(0, 0, size.x, size.y);
         const features = this._getCurrentFeatures();
         this._visibleFeatures = features;
+        // Capture state so _animateZoom can compute the right transform.
+        this._renderZoom = map.getZoom();
+        this._renderBounds = map.getBounds();
         const markerSize = (typeof getMarkerSize === 'function') ? getMarkerSize() : 18;
         const pinStyle = (typeof getPinStyle === 'function') ? getPinStyle() : 'ring';
         const catColors = (state && state.categoryColors) || {};
