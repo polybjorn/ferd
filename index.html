@@ -3197,7 +3197,8 @@
         attributionControl: false,
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
-        preferCanvas: true
+        preferCanvas: true,
+        zoomAnimation: !L.Browser.touch
       }).setView(dv.center, dv.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
@@ -4363,7 +4364,8 @@
         attributionControl: false,
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
-        preferCanvas: true
+        preferCanvas: true,
+        zoomAnimation: !L.Browser.touch
       }).setView(dvt.center, dvt.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
