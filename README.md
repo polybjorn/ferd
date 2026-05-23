@@ -4,19 +4,6 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 
 ![Unified map view](docs/screenshots/map.png)
 
-## Quick start
-
-```sh
-git clone https://github.com/polybjorn/ferd.git
-cd ferd
-cp tools/config.example.json tools/config.json
-python3 tools/api.py
-```
-
-Open http://localhost:8091 and register the first account; that user becomes the admin. See [docs/python.md](docs/python.md) for service install, reverse proxy, and pre-seeded credentials.
-
-**Requirements:** Python 3.9+, a modern browser. No build step, no Node, no database server (SQLite file).
-
 ## Features
 
 **Map and data**
@@ -37,6 +24,19 @@ Open http://localhost:8091 and register the first account; that user becomes the
 - Run places-only, trails-only, or both per deployment.
 - Per-browser settings for tile layer, units, and appearance.
 
+## Quick start
+
+```sh
+git clone https://github.com/polybjorn/ferd.git
+cd ferd
+cp tools/config.example.json tools/config.json
+python3 tools/api.py
+```
+
+Open http://localhost:8091 and register the first account; that user becomes the admin. See [docs/python.md](docs/python.md) for service install, reverse proxy, and pre-seeded credentials.
+
+**Requirements:** Python 3.9+, a modern browser. No build step, no Node, no database server (SQLite file).
+
 ## Install
 
 Two ways to run it, pick whichever fits:
@@ -45,14 +45,6 @@ Two ways to run it, pick whichever fits:
 - **[Python](docs/python.md)** - two commands, no container. Instant if you have Python 3.9+.
 
 For a public domain, front either with any reverse proxy. Sample configs in `deploy/`.
-
-## Roadmap
-
-- Prebuilt multi-arch container image so deployments can `docker compose pull`.
-- Print / PDF stylesheet for trail and place details.
-- Auth hardening: optional TOTP 2FA, HIBP breach check at register and change-password.
-- Photo attachments on places and trails.
-- PWA / installable shell (would unlock offline reads via a service worker).
 
 ## Documentation
 
@@ -65,3 +57,10 @@ For a public domain, front either with any reverse proxy. Sample configs in `dep
 | [Architecture](docs/architecture.md) | How the code is organized and where data lives. |
 | [API reference](docs/api.md) | Every `/api/*` endpoint, for scripting. |
 
+## Roadmap
+
+- Prebuilt multi-arch container image so deployments can `docker compose pull`.
+- Print / PDF stylesheet for trail and place details.
+- Auth hardening: optional TOTP 2FA.
+- Photo attachments on places and trails.
+- Add to phone home screen as a standalone app, with offline map reads (PWA).
