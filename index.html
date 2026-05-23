@@ -2920,42 +2920,79 @@
 
     function openEditTrailMetadataModal(route, regionName) {
       const key = trailMetadataKey(route, regionName);
+      const currentRegion = regionName || '';
+      const allRegions = ((state.manifest && state.manifest.regions) || [])
+        .map(r => r.name).filter(Boolean).sort((a, b) => a.localeCompare(b));
+      const regionOptions = [
+        '<option value=""' + (currentRegion === '' ? ' selected' : '') + '>(No region)</option>',
+        ...allRegions.map(r =>
+          '<option value="' + escapeHtml(r) + '"' + (r === currentRegion ? ' selected' : '') + '>' + escapeHtml(r) + '</option>'
+        ),
+        '<option value="__new__">(Add new region&hellip;)</option>',
+      ].join('');
       openModal(
         '<h2>Edit trail<button class="modal-close">&times;</button></h2>' +
-        '<div class="hint">' + escapeHtml(route.name) + ' &middot; ' + escapeHtml(displayRegion(regionName)) + '</div>' +
         '<form id="trail-meta-form">' +
+          '<label for="tm-name">Name</label>' +
+          '<input type="text" id="tm-name" required maxlength="64" value="' + escapeHtml(route.name) + '">' +
           (getShowField('native-name') ?
             '<label for="tm-local-name">Native name (optional)</label>' +
             '<input type="text" id="tm-local-name" placeholder="e.g. 金閣寺路" value="' + escapeHtml(route.local_name || '') + '">'
           : '') +
-          (getShowField('date') ?
-            '<label for="tm-date">Date hiked</label>' +
-            '<input type="date" id="tm-date" value="' + escapeHtml(route.date_hiked || '') + '">'
-          : '') +
-          (getShowField('rating') ?
-            '<label for="tm-rating">Rating</label>' +
-            starRatingHtml('tm-rating', route.rating || '')
-          : '') +
+          '<label for="tm-region">Region</label>' +
+          '<select id="tm-region">' + regionOptions + '</select>' +
+          '<input type="text" id="tm-region-new" placeholder="New region name" maxlength="64" hidden>' +
           '<label for="tm-difficulty">Difficulty</label>' +
           radioPillsHtml('tm-difficulty', [['', 'None'], ['easy', 'Easy'], ['moderate', 'Moderate'], ['hard', 'Hard'], ['expert', 'Expert']], route.difficulty || '') +
           '<label for="tm-tags">Tags (comma-separated, lowercase)</label>' +
           '<input type="text" id="tm-tags" value="' + escapeHtml((route.tags || []).join(', ')) + '" placeholder="summit, panorama, via-ferrata">' +
-          '<label for="tm-source">Source URL (optional)</label>' +
-          '<input type="url" id="tm-source" value="' + escapeHtml(route.source || '') + '" placeholder="https://example.com/trail">' +
           (getShowField('note') ?
             '<label for="tm-notes">Notes</label>' +
             '<textarea id="tm-notes" maxlength="2000">' + escapeHtml(route.notes || '') + '</textarea>'
+          : '') +
+          '<label for="tm-source">Source URL (optional)</label>' +
+          '<input type="url" id="tm-source" value="' + escapeHtml(route.source || '') + '" placeholder="https://example.com/trail">' +
+          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
+            '<input type="checkbox" class="settings-toggle" id="tm-completed"' + (route.completed ? ' checked' : '') + '>' +
+            '<label for="tm-completed" style="margin:0">I&rsquo;ve completed this trail</label>' +
+          '</div>' +
+          ((getShowField('date') || getShowField('rating')) ?
+            '<div class="collapsible' + (route.completed ? ' expanded' : '') + '" id="tm-completed-extras">' +
+              '<div class="collapsible-inner">' +
+                (getShowField('date') ?
+                  '<label for="tm-date">Date hiked</label>' +
+                  '<input type="date" id="tm-date" value="' + escapeHtml(route.date_hiked || '') + '">'
+                : '') +
+                (getShowField('rating') ?
+                  '<label for="tm-rating">Rating</label>' +
+                  starRatingHtml('tm-rating', route.rating || '')
+                : '') +
+              '</div>' +
+            '</div>'
           : '') +
           '<div class="modal-error" id="tm-error"></div>' +
           '<div class="modal-actions">' +
             '<button type="button" class="session-revoke" id="tm-delete">Delete</button>' +
             '<span style="flex:1"></span>' +
-            '<button type="button" class="modal-close">Cancel</button>' +
             '<button type="submit" class="primary" id="tm-submit">Save</button>' +
           '</div>' +
         '</form>',
         function() {
           wireStarRating('tm-rating');
+          const regionSel = document.getElementById('tm-region');
+          const regionNewInput = document.getElementById('tm-region-new');
+          regionSel.addEventListener('change', function() {
+            const adding = this.value === '__new__';
+            regionNewInput.hidden = !adding;
+            if (adding) regionNewInput.focus();
+          });
+          const tmCompletedCb = document.getElementById('tm-completed');
+          const tmCompletedExtras = document.getElementById('tm-completed-extras');
+          if (tmCompletedCb && tmCompletedExtras) {
+            tmCompletedCb.addEventListener('change', function() {
+              tmCompletedExtras.classList.toggle('expanded', this.checked);
+            });
+          }
           document.getElementById('tm-delete').addEventListener('click', function() {
             const btn = this;
             btn.disabled = true;
@@ -2983,9 +3020,32 @@
             if (source) metadata.source = source;
             if (notes.trim()) metadata.notes = notes;
             if (localName) metadata.local_name = localName;
+            const newName = get('tm-name').trim();
+            if (!newName) {
+              showModalError('Name is required');
+              return;
+            }
+            const targetRegion = regionSel.value === '__new__'
+              ? regionNewInput.value.trim()
+              : regionSel.value;
+            if (regionSel.value === '__new__' && !targetRegion) {
+              showModalError('Enter a new region name');
+              return;
+            }
+            const needsMove = targetRegion !== currentRegion || newName !== route.name;
+            const newCompleted = tmCompletedCb ? tmCompletedCb.checked : !!route.completed;
+            const needsCompletedFlip = newCompleted !== !!route.completed;
             const submit = document.getElementById('tm-submit');
             submit.disabled = true;
-            api('PUT', '/metadata', { key: key, metadata: metadata })
+            let chain = Promise.resolve(key);
+            if (needsCompletedFlip) {
+              chain = chain.then(k => api('POST', '/gpx/set-completed', { key: k, completed: newCompleted }).then(() => k));
+            }
+            if (needsMove) {
+              chain = chain.then(k => api('POST', '/gpx/move', { key: k, new_region: targetRegion, new_name: newName }).then(r => r.new_key));
+            }
+            chain
+              .then(finalKey => api('PUT', '/metadata', { key: finalKey, metadata: metadata }))
               .then(() => refreshRoutes())
               .then(() => { closeModal(); wrappedRouter(); })
               .catch(err => { submit.disabled = false; showModalError(err.message); });
@@ -3405,7 +3465,6 @@
           '<div class="modal-actions">' +
             '<button type="button" class="session-revoke" id="e-delete">Delete</button>' +
             '<span style="flex:1"></span>' +
-            '<button type="button" class="modal-close">Cancel</button>' +
             '<button type="submit" class="primary" id="e-submit">Save</button>' +
           '</div>' +
         '</form>',
@@ -5939,7 +5998,6 @@
           '<div class="hint" id="auth-hint"></div>' +
           '<div class="modal-error" id="auth-error"></div>' +
           '<div class="modal-actions">' +
-            '<button type="button" class="modal-close">Cancel</button>' +
             '<button type="submit" class="primary" id="auth-submit">Sign in</button>' +
           '</div>' +
         '</form>',
@@ -6121,14 +6179,16 @@
           '</div>' +
           '<label for="g-region">Region</label>' +
           selectOrNewHtml('g-region', regions, null, null, '', 'New region name') +
-          '<label for="g-source">Source URL (optional)</label>' +
-          '<input type="url" id="g-source" placeholder="https://example.com/trail">' +
           '<label for="g-difficulty">Difficulty</label>' +
           radioPillsHtml('g-difficulty', [['', 'None'], ['easy', 'Easy'], ['moderate', 'Moderate'], ['hard', 'Hard'], ['expert', 'Expert']], '') +
+          '<label for="g-tags">Tags (comma-separated, lowercase)</label>' +
+          '<input type="text" id="g-tags" placeholder="summit, panorama, via-ferrata">' +
           (getShowField('note') ?
             '<label for="g-notes">Notes (optional)</label>' +
             '<textarea id="g-notes" style="min-height:40px" maxlength="2000"></textarea>'
           : '') +
+          '<label for="g-source">Source URL (optional)</label>' +
+          '<input type="url" id="g-source" placeholder="https://example.com/trail">' +
           '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
             '<input type="checkbox" class="settings-toggle" id="g-strip-pii">' +
             '<label for="g-strip-pii" title="Removes timestamps, author, and creator from the GPX file" style="margin:0">Strip personal data from GPX</label>' +
@@ -6244,11 +6304,13 @@
           const notes = get('g-notes');
           const localName = get('g-local-name').trim();
           const difficulty = (document.querySelector('input[name="g-difficulty"]:checked') || {}).value || '';
+          const tags = get('g-tags').split(',').map(t => t.trim()).filter(Boolean);
           const metadata = {};
           if (source) metadata.source = source;
           if (notes.trim()) metadata.notes = notes;
           if (localName) metadata.local_name = localName;
           if (difficulty) metadata.difficulty = difficulty;
+          if (tags.length) metadata.tags = tags;
           if (completed) {
             const dateVal = get('g-date').trim();
             const ratingRaw = readStarRating('g-rating');

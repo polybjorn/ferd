@@ -544,6 +544,164 @@ class TestRegions(unittest.TestCase):
     self.assertIn("x.gpx", body["error"])
 
 
+class TestGpxMove(unittest.TestCase):
+  def setUp(self):
+    self.c = admin_client()
+    gpx_root = admin_dir() / "gpx"
+    if gpx_root.exists():
+      shutil.rmtree(gpx_root)
+    meta_path = admin_dir() / "metadata.json"
+    if meta_path.exists():
+      meta_path.unlink()
+
+  def test_region_to_region(self):
+    self.c.request("POST", "/api/gpx?region=From&name=t",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    self.c.request("PUT", "/api/metadata",
+                   {"key": "From/t", "metadata": {"rating": 4}})
+    status, body = self.c.request("POST", "/api/gpx/move",
+                                  {"key": "From/t", "new_region": "To"})
+    self.assertEqual(status, 200)
+    self.assertEqual(body["new_key"], "To/t")
+    self.assertEqual(body["moved"], 1)
+    self.assertFalse((admin_dir() / "gpx" / "From").exists())
+    self.assertTrue((admin_dir() / "gpx" / "To" / "t.gpx").exists())
+    meta = json.loads((admin_dir() / "metadata.json").read_text())
+    self.assertIn("To/t", meta)
+    self.assertNotIn("From/t", meta)
+
+  def test_region_to_no_region(self):
+    self.c.request("POST", "/api/gpx?region=Solo&name=t",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    status, body = self.c.request("POST", "/api/gpx/move",
+                                  {"key": "Solo/t", "new_region": ""})
+    self.assertEqual(status, 200)
+    self.assertEqual(body["new_key"], "t")
+    self.assertTrue((admin_dir() / "gpx" / "t.gpx").exists())
+    self.assertFalse((admin_dir() / "gpx" / "Solo").exists())
+
+  def test_no_region_to_region(self):
+    self.c.request("POST", "/api/gpx?name=t",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    status, body = self.c.request("POST", "/api/gpx/move",
+                                  {"key": "t", "new_region": "New"})
+    self.assertEqual(status, 200)
+    self.assertEqual(body["new_key"], "New/t")
+    self.assertTrue((admin_dir() / "gpx" / "New" / "t.gpx").exists())
+    self.assertFalse((admin_dir() / "gpx" / "t.gpx").exists())
+
+  def test_same_region_is_noop(self):
+    self.c.request("POST", "/api/gpx?region=Same&name=t",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    status, body = self.c.request("POST", "/api/gpx/move",
+                                  {"key": "Same/t", "new_region": "Same"})
+    self.assertEqual(status, 200)
+    self.assertEqual(body["moved"], 0)
+    self.assertTrue((admin_dir() / "gpx" / "Same" / "t.gpx").exists())
+
+  def test_missing_trail_404(self):
+    status, _ = self.c.request("POST", "/api/gpx/move",
+                               {"key": "Nope/ghost", "new_region": "Other"})
+    self.assertEqual(status, 404)
+
+  def test_collision_at_target_409(self):
+    self.c.request("POST", "/api/gpx?region=A&name=t",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    self.c.request("POST", "/api/gpx?region=B&name=t",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    status, body = self.c.request("POST", "/api/gpx/move",
+                                  {"key": "A/t", "new_region": "B"})
+    self.assertEqual(status, 409)
+    self.assertIn("t.gpx", body["error"])
+
+  def test_rename_only(self):
+    self.c.request("POST", "/api/gpx?region=R&name=Old",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    self.c.request("PUT", "/api/metadata",
+                   {"key": "R/Old", "metadata": {"rating": 5}})
+    status, body = self.c.request("POST", "/api/gpx/move",
+                                  {"key": "R/Old", "new_region": "R", "new_name": "New"})
+    self.assertEqual(status, 200)
+    self.assertEqual(body["new_key"], "R/New")
+    self.assertTrue((admin_dir() / "gpx" / "R" / "New.gpx").exists())
+    self.assertFalse((admin_dir() / "gpx" / "R" / "Old.gpx").exists())
+    meta = json.loads((admin_dir() / "metadata.json").read_text())
+    self.assertIn("R/New", meta)
+    self.assertNotIn("R/Old", meta)
+
+  def test_rename_and_move_combined(self):
+    self.c.request("POST", "/api/gpx?region=A&name=Old",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    status, body = self.c.request("POST", "/api/gpx/move",
+                                  {"key": "A/Old", "new_region": "B", "new_name": "New"})
+    self.assertEqual(status, 200)
+    self.assertEqual(body["new_key"], "B/New")
+    self.assertTrue((admin_dir() / "gpx" / "B" / "New.gpx").exists())
+    self.assertFalse((admin_dir() / "gpx" / "A").exists())
+
+  def test_rename_collision_409(self):
+    for n in ("Alpha", "Beta"):
+      self.c.request("POST", f"/api/gpx?region=R&name={n}",
+                     raw_body=GPX_BODY, content_type="application/gpx+xml")
+    status, body = self.c.request("POST", "/api/gpx/move",
+                                  {"key": "R/Alpha", "new_region": "R", "new_name": "Beta"})
+    self.assertEqual(status, 409)
+    self.assertIn("Beta.gpx", body["error"])
+
+
+class TestGpxSetCompleted(unittest.TestCase):
+  def setUp(self):
+    self.c = admin_client()
+    gpx_root = admin_dir() / "gpx"
+    if gpx_root.exists():
+      shutil.rmtree(gpx_root)
+
+  def test_mark_planned(self):
+    self.c.request("POST", "/api/gpx?region=R&name=t",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    status, body = self.c.request("POST", "/api/gpx/set-completed",
+                                  {"key": "R/t", "completed": False})
+    self.assertEqual(status, 200)
+    self.assertTrue(body["changed"])
+    self.assertFalse((admin_dir() / "gpx" / "R" / "t.gpx").exists())
+    self.assertTrue((admin_dir() / "gpx" / "R" / "t.planned.gpx").exists())
+
+  def test_mark_completed(self):
+    # Upload as a normal trail then rename to planned to set up the state.
+    self.c.request("POST", "/api/gpx?region=R&name=t",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    self.c.request("POST", "/api/gpx/set-completed", {"key": "R/t", "completed": False})
+    status, body = self.c.request("POST", "/api/gpx/set-completed",
+                                  {"key": "R/t", "completed": True})
+    self.assertEqual(status, 200)
+    self.assertTrue(body["changed"])
+    self.assertTrue((admin_dir() / "gpx" / "R" / "t.gpx").exists())
+    self.assertFalse((admin_dir() / "gpx" / "R" / "t.planned.gpx").exists())
+
+  def test_already_completed_noop(self):
+    self.c.request("POST", "/api/gpx?region=R&name=t",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    status, body = self.c.request("POST", "/api/gpx/set-completed",
+                                  {"key": "R/t", "completed": True})
+    self.assertEqual(status, 200)
+    self.assertFalse(body["changed"])
+
+  def test_missing_trail_404(self):
+    status, _ = self.c.request("POST", "/api/gpx/set-completed",
+                               {"key": "Nope/ghost", "completed": False})
+    self.assertEqual(status, 404)
+
+  def test_collision_when_both_exist_409(self):
+    # Walked exists; manually drop a planned sibling so both coexist.
+    self.c.request("POST", "/api/gpx?region=R&name=t",
+                   raw_body=GPX_BODY, content_type="application/gpx+xml")
+    (admin_dir() / "gpx" / "R" / "t.planned.gpx").write_bytes(GPX_BODY)
+    status, body = self.c.request("POST", "/api/gpx/set-completed",
+                                  {"key": "R/t", "completed": False})
+    self.assertEqual(status, 409)
+    self.assertIn("planned", body["error"])
+
+
 class TestTrailMetadata(unittest.TestCase):
   KEY = "Region/Trail"
 
