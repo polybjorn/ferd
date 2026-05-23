@@ -2228,7 +2228,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v33</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v34</span><span id="ferd-zoom-debug" style="opacity:0.7;font-size:0.7em;margin-left:0.5em;font-family:monospace"></span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3852,6 +3852,12 @@
         ctx.clearRect(0, 0, size.x, size.y);
         const features = this._getCurrentFeatures();
         this._visibleFeatures = features;
+        // DIAGNOSTIC: show every redraw's zoom + tick count in the brand area
+        // so we can see if redraws fire during pinch and at what zoom.
+        if (!window.__ferdRedrawCount) window.__ferdRedrawCount = 0;
+        window.__ferdRedrawCount++;
+        const dbg = document.getElementById('ferd-zoom-debug');
+        if (dbg) dbg.textContent = 'z=' + map.getZoom().toFixed(2) + ' #' + window.__ferdRedrawCount;
         const markerSize = (typeof getMarkerSize === 'function') ? getMarkerSize() : 18;
         const pinStyle = (typeof getPinStyle === 'function') ? getPinStyle() : 'ring';
         const catColors = (state && state.categoryColors) || {};
