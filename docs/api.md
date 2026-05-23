@@ -119,33 +119,35 @@ All fields optional. `tags` entries match `[a-z0-9][a-z0-9-]{0,31}`; `difficulty
 
 ## Examples
 
+Examples use port 8091 (Python default). If you run Docker, swap in 8090 (or whatever `FERD_HOST_PORT` is set to).
+
 Sign in and call an owner endpoint:
 
 ```
-curl -c jar -X POST http://localhost:8090/api/login \
+curl -c jar -X POST http://localhost:8091/api/login \
   -H 'Content-Type: application/json' \
   -d '{"username":"admin","password":"ferd-dev-password"}'
 
-curl -b jar http://localhost:8090/api/state
-curl -b jar http://localhost:8090/api/places
+curl -b jar http://localhost:8091/api/state
+curl -b jar http://localhost:8091/api/places
 ```
 
 Upload a GPX with PII stripped, into a region:
 
 ```
 curl -b jar -X POST \
-  'http://localhost:8090/api/gpx?name=My%20Trail&region=Alps&strip_pii=true' \
+  'http://localhost:8091/api/gpx?name=My%20Trail&region=Alps&strip_pii=true' \
   --data-binary @my-trail.gpx
 ```
 
 Export everything as a zip:
 
 ```
-curl -b jar -o export.zip http://localhost:8090/api/me/export
+curl -b jar -o export.zip http://localhost:8091/api/me/export
 ```
 
 Read a published user's places without signing in:
 
 ```
-curl http://localhost:8090/api/u/admin/places
+curl http://localhost:8091/api/u/admin/places
 ```
