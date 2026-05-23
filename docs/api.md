@@ -48,8 +48,8 @@ All paths read and write the signed-in user's own folder (`users/<self>/`).
 | `POST` | `/regions/delete` | `{name}` | Delete an empty region directory. `409` if it's not empty. |
 | `GET` | `/me/prefs` | - | UI prefs that should follow the account across browsers. |
 | `PUT` | `/me/prefs` | object | Replace prefs wholesale. |
-| `GET` | `/me/category-labels` | - | `{category_labels: {slug: label, ...}}`. |
-| `PUT` | `/me/category-labels` | `{category_labels: {...}}` | Replace the label map. |
+| `GET` | `/me/category-labels` | - | `{category_labels: {slug: {label, color?}, ...}}`. `color` is an int index into the frontend palette (assigned on first use to keep per-category colors stable across edits). |
+| `PUT` | `/me/category-labels` | `{category_labels: {slug: {label, color?}, ...}}` | Replaces the label map. If a slug already had a `color` and the new payload omits it, the existing color is preserved (so Manage Categories can edit labels without stripping colors). |
 | `POST` | `/me/publish` | `{published: bool}` | Flip the public-read gate. Non-admins can always unpublish but can only publish when the site-wide publishing gate is open. |
 | `GET` | `/me/export` | - | Returns a zip of the user's folder (`places.json`, `routes.json`, `metadata.json`, `prefs.json`, `category-labels.json`, `gpx/...`). Excludes dotfiles. |
 | `POST` | `/me/import?mode=replace\|merge` | zip body | `Content-Type: application/zip`. Replace deletes existing top-level files and the `gpx/` tree before writing; merge appends places by unique name and updates metadata/prefs/labels by key. GPX files always have PII stripped on import. Triggers manifest regen. |

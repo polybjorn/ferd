@@ -26,7 +26,6 @@
       --muted:        #9ba4b4;
       --accent:       #88c0d0;
       --red:          #bf616a;
-      --yellow:       #ebcb8b;
       --green:        #a3be8c;
       --radius:       6px;
 
@@ -51,7 +50,6 @@
       --muted:        #9ba4b4;
       --accent:       #88c0d0;
       --red:          #bf616a;
-      --yellow:       #ebcb8b;
       --green:        #a3be8c;
 
       --completed:    #a3be8c;
@@ -74,7 +72,6 @@
       --muted:        #4c566a;
       --accent:       #5e81ac;
       --red:          #a04149;
-      --yellow:       #8c6e1f;
       --green:        #6f8b5d;
 
       --completed:    #6f8b5d;
@@ -98,7 +95,6 @@
       --muted:        #839496;
       --accent:       #268bd2;
       --red:          #dc322f;
-      --yellow:       #b58900;
       --green:        #859900;
 
       --completed:    #859900;
@@ -121,7 +117,6 @@
       --muted:        #657b83;
       --accent:       #268bd2;
       --red:          #dc322f;
-      --yellow:       #b58900;
       --green:        #859900;
 
       --completed:    #859900;
@@ -145,7 +140,6 @@
       --muted:        #a89984;
       --accent:       #fe8019;
       --red:          #fb4934;
-      --yellow:       #fabd2f;
       --green:        #b8bb26;
 
       --completed:    #b8bb26;
@@ -168,7 +162,6 @@
       --muted:        #7c6f64;
       --accent:       #d65d0e;
       --red:          #cc241d;
-      --yellow:       #b57614;
       --green:        #79740e;
 
       --completed:    #79740e;
@@ -192,7 +185,6 @@
       --muted:        #a6adc8;
       --accent:       #cba6f7;
       --red:          #f38ba8;
-      --yellow:       #f9e2af;
       --green:        #a6e3a1;
 
       --completed:    #a6e3a1;
@@ -215,7 +207,6 @@
       --muted:        #6c6f85;
       --accent:       #8839ef;
       --red:          #d20f39;
-      --yellow:       #df8e1d;
       --green:        #40a02b;
 
       --completed:    #40a02b;
@@ -239,7 +230,6 @@
       --muted:        #908caa;
       --accent:       #c4a7e7;
       --red:          #eb6f92;
-      --yellow:       #f6c177;
       --green:        #9ccfd8;
 
       --completed:    #9ccfd8;
@@ -262,7 +252,6 @@
       --muted:        #737aa2;
       --accent:       #7aa2f7;
       --red:          #f7768e;
-      --yellow:       #e0af68;
       --green:        #9ece6a;
 
       --completed:    #9ece6a;
@@ -285,7 +274,6 @@
       --muted:        #4c505e;
       --accent:       #2e7de9;
       --red:          #f52a65;
-      --yellow:       #8c6c3e;
       --green:        #587539;
 
       --completed:    #587539;
@@ -309,7 +297,6 @@
       --muted:        #6272a4;
       --accent:       #bd93f9;
       --red:          #ff5555;
-      --yellow:       #f1fa8c;
       --green:        #50fa7b;
 
       --completed:    #50fa7b;
@@ -332,7 +319,6 @@
       --muted:        #635d87;
       --accent:       #644ac9;
       --red:          #cb3a2a;
-      --yellow:       #846e15;
       --green:        #14710a;
 
       --completed:    #14710a;
@@ -356,7 +342,6 @@
       --muted:        #797593;
       --accent:       #907aa9;
       --red:          #b4637a;
-      --yellow:       #ea9d34;
       --green:        #56949f;
 
       --completed:    #56949f;
@@ -2183,8 +2168,15 @@
   <script src="https://unpkg.com/@raruto/leaflet-elevation@2.5.2/dist/leaflet-elevation.js"></script>
   <script>
     // ----- Shared -----
-    const COLORS       = ['#6aaeee', '#c792ea', '#ffbd2e', '#89ddff', '#f78c6c', '#c3e88d', '#ff5370', '#82b1ff', '#f07178', '#c17e70'];
-    const COLORS_LIGHT = ['#1e6fbf', '#7e3fb0', '#8f6200', '#0e7490', '#b34a20', '#4d7a1f', '#c41142', '#2952c4', '#b8313a', '#7a3e30'];
+    // Tableau 20 categorical palette, reordered: indices 0-9 are the saturated
+    // hues in hue-spread order (blue, orange, green, red, teal, purple, gold,
+    // pink, brown, gray) so the first N categories get maximally different
+    // colors. Indices 10-19 are the paler siblings of the same hues in the
+    // same order, used as fallback once 10+ categories accumulate.
+    // COLORS_LIGHT are HSL-darkened to L=30% for legibility on light surfaces;
+    // saturation preserved so gray stays gray.
+    const COLORS       = ['#4e79a7', '#f28e2c', '#59a14f', '#e15759', '#499894', '#b07aa1', '#b6992d', '#d37295', '#9d7660', '#79706e', '#a0cbe8', '#ffbe7d', '#8cd17d', '#ff9d9a', '#86bcb6', '#d4a6c8', '#f1ce63', '#fabfd2', '#d7b5a6', '#bab0ab'];
+    const COLORS_LIGHT = ['#314c68', '#904c09', '#396732', '#821719', '#326765', '#603955', '#7b671e', '#752441', '#5f473a', '#504a49', '#1e567b', '#994c00', '#357128', '#990500', '#37625e', '#673259', '#8c6d0d', '#8e0b35', '#6a412f', '#544a45'];
     if (COLORS.length !== COLORS_LIGHT.length) console.warn('COLORS and COLORS_LIGHT length mismatch');
     const TRACK_COLORS = COLORS;
     const ROUTE_COLOR = '#6aaeee';
@@ -2505,10 +2497,16 @@
       return d.innerHTML;
     }
 
+    function categoryFallbackLabel(slug) {
+      return slug.replace(/-/g, ' ').replace(/^./, function(c) { return c.toUpperCase(); });
+    }
+
     function displayCategory(cat) {
       if (!cat) return 'Uncategorized';
       const labels = (state.config && state.config.category_labels) || {};
-      return labels[cat] || cat.charAt(0).toUpperCase() + cat.slice(1);
+      const entry = labels[cat];
+      if (entry && entry.label) return entry.label;
+      return categoryFallbackLabel(cat);
     }
 
     function displayRegion(name) {
@@ -2582,20 +2580,59 @@
     }
 
     function assignCategoryColors(places) {
-      // Uncategorized ('') gets a fixed muted color so the palette cycle stays
-      // stable when uncategorized places come and go.
+      // Colors are stable per slug: stored alongside the label in
+      // category-labels.json. Unstored slugs get the next free index
+      // (highest stored + 1, mod palette length) so adding a new category
+      // never reshuffles the existing ones.
       const cats = [...new Set(places.map(p => p.category))]
         .filter(c => c !== '').sort();
+      const labels = (state.config && state.config.category_labels) || {};
+      let nextIdx = 0;
+      for (const slug in labels) {
+        const c = labels[slug] && labels[slug].color;
+        if (typeof c === 'number' && c + 1 > nextIdx) nextIdx = c + 1;
+      }
       const dark = {}, light = {};
-      cats.forEach((c, i) => {
-        const idx = i % COLORS.length;
+      const newAssignments = {};
+      for (const c of cats) {
+        const entry = labels[c];
+        let idx;
+        if (entry && typeof entry.color === 'number') {
+          idx = entry.color;
+        } else {
+          idx = nextIdx % COLORS.length;
+          nextIdx += 1;
+          newAssignments[c] = idx;
+        }
         dark[c] = COLORS[idx];
         light[c] = COLORS_LIGHT[idx];
-      });
+      }
       const mutedDark = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || '#888';
       dark[''] = mutedDark;
       light[''] = mutedDark;
+      if (Object.keys(newAssignments).length) persistAssignedCategoryColors(newAssignments);
       return { dark, light };
+    }
+
+    function persistAssignedCategoryColors(newAssignments) {
+      if (isReadOnly()) return;
+      if (!state.auth || !state.auth.authenticated) return;
+      const labels = state.config.category_labels = state.config.category_labels || {};
+      const payload = {};
+      for (const slug in labels) {
+        const lbl = (labels[slug] && labels[slug].label) || categoryFallbackLabel(slug);
+        payload[slug] = { label: lbl };
+        if (typeof labels[slug].color === 'number') payload[slug].color = labels[slug].color;
+      }
+      for (const slug in newAssignments) {
+        const existingLabel = (labels[slug] && labels[slug].label) || categoryFallbackLabel(slug);
+        labels[slug] = { label: existingLabel, color: newAssignments[slug] };
+        payload[slug] = { label: existingLabel, color: newAssignments[slug] };
+      }
+      api('PUT', '/me/category-labels', { category_labels: payload }).catch(function() {
+        // Best-effort: if the write fails, the same indices will be re-assigned
+        // (deterministically) the next time assignCategoryColors runs.
+      });
     }
 
     function createTileLayers() {
@@ -5250,7 +5287,7 @@
         }
       }
       const rows = allSlugs.map(slug => {
-        const display = labels[slug] || '';
+        const display = (labels[slug] && labels[slug].label) || '';
         return { slug, display, original: display, count: placeCountBySlug[slug] || 0 };
       });
 
@@ -5386,7 +5423,11 @@
             submit.disabled = true;
             const payload = {};
             for (const r of rows) {
-              if (r.display.trim()) payload[r.slug] = r.display.trim();
+              const label = r.display.trim();
+              if (!label) continue;
+              // Send only {label}; the server preserves any previously-assigned
+              // color for this slug (Manage Categories doesn't surface colors).
+              payload[r.slug] = { label };
             }
             // Bulk-clear any in-use slugs the user removed, then PUT labels.
             // Clear failures abort the save so the label map and place data
