@@ -64,13 +64,12 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 - Print / PDF stylesheet for trail and place details.
 - Auth hardening: optional TOTP 2FA.
 - Photo attachments on places and trails.
-- Design proper PWA icons (192, 512, maskable PNG) to replace the SVG favicon fallback.
+- Design proper PWA icons (192, 512, maskable PNG) to replace the SVG favicon fallback. Improves the Android install splash (logo comes from `manifest.webmanifest` icons + `background_color`) and the iOS home-screen icon (180x180 PNG via `apple-touch-icon`, since iOS often ignores SVG).
+- Custom iOS launch splash: add pre-rendered `apple-touch-startup-image` PNG files (one `<link>` per device size + orientation) in `index.html`. Without these iOS shows a generic splash with the auto-rendered icon. Tedious to maintain; defer until the PNG icon set lands.
 - Bundle leaflet-elevation's runtime deps (d3, togeojson, geometryutil, almostover) so the elevation chart works offline.
   - When this lands, total vendored deps goes from 5 to 9. Worth adding a small GitHub Action + check script at that point to flag upstream version bumps via issues; below 9 deps it isn't worth the ceremony.
 - Automate the service worker `CACHE_VERSION` bump on release (currently a manual line edit in `sw.js`).
 
 ## License
 
-Copyright (C) 2026 Bjørn A. Andersen.
-
-Ferd is licensed under the GNU General Public License v3.0 or later. See [LICENSE](LICENSE) for the full text and [vendor/NOTICES.md](vendor/NOTICES.md) for third-party library licenses.
+GPL-3.0-or-later. See [LICENSE](LICENSE); third-party deps in [vendor/NOTICES.md](vendor/NOTICES.md).
