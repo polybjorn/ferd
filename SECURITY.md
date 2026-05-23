@@ -4,13 +4,7 @@ Ferd is a self-hosted single-instance app. The threat model assumes the admin co
 
 ## First-run window
 
-Before the first user registers, registration is open. If the site is reachable from the open internet during the window between deploy and first registration, a stranger can race you to claim the admin account.
-
-Three ways to close the window:
-
-1. **Don't expose the site to the public internet until you've registered.** Easiest for private deploys behind a VPN or LAN.
-2. **Pre-seed the admin account.** Set `initial_user` and `initial_password` in `tools/config.json`. On first start with no users, the account is created and registration is already closed by the time the API accepts its first request.
-3. **Require a setup token.** Set `require_setup_token: true`. On first start the API generates a random token and prints it to stderr. Registration is open but the first registration must supply the token. The token is consumed once the first account exists.
+Before the first user registers, registration is open. If the site is reachable from the public internet during the window between deploy and first registration, a stranger can race you to claim the admin account. Close the window via VPN-only access during setup, a pre-seeded admin, or a setup token; see [install.md > First-run hardening](docs/install.md#2d-first-run-hardening) (or [docker.md > Configuration](docs/docker.md#configuration) for the container path).
 
 ## Account model
 
@@ -64,71 +58,4 @@ Backup includes this file. The whole users + sessions state lives in three files
 
 ## Backups
 
-Two paths matter:
-
-- `users/` (everyone's places, trails, and prefs; symlinks within are followed at write time)
-- `tools/app.db*` (users, sessions, publish flags, site-wide settings)
-
-Lose the first and you lose data. Lose the second and you have to register a new account but your data survives. Each user can also download a per-user zip export from Settings.
-
----
-
-## Smoke tests
-
-These are the curl sequences used during development. Useful when reviewing a change to auth or write endpoints.
-
-### Auth API sanity
-
-```sh
-# Fresh server (no users yet)
-curl -s http://127.0.0.1:8090/api/state
-# expect: {"authenticated": false, "registration_open": true, "has_users": false, ...}
-
-# Register
-curl -s -c /tmp/c -H 'Content-Type: application/json' \
-  -d '{"username":"alice","password":"correcthorsebattery"}' \
-  http://127.0.0.1:8090/api/register
-
-# 2nd register denied (auto-closed)
-curl -s -H 'Content-Type: application/json' \
-  -d '{"username":"other","password":"correcthorsebattery"}' \
-  http://127.0.0.1:8090/api/register
-# expect: {"error":"registration is closed"}
-
-# Sign out, then bad and good logins
-curl -s -b /tmp/c -X POST http://127.0.0.1:8090/api/logout
-curl -s -H 'Content-Type: application/json' -d '{"username":"alice","password":"wrong"}' http://127.0.0.1:8090/api/login
-curl -s -c /tmp/c -H 'Content-Type: application/json' -d '{"username":"alice","password":"correcthorsebattery"}' http://127.0.0.1:8090/api/login
-```
-
-### Write API sanity
-
-```sh
-# Add a place
-curl -s -b /tmp/c -H 'Content-Type: application/json' \
-  -d '{"name":"Smoke","lat":1,"lon":2,"category":"nature"}' \
-  -X POST http://127.0.0.1:8090/api/places
-
-# Edit it
-curl -s -b /tmp/c -H 'Content-Type: application/json' \
-  -d '{"original_name":"Smoke","place":{"name":"Smoke2","lat":3,"lon":4,"category":"nature"}}' \
-  -X PUT http://127.0.0.1:8090/api/places
-
-# Delete it
-curl -s -b /tmp/c -H 'Content-Type: application/json' -d '{"name":"Smoke2"}' \
-  -X DELETE http://127.0.0.1:8090/api/places
-
-# Upload a tiny valid GPX
-cat > /tmp/t.gpx <<'X'
-<?xml version="1.0" encoding="UTF-8"?>
-<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1">
-  <trk><name>T</name><trkseg><trkpt lat="1" lon="1"/><trkpt lat="2" lon="2"/></trkseg></trk>
-</gpx>
-X
-curl -s -b /tmp/c -X POST --data-binary @/tmp/t.gpx \
-  'http://127.0.0.1:8090/api/gpx?region=SmokeTest&name=T'
-
-# Delete it
-curl -s -b /tmp/c -H 'Content-Type: application/json' \
-  -d '{"region":"SmokeTest","name":"T"}' -X DELETE http://127.0.0.1:8090/api/gpx
-```
+See [install.md > Backups](docs/install.md#backups) (bare-metal) or [docker.md > Backups](docs/docker.md#backups) (container) for recipes. The two paths that matter are `users/` (everyone's data) and `tools/app.db*` (auth state plus site-wide settings).

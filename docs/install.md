@@ -137,15 +137,21 @@ You provision the cert yourself (certbot, acme.sh). nginx's example also include
 
 Either way, the API has its own internal rate limit on login, so the proxy-side limit is defense in depth.
 
+### 2d. First-run hardening
+
+Between starting the API and registering the first account, registration is open. If the site is reachable from the public internet during that window, a stranger can race you to claim the admin account. Three ways to close it; pick one:
+
+1. **Don't expose the site to the public internet until you've registered.** Trivial for private deploys behind a VPN or LAN; for a public deploy, gate the proxy until the account exists.
+2. **Pre-seed the admin account.** Set `initial_user` and `initial_password` in `tools/config.json`. On first start with no users, the account is created and registration is already closed by the time the API accepts its first request.
+3. **Require a setup token.** Set `require_setup_token: true`. On first start the API generates a random token and prints it to stderr (in the systemd journal, `journalctl -u ferd-api`). Registration is open but the first registration must supply the token. The token is consumed once the first account exists.
+
 ### macOS (launchd)
 
 Same shape, but use `deploy/ferd-api.plist` (template; replace `/Users/YOU/ferd`). launchd does not have systemd-style socket activation, so set `idle_exit_seconds: 0` in `tools/config.json` so the process stays up.
 
 ## First sign-in
 
-Open the site. If you didn't pre-seed `initial_user` and `initial_password`, register the first account; that user becomes the admin and registration auto-closes after that. From the menu, "Settings" lets you toggle visible features, pick a default tile layer, switch units, customize appearance (theme, mode, pin style, marker size, trail thickness, tile filter), publish your map at `/u/<your-username>/`, download a zip export of your data, change your password, manage active sessions, and (as admin) edit category labels, manage other users, toggle site-wide registration and publishing, and review the audit log.
-
-If you set `require_setup_token: true` in the API config, the first registration also needs the one-time token printed to the API log on startup. Recommended when deploying to the open internet. See [SECURITY.md](../SECURITY.md).
+Open the site and either log in with the seeded credentials or register the first account; that user becomes the admin and registration auto-closes. Existing data living at the `data_dir` root (`places.json`, `routes.json`, `metadata.json`, `gpx/`) is moved into the admin's `users/<admin>/` folder on first start. The "Settings" dialog is where most app configuration lives (appearance, publishing, sessions, admin tools); browse it once.
 
 ## Updating
 
@@ -157,3 +163,29 @@ sudo systemctl restart ferd-api.service
 ```
 
 The installer never overwrites your config (`tools/config.json`, `site-config.json`) or data (`users/`, `tools/app.db`). Only application files and the systemd units are replaced.
+
+## Backups
+
+Two paths matter:
+
+- `users/` (everyone's places, trails, prefs, and uploaded GPX files; symlinks within are followed at write time)
+- `tools/app.db*` (users, sessions, publish flags, site-wide settings - SQLite database plus `-shm` and `-wal` siblings)
+
+Lose the first and you lose data. Lose the second and you have to register a new account but your data survives.
+
+Simplest recipe: stop the service and tar the lot.
+
+```sh
+sudo systemctl stop ferd-api.service
+sudo tar -czf ferd-$(date +%F).tar.gz -C /srv/ferd users tools/app.db tools/app.db-shm tools/app.db-wal 2>/dev/null
+sudo systemctl start ferd-api.service
+```
+
+For an online backup without stopping the service, use SQLite's `.backup` for the DB and rsync `users/` separately:
+
+```sh
+sudo -u ferd python3 -c "import sqlite3; sqlite3.connect('/srv/ferd/tools/app.db').backup(sqlite3.connect('/srv/ferd/tools/app.db.bak'))"
+sudo rsync -a /srv/ferd/users/ /backup/ferd-users/
+```
+
+Each signed-in user can also download a per-user zip export from Settings - useful for single-account self-backup without host access.
