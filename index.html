@@ -2226,7 +2226,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v46</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v47</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -2902,15 +2902,39 @@
     }
 
     // Apply current trail-weight to all live trail polylines without rebuilding.
-    // Walk a Leaflet layer tree and set vector-effect: non-scaling-stroke
-    // on every SVG <path> we own, so trail strokes render at constant pixel
-    // width through Leaflet's CSS-transform zoom animation.
+    // Stamp the original stroke-width on first observation so later
+    // adjustments can divide back without losing precision.
     function applyNonScalingStroke(layer) {
       if (layer && layer._path && layer._path.setAttribute) {
-        layer._path.setAttribute('vector-effect', 'non-scaling-stroke');
+        const sw = layer._path.getAttribute('stroke-width');
+        if (sw && !layer._path.dataset.origStrokeWidth) {
+          layer._path.dataset.origStrokeWidth = sw;
+        }
       }
       if (layer && typeof layer.eachLayer === 'function') {
         layer.eachLayer(applyNonScalingStroke);
+      }
+    }
+
+    // Counter-scale trail stroke widths against the SVG's current CSS
+    // transform scale, so trails appear at constant pixel width even
+    // while Leaflet CSS-scales the SVG container during zoom animation.
+    function adjustTrailStrokes() {
+      const svgs = document.querySelectorAll('.leaflet-overlay-pane svg');
+      for (const svg of svgs) {
+        const transform = (svg.style && svg.style.transform) || '';
+        const m = transform.match(/scale\(([0-9.]+)\)/);
+        const scale = m ? parseFloat(m[1]) : 1;
+        const paths = svg.querySelectorAll('path');
+        for (const path of paths) {
+          let orig = path.dataset.origStrokeWidth;
+          if (!orig) {
+            orig = path.getAttribute('stroke-width') || '';
+            if (!orig) continue;
+            path.dataset.origStrokeWidth = orig;
+          }
+          path.setAttribute('stroke-width', String(parseFloat(orig) / scale));
+        }
       }
     }
 
@@ -3224,6 +3248,23 @@
       }).setView(dv.center, dv.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
+      // Counter-scale trail stroke widths during zoom. 'zoom' covers
+      // mobile pinch (fires per frame); zoomanim kicks off a brief rAF
+      // loop to cover the desktop 250ms CSS animation where 'zoom'
+      // doesn't fire until the end.
+      map.on('zoom', adjustTrailStrokes);
+      map.on('zoomend moveend', adjustTrailStrokes);
+      map.on('zoomanim', function() {
+        const start = performance.now();
+        const tick = () => {
+          if (!state.currentMap) return;
+          adjustTrailStrokes();
+          if (performance.now() - start < 270) {
+            requestAnimationFrame(tick);
+          }
+        };
+        requestAnimationFrame(tick);
+      });
       addTileLayersToMap(map);
 
       if (getRememberView()) {
@@ -4809,6 +4850,23 @@
       }).setView(dvt.center, dvt.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
+      // Counter-scale trail stroke widths during zoom. 'zoom' covers
+      // mobile pinch (fires per frame); zoomanim kicks off a brief rAF
+      // loop to cover the desktop 250ms CSS animation where 'zoom'
+      // doesn't fire until the end.
+      map.on('zoom', adjustTrailStrokes);
+      map.on('zoomend moveend', adjustTrailStrokes);
+      map.on('zoomanim', function() {
+        const start = performance.now();
+        const tick = () => {
+          if (!state.currentMap) return;
+          adjustTrailStrokes();
+          if (performance.now() - start < 270) {
+            requestAnimationFrame(tick);
+          }
+        };
+        requestAnimationFrame(tick);
+      });
       addTileLayersToMap(map);
 
       // Show the on-map elevation position marker only while an elevation chart is hovered.
