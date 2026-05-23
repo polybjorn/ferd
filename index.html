@@ -1245,6 +1245,10 @@
     .leaflet-control-layers label { color: var(--text); }
     .leaflet-control-layers-separator { border-color: var(--border) !important; }
 
+    /* Trail polylines: render with constant stroke width regardless of
+       parent SVG transform during zoom (positions still track via the
+       transform itself, just the line thickness stays at its set weight). */
+    .leaflet-overlay-pane svg path { vector-effect: non-scaling-stroke; }
     /* Place canvas layer tooltip (hover text on desktop) */
     .place-canvas-tooltip {
       position: absolute;
@@ -2220,7 +2224,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v41</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v42</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3201,7 +3205,6 @@
         attributionControl: false,
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
-        preferCanvas: true,
         markerZoomAnimation: false
       }).setView(dv.center, dv.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
@@ -4782,7 +4785,6 @@
         attributionControl: false,
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
-        preferCanvas: true,
         markerZoomAnimation: false
       }).setView(dvt.center, dvt.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
