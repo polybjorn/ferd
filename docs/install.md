@@ -2,14 +2,14 @@
 
 Two reasonable install shapes, in increasing order of moving parts. Pick the one that matches how you plan to use it.
 
-| Tier | API | Reverse proxy | TLS | Good for |
+| Setup | API | Reverse proxy | TLS | Good for |
 |---|---|---|---|---|
-| [1. Local / private network](#1-local--private-network) | yes | no | no | LAN, VPN, mesh overlay |
-| [2. Public internet](#2-public-internet) | yes | yes | yes | the open web |
+| [Local / private network](#1-local--private-network) | yes | no | no | LAN, VPN, mesh overlay |
+| [Public internet](#2-public-internet) | yes | yes | yes | the open web |
 
 Prerequisites are minimal: Python 3.9+ on the host. No build step, no Node. The API is required: every data read and write goes through it.
 
-Prefer containers? There's a Docker path too, mapping onto the same two tiers. See [docker.md](docker.md).
+Prefer containers? There's a Docker path too, mapping onto the same two shapes. See [docker.md](docker.md).
 
 ## 1. Local / private network
 
@@ -43,7 +43,7 @@ Run it:
 python3 tools/api.py
 ```
 
-For "always on", drop it under your usual process manager (systemd `--user`, a tmux session, screen, supervisord). Or jump to tier 2 and use the shipped socket-activated unit.
+For "always on", drop it under your usual process manager (systemd `--user`, a tmux session, screen, supervisord). Or jump to the public-internet setup below and use the shipped socket-activated unit.
 
 ## 2. Public internet
 
