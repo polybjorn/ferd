@@ -1,6 +1,6 @@
 # Architecture
 
-A one-page tour of what the app is made of and how the pieces fit. If you just want to deploy it, see [install.md](install.md); if you want to change it, start here.
+A one-page tour of what the app is made of and how the pieces fit. If you just want to deploy it, see [python.md](python.md) or [docker.md](docker.md); if you want to change it, start here.
 
 ## Pieces
 
@@ -42,8 +42,8 @@ deploy/
   nginx.example.conf     # nginx server block
   install.sh             # guided installer
 docs/
-  install.md             # install walk-through
-  docker.md              # installing with Docker
+  python.md              # running with Python
+  docker.md              # running with Docker
   configure.md           # config field reference
   themes.md              # theme system + how to add one
   design.md              # UI conventions (modals, buttons, forms, status feedback)
