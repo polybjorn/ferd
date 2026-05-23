@@ -4628,10 +4628,12 @@
     // ----- Theme -----
     const THEMES = ['catppuccin', 'dracula', 'gruvbox', 'nord', 'rose-pine', 'solarized', 'tokyo-night'];
     const MODES = ['dark', 'light', 'system'];
-    (function flagFractionalDpr() {
+    (function flagTileGapFix() {
       try {
         const dpr = window.devicePixelRatio || 1;
-        if (Math.abs(dpr - Math.round(dpr)) > 0.01) {
+        const isFracDpr = Math.abs(dpr - Math.round(dpr)) > 0.01;
+        const isAndroid = /Android/i.test(navigator.userAgent || '');
+        if (isFracDpr || isAndroid) {
           document.documentElement.classList.add('frac-dpr');
         }
       } catch {}
