@@ -60,4 +60,4 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 - Photo attachments on places and trails.
 - Design proper PWA icons (192, 512, maskable PNG) to replace the SVG favicon fallback.
 - Bundle leaflet-elevation's runtime deps (d3, togeojson, geometryutil, almostover) so the elevation chart works offline.
-- Investigate choppy pinch-zoom on Android. Tile seams are addressed by the vendored Leaflet.TileLayer.NoGap plugin, but zoom remains laggy. fadeAnimation: false breaks NoGap's tile dump path, so cheap perf wins from that direction are blocked. Next attempts to try: keepBuffer: 0, a custom canvas tile renderer instead of NoGap, or accepting the zoom UX as-is on Android.
+- Investigate choppy pinch-zoom on Android. Tile seams are addressed by the vendored Leaflet.TileLayer.NoGap plugin, but pinch-zoom remains laggy. Quick CSS or option tweaks (256.5px oversample, fadeAnimation, zoomAnimation gating) all fail or regress something. A proper next attempt would need on-device profiling (chrome://inspect) and likely a custom canvas tile renderer that doesn't depend on the fade-in event NoGap hooks.
