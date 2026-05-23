@@ -364,12 +364,13 @@
     .leaflet-div-icon { background: transparent; border: none; }
     /* Selector targets .leaflet-tile-container so it applies to both the
        <img> tiles and the per-level <canvas> created by the NoGap plugin. */
-    /* During zoom animation, hide overlay (trails/canvas) and marker panes
-       so they don't pay the full compositing cost every frame when many
-       features are visible. They reappear when the animation ends. */
-    .leaflet-zoom-anim .leaflet-overlay-pane,
-    .leaflet-zoom-anim .leaflet-marker-pane,
-    .leaflet-zoom-anim .leaflet-shadow-pane {
+    /* Hide overlay (trails/canvas) and marker panes during the entire
+       pinch-zoom gesture, not just the post-gesture animation. The
+       .leaflet-container.zooming class is added on zoomstart and removed
+       on zoomend by the boot script. */
+    .leaflet-container.zooming .leaflet-overlay-pane,
+    .leaflet-container.zooming .leaflet-marker-pane,
+    .leaflet-container.zooming .leaflet-shadow-pane {
       visibility: hidden;
     }
     [data-tile-filter="muted"] .leaflet-tile-container { filter: saturate(0.35) brightness(0.95) contrast(0.95); }
@@ -2190,7 +2191,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v16</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v17</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3217,6 +3218,10 @@
       }).setView(dv.center, dv.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
+      // Mark the container as "zooming" for the entire pinch gesture so
+      // CSS can hide expensive panes (.leaflet-container.zooming rules).
+      map.on('zoomstart', () => map.getContainer().classList.add('zooming'));
+      map.on('zoomend', () => map.getContainer().classList.remove('zooming'));
       addTileLayersToMap(map);
 
       if (getRememberView()) {
@@ -4386,6 +4391,10 @@
       }).setView(dvt.center, dvt.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
+      // Mark the container as "zooming" for the entire pinch gesture so
+      // CSS can hide expensive panes (.leaflet-container.zooming rules).
+      map.on('zoomstart', () => map.getContainer().classList.add('zooming'));
+      map.on('zoomend', () => map.getContainer().classList.remove('zooming'));
       addTileLayersToMap(map);
 
       // Show the on-map elevation position marker only while an elevation chart is hovered.
