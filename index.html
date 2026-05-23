@@ -2182,7 +2182,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v13</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v14</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -2528,6 +2528,12 @@
       const tabTrails = document.getElementById('tab-trails');
       if (tabPlaces) tabPlaces.style.display = placesEnabled() ? '' : 'none';
       if (tabTrails) tabTrails.style.display = trailsEnabled() ? '' : 'none';
+    }
+
+    // Diagnostic: disable NoGap canvas dump to test if it's the Android
+    // zoom bottleneck. Seams will return on Android while this is in effect.
+    if (window.L && L.TileLayer && L.TileLayer.mergeOptions) {
+      L.TileLayer.mergeOptions({ dumpToCanvas: false });
     }
 
     const state = {
