@@ -24,7 +24,7 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 - Run places-only, trails-only, or both per deployment.
 - Per-browser settings for tile layer, units, and appearance.
 
-## Quick start
+## Install
 
 ```sh
 git clone https://github.com/polybjorn/ferd.git
@@ -33,18 +33,11 @@ cp tools/config.example.json tools/config.json
 python3 tools/api.py
 ```
 
-Open http://localhost:8091 and register the first account; that user becomes the admin. See [docs/python.md](docs/python.md) for service install, reverse proxy, and pre-seeded credentials.
+Open http://localhost:8091 and register the first account; that user becomes the admin.
 
 **Requirements:** Python 3.9+, a modern browser. No build step, no Node, no database server (SQLite file).
 
-## Install
-
-Two ways to run it, pick whichever fits:
-
-- **[Docker](docs/docker.md)** - one container, one folder of data on the host. Good if you want isolation or already use Docker.
-- **[Python](docs/python.md)** - two commands, no container. Instant if you have Python 3.9+.
-
-For a public domain, front either with any reverse proxy. Sample configs in `deploy/`.
+Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse proxy, and pre-seeded credentials, see [python.md](docs/python.md). For a public domain, front either with any reverse proxy — sample configs in `deploy/`.
 
 ## Documentation
 
