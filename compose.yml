@@ -1,4 +1,4 @@
-# Atlas - Docker Compose deployment.
+# Ferd - Docker Compose deployment.
 #
 # Quickstart:
 #   mkdir -p data
@@ -10,20 +10,20 @@
 # See docs/docker.md for the full walk-through.
 
 services:
-  atlas:
+  ferd:
     build: .
-    image: atlas:local
-    container_name: atlas
+    image: ferd:local
+    container_name: ferd
     restart: unless-stopped
     ports:
-      - "${ATLAS_HOST_PORT:-8090}:8090"
+      - "${FERD_HOST_PORT:-8090}:8090"
     volumes:
       - ./data:/data
     environment:
-      ATLAS_SECURE_COOKIES: "${ATLAS_SECURE_COOKIES:-false}"
-      ATLAS_INITIAL_USER: "${ATLAS_INITIAL_USER:-}"
-      ATLAS_INITIAL_PASSWORD: "${ATLAS_INITIAL_PASSWORD:-}"
-      ATLAS_REQUIRE_SETUP_TOKEN: "${ATLAS_REQUIRE_SETUP_TOKEN:-false}"
+      FERD_SECURE_COOKIES: "${FERD_SECURE_COOKIES:-false}"
+      FERD_INITIAL_USER: "${FERD_INITIAL_USER:-}"
+      FERD_INITIAL_PASSWORD: "${FERD_INITIAL_PASSWORD:-}"
+      FERD_REQUIRE_SETUP_TOKEN: "${FERD_REQUIRE_SETUP_TOKEN:-false}"
       # Leave PUID/PGID unset to let the entrypoint auto-adopt the owner
       # of ./data. Override here (or in .env) only for unusual setups.
       PUID: "${PUID:-}"

@@ -1,15 +1,15 @@
 [Unit]
-Description=Atlas API
-Requires=atlas-api.socket
+Description=Ferd API
+Requires=ferd-api.socket
 After=network.target
 
 [Service]
 Type=simple
 # Adjust these to your install:
-User=atlas
-Group=atlas
-WorkingDirectory=/srv/atlas
-ExecStart=/usr/bin/python3 /srv/atlas/tools/api.py --config /srv/atlas/tools/config.json
+User=ferd
+Group=ferd
+WorkingDirectory=/srv/ferd
+ExecStart=/usr/bin/python3 /srv/ferd/tools/api.py --config /srv/ferd/tools/config.json
 Restart=on-failure
 RestartSec=2
 
@@ -20,7 +20,7 @@ RestartSec=2
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/srv/atlas
+ReadWritePaths=/srv/ferd
 PrivateTmp=true
 ProtectKernelTunables=true
 ProtectKernelModules=true

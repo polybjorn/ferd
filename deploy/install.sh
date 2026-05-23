@@ -1,5 +1,5 @@
 #!/bin/sh
-# Atlas installer. Lays out files, creates a system user, installs the
+# Ferd installer. Lays out files, creates a system user, installs the
 # socket-activated systemd units. Reverse-proxy setup (Caddy or nginx) is
 # manual; this script only prints next steps for it.
 #
@@ -10,14 +10,14 @@
 # Usage:
 #   sudo ./deploy/install.sh                # interactive, prompts before each step
 #   sudo ./deploy/install.sh --yes          # non-interactive
-#   sudo ./deploy/install.sh --prefix=/opt/atlas --user=atlas --yes
+#   sudo ./deploy/install.sh --prefix=/opt/ferd --user=ferd --yes
 #
 # No network calls. No curl, no apt, no pip. Read the script before running.
 
 set -eu
 
-PREFIX="/srv/atlas"
-SVC_USER="atlas"
+PREFIX="/srv/ferd"
+SVC_USER="ferd"
 ASSUME_YES="no"
 
 for arg in "$@"; do
@@ -99,7 +99,7 @@ if confirm "  proceed?"; then
     install -m 0644 -o "$SVC_USER" -g "$SVC_USER" "$SRC_DIR/tools/api.py" "$PREFIX/tools/api.py"
     install -m 0644 -o "$SVC_USER" -g "$SVC_USER" "$SRC_DIR/tools/config.example.json" "$PREFIX/tools/config.example.json"
 
-    for f in atlas-api.service atlas-api.socket nginx.example.conf Caddyfile.example; do
+    for f in ferd-api.service ferd-api.socket nginx.example.conf Caddyfile.example; do
         if [ -f "$SRC_DIR/deploy/$f" ]; then
             install -m 0644 "$SRC_DIR/deploy/$f" "$PREFIX/deploy/$f"
         fi
@@ -121,7 +121,7 @@ else
     echo "  skipped"
 fi
 
-# 3. systemd units. Substitute /srv/atlas in the shipped units if PREFIX differs.
+# 3. systemd units. Substitute /srv/ferd in the shipped units if PREFIX differs.
 echo "[3/4] will install systemd units to /etc/systemd/system/"
 if confirm "  proceed?"; then
     tmp_svc="$(mktemp)"
@@ -129,26 +129,26 @@ if confirm "  proceed?"; then
     trap 'rm -f "$tmp_svc" "$tmp_sock"' EXIT
 
     sed \
-        -e "s|/srv/atlas|$PREFIX|g" \
-        -e "s|^User=atlas$|User=$SVC_USER|" \
-        -e "s|^Group=atlas$|Group=$SVC_USER|" \
-        "$SRC_DIR/deploy/atlas-api.service" > "$tmp_svc"
-    cp "$SRC_DIR/deploy/atlas-api.socket" "$tmp_sock"
+        -e "s|/srv/ferd|$PREFIX|g" \
+        -e "s|^User=ferd$|User=$SVC_USER|" \
+        -e "s|^Group=ferd$|Group=$SVC_USER|" \
+        "$SRC_DIR/deploy/ferd-api.service" > "$tmp_svc"
+    cp "$SRC_DIR/deploy/ferd-api.socket" "$tmp_sock"
 
-    install -m 0644 "$tmp_svc"  /etc/systemd/system/atlas-api.service
-    install -m 0644 "$tmp_sock" /etc/systemd/system/atlas-api.socket
+    install -m 0644 "$tmp_svc"  /etc/systemd/system/ferd-api.service
+    install -m 0644 "$tmp_sock" /etc/systemd/system/ferd-api.socket
     systemctl daemon-reload
 else
     echo "  skipped"
 fi
 
 # 4. Enable + start the socket.
-echo "[4/4] will enable and start atlas-api.socket"
+echo "[4/4] will enable and start ferd-api.socket"
 if confirm "  proceed?"; then
-    systemctl enable --now atlas-api.socket
-    systemctl status --no-pager atlas-api.socket || true
+    systemctl enable --now ferd-api.socket
+    systemctl status --no-pager ferd-api.socket || true
 else
-    echo "  skipped (start later with: systemctl enable --now atlas-api.socket)"
+    echo "  skipped (start later with: systemctl enable --now ferd-api.socket)"
 fi
 
 echo
@@ -162,5 +162,5 @@ echo "     Each user manages their own places/trails through the in-browser UI;"
 echo "     any pre-existing $PREFIX/places.json or $PREFIX/gpx/ is auto-migrated"
 echo "     into that admin's $PREFIX/users/<admin>/ folder on first start."
 echo
-echo "Logs:    journalctl -u atlas-api.service -f"
+echo "Logs:    journalctl -u ferd-api.service -f"
 echo "Uninstall: $PREFIX/deploy/uninstall.sh"

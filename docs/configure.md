@@ -5,13 +5,13 @@ Two config files. Both are gitignored; copy the `.example` versions to start.
 - `site-config.json`: read by the browser. Brand, default map view, API base path.
 - `tools/config.json`: read by the API server. Listen address, paths, password/cookie/body-size policy, optional pre-seeded admin credentials.
 
-Every key in `tools/config.json` can also be set via an `ATLAS_<UPPER>` environment variable. Env wins over the file.
+Every key in `tools/config.json` can also be set via an `FERD_<UPPER>` environment variable. Env wins over the file.
 
 ## `site-config.json`
 
 | Field | Default | Notes |
 |---|---|---|
-| `brand` | `"Atlas"` | Page title and the brand text in the nav. |
+| `brand` | `"Ferd"` | Page title and the brand text in the nav. |
 | `features` | `{ "places": true, "trails": true }` | Hard switch. Turning a feature off hides its tab, skips its data fetch, and drops its layer/panel from the unified map. With only `trails` on, the unified map opens at `default_view_trails`. Signed-in users can additionally hide an available feature per-browser from Settings (data is still fetched in that case). |
 | `default_view` | `{ "center": [45, 10], "zoom": 4 }` | Initial map center and zoom for the unified view. |
 | `default_view_trails` | `{ "center": [59.5, 6.5], "zoom": 10 }` | Initial center/zoom used by the trail detail view before the GPX bounds are known. |
@@ -21,17 +21,17 @@ Every key in `tools/config.json` can also be set via an `ATLAS_<UPPER>` environm
 
 | Field | Env | Default | Notes |
 |---|---|---|---|
-| `bind` | `ATLAS_BIND` | `"127.0.0.1:8091"` | Host and port to listen on. Loopback by default; expose externally only through a reverse proxy. |
-| `db_path` | `ATLAS_DB_PATH` | `"tools/app.db"` | SQLite file for users and sessions. Created mode 0600. |
-| `data_dir` | `ATLAS_DATA_DIR` | `"."` | Where `users/<username>/` per-user folders are rooted and where `site-config.json` lives. |
-| `manifest_cmd` | `ATLAS_MANIFEST_CMD` | `null` | Command to run after a successful GPX upload to regenerate that user's `routes.json`. Invoked with `shell=False`, 60s timeout, `cwd=users/<username>/`, with the user's folder passed as `$1`. Relative paths are resolved against `data_dir`. |
-| `secure_cookies` | `ATLAS_SECURE_COOKIES` | `true` | Sets the `Secure` flag on the session cookie. Disable only for plain-HTTP local dev. |
-| `max_body_bytes` | `ATLAS_MAX_BODY_BYTES` | `1048576` | Cap on JSON request bodies. GPX uploads have a separate hard cap of 10 MiB. |
-| `static_dir` | `ATLAS_STATIC_DIR` | `null` | If set, the API also serves static files from this directory for any non-`/api/*` GET. Use this only for development; in production let nginx serve static. |
-| `idle_exit_seconds` | `ATLAS_IDLE_EXIT_SECONDS` | `0` | If > 0, the process exits after this many seconds with no requests. Pair with systemd socket activation for zero-idle RAM. |
-| `require_setup_token` | `ATLAS_REQUIRE_SETUP_TOKEN` | `false` | If true and no users exist, generate a one-time token printed to stderr; the first registration must supply it. See [SECURITY](../SECURITY.md). |
-| `initial_user` | `ATLAS_INITIAL_USER` | `null` | If set with `initial_password`, the admin account is created on first start. Both fields are ignored on later starts once any user exists. |
-| `initial_password` | `ATLAS_INITIAL_PASSWORD` | `null` | See `initial_user`. Must be at least 12 characters. |
+| `bind` | `FERD_BIND` | `"127.0.0.1:8091"` | Host and port to listen on. Loopback by default; expose externally only through a reverse proxy. |
+| `db_path` | `FERD_DB_PATH` | `"tools/app.db"` | SQLite file for users and sessions. Created mode 0600. |
+| `data_dir` | `FERD_DATA_DIR` | `"."` | Where `users/<username>/` per-user folders are rooted and where `site-config.json` lives. |
+| `manifest_cmd` | `FERD_MANIFEST_CMD` | `null` | Command to run after a successful GPX upload to regenerate that user's `routes.json`. Invoked with `shell=False`, 60s timeout, `cwd=users/<username>/`, with the user's folder passed as `$1`. Relative paths are resolved against `data_dir`. |
+| `secure_cookies` | `FERD_SECURE_COOKIES` | `true` | Sets the `Secure` flag on the session cookie. Disable only for plain-HTTP local dev. |
+| `max_body_bytes` | `FERD_MAX_BODY_BYTES` | `1048576` | Cap on JSON request bodies. GPX uploads have a separate hard cap of 10 MiB. |
+| `static_dir` | `FERD_STATIC_DIR` | `null` | If set, the API also serves static files from this directory for any non-`/api/*` GET. Use this only for development; in production let nginx serve static. |
+| `idle_exit_seconds` | `FERD_IDLE_EXIT_SECONDS` | `0` | If > 0, the process exits after this many seconds with no requests. Pair with systemd socket activation for zero-idle RAM. |
+| `require_setup_token` | `FERD_REQUIRE_SETUP_TOKEN` | `false` | If true and no users exist, generate a one-time token printed to stderr; the first registration must supply it. See [SECURITY](../SECURITY.md). |
+| `initial_user` | `FERD_INITIAL_USER` | `null` | If set with `initial_password`, the admin account is created on first start. Both fields are ignored on later starts once any user exists. |
+| `initial_password` | `FERD_INITIAL_PASSWORD` | `null` | See `initial_user`. Must be at least 12 characters. |
 
 ## Data files
 

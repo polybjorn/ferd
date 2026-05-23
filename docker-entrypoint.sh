@@ -1,5 +1,5 @@
 #!/bin/sh
-# Atlas container entrypoint.
+# Ferd container entrypoint.
 #
 # Goal: bind-mounted ./data is writable by both the container and the host
 # user, with no required configuration on the user's side.
@@ -10,7 +10,7 @@
 #      so adopting that uid keeps their ownership intact).
 #   3. Default 1000:1000 (only when /data is fresh and root-owned).
 #
-# The atlas user inside the container is then re-numbered to match, and
+# The ferd user inside the container is then re-numbered to match, and
 # /data is chowned recursively only when there's a mismatch (cheap no-op
 # on steady-state restarts).
 set -eu
@@ -30,17 +30,17 @@ else
   fi
 fi
 
-current_gid=$(id -g atlas)
-current_uid=$(id -u atlas)
+current_gid=$(id -g ferd)
+current_uid=$(id -u ferd)
 if [ "$current_gid" != "$target_gid" ]; then
-  groupmod -o -g "$target_gid" atlas
+  groupmod -o -g "$target_gid" ferd
 fi
 if [ "$current_uid" != "$target_uid" ]; then
-  usermod -o -u "$target_uid" atlas
+  usermod -o -u "$target_uid" ferd
 fi
 
 if [ "$(stat -c %u /data)" != "$target_uid" ] || [ "$(stat -c %g /data)" != "$target_gid" ]; then
   chown -R "$target_uid:$target_gid" /data
 fi
 
-exec /usr/bin/tini -- gosu atlas "$@"
+exec /usr/bin/tini -- gosu ferd "$@"

@@ -1,6 +1,6 @@
 # Security
 
-Atlas is a self-hosted single-instance app. The threat model assumes the admin controls the box and the network gate (nginx + TLS, or a VPN). This page documents what the app does to harden itself within that assumption, and where the admin still has to think.
+Ferd is a self-hosted single-instance app. The threat model assumes the admin controls the box and the network gate (nginx + TLS, or a VPN). This page documents what the app does to harden itself within that assumption, and where the admin still has to think.
 
 ## First-run window
 

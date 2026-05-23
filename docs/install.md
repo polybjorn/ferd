@@ -16,8 +16,8 @@ Prefer containers? There's a Docker path too, mapping onto the same two tiers. S
 If the host is only reachable on your LAN or via a private VPN / mesh overlay (e.g. WireGuard, Tailscale, ZeroTier), the API can listen directly. No reverse proxy, no certs.
 
 ```sh
-git clone https://github.com/polybjorn/atlas.git
-cd atlas
+git clone https://github.com/polybjorn/ferd.git
+cd ferd
 cp tools/config.example.json tools/config.json
 ```
 
@@ -51,28 +51,28 @@ The full setup: app behind a system service, reverse proxy in front, TLS at the 
 
 ### 2a. Guided install (recommended)
 
-The repo ships `deploy/install.sh`. It lays files at `/srv/atlas`, creates a `atlas` system user, and installs the socket-activated systemd units. It does not download anything, does not edit your proxy config, and prompts before each destructive step.
+The repo ships `deploy/install.sh`. It lays files at `/srv/ferd`, creates a `ferd` system user, and installs the socket-activated systemd units. It does not download anything, does not edit your proxy config, and prompts before each destructive step.
 
 Audit before running (this is a normal precaution, not a sign of mistrust - the script is ~150 lines of `cp`, `useradd`, `systemctl`):
 
 ```sh
-git clone https://github.com/polybjorn/atlas.git
-cd atlas
+git clone https://github.com/polybjorn/ferd.git
+cd ferd
 less deploy/install.sh                    # read it
 sudo ./deploy/install.sh                  # run it, prompts at each step
 # or, non-interactive:
 sudo ./deploy/install.sh --yes
 # or, different layout:
-sudo ./deploy/install.sh --prefix=/opt/atlas --user=atlas --yes
+sudo ./deploy/install.sh --prefix=/opt/ferd --user=ferd --yes
 ```
 
 When it finishes:
 
-1. Edit `/srv/atlas/tools/config.json` (see [docs/configure.md](configure.md)). At minimum set `secure_cookies: true` and decide between pre-seeded credentials (`initial_user` + `initial_password`) or in-browser registration.
+1. Edit `/srv/ferd/tools/config.json` (see [docs/configure.md](configure.md)). At minimum set `secure_cookies: true` and decide between pre-seeded credentials (`initial_user` + `initial_password`) or in-browser registration.
 2. Set up the reverse proxy (see [2c](#2c-reverse-proxy)).
 3. Open the site, register the first account (or log in with the seeded credentials). The first registrant becomes the admin. Existing data living at the `data_dir` root (`places.json`, `routes.json`, `metadata.json`, `gpx/`) is moved into that admin's `users/<admin>/` folder on first start.
 
-To reverse it: `sudo /srv/atlas/deploy/uninstall.sh` (add `--purge` to also delete the install prefix and its data).
+To reverse it: `sudo /srv/ferd/deploy/uninstall.sh` (add `--purge` to also delete the install prefix and its data).
 
 ### 2b. Manual install
 
@@ -80,34 +80,34 @@ Same outcome, every command visible. Use this if you'd rather not run a script, 
 
 ```sh
 # Lay out the files.
-sudo useradd --system --home /srv/atlas --shell /usr/sbin/nologin atlas
-sudo install -d -o atlas -g atlas /srv/atlas /srv/atlas/tools /srv/atlas/gpx
-sudo cp index.html favicon.svg gpx-manifest.sh site-config.example.json /srv/atlas/
-sudo cp tools/api.py tools/config.example.json /srv/atlas/tools/
-sudo cp /srv/atlas/site-config.example.json /srv/atlas/site-config.json
-sudo cp /srv/atlas/tools/config.example.json /srv/atlas/tools/config.json
-sudo chown -R atlas:atlas /srv/atlas
+sudo useradd --system --home /srv/ferd --shell /usr/sbin/nologin ferd
+sudo install -d -o ferd -g ferd /srv/ferd /srv/ferd/tools /srv/ferd/gpx
+sudo cp index.html favicon.svg gpx-manifest.sh site-config.example.json /srv/ferd/
+sudo cp tools/api.py tools/config.example.json /srv/ferd/tools/
+sudo cp /srv/ferd/site-config.example.json /srv/ferd/site-config.json
+sudo cp /srv/ferd/tools/config.example.json /srv/ferd/tools/config.json
+sudo chown -R ferd:ferd /srv/ferd
 
-# Edit /srv/atlas/tools/config.json. Minimum:
+# Edit /srv/ferd/tools/config.json. Minimum:
 #   "bind": "127.0.0.1:8091"
-#   "db_path": "/srv/atlas/tools/app.db"
-#   "data_dir": "/srv/atlas"
-#   "manifest_cmd": "/srv/atlas/gpx-manifest.sh"
+#   "db_path": "/srv/ferd/tools/app.db"
+#   "data_dir": "/srv/ferd"
+#   "manifest_cmd": "/srv/ferd/gpx-manifest.sh"
 #   "secure_cookies": true
 
 # Install the systemd units.
-sudo cp deploy/atlas-api.socket  /etc/systemd/system/
-sudo cp deploy/atlas-api.service /etc/systemd/system/
+sudo cp deploy/ferd-api.socket  /etc/systemd/system/
+sudo cp deploy/ferd-api.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now atlas-api.socket
+sudo systemctl enable --now ferd-api.socket
 ```
 
 How the units work:
-- `atlas-api.socket` holds port 8091 on loopback at zero RAM cost.
-- The first request triggers `atlas-api.service` to start.
+- `ferd-api.socket` holds port 8091 on loopback at zero RAM cost.
+- The first request triggers `ferd-api.service` to start.
 - After `idle_exit_seconds` of no activity the Python process exits. The socket stays held; the next request wakes it.
 
-If you put files somewhere other than `/srv/atlas`, edit `WorkingDirectory`, `ExecStart`, and `ReadWritePaths` in the service unit accordingly.
+If you put files somewhere other than `/srv/ferd`, edit `WorkingDirectory`, `ExecStart`, and `ReadWritePaths` in the service unit accordingly.
 
 ### 2c. Reverse proxy
 
@@ -117,7 +117,7 @@ Pick one. Both example configs are in `deploy/`.
 
 ```sh
 sudo cp deploy/Caddyfile.example /etc/caddy/Caddyfile
-sudo $EDITOR /etc/caddy/Caddyfile            # replace atlas.example.com and /srv/atlas
+sudo $EDITOR /etc/caddy/Caddyfile            # replace ferd.example.com and /srv/ferd
 sudo caddy validate --config /etc/caddy/Caddyfile
 sudo systemctl reload caddy
 ```
@@ -127,9 +127,9 @@ Caddy provisions and renews the certificate on its own. Port 80 and 443 must be 
 **nginx** (if you already run nginx):
 
 ```sh
-sudo cp deploy/nginx.example.conf /etc/nginx/sites-available/atlas
-sudo $EDITOR /etc/nginx/sites-available/atlas    # replace atlas.example.com, paths, cert paths
-sudo ln -s /etc/nginx/sites-available/atlas /etc/nginx/sites-enabled/atlas
+sudo cp deploy/nginx.example.conf /etc/nginx/sites-available/ferd
+sudo $EDITOR /etc/nginx/sites-available/ferd    # replace ferd.example.com, paths, cert paths
+sudo ln -s /etc/nginx/sites-available/ferd /etc/nginx/sites-enabled/ferd
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
@@ -139,7 +139,7 @@ Either way, the API has its own internal rate limit on login, so the proxy-side 
 
 ### macOS (launchd)
 
-Same shape, but use `deploy/atlas-api.plist` (template; replace `/Users/YOU/atlas`). launchd does not have systemd-style socket activation, so set `idle_exit_seconds: 0` in `tools/config.json` so the process stays up.
+Same shape, but use `deploy/ferd-api.plist` (template; replace `/Users/YOU/ferd`). launchd does not have systemd-style socket activation, so set `idle_exit_seconds: 0` in `tools/config.json` so the process stays up.
 
 ## First sign-in
 
@@ -153,7 +153,7 @@ If you set `require_setup_token: true` in the API config, the first registration
 cd /path/to/source
 git pull
 sudo ./deploy/install.sh --yes
-sudo systemctl restart atlas-api.service
+sudo systemctl restart ferd-api.service
 ```
 
 The installer never overwrites your config (`tools/config.json`, `site-config.json`) or data (`users/`, `tools/app.db`). Only application files and the systemd units are replaced.
