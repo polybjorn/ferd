@@ -60,3 +60,4 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 - Photo attachments on places and trails.
 - Design proper PWA icons (192, 512, maskable PNG) to replace the SVG favicon fallback.
 - Bundle leaflet-elevation's runtime deps (d3, togeojson, geometryutil, almostover) so the elevation chart works offline.
+- Investigate Android map performance: visible seams between tiles and choppy pinch-zoom. Likely path is a canvas tile renderer, which would also need the per-tile CSS filter (muted/grayscale/sepia/contrast in Settings) reworked.
