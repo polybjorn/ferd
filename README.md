@@ -50,13 +50,13 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 
 | Guide | Covers |
 | --- | --- |
-| [Docker](docs/docker.md) | Run it in a container. |
-| [Python](docs/python.md) | Run it as a plain Python process (LAN, systemd, launchd). |
-| [Configuration](docs/configure.md) | Settings and feature flags you can tweak. |
-| [Themes](docs/themes.md) | Look and feel options, and how to add your own. |
-| [PWA](docs/pwa.md) | Install on phone, offline behavior, maintenance. |
-| [Architecture](docs/architecture.md) | How the code is organized and where data lives. |
 | [API reference](docs/api.md) | Every `/api/*` endpoint, for scripting. |
+| [Architecture](docs/architecture.md) | How the code is organized and where data lives. |
+| [Configuration](docs/configure.md) | Settings and feature flags you can tweak. |
+| [Docker](docs/docker.md) | Run it in a container. |
+| [PWA](docs/pwa.md) | Install on phone, offline behavior, maintenance. |
+| [Python](docs/python.md) | Run it as a plain Python process (LAN, systemd, launchd). |
+| [Themes](docs/themes.md) | Look and feel options, and how to add your own. |
 
 ## Roadmap
 
