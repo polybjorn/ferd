@@ -364,14 +364,15 @@
     .leaflet-div-icon { background: transparent; border: none; }
     /* Selector targets .leaflet-tile-container so it applies to both the
        <img> tiles and the per-level <canvas> created by the NoGap plugin. */
-    /* Hide overlay (trails/canvas) and marker panes during the entire
-       pinch-zoom gesture, not just the post-gesture animation. The
-       .leaflet-container.zooming class is added on zoomstart and removed
-       on zoomend by the boot script. */
-    .leaflet-container.zooming .leaflet-overlay-pane,
-    .leaflet-container.zooming .leaflet-marker-pane,
-    .leaflet-container.zooming .leaflet-shadow-pane {
-      visibility: hidden;
+    /* GPU hints: ask the browser to promote these panes to their own
+       composited layers so transforms during pinch-zoom run on the GPU
+       instead of repainting on the CPU. Replaces the previous "hide
+       during zoom" workaround. */
+    .leaflet-overlay-pane,
+    .leaflet-marker-pane,
+    .leaflet-shadow-pane {
+      will-change: transform;
+      contain: layout paint;
     }
     [data-tile-filter="muted"] .leaflet-tile-container { filter: saturate(0.35) brightness(0.95) contrast(0.95); }
     [data-tile-filter="grayscale"] .leaflet-tile-container { filter: grayscale(1); }
@@ -2191,7 +2192,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v17</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v18</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
