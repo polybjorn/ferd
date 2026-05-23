@@ -2226,7 +2226,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v44</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v45</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3285,6 +3285,14 @@
                 focusTrailLayer = e.target;
                 if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
               }
+              // Set vector-effect attribute so stroke renders at constant
+              // pixel width regardless of SVG viewBox/transform changes
+              // during zoom. Reaches into Leaflet internals via _path.
+              e.target.eachLayer(function(ly) {
+                if (ly instanceof L.Polyline && ly._path) {
+                  ly._path.setAttribute('vector-effect', 'non-scaling-stroke');
+                }
+              });
             }).bindPopup(
               trailPopupHtml(route, region, color),
               { closeButton: false }
@@ -4849,6 +4857,12 @@
           async: true,
           polyline_options: { color: ROUTE_COLOR, opacity: 0.35, weight: 4 * getTrailWeightFactor(), dashArray: '8 6' },
           markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
+        }).on('loaded', function(e) {
+          e.target.eachLayer(function(ly) {
+            if (ly instanceof L.Polyline && ly._path) {
+              ly._path.setAttribute('vector-effect', 'non-scaling-stroke');
+            }
+          });
         }).addTo(map);
       }
 
@@ -4882,6 +4896,11 @@
         const gpx = e.target;
         const bounds = gpx.getBounds();
         if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
+        gpx.eachLayer(function(ly) {
+          if (ly instanceof L.Polyline && ly._path) {
+            ly._path.setAttribute('vector-effect', 'non-scaling-stroke');
+          }
+        });
 
         const layers = [];
         gpx.eachLayer(function(layer) { if (layer.getLatLngs) layers.push(layer); });
