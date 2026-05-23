@@ -2223,7 +2223,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v26</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v27</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3252,12 +3252,8 @@
       state.currentMap = map;
       // Mark the container as "zooming" for the entire pinch gesture so
       // CSS can hide expensive panes (.leaflet-container.zooming rules).
-      // Gated to coarse-pointer devices: desktop doesn't need the hide,
-      // and removing it preserves visible pins during desktop scroll-zoom.
-      if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
-        map.on('zoomstart', () => map.getContainer().classList.add('zooming'));
-        map.on('zoomend', () => map.getContainer().classList.remove('zooming'));
-      }
+      map.on('zoomstart', () => map.getContainer().classList.add('zooming'));
+      map.on('zoomend', () => map.getContainer().classList.remove('zooming'));
       addTileLayersToMap(map);
 
       if (getRememberView()) {
@@ -4429,12 +4425,8 @@
       state.currentMap = map;
       // Mark the container as "zooming" for the entire pinch gesture so
       // CSS can hide expensive panes (.leaflet-container.zooming rules).
-      // Gated to coarse-pointer devices: desktop doesn't need the hide,
-      // and removing it preserves visible pins during desktop scroll-zoom.
-      if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
-        map.on('zoomstart', () => map.getContainer().classList.add('zooming'));
-        map.on('zoomend', () => map.getContainer().classList.remove('zooming'));
-      }
+      map.on('zoomstart', () => map.getContainer().classList.add('zooming'));
+      map.on('zoomend', () => map.getContainer().classList.remove('zooming'));
       addTileLayersToMap(map);
 
       // Show the on-map elevation position marker only while an elevation chart is hovered.
