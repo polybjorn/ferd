@@ -54,9 +54,12 @@ Full walk-through in [docs/install.md](docs/install.md). Docker path in [docs/do
 
 ## Roadmap
 
-- Move trails between regions from the trail edit modal (rename/delete-empty/clear-region already shipped via Manage regions).
-- Stable category colors across config edits. Colors can currently shift when categories are added or reordered.
-- Publish a prebuilt multi-arch container image so deployments can `docker compose pull` instead of building from source.
+- Stable category colors across config edits.
+- Prebuilt multi-arch container image so deployments can `docker compose pull`.
+- Print / PDF stylesheet for trail and place details.
+- Auth hardening: optional TOTP 2FA, HIBP breach check at register and change-password.
+- Photo attachments on places and trails.
+- PWA / installable shell (would unlock offline reads via a service worker).
 
 ## Documentation
 
