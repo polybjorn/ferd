@@ -63,10 +63,10 @@ For a public domain, front either with any reverse proxy. Sample configs in `dep
 
 | Guide | Covers |
 | --- | --- |
-| [Docker](docs/docker.md) | Run Ferd in a container. |
-| [Python](docs/python.md) | Run Ferd as a plain Python process (LAN, systemd, launchd). |
+| [Docker](docs/docker.md) | Run it in a container. |
+| [Python](docs/python.md) | Run it as a plain Python process (LAN, systemd, launchd). |
 | [Configuration](docs/configure.md) | Settings and feature flags you can tweak. |
 | [Themes](docs/themes.md) | Look and feel options, and how to add your own. |
 | [Architecture](docs/architecture.md) | How the code is organized and where data lives. |
-| [API reference](docs/api.md) | Every `/api/*` endpoint, for scripting against Ferd. |
+| [API reference](docs/api.md) | Every `/api/*` endpoint, for scripting. |
 
