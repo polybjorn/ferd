@@ -66,6 +66,7 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 - Photo attachments on places and trails.
 - Design proper PWA icons (192, 512, maskable PNG) to replace the SVG favicon fallback.
 - Bundle leaflet-elevation's runtime deps (d3, togeojson, geometryutil, almostover) so the elevation chart works offline.
+  - When this lands, total vendored deps goes from 5 to 9. Worth adding a small GitHub Action + check script at that point to flag upstream version bumps via issues; below 9 deps it isn't worth the ceremony.
 - Automate the service worker `CACHE_VERSION` bump on release (currently a manual line edit in `sw.js`).
 
 ## License
