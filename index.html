@@ -12,8 +12,6 @@
   <meta name="apple-mobile-web-app-title" content="Ferd">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="/vendor/leaflet.markercluster/MarkerCluster.css">
-  <link rel="stylesheet" href="/vendor/leaflet.markercluster/MarkerCluster.Default.css">
   <link rel="stylesheet" href="/vendor/leaflet-elevation/leaflet-elevation.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1247,15 +1245,28 @@
     .leaflet-control-layers label { color: var(--text); }
     .leaflet-control-layers-separator { border-color: var(--border) !important; }
 
-    /* Cluster overrides */
-    .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
-      background: var(--cluster-halo) !important;
+    /* Trail polylines: render with constant stroke width regardless of
+       parent SVG transform during zoom. Positions still track via the
+       parent transform; only stroke width stays at its set weight. */
+    path.trail-line {
+      vector-effect: non-scaling-stroke !important;
     }
-    .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
-      background: var(--cluster-fill) !important;
-      color: #fff !important;
-      font-weight: 400;
+    /* Place canvas layer tooltip (hover text on desktop) */
+    .place-canvas-tooltip {
+      position: absolute;
+      pointer-events: none;
+      display: none;
+      max-width: 240px;
+      padding: 0.25rem 0.5rem;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
       font-size: 0.75rem;
+      line-height: 1.3;
+      white-space: pre;
+      z-index: 700;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     }
 
     /* Elevation control */
@@ -2166,23 +2177,56 @@
     }
     .pwa-banner.visible { display: flex; }
     .pwa-banner.offline { background: #fff3cd; color: #663c00; border-bottom-color: #f0d27a; }
-    .pwa-banner button {
-      padding: 0.25rem 0.75rem;
+    /* Floating "Update available" toast: detached from the sticky stack,
+       centered with side padding so it doesn't reach edges, and slides
+       down on appear. */
+    .pwa-update-toast {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0.5rem 0.5rem 1rem;
+      max-width: calc(100vw - 2rem);
+      font-size: 0.85rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+      z-index: 1500;
+    }
+    .pwa-update-toast.visible {
+      display: flex;
+      animation: pwa-update-toast-in 220ms ease-out;
+    }
+    @keyframes pwa-update-toast-in {
+      from { opacity: 0; transform: translate(-50%, 16px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pwa-update-toast.visible { animation: none; }
+    }
+    .pwa-banner button,
+    .pwa-update-toast button {
+      padding: 0.3rem 0.9rem;
       font-size: 0.85rem;
       font-weight: 500;
       border: 1px solid var(--accent);
       background: var(--accent);
       color: var(--bg);
-      border-radius: 4px;
+      border-radius: 999px;
       cursor: pointer;
     }
-    .pwa-banner button:hover { opacity: 0.85; }
+    .pwa-banner button:hover,
+    .pwa-update-toast button:hover { opacity: 0.85; }
   </style>
 </head>
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v45</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -2195,7 +2239,7 @@
     </div>
   </nav>
   <div id="pwa-offline-banner" class="pwa-banner offline">You're offline. Read-only mode.</div>
-  <div id="pwa-update-banner" class="pwa-banner">
+  <div id="pwa-update-banner" class="pwa-update-toast">
     <span>Update available.</span>
     <button id="pwa-update-btn" type="button">Reload</button>
   </div>
@@ -2204,7 +2248,7 @@
 
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script src="/vendor/leaflet-tilelayer-nogap/L.TileLayer.NoGap.js"></script>
-  <script src="/vendor/leaflet.markercluster/leaflet.markercluster.js"></script>
+  <script src="/vendor/supercluster/supercluster.min.js"></script>
   <script src="/vendor/leaflet-gpx/gpx.min.js"></script>
   <script src="/vendor/leaflet-elevation/leaflet-elevation.js"></script>
   <script>
@@ -2530,6 +2574,13 @@
       if (tabTrails) tabTrails.style.display = trailsEnabled() ? '' : 'none';
     }
 
+    // Skip tile loads during zoom animations. Default true is wasteful:
+    // each zoom level transition requests its own batch of tiles while
+    // the gesture is still in flight, competing with the animation.
+    if (window.L && L.TileLayer && L.TileLayer.mergeOptions) {
+      L.TileLayer.mergeOptions({ updateWhenZooming: false });
+    }
+
     const state = {
       config: DEFAULT_CONFIG,
       auth: { authenticated: false, username: null, is_admin: false, published: false, registration_open: true, publishing_open: true, has_users: false, requires_setup_token: false },
@@ -2554,7 +2605,7 @@
       showPlaces: true,
       showTrails: true,
       // unified-map layer refs
-      _placeMarkers: null,
+      _placeRecords: null,
       _placeClusterGroup: null,
       _trailLayers: null,        // [{ route, layer, completed }]
       _trailGroupCompleted: null,
@@ -2753,7 +2804,7 @@
       }
       state.tilePickerCtrl = null;
       state.tilePickerLayers = null;
-      state._placeMarkers = null;
+      state._placeRecords = null;
       state._placeClusterGroup = null;
       state._trailLayers = null;
       state._trailGroupCompleted = null;
@@ -2843,16 +2894,11 @@
       return L.divIcon({ className: '', html: svg, iconSize: iconSize, iconAnchor: iconAnchor });
     }
 
-    // Apply current pin-style + marker-size to all live place markers without
-    // rebuilding the map. Falls back to a full router pass if markers aren't
-    // mounted (e.g. on the trail-detail view).
+    // Apply current pin-style + marker-size to all live places without
+    // rebuilding the map. Falls back to a full router pass if no map.
     function refreshPlaceMarkerIcons() {
-      if (!state._placeMarkers) { wrappedRouter(); return; }
-      for (const m of state._placeMarkers) {
-        const p = m._placeData;
-        if (!p) continue;
-        m.setIcon(createMarkerIcon(state.categoryColors[p.category], p.visited));
-      }
+      if (!state._placeClusterGroup) { wrappedRouter(); return; }
+      state._placeClusterGroup.redraw();
     }
 
     // Apply current trail-weight to all live trail polylines without rebuilding.
@@ -2886,61 +2932,25 @@
       return html;
     }
 
-    function createPlaceMarker(p) {
-      const color = state.categoryColors[p.category];
-      const marker = L.marker([p.lat, p.lon], { icon: createMarkerIcon(color, p.visited) });
-      marker.bindPopup(placePopupHtml(p), { closeButton: false });
-      marker.on('click', (function(slug) {
-        return function() { history.replaceState(null, '', focusHash('place', slug)); };
-      })(p._slug || p.name));
-      marker.bindTooltip(escapeHtml(p.name), { direction: 'top', offset: [0, -6] });
-      marker._placeData = p;
-      return marker;
-    }
-
-    // Refresh place markers in-place after label edits or bulk-clears. Avoids
-    // the full router rebuild (which blinks the map). Mirrors what changed:
-    // category color palette, marker icon (if a place's category changed),
-    // popup HTML (labels), and the filter panel legend.
+    // Refresh place rendering in-place after label edits or bulk-clears.
+    // Avoids the full router rebuild (which blinks the map). Recomputes
+    // category palette then triggers a canvas redraw and filter panel update.
     function refreshPlacesPresentation() {
-      if (state._placeMarkers && state.places) {
+      if (state._placeClusterGroup && state.places) {
         const cc = assignCategoryColors(state.places);
         state.categoryColors = cc.dark;
         state.categoryColorsLight = cc.light;
-        for (const m of state._placeMarkers) {
-          const p = m._placeData;
-          if (!p) continue;
-          m.setIcon(createMarkerIcon(state.categoryColors[p.category], p.visited));
-          m.setPopupContent(placePopupHtml(p));
-        }
+        state._placeClusterGroup.redraw();
         if (typeof refreshFilterPanel === 'function') refreshFilterPanel();
       }
       if ((location.hash || '#/').startsWith('#/places')) wrappedRouter();
     }
 
-    // Incrementally reconcile place markers with state.places after a CRUD write.
-    // Falls back to a full marker rebuild if the category palette shifted (a new
-    // category can re-index the color assignments). Skips when no map is mounted.
-    function syncPlacesOnMap(prevColors) {
-      if (!state._placeClusterGroup || !state._placeMarkers) return;
-      const newColors = state.categoryColors || {};
-      const prev = prevColors || {};
-      let paletteChanged = false;
-      const keys = new Set([...Object.keys(prev), ...Object.keys(newColors)]);
-      for (const k of keys) {
-        if (prev[k] !== newColors[k]) { paletteChanged = true; break; }
-      }
-      const oldByName = new Map(state._placeMarkers.map(m => [m._placeData.name, m]));
-      const next = [];
-      for (const p of (state.places || [])) {
-        const existing = !paletteChanged ? oldByName.get(p.name) : null;
-        if (existing && JSON.stringify(existing._placeData) === JSON.stringify(p)) {
-          next.push(existing);
-        } else {
-          next.push(createPlaceMarker(p));
-        }
-      }
-      state._placeMarkers = next;
+    // Sync the canvas place layer with state.places after a CRUD write.
+    // Skips when no map is mounted.
+    function syncPlacesOnMap(_prevColors) {
+      if (!state._placeClusterGroup) return;
+      state._placeRecords = (state.places || []).slice();
       refreshFilterPanel();
       applyMapFilters();
     }
@@ -3197,7 +3207,8 @@
         attributionControl: false,
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
-        preferCanvas: true
+        markerZoomAnimation: false,
+        renderer: L.svg()
       }).setView(dv.center, dv.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
@@ -3213,29 +3224,28 @@
       // Places
       const clusterGroup = createPlaceLayerGroup();
 
-      const placeMarkers = [];
+      const placeRecords = [];
       const placeBounds = L.latLngBounds();
       let focusPlace = null;
 
-      // Build markers regardless of the Visible-features toggle so that the
-      // toggle can flip layer visibility without forcing a map rebuild. The
-      // cluster group is only added to the map by applyMapFilters when
+      // Build the record list regardless of the Visible-features toggle so
+      // that the toggle can flip layer visibility without a map rebuild.
+      // The canvas layer is only added to the map by applyMapFilters when
       // placesEnabled() is true.
       if (state.places) {
         for (const p of state.places) {
-          const marker = createPlaceMarker(p);
-          placeMarkers.push(marker);
+          placeRecords.push(p);
           if (placesEnabled()) {
             const filteredOut = state.hiddenCategories.has(p.category)
               || (p.visited && !state.showVisited)
               || (!p.visited && !state.showWant);
             if (!filteredOut) placeBounds.extend([p.lat, p.lon]);
           }
-          if (focus && focus.type === 'place' && focus.name === p.name) focusPlace = marker;
+          if (focus && focus.type === 'place' && focus.name === p.name) focusPlace = p;
         }
       }
 
-      state._placeMarkers = placeMarkers;
+      state._placeRecords = placeRecords;
       state._placeClusterGroup = clusterGroup;
 
       // Trails: two groups by status
@@ -3265,7 +3275,7 @@
             }
             const gpxLayer = new L.GPX(gpxUrl, {
               async: true,
-              polyline_options: { color: color, opacity: 0.85, weight: 4 * getTrailWeightFactor() },
+              polyline_options: { color: color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'trail-line' },
               markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
             });
             gpxLayer.on('loaded', function(e) {
@@ -3275,6 +3285,14 @@
                 focusTrailLayer = e.target;
                 if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
               }
+              // Set vector-effect attribute so stroke renders at constant
+              // pixel width regardless of SVG viewBox/transform changes
+              // during zoom. Reaches into Leaflet internals via _path.
+              e.target.eachLayer(function(ly) {
+                if (ly instanceof L.Polyline && ly._path) {
+                  ly._path.setAttribute('vector-effect', 'non-scaling-stroke');
+                }
+              });
             }).bindPopup(
               trailPopupHtml(route, region, color),
               { closeButton: false }
@@ -3614,14 +3632,16 @@
     // Pan/zoom to a place marker and open its popup. With clustering on, a plain
     // setView+openPopup leaves the marker buried inside an unexpanded cluster;
     // zoomToShowLayer breaks the cluster apart first.
-    function revealPlaceMarker(map, marker) {
-      const p = marker._placeData;
+    function revealPlaceMarker(map, place) {
       const cg = state._placeClusterGroup;
-      if (cg && typeof cg.zoomToShowLayer === 'function' && cg.hasLayer(marker)) {
-        cg.zoomToShowLayer(marker, function() { marker.openPopup(); });
+      if (cg && typeof cg.revealPlace === 'function') {
+        cg.revealPlace(place);
       } else {
-        map.setView([p.lat, p.lon], Math.max(map.getZoom(), 12));
-        marker.openPopup();
+        map.setView([place.lat, place.lon], Math.max(map.getZoom(), 12));
+        L.popup({ closeButton: false })
+          .setLatLng([place.lat, place.lon])
+          .setContent(placePopupHtml(place))
+          .openOn(map);
       }
     }
 
@@ -3660,54 +3680,467 @@
       el.addEventListener('animationend', () => el.classList.remove('pulse'), { once: true });
     }
 
-    function createPlaceLayerGroup() {
-      const useClusters = getClusterPlaces();
-      const group = useClusters
-        ? L.markerClusterGroup({
-            maxClusterRadius: 40,
-            spiderfyOnMaxZoom: true,
-            showCoverageOnHover: false,
-            chunkedLoading: true,
-          })
-        : L.featureGroup();
-      if (useClusters) {
-        group.on('clustermouseover', function(e) {
-          const names = e.layer.getAllChildMarkers().map(m => m._placeData.name).sort().slice(0, 10);
-          const total = e.layer.getChildCount();
-          let label = names.join('\n');
-          if (total > 10) label += '\n+' + (total - 10) + ' more';
-          e.layer.bindTooltip(label, { direction: 'top', sticky: true }).openTooltip();
+    // Canvas-rendered place layer. Owns clustering via supercluster, draws
+    // all places and clusters to a single <canvas>, hit-tests clicks and
+    // hovers. Replaces the L.markerClusterGroup + L.marker DOM model so
+    // pinch-zoom doesn't pay per-element compositing cost.
+    const PlaceCanvasLayer = L.Layer.extend({
+      options: {
+        pane: 'placeCanvasPane',
+        clusterRadius: 40,
+        clickHitRadius: 14,
+      },
+
+      initialize: function(options) {
+        L.setOptions(this, options);
+        this._places = [];
+        this._supercluster = null;
+        this._visibleFeatures = null;
+        this._useClusters = true;
+      },
+
+      setPlaces: function(places) {
+        this._places = (places || []).slice();
+        this._rebuildIndex();
+        this._redraw();
+        return this;
+      },
+
+      setUseClusters: function(useClusters) {
+        if (this._useClusters === useClusters) return this;
+        this._useClusters = useClusters;
+        this._rebuildIndex();
+        this._redraw();
+        return this;
+      },
+
+      redraw: function() { this._redraw(); return this; },
+
+      // Open a popup at the given place. If currently clustered, zoom in
+      // first via supercluster's expansion zoom so the popup makes sense.
+      revealPlace: function(place, onShown) {
+        const map = this._map;
+        if (!map) return;
+        const zoom = Math.floor(map.getZoom());
+        let targetZoom = Math.max(zoom, 12);
+        if (this._supercluster && this._useClusters) {
+          const features = this._getCurrentFeatures();
+          for (const f of features) {
+            if (!f.properties.cluster) continue;
+            const id = f.properties.cluster_id;
+            try {
+              const leaves = this._supercluster.getLeaves(id, Infinity);
+              if (leaves.some(l => l.properties.place === place
+                  || l.properties.place.name === place.name)) {
+                targetZoom = Math.min(map.getMaxZoom() || 18,
+                  this._supercluster.getClusterExpansionZoom(id));
+                break;
+              }
+            } catch (_) { /* ignore */ }
+          }
+        }
+        const open = () => {
+          L.popup({ closeButton: false })
+            .setLatLng([place.lat, place.lon])
+            .setContent(placePopupHtml(place))
+            .openOn(map);
+          if (typeof onShown === 'function') onShown();
+        };
+        if (Math.floor(map.getZoom()) !== targetZoom) {
+          map.once('moveend', open);
+          map.setView([place.lat, place.lon], targetZoom);
+        } else {
+          map.setView([place.lat, place.lon], targetZoom);
+          setTimeout(open, 60);
+        }
+      },
+
+      onAdd: function(map) {
+        this._map = map;
+        if (!map.getPane(this.options.pane)) {
+          const p = map.createPane(this.options.pane);
+          p.style.zIndex = 450; // above tile pane (200), below marker pane (600)
+        }
+        this._canvas = L.DomUtil.create('canvas',
+          'place-canvas-layer',
+          map.getPane(this.options.pane));
+        // setTransform math (offset + scale) assumes a top-left transform
+        // origin; default of 50% 50% would scale around the canvas center
+        // and miscalculate every pin position during pinch/zoom.
+        this._canvas.style.transformOrigin = '0 0';
+        this._sizeCanvas();
+        // Mobile pinch + pan fire 'move' continuously and we redraw each
+        // frame at the current zoom (pins at fixed size, positions track).
+        // Desktop wheel zoom is a 250ms CSS animation during which 'move'
+        // does not fire; _onZoomAnim drives a rAF loop that redraws at
+        // interpolated zoom/center for the same effect.
+        map.on('move', this._redraw, this);
+        map.on('zoomanim', this._onZoomAnim, this);
+        map.on('zoomend', this._stopZoomAnim, this);
+        map.on('resize', this._redraw, this);
+        map.on('click', this._onClick, this);
+        map.on('mousemove', this._onMouseMove, this);
+        map.on('mouseout', this._hideTooltip, this);
+        this._redraw();
+        return this;
+      },
+
+      onRemove: function(map) {
+        if (this._canvas && this._canvas.parentNode) {
+          this._canvas.parentNode.removeChild(this._canvas);
+        }
+        if (this._tooltipEl && this._tooltipEl.parentNode) {
+          this._tooltipEl.parentNode.removeChild(this._tooltipEl);
+        }
+        map.off('move', this._redraw, this);
+        map.off('zoomanim', this._onZoomAnim, this);
+        map.off('zoomend', this._stopZoomAnim, this);
+        map.off('resize', this._redraw, this);
+        map.off('click', this._onClick, this);
+        map.off('mousemove', this._onMouseMove, this);
+        map.off('mouseout', this._hideTooltip, this);
+        this._stopZoomAnim();
+        this._map = null;
+        this._tooltipEl = null;
+        return this;
+      },
+
+
+      _sizeCanvas: function() {
+        const map = this._map;
+        const size = map.getSize();
+        const dpr = window.devicePixelRatio || 1;
+        this._canvas.width = size.x * dpr;
+        this._canvas.height = size.y * dpr;
+        this._canvas.style.width = size.x + 'px';
+        this._canvas.style.height = size.y + 'px';
+        this._dpr = dpr;
+      },
+
+      _onResize: function() { this._sizeCanvas(); this._redraw(); },
+
+      _rebuildIndex: function() {
+        if (!this._places.length || !this._useClusters || typeof Supercluster === 'undefined') {
+          this._supercluster = null;
+          return;
+        }
+        const features = this._places.map((p, i) => ({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [p.lon, p.lat] },
+          properties: { place: p, _idx: i }
+        }));
+        this._supercluster = new Supercluster({
+          radius: this.options.clusterRadius,
+          maxZoom: 18,
         });
-      }
-      return group;
+        this._supercluster.load(features);
+      },
+
+      _getCurrentFeatures: function() {
+        const map = this._map;
+        if (!map) return [];
+        const bounds = map.getBounds();
+        if (this._supercluster && this._useClusters) {
+          const bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
+          return this._supercluster.getClusters(bbox, Math.floor(map.getZoom()));
+        }
+        return this._places
+          .filter(p => bounds.contains([p.lat, p.lon]))
+          .map(p => ({
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [p.lon, p.lat] },
+            properties: { place: p }
+          }));
+      },
+
+      _redraw: function() {
+        this._drawAt(null, null);
+      },
+
+      // Draw at a specific zoom/center, or null/null to use the map's
+      // current state. Used by _onZoomAnim's rAF loop to render at
+      // interpolated zoom during the 250ms desktop animation.
+      _drawAt: function(zoom, center) {
+        const map = this._map;
+        if (!map || !this._canvas) return;
+        const useInterp = (zoom != null && center != null);
+        const z = useInterp ? zoom : map.getZoom();
+        const c = useInterp ? center : map.getCenter();
+
+        const ctx = this._canvas.getContext('2d');
+        const dpr = this._dpr || 1;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const size = map.getSize();
+        ctx.clearRect(0, 0, size.x, size.y);
+
+        // Position the canvas at viewport top-left in layer coords.
+        // During interpolation we hold the canvas at the current map's
+        // layer origin; pin positions are computed at the interpolated
+        // zoom/center via project().
+        const topLeft = map.containerPointToLayerPoint([0, 0]);
+        L.DomUtil.setPosition(this._canvas, topLeft);
+
+        // Compute pixel origin for the (possibly interpolated) zoom/center.
+        const crs = map.options.crs;
+        const projCenter = crs.latLngToPoint(c, z);
+        const halfSize = size.divideBy(2);
+        const pixelOrigin = projCenter.subtract(halfSize)._round();
+
+        const features = this._getCurrentFeatures();
+        this._visibleFeatures = features;
+        const markerSize = (typeof getMarkerSize === 'function') ? getMarkerSize() : 18;
+        const pinStyle = (typeof getPinStyle === 'function') ? getPinStyle() : 'ring';
+        const catColors = (state && state.categoryColors) || {};
+        for (const f of features) {
+          const coords = f.geometry.coordinates;
+          const projected = crs.latLngToPoint(L.latLng(coords[1], coords[0]), z);
+          const pt = projected.subtract(pixelOrigin);
+          if (f.properties.cluster) {
+            this._drawCluster(ctx, pt, f.properties.point_count);
+          } else {
+            const place = f.properties.place;
+            const color = catColors[place.category] || '#888';
+            this._drawMarker(ctx, pt, place, color, markerSize, pinStyle);
+          }
+        }
+      },
+
+      // Desktop wheel zoom: zoomanim fires once with the target zoom and
+      // center. The map then CSS-animates over 250ms. 'move' doesn't fire
+      // during that window, so we manually interpolate and redraw the
+      // canvas each frame to keep pins tracking at constant size.
+      _onZoomAnim: function(e) {
+        if (!this._map) return;
+        this._stopZoomAnim();
+        const startZoom = this._map.getZoom();
+        const startCenter = this._map.getCenter();
+        const targetZoom = e.zoom;
+        const targetCenter = L.latLng(e.center);
+        const startTime = performance.now();
+        const duration = 250;
+        const tick = () => {
+          if (!this._map) return;
+          const elapsed = performance.now() - startTime;
+          const t = Math.min(elapsed / duration, 1);
+          // cubic-bezier(0, 0, 0.25, 1) approximation (Leaflet's default)
+          const eased = 1 - Math.pow(1 - t, 3);
+          const interpZoom = startZoom + (targetZoom - startZoom) * eased;
+          const interpCenter = L.latLng(
+            startCenter.lat + (targetCenter.lat - startCenter.lat) * eased,
+            startCenter.lng + (targetCenter.lng - startCenter.lng) * eased
+          );
+          this._drawAt(interpZoom, interpCenter);
+          if (t < 1) {
+            this._zoomAnimRaf = requestAnimationFrame(tick);
+          } else {
+            this._zoomAnimRaf = null;
+          }
+        };
+        this._zoomAnimRaf = requestAnimationFrame(tick);
+      },
+
+      _stopZoomAnim: function() {
+        if (this._zoomAnimRaf) {
+          cancelAnimationFrame(this._zoomAnimRaf);
+          this._zoomAnimRaf = null;
+        }
+      },
+
+      _drawCluster: function(ctx, pt, count) {
+        let r;
+        if (count >= 100) r = 22;
+        else if (count >= 10) r = 18;
+        else r = 15;
+        const cs = getComputedStyle(document.documentElement);
+        const fill = cs.getPropertyValue('--cluster-fill').trim() || 'rgba(136,192,208,0.6)';
+        const halo = cs.getPropertyValue('--cluster-halo').trim() || 'rgba(136,192,208,0.25)';
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, r + 5, 0, 2 * Math.PI);
+        ctx.fillStyle = halo;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, r, 0, 2 * Math.PI);
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(count), pt.x, pt.y);
+      },
+
+      _drawMarker: function(ctx, pt, place, color, size, style) {
+        const r = Math.max(3, (size / 2) - 2);
+        const visited = !!place.visited;
+        if (style === 'dot') {
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, r, 0, 2 * Math.PI);
+          ctx.fillStyle = visited ? color : this._withAlpha(color, 0.5);
+          ctx.fill();
+        } else if (style === 'pin') {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(pt.x, pt.y);
+          ctx.lineTo(pt.x, pt.y + size);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, r, 0, 2 * Math.PI);
+          if (visited) { ctx.fillStyle = color; ctx.fill(); }
+          else { ctx.fillStyle = this._withAlpha(color, 0.25); ctx.fill(); ctx.stroke(); }
+        } else if (style === 'tag') {
+          const w = size;
+          const h = size * 1.1;
+          ctx.beginPath();
+          ctx.moveTo(pt.x, pt.y);
+          ctx.lineTo(pt.x, pt.y + h);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.rect(pt.x, pt.y, w, size * 0.55);
+          if (visited) { ctx.fillStyle = color; ctx.fill(); }
+          else {
+            ctx.fillStyle = this._withAlpha(color, 0.25);
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+        } else {
+          // 'ring' (default)
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, r, 0, 2 * Math.PI);
+          if (visited) {
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.globalAlpha = 0.6;
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+          } else {
+            ctx.fillStyle = this._withAlpha(color, 0.25);
+            ctx.fill();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+        }
+      },
+
+      _withAlpha: function(hex, alpha) {
+        if (!hex || hex[0] !== '#') return hex;
+        let r, g, b;
+        if (hex.length === 4) {
+          r = parseInt(hex[1] + hex[1], 16);
+          g = parseInt(hex[2] + hex[2], 16);
+          b = parseInt(hex[3] + hex[3], 16);
+        } else {
+          r = parseInt(hex.slice(1, 3), 16);
+          g = parseInt(hex.slice(3, 5), 16);
+          b = parseInt(hex.slice(5, 7), 16);
+        }
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+      },
+
+      _hitTest: function(point) {
+        if (!this._visibleFeatures) return null;
+        const map = this._map;
+        let best = null;
+        let bestDist = Infinity;
+        for (const f of this._visibleFeatures) {
+          const coords = f.geometry.coordinates;
+          const pt = map.latLngToContainerPoint([coords[1], coords[0]]);
+          const dx = point.x - pt.x;
+          const dy = point.y - pt.y;
+          const distSq = dx * dx + dy * dy;
+          const r = f.properties.cluster
+            ? this.options.clickHitRadius * 1.6
+            : this.options.clickHitRadius;
+          if (distSq <= r * r && distSq < bestDist) {
+            best = f;
+            bestDist = distSq;
+          }
+        }
+        return best;
+      },
+
+      _onClick: function(e) {
+        const target = this._hitTest(e.containerPoint);
+        if (!target) return;
+        L.DomEvent.stopPropagation(e.originalEvent);
+        if (target.properties.cluster) {
+          const id = target.properties.cluster_id;
+          const expandZoom = this._supercluster.getClusterExpansionZoom(id);
+          const coords = target.geometry.coordinates;
+          this._map.setView([coords[1], coords[0]],
+            Math.min(this._map.getMaxZoom() || 18, expandZoom));
+        } else {
+          const place = target.properties.place;
+          history.replaceState(null, '', focusHash('place', place._slug || place.name));
+          L.popup({ closeButton: false })
+            .setLatLng([place.lat, place.lon])
+            .setContent(placePopupHtml(place))
+            .openOn(this._map);
+        }
+      },
+
+      _onMouseMove: function(e) {
+        // Skip tooltip work on touch devices (no real hover).
+        if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
+        const target = this._hitTest(e.containerPoint);
+        const container = this._map.getContainer();
+        if (target) {
+          container.style.cursor = 'pointer';
+          this._showTooltip(target, e.containerPoint);
+        } else {
+          container.style.cursor = '';
+          this._hideTooltip();
+        }
+      },
+
+      _ensureTooltipEl: function() {
+        if (!this._tooltipEl) {
+          this._tooltipEl = L.DomUtil.create('div',
+            'place-canvas-tooltip', this._map.getContainer());
+        }
+        return this._tooltipEl;
+      },
+
+      _showTooltip: function(target, cp) {
+        const el = this._ensureTooltipEl();
+        if (target.properties.cluster) {
+          const id = target.properties.cluster_id;
+          const total = target.properties.point_count;
+          const leaves = this._supercluster.getLeaves(id, 10);
+          let label = leaves.map(l => l.properties.place.name).sort().join('\n');
+          if (total > 10) label += '\n+' + (total - 10) + ' more';
+          el.textContent = label;
+        } else {
+          el.textContent = target.properties.place.name;
+        }
+        el.style.left = (cp.x + 12) + 'px';
+        el.style.top = (cp.y - 8) + 'px';
+        el.style.display = 'block';
+      },
+
+      _hideTooltip: function() {
+        if (this._tooltipEl) this._tooltipEl.style.display = 'none';
+      },
+
+    });
+
+    function createPlaceLayerGroup() {
+      const layer = new PlaceCanvasLayer();
+      layer.setUseClusters(getClusterPlaces());
+      return layer;
     }
 
-    // Swap the place layer group in place when the clustering preference flips,
-    // so the toggle doesn't force a full map rebuild (which scrolls the view).
-    // Brief opacity fade on the marker pane softens the otherwise-instant swap.
+    // Apply the clustering preference to the live canvas layer; no map rebuild.
     function swapPlaceClusterGroup() {
-      const map = state.currentMap;
-      const old = state._placeClusterGroup;
-      if (!map || !old) return;
-      const pane = map.getPane('markerPane');
-      const reducedMotion = window.matchMedia
-        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const swap = () => {
-        if (map.hasLayer(old)) map.removeLayer(old);
-        old.clearLayers();
-        state._placeClusterGroup = createPlaceLayerGroup();
-        applyMapFilters();
-        if (pane && !reducedMotion) {
-          requestAnimationFrame(() => { pane.style.opacity = '1'; });
-        }
-      };
-      if (pane && !reducedMotion) {
-        pane.style.transition = 'opacity 120ms ease-out';
-        pane.style.opacity = '0';
-        setTimeout(swap, 120);
-      } else {
-        swap();
-      }
+      const cg = state._placeClusterGroup;
+      if (!cg || typeof cg.setUseClusters !== 'function') return;
+      cg.setUseClusters(getClusterPlaces());
     }
 
     function applyMapFilters() {
@@ -3717,16 +4150,16 @@
       // Places
       const cg = state._placeClusterGroup;
       if (cg) {
-        cg.clearLayers();
-        if (placesEnabled() && state._placeMarkers) {
-          for (const m of state._placeMarkers) {
-            const p = m._placeData;
+        const filtered = [];
+        if (placesEnabled() && state._placeRecords) {
+          for (const p of state._placeRecords) {
             if (state.hiddenCategories.has(p.category)) continue;
             if (p.visited && !state.showVisited) continue;
             if (!p.visited && !state.showWant) continue;
-            cg.addLayer(m);
+            filtered.push(p);
           }
         }
+        cg.setPlaces(filtered);
         if (placesEnabled()) {
           if (!map.hasLayer(cg)) map.addLayer(cg);
         } else if (map.hasLayer(cg)) {
@@ -3805,9 +4238,9 @@
         if (!row) return;
         if (row.dataset.type === 'place') {
           const name = row.dataset.name;
-          const marker = state._placeMarkers.find(m => m._placeData.name === name);
-          if (marker) {
-            revealPlaceMarker(map, marker);
+          const place = (state._placeRecords || []).find(p => p.name === name);
+          if (place) {
+            revealPlaceMarker(map, place);
             history.replaceState(null, '', '#/?focus=place:' + encodeURIComponent(name));
           }
         } else {
@@ -4363,7 +4796,8 @@
         attributionControl: false,
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
-        preferCanvas: true
+        markerZoomAnimation: false,
+        renderer: L.svg()
       }).setView(dvt.center, dvt.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
@@ -4423,6 +4857,12 @@
           async: true,
           polyline_options: { color: ROUTE_COLOR, opacity: 0.35, weight: 4 * getTrailWeightFactor(), dashArray: '8 6' },
           markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
+        }).on('loaded', function(e) {
+          e.target.eachLayer(function(ly) {
+            if (ly instanceof L.Polyline && ly._path) {
+              ly._path.setAttribute('vector-effect', 'non-scaling-stroke');
+            }
+          });
         }).addTo(map);
       }
 
@@ -4456,6 +4896,11 @@
         const gpx = e.target;
         const bounds = gpx.getBounds();
         if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
+        gpx.eachLayer(function(ly) {
+          if (ly instanceof L.Polyline && ly._path) {
+            ly._path.setAttribute('vector-effect', 'non-scaling-stroke');
+          }
+        });
 
         const layers = [];
         gpx.eachLayer(function(layer) { if (layer.getLatLngs) layers.push(layer); });
@@ -4652,6 +5097,11 @@
       document.documentElement.setAttribute('data-theme', theme);
       document.documentElement.setAttribute('data-mode', eff);
       _trailColorCache = null;
+      // Canvas clusters read theme CSS variables on each draw; force a
+      // redraw so the new theme's cluster colors apply immediately.
+      if (state && state._placeClusterGroup && state._placeClusterGroup.redraw) {
+        state._placeClusterGroup.redraw();
+      }
     }
     const PIN_STYLES = ['ring', 'pin', 'dot', 'tag'];
     function getPinStyle() {
