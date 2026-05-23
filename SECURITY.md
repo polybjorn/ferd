@@ -8,7 +8,7 @@ Before the first user registers, registration is open. If the site is reachable 
 
 Three ways to close the window:
 
-1. **Don't expose Atlas to the public internet until you've registered.** Easiest for private deploys behind a VPN or LAN.
+1. **Don't expose the site to the public internet until you've registered.** Easiest for private deploys behind a VPN or LAN.
 2. **Pre-seed the admin account.** Set `initial_user` and `initial_password` in `tools/config.json`. On first start with no users, the account is created and registration is already closed by the time the API accepts its first request.
 3. **Require a setup token.** Set `require_setup_token: true`. On first start the API generates a random token and prints it to stderr. Registration is open but the first registration must supply the token. The token is consumed once the first account exists.
 
@@ -51,15 +51,15 @@ In production, nginx serves the static content directly. The example config in `
 
 ## SQLite
 
-`tools/atlas.db` holds password hashes and active session tokens. Created 0600. WAL and SHM siblings created at the same permissions.
+`tools/app.db` holds password hashes and active session tokens. Created 0600. WAL and SHM siblings created at the same permissions.
 
-Backup includes this file. The whole users + sessions state lives in three files: `tools/atlas.db`, `tools/atlas.db-shm`, `tools/atlas.db-wal`. Use any backup tool that handles SQLite (or stop the service before snapshotting).
+Backup includes this file. The whole users + sessions state lives in three files: `tools/app.db`, `tools/app.db-shm`, `tools/app.db-wal`. Use any backup tool that handles SQLite (or stop the service before snapshotting).
 
-## What Atlas does not protect against
+## What the app does not protect against
 
 - A malicious admin. The model is "single-user, trusted admin".
 - A compromise of the box. Anything on the host can read the DB and the data files.
-- A network attacker between you and the site if you skip TLS. Always front Atlas with HTTPS in production.
+- A network attacker between you and the site if you skip TLS. Always front it with HTTPS in production.
 - Cross-site request forgery on browsers older than 2020 that ignore `SameSite=Lax`. The modern major browsers respect it; we don't carry a CSRF token.
 
 ## Backups
@@ -67,7 +67,7 @@ Backup includes this file. The whole users + sessions state lives in three files
 Two paths matter:
 
 - `users/` (everyone's places, trails, and prefs; symlinks within are followed at write time)
-- `tools/atlas.db*` (users, sessions, publish flags, site-wide settings)
+- `tools/app.db*` (users, sessions, publish flags, site-wide settings)
 
 Lose the first and you lose data. Lose the second and you have to register a new account but your data survives. Each user can also download a per-user zip export from Settings.
 

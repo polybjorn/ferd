@@ -65,8 +65,8 @@ Full walk-through in [docs/install.md](docs/install.md). Docker path in [docs/do
 
 | Guide | Covers |
 | --- | --- |
-| [Install](docs/install.md) | How to set up Atlas on your own server. |
-| [Docker](docs/docker.md) | How to run Atlas in a container. |
+| [Install](docs/install.md) | How to set up on your own server. |
+| [Docker](docs/docker.md) | How to run in a container. |
 | [Configuration](docs/configure.md) | Settings and feature flags you can tweak. |
 | [Themes](docs/themes.md) | Look and feel options, and how to add your own. |
 | [Architecture](docs/architecture.md) | How the code is organized and where data lives. |

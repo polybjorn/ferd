@@ -24,7 +24,7 @@ atlas.example.com {
     reverse_proxy /api/* 127.0.0.1:8091
 
     # Block direct access to the SQLite DB and API config.
-    @blocked path /tools/atlas.db /tools/config.json
+    @blocked path /tools/app.db /tools/config.json
     respond @blocked 404
 
     # Static site with SPA-style fallback.

@@ -1,6 +1,6 @@
 # Design conventions
 
-Atlas is a single-file frontend (`index.html`), no framework, plus a Python API. Reuse existing selectors and behaviors rather than inventing new ones.
+Single-file frontend (`index.html`), no framework, plus a Python API. Reuse existing selectors and behaviors rather than inventing new ones.
 
 ## Platform targets
 
