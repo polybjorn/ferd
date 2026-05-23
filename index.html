@@ -4857,6 +4857,10 @@
       }).setView(dvt.center, dvt.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
+      // Detail layout hasn't finished sizing when L.map() snapshots the
+      // container, so trail polylines render against a stale viewport
+      // until something nudges Leaflet. Force a recalc on the next frame.
+      requestAnimationFrame(function() { map.invalidateSize(); });
       // Counter-scale trail stroke widths during zoom. 'zoom' covers
       // mobile pinch (fires per frame); zoomanim kicks off a brief rAF
       // loop to cover the desktop 250ms CSS animation where 'zoom'
