@@ -2228,7 +2228,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v29</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v30</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3766,6 +3766,7 @@
         map.on('moveend', this._redraw, this);
         map.on('zoomend', this._redraw, this);
         map.on('zoomanim', this._animateZoom, this);
+        map.on('zoom', this._onZoom, this);
         map.on('resize', this._onResize, this);
         map.on('click', this._onClick, this);
         map.on('mousemove', this._onMouseMove, this);
@@ -3784,6 +3785,7 @@
         map.off('moveend', this._redraw, this);
         map.off('zoomend', this._redraw, this);
         map.off('zoomanim', this._animateZoom, this);
+        map.off('zoom', this._onZoom, this);
         map.off('resize', this._onResize, this);
         map.off('click', this._onClick, this);
         map.off('mousemove', this._onMouseMove, this);
@@ -3795,12 +3797,24 @@
 
       // Follow the zoom animation by CSS-transforming the canvas to match
       // the tile pane's scale/offset. Without this the canvas just teleports
-      // at zoomend, causing visible jank during pinch zoom.
+      // at zoomend, causing visible jank.
       _animateZoom: function(e) {
+        this._applyZoomTransform(e.zoom, e.center);
+      },
+
+      // On mobile pinch, Leaflet doesn't fire zoomanim continuously; it just
+      // updates center/zoom and emits the 'zoom' event per rAF frame. Mirror
+      // the transform on every zoom event so the canvas follows the pinch
+      // gesture, not just the snap-to-integer animation at the end.
+      _onZoom: function() {
+        this._applyZoomTransform(this._map.getZoom(), this._map.getCenter());
+      },
+
+      _applyZoomTransform: function(zoom, center) {
         if (!this._canvas || this._renderZoom == null) return;
-        const scale = this._map.getZoomScale(e.zoom, this._renderZoom);
+        const scale = this._map.getZoomScale(zoom, this._renderZoom);
         const offset = this._map._latLngBoundsToNewLayerBounds(
-          this._renderBounds, e.zoom, e.center).min;
+          this._renderBounds, zoom, center).min;
         L.DomUtil.setTransform(this._canvas, offset, scale);
       },
 
