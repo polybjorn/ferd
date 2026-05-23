@@ -364,12 +364,15 @@
     .leaflet-div-icon { background: transparent; border: none; }
     /* Selector targets .leaflet-tile-container so it applies to both the
        <img> tiles and the per-level <canvas> created by the NoGap plugin. */
-    /* GPU hint: promote panes to their own composited layer so
-       transforms during pinch-zoom run on the GPU. */
-    .leaflet-overlay-pane,
-    .leaflet-marker-pane,
-    .leaflet-shadow-pane {
-      will-change: transform;
+    /* Hide overlay (trails/canvas) and marker panes during the entire
+       pinch-zoom gesture. The .leaflet-container.zooming class is added
+       on zoomstart and removed on zoomend by the boot script.
+       (GPU hints alone weren't enough; on devices with many features
+       visible at low zoom, the cheaper path is to skip painting.) */
+    .leaflet-container.zooming .leaflet-overlay-pane,
+    .leaflet-container.zooming .leaflet-marker-pane,
+    .leaflet-container.zooming .leaflet-shadow-pane {
+      visibility: hidden;
     }
     [data-tile-filter="muted"] .leaflet-tile-container { filter: saturate(0.35) brightness(0.95) contrast(0.95); }
     [data-tile-filter="grayscale"] .leaflet-tile-container { filter: grayscale(1); }
@@ -2173,7 +2176,39 @@
     }
     .pwa-banner.visible { display: flex; }
     .pwa-banner.offline { background: #fff3cd; color: #663c00; border-bottom-color: #f0d27a; }
-    .pwa-banner button {
+    /* Floating "Update available" toast: detached from the sticky stack,
+       centered with side padding so it doesn't reach edges, and slides
+       down on appear. */
+    .pwa-update-toast {
+      display: none;
+      position: fixed;
+      top: 64px;
+      left: 50%;
+      transform: translateX(-50%);
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 1rem;
+      max-width: calc(100vw - 2rem);
+      font-size: 0.85rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+      z-index: 1500;
+    }
+    .pwa-update-toast.visible {
+      display: flex;
+      animation: pwa-update-toast-in 220ms ease-out;
+    }
+    @keyframes pwa-update-toast-in {
+      from { opacity: 0; transform: translate(-50%, -12px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pwa-update-toast.visible { animation: none; }
+    }
+    .pwa-banner button,
+    .pwa-update-toast button {
       padding: 0.25rem 0.75rem;
       font-size: 0.85rem;
       font-weight: 500;
@@ -2183,13 +2218,14 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    .pwa-banner button:hover { opacity: 0.85; }
+    .pwa-banner button:hover,
+    .pwa-update-toast button:hover { opacity: 0.85; }
   </style>
 </head>
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v19</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v20</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -2202,7 +2238,7 @@
     </div>
   </nav>
   <div id="pwa-offline-banner" class="pwa-banner offline">You're offline. Read-only mode.</div>
-  <div id="pwa-update-banner" class="pwa-banner">
+  <div id="pwa-update-banner" class="pwa-update-toast">
     <span>Update available.</span>
     <button id="pwa-update-btn" type="button">Reload</button>
   </div>
