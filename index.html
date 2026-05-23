@@ -364,12 +364,33 @@
     .leaflet-div-icon { background: transparent; border: none; }
     /* Selector targets .leaflet-tile-container so it applies to both the
        <img> tiles and the per-level <canvas> created by the NoGap plugin. */
-    /* Hide overlay/marker/shadow panes during pinch-zoom. The class is
-       toggled by zoomstart/zoomend listeners in the boot script. */
-    .leaflet-container.zooming .leaflet-overlay-pane,
-    .leaflet-container.zooming .leaflet-marker-pane,
-    .leaflet-container.zooming .leaflet-shadow-pane {
-      visibility: hidden;
+    /* Coarse-pointer only (mobile): hide overlay/shadow during pinch
+       and simplify marker icons to a single pseudo-element dot so the
+       composite cost per marker drops dramatically while pins remain
+       visible. Desktop is unaffected. Toggled by zoomstart/zoomend. */
+    @media (pointer: coarse) {
+      .leaflet-container.zooming .leaflet-overlay-pane,
+      .leaflet-container.zooming .leaflet-shadow-pane {
+        visibility: hidden;
+      }
+      .leaflet-container.zooming .leaflet-marker-icon > svg,
+      .leaflet-container.zooming .marker-cluster > div {
+        visibility: hidden;
+      }
+      .leaflet-container.zooming .leaflet-marker-icon::before,
+      .leaflet-container.zooming .marker-cluster::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 10px;
+        height: 10px;
+        margin: -5px 0 0 -5px;
+        background: var(--accent);
+        border: 1.5px solid var(--bg);
+        border-radius: 50%;
+        box-sizing: border-box;
+      }
     }
     [data-tile-filter="muted"] .leaflet-tile-container { filter: saturate(0.35) brightness(0.95) contrast(0.95); }
     [data-tile-filter="grayscale"] .leaflet-tile-container { filter: grayscale(1); }
@@ -2222,7 +2243,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v24</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v25</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
