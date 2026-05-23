@@ -67,3 +67,9 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 - Design proper PWA icons (192, 512, maskable PNG) to replace the SVG favicon fallback.
 - Bundle leaflet-elevation's runtime deps (d3, togeojson, geometryutil, almostover) so the elevation chart works offline.
 - Automate the service worker `CACHE_VERSION` bump on release (currently a manual line edit in `sw.js`).
+
+## License
+
+Copyright (C) 2026 Bjørn A. Andersen.
+
+Ferd is licensed under the GNU General Public License v3.0 or later. See [LICENSE](LICENSE) for the full text and [vendor/NOTICES.md](vendor/NOTICES.md) for third-party library licenses.
