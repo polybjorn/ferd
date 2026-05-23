@@ -25,7 +25,20 @@ For "always on" without keeping a terminal open, use your usual process manager 
 sudo ./deploy/install.sh --yes
 ```
 
-Audit the script first if you like (`less deploy/install.sh`); it's a couple of hundred lines of `cp`, `useradd`, and `systemctl`. macOS users: there's a `deploy/ferd-api.plist` launchd template instead. Either way, see [configure.md](configure.md) for every config knob.
+Audit the script first if you like (`less deploy/install.sh`); it's a couple of hundred lines of `cp`, `useradd`, and `systemctl`.
+
+### macOS (launchd)
+
+Edit the `/Users/YOU/ferd` paths in `deploy/ferd-api.plist`, then load it as a per-user agent:
+
+```sh
+cp deploy/ferd-api.plist ~/Library/LaunchAgents/local.ferd-api.plist
+launchctl load ~/Library/LaunchAgents/local.ferd-api.plist
+```
+
+Logs land at `tools/ferd-api.log`. Reload with `launchctl unload` then `launchctl load`. Drop the plist into `/Library/LaunchDaemons/` instead for a system-wide service (runs without your login session).
+
+See [configure.md](configure.md) for every config knob.
 
 ## Exposing it on a public domain
 
