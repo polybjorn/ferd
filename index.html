@@ -2228,7 +2228,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v35</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v36</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3763,12 +3763,13 @@
           'place-canvas-layer',
           map.getPane(this.options.pane));
         this._sizeCanvas();
-        // 'move' fires on every pan/pinch frame (mobile pinch coverage).
-        // 'zoomanim' fires once for desktop animated zooms; we CSS-transform
-        // the canvas to follow that 250ms animation. 'zoomend' fires after
-        // the animation and re-draws at the final fractional positions.
-        map.on('move', this._redraw, this);
+        // During movement: CSS-transform the canvas (cheap, smooth, scales
+        // pins as you zoom). At rest: redraw so pins land at crisp pixel
+        // positions and final size. 'zoomanim' adds a transition class so
+        // the desktop 250ms zoom is smooth; pinch frames bypass it.
+        map.on('move', this._onMove, this);
         map.on('zoomanim', this._onZoomAnim, this);
+        map.on('moveend', this._redraw, this);
         map.on('zoomend', this._redraw, this);
         map.on('resize', this._redraw, this);
         map.on('click', this._onClick, this);
@@ -3785,8 +3786,9 @@
         if (this._tooltipEl && this._tooltipEl.parentNode) {
           this._tooltipEl.parentNode.removeChild(this._tooltipEl);
         }
-        map.off('move', this._redraw, this);
+        map.off('move', this._onMove, this);
         map.off('zoomanim', this._onZoomAnim, this);
+        map.off('moveend', this._redraw, this);
         map.off('zoomend', this._redraw, this);
         map.off('resize', this._redraw, this);
         map.off('click', this._onClick, this);
@@ -4061,11 +4063,23 @@
         if (this._tooltipEl) this._tooltipEl.style.display = 'none';
       },
 
-      // Desktop animated zoom (scroll-wheel etc.): zoomanim fires once with
-      // the target zoom; we add the leaflet-zoom-animated class (transition:
-      // transform 0.25s) and setTransform to the target. The canvas content,
-      // still drawn at the previous zoom, scales smoothly to the new view.
-      // _redraw runs at zoomend, removes the class and repositions cleanly.
+      // Continuous movement (pan, pinch frames). Apply transform instantly
+      // relative to the last full redraw's state. No CSS transition; the
+      // gesture itself drives motion. Pins visually scale with the canvas.
+      _onMove: function() {
+        if (!this._canvas || this._renderZoom == null) return;
+        this._canvas.classList.remove('leaflet-zoom-animated');
+        const map = this._map;
+        const scale = map.getZoomScale(map.getZoom(), this._renderZoom);
+        const offset = map._latLngBoundsToNewLayerBounds(
+          this._renderBounds, map.getZoom(), map.getCenter()).min;
+        L.DomUtil.setTransform(this._canvas, offset, scale);
+      },
+
+      // Desktop animated zoom (scroll-wheel, double-click, etc.). zoomanim
+      // fires once with the target zoom; we add the leaflet-zoom-animated
+      // class (CSS transition: transform 0.25s) and setTransform to the
+      // target. _redraw at zoomend removes the class and repositions cleanly.
       _onZoomAnim: function(e) {
         if (!this._canvas || this._renderZoom == null) return;
         this._canvas.classList.add('leaflet-zoom-animated');
