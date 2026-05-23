@@ -4,7 +4,7 @@ Thanks for considering a contribution. This is a small project; the bar for chan
 
 ## Run it locally
 
-Follow the [Direct (no reverse proxy)](docs/install.md#direct-no-reverse-proxy) setup in install.md, with two dev tweaks: bind `127.0.0.1:8090` (loopback only - do not expose the dev server) and skip the seeded admin so you can exercise the register flow. Env-var one-liner if you'd rather not edit `tools/config.json`:
+Follow the [With plain Python](docs/install.md#with-plain-python) setup in install.md, with two dev tweaks: bind `127.0.0.1:8090` (loopback only - do not expose the dev server) and skip the seeded admin so you can exercise the register flow. Env-var one-liner if you'd rather not edit `tools/config.json`:
 
 ```sh
 cp site-config.example.json site-config.json
