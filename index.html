@@ -2228,7 +2228,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v32</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v33</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3763,8 +3763,11 @@
           'place-canvas-layer',
           map.getPane(this.options.pane));
         this._sizeCanvas();
-        map.on('move zoom', this._redrawScheduled, this);
-        map.on('moveend zoomend resize', this._redraw, this);
+        // 'move' fires from L.Map._move on every pan/pinch frame and
+        // covers both translation and zoom changes; synchronous redraw
+        // here keeps the canvas in lockstep with the map state update.
+        map.on('move', this._redraw, this);
+        map.on('resize', this._redraw, this);
         map.on('click', this._onClick, this);
         map.on('mousemove', this._onMouseMove, this);
         map.on('mouseout', this._hideTooltip, this);
@@ -3779,8 +3782,8 @@
         if (this._tooltipEl && this._tooltipEl.parentNode) {
           this._tooltipEl.parentNode.removeChild(this._tooltipEl);
         }
-        map.off('move zoom', this._redrawScheduled, this);
-        map.off('moveend zoomend resize', this._redraw, this);
+        map.off('move', this._redraw, this);
+        map.off('resize', this._redraw, this);
         map.off('click', this._onClick, this);
         map.off('mousemove', this._onMouseMove, this);
         map.off('mouseout', this._hideTooltip, this);
@@ -3789,15 +3792,6 @@
         return this;
       },
 
-      // Schedule a redraw on the next animation frame so per-frame map
-      // events (pan, pinch) coalesce into one canvas draw per frame.
-      _redrawScheduled: function() {
-        if (this._redrawRaf) return;
-        this._redrawRaf = L.Util.requestAnimFrame(() => {
-          this._redrawRaf = null;
-          this._redraw();
-        });
-      },
 
       _sizeCanvas: function() {
         const map = this._map;
