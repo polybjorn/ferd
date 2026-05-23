@@ -130,12 +130,12 @@ curl -b jar http://localhost:8090/api/state
 curl -b jar http://localhost:8090/api/places
 ```
 
-Upload a GPX with PII stripped, into the "Rogaland" region:
+Upload a GPX with PII stripped, into a region:
 
 ```
 curl -b jar -X POST \
-  'http://localhost:8090/api/gpx?name=Preikestolen&region=Rogaland&strip_pii=true' \
-  --data-binary @preikestolen.gpx
+  'http://localhost:8090/api/gpx?name=My%20Trail&region=Alps&strip_pii=true' \
+  --data-binary @my-trail.gpx
 ```
 
 Export everything as a zip:
