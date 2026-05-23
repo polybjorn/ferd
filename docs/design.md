@@ -4,29 +4,29 @@ Atlas is a single-file frontend (`index.html`), no framework, plus a Python API.
 
 ## Platform targets
 
-Floors, not stretch goals. Drift from these needs a real reason.
+These are minimums. Don't drop below them without a real reason.
 
 - **Browsers:** Baseline Widely Available (caniuse.com / web-platform-dx).
-- **Viewport:** desktop primary (>=1024 px), mobile portrait works down to 320 px. No PWA, no native wrapper.
-- **JavaScript:** track baseline. No transpilation step.
-- **CSS:** baseline only. `:has()`, `:is()`, `:where()`, grid, flex, custom properties, logical properties, `aspect-ratio`, `prefers-*` are in. Container queries, subgrid, `color-mix()`, anchor positioning - wait for baseline.
-- **Build pipeline:** none today. A bundler is allowed if it earns its keep; default answer is no.
-- **Accessibility:** required. Semantic HTML, labels on every input, Esc closes modals, `prefers-reduced-motion` respected, WCAG AA contrast on every theme.
-- **Network:** online-only. API unreachable -> visible error. No service worker, no offline cache.
-- **Performance:** soft target <1s first paint on a 5-year-old laptop, <500 KB initial JS+CSS+HTML (excluding tiles/GPX).
-- **i18n:** English UI today. Keep the language `<select>` infrastructure so localization can be added later. Data round-trips arbitrary Unicode.
-- **Third-party at runtime:** none except map tile providers. No analytics, no third-party fonts, no external APIs from the page.
+- **Viewport:** desktop first (>=1024 px). Mobile portrait works down to 320 px. No PWA, no native wrapper.
+- **JavaScript:** baseline. No transpilation step.
+- **CSS:** baseline only. In: `:has()`, `:is()`, `:where()`, grid, flex, custom properties, logical properties, `aspect-ratio`, `prefers-*`. Wait for baseline: container queries, subgrid, `color-mix()`, anchor positioning.
+- **Build pipeline:** none. A bundler is allowed if it earns its keep; default answer is no.
+- **Accessibility:** required. Semantic HTML, labels on every input, Esc closes modals, `prefers-reduced-motion` is respected, WCAG AA contrast on every theme.
+- **Network:** online-only. If the API is unreachable, show a visible error. No service worker, no offline cache.
+- **Performance:** soft target under 1s first paint on a 5-year-old laptop, under 500 KB of JS+CSS+HTML on first load (tiles and GPX excluded).
+- **i18n:** English UI today. Keep the language `<select>` in place so localization can be added later. Data round-trips arbitrary Unicode.
+- **Third-party at runtime:** none, except map tile providers. No analytics, no third-party fonts, no external APIs from the page.
 
 ## Modal anatomy
 
-- Title row: `<h2>Title<button class="modal-close">&times;</button></h2>`. X (and Esc) closes. No bottom Close button. Exception: the Add modal uses a floating `.modal-close-floating` in the modal corner instead of an h2, so the Place/Trail tabs sit at the top.
-- Tabs: `<div class="modal-tabs">` + `<button data-tab="X">` children. Panels are `<div data-panel="X">` toggled via `hidden`. Render all panels at openModal time so handlers stay wired across switches.
-- Section headers: `<h3 class="settings-h">`. Noun phrases ("Sharing", "Backup") - never verb phrases ("Publish my map").
+- Title row: `<h2>Title<button class="modal-close">&times;</button></h2>`. The X (and Esc) closes. No bottom Close button. Exception: the Add modal uses a floating `.modal-close-floating` in the corner so the Place/Trail tabs can sit at the top.
+- Tabs: `<div class="modal-tabs">` containing `<button data-tab="X">`. Panels are `<div data-panel="X">` toggled with the `hidden` attribute. Render every panel up front so click handlers stay attached when the user switches tabs.
+- Section headers: `<h3 class="settings-h">`. Use noun phrases ("Sharing", "Backup"), not verb phrases ("Publish my map").
 - Section descriptions: `<div class="modal-desc">`. Don't use `.hint` (muted gray) inside settings.
-- Settings modal: tabs are General / Appearance / Account / Admin / Logs (the last two only for admins). Backdrop is pinned to the top (`align-items: flex-start`) with 3rem top + 3rem bottom padding so different panel heights don't recenter the modal as the user switches tabs.
-- Sticky footer toolbar: a panel can pin a row of actions to the bottom of the modal viewport (see `.log-toolbar` on the Logs tab) using `position: sticky; bottom: -1.25rem` plus negative horizontal margins to cancel the modal padding. Use sparingly: only for actions that must stay reachable while a long list scrolls.
-- Stacking: modals form a stack (`modalStack`). `openModal` appends a new backdrop; `closeTopModal()` removes the topmost. Each modal gets `z-index: 2000 + 10*depth` so nested confirms (`openConfirmModal`) sit above the modal that opened them. Closing animates over 100ms before the backdrop is removed.
-- Confirm dialogs: use `openConfirmModal({ title, body, confirmLabel, danger })`. Returns a Promise<boolean>. Pair destructive actions (delete, force-unpublish, demote, revoke sessions) with `danger: true` so the confirm button uses `.danger-btn` styling. Enter confirms, Esc / Cancel / X / backdrop cancels.
+- Settings modal: tabs are General / Appearance / Account / Admin / Logs (the last two only for admins). The backdrop is pinned to the top (`align-items: flex-start`) with 3rem of top and bottom padding so the modal doesn't jump vertically as the user switches between tabs of different heights.
+- Sticky footer toolbar: a panel can pin a row of actions to the bottom of the modal viewport (see `.log-toolbar` on the Logs tab) using `position: sticky; bottom: -1.25rem` plus negative horizontal margins to cancel the modal's own padding. Use sparingly, only for actions that must stay reachable while a long list scrolls.
+- Stacking: open modals form a stack (`modalStack`). `openModal` appends a backdrop; `closeTopModal()` removes the topmost one. Each modal gets `z-index: 2000 + 10*depth` so nested confirm dialogs sit above the modal that opened them. Closing animates for 100ms before the backdrop is removed from the DOM.
+- Confirm dialogs: use `openConfirmModal({ title, body, confirmLabel, danger })`. Returns a `Promise<boolean>`. Pair destructive actions (delete, force-unpublish, demote, revoke sessions) with `danger: true` so the confirm button picks up `.danger-btn` styling. Enter confirms; Esc / Cancel / X / backdrop click cancels.
 
 ## Buttons
 
@@ -36,29 +36,40 @@ Floors, not stretch goals. Drift from these needs a real reason.
 | (default) | Secondary actions | Outlined |
 | `.sessions-revoke-others` style | Inline text-link next to a header | Transparent, underline on hover |
 
-Placement: form-bottom submits in `<div class="modal-actions">`. Description+button or input+button pairs use inline flex rows. When the row pairs a wrapped description with a button, set `align-items: flex-start` so the description sits at the top of the row instead of being pulled down to match the button height.
+Placement: the submit button at the bottom of a form lives in `<div class="modal-actions">`. Description-plus-button and input-plus-button pairs use inline flex rows. When the description wraps to multiple lines, set `align-items: flex-start` so the text starts at the top instead of being pulled down to match the button's height.
 
-`.primary` is themed for both modal and non-modal contexts (e.g. list-page Add buttons): the modal selector wins inside modals via specificity, the bare `button.primary` rule covers everywhere else.
+`.primary` works in both modal and non-modal contexts (e.g. the Add buttons on list pages). The modal-scoped rule wins inside modals via specificity; the bare `button.primary` rule covers everywhere else.
+
+Specificity gotcha: the generic rule `.modal button:not(.modal-close)` is (0,2,2) because `:not()` takes the highest specificity of its argument. To beat it, repeat the `:not()` on your selector (e.g. `.modal button.primary:not(.modal-close)`).
 
 ## Forms and inputs
 
-- `<label>` block above the input. Helper text in `.modal-desc` below.
-- File pickers: hide native input with `.file-input-hidden`, render a styled `<button>Choose file</button>` + `.file-name` span. Canonical example: Backup -> Import.
-- Settings input types: `.settings-toggle` (styled checkbox) for binary on/off, `.radio-row.radio-pills` for small fixed single-select sets (use `radioPillsHtml`), `.star-rating` for 1-5 ratings (use `starRatingHtml` + `wireStarRating` + `readStarRating`), `<select>` for many-option selects. `.feature-pill` is for multi-select toggle groups (Visible features, Optional fields). `.btn-x` is the small × icon button for row-level removes (categories/regions managers).
-- Settings layout primitives: `.settings-grid-2` pairs two short selects side-by-side (label row above, control row below). `.settings-inline-row` puts label left, control right on one row (fixed 9rem label column so pill groups align across rows; switches to flex with `order: -1` on the toggle so slider sits left of label). `.toggle-grid` stacks toggle rows in a 2-column grid to save vertical space.
-- Collapsible reveal: `<div class="collapsible">` wraps an inner `<div class="collapsible-inner">`. Toggle the `.expanded` class on the outer to animate height (250ms grid-rows + opacity). Used for conditional fields (Visited -> date/rating, Completed -> date/rating).
+- `<label>` sits on its own line above the input. Helper text goes in `.modal-desc` below.
+- File pickers: hide the native input with `.file-input-hidden` and render a styled `<button>Choose file</button>` next to a `.file-name` span. The Backup -> Import row is the canonical example.
+- Input types by purpose:
+  - `.settings-toggle` (styled checkbox) for binary on/off.
+  - `.radio-row.radio-pills` for small fixed single-select sets (use `radioPillsHtml`).
+  - `.star-rating` for 1-5 ratings (use `starRatingHtml` + `wireStarRating` + `readStarRating`).
+  - `<select>` for longer single-select lists.
+  - `.feature-pill` for multi-select toggle groups (Visible features, Optional fields).
+  - `.btn-x` for the small × that removes a row in the categories/regions managers.
+- Layout primitives:
+  - `.settings-grid-2` pairs two short selects side-by-side (label row above, control row below).
+  - `.settings-inline-row` puts the label on the left and the control on the right. The label column is fixed at 9rem so pill groups line up across rows. When the row contains a `.settings-toggle`, it switches to flex with `order: -1` on the toggle so the slider sits to the left of its label.
+  - `.toggle-grid` stacks toggle rows in a 2-column grid to save vertical space.
+- Collapsible reveal: wrap content in `<div class="collapsible"><div class="collapsible-inner">...</div></div>`. Toggle the `.expanded` class on the outer div to animate height (250ms grid-rows + opacity). Used for conditional fields like Visited -> date/rating and Completed -> date/rating.
 
 ## Toggle switch
 
-Markup: `<input type="checkbox" class="settings-toggle" id="…">`. The input itself becomes the styled toggle via `appearance: none` + a `::after` knob, scoped with `.modal input[type="checkbox"].settings-toggle` so it wins over `.modal label`. The track uses `var(--border)` (off) and `var(--accent)` (on); the knob is `var(--surface)` in both states. Convention: slider sits to the left of its `<label for="…">`. `.settings-inline-row` handles this automatically (rule: when the row contains a `.settings-toggle`, switch to flex with `order: -1` on the toggle).
+Markup: `<input type="checkbox" class="settings-toggle" id="…">`. The input itself becomes the styled toggle: `appearance: none` strips the native checkbox and a `::after` pseudo-element draws the knob. The rule is scoped to `.modal input[type="checkbox"].settings-toggle` so it wins over the generic `.modal label`. The track uses `var(--border)` when off and `var(--accent)` when on; the knob stays `var(--surface)` in both states. The slider should sit to the left of its `<label for="…">`; `.settings-inline-row` does this automatically.
 
 ## Status feedback
 
-- `.modal-error` for failures (red box, toggle `.visible`).
-- `.modal-success` for confirmations (green text, toggle `hidden`). Clear the inputs so the message reads as the new resting state.
-- `.modal-success-box` for confirmations that need the same visual weight as an error (multi-line counts, post-import summary). Mirrors `.modal-error` shape in green; toggle `hidden`.
-- Don't put transient confirmation in a button label - easy to miss.
-- Disabled `<select>` shows muted opacity and a not-allowed cursor (`.modal select:disabled`). Use when an input is reserved for future functionality (e.g. the language picker) so it looks intentional, not broken.
+- `.modal-error` for failures: red box, toggled via `.visible`.
+- `.modal-success` for confirmations: green text, toggled via `hidden`. Clear the inputs so the message reads as the new resting state, not as feedback on a still-filled form.
+- `.modal-success-box` when a confirmation needs the same visual weight as an error (e.g. a multi-line post-import summary). Same shape as `.modal-error` but green; toggled via `hidden`.
+- Don't put transient confirmations in a button label - they're easy to miss.
+- Disabled `<select>` gets muted opacity and a not-allowed cursor (`.modal select:disabled`). Use this when an input is reserved for future functionality (e.g. the language picker) so it looks intentional rather than broken.
 
 ## Themes and colors
 
@@ -66,9 +77,9 @@ Multiple themes x light/dark (see [themes.md](themes.md)). Always use CSS variab
 
 ## List-page index controls
 
-`.index-controls` is the top row on the Places and Trails list pages: search input (flex:1), optional Filters popover, primary Add button. Keep the row to three slots on mobile by folding additional controls (grouping, secondary filters) into the popover rather than adding side-by-side widgets.
+`.index-controls` is the top row on the Places and Trails list pages: search input (flex:1), optional Filters popover, primary Add button. Keep this row to three slots on mobile. New controls (grouping, secondary filters) belong in the popover, not as a fourth widget next to the Add button.
 
-Filters popover: `.filter-dropdown` wraps a `.filter-btn` and a `.filter-popover` anchored to the button's right edge. The popover holds a vertical stack of compact `<select>`s with their first option naming the dimension ("All statuses", "Any difficulty"), so no per-select labels are needed. View-mode controls (e.g. Group by) sit below a `.filter-divider` line. A `.filter-clear` text-link button at the bottom resets every select. The button shows a `Filters (N)` badge with accent border when one or more narrowing filters are active.
+Filters popover: `.filter-dropdown` wraps a `.filter-btn` and a `.filter-popover` anchored to the button's right edge. The popover holds a vertical stack of compact `<select>`s whose first option names the dimension ("All statuses", "Any difficulty"), so no per-select labels are needed. View-mode controls like "Group by" sit below a `.filter-divider` line. A `.filter-clear` text-link button at the bottom resets every select. When one or more narrowing filters are active, the button shows a `Filters (N)` badge with an accent border.
 
 ## UI copy
 
@@ -79,35 +90,13 @@ Filters popover: `.filter-dropdown` wraps a `.filter-btn` and a `.filter-popover
 
 ## Animations
 
-Durations 100-180ms, easing `ease-out` for entry / `ease-in` for exit. All wrapped in `@media (prefers-reduced-motion: reduce) { ... animation: none !important; transition: none !important; }` so reduced-motion users get instant transitions.
+Durations are 100-180ms. Easing is `ease-out` for entry, `ease-in` for exit. Every animation is wrapped in `@media (prefers-reduced-motion: reduce) { ... animation: none !important; transition: none !important; }` so reduced-motion users get instant transitions.
 
 Patterns:
-- **Entry from a class** (FAB appearing, tile picker opening): add class on creation, then call `playEnter(el, cls)` which strips the class after a forced reflow so the transition runs from class-state to base-state. Skipping the reflow batches both styles in one paint and kills the transition.
-- **Leave to a class** (FAB disappearing, tile picker closing): call `playLeave(el, cls, done)`. Adds the class, listens for `transitionend`, falls back to a 300ms timer in case the transition is suppressed (reduced-motion or display:none ancestor).
-- **One-shot keyframe pulse** (chip toggle feedback): `pulseChip(el)` removes any existing pulse class, forces reflow via `forceReflow(el)`, re-adds it. Cleans up on `animationend`.
-- **Modal open/close**: animated by CSS keyframes on `.modal-backdrop` (fade) and `.modal-backdrop > .modal` (scale 0.96 -> 1). Close adds `.closing` which fills-forward to the leaving state.
+- **Entry from a class** (FAB appearing, tile picker opening): add the class when you create the element, then call `playEnter(el, cls)`. It forces a reflow and then strips the class, so the transition runs from the class state back to the base state. Without the reflow, the browser collapses both class changes into one paint and the transition never fires.
+- **Leave to a class** (FAB disappearing, tile picker closing): call `playLeave(el, cls, done)`. It adds the class, listens for `transitionend`, and falls back to a 300ms timer in case the transition is suppressed (reduced motion, or a `display: none` ancestor).
+- **One-shot keyframe pulse** (chip toggle feedback): `pulseChip(el)` removes any existing pulse class, forces a reflow via `forceReflow(el)`, then re-adds the class. It cleans up on `animationend`.
+- **Modal open/close**: handled by CSS keyframes on `.modal-backdrop` (fade) and `.modal-backdrop > .modal` (scale from 0.96 to 1). Close adds `.closing`, which fills forward to the leaving state.
 - **Tab fade**: `.modal [data-panel]:not([hidden]) { animation: tab-fade-in 160ms; }`. Runs whenever a panel becomes visible.
 
-Don't animate map view transitions on settings changes - those are user-initiated state changes, not UI affordances.
-
-## CSS specificity gotcha
-
-The generic rule `.modal button:not(.modal-close)` is (0,2,2) because `:not()` takes the highest specificity of its argument. To win, repeat the `:not()` on your selector:
-
-```css
-.modal .modal-tabs button:not(.modal-close) { ... }
-.modal button.primary:not(.modal-close) { ... }
-```
-
-The `:not(.modal-close)` exclusion deliberately matches any element with `.modal-close`, in or out of an h2, so adding a free-standing `.modal-close` (the Add modal's floating × is the canonical example) automatically opts out of the bordered button styling.
-
-## Future upgrades
-
-Parked items - intentionally out of current scope, captured so they don't get re-litigated from scratch.
-
-| Item | What it adds | Why not now / cost |
-|---|---|---|
-| Print / PDF | Print stylesheet so `Ctrl-P` of a trail detail or places list produces something readable. | Map-heavy content doesn't print well. Maintaining print CSS is a tarpit for small payoff. Revisit if a specific use case appears. |
-| Auth hardening | Optional TOTP 2FA, HIBP k-anonymity password-breach check at register / change-password. (Per-IP login rate-limiting already ships - 10 failures per 15-minute window.) | Current threat model is "stranger guesses a password" against a 12-char minimum on a self-hosted app with login rate-limiting in place. HIBP would introduce a third-party request (currently zero). 2FA needs setup flow + recovery codes + schema. Revisit when the threat model expands. |
-| Photo attachments | Photos on places / trails (thumbnails + originals), shown in popups and detail pages. | Picks a storage strategy (per-user dir alongside `gpx/`, or object store), server-side thumbnailing pipeline, EXIF stripping mirror of the GPX-trkpt PII stripping, backup/import format gains a photos arc. Real scope; not a small evening. |
-| PWA / installable | Installable shell, app-like icon, would unlock service-worker offline cache. | Conflicts with the online-only network policy (a useful PWA needs the service worker and a cached shell). Service workers carry their own staleness / cache-invalidation maintenance. Stays rejected unless offline read-only becomes a real requirement. |
+Don't animate map view changes that come from settings - those are explicit user actions, not UI flourishes.
