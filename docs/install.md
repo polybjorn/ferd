@@ -1,17 +1,15 @@
 # Install
 
-Two reasonable install shapes, in increasing order of moving parts. Pick the one that matches how you plan to use it.
+Two axes: bare-metal Python or Docker, with or without a reverse proxy. The proxy gets you TLS and a clean domain; without it the API binds directly and you reach it on its port. Pick the cell that matches how you plan to use it.
 
-| Setup | API | Reverse proxy | TLS | Good for |
-|---|---|---|---|---|
-| [Local / private network](#1-local--private-network) | yes | no | no | LAN, VPN, mesh overlay |
-| [Public internet](#2-public-internet) | yes | yes | yes | the open web |
+|  | Direct (no proxy) | Behind a reverse proxy (TLS) |
+|---|---|---|
+| **Python** | [Direct (no reverse proxy)](#direct-no-reverse-proxy) - LAN, VPN | [Behind a reverse proxy](#behind-a-reverse-proxy) - open internet |
+| **Docker** | [Quickstart](docker.md#quickstart) - LAN, VPN | [Behind a reverse proxy](docker.md#behind-a-reverse-proxy) - open internet |
 
-Prerequisites are minimal: Python 3.9+ on the host. No build step, no Node. The API is required: every data read and write goes through it.
+Prerequisites are minimal: Python 3.9+ for the bare-metal paths, Docker for the container paths. No build step, no Node. The API is required; every data read and write goes through it.
 
-Prefer containers? There's a Docker path too, mapping onto the same two shapes. See [docker.md](docker.md).
-
-## 1. Local / private network
+## Direct (no reverse proxy)
 
 If the host is only reachable on your LAN or via a private VPN / mesh overlay (e.g. WireGuard, Tailscale, ZeroTier), the API can listen directly. No reverse proxy, no certs.
 
@@ -43,13 +41,13 @@ Run it:
 python3 tools/api.py
 ```
 
-For "always on", drop it under your usual process manager (systemd `--user`, a tmux session, screen, supervisord). Or jump to the public-internet setup below and use the shipped socket-activated unit.
+For "always on", drop it under your usual process manager (systemd `--user`, a tmux session, screen, supervisord). Or jump to [Behind a reverse proxy](#behind-a-reverse-proxy) and use the shipped socket-activated unit.
 
-## 2. Public internet
+## Behind a reverse proxy
 
 The full setup: app behind a system service, reverse proxy in front, TLS at the proxy. Two paths to get there - a guided script, or step-by-step manual.
 
-### 2a. Guided install (recommended)
+### Guided install (recommended)
 
 The repo ships `deploy/install.sh`. It lays files at `/srv/ferd`, creates a `ferd` system user, and installs the socket-activated systemd units. It does not download anything, does not edit your proxy config, and prompts before each destructive step.
 
@@ -69,12 +67,12 @@ sudo ./deploy/install.sh --prefix=/opt/ferd --user=ferd --yes
 When it finishes:
 
 1. Edit `/srv/ferd/tools/config.json` (see [docs/configure.md](configure.md)). At minimum set `secure_cookies: true` and decide between pre-seeded credentials (`initial_user` + `initial_password`) or in-browser registration.
-2. Set up the reverse proxy (see [2c](#2c-reverse-proxy)).
+2. Set up the reverse proxy (see [Proxy config](#proxy-config)).
 3. Open the site, register the first account (or log in with the seeded credentials). The first registrant becomes the admin. Existing data living at the `data_dir` root (`places.json`, `routes.json`, `metadata.json`, `gpx/`) is moved into that admin's `users/<admin>/` folder on first start.
 
 To reverse it: `sudo /srv/ferd/deploy/uninstall.sh` (add `--purge` to also delete the install prefix and its data).
 
-### 2b. Manual install
+### Manual install
 
 Same outcome, every command visible. Use this if you'd rather not run a script, or you're deploying somewhere weird.
 
@@ -109,7 +107,7 @@ How the units work:
 
 If you put files somewhere other than `/srv/ferd`, edit `WorkingDirectory`, `ExecStart`, and `ReadWritePaths` in the service unit accordingly.
 
-### 2c. Reverse proxy
+### Proxy config
 
 Pick one. Both example configs are in `deploy/`.
 
@@ -137,7 +135,7 @@ You provision the cert yourself (certbot, acme.sh). nginx's example also include
 
 Either way, the API has its own internal rate limit on login, so the proxy-side limit is defense in depth.
 
-### 2d. First-run hardening
+### First-run hardening
 
 Between starting the API and registering the first account, registration is open. If the site is reachable from the public internet during that window, a stranger can race you to claim the admin account. Three ways to close it; pick one:
 

@@ -4,7 +4,7 @@ Ferd is a self-hosted single-instance app. The threat model assumes the admin co
 
 ## First-run window
 
-Before the first user registers, registration is open. If the site is reachable from the public internet during the window between deploy and first registration, a stranger can race you to claim the admin account. Close the window via VPN-only access during setup, a pre-seeded admin, or a setup token; see [install.md > First-run hardening](docs/install.md#2d-first-run-hardening) (or [docker.md > Configuration](docs/docker.md#configuration) for the container path).
+Before the first user registers, registration is open. If the site is reachable from the public internet during the window between deploy and first registration, a stranger can race you to claim the admin account. Close the window via VPN-only access during setup, a pre-seeded admin, or a setup token; see [install.md > First-run hardening](docs/install.md#first-run-hardening) (or [docker.md > Configuration](docs/docker.md#configuration) for the container path).
 
 ## Account model
 
