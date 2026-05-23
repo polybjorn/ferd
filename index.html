@@ -2228,7 +2228,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v30</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v31</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3796,17 +3796,22 @@
       },
 
       // Follow the zoom animation by CSS-transforming the canvas to match
-      // the tile pane's scale/offset. Without this the canvas just teleports
-      // at zoomend, causing visible jank.
+      // the tile pane's scale/offset. Desktop scroll zoom: zoomanim fires
+      // once with the target zoom; restore the default CSS transition so
+      // the canvas smoothly animates over 250ms.
       _animateZoom: function(e) {
+        if (this._canvas) this._canvas.style.transition = '';
         this._applyZoomTransform(e.zoom, e.center);
       },
 
-      // On mobile pinch, Leaflet doesn't fire zoomanim continuously; it just
-      // updates center/zoom and emits the 'zoom' event per rAF frame. Mirror
-      // the transform on every zoom event so the canvas follows the pinch
-      // gesture, not just the snap-to-integer animation at the end.
+      // Mobile pinch: Leaflet fires 'zoom' per rAF frame via _move (no
+      // zoomanim during the gesture). With the default CSS transition on
+      // leaflet-zoom-animated, each frame restarts a 250ms interpolation,
+      // so the scale component never catches up and pins appear to only
+      // translate. Disable the transition while the gesture is in flight
+      // and reapply the transform directly each frame.
       _onZoom: function() {
+        if (this._canvas) this._canvas.style.transition = 'none';
         this._applyZoomTransform(this._map.getZoom(), this._map.getCenter());
       },
 
