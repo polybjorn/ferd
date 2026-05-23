@@ -10,13 +10,13 @@ This page is split: ["For users"](#for-users) covers picking a theme; ["For cont
 
 | Theme | Light | Dark | Source |
 |---|---|---|---|
-| Catppuccin | yes | yes | [Pastel, four flavors (Latte, Frappé, Macchiato, Mocha)](https://catppuccin.com/) |
-| Dracula | yes | yes | [Dark theme ported to hundreds of apps](https://draculatheme.com/) |
-| Gruvbox | yes | yes | [Retro groove, warm earth tones](https://github.com/morhetz/gruvbox) |
-| Nord | yes | yes | [Arctic, bluish 16-color palette](https://www.nordtheme.com/) |
-| Rosé Pine | yes | yes | [Soho vibes, three variants](https://rosepinetheme.com/) |
-| Solarized | yes | yes | [Precision colors for machines and people, 16-color](https://ethanschoonover.com/solarized/) |
-| Tokyo Night | yes | yes | [Clean dark theme from VS Code](https://github.com/enkia/tokyo-night-vscode-theme) |
+| Catppuccin | yes | yes | [catppuccin.com](https://catppuccin.com/) |
+| Dracula | yes | yes | [draculatheme.com](https://draculatheme.com/) |
+| Gruvbox | yes | yes | [github.com/morhetz/gruvbox](https://github.com/morhetz/gruvbox) |
+| Nord | yes | yes | [nordtheme.com](https://www.nordtheme.com/) |
+| Rosé Pine | yes | yes | [rosepinetheme.com](https://rosepinetheme.com/) |
+| Solarized | yes | yes | [ethanschoonover.com/solarized](https://ethanschoonover.com/solarized/) |
+| Tokyo Night | yes | yes | [github.com/enkia/tokyo-night-vscode-theme](https://github.com/enkia/tokyo-night-vscode-theme) |
 
 Picked from Settings (gear icon, bottom-right). Mode is "Light", "Dark", or "System" (follows the OS preference and tracks live changes).
 
