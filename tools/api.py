@@ -111,6 +111,7 @@ STATIC_MIME = {
   ".gpx": "application/gpx+xml",
   ".txt": "text/plain; charset=utf-8",
   ".md": "text/markdown; charset=utf-8",
+  ".webmanifest": "application/manifest+json",
 }
 
 

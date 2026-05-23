@@ -1237,5 +1237,32 @@ class TestAuditLogs(unittest.TestCase):
     self.assertGreater(min(first_ids), max(second_ids))
 
 
+class TestStaticPWAHeaders(unittest.TestCase):
+  """Verify static handler serves PWA files with correct headers."""
+
+  def setUp(self):
+    # Drop minimal stand-in files into the server's static_dir so we don't
+    # depend on the repo-root manifest/sw.js layout.
+    (_server.data_dir / "manifest.webmanifest").write_text('{"name":"x"}', encoding="utf-8")
+    (_server.data_dir / "sw.js").write_text("// stub", encoding="utf-8")
+
+  def _head(self, path: str):
+    url = _server.base_url + path
+    req = urllib.request.Request(url, method="GET")
+    with urllib.request.urlopen(req) as r:
+      return r.status, dict(r.headers)
+
+  def test_manifest_content_type(self):
+    status, headers = self._head("/manifest.webmanifest")
+    self.assertEqual(status, 200)
+    self.assertEqual(headers.get("Content-Type"), "application/manifest+json")
+
+  def test_sw_cache_control(self):
+    status, headers = self._head("/sw.js")
+    self.assertEqual(status, 200)
+    # Must not be cached by HTTP cache, so SW updates can roll out.
+    self.assertEqual(headers.get("Cache-Control"), "no-cache")
+
+
 if __name__ == "__main__":
   unittest.main()

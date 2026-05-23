@@ -5,10 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ferd</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
-  <link rel="stylesheet" href="https://unpkg.com/@raruto/leaflet-elevation@2.5.2/dist/leaflet-elevation.css">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#6aaeee">
+  <link rel="apple-touch-icon" href="/favicon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Ferd">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="/vendor/leaflet.markercluster/MarkerCluster.css">
+  <link rel="stylesheet" href="/vendor/leaflet.markercluster/MarkerCluster.Default.css">
+  <link rel="stylesheet" href="/vendor/leaflet-elevation/leaflet-elevation.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     /* Tell native controls (date picker, radios, scrollbars) which palette to
@@ -2142,6 +2148,30 @@
       box-shadow: 0 2px 8px var(--shadow);
       cursor: pointer;
     }
+    .pwa-banner {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 0.4rem 1rem;
+      font-size: 0.85rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 50px;
+      z-index: 999;
+    }
+    .pwa-banner.visible { display: flex; }
+    .pwa-banner.offline { background: #fff3cd; color: #663c00; border-bottom-color: #f0d27a; }
+    .pwa-banner button {
+      padding: 0.2rem 0.6rem;
+      font-size: 0.85rem;
+      border: 1px solid currentColor;
+      background: transparent;
+      color: inherit;
+      border-radius: 3px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -2159,13 +2189,18 @@
       <div class="auth-widget" id="auth-widget"></div>
     </div>
   </nav>
+  <div id="pwa-offline-banner" class="pwa-banner offline">You're offline. Read-only mode.</div>
+  <div id="pwa-update-banner" class="pwa-banner">
+    <span>Update available.</span>
+    <button id="pwa-update-btn" type="button">Reload</button>
+  </div>
   <div id="app"><div class="loading">Loading...</div></div>
   <div id="modal-root"></div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.1.2/gpx.min.js"></script>
-  <script src="https://unpkg.com/@raruto/leaflet-elevation@2.5.2/dist/leaflet-elevation.js"></script>
+  <script src="/vendor/leaflet/leaflet.js"></script>
+  <script src="/vendor/leaflet.markercluster/leaflet.markercluster.js"></script>
+  <script src="/vendor/leaflet-gpx/gpx.min.js"></script>
+  <script src="/vendor/leaflet-elevation/leaflet-elevation.js"></script>
   <script>
     // ----- Shared -----
     // Tableau 20 categorical palette, reordered: indices 0-9 are the saturated
@@ -4644,6 +4679,11 @@
           throw err;
         }
         return data;
+      }, (netErr) => {
+        const err = new Error(navigator.onLine ? 'Network error' : "You're offline. Changes not saved.");
+        err.offline = !navigator.onLine;
+        err.cause = netErr;
+        throw err;
       });
     }
 
@@ -6553,6 +6593,47 @@
         }
         return loadDataAndRender();
       });
+
+    // PWA: offline indicator + service worker registration + update toast.
+    (function() {
+      const offlineBanner = document.getElementById('pwa-offline-banner');
+      const updateBanner = document.getElementById('pwa-update-banner');
+      const updateBtn = document.getElementById('pwa-update-btn');
+
+      function syncOnline() {
+        offlineBanner.classList.toggle('visible', !navigator.onLine);
+      }
+      window.addEventListener('online', syncOnline);
+      window.addEventListener('offline', syncOnline);
+      syncOnline();
+
+      if (!('serviceWorker' in navigator)) return;
+
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
+
+      function promptUpdate(worker) {
+        updateBanner.classList.add('visible');
+        updateBtn.onclick = () => worker.postMessage({ type: 'SKIP_WAITING' });
+      }
+
+      navigator.serviceWorker.register('/sw.js').then((reg) => {
+        if (reg.waiting) promptUpdate(reg.waiting);
+        reg.addEventListener('updatefound', () => {
+          const worker = reg.installing;
+          if (!worker) return;
+          worker.addEventListener('statechange', () => {
+            if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+              promptUpdate(worker);
+            }
+          });
+        });
+      }).catch(() => { /* registration failed; app still works online */ });
+    })();
   </script>
 </body>
 </html>
