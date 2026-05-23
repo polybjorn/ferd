@@ -58,4 +58,5 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 - Print / PDF stylesheet for trail and place details.
 - Auth hardening: optional TOTP 2FA.
 - Photo attachments on places and trails.
-- Add to phone home screen as a standalone app, with offline map reads (PWA).
+- Design proper PWA icons (192, 512, maskable PNG) to replace the SVG favicon fallback.
+- Bundle leaflet-elevation's runtime deps (d3, togeojson, geometryutil, almostover) so the elevation chart works offline.

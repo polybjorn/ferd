@@ -100,3 +100,11 @@ Patterns:
 - **Tab fade**: `.modal [data-panel]:not([hidden]) { animation: tab-fade-in 160ms; }`. Runs whenever a panel becomes visible.
 
 Don't animate map view changes that come from settings - those are explicit user actions, not UI flourishes.
+
+## App-level banners
+
+Two sticky banners sit between the nav and the app content, both styled by `.pwa-banner`:
+- **Offline banner** (`#pwa-offline-banner`, `.offline`): visible whenever `!navigator.onLine`. Read-only mode is implicit; mutating API calls surface `You're offline. Changes not saved.` from the `api()` helper.
+- **Update banner** (`#pwa-update-banner`): visible when a new service worker is waiting. The Reload button posts `SKIP_WAITING` to the worker; once it activates, `controllerchange` triggers a single page reload.
+
+Banners use `position: sticky; top: 50px` so they sit directly under the nav and stay pinned while scrolling. Use this pattern (not a modal) for ambient state the user should be aware of without it interrupting their flow.
