@@ -2453,7 +2453,35 @@
       try { const v = localStorage.getItem(key); return v === null ? def : v; }
       catch { return def; }
     }
-    function setPref(key, val) { try { localStorage.setItem(key, val); } catch {} }
+    const SYNCED_PREF_KEYS = new Set(['theme', 'mode', 'pin-style', 'marker-size', 'trail-weight', 'tile-filter']);
+    function setPref(key, val) {
+      try { localStorage.setItem(key, val); } catch {}
+      if (SYNCED_PREF_KEYS.has(key) && state.auth && state.auth.authenticated) {
+        state.serverPrefs[key] = val;
+        fetch(apiUrl('/me/prefs'), {
+          method: 'PUT',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(state.serverPrefs),
+        }).catch(() => {});
+      }
+    }
+    function loadSyncedPrefs() {
+      if (!state.auth || !state.auth.authenticated) return Promise.resolve();
+      return fetch(apiUrl('/me/prefs'), { credentials: 'same-origin' })
+        .then(r => r.ok ? r.json() : null)
+        .then(prefs => {
+          if (!prefs || typeof prefs !== 'object') return;
+          state.serverPrefs = Object.assign({}, prefs);
+          for (const key of SYNCED_PREF_KEYS) {
+            if (key in prefs) {
+              try { localStorage.setItem(key, prefs[key]); } catch {}
+            }
+          }
+          try { applyTheme(getStoredTheme(), getStoredMode()); } catch {}
+        })
+        .catch(() => {});
+    }
     function bindRadioPref(name, prefKey, onChange) {
       document.querySelectorAll('input[name="' + name + '"]').forEach(r => {
         r.addEventListener('change', function() {
@@ -2500,6 +2528,7 @@
     const state = {
       config: DEFAULT_CONFIG,
       auth: { authenticated: false, username: null, is_admin: false, published: false, registration_open: true, publishing_open: true, has_users: false, requires_setup_token: false },
+      serverPrefs: {},
       viewer: detectViewer(),
       currentMap: null,
       currentElevation: null,
@@ -5064,12 +5093,12 @@
           renderSessions();
           const themeSel = document.getElementById('s-theme');
           if (themeSel) themeSel.addEventListener('change', function() {
-            try { localStorage.setItem('theme', this.value); } catch {}
+            setPref('theme', this.value);
             applyTheme(this.value, getStoredMode());
           });
           const modeSel = document.getElementById('s-mode');
           if (modeSel) modeSel.addEventListener('change', function() {
-            try { localStorage.setItem('mode', this.value); } catch {}
+            setPref('mode', this.value);
             applyTheme(getStoredTheme(), this.value);
           });
           const pinSel = document.getElementById('s-pin-style');
@@ -6122,6 +6151,7 @@
         submitBtn.disabled = true;
         api('POST', '/' + mode, payload)
           .then(() => refreshAuthState())
+          .then(() => loadSyncedPrefs())
           .then(() => { closeModal(); return loadDataAndRender(); })
           .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
       }
@@ -6592,7 +6622,7 @@
           openSignInModal();
           return;
         }
-        return loadDataAndRender();
+        return loadSyncedPrefs().then(() => loadDataAndRender());
       });
 
     // PWA: offline indicator + service worker registration + update toast.
