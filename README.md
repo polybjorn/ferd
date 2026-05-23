@@ -4,6 +4,8 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 
 ![Unified map view](docs/screenshots/map.png)
 
+*Ferd is Norwegian for "journey".*
+
 ## Features
 
 **Map and data**
