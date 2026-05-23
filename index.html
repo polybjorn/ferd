@@ -2175,9 +2175,12 @@
       cursor: pointer;
     }
     .pwa-banner button:hover { opacity: 0.85; }
-    /* Android subpixel tile gap fix: oversample tile image by 0.5px so
-       adjacent tiles overlap and the seam disappears. */
-    .leaflet-tile-container img.leaflet-tile {
+    /* Subpixel tile gap fix for devices with fractional device-pixel-ratio
+       (most Android phones). Oversamples each tile by 0.5px so adjacent
+       tiles overlap and the seam disappears. Scoped via the .frac-dpr
+       class on <html> set at boot, so integer-DPR displays (most desktops,
+       iOS) aren't affected. */
+    html.frac-dpr .leaflet-tile-container img.leaflet-tile {
       width: 256.5px !important;
       height: 256.5px !important;
     }
@@ -4625,6 +4628,14 @@
     // ----- Theme -----
     const THEMES = ['catppuccin', 'dracula', 'gruvbox', 'nord', 'rose-pine', 'solarized', 'tokyo-night'];
     const MODES = ['dark', 'light', 'system'];
+    (function flagFractionalDpr() {
+      try {
+        const dpr = window.devicePixelRatio || 1;
+        if (Math.abs(dpr - Math.round(dpr)) > 0.01) {
+          document.documentElement.classList.add('frac-dpr');
+        }
+      } catch {}
+    })();
     (function migrateTheme() {
       try {
         const old = localStorage.getItem('theme');
