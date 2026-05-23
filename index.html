@@ -1246,12 +1246,9 @@
     .leaflet-control-layers-separator { border-color: var(--border) !important; }
 
     /* Trail polylines: render with constant stroke width regardless of
-       parent SVG transform during zoom (positions still track via the
-       transform itself, just the line thickness stays at its set weight). */
-    .leaflet-overlay-pane svg path,
-    .leaflet-overlay-pane svg polyline,
-    .leaflet-overlay-pane svg polygon,
-    .leaflet-overlay-pane svg line {
+       parent SVG transform during zoom. Positions still track via the
+       parent transform; only stroke width stays at its set weight. */
+    path.trail-line {
       vector-effect: non-scaling-stroke !important;
     }
     /* Place canvas layer tooltip (hover text on desktop) */
@@ -2229,7 +2226,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v43</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v44</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3210,7 +3207,8 @@
         attributionControl: false,
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
-        markerZoomAnimation: false
+        markerZoomAnimation: false,
+        renderer: L.svg()
       }).setView(dv.center, dv.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
@@ -3277,7 +3275,7 @@
             }
             const gpxLayer = new L.GPX(gpxUrl, {
               async: true,
-              polyline_options: { color: color, opacity: 0.85, weight: 4 * getTrailWeightFactor() },
+              polyline_options: { color: color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'trail-line' },
               markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
             });
             gpxLayer.on('loaded', function(e) {
@@ -4790,7 +4788,8 @@
         attributionControl: false,
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
-        markerZoomAnimation: false
+        markerZoomAnimation: false,
+        renderer: L.svg()
       }).setView(dvt.center, dvt.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
