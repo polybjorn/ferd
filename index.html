@@ -2228,7 +2228,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v34</span><span id="ferd-zoom-debug" style="opacity:0.7;font-size:0.7em;margin-left:0.5em;font-family:monospace"></span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v35</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3763,10 +3763,13 @@
           'place-canvas-layer',
           map.getPane(this.options.pane));
         this._sizeCanvas();
-        // 'move' fires from L.Map._move on every pan/pinch frame and
-        // covers both translation and zoom changes; synchronous redraw
-        // here keeps the canvas in lockstep with the map state update.
+        // 'move' fires on every pan/pinch frame (mobile pinch coverage).
+        // 'zoomanim' fires once for desktop animated zooms; we CSS-transform
+        // the canvas to follow that 250ms animation. 'zoomend' fires after
+        // the animation and re-draws at the final fractional positions.
         map.on('move', this._redraw, this);
+        map.on('zoomanim', this._onZoomAnim, this);
+        map.on('zoomend', this._redraw, this);
         map.on('resize', this._redraw, this);
         map.on('click', this._onClick, this);
         map.on('mousemove', this._onMouseMove, this);
@@ -3783,6 +3786,8 @@
           this._tooltipEl.parentNode.removeChild(this._tooltipEl);
         }
         map.off('move', this._redraw, this);
+        map.off('zoomanim', this._onZoomAnim, this);
+        map.off('zoomend', this._redraw, this);
         map.off('resize', this._redraw, this);
         map.off('click', this._onClick, this);
         map.off('mousemove', this._onMouseMove, this);
@@ -3852,12 +3857,12 @@
         ctx.clearRect(0, 0, size.x, size.y);
         const features = this._getCurrentFeatures();
         this._visibleFeatures = features;
-        // DIAGNOSTIC: show every redraw's zoom + tick count in the brand area
-        // so we can see if redraws fire during pinch and at what zoom.
-        if (!window.__ferdRedrawCount) window.__ferdRedrawCount = 0;
-        window.__ferdRedrawCount++;
-        const dbg = document.getElementById('ferd-zoom-debug');
-        if (dbg) dbg.textContent = 'z=' + map.getZoom().toFixed(2) + ' #' + window.__ferdRedrawCount;
+        // Snapshot for _onZoomAnim's transform math (desktop wheel-zoom).
+        this._renderZoom = map.getZoom();
+        this._renderBounds = map.getBounds();
+        // Redraw means the canvas is now at its "settled" state; ensure no
+        // CSS transition lingers from a prior zoomanim path.
+        this._canvas.classList.remove('leaflet-zoom-animated');
         const markerSize = (typeof getMarkerSize === 'function') ? getMarkerSize() : 18;
         const pinStyle = (typeof getPinStyle === 'function') ? getPinStyle() : 'ring';
         const catColors = (state && state.categoryColors) || {};
@@ -4054,6 +4059,20 @@
 
       _hideTooltip: function() {
         if (this._tooltipEl) this._tooltipEl.style.display = 'none';
+      },
+
+      // Desktop animated zoom (scroll-wheel etc.): zoomanim fires once with
+      // the target zoom; we add the leaflet-zoom-animated class (transition:
+      // transform 0.25s) and setTransform to the target. The canvas content,
+      // still drawn at the previous zoom, scales smoothly to the new view.
+      // _redraw runs at zoomend, removes the class and repositions cleanly.
+      _onZoomAnim: function(e) {
+        if (!this._canvas || this._renderZoom == null) return;
+        this._canvas.classList.add('leaflet-zoom-animated');
+        const scale = this._map.getZoomScale(e.zoom, this._renderZoom);
+        const offset = this._map._latLngBoundsToNewLayerBounds(
+          this._renderBounds, e.zoom, e.center).min;
+        L.DomUtil.setTransform(this._canvas, offset, scale);
       },
     });
 
