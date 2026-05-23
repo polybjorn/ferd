@@ -1253,8 +1253,6 @@
     .leaflet-control-layers label { color: var(--text); }
     .leaflet-control-layers-separator { border-color: var(--border) !important; }
 
-    /* DIAGNOSTIC: visible canvas border to confirm scaling during gesture */
-    .place-canvas-layer { outline: 2px solid red; box-sizing: border-box; }
     /* Place canvas layer tooltip (hover text on desktop) */
     .place-canvas-tooltip {
       position: absolute;
@@ -2230,7 +2228,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v38</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v39</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -3212,7 +3210,8 @@
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
         preferCanvas: true,
-        markerZoomAnimation: false
+        markerZoomAnimation: false,
+        zoomAnimation: false
       }).setView(dv.center, dv.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
@@ -3769,14 +3768,12 @@
         // and miscalculate every pin position during pinch/zoom.
         this._canvas.style.transformOrigin = '0 0';
         this._sizeCanvas();
-        // During movement: CSS-transform the canvas (cheap, smooth, scales
-        // pins as you zoom). At rest: redraw so pins land at crisp pixel
-        // positions and final size. 'zoomanim' adds a transition class so
-        // the desktop 250ms zoom is smooth; pinch frames bypass it.
-        map.on('move', this._onMove, this);
-        map.on('zoomanim', this._onZoomAnim, this);
-        map.on('moveend', this._redraw, this);
-        map.on('zoomend', this._redraw, this);
+        // Per-frame redraw on 'move' (mobile pinch + pan both fire 'move'
+        // continuously via L.Map._move). Pins are drawn at their fixed
+        // marker-size every frame, so they don't grow/shrink with zoom.
+        // zoomAnimation: false on the map removes the 250ms desktop CSS
+        // zoom animation that otherwise wouldn't fire 'move' events.
+        map.on('move', this._redraw, this);
         map.on('resize', this._redraw, this);
         map.on('click', this._onClick, this);
         map.on('mousemove', this._onMouseMove, this);
@@ -3792,10 +3789,7 @@
         if (this._tooltipEl && this._tooltipEl.parentNode) {
           this._tooltipEl.parentNode.removeChild(this._tooltipEl);
         }
-        map.off('move', this._onMove, this);
-        map.off('zoomanim', this._onZoomAnim, this);
-        map.off('moveend', this._redraw, this);
-        map.off('zoomend', this._redraw, this);
+        map.off('move', this._redraw, this);
         map.off('resize', this._redraw, this);
         map.off('click', this._onClick, this);
         map.off('mousemove', this._onMouseMove, this);
@@ -3865,12 +3859,6 @@
         ctx.clearRect(0, 0, size.x, size.y);
         const features = this._getCurrentFeatures();
         this._visibleFeatures = features;
-        // Snapshot for _onZoomAnim's transform math (desktop wheel-zoom).
-        this._renderZoom = map.getZoom();
-        this._renderBounds = map.getBounds();
-        // Redraw means the canvas is now at its "settled" state; ensure no
-        // CSS transition lingers from a prior zoomanim path.
-        this._canvas.classList.remove('leaflet-zoom-animated');
         const markerSize = (typeof getMarkerSize === 'function') ? getMarkerSize() : 18;
         const pinStyle = (typeof getPinStyle === 'function') ? getPinStyle() : 'ring';
         const catColors = (state && state.categoryColors) || {};
@@ -4069,31 +4057,6 @@
         if (this._tooltipEl) this._tooltipEl.style.display = 'none';
       },
 
-      // Continuous movement (pan, pinch frames). Apply transform instantly
-      // relative to the last full redraw's state. No CSS transition; the
-      // gesture itself drives motion. Pins visually scale with the canvas.
-      _onMove: function() {
-        if (!this._canvas || this._renderZoom == null) return;
-        this._canvas.classList.remove('leaflet-zoom-animated');
-        const map = this._map;
-        const scale = map.getZoomScale(map.getZoom(), this._renderZoom);
-        const offset = map._latLngBoundsToNewLayerBounds(
-          this._renderBounds, map.getZoom(), map.getCenter()).min;
-        L.DomUtil.setTransform(this._canvas, offset, scale);
-      },
-
-      // Desktop animated zoom (scroll-wheel, double-click, etc.). zoomanim
-      // fires once with the target zoom; we add the leaflet-zoom-animated
-      // class (CSS transition: transform 0.25s) and setTransform to the
-      // target. _redraw at zoomend removes the class and repositions cleanly.
-      _onZoomAnim: function(e) {
-        if (!this._canvas || this._renderZoom == null) return;
-        this._canvas.classList.add('leaflet-zoom-animated');
-        const scale = this._map.getZoomScale(e.zoom, this._renderZoom);
-        const offset = this._map._latLngBoundsToNewLayerBounds(
-          this._renderBounds, e.zoom, e.center).min;
-        L.DomUtil.setTransform(this._canvas, offset, scale);
-      },
     });
 
     function createPlaceLayerGroup() {
@@ -4763,7 +4726,8 @@
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
         preferCanvas: true,
-        markerZoomAnimation: false
+        markerZoomAnimation: false,
+        zoomAnimation: false
       }).setView(dvt.center, dvt.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
