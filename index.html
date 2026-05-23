@@ -1287,6 +1287,12 @@
     .elevation-control .close-button, .elevation-control .elevation-toggle-icon, .elevation-detached .leaflet-close { display: none !important; }
     .leaflet-overlay-pane .leaflet-interactive { filter: drop-shadow(0 0 3px rgba(0,0,0,0.5)); }
     .marker-start, .marker-end { background: none !important; border: none !important; }
+    .gpx-waypoint-icon {
+      background: var(--surface);
+      border: 1.5px solid var(--text);
+      border-radius: 50%;
+      box-shadow: 0 0 2px rgba(0,0,0,0.4);
+    }
 
     @media (max-width: 900px) {
       #app { padding: 1rem 1rem 3rem; }
@@ -2805,6 +2811,11 @@
         for (const ctrl of controls) { try { ctrl.remove(); } catch (e) {} }
         state.currentElevation = null;
       }
+      if (state._currentMapResizeObserver) {
+        try { state._currentMapResizeObserver.disconnect(); } catch (e) {}
+        state._currentMapResizeObserver = null;
+      }
+      state._lastTrailBounds = null;
       if (state.currentMap) {
         state.currentMap.remove();
         state.currentMap = null;
@@ -2911,6 +2922,74 @@
     // Apply current trail-weight to all live trail polylines without rebuilding.
     // Stamp the original stroke-width on first observation so later
     // adjustments can divide back without losing precision.
+    // Waypoint rendering helpers. leaflet-gpx skips creating a marker if
+    // wptIcons[''] is null (just logs a warning), so we feed it a
+    // placeholder icon to trigger its 'addpoint' event, then replace the
+    // icon with a fresh per-waypoint instance and close the popup it
+    // auto-opens during construction. Sharing one L.divIcon across many
+    // markers caused stale popup content (rendered as "[object Object]"
+    // for waypoints past the first) when we tried supplying it directly.
+    function makeWaypointIcon() {
+      return L.divIcon({
+        className: 'gpx-waypoint-icon',
+        iconSize: [10, 10],
+        iconAnchor: [5, 5],
+        html: '',
+      });
+    }
+    const WAYPOINT_PLACEHOLDER_ICON = makeWaypointIcon();
+    function attachWaypointHandlers(gpxLayer) {
+      gpxLayer.on('addpoint', function(e) {
+        if (e.point_type !== 'waypoint') return;
+        const m = e.point;
+        const symEl = e.element && (e.element.getElementsByTagName('sym')[0]);
+        m._ferdSym = symEl ? symEl.textContent.trim() : '';
+        try { m.setIcon(makeWaypointIcon()); } catch (_) {}
+        try { m.closePopup(); } catch (_) {}
+      });
+    }
+
+    // Concurrency-limited GPX text fetcher. The index map can have dozens
+    // of trails, and bursting that many parallel XHRs caused leaflet-gpx
+    // to occasionally see a null responseXML (Firefox's XML parser
+    // failing under load). Fetch + text + limited concurrency avoids the
+    // XHR path entirely and keeps the network polite.
+    const GPX_CONCURRENCY = 4;
+    const _gpxQueue = [];
+    let _gpxActive = 0;
+    function _gpxPump() {
+      while (_gpxActive < GPX_CONCURRENCY && _gpxQueue.length > 0) {
+        _gpxActive++;
+        const task = _gpxQueue.shift();
+        task().finally(function() { _gpxActive--; _gpxPump(); });
+      }
+    }
+    function fetchGpxText(url) {
+      return new Promise(function(resolve, reject) {
+        _gpxQueue.push(function() {
+          return fetch(url).then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.text();
+          }).then(resolve, reject);
+        });
+        _gpxPump();
+      });
+    }
+
+    // Defensive backstop: leaflet-gpx 2.1.2 calls _parse_gpx_data on
+    // responseXML without null-checking. We now feed it pre-fetched text
+    // (DOMParser-backed, never null), but keep the patch for any legacy
+    // call sites that still pass URLs directly.
+    if (window.L && L.GPX && L.GPX.prototype && !L.GPX.prototype._parse_gpx_data._ferdPatched) {
+      const orig = L.GPX.prototype._parse_gpx_data;
+      const patched = function(xml, options) {
+        if (!xml) return null;
+        return orig.call(this, xml, options);
+      };
+      patched._ferdPatched = true;
+      L.GPX.prototype._parse_gpx_data = patched;
+    }
+
     function applyNonScalingStroke(layer) {
       if (layer && layer._path && layer._path.setAttribute) {
         const sw = layer._path.getAttribute('stroke-width');
@@ -3333,30 +3412,37 @@
               trailBounds.extend([route.bbox[0], route.bbox[1]]);
               trailBounds.extend([route.bbox[2], route.bbox[3]]);
             }
-            const gpxLayer = new L.GPX(gpxUrl, {
-              async: true,
-              polyline_options: { color: color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'trail-line' },
-              markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
-            });
-            gpxLayer.on('loaded', function(e) {
-              const b = e.target.getBounds();
-              if (b.isValid()) trailBounds.extend(b);
-              if (focusTrailKey && route.key === focusTrailKey) {
-                focusTrailLayer = e.target;
-                if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
-              }
-              // Set vector-effect attribute so stroke renders at constant
-              // pixel width regardless of SVG viewBox/transform changes
-              // during zoom. Recurses since L.GPX nests polylines.
-              applyNonScalingStroke(e.target);
-            }).bindPopup(
-              trailPopupHtml(route, region, color),
-              { closeButton: false }
-            ).on('click', (function(slug) {
-              return function() { history.replaceState(null, '', focusHash('trail', slug)); };
-            })(route._slug || route.key));
-            parent.addLayer(gpxLayer);
-            trailLayers.push({ route, region: region.name, layer: gpxLayer, completed: route.completed });
+            (function(route, region, color, parent, gpxUrl) {
+              fetchGpxText(gpxUrl).then(function(text) {
+                const gpxLayer = new L.GPX(text, {
+                  async: true,
+                  polyline_options: { color: color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'trail-line' },
+                  // Waypoints hidden on the index map; revealed in detail view only.
+                  markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
+                });
+                gpxLayer.on('loaded', function(e) {
+                  const b = e.target.getBounds();
+                  if (b.isValid()) trailBounds.extend(b);
+                  if (focusTrailKey && route.key === focusTrailKey) {
+                    focusTrailLayer = e.target;
+                    if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
+                  }
+                  applyNonScalingStroke(e.target);
+                }).on('error', function(e) {
+                  console.warn('[ferd] gpx parse failed for', gpxUrl, e && e.err);
+                  try { parent.removeLayer(gpxLayer); } catch (_) {}
+                }).bindPopup(
+                  trailPopupHtml(route, region, color),
+                  { closeButton: false }
+                ).on('click', (function(slug) {
+                  return function() { history.replaceState(null, '', focusHash('trail', slug)); };
+                })(route._slug || route.key));
+                parent.addLayer(gpxLayer);
+                trailLayers.push({ route, region: region.name, layer: gpxLayer, completed: route.completed });
+              }).catch(function(err) {
+                console.warn('[ferd] gpx fetch failed for', gpxUrl, err);
+              });
+            })(route, region, color, parent, gpxUrl);
           }
         }
       }
@@ -3824,6 +3910,11 @@
         // origin; default of 50% 50% would scale around the canvas center
         // and miscalculate every pin position during pinch/zoom.
         this._canvas.style.transformOrigin = '0 0';
+        // Canvas sits above the SVG overlay pane (zIndex 450 vs 400) so it
+        // would swallow clicks intended for trail polylines underneath.
+        // Hit detection happens against map clicks in _onClick, not the
+        // canvas itself, so pointer events on the canvas are unnecessary.
+        this._canvas.style.pointerEvents = 'none';
         this._sizeCanvas();
         // Mobile pinch + pan fire 'move' continuously and we redraw each
         // frame at the current zoom (pins at fixed size, positions track).
@@ -4699,19 +4790,62 @@
         const nameEl = trk.getElementsByTagNameNS(GPX_NS, 'name')[0] || trk.getElementsByTagName('name')[0];
         const name = nameEl ? nameEl.textContent : 'Track ' + (i + 1);
         const points = [];
-        let trkpts = trk.getElementsByTagNameNS(ns, 'trkpt');
+        let trkpts = trk.getElementsByTagNameNS(GPX_NS, 'trkpt');
         if (trkpts.length === 0) trkpts = trk.getElementsByTagName('trkpt');
         for (let j = 0; j < trkpts.length; j++) {
           const pt = trkpts[j];
           const lat = parseFloat(pt.getAttribute('lat'));
           const lon = parseFloat(pt.getAttribute('lon'));
-          const eleEl = pt.getElementsByTagNameNS(ns, 'ele')[0] || pt.getElementsByTagName('ele')[0];
+          const eleEl = pt.getElementsByTagNameNS(GPX_NS, 'ele')[0] || pt.getElementsByTagName('ele')[0];
           const ele = eleEl ? parseFloat(eleEl.textContent) : null;
           points.push({ lat, lon, ele });
         }
         result.push({ name, points });
       }
       return result;
+    }
+
+    function parseGpxWaypoints(xmlText) {
+      const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
+      let wpts = doc.getElementsByTagNameNS(GPX_NS, 'wpt');
+      if (wpts.length === 0) wpts = doc.getElementsByTagName('wpt');
+      const out = [];
+      for (let i = 0; i < wpts.length; i++) {
+        const w = wpts[i];
+        const lat = parseFloat(w.getAttribute('lat'));
+        const lon = parseFloat(w.getAttribute('lon'));
+        if (!isFinite(lat) || !isFinite(lon)) continue;
+        // Only render waypoints with an explicit <sym>; waypoints without
+        // are typically routing artifacts from tools like gpx.studio or
+        // Google Maps (geocoded via-points), not user-marked POIs.
+        const symEl = w.getElementsByTagNameNS(GPX_NS, 'sym')[0] || w.getElementsByTagName('sym')[0];
+        const sym = symEl ? symEl.textContent.trim() : '';
+        if (!sym) continue;
+        const nameEl = w.getElementsByTagNameNS(GPX_NS, 'name')[0] || w.getElementsByTagName('name')[0];
+        const descEl = w.getElementsByTagNameNS(GPX_NS, 'desc')[0] || w.getElementsByTagName('desc')[0];
+        out.push({
+          lat, lon, sym,
+          name: nameEl ? nameEl.textContent : '',
+          desc: descEl ? descEl.textContent : '',
+        });
+      }
+      return out;
+    }
+
+    // Skip waypoints within this radius (m) of the trail's start/end so
+    // they don't visually collide with the start/end markers (common for
+    // loop trails where the GPX records the trailhead as a waypoint).
+    const WAYPOINT_ENDPOINT_SUPPRESS_M = 75;
+    function addGpxWaypoints(map, waypoints, startLatLng, endLatLng) {
+      for (const w of waypoints) {
+        const ll = L.latLng(w.lat, w.lon);
+        if (startLatLng && ll.distanceTo(startLatLng) < WAYPOINT_ENDPOINT_SUPPRESS_M) continue;
+        if (endLatLng && ll.distanceTo(endLatLng) < WAYPOINT_ENDPOINT_SUPPRESS_M) continue;
+        const m = L.marker(ll, { icon: makeWaypointIcon() });
+        const body = '<b>' + escapeHtml(w.name) + '</b>' + (w.desc ? '<br>' + escapeHtml(w.desc) : '');
+        m.bindPopup(body, { closeButton: false });
+        m.addTo(map);
+      }
     }
 
     function computeTrackStats(points) {
@@ -4857,6 +4991,22 @@
       }).setView(dvt.center, dvt.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
+      // Map container shrinks asynchronously as the elevation chart and
+      // other detail-view widgets settle. invalidateSize alone leaves the
+      // map centered on the pre-shrink viewport, so refit to the last
+      // known content bounds whenever the container resizes.
+      if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(function() {
+          map.invalidateSize();
+          if (state._lastTrailBounds && state._lastTrailBounds.isValid()) {
+            map.fitBounds(state._lastTrailBounds, { padding: [40, 40], animate: false });
+          }
+          map.eachLayer(function(l) { if (typeof l.redraw === 'function') l.redraw(); });
+          adjustTrailStrokes();
+        });
+        ro.observe(map.getContainer());
+        state._currentMapResizeObserver = ro;
+      }
       // Counter-scale trail stroke widths during zoom. 'zoom' covers
       // mobile pinch (fires per frame); zoomanim kicks off a brief rAF
       // loop to cover the desktop 250ms CSS animation where 'zoom'
@@ -4926,11 +5076,13 @@
       map.addControl(new ExpandControl());
 
       if (route.plannedFile && route.completed) {
-        new L.GPX(gpxUrlFor(route.plannedFile), {
+        const plannedLayer = new L.GPX(gpxUrlFor(route.plannedFile), {
           async: true,
           polyline_options: { color: ROUTE_COLOR, opacity: 0.35, weight: 4 * getTrailWeightFactor(), dashArray: '8 6' },
-          markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
-        }).on('loaded', function(e) {
+          markers: { startIcon: null, endIcon: null, wptIcons: { '': WAYPOINT_PLACEHOLDER_ICON } },
+        });
+        attachWaypointHandlers(plannedLayer);
+        plannedLayer.on('loaded', function(e) {
           applyNonScalingStroke(e.target);
         }).addTo(map);
       }
@@ -4957,22 +5109,48 @@
       }
 
       const gpxUrl = gpxUrlFor(route.file);
-      new L.GPX(gpxUrl, {
+      const singleGpx = new L.GPX(gpxUrl, {
         async: true,
         polyline_options: { color: color, opacity: 0.9, weight: 5 * getTrailWeightFactor() },
-        markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
-      }).on('loaded', function(e) {
+        markers: { startIcon: null, endIcon: null, wptIcons: { '': WAYPOINT_PLACEHOLDER_ICON } },
+      });
+      attachWaypointHandlers(singleGpx);
+      singleGpx.on('loaded', function(e) {
         const gpx = e.target;
         const bounds = gpx.getBounds();
-        if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
+        if (bounds.isValid()) {
+          state._lastTrailBounds = bounds;
+          map.fitBounds(bounds, { padding: [40, 40] });
+        }
         applyNonScalingStroke(gpx);
+        // Polylines may be in the SVG DOM with correct coords but unpainted
+        // until the renderer next ticks. Force a redraw, then renormalize
+        // stroke widths in case adjustTrailStrokes ran mid-zoom-animation
+        // and left them counter-scaled against a now-stale scale value.
+        gpx.eachLayer(function(l) { if (typeof l.redraw === 'function') l.redraw(); });
+        adjustTrailStrokes();
 
         const layers = [];
         gpx.eachLayer(function(layer) { if (layer.getLatLngs) layers.push(layer); });
         if (layers.length > 0) {
           const latlngs = layers[0].getLatLngs();
           const flat = Array.isArray(latlngs[0]) ? latlngs.flat() : latlngs;
-          if (flat.length > 1) addStartEndMarkers(map, flat[0], flat[flat.length - 1]);
+          if (flat.length > 1) {
+            const startLL = flat[0];
+            const endLL = flat[flat.length - 1];
+            addStartEndMarkers(map, startLL, endLL);
+            // Drop waypoints that are routing artifacts (no <sym>) or sit
+            // on top of the start/end markers.
+            gpx.eachLayer(function(layer) {
+              if (!layer.options || layer.options.type !== 'waypoint' || !layer.getLatLng) return;
+              if (!layer._ferdSym) { gpx.removeLayer(layer); return; }
+              const ll = layer.getLatLng();
+              if (ll.distanceTo(startLL) < WAYPOINT_ENDPOINT_SUPPRESS_M
+                  || ll.distanceTo(endLL) < WAYPOINT_ENDPOINT_SUPPRESS_M) {
+                gpx.removeLayer(layer);
+              }
+            });
+          }
         }
 
         const dist = gpx.get_distance();
@@ -4994,6 +5172,14 @@
         .then(function(xmlText) {
           const tracks = parseGpxTracks(xmlText);
           if (tracks.length === 0) return;
+          {
+            const firstPt = tracks[0].points[0];
+            const last = tracks[tracks.length - 1];
+            const lastPt = last.points[last.points.length - 1];
+            const startLL = firstPt ? L.latLng(firstPt.lat, firstPt.lon) : null;
+            const endLL = lastPt ? L.latLng(lastPt.lat, lastPt.lon) : null;
+            addGpxWaypoints(map, parseGpxWaypoints(xmlText), startLL, endLL);
+          }
 
           const elevHeight = 200;
           const elevControls = [];
@@ -5039,7 +5225,12 @@
             }
           }
           state.currentElevation = elevControls;
-          if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
+          if (bounds.isValid()) {
+            state._lastTrailBounds = bounds;
+            map.fitBounds(bounds, { padding: [40, 40] });
+          }
+          map.eachLayer(function(l) { if (typeof l.redraw === 'function') l.redraw(); });
+          adjustTrailStrokes();
           const firstTrack = tracks[0];
           const lastTrack = tracks[tracks.length - 1];
           if (firstTrack.points.length > 0 && lastTrack.points.length > 0) {
