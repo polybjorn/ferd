@@ -70,4 +70,5 @@ Full walk-through in [docs/install.md](docs/install.md). Docker path in [docs/do
 | [Configuration](docs/configure.md) | Settings and feature flags you can tweak. |
 | [Themes](docs/themes.md) | Look and feel options, and how to add your own. |
 | [Architecture](docs/architecture.md) | How the code is organized and where data lives. |
+| [API reference](docs/api.md) | Every `/api/*` endpoint, for scripting against Ferd. |
 

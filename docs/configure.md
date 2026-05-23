@@ -47,28 +47,8 @@ These are not config but the API and frontend assume they exist at these paths. 
 | `users/<u>/category-labels.json` | API (`/api/me/category-labels`, `/api/u/<u>/category-labels`) | Per-user map of category slug -> display label. Edited from Settings -> General -> Categories. |
 | `site-config.json` | API read | Site-wide config: brand, feature flags. Read by the browser at boot. |
 
-On first start after upgrading from the single-shared-map layout, any `places.json`, `routes.json`, `metadata.json`, or `gpx/` at the `data_dir` root is moved into the first admin's `users/<admin>/` folder. A `category_labels` entry from a legacy `site-config.json` is moved into the admin's `category-labels.json` and removed from site-config. Both moves run once and are silent thereafter.
+For the place object and trail metadata schemas (what fields are valid in `places.json` and `metadata.json`), see [api.md > Common shapes](api.md#common-shapes).
 
 ## Per-user publish
 
 Each user has a `published` flag (default off) stored in SQLite. With it on, anyone can read that user's map at `/u/<username>/` without signing in; the server returns 404 for unpublished users. The flag is exposed through `POST /api/me/publish`; the toggle lives in the in-browser Settings dialog.
-
-## Place object schema
-
-```json
-{
-  "name": "Rome",
-  "lat": 41.89,
-  "lon": 12.49,
-  "category": "ruins",
-  "country": "Italy",
-  "visited": true,
-  "note": "optional",
-  "sources": ["https://example.com/source"],
-  "local_name": "Roma",
-  "date_visited": "2024-07-15",
-  "rating": 4
-}
-```
-
-Required fields: `name`, `lat`, `lon`. Optional: `category`, `country`, `visited`, `note`, `sources` (array of URLs), `local_name`, `date_visited` (YYYY-MM-DD), `rating` (1-5). A missing or empty `category` is treated as "uncategorized" and stripped from the stored object. Anything else is rejected by the API.
