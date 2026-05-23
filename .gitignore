@@ -10,7 +10,7 @@ gpx
 users/
 site-config.json
 tools/config.json
-tools/app.db*
+tools/*.db*
 
 # Docker Compose bind mount (compose.yml -> ./data:/data)
 data/
