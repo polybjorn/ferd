@@ -354,31 +354,75 @@ class TestCategoryLabels(unittest.TestCase):
   def test_update_and_read(self):
     c = admin_client()
     status, body = c.request("PUT", "/api/me/category-labels",
-                             {"category_labels": {"food": "Food", "hike": "Hiking"}})
+                             {"category_labels": {
+                               "food": {"label": "Food"},
+                               "hike": {"label": "Hiking"},
+                             }})
     self.assertEqual(status, 200)
-    self.assertEqual(body["category_labels"], {"food": "Food", "hike": "Hiking"})
+    self.assertEqual(body["category_labels"],
+                     {"food": {"label": "Food"}, "hike": {"label": "Hiking"}})
     on_disk = json.loads((admin_dir() / "category-labels.json").read_text())
-    self.assertEqual(on_disk["food"], "Food")
+    self.assertEqual(on_disk["food"], {"label": "Food"})
     status, body = c.request("GET", "/api/me/category-labels")
     self.assertEqual(status, 200)
-    self.assertEqual(body["category_labels"]["hike"], "Hiking")
+    self.assertEqual(body["category_labels"]["hike"], {"label": "Hiking"})
+
+  def test_color_round_trips(self):
+    c = admin_client()
+    payload = {
+      "food": {"label": "Food", "color": 3},
+      "hike": {"label": "Hiking", "color": 7},
+    }
+    status, body = c.request("PUT", "/api/me/category-labels",
+                             {"category_labels": payload})
+    self.assertEqual(status, 200)
+    self.assertEqual(body["category_labels"]["food"], {"label": "Food", "color": 3})
+    status, body = c.request("GET", "/api/me/category-labels")
+    self.assertEqual(body["category_labels"]["hike"], {"label": "Hiking", "color": 7})
+
+  def test_color_preserved_when_caller_omits_it(self):
+    c = admin_client()
+    # First save with colors.
+    c.request("PUT", "/api/me/category-labels",
+              {"category_labels": {"food": {"label": "Food", "color": 2}}})
+    # Then rewrite without color (e.g. Manage Categories renames the label).
+    status, body = c.request("PUT", "/api/me/category-labels",
+                             {"category_labels": {"food": {"label": "Cuisine"}}})
+    self.assertEqual(status, 200)
+    self.assertEqual(body["category_labels"]["food"], {"label": "Cuisine", "color": 2})
 
   def test_validation(self):
     c = admin_client()
     status, _ = c.request("PUT", "/api/me/category-labels",
                           {"category_labels": "not a dict"})
     self.assertEqual(status, 400)
+    # bare string value rejected (must be {label, color?}).
+    status, _ = c.request("PUT", "/api/me/category-labels",
+                          {"category_labels": {"x": "X"}})
+    self.assertEqual(status, 400)
+    # color must be an integer.
+    status, _ = c.request("PUT", "/api/me/category-labels",
+                          {"category_labels": {"x": {"label": "X", "color": "blue"}}})
+    self.assertEqual(status, 400)
+    # color must be in range.
+    status, _ = c.request("PUT", "/api/me/category-labels",
+                          {"category_labels": {"x": {"label": "X", "color": -1}}})
+    self.assertEqual(status, 400)
+    # unknown keys rejected.
+    status, _ = c.request("PUT", "/api/me/category-labels",
+                          {"category_labels": {"x": {"label": "X", "extra": 1}}})
+    self.assertEqual(status, 400)
 
   def test_public_read_when_published(self):
     c = admin_client()
     c.request("PUT", "/api/me/category-labels",
-              {"category_labels": {"beach": "Beaches"}})
+              {"category_labels": {"beach": {"label": "Beaches", "color": 4}}})
     c.request("POST", "/api/me/publish", {"published": True})
     anon = Client(_server.base_url)  # type: ignore[union-attr]
     try:
       status, body = anon.request("GET", f"/api/u/{SEED_USER}/category-labels")
       self.assertEqual(status, 200)
-      self.assertEqual(body["category_labels"]["beach"], "Beaches")
+      self.assertEqual(body["category_labels"]["beach"], {"label": "Beaches", "color": 4})
     finally:
       c.request("POST", "/api/me/publish", {"published": False})
 

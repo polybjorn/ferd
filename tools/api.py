@@ -1311,39 +1311,69 @@ class Handler(http.server.BaseHTTPRequestHandler):
     udir = self._user_dir(user["username"])
     labels_path = udir / "category-labels.json"
     lock_path = udir / ".category-labels.lock"
+    merged: dict[str, dict] = {}
 
     def do_update():
-      write_json_file(labels_path, cleaned)
+      # Preserve previously-assigned colors when the caller (e.g. Manage
+      # Categories, which only knows about labels) omits color for a slug
+      # that already had one. Keeps auto-assigned colors stable across edits.
+      existing = load_json_file(labels_path, expected_type=dict, required=False, label="category-labels.json")
+      for slug, entry in cleaned.items():
+        prior = existing.get(slug) if isinstance(existing, dict) else None
+        if "color" not in entry and isinstance(prior, dict) and "color" in prior:
+          entry = dict(entry)
+          entry["color"] = prior["color"]
+        merged[slug] = entry
+      write_json_file(labels_path, merged)
 
     try:
       with_file_lock(lock_path, do_update)
     except OSError as e:
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write category-labels.json: {e}")
 
-    self._send_json(HTTPStatus.OK, {"ok": True, "category_labels": cleaned})
+    self._send_json(HTTPStatus.OK, {"ok": True, "category_labels": merged})
 
   def _clean_category_labels(self, labels):
-    """Validate and normalize a category_labels payload. Raises ValidationError
-    (always maps to 400) on bad shape; returns the cleaned dict on success."""
+    """Validate a category_labels payload. Shape: {slug: {label, color?}}.
+    Raises ValidationError (-> 400) on bad input."""
     if not isinstance(labels, dict):
       raise ValidationError("category_labels must be an object")
     if len(labels) > 200:
       raise ValidationError("too many category labels (max 200)")
-    cleaned: dict[str, str] = {}
-    for slug, display in labels.items():
-      if not isinstance(slug, str) or not isinstance(display, str):
-        raise ValidationError("category_labels keys and values must be strings")
+    cleaned: dict[str, dict] = {}
+    for slug, value in labels.items():
+      if not isinstance(slug, str):
+        raise ValidationError("category_labels keys must be strings")
       slug_clean = slug.strip()
-      display_clean = display.strip()
-      if not slug_clean or not display_clean:
+      if not slug_clean:
         continue
       if len(slug_clean) > 64:
         raise ValidationError(f"slug too long: {slug_clean[:32]}...")
-      if len(display_clean) > 80:
-        raise ValidationError(f"display too long for slug '{slug_clean}'")
       if not PATH_COMPONENT_RE.match(slug_clean):
         raise ValidationError(f"slug contains disallowed characters: {slug_clean}")
-      cleaned[slug_clean] = display_clean
+      if not isinstance(value, dict):
+        raise ValidationError(f"category_labels['{slug_clean}'] must be an object")
+      display = value.get("label", "")
+      if not isinstance(display, str):
+        raise ValidationError(f"label for '{slug_clean}' must be a string")
+      color = value.get("color")
+      if color is not None:
+        if not isinstance(color, int) or isinstance(color, bool):
+          raise ValidationError(f"color for '{slug_clean}' must be an integer")
+        if color < 0 or color > 99:
+          raise ValidationError(f"color for '{slug_clean}' out of range [0, 99]")
+      extra = set(value.keys()) - {"label", "color"}
+      if extra:
+        raise ValidationError(f"unknown key(s) for '{slug_clean}': {', '.join(sorted(extra))}")
+      display_clean = display.strip()
+      if not display_clean:
+        continue
+      if len(display_clean) > 80:
+        raise ValidationError(f"display too long for slug '{slug_clean}'")
+      entry: dict = {"label": display_clean}
+      if color is not None:
+        entry["color"] = color
+      cleaned[slug_clean] = entry
     return cleaned
 
   # ---- write endpoints (per-user) ----

@@ -54,7 +54,6 @@ Full walk-through in [docs/install.md](docs/install.md). Docker path in [docs/do
 
 ## Roadmap
 
-- Stable category colors across config edits.
 - Prebuilt multi-arch container image so deployments can `docker compose pull`.
 - Print / PDF stylesheet for trail and place details.
 - Auth hardening: optional TOTP 2FA, HIBP breach check at register and change-password.
