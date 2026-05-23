@@ -3198,7 +3198,7 @@
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
         preferCanvas: true,
-        zoomAnimation: !L.Browser.touch
+        zoomAnimation: !(window.matchMedia && window.matchMedia('(pointer: coarse)').matches)
       }).setView(dv.center, dv.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
@@ -4365,7 +4365,7 @@
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
         preferCanvas: true,
-        zoomAnimation: !L.Browser.touch
+        zoomAnimation: !(window.matchMedia && window.matchMedia('(pointer: coarse)').matches)
       }).setView(dvt.center, dvt.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
