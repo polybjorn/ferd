@@ -22,9 +22,16 @@ Open `http://127.0.0.1:8090/`. Click "Sign in", register the first account, then
 
 To start completely fresh, delete `tools/app.db*` and `users/`. Per-user data (places, trails, prefs) lives under `users/<username>/`, which is gitignored.
 
-## How it fits together
+## Where to look
 
-For repo layout, data flow, and the design rules (no build step, stdlib only, no framework), see [docs/architecture.md](docs/architecture.md). Edits to `index.html` show up on reload.
+This page covers the workflow (run, test, smoke-check, submit). The deeper material lives in topic-specific docs:
+
+- [docs/architecture.md](docs/architecture.md) - repo layout, data flow, and the stack rules (no build step, stdlib only, no framework).
+- [docs/design.md](docs/design.md) - UI conventions: modal anatomy, button placement, status feedback, copy style. Read this before adding or changing anything in `index.html`.
+- [docs/themes.md](docs/themes.md) - "For contributors" half covers the CSS variable contract and how to add a theme.
+- [docs/api.md](docs/api.md) - every `/api/*` endpoint.
+
+Edits to `index.html` show up on reload.
 
 ## Tests
 
