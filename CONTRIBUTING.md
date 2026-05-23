@@ -4,23 +4,17 @@ Thanks for considering a contribution. This is a small project; the bar for chan
 
 ## Run it locally
 
-The API can also serve the static files, so one Python process is the whole stack for development.
+Follow [docs/install.md > tier 1](docs/install.md#1-local--private-network) with two dev tweaks: bind `127.0.0.1:8090` (loopback only - do not expose the dev server) and skip the seeded admin so you can exercise the register flow. Env-var one-liner if you'd rather not edit `tools/config.json`:
 
 ```sh
-cp tools/config.example.json tools/config.json
 cp site-config.example.json site-config.json
-
-FERD_DATA_DIR="$PWD" \
-FERD_STATIC_DIR="$PWD" \
+FERD_DATA_DIR="$PWD" FERD_STATIC_DIR="$PWD" \
 FERD_MANIFEST_CMD="$PWD/gpx-manifest.sh" \
-FERD_SECURE_COOKIES=false \
-FERD_BIND=127.0.0.1:8090 \
+FERD_SECURE_COOKIES=false FERD_BIND=127.0.0.1:8090 \
   python3 tools/api.py
 ```
 
-Open `http://127.0.0.1:8090/`. Click "Sign in", register the first account, then use the "+" button on the map. `secure_cookies=false` is required for plain HTTP. Do not expose this server to the network; it bypasses the production hardening assumptions.
-
-To start completely fresh, delete `tools/app.db*` and `users/`. Per-user data (places, trails, prefs) lives under `users/<username>/`, which is gitignored.
+To start completely fresh, delete `tools/app.db*` and `users/` (both gitignored).
 
 ## Where to look
 
