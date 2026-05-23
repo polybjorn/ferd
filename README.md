@@ -37,7 +37,7 @@ Open http://localhost:8091 and register the first account; that user becomes the
 
 **Requirements:** Python 3.9+, a modern browser. No build step, no Node, no database server (SQLite file).
 
-Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse proxy, and pre-seeded credentials, see [python.md](docs/python.md). For a public domain, front either with any reverse proxy — sample configs in `deploy/`.
+Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse proxy, and pre-seeded credentials, see [python.md](docs/python.md). For a public domain, front either with any reverse proxy. Sample configs in `deploy/`.
 
 ## Documentation
 

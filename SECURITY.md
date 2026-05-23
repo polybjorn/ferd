@@ -18,7 +18,7 @@ Before the first user registers, registration is open. If the site is reachable 
 
 - Cookie-based. `HttpOnly`, `SameSite=Lax`, `Secure` when `secure_cookies` is true.
 - 30-day expiry. Stored in SQLite so they survive a process restart (important for socket-activated deploys).
-- Listed under Settings → Active sessions. Each entry shows the device, IP, and last seen time. The current device is marked. Other sessions can be revoked.
+- Listed under Settings, Active sessions. Each entry shows the device, IP, and last seen time. The current device is marked. Other sessions can be revoked.
 - Changing your password invalidates every session except the one initiating the change.
 
 ## Login hardening
