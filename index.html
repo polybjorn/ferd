@@ -1253,6 +1253,8 @@
     .leaflet-control-layers label { color: var(--text); }
     .leaflet-control-layers-separator { border-color: var(--border) !important; }
 
+    /* DIAGNOSTIC: visible canvas border to confirm scaling during gesture */
+    .place-canvas-layer { outline: 2px solid red; box-sizing: border-box; }
     /* Place canvas layer tooltip (hover text on desktop) */
     .place-canvas-tooltip {
       position: absolute;
@@ -2228,7 +2230,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v37</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v38</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
