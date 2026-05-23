@@ -364,11 +364,10 @@
     .leaflet-div-icon { background: transparent; border: none; }
     /* Selector targets .leaflet-tile-container so it applies to both the
        <img> tiles and the per-level <canvas> created by the NoGap plugin. */
-    /* Hide overlay (trails) and shadow panes during pinch-zoom; marker
-       pane stays visible. Pins are now <img> elements (L.icon with
-       SVG data URLs), cheap to composite. Toggled by zoomstart/zoomend
-       listeners in the boot script. */
+    /* Hide overlay/marker/shadow panes during pinch-zoom. The class is
+       toggled by zoomstart/zoomend listeners in the boot script. */
     .leaflet-container.zooming .leaflet-overlay-pane,
+    .leaflet-container.zooming .leaflet-marker-pane,
     .leaflet-container.zooming .leaflet-shadow-pane {
       visibility: hidden;
     }
@@ -2223,7 +2222,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v23</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v24</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -2888,10 +2887,7 @@
         iconSize = [size, size];
         iconAnchor = [size / 2, size / 2];
       }
-      // L.icon (<img>) composites far cheaper than L.divIcon (inline SVG
-       // DOM) during pinch-zoom on mobile. Encode the SVG as a data URL.
-      const iconUrl = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-      return L.icon({ iconUrl: iconUrl, iconSize: iconSize, iconAnchor: iconAnchor });
+      return L.divIcon({ className: '', html: svg, iconSize: iconSize, iconAnchor: iconAnchor });
     }
 
     // Apply current pin-style + marker-size to all live place markers without
