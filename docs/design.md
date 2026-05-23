@@ -7,12 +7,12 @@ Single-file frontend (`index.html`), no framework, plus a Python API. Reuse exis
 These are minimums. Don't drop below them without a real reason.
 
 - **Browsers:** Baseline Widely Available (caniuse.com / web-platform-dx).
-- **Viewport:** desktop first (>=1024 px). Mobile portrait works down to 320 px. No PWA, no native wrapper.
+- **Viewport:** desktop first (>=1024 px). Mobile portrait works down to 320 px. Installable as a PWA (own home-screen icon, standalone window), no native wrapper.
 - **JavaScript:** baseline. No transpilation step.
 - **CSS:** baseline only. In: `:has()`, `:is()`, `:where()`, grid, flex, custom properties, logical properties, `aspect-ratio`, `prefers-*`. Wait for baseline: container queries, subgrid, `color-mix()`, anchor positioning.
 - **Build pipeline:** none. A bundler is allowed if it earns its keep; default answer is no.
 - **Accessibility:** required. Semantic HTML, labels on every input, Esc closes modals, `prefers-reduced-motion` is respected, WCAG AA contrast on every theme.
-- **Network:** online-only. If the API is unreachable, show a visible error. No service worker, no offline cache.
+- **Network:** edits require network and fail loudly when offline. Reads are offline-capable through a hand-rolled service worker (`sw.js`) that precaches the app shell and vendored deps, runs `stale-while-revalidate` on JSON data, and cache-firsts map tiles with an LRU cap. See [pwa.md](pwa.md).
 - **Performance:** soft target under 1s first paint on a 5-year-old laptop, under 500 KB of JS+CSS+HTML on first load (tiles and GPX excluded).
 - **i18n:** English UI today. Keep the language `<select>` in place so localization can be added later. Data round-trips arbitrary Unicode.
 - **Third-party at runtime:** none, except map tile providers. No analytics, no third-party fonts, no external APIs from the page.

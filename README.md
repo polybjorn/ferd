@@ -24,7 +24,12 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 **Customization**
 - Multiple themes, light and dark.
 - Run places-only, trails-only, or both per deployment.
-- Per-browser settings for tile layer, units, and appearance.
+- Settings sync across devices for the same user (theme, mode, pin and trail styling).
+
+**Phone and offline**
+- Installable as a standalone app on phone or desktop (PWA). See [docs/pwa.md](docs/pwa.md).
+- Reads work offline: app shell, vendored map library, last loaded data, and previously viewed tiles are cached locally.
+- Edits and uploads require network.
 
 ## Install
 
@@ -49,6 +54,7 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 | [Python](docs/python.md) | Run it as a plain Python process (LAN, systemd, launchd). |
 | [Configuration](docs/configure.md) | Settings and feature flags you can tweak. |
 | [Themes](docs/themes.md) | Look and feel options, and how to add your own. |
+| [PWA](docs/pwa.md) | Install on phone or desktop, offline behavior, maintenance. |
 | [Architecture](docs/architecture.md) | How the code is organized and where data lives. |
 | [API reference](docs/api.md) | Every `/api/*` endpoint, for scripting. |
 
@@ -60,4 +66,4 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 - Photo attachments on places and trails.
 - Design proper PWA icons (192, 512, maskable PNG) to replace the SVG favicon fallback.
 - Bundle leaflet-elevation's runtime deps (d3, togeojson, geometryutil, almostover) so the elevation chart works offline.
-- Investigate choppy pinch-zoom on Android. Tile seams are addressed by the vendored Leaflet.TileLayer.NoGap plugin, but pinch-zoom remains laggy. Quick CSS or option tweaks (256.5px oversample, fadeAnimation, zoomAnimation gating) all fail or regress something. A proper next attempt would need on-device profiling (chrome://inspect) and likely a custom canvas tile renderer that doesn't depend on the fade-in event NoGap hooks.
+- Automate the service worker `CACHE_VERSION` bump on release (currently a manual line edit in `sw.js`).
