@@ -364,6 +364,14 @@
     .leaflet-div-icon { background: transparent; border: none; }
     /* Selector targets .leaflet-tile-container so it applies to both the
        <img> tiles and the per-level <canvas> created by the NoGap plugin. */
+    /* During zoom animation, hide overlay (trails/canvas) and marker panes
+       so they don't pay the full compositing cost every frame when many
+       features are visible. They reappear when the animation ends. */
+    .leaflet-zoom-anim .leaflet-overlay-pane,
+    .leaflet-zoom-anim .leaflet-marker-pane,
+    .leaflet-zoom-anim .leaflet-shadow-pane {
+      visibility: hidden;
+    }
     [data-tile-filter="muted"] .leaflet-tile-container { filter: saturate(0.35) brightness(0.95) contrast(0.95); }
     [data-tile-filter="grayscale"] .leaflet-tile-container { filter: grayscale(1); }
     [data-tile-filter="sepia"] .leaflet-tile-container { filter: sepia(0.7); }
@@ -2182,7 +2190,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v15</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v16</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
