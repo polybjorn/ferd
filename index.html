@@ -2226,7 +2226,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v47</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span><span style="opacity:0.5;font-size:0.7em;margin-left:0.4em">v48</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
@@ -2578,7 +2578,14 @@
     // each zoom level transition requests its own batch of tiles while
     // the gesture is still in flight, competing with the animation.
     if (window.L && L.TileLayer && L.TileLayer.mergeOptions) {
-      L.TileLayer.mergeOptions({ updateWhenZooming: false });
+      // NoGap (dumpToCanvas) fixes Android tile seams but causes a small
+      // visible reshuffle at zoomend on desktop. Only enable it where the
+      // seam issue actually shows up: coarse-pointer (touch) devices.
+      const _isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+      L.TileLayer.mergeOptions({
+        updateWhenZooming: false,
+        dumpToCanvas: _isTouch,
+      });
     }
 
     const state = {
