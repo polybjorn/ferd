@@ -1,6 +1,6 @@
-# PWA: install on phone or desktop
+# PWA: install on phone
 
-Ferd ships as an installable Progressive Web App. Once installed it runs from your home screen or app launcher like a native app, in its own window with no browser chrome, and keeps working offline for reads.
+Ferd is built primarily for **installing on your phone** as a standalone app, with offline reads. Once installed it runs from the home screen with no browser chrome, and the app shell, your data, and tiles you've already viewed work without network. Desktop install is supported by the same machinery but is rarely worth it for a map app.
 
 ## What works offline
 
@@ -15,14 +15,14 @@ Ferd ships as an installable Progressive Web App. Once installed it runs from yo
 - The elevation chart: leaflet-elevation lazy-loads d3 and helper plugins from CDN the first time you open a chart. Tracked in the roadmap.
 - Initial sign-in if your session has expired.
 
-## Install
+## Install on phone
 
-You need to access Ferd over HTTPS for the install option to appear in browsers. `localhost` is treated as secure by browsers, so local dev works without certificates. For phone install over your home or tailnet, see [Serving over HTTPS](#serving-over-https) below.
+The install option only appears when Ferd is served over HTTPS. `localhost` counts as secure, so dev on the host works. For your phone you'll need an HTTPS endpoint — see [Serving over HTTPS](#serving-over-https) below.
 
 ### Android (Vanadium, Chrome, Firefox-based)
 
 1. Open Ferd in the browser.
-2. Three-dot menu -> **Install app** (Chromium-based browsers) or **Add to Home Screen**.
+2. Three-dot menu -> **Install app** (Chromium-based) or **Add to Home Screen**.
 3. Confirm. The icon appears in the launcher and opens in standalone mode.
 
 GrapheneOS / Vanadium note: if "Clear browsing data on exit" is enabled, the offline cache gets wiped each time you close the browser. Either disable it for Ferd's origin or accept that offline state will rebuild on each session.
@@ -34,13 +34,9 @@ GrapheneOS / Vanadium note: if "Clear browsing data on exit" is enabled, the off
 
 iOS PWAs have stricter storage rules than Android: if you don't open the app for a few weeks, Safari may purge its cache. Reopening once a week or so keeps it warm.
 
-### Desktop (Chrome, Edge, Brave, Vanadium, etc.)
+## Desktop install (optional)
 
-1. Open Ferd in the browser.
-2. Look for the install icon in the address bar (square with down-arrow) or three-dot menu -> **Install Ferd**.
-3. Confirm. The PWA opens in its own window.
-
-Firefox / LibreWolf do not support PWA install on desktop. The site still works as a regular tab.
+The same manifest + service worker lets you install Ferd as a standalone desktop window in Chrome, Edge, Brave, and other Chromium-based browsers — look for the install icon in the address bar. Firefox / LibreWolf don't expose desktop PWA install at all; the site still works fine as a tab. There's no real reason to prefer the installed version over a tab on desktop unless you use Ferd daily and like a dedicated window.
 
 ## Updates
 
@@ -85,5 +81,4 @@ Required for the install option to appear on phones. A few common paths:
 
 - iOS PWAs may have their cache purged after a few weeks of disuse.
 - The elevation chart depends on a runtime CDN fetch and won't work offline until those deps are vendored too.
-- Firefox-based browsers on desktop don't expose PWA install. The site still works as a tab.
 - `CACHE_VERSION` bumps are manual today; automating it is on the roadmap.

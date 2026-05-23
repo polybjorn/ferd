@@ -27,7 +27,7 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 - Settings sync across devices for the same user (theme, mode, pin and trail styling).
 
 **Phone and offline**
-- Installable as a standalone app on phone or desktop (PWA). See [docs/pwa.md](docs/pwa.md).
+- Installable as a standalone app on your phone (PWA). See [docs/pwa.md](docs/pwa.md).
 - Reads work offline: app shell, vendored map library, last loaded data, and previously viewed tiles are cached locally.
 - Edits and uploads require network.
 
@@ -54,7 +54,7 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 | [Python](docs/python.md) | Run it as a plain Python process (LAN, systemd, launchd). |
 | [Configuration](docs/configure.md) | Settings and feature flags you can tweak. |
 | [Themes](docs/themes.md) | Look and feel options, and how to add your own. |
-| [PWA](docs/pwa.md) | Install on phone or desktop, offline behavior, maintenance. |
+| [PWA](docs/pwa.md) | Install on phone, offline behavior, maintenance. |
 | [Architecture](docs/architecture.md) | How the code is organized and where data lives. |
 | [API reference](docs/api.md) | Every `/api/*` endpoint, for scripting. |
 
