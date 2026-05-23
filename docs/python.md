@@ -1,6 +1,6 @@
 # Running with Python
 
-The bare Python option is two commands. Requires Python 3.9+. No build step, no Node, no `pip install`. Good for permanent use on a home network or VPN; add a reverse proxy in front for a public domain.
+Requires Python 3.9+. No build step, no Node, no `pip install`.
 
 If you'd rather run in a container, see [docker.md](docker.md).
 
@@ -13,7 +13,7 @@ cp tools/config.example.json tools/config.json
 python3 tools/api.py
 ```
 
-Open http://localhost:8091 and register the first account. The defaults in `tools/config.json` bind to loopback and store data in the current directory.
+Open http://localhost:8091 and register the first account; that user becomes the admin. The defaults in `tools/config.json` bind to loopback and store data in the current directory. Most app configuration (appearance, publishing, sessions, admin tools) lives in the in-browser Settings dialog.
 
 To reach the site from other devices on your network, change `bind` to `0.0.0.0:8090` and set `secure_cookies: false` (required when there's no HTTPS in front).
 
@@ -29,7 +29,7 @@ Audit the script first if you like (`less deploy/install.sh`); it's a couple of 
 
 ## Exposing it on a public domain
 
-Front Ferd with any reverse proxy for TLS and a clean hostname. Sample configs for the two common ones live in [`deploy/Caddyfile.example`](../deploy/Caddyfile.example) (recommended; automatic Let's Encrypt) and [`deploy/nginx.example.conf`](../deploy/nginx.example.conf) (bring your own cert).
+Front it with any reverse proxy for TLS and a clean hostname. Sample configs for the two common ones live in [`deploy/Caddyfile.example`](../deploy/Caddyfile.example) (recommended; automatic Let's Encrypt) and [`deploy/nginx.example.conf`](../deploy/nginx.example.conf) (bring your own cert).
 
 Once HTTPS is in front, set `secure_cookies: true`. The proxy forwards to the API's bind address (loopback by default).
 
@@ -40,10 +40,6 @@ Between starting the API and registering the first account, registration is open
 1. **Don't expose the site to the internet until you've registered.** Trivial for private deploys behind a VPN or LAN.
 2. **Pre-seed the admin account.** Set `initial_user` and `initial_password` in `tools/config.json`. The account is created on first start and registration is already closed by the time the API accepts its first request.
 3. **Require a setup token.** Set `require_setup_token: true`. The API generates a random token at startup and prints it to stderr; the first registration must supply it.
-
-## First sign-in
-
-Register the first account; that user becomes the admin and registration auto-closes after that. The "Settings" dialog is where most app configuration lives (appearance, publishing, sessions, admin tools); browse it once.
 
 ## Updating
 

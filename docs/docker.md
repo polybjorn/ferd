@@ -1,14 +1,11 @@
 # Running with Docker
 
-The easiest way to run the app on a server, NAS, or a spare machine at home. One container, one folder of your data on the host, and (if you want it on the public internet) a reverse proxy in front for TLS.
-
-If you'd rather run it as a plain Python process (no container), see [python.md](python.md).
+If you'd rather run it as a plain Python process, see [python.md](python.md).
 
 ## What you get
 
 - A single `ferd` container running the API on port 8090.
 - A `./data/` folder on the host that holds everything: the SQLite database, per-user folders (places, GPX files, preferences), and `site-config.json`. Nothing important lives inside the container itself, so rebuilding the image never touches your data.
-- A small image: about 43 MB compressed to pull, around 210 MB on disk after extract. The app's own footprint is under 5 MB; the rest is the Debian-slim Python base.
 
 ## Quickstart
 
@@ -23,9 +20,29 @@ docker compose up -d
 
 Open http://localhost:8090 and register the first account. The first user is the one who can change site-wide settings; everyone after is a regular user.
 
-To reach it from other devices on your LAN, the container already listens on every interface, so use `http://<host-ip>:8090`. `FERD_SECURE_COOKIES` defaults to `false` in `.env.example` because the quickstart assumes plain HTTP.
+To reach it from other devices on your LAN, the container already listens on every interface, so use `http://<host-ip>:8090`.
 
 There isn't a published image yet (it's on the roadmap). For now the quickstart builds locally. Once published, the workflow becomes `docker compose pull && docker compose up -d` without the `git clone`.
+
+## What the compose file does
+
+Trimmed for readability; the full file is at [`compose.yml`](../compose.yml) (env vars, healthcheck, PUID/PGID auto-detection).
+
+```yaml
+services:
+  ferd:
+    build: .
+    image: ferd:local
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./data:/data
+    environment:
+      FERD_SECURE_COOKIES: "false"
+```
+
+One container, one bind-mount (`./data` -> `/data`). All persistent state lives in that one folder.
 
 ## Behind a reverse proxy
 
@@ -113,4 +130,4 @@ docker image rm ferd:local
 
 ## How the image is put together
 
-The base is `python:3.12-slim`. The only added packages are `tini` (clean signal handling) and `gosu` (drop privileges in the entrypoint). The API is stdlib-only Python, so there's no `pip install` step and no Python packages baked in.
+Base is `python:3.12-slim`. The only added packages are `tini` (clean signal handling) and `gosu` (drop privileges in the entrypoint). The API is stdlib-only Python, so there's no `pip install` step and no Python packages baked in. Around 43 MB compressed, 210 MB on disk; the app's own footprint is under 5 MB and the rest is the Debian-slim Python base.
