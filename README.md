@@ -26,8 +26,8 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 - Run places-only, trails-only, or both per deployment.
 - Per-user appearance settings sync across devices.
 
-**Phone and offline**
-- Add to your phone's home screen; launches in its own window.
+**Installable and offline**
+- Add to your device for launch in its own window.
 - Reads work offline (app shell, last loaded data, downloaded GPX, previously viewed tiles). Edits and uploads need network.
 
 ## Install
