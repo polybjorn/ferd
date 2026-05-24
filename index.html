@@ -1173,6 +1173,45 @@
       max-width: 360px;
       box-shadow: 0 10px 40px var(--shadow);
     }
+    #signin-public-maps {
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .signin-public-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--muted);
+      font: inherit;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+    }
+    .signin-public-toggle:hover { color: var(--text); border-color: var(--border-hover); }
+    .signin-public-chevron { transition: transform 0.2s ease; font-size: 0.55rem; }
+    .signin-public-toggle.expanded .signin-public-chevron { transform: rotate(180deg); }
+    #signin-public-collapsible.expanded .collapsible-inner { padding-top: 0.5rem; max-height: 40vh; overflow-y: auto; }
+    .public-maps-list { display: flex; flex-direction: column; gap: 0.4rem; }
+    .public-maps-item {
+      display: block;
+      padding: 0.55rem 0.85rem;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+    .public-maps-item:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
 
     /* Leaflet overrides */
     .leaflet-bar { border-radius: var(--radius) !important; }
@@ -1361,13 +1400,94 @@
       border-color: var(--border-hover);
       opacity: 1;
     }
-    .settings-signout-row {
-      display: flex;
-      justify-content: center;
-      margin-top: 1.5rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--border);
+    .auth-widget { position: relative; }
+    .auth-menu {
+      position: absolute;
+      top: calc(100% + 0.4rem);
+      right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      min-width: 180px;
+      z-index: 1500;
+      padding: 0.25rem;
     }
+    .auth-menu[hidden] { display: none; }
+    .auth-menu .auth-menu-header {
+      padding: 0.5rem 0.7rem 0.4rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0.25rem;
+    }
+    .auth-menu .auth-menu-header strong {
+      color: var(--text);
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 0.8rem;
+      display: block;
+      margin-top: 0.15rem;
+    }
+    .auth-menu button {
+      display: flex;
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.75rem;
+      text-align: left;
+      padding: 0.5rem 0.7rem;
+      border-radius: 4px;
+      cursor: pointer;
+      justify-content: flex-start;
+    }
+    .auth-menu button:hover {
+      background: var(--surface2);
+      color: var(--text);
+      border-color: transparent;
+    }
+    .auth-menu button.auth-menu-signout {
+      margin-top: 0.25rem;
+      padding-top: 0.55rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 0 0 4px 4px;
+    }
+    .auth-menu button.auth-menu-signout:hover { color: var(--text); }
+    .about-body { text-align: center; padding: 0.5rem 0 0.25rem; }
+    .about-logo {
+      width: 64px;
+      height: 64px;
+      display: block;
+      margin: 0 auto 0.5rem;
+    }
+    .about-brand {
+      font-size: 1.4rem;
+      letter-spacing: 0.08em;
+      color: var(--text);
+      margin-bottom: 0.15rem;
+    }
+    .about-version {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+    .about-tagline {
+      font-size: 0.8rem;
+      color: var(--text);
+      line-height: 1.4;
+      margin-bottom: 1rem;
+    }
+    .about-links { font-size: 0.7rem; color: var(--muted); }
+    .about-links a { color: var(--accent); text-decoration: none; }
+    .about-links a:hover { text-decoration: underline; }
+    .about-sep { margin: 0 0.4rem; }
 
     /* Floating add button */
     .fab-add {
@@ -5660,13 +5780,44 @@
     function renderAuthWidget() {
       const el = document.getElementById('auth-widget');
       if (!el) return;
-      if (state.auth.authenticated) {
-        el.innerHTML = '<button id="auth-settings-btn" title="Settings">Settings</button>';
-        document.getElementById('auth-settings-btn').addEventListener('click', openSettingsModal);
-      } else {
+      if (!state.auth.authenticated) {
         el.innerHTML = '<button id="auth-signin">Sign in</button>';
         document.getElementById('auth-signin').addEventListener('click', openSignInModal);
+        return;
       }
+      const isAdmin = !!state.auth.is_admin;
+      el.innerHTML =
+        '<button id="auth-menu-btn" title="Account menu">Menu</button>' +
+        '<div class="auth-menu" id="auth-menu" hidden>' +
+          '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>' +
+          '<button data-action="settings">Settings</button>' +
+          (isAdmin ? '<button data-action="logs">Logs</button>' : '') +
+          '<button data-action="about">About</button>' +
+          '<button class="auth-menu-signout" data-action="signout">Sign out</button>' +
+        '</div>';
+      const btn = document.getElementById('auth-menu-btn');
+      const menu = document.getElementById('auth-menu');
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        menu.hidden = !menu.hidden;
+      });
+      menu.addEventListener('click', function(e) {
+        const action = e.target.closest('button[data-action]');
+        if (!action) return;
+        menu.hidden = true;
+        switch (action.dataset.action) {
+          case 'settings': openSettingsModal(); break;
+          case 'logs':     openLogsModal(); break;
+          case 'about':    openAboutModal(); break;
+          case 'signout':  confirmSignOut(); break;
+        }
+      });
+      document.addEventListener('click', function closer(ev) {
+        if (!el.contains(ev.target)) {
+          menu.hidden = true;
+          document.removeEventListener('click', closer);
+        }
+      });
     }
 
     function confirmSignOut() {
@@ -5679,6 +5830,31 @@
         if (!ok) return;
         api('POST', '/logout').then(function() { location.reload(); });
       });
+    }
+
+    function openAboutModal() {
+      const version = state.auth.version || 'unknown';
+      const brand = (state.config && state.config.brand) || 'Ferd';
+      openModal(
+        '<h2>About<button class="modal-close">&times;</button></h2>' +
+        '<div class="about-body">' +
+          '<img class="about-logo" src="/favicon.svg" alt="">' +
+          '<div class="about-brand">' + escapeHtml(brand) + '</div>' +
+          '<div class="about-version">' + escapeHtml(version) + '</div>' +
+          '<div class="about-tagline">Your own map of where you&rsquo;ve been, where you want to go, and the journeys between them.</div>' +
+          '<div class="about-links">' +
+            '<a href="https://github.com/polybjorn/ferd" target="_blank" rel="noopener">Source</a>' +
+            '<span class="about-sep">&middot;</span>' +
+            '<a href="https://github.com/polybjorn/ferd/blob/main/LICENSE" target="_blank" rel="noopener">GPL-3.0 license</a>' +
+            '<span class="about-sep">&middot;</span>' +
+            '<a href="https://github.com/polybjorn/ferd/blob/main/vendor/NOTICES.md" target="_blank" rel="noopener">Third-party notices</a>' +
+          '</div>' +
+        '</div>',
+        function(backdrop) {
+          const modal = backdrop.querySelector('.modal');
+          if (modal) modal.style.maxWidth = '380px';
+        }
+      );
     }
 
     // ----- Settings modal -----
@@ -5704,7 +5880,7 @@
       return dt.toISOString().slice(0, 10);
     }
 
-    function openSettingsModal() {
+    function openSettingsModal(initialTab) {
       const isAdmin = state.auth.is_admin;
       const regOpen = state.auth.registration_open;
       const theme = getStoredTheme();
@@ -5729,7 +5905,6 @@
           '<button data-tab="appearance">Appearance</button>' +
           '<button data-tab="account">Account</button>' +
           (isAdmin ? '<button data-tab="admin">Admin</button>' : '') +
-          (isAdmin ? '<button data-tab="logs">Logs</button>' : '') +
         '</div>' +
         '<div data-panel="general">' +
         ((placesAvailable() || trailsAvailable()) ?
@@ -5772,9 +5947,6 @@
             '<button type="button" class="primary" id="s-manage-regions">Manage</button>' +
           '</div>'
         : '') +
-        '<div class="settings-signout-row">' +
-          '<button type="button" class="danger-btn" id="s-signout">Sign out</button>' +
-        '</div>' +
         '</div>' +
         '<div data-panel="appearance" hidden>' +
         '<div class="settings-grid-2">' +
@@ -5811,14 +5983,14 @@
           '</div>'
           : '') +
         '<h3 class="settings-h">Map</h3>' +
-        '<div class="settings-inline-row"><label for="s-tile">Default tile layer</label>' +
+        '<div class="settings-grid-2">' +
+          '<label for="s-tile">Default tile layer</label>' +
+          '<label for="s-tile-filter">Tile style</label>' +
           '<select id="s-tile">' +
             ['CyclOSM', 'Dark', 'OpenStreetMap', 'OpenTopoMap', 'Satellite'].map(n =>
               '<option value="' + n + '"' + (getDefaultTileLayer() === n ? ' selected' : '') + '>' + n + '</option>'
             ).join('') +
           '</select>' +
-        '</div>' +
-        '<div class="settings-inline-row"><label for="s-tile-filter">Tile style</label>' +
           '<select id="s-tile-filter">' +
             [['none', 'None'], ['contrast', 'Contrast'], ['grayscale', 'Grayscale'], ['muted', 'Muted'], ['sepia', 'Sepia']].map(([v, l]) =>
               '<option value="' + v + '"' + (tileFilter === v ? ' selected' : '') + '>' + l + '</option>'
@@ -5851,10 +6023,12 @@
             '<input type="checkbox" class="settings-toggle" id="s-publish"' + (state.auth.published ? ' checked' : '') + '>' +
             '<label for="s-publish" style="margin:0">Make my map public</label>' +
           '</div>' +
-          '<div class="modal-desc">When on, anyone with the link can view your places and trails. They can\'t edit.</div>' +
-          '<div id="s-publish-link" style="display:' + (state.auth.published ? 'flex' : 'none') + ';align-items:center;gap:0.5rem;margin-top:0.5rem">' +
-            '<input type="text" id="s-publish-url" readonly value="' + escapeHtml(location.origin + '/u/' + (state.auth.username || '') + '/') + '" style="flex:1;font-size:0.75rem">' +
-            '<button type="button" class="primary" id="s-publish-copy" style="flex:0 0 auto">Copy</button>' +
+          '<div class="modal-desc">Anyone with the link gets read-only access.</div>' +
+          '<div id="s-publish-link" class="collapsible' + (state.auth.published ? ' expanded' : '') + '">' +
+            '<div class="collapsible-inner" style="display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem">' +
+              '<input type="text" id="s-publish-url" readonly value="' + escapeHtml(location.origin + '/u/' + (state.auth.username || '') + '/') + '" style="flex:1;font-size:0.75rem">' +
+              '<button type="button" class="primary" id="s-publish-copy" style="flex:0 0 auto">Copy</button>' +
+            '</div>' +
           '</div>'
         : '') +
         '<h3 class="settings-h">Export</h3>' +
@@ -5914,10 +6088,7 @@
           '<h3 class="settings-h">Users</h3>' +
           '<div id="s-admin-users"><div class="hint">Loading&hellip;</div></div>' +
           '</div>' +
-          '<div data-panel="logs" hidden>' +
-          '<div id="s-admin-logs"><div class="hint">Loading&hellip;</div></div>' +
-          '<div class="log-toolbar"><button type="button" id="s-logs-clear" class="danger-btn">Clear all</button></div>' +
-          '</div>'
+          ''
         : ''),
         function() {
           document.getElementById('settings-pw-form').addEventListener('submit', function(e) {
@@ -5988,7 +6159,7 @@
               const wanted = this.checked;
               api('POST', '/me/publish', { published: wanted })
                 .then(() => {
-                  if (pubLink) pubLink.style.display = wanted ? 'flex' : 'none';
+                  if (pubLink) pubLink.classList.toggle('expanded', wanted);
                   return refreshAuthState();
                 })
                 .catch(err => { alert('Failed: ' + err.message); this.checked = !wanted; });
@@ -6110,11 +6281,6 @@
           if (manageCats) manageCats.addEventListener('click', openManageCategoriesModal);
           const manageRegions = document.getElementById('s-manage-regions');
           if (manageRegions) manageRegions.addEventListener('click', openManageRegionsModal);
-          const signoutBtn = document.getElementById('s-signout');
-          if (signoutBtn) signoutBtn.addEventListener('click', function() {
-            closeTopModal();
-            confirmSignOut();
-          });
           document.querySelectorAll('.feature-pill input[data-field]').forEach(cb => {
             cb.addEventListener('change', function() {
               setPref('show-' + this.dataset.field, this.checked ? 'true' : 'false');
@@ -6238,9 +6404,23 @@
               document.querySelectorAll('.modal [data-panel]').forEach(p => {
                 p.hidden = p.dataset.panel !== tab;
               });
-              if (tab === 'logs') renderAdminLogs();
             });
           });
+          if (initialTab) {
+            const target = document.querySelector('#settings-tabs button[data-tab="' + initialTab + '"]');
+            if (target) target.click();
+          }
+        }
+      );
+    }
+
+    function openLogsModal() {
+      openModal(
+        '<h2>Audit log<button class="modal-close">&times;</button></h2>' +
+        '<div id="s-admin-logs"><div class="hint">Loading&hellip;</div></div>' +
+        '<div class="log-toolbar"><button type="button" id="s-logs-clear" class="danger-btn">Clear all</button></div>',
+        function() {
+          renderAdminLogs();
           const clearBtn = document.getElementById('s-logs-clear');
           if (clearBtn) {
             clearBtn.addEventListener('click', function() {
@@ -7100,12 +7280,46 @@
         '<div class="signin-page">' +
           '<img class="signin-logo" src="/favicon.svg" alt="">' +
           '<div class="signin-brand">' + escapeHtml(brand) + '</div>' +
-          '<div class="modal">' + signInFormHtml(false) + '</div>' +
+          '<div class="modal">' +
+            signInFormHtml(false) +
+            '<div id="signin-public-maps" hidden></div>' +
+          '</div>' +
         '</div>';
       bindSignInForm({ onSuccess: () => {
         document.body.classList.remove('signin-only');
         return loadDataAndRender();
       } });
+      // Surface any published maps as a collapsible list inside the
+      // sign-in card. Starts collapsed so the card stays compact even
+      // with a long roster; the toggle button shows the count.
+      fetchJson(apiUrl('/public-maps'), { usernames: [] }).then(function(resp) {
+        const names = (resp && resp.usernames) || [];
+        if (!names.length) return;
+        const box = document.getElementById('signin-public-maps');
+        if (!box) return;
+        box.hidden = false;
+        box.innerHTML =
+          '<button type="button" class="signin-public-toggle" aria-expanded="false">' +
+            '<span>Public maps (' + names.length + ')</span>' +
+            '<span class="signin-public-chevron" aria-hidden="true">&#x25BC;</span>' +
+          '</button>' +
+          '<div class="collapsible" id="signin-public-collapsible">' +
+            '<div class="collapsible-inner">' +
+              '<div class="public-maps-list">' +
+                names.map(u =>
+                  '<a class="public-maps-item" href="/u/' + encodeURIComponent(u) + '/">' + escapeHtml(u) + '</a>'
+                ).join('') +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        const toggle = box.querySelector('.signin-public-toggle');
+        const list = document.getElementById('signin-public-collapsible');
+        toggle.addEventListener('click', function() {
+          const expanded = list.classList.toggle('expanded');
+          toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+          toggle.classList.toggle('expanded', expanded);
+        });
+      });
     }
 
     // ----- Add place / GPX modal -----

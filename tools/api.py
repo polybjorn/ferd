@@ -105,6 +105,22 @@ SW_VERSION_PLACEHOLDER = "__FERD_CACHE_VERSION__"
 _SW_VERSION_CACHE: dict = {"version": None, "computed_at": 0.0}
 _SW_VERSION_TTL_SEC = 5
 
+
+def _read_app_version() -> str:
+  """Read the human-readable app version from the VERSION file at the repo
+  root. Falls back to 'unknown' if the file is missing (older deployments,
+  bare source layouts)."""
+  for candidate in (Path(__file__).resolve().parent.parent / "VERSION",
+                    Path(__file__).resolve().parent / "VERSION"):
+    try:
+      return candidate.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+      continue
+  return "unknown"
+
+
+APP_VERSION = _read_app_version()
+
 def _compute_sw_version(static_dir: Path) -> str:
   sw_path = static_dir / "sw.js"
   try:
@@ -744,6 +760,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_me_category_labels_get()
     if path == "/api/me/export":
       return self._h_export_get()
+    if path == "/api/public-maps":
+      return self._h_public_maps()
     if path == "/api/admin/users":
       return self._h_admin_users_list()
     if path == "/api/admin/stats":
@@ -934,6 +952,17 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "publishing_open": publishing_open(self.conn),
       "has_users": user_count(self.conn) > 0,
       "requires_setup_token": Handler.setup_token is not None and user_count(self.conn) == 0,
+      "version": APP_VERSION,
+    })
+
+  def _h_public_maps(self):
+    """Public list of usernames whose map is currently published.
+    Used by the logged-out landing page; no auth required."""
+    rows = self.conn.execute(
+      "SELECT username FROM users WHERE published=1 ORDER BY username"
+    ).fetchall()
+    self._send_json(HTTPStatus.OK, {
+      "usernames": [r["username"] for r in rows],
     })
 
   def _h_register(self):
