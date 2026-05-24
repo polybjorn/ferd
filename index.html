@@ -423,16 +423,6 @@
     #nav-back svg { width: 1.1em; height: 1.1em; display: block; }
     #nav-crumb { color: var(--muted); }
 
-    .nav-info {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-size: 0.75rem;
-      color: var(--muted);
-      min-width: 0;
-      white-space: nowrap;
-      justify-self: center;
-    }
 
     .nav-group {
       display: flex;
@@ -464,7 +454,7 @@
       border-radius: var(--radius);
       overflow: hidden;
       flex-shrink: 0;
-      justify-self: end;
+      justify-self: center;
     }
     .view-tabs a {
       color: var(--muted);
@@ -1306,11 +1296,9 @@
       .place-grid, .route-grid { grid-template-columns: 1fr; }
       .detail-layout { padding: 0; }
       nav { padding: 0.6rem 1rem; gap: 0.5rem; }
-      .nav-info { gap: 0.4rem; flex-wrap: wrap; }
       .nav-group { gap: 0.4rem; }
       .nav-group + .nav-group { padding-left: 0.4rem; }
       .nav-stat .label { font-size: 0.5rem; }
-      #nav-stats-dynamic { display: none; }
       #track-legend { gap: 0.4rem; padding: 0.4rem 0.5rem; }
       .track-legend-item .track-stat { display: none; }
       #multi-elevation-container { max-height: 40vh; }
@@ -2241,13 +2229,12 @@
     <span class="nav-brand">
       <a href="#/" id="nav-home"><span id="nav-back" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span id="nav-brand-text">Ferd</span></a><span id="nav-crumb"></span>
     </span>
-    <div class="nav-info" id="nav-info"></div>
+    <div class="view-tabs">
+      <a href="#/places" data-view="places" id="tab-places">Places</a>
+      <a href="#/trails" data-view="trails" id="tab-trails">Trails</a>
+    </div>
     <div class="nav-right">
       <div class="nav-actions" id="nav-actions"></div>
-      <div class="view-tabs">
-        <a href="#/places" data-view="places" id="tab-places">Places</a>
-        <a href="#/trails" data-view="trails" id="tab-trails">Trails</a>
-      </div>
       <div class="auth-widget" id="auth-widget"></div>
     </div>
   </nav>
@@ -3321,7 +3308,6 @@
     function renderUnifiedMap(focus) {
       setActiveTab('map');
       setCrumb('', false);
-      document.getElementById('nav-info').innerHTML = '';
       const prevView = state.currentMap
         ? { center: state.currentMap.getCenter(), zoom: state.currentMap.getZoom() }
         : null;
@@ -3557,13 +3543,6 @@
       }
       bindPopupActions(map);
 
-      // Nav summary
-      const placeCount = state.places ? state.places.length : 0;
-      const trailCount = state.manifest ? state.manifest.regions.reduce((n, r) => n + r.routes.length, 0) : 0;
-      let stats = '';
-      if (placesEnabled()) stats += '<div class="nav-stat"><span class="value">' + placeCount + ' places</span></div>';
-      if (trailsEnabled()) stats += '<div class="nav-stat"><span class="value">' + trailCount + ' trails</span></div>';
-      document.getElementById('nav-info').innerHTML = '<div class="nav-group">' + stats + '</div>';
     }
 
     function refreshFilterPanel() {
@@ -4486,7 +4465,7 @@
       setCrumb('', false);
       cleanupMap();
       const app = document.getElementById('app');
-      if (!state.places) { document.getElementById('nav-info').innerHTML = ''; app.innerHTML = '<div class="loading">Loading places...</div>'; return; }
+      if (!state.places) { app.innerHTML = '<div class="loading">Loading places...</div>'; return; }
 
       const places = state.places;
       const visited = places.filter(p => p.visited).length;
@@ -4494,13 +4473,6 @@
       const cats = sortedCategorySlugs(Object.keys(state.categoryColors));
       // The uncategorized bucket isn't a real category — exclude from the count.
       const realCatsCount = cats.filter(c => c !== '').length;
-
-      document.getElementById('nav-info').innerHTML =
-        '<div class="nav-group">' +
-        '<div class="nav-stat"><span class="value">' + visited + '/' + total + ' visited</span></div>' +
-        '<div class="nav-stat"><span class="value">' + realCatsCount + ' categories</span></div>' +
-        '<div class="nav-stat"><span class="value">' + [...new Set(places.map(p => p.country).filter(Boolean))].length + ' countries</span></div>' +
-        '</div>';
 
       const canAdd = state.auth.authenticated && !isReadOnly();
       const countries = [...new Set(places.map(p => p.country).filter(Boolean))].sort((a, b) => a.localeCompare(b));
@@ -4668,18 +4640,12 @@
       setCrumb('', false);
       cleanupMap();
       const app = document.getElementById('app');
-      if (!state.manifest) { document.getElementById('nav-info').innerHTML = ''; app.innerHTML = '<div class="loading">Loading routes...</div>'; return; }
+      if (!state.manifest) { app.innerHTML = '<div class="loading">Loading routes...</div>'; return; }
 
       const regions = state.manifest.regions;
       const allRoutes = regions.flatMap(r => r.routes);
       const total = allRoutes.length;
       const completed = allRoutes.filter(r => r.completed).length;
-
-      document.getElementById('nav-info').innerHTML =
-        '<div class="nav-group">' +
-        '<div class="nav-stat"><span class="value">' + completed + '/' + total + ' completed</span></div>' +
-        '<div class="nav-stat"><span class="value">' + regions.length + ' regions</span></div>' +
-        '</div>';
 
       const canAddTrail = state.auth.authenticated && !isReadOnly();
       const difficulties = ['easy', 'moderate', 'hard', 'expert'];
@@ -4989,7 +4955,6 @@
       const color = ROUTE_COLOR;
       const statusLabel = route.completed ? 'Completed' : 'Planned';
 
-      document.getElementById('nav-info').innerHTML = '';
       let routeSourceHref = '';
       if (route.source) {
         try {
