@@ -1,6 +1,6 @@
 // Ferd service worker.
 // Bump CACHE_VERSION on each release that changes the app shell or vendor deps.
-const CACHE_VERSION = 'ferd-v70';
+const CACHE_VERSION = 'ferd-v71';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const TILE_CACHE = `${CACHE_VERSION}-tiles`;
@@ -27,7 +27,7 @@ const SHELL_ASSETS = [
   '/vendor/leaflet/images/layers-2x.png',
   '/vendor/leaflet-tilelayer-nogap/L.TileLayer.NoGap.js',
   '/vendor/supercluster/supercluster.min.js',
-  '/vendor/leaflet-gpx/gpx.min.js',
+  '/vendor/leaflet-gpx/gpx.js',
   '/vendor/leaflet-elevation/leaflet-elevation.css',
   '/vendor/leaflet-elevation/leaflet-elevation.js',
   '/vendor/src/components/chart.js',

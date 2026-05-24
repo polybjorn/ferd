@@ -12,7 +12,7 @@ Update this file when a dependency is **added, removed, replaced, or version-bum
 - Copyright (c) 2010-2011, CloudMade
 
 ## leaflet-gpx
-- Version: 2.1.2
+- Version: 2.2.0
 - Upstream: https://github.com/mpetazzoni/leaflet-gpx
 - License: BSD-2-Clause
 - Copyright (c) Maxime Petazzoni and contributors
@@ -38,21 +38,21 @@ Update this file when a dependency is **added, removed, replaced, or version-bum
 - Copyright (c) Mapbox
 
 ## d3
-- Version: 7.8.4
+- Version: 7.9.0
 - Upstream: https://github.com/d3/d3
 - License: ISC
 - Copyright (c) Mike Bostock
 - Note: lazy-loaded by leaflet-elevation when rendering an elevation chart.
 
 ## @tmcw/togeojson
-- Version: 5.6.2
+- Version: 7.1.2
 - Upstream: https://github.com/tmcw/togeojson
 - License: BSD-2-Clause
 - Copyright (c) Tom MacWright
 - Note: lazy-loaded by leaflet-elevation to convert GPX/KML to GeoJSON.
 
 ## leaflet-geometryutil
-- Version: 0.10.1
+- Version: 0.10.3
 - Upstream: https://github.com/makinacorpus/Leaflet.GeometryUtil
 - License: BSD-3-Clause (FreeBSD-style)
 - Copyright (c) Makina Corpus
