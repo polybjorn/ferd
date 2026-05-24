@@ -1379,6 +1379,14 @@
       justify-content: flex-start;
     }
     .auth-menu button:hover { background: var(--surface2); color: var(--text); border-color: transparent; }
+    .auth-menu button.auth-menu-signout {
+      margin-top: 0.25rem;
+      padding-top: 0.55rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 0 0 4px 4px;
+    }
+    .auth-menu button.auth-menu-signout:hover { color: var(--text); }
 
     /* Floating add button */
     .fab-add {
@@ -5516,7 +5524,7 @@
           '<div class="auth-menu" id="auth-menu" hidden>' +
             '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>' +
             '<button data-action="settings">Settings</button>' +
-            '<button data-action="signout">Sign out</button>' +
+            '<button class="auth-menu-signout" data-action="signout">Sign out</button>' +
           '</div>';
         const btn = document.getElementById('auth-menu-btn');
         const menu = document.getElementById('auth-menu');
@@ -5529,7 +5537,15 @@
           if (!action) return;
           menu.hidden = true;
           if (action.dataset.action === 'signout') {
-            api('POST', '/logout').then(function() { location.reload(); });
+            openConfirmModal({
+              title: 'Sign out?',
+              body: 'You will need to sign in again to edit places, trails, or settings.',
+              confirmLabel: 'Sign out',
+              danger: true,
+            }).then(ok => {
+              if (!ok) return;
+              api('POST', '/logout').then(function() { location.reload(); });
+            });
           } else if (action.dataset.action === 'settings') {
             openSettingsModal();
           }
