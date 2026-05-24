@@ -16,13 +16,13 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 
 **Editing and multi-user**
 - Edit places and trails in the browser; optional GPX PII strip on upload.
-- Per-user data isolation. Each account is its own map.
+- Per-user data isolation - each account is its own map.
 - Optional read-only public sharing at `/u/<username>/`.
 - Per-user zip import/export.
 - Admin tools: user management, site stats, registration and publishing toggles, audit log.
 
 **Customization**
-- Multiple themes, light and dark.
+- Multiple built-in themes.
 - Run places-only, trails-only, or both per deployment.
 - Per-user appearance settings sync across devices.
 
@@ -53,7 +53,7 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 | [Architecture](docs/architecture.md) | How the code is organized and where data lives. |
 | [Configuration](docs/configure.md) | Settings and feature flags you can tweak. |
 | [Docker](docs/docker.md) | Run it in a container. |
-| [PWA](docs/pwa.md) | Install on phone, offline behavior, maintenance. |
+| [PWA](docs/pwa.md) | Install, offline behavior, maintenance. |
 | [Python](docs/python.md) | Run it as a plain Python process (LAN, systemd, launchd). |
 | [Themes](docs/themes.md) | Look and feel options, and how to add your own. |
 
