@@ -103,6 +103,20 @@ curl -s -b /tmp/c -H 'Content-Type: application/json' \
 
 To verify the static side end to end, run the dev server above, sign in, and do all of: add a place from the map ("Pick on map" then form), edit a place from its popup, delete a place, upload a GPX, delete a trail, switch themes, change your password, revoke a session.
 
+## Contributing to the shipped catalog
+
+`catalog.json` at the repo root is the community-curated baseline catalog that ships with every Ferd instance. To add a place:
+
+1. Add a new object to the array. Entries are sorted alphabetically by `name` (case-insensitive); insert in place rather than appending. Follow the canonical field order: `name`, `lat`, `lon`, `category`, `country`, `local_name`, `note`, `image`, `sources`.
+2. `lat`/`lon` to 5 decimals (~1 m; matches what the in-app map picker rounds to). Source from OSM Nominatim or by picking on the map in the app, not from Wikipedia's "geo" links - those are often village-center, not the specific landmark.
+3. `category` must be one of the slugs in `CATEGORY_VOCAB` (`tests/test_shipped_catalog.py`). To introduce a new slug, extend the set in the same PR.
+4. `local_name` should be the place's native script (e.g. `Ακρόπολη της Λίνδου`, `京都駅`), not a romanized transliteration. Skip if the native form is the same as `name`.
+5. `note` is a one-line identifier, capped at 60 chars. Anything longer belongs in `sources`.
+6. `image` should be a stable thumbnail URL when one is available. Wikipedia Commons works (`https://upload.wikimedia.org/wikipedia/commons/thumb/…/1280px-…`); browsers downsize to ~280 px in the popup and the service worker caches repeats. Stick to 1280 px - smaller pre-cached widths often 400 from the thumbnailer.
+7. `sources` is one URL, usually Wikipedia. Multiple only if a single source can't carry the claim.
+
+`tests/test_shipped_catalog.py` (runs in CI) enforces these conventions plus the place schema, so PRs catch malformed entries at review time.
+
 ## Code style
 
 - 2-space indentation, JavaScript and Python alike.

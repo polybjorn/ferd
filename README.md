@@ -18,7 +18,9 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 - Edit places and trails in the browser; optional GPX PII strip on upload.
 - Per-user data isolation - each account is its own map.
 - Optional read-only public sharing at `/u/<username>/`.
-- Per-user zip import/export.
+- Per-user zip import/export, with a preferences-only mode for syncing settings between accounts.
+- Optional image URL per place, rendered in the marker popup.
+- Site catalog: a shipped baseline `catalog.json` (community-contributable via PRs) merged with each instance's local admin additions. Users browse and import; admins can disable the baseline per instance.
 - Admin tools: user management, site stats, registration and publishing toggles, audit log.
 
 **Customization**
@@ -61,7 +63,7 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 
 - Print / PDF stylesheet for trail and place details.
 - Auth hardening: optional TOTP 2FA.
-- Photo attachments on places and trails.
+- Uploaded image attachments on places and trails (today: URL only).
 - Custom iOS launch splash: add pre-rendered `apple-touch-startup-image` PNG files (one `<link>` per device size + orientation) in `index.html`. Without these iOS shows a generic splash with the auto-rendered icon.
 - Better logo - current placeholder favicon could use a more distinctive mark.
 

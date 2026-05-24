@@ -662,6 +662,39 @@
     .place-card .place-text { min-width: 0; flex: 1; }
     .place-card .name { font-size: 0.85rem; font-weight: 300; }
     .place-card .note { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; }
+    .place-card .catalog-mark {
+      flex: 0 0 auto; color: var(--muted); display: inline-flex;
+      align-items: center; align-self: center; margin-left: 0.5rem;
+      background: transparent; border: none; padding: 0.2rem; cursor: pointer;
+    }
+    .place-card .catalog-mark.update-available { color: var(--accent); }
+    .place-card .catalog-mark.update-available svg path { fill: currentColor; }
+    .place-card .catalog-mark.update-available:hover { color: var(--accent); filter: brightness(1.15); }
+    .place-card .catalog-mark:hover { color: var(--text); }
+    .place-card .catalog-mark svg { width: 0.95rem; height: 0.95rem; display: block; }
+    .catalog-updates-notice {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin: 0 0 1rem; padding: 0.5rem 0.8rem;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+      font-size: 0.78rem; color: var(--text);
+      column-span: all;
+    }
+    .catalog-updates-notice span { flex: 1; }
+    .catalog-updates-notice button {
+      background: transparent; border: 1px solid var(--accent); color: var(--accent);
+      border-radius: 999px; padding: 0.15rem 0.6rem; font-size: 0.72rem; cursor: pointer;
+    }
+    .catalog-updates-notice button:hover { background: var(--accent); color: var(--surface); }
+    .catalog-diff {
+      margin: 0.5rem 0; padding: 0.6rem 0.8rem;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+      font-size: 0.78rem;
+    }
+    .catalog-diff-field { display: grid; grid-template-columns: 5rem 1fr; gap: 0.5rem; align-items: start; }
+    .catalog-diff-field + .catalog-diff-field { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border); }
+    .catalog-diff-label { color: var(--muted); font-size: 0.72rem; padding-top: 0.1rem; }
+    .catalog-diff-old { color: var(--muted); text-decoration: line-through; word-break: break-word; }
+    .catalog-diff-new { color: var(--text); word-break: break-word; margin-top: 0.1rem; }
 
     .status-dot {
       width: 7px;
@@ -1278,6 +1311,11 @@
     .leaflet-popup-content .popup-local { font-size: 0.75rem; color: var(--muted); font-weight: 300; font-style: italic; }
     .leaflet-popup-content .cat-text { color: var(--c); }
     [data-mode="light"] .leaflet-popup-content .cat-text { color: var(--cl); }
+    .leaflet-popup-content .popup-image {
+      display: block; width: 100%; max-width: 280px; aspect-ratio: 16 / 10;
+      object-fit: cover; border-radius: var(--radius); margin: 0.4rem auto;
+      background: var(--surface2);
+    }
     .leaflet-popup-content .popup-note { color: var(--text); font-size: 0.75rem; margin-top: 0.3rem; }
     .leaflet-popup-content .popup-summary {
       color: var(--text);
@@ -1700,6 +1738,14 @@
     }
     .btn-x:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
     .btn-x:disabled { opacity: 0.4; cursor: not-allowed; }
+    .catalog-eye-btn {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); width: 1.9rem; height: 1.9rem;
+      padding: 0; border-radius: var(--radius); cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .catalog-eye-btn:hover:not(:disabled) { color: var(--text); border-color: var(--border-hover); }
+    .catalog-eye-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .modal input.dirty { border-color: var(--accent); }
     .row-tag {
       font-size: 0.7rem;
@@ -1912,8 +1958,21 @@
       border-bottom: 1px solid var(--border);
       margin-bottom: 1rem;
     }
-    .modal-backdrop:has(#settings-tabs) { align-items: flex-start; padding-top: 3rem; padding-bottom: 3rem; }
+    .modal-backdrop:has(#settings-tabs),
+    .modal-backdrop:has(#cat-rows),
+    .modal-backdrop:has(#cat-list),
+    .modal-backdrop:has(#cat-mgr-list),
+    .modal-backdrop:has(#rgn-rows) { align-items: flex-start; padding-top: 3rem; padding-bottom: 3rem; }
     .modal-backdrop:has(#settings-tabs) .modal { max-height: calc(100vh - 6rem); }
+    /* For the catalog list/manager: fixed height (not just max) so the modal
+       always takes the same tall area instead of shrinking with content. The
+       list flex-grows to fill the available space. */
+    .modal-backdrop:has(#cat-list) .modal,
+    .modal-backdrop:has(#cat-mgr-list) .modal { display: flex; flex-direction: column; height: calc(100vh - 6rem); }
+    .modal-backdrop:has(#cat-list) #cat-list,
+    .modal-backdrop:has(#cat-mgr-list) #cat-mgr-list { flex: 1; min-height: 0; max-height: none; }
+    .modal-backdrop:has(#cat-list) #cat-list,
+    .modal-backdrop:has(#cat-mgr-list) #cat-mgr-list { flex: 1; min-height: 0; max-height: none; }
     /* Pin the Add modal to the top so switching Place <-> Trail (different
        form heights) doesn't shift the modal vertically. The body itself
        animates height between renders. */
@@ -2162,6 +2221,50 @@
       font-size: 0.78rem;
       line-height: 1.4;
     }
+    .cat-color-dot {
+      flex: 0 0 auto; width: 1.5rem; height: 1.5rem; border-radius: 50%;
+      border: 2px solid var(--border); padding: 0; cursor: pointer;
+      transition: transform 80ms ease-out;
+    }
+    .cat-color-dot:hover { transform: scale(1.1); }
+    .cat-color-dot.open { box-shadow: 0 0 0 2px var(--text); }
+    .cat-swatches {
+      display: grid; grid-template-columns: repeat(10, auto);
+      justify-content: center; gap: 0.4rem;
+      max-height: 0; opacity: 0; overflow: hidden;
+      padding: 0;
+      transition: max-height 220ms ease, opacity 140ms ease, padding 220ms ease;
+    }
+    .cat-swatches.open { max-height: 12rem; opacity: 1; padding: 0.5rem 0 0.25rem; }
+    .cat-swatch {
+      width: 1.75rem; height: 1.75rem; border-radius: 50%; padding: 0;
+      border: 2px solid transparent; cursor: pointer;
+    }
+    .cat-swatch.active { border-color: var(--text); }
+    /* On touch devices, bump tap targets to comfortable sizes. */
+    @media (pointer: coarse) {
+      .cat-color-dot { width: 2rem; height: 2rem; }
+      .cat-swatch { width: 2.5rem; height: 2.5rem; }
+      .cat-swatches { grid-template-columns: repeat(5, auto); gap: 0.5rem; }
+      .cat-swatches.open { max-height: 16rem; }
+    }
+    .row-note {
+      display: block; max-height: 0; opacity: 0; overflow: hidden; margin-top: 0;
+      font-size: 0.7rem; color: var(--muted); white-space: pre-wrap; word-break: break-word;
+    }
+    .show-notes .row-note { max-height: 8rem; opacity: 1; margin-top: 0.15rem; }
+    /* Transitions activate only after the user clicks the toggle, so freshly
+       rendered rows don't fire the animation on first paint. */
+    .notes-anim .row-note {
+      transition: max-height 220ms ease, opacity 140ms ease, margin-top 220ms ease;
+    }
+    .row-src { flex: 0 0 auto; font-size: 0.72rem; color: var(--muted); text-decoration: none; padding: 0.05rem 0.45rem; border: 1px solid var(--border); border-radius: 999px; }
+    .row-src:hover { color: var(--text); border-color: var(--text); }
+    .row-notes-toggle {
+      background: transparent; border: none; color: var(--muted); cursor: pointer;
+      padding: 0; font-size: 0.75rem; letter-spacing: 0;
+    }
+    .row-notes-toggle:hover { color: var(--text); text-decoration: underline; }
     .modal .log-row:last-child { border-bottom: none; }
     .modal .log-row .log-head {
       display: flex;
@@ -2553,11 +2656,15 @@
       const category = readSelectOrNew(prefix + '-category');
       const sourcesRaw = val('sources').trim();
       const sources = sourcesRaw ? sourcesRaw.split('\n').map(s => s.trim()).filter(Boolean) : null;
-      const lat = parseFloat(val('lat'));
-      const lon = parseFloat(val('lon'));
-      if (Number.isNaN(lat) || Number.isNaN(lon)) {
+      const rawLat = parseFloat(val('lat'));
+      const rawLon = parseFloat(val('lon'));
+      if (Number.isNaN(rawLat) || Number.isNaN(rawLon)) {
         return { error: 'Pick a location on the map (or enter coordinates manually).' };
       }
+      // Round to 5 decimals (~1 m). Anything beyond is JS float noise and
+      // pollutes the stored JSON; the marker is a 30-px dot anyway.
+      const lat = Math.round(rawLat * 1e5) / 1e5;
+      const lon = Math.round(rawLon * 1e5) / 1e5;
       const payload = {
         name: val('name').trim(),
         lat,
@@ -2568,11 +2675,13 @@
       const country = val('country').trim();
       const note = val('note').trim();
       const localName = val('local-name').trim();
+      const image = val('image').trim();
       const dateVisited = val('date-visited').trim();
       const ratingRaw = readStarRating(prefix + '-rating');
       if (country) payload.country = country;
       if (note) payload.note = note;
       if (localName) payload.local_name = localName;
+      if (image) payload.image = image;
       if (sources && sources.length) payload.sources = sources;
       // Visit-only metadata: ignore if the visited toggle is off.
       if (payload.visited) {
@@ -2720,7 +2829,7 @@
 
     const state = {
       config: DEFAULT_CONFIG,
-      auth: { authenticated: false, username: null, is_admin: false, published: false, registration_open: true, publishing_open: true, has_users: false, requires_setup_token: false },
+      auth: { authenticated: false, username: null, is_admin: false, published: false, registration_open: true, publishing_open: true, catalog_baseline_open: true, has_users: false, requires_setup_token: false },
       serverPrefs: {},
       viewer: detectViewer(),
       currentMap: null,
@@ -3208,6 +3317,10 @@
       const catStyle = '--c:' + color + ';--cl:' + colorLight;
       let html = shareCornerHtml('place', p._slug || p.name);
       html += '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local cat-text" style="' + catStyle + '">&middot; ' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
+      if (p.image) {
+        // Hide broken/blocked images instead of showing the empty alt frame.
+        html += '<img class="popup-image" src="' + escapeHtml(p.image) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
+      }
       if (p.note) html += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
       if (p.sources && p.sources.length) html += '<div class="popup-sources">' + renderSources(p.sources) + '</div>';
       html += '<div class="popup-meta">' +
@@ -3756,7 +3869,21 @@
 
       // Initial bounds: places + trails, prefer focus
       if (focusPlace) {
-        setTimeout(function() { revealPlaceMarker(map, focusPlace); }, 300);
+        // On reload at a place URL, keep the user's prior view (prevView /
+        // storedView) instead of forcing a zoom-in to the place. Opening the
+        // popup is enough acknowledgement; zooming would push every other
+        // marker out of the viewport, which reads as "the overlays vanished".
+        const restoredView = !!(prevView || storedView);
+        setTimeout(function() {
+          if (restoredView) {
+            L.popup({ closeButton: false })
+              .setLatLng([focusPlace.lat, focusPlace.lon])
+              .setContent(placePopupHtml(focusPlace))
+              .openOn(map);
+          } else {
+            revealPlaceMarker(map, focusPlace);
+          }
+        }, 300);
       } else if (!focusTrailKey && !prevView && !storedView) {
         const combined = L.latLngBounds();
         if (placeBounds.isValid()) combined.extend(placeBounds);
@@ -4004,6 +4131,10 @@
             '<label for="e-note">Note (optional)</label>' +
             '<textarea id="e-note" style="min-height:40px">' + escapeHtml(place.note || '') + '</textarea>'
           : '') +
+          (getShowField('image') ?
+            '<label for="e-image">Image URL (optional)</label>' +
+            '<input type="url" id="e-image" value="' + escapeHtml(place.image || '') + '" placeholder="https://example.com/photo.jpg">'
+          : '') +
           '<label for="e-sources">Sources (optional, one URL per line)</label>' +
           '<textarea id="e-sources" style="min-height:40px">' + escapeHtml(sourcesText) + '</textarea>' +
           '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
@@ -4048,8 +4179,10 @@
             const draft = Object.assign({}, place, snapshot.payload || {});
             closeModal();
             enterPickCoordsMode(function(latlng) {
-              draft.lat = latlng.lat;
-              draft.lon = latlng.lng;
+              // Same rounding as readPlaceFormFields on save, so the form
+              // shows the value that will actually be stored.
+              draft.lat = Math.round(latlng.lat * 1e5) / 1e5;
+              draft.lon = Math.round(latlng.lng * 1e5) / 1e5;
               openEditPlaceModal(draft);
             });
           });
@@ -4057,7 +4190,7 @@
             if (!confirm('Delete place "' + place.name + '"?')) return;
             this.disabled = true;
             const prevColors = Object.assign({}, state.categoryColors);
-            api('DELETE', '/places', { name: place.name })
+            api('DELETE', '/places', { id: place.id })
               .then(() => refreshPlaces())
               .then(() => { closeModal(); syncPlacesOnMap(prevColors); })
               .catch(err => { this.disabled = false; showModalError(err.message); });
@@ -4066,10 +4199,13 @@
             e.preventDefault();
             const r = readPlaceFormFields('e');
             if (r.error) { showModalError(r.error); return; }
+            // Preserve the catalog lineage tag across edits; the form has no
+            // input for it, but it shouldn't disappear on a rename/note change.
+            if (place.from_catalog) r.payload.from_catalog = place.from_catalog;
             const submit = document.getElementById('e-submit');
             submit.disabled = true;
             const prevColors = Object.assign({}, state.categoryColors);
-            api('PUT', '/places', { original_name: place.name, place: r.payload })
+            api('PUT', '/places', { id: place.id, place: r.payload })
               .then(() => refreshPlaces())
               .then(() => { closeModal(); syncPlacesOnMap(prevColors); })
               .catch(err => { submit.disabled = false; showModalError(err.message); });
@@ -4722,6 +4858,159 @@
     }
 
     // ----- Places browse list -----
+    // Fields the catalog "owns" - personal status (visited / date_visited /
+    // rating / from_catalog / runtime annotations) is preserved on refresh.
+    const CATALOG_TRACKED_FIELDS = ['name', 'lat', 'lon', 'category', 'country', 'local_name', 'note', 'image', 'sources'];
+
+    // Returns { entry, changes: [{field, before, after}] } when the upstream
+    // catalog entry for a place's from_catalog has diverged from the local
+    // copy, else null. Catalog source is the client-side cache populated on
+    // boot; if it isn't loaded yet, returns null (no false-positive indicator).
+    function findCatalogUpdate(place) {
+      if (!place || !place.from_catalog) return null;
+      if (!Array.isArray(state._catalogCache)) return null;
+      const entry = state._catalogCache.find(e => e && e.name === place.from_catalog);
+      if (!entry) return null;
+      const norm = v => {
+        if (v === undefined || v === null) return null;
+        if (typeof v === 'string') return v.trim() || null;
+        if (Array.isArray(v)) return v.length ? v.map(norm) : null;
+        return v;
+      };
+      const eq = (a, b) => {
+        if (a === b) return true;
+        if (a === null || b === null) return a === b;
+        if (Array.isArray(a) && Array.isArray(b)) {
+          if (a.length !== b.length) return false;
+          return a.every((x, i) => eq(x, b[i]));
+        }
+        return false;
+      };
+      const changes = [];
+      for (const f of CATALOG_TRACKED_FIELDS) {
+        if (!eq(norm(place[f]), norm(entry[f]))) {
+          changes.push({ field: f, before: place[f], after: entry[f] });
+        }
+      }
+      return changes.length ? { entry, changes } : null;
+    }
+
+    function formatCatalogDiffValue(v) {
+      if (v === null || v === undefined || v === '') return '<em style="color:var(--muted)">(none)</em>';
+      if (Array.isArray(v)) return v.map(x => escapeHtml(String(x))).join('<br>');
+      return escapeHtml(String(v));
+    }
+
+    function renderCatalogDiff(changes) {
+      return '<div class="catalog-diff">' + changes.map(c =>
+        '<div class="catalog-diff-field">' +
+          '<span class="catalog-diff-label">' + escapeHtml(c.field) + '</span>' +
+          '<span>' +
+            '<div class="catalog-diff-old">' + formatCatalogDiffValue(c.before) + '</div>' +
+            '<div class="catalog-diff-new">' + formatCatalogDiffValue(c.after) + '</div>' +
+          '</span>' +
+        '</div>'
+      ).join('') + '</div>';
+    }
+
+    function placesWithCatalogUpdates() {
+      return (state.places || []).filter(p => findCatalogUpdate(p));
+    }
+
+    // Build the refreshed place object: catalog-tracked fields from the
+    // upstream entry, personal status fields preserved, from_catalog linked
+    // to the upstream name in case it was renamed.
+    function buildCatalogRefreshPayload(place, entry) {
+      const next = {};
+      for (const f of CATALOG_TRACKED_FIELDS) {
+        if (entry[f] !== undefined && entry[f] !== null && entry[f] !== '') next[f] = entry[f];
+      }
+      if (place.visited) next.visited = true;
+      if (place.date_visited) next.date_visited = place.date_visited;
+      if (place.rating) next.rating = place.rating;
+      next.from_catalog = entry.name;
+      return next;
+    }
+
+    function openCatalogBulkUpdateModal() {
+      const pending = placesWithCatalogUpdates();
+      if (!pending.length) { alert('No catalog updates available.'); return; }
+      const head = pending.slice(0, 8).map(p => {
+        const r = findCatalogUpdate(p);
+        const n = r ? r.changes.length : 0;
+        return '<li>' + escapeHtml(p.name) + ' <span style="color:var(--muted)">(' + n + ' field' + (n === 1 ? '' : 's') + ')</span></li>';
+      }).join('');
+      const more = pending.length > 8 ? '<li style="color:var(--muted)">+ ' + (pending.length - 8) + ' more</li>' : '';
+      openModal(
+        '<h2>Refresh from catalog<button class="modal-close">&times;</button></h2>' +
+        '<div class="modal-desc">' + pending.length + ' place' + (pending.length === 1 ? '' : 's') + ' will be refreshed. Visit status, date, and rating are preserved.</div>' +
+        '<ul style="font-size:0.78rem;margin:0.6rem 0 0.4rem;padding-left:1.2rem">' + head + more + '</ul>' +
+        '<div class="modal-error" id="catalog-bulk-error"></div>' +
+        '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
+          '<span id="catalog-bulk-status" style="font-size:0.75rem;color:var(--muted);flex:1"></span>' +
+          '<button type="button" data-role="cancel">Cancel</button>' +
+          '<button type="button" class="primary" id="catalog-bulk-confirm">Refresh all</button>' +
+        '</div>',
+        function(backdrop) {
+          backdrop.querySelector('[data-role="cancel"]').addEventListener('click', () => closeModal());
+          document.getElementById('catalog-bulk-confirm').addEventListener('click', function() {
+            const btn = this;
+            const status = document.getElementById('catalog-bulk-status');
+            btn.disabled = true;
+            const errors = [];
+            let i = 0;
+            (function next() {
+              if (i >= pending.length) {
+                refreshPlaces().then(() => {
+                  refreshPlacesPresentation();
+                  closeModal();
+                  if (errors.length) alert('Refresh complete with errors:\n' + errors.join('\n'));
+                }).catch(err => { btn.disabled = false; alert('Failed: ' + err.message); });
+                return;
+              }
+              const place = pending[i];
+              const result = findCatalogUpdate(place);
+              status.textContent = 'Refreshing ' + (i + 1) + ' of ' + pending.length + '…';
+              if (!result) { i++; return next(); }
+              api('PUT', '/places', { id: place.id, place: buildCatalogRefreshPayload(place, result.entry) })
+                .catch(err => errors.push((place.name) + ': ' + err.message))
+                .then(() => { i++; next(); });
+            })();
+          });
+        }
+      );
+    }
+
+    function openCatalogUpdateModal(place) {
+      const result = findCatalogUpdate(place);
+      if (!result) {
+        // Badge was tagged update-available but the cache shifted (admin
+        // toggled baseline off, or another tab refreshed). Treat as no-op.
+        alert('No catalog updates for this place.');
+        return;
+      }
+      const { entry, changes } = result;
+      openModal(
+        '<h2>Update from catalog<button class="modal-close">&times;</button></h2>' +
+        '<div class="modal-desc">' + escapeHtml(place.name) + ' will be refreshed from the catalog. Your visit status, date, and rating are preserved.</div>' +
+        renderCatalogDiff(changes) +
+        '<div class="modal-actions">' +
+          '<button type="button" data-role="cancel">Cancel</button>' +
+          '<button type="button" class="primary" id="catalog-update-confirm">Refresh from catalog</button>' +
+        '</div>',
+        function(backdrop) {
+          backdrop.querySelector('[data-role="cancel"]').addEventListener('click', () => closeModal());
+          document.getElementById('catalog-update-confirm').addEventListener('click', function() {
+            this.disabled = true;
+            api('PUT', '/places', { id: place.id, place: buildCatalogRefreshPayload(place, entry) })
+              .then(() => refreshPlaces())
+              .then(() => { closeModal(); refreshPlacesPresentation(); })
+              .catch(err => { this.disabled = false; alert('Failed: ' + err.message); });
+          });
+        }
+      );
+    }
+
     function renderPlacesIndex() {
       setActiveTab('places');
       setCrumb('', false);
@@ -4745,20 +5034,26 @@
           '<button type="button" class="filter-btn" id="filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
           '<div class="filter-popover" id="filter-popover" hidden>' +
             '<select id="filter-status">' +
-              '<option value="all">All statuses</option>' +
+              '<option value="all">Status</option>' +
               '<option value="visited">Visited</option>' +
               '<option value="want">Want to visit</option>' +
             '</select>' +
             '<select id="filter-category">' +
-              '<option value="all">All categories</option>' +
+              '<option value="all">Category</option>' +
               cats.map(c => '<option value="' + escapeHtml(c) + '">' + escapeHtml(displayCategory(c)) + '</option>').join('') +
             '</select>' +
             (countries.length ?
               '<select id="filter-country">' +
-                '<option value="all">All countries</option>' +
+                '<option value="all">Country</option>' +
                 countries.map(c => '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>').join('') +
               '</select>'
               : '') +
+            '<select id="filter-catalog">' +
+              '<option value="all">Catalog</option>' +
+              '<option value="from-catalog">From catalog</option>' +
+              '<option value="not-from-catalog">Not from catalog</option>' +
+              '<option value="updates-available">Updates available</option>' +
+            '</select>' +
             '<div class="filter-divider"></div>' +
             '<select id="filter-group-by">' +
               '<option value="category"' + (state.groupBy === 'category' ? ' selected' : '') + '>Group by category</option>' +
@@ -4778,10 +5073,11 @@
       const statusSel = document.getElementById('filter-status');
       const catSel = document.getElementById('filter-category');
       const countrySel = document.getElementById('filter-country');
+      const catalogSel = document.getElementById('filter-catalog');
       const filterBtn = document.getElementById('filter-btn');
       const filterPop = document.getElementById('filter-popover');
       const filterClear = document.getElementById('filter-clear');
-      const filterSels = [statusSel, catSel, countrySel].filter(Boolean);
+      const filterSels = [statusSel, catSel, countrySel, catalogSel].filter(Boolean);
       function updateFilterBtnLabel() {
         const n = filterSels.reduce((acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
         if (filterBtn) {
@@ -4831,6 +5127,8 @@
       const wantStatus = statusEl ? statusEl.value : 'all';
       const wantCat = catEl ? catEl.value : 'all';
       const wantCountry = countryEl ? countryEl.value : 'all';
+      const catalogEl = document.getElementById('filter-catalog');
+      const wantCatalog = catalogEl ? catalogEl.value : 'all';
       const filtered = state.places.filter(p => {
         if (q && !(
           p.name.toLowerCase().includes(q) ||
@@ -4842,6 +5140,9 @@
         if (wantStatus === 'want' && p.visited) return false;
         if (wantCat !== 'all' && p.category !== wantCat) return false;
         if (wantCountry !== 'all' && p.country !== wantCountry) return false;
+        if (wantCatalog === 'from-catalog' && !p.from_catalog) return false;
+        if (wantCatalog === 'not-from-catalog' && p.from_catalog) return false;
+        if (wantCatalog === 'updates-available' && !findCatalogUpdate(p)) return false;
         return true;
       });
       const grouped = {};
@@ -4875,13 +5176,37 @@
           html += '<div class="place-text">';
           html += '<div class="name">' + escapeHtml(p.name) + '</div>';
           if (p.note) html += '<div class="note">' + escapeHtml(p.note) + '</div>';
-          html += '</div></div>';
+          html += '</div>';
+          if (p.from_catalog) {
+            const upd = findCatalogUpdate(p);
+            const cls = 'catalog-mark' + (upd ? ' update-available' : '');
+            const title = upd
+              ? 'Catalog updated this entry (' + upd.changes.length + ' field' + (upd.changes.length === 1 ? '' : 's') + '). Click to review.'
+              : 'Imported from the site catalog';
+            html += '<button type="button" class="' + cls + '" data-place-name="' + escapeHtml(p.name) + '" title="' + escapeHtml(title) + '">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>' +
+              '</button>';
+          }
+          html += '</div>';
         }
         html += '</div></div>';
       }
       if (!html) html = '<div class="loading">No matches</div>';
       const listEl = document.getElementById('place-list');
       listEl.innerHTML = html;
+      // Catalog badge clicks stay on the place-card (which navigates to the
+      // map via inline onclick); stop propagation and open the update modal
+      // instead.
+      listEl.querySelectorAll('.catalog-mark').forEach(btn => {
+        btn.addEventListener('click', function(ev) {
+          ev.stopPropagation();
+          ev.preventDefault();
+          const name = this.dataset.placeName;
+          const place = (state.places || []).find(p => p.name === name);
+          if (!place) return;
+          if (findCatalogUpdate(place)) openCatalogUpdateModal(place);
+        });
+      });
       listEl.querySelectorAll('.section-link[data-filter-cat]').forEach(function(label) {
         label.addEventListener('click', function() {
           const cat = label.dataset.filterCat;
@@ -4931,20 +5256,20 @@
           '<button type="button" class="filter-btn" id="filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
           '<div class="filter-popover" id="filter-popover" hidden>' +
             '<select id="filter-status">' +
-              '<option value="all">All statuses</option>' +
+              '<option value="all">Status</option>' +
               '<option value="completed">Completed</option>' +
               '<option value="planned">Planned</option>' +
             '</select>' +
             '<select id="filter-region">' +
-              '<option value="all">All regions</option>' +
+              '<option value="all">Region</option>' +
               regionNames.map(n => '<option value="' + escapeHtml(n.toLowerCase()) + '">' + escapeHtml(displayRegion(n)) + '</option>').join('') +
             '</select>' +
             '<select id="filter-difficulty">' +
-              '<option value="all">Any difficulty</option>' +
+              '<option value="all">Difficulty</option>' +
               difficulties.map(d => '<option value="' + d + '">' + d[0].toUpperCase() + d.slice(1) + '</option>').join('') +
             '</select>' +
             '<select id="filter-rating">' +
-              '<option value="all">Any rating</option>' +
+              '<option value="all">Rating</option>' +
               '<option value="unrated">Unrated</option>' +
               '<option value="1">1 star</option>' +
               '<option value="2">2 stars</option>' +
@@ -5797,25 +6122,35 @@
         '</div>';
       const btn = document.getElementById('auth-menu-btn');
       const menu = document.getElementById('auth-menu');
+      // Outside-click closer is added on open and removed on close. We use the
+      // capture phase because Leaflet stops propagation on map-container clicks,
+      // which would otherwise leave the menu open when clicking the map.
+      function outsideCloser(ev) {
+        if (!el.contains(ev.target)) closeMenu();
+      }
+      function closeMenu() {
+        menu.hidden = true;
+        document.removeEventListener('mousedown', outsideCloser, true);
+        document.removeEventListener('touchstart', outsideCloser, true);
+      }
+      function openMenu() {
+        menu.hidden = false;
+        document.addEventListener('mousedown', outsideCloser, true);
+        document.addEventListener('touchstart', outsideCloser, true);
+      }
       btn.addEventListener('click', function(e) {
         e.stopPropagation();
-        menu.hidden = !menu.hidden;
+        if (menu.hidden) openMenu(); else closeMenu();
       });
       menu.addEventListener('click', function(e) {
         const action = e.target.closest('button[data-action]');
         if (!action) return;
-        menu.hidden = true;
+        closeMenu();
         switch (action.dataset.action) {
           case 'settings': openSettingsModal(); break;
           case 'logs':     openLogsModal(); break;
           case 'about':    openAboutModal(); break;
           case 'signout':  confirmSignOut(); break;
-        }
-      });
-      document.addEventListener('click', function closer(ev) {
-        if (!el.contains(ev.target)) {
-          menu.hidden = true;
-          document.removeEventListener('click', closer);
         }
       });
     }
@@ -5921,7 +6256,7 @@
         (!isReadOnly() ?
           '<h3 class="settings-h">Optional fields</h3>' +
           '<div class="feature-pills">' +
-            [['date', 'Date'], ['native-name', 'Native name'], ['note', 'Note'], ['rating', 'Rating']]
+            [['date', 'Date'], ['image', 'Image'], ['native-name', 'Native name'], ['note', 'Note'], ['rating', 'Rating']]
               .map(([key, label]) =>
                 '<label class="feature-pill' + (getShowField(key) ? ' active' : '') + '"><input type="checkbox" data-field="' + key + '"' + (getShowField(key) ? ' checked' : '') + '>' + label + '</label>'
               ).join('') +
@@ -6038,12 +6373,11 @@
         '</div>' +
         '<div class="modal-error" id="s-export-error"></div>' +
         '<h3 class="settings-h">Import</h3>' +
-        '<div style="display:flex;align-items:center;gap:1rem">' +
-          '<div class="modal-desc" style="flex:1;margin:0">Restore from a previous export.</div>' +
-          '<div class="radio-row radio-pills" style="margin:0;flex:0 0 auto">' +
-            '<label><input type="radio" name="import-mode" value="merge" checked>Merge</label>' +
-            '<label><input type="radio" name="import-mode" value="replace">Replace all</label>' +
-          '</div>' +
+        '<div class="modal-desc" style="margin:0">Restore from a previous export.</div>' +
+        '<div class="radio-row radio-pills" style="margin-top:0.5rem">' +
+          '<label><input type="radio" name="import-mode" value="merge" checked>Merge</label>' +
+          '<label><input type="radio" name="import-mode" value="replace">Replace all</label>' +
+          '<label><input type="radio" name="import-mode" value="prefs">Preferences only</label>' +
         '</div>' +
         '<div style="display:flex;align-items:center;gap:1rem;margin-top:0.75rem">' +
           '<div class="file-picker" style="flex:1;margin:0">' +
@@ -6084,7 +6418,13 @@
             '<input type="checkbox" class="settings-toggle" id="s-publishing"' + (state.auth.publishing_open ? ' checked' : '') + '>' +
             '<label for="s-publishing">Allow users to publish public maps</label>' +
           '</div>' +
-          '<div class="modal-desc">Turning this off blocks new publish actions and forces any currently public maps back to private.</div>' +
+          '<div class="modal-desc">Turning this off forces any currently public maps back to private and prevents new ones.</div>' +
+          '<h3 class="settings-h">Catalog</h3>' +
+          '<div class="settings-inline-row">' +
+            '<input type="checkbox" class="settings-toggle" id="s-catalog-baseline"' + (state.auth.catalog_baseline_open ? ' checked' : '') + '>' +
+            '<label for="s-catalog-baseline">Include shipped baseline catalog</label>' +
+          '</div>' +
+          '<div id="s-admin-catalog"><div class="hint">Loading&hellip;</div></div>' +
           '<h3 class="settings-h">Users</h3>' +
           '<div id="s-admin-users"><div class="hint">Loading&hellip;</div></div>' +
           '</div>' +
@@ -6136,7 +6476,7 @@
               // Closing the gate also force-unpublishes anyone currently public.
               openConfirmModal({
                 title: 'Disable publishing',
-                body: 'New publish actions will be blocked and any currently public maps will be set back to private. Continue?',
+                body: 'Any currently public maps will be set back to private, and users will not be able to publish new ones. Continue?',
                 confirmLabel: 'Disable publishing',
                 danger: true,
               }).then(ok => {
@@ -6151,6 +6491,16 @@
           if (isAdmin) {
             renderAdminStats();
             renderAdminUsers();
+            renderAdminCatalog();
+            const baseline = document.getElementById('s-catalog-baseline');
+            if (baseline) {
+              baseline.addEventListener('change', function() {
+                const wanted = this.checked;
+                api('POST', '/admin/settings/catalog-baseline', { mode: wanted ? 'open' : 'closed' })
+                  .then(() => { state.auth.catalog_baseline_open = wanted; state._catalogCache = null; renderAdminCatalog(); })
+                  .catch(err => { alert('Failed: ' + err.message); this.checked = !wanted; });
+              });
+            }
           }
           const pub = document.getElementById('s-publish');
           const pubLink = document.getElementById('s-publish-link');
@@ -6464,7 +6814,16 @@
       }
       const rows = allSlugs.map(slug => {
         const display = (labels[slug] && labels[slug].label) || '';
-        return { slug, display, original: display, count: placeCountBySlug[slug] || 0 };
+        // Color index: explicit stored value, or fall back to whatever the
+        // current palette assignment is for this slug (so the dot shows the
+        // color the user actually sees on the map).
+        let color = (labels[slug] && typeof labels[slug].color === 'number') ? labels[slug].color : -1;
+        if (color < 0) {
+          const cur = state.categoryColors && state.categoryColors[slug];
+          color = cur ? COLORS.indexOf(cur) : 0;
+          if (color < 0) color = 0;
+        }
+        return { slug, display, original: display, color, originalColor: color, count: placeCountBySlug[slug] || 0 };
       });
 
       openModal(
@@ -6478,8 +6837,9 @@
         '<div class="modal-error" id="cat-error"></div>' +
         '<h3 class="settings-h" style="margin-top:1.25rem">Categories</h3>' +
         '<div id="cat-rows"></div>' +
-        '<div class="modal-actions" style="margin-top:1rem">' +
-          '<div id="cat-clear-warning" class="action-warning" hidden></div>' +
+        '<div class="modal-actions" style="margin-top:1rem;display:flex;align-items:center;gap:0.6rem">' +
+          '<button type="button" class="row-notes-toggle" id="cat-reset-colors">Reset colors</button>' +
+          '<div id="cat-clear-warning" class="action-warning" style="flex:1;margin:0" hidden></div>' +
           '<button type="button" class="primary" id="cat-save" hidden>Save</button>' +
         '</div>',
         function() {
@@ -6488,14 +6848,16 @@
           const initialRowKeys = new Set(rows.map(r => r.slug));
           function hasChanges() {
             if (pendingClears.size) return true;
-            // Added or label-edited?
+            // Added, label-edited, or color-edited?
             if (rows.length !== initialRowKeys.size) return true;
             for (const r of rows) {
               if (!initialRowKeys.has(r.slug)) return true;
               if (r.display !== r.original) return true;
+              if (r.color !== r.originalColor) return true;
             }
             return false;
           }
+          let openSwatchIdx = -1;
           function refreshSaveBtn() {
             const btn = document.getElementById('cat-save');
             if (btn) btn.hidden = !hasChanges();
@@ -6517,16 +6879,73 @@
               return;
             }
             container.innerHTML = rows.map((r, i) => {
-              const dirty = r.display !== r.original;
+              const labelDirty = r.display !== r.original;
+              const colorDirty = r.color !== r.originalColor;
+              const dirty = labelDirty || colorDirty;
               const tag = dirty ? '<span class="row-tag dirty">edited</span>'
                         : r.count === 0 ? '<span class="row-tag">unused</span>'
                         : '<span class="row-tag">' + r.count + ' place' + (r.count === 1 ? '' : 's') + '</span>';
-              return '<div style="display:flex;gap:0.6rem;align-items:center;margin-top:0.5rem">' +
-                '<input type="text" data-i="' + i + '" class="cat-display' + (dirty ? ' dirty' : '') + '" value="' + escapeHtml(r.display) + '" placeholder="(falls back to title case)" title="' + escapeHtml('slug: ' + r.slug) + '" style="flex:1;min-width:0">' +
-                tag +
-                '<button type="button" data-i="' + i + '" class="cat-remove btn-x" aria-label="Remove" title="Remove" style="flex:0 0 auto">&times;</button>' +
+              const dotColor = COLORS[r.color % COLORS.length];
+              const open = openSwatchIdx === i;
+              const swatchGrid = '<div class="cat-swatches' + (open ? ' open' : '') + '">' + COLORS.map((c, ci) =>
+                '<button type="button" class="cat-swatch' + (ci === r.color ? ' active' : '') + '" data-i="' + i + '" data-ci="' + ci + '" style="background:' + c + '" title="Color ' + (ci + 1) + '"></button>'
+              ).join('') + '</div>';
+              return '<div style="margin-top:0.5rem">' +
+                '<div style="display:flex;gap:0.6rem;align-items:center">' +
+                  '<button type="button" class="cat-color-dot' + (open ? ' open' : '') + '" data-i="' + i + '" title="Change color" style="background:' + dotColor + '"></button>' +
+                  '<input type="text" data-i="' + i + '" class="cat-display' + (labelDirty ? ' dirty' : '') + '" value="' + escapeHtml(r.display) + '" placeholder="(falls back to title case)" title="' + escapeHtml('slug: ' + r.slug) + '" style="flex:1;min-width:0">' +
+                  tag +
+                  '<button type="button" data-i="' + i + '" class="cat-remove btn-x" aria-label="Remove" title="Remove" style="flex:0 0 auto">&times;</button>' +
+                '</div>' +
+                swatchGrid +
               '</div>';
             }).join('');
+            container.querySelectorAll('.cat-color-dot').forEach(btn => {
+              btn.addEventListener('click', function() {
+                const i = +this.dataset.i;
+                const willOpen = openSwatchIdx !== i;
+                // Close any previously-open grid so only one is expanded at a time.
+                container.querySelectorAll('.cat-swatches.open, .cat-color-dot.open')
+                  .forEach(el => el.classList.remove('open'));
+                if (willOpen) {
+                  const row = this.closest('div').parentElement;
+                  row.querySelector('.cat-swatches').classList.add('open');
+                  this.classList.add('open');
+                }
+                openSwatchIdx = willOpen ? i : -1;
+              });
+            });
+            container.querySelectorAll('.cat-swatch').forEach(btn => {
+              btn.addEventListener('click', function() {
+                const i = +this.dataset.i;
+                const ci = +this.dataset.ci;
+                const r = rows[i];
+                r.color = ci;
+                openSwatchIdx = -1;
+                // Animate the grid closed and update the dot color in place,
+                // without re-rendering the whole list (which would skip the
+                // closing transition).
+                const row = this.closest('.cat-swatches').parentElement;
+                row.querySelectorAll('.cat-swatch.active').forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+                row.querySelector('.cat-swatches').classList.remove('open');
+                const dot = row.querySelector('.cat-color-dot');
+                dot.style.background = COLORS[ci];
+                dot.classList.remove('open');
+                // Reflect dirty state in the row's tag without a full rerender.
+                const labelDirty = r.display !== r.original;
+                const colorDirty = r.color !== r.originalColor;
+                const dirty = labelDirty || colorDirty;
+                const tagEl = row.querySelector('.row-tag');
+                if (tagEl) {
+                  tagEl.classList.toggle('dirty', dirty);
+                  tagEl.textContent = dirty ? 'edited'
+                    : r.count === 0 ? 'unused'
+                    : (r.count + ' place' + (r.count === 1 ? '' : 's'));
+                }
+                refreshSaveBtn();
+              });
+            });
             container.querySelectorAll('.cat-display').forEach(inp => {
               inp.addEventListener('input', function() {
                 const i = +this.dataset.i;
@@ -6594,6 +7013,17 @@
             refreshSaveBtn();
           });
 
+          document.getElementById('cat-reset-colors').addEventListener('click', function() {
+            // Re-derive colors as if no overrides existed: sort by slug,
+            // assign 0..n-1 mod palette length. Matches the deterministic
+            // auto-assign that runs when starting from no stored colors.
+            const sorted = rows.slice().sort((a, b) => a.slug.localeCompare(b.slug));
+            sorted.forEach((r, i) => { r.color = i % COLORS.length; });
+            openSwatchIdx = -1;
+            rerender();
+            refreshSaveBtn();
+          });
+
           document.getElementById('cat-save').addEventListener('click', function() {
             const submit = this;
             submit.disabled = true;
@@ -6601,9 +7031,7 @@
             for (const r of rows) {
               const label = r.display.trim();
               if (!label) continue;
-              // Send only {label}; the server preserves any previously-assigned
-              // color for this slug (Manage Categories doesn't surface colors).
-              payload[r.slug] = { label };
+              payload[r.slug] = { label, color: r.color };
             }
             // Bulk-clear any in-use slugs the user removed, then PUT labels.
             // Clear failures abort the save so the label map and place data
@@ -7023,6 +7451,277 @@
       });
     }
 
+    function renderAdminCatalog() {
+      const el = document.getElementById('s-admin-catalog');
+      if (!el) return;
+      api('GET', '/catalog').then(entries => {
+        const list = Array.isArray(entries) ? entries : [];
+        const n = list.length;
+        el.innerHTML =
+          '<div style="display:flex;align-items:center;gap:0.6rem">' +
+            '<span class="modal-desc" style="margin:0;flex:1">Places users can import.</span>' +
+            (n ? '<button type="button" class="primary" id="s-catalog-manage">Manage</button>' : '') +
+            '<button type="button" class="primary" id="s-catalog-add">Add</button>' +
+          '</div>';
+        const manage = document.getElementById('s-catalog-manage');
+        if (manage) manage.addEventListener('click', openCatalogManager);
+        const add = document.getElementById('s-catalog-add');
+        if (add) add.addEventListener('click', openCatalogPicker);
+      }).catch(() => {
+        el.innerHTML = '<div class="hint">Could not load catalog.</div>';
+      });
+    }
+
+    function openCatalogManager() {
+      openModal(
+        '<button class="modal-close modal-close-floating" aria-label="Close">&times;</button>' +
+        '<h2><span>Manage catalog<span id="cat-mgr-count" style="color:var(--muted);font-weight:400;margin-left:0.4rem"></span></span></h2>' +
+        '<input type="text" id="cat-mgr-filter" placeholder="Filter…" style="margin-bottom:0.5rem">' +
+        '<div id="cat-mgr-list" style="overflow-y:auto"></div>' +
+        '<div class="log-toolbar" style="justify-content:space-between">' +
+          '<button type="button" class="row-notes-toggle" id="cat-mgr-notes-toggle">Show notes</button>' +
+          '<button type="button" id="cat-mgr-clear" class="danger-btn">Remove all</button>' +
+        '</div>',
+        function() {
+          const filter = document.getElementById('cat-mgr-filter');
+          const list = document.getElementById('cat-mgr-list');
+
+          const countEl = document.getElementById('cat-mgr-count');
+          function render() {
+            // `?include_hidden=1` brings back the shipped entries the admin
+            // has suppressed (tagged with _hidden: true) so they can be
+            // unhidden from this modal.
+            api('GET', '/catalog?include_hidden=1').then(entries => {
+              const items = Array.isArray(entries) ? entries.slice() : [];
+              countEl.textContent = items.length ? '(' + items.length + ')' : '';
+              if (!items.length) {
+                list.innerHTML = '<div class="hint">Catalog is empty.</div>';
+                return;
+              }
+              items.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+              const eyeOn = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+              const eyeOff = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>';
+              list.innerHTML = '<ul class="user-list">' + items.map(e => {
+                const meta = [e.category, e.country].filter(Boolean).join(' · ');
+                const name = escapeHtml(e.name || '(unnamed)');
+                const note = (e.note || '').trim();
+                const shipped = e._source === 'shipped';
+                const hidden = !!e._hidden;
+                // Source is conveyed by the action button (eye for shipped,
+                // Remove for local). Hidden state is conveyed by the row
+                // opacity + the eye-off glyph. No text tag.
+                const action = shipped
+                  ? '<button data-act="catalog-hide" data-hidden="' + (hidden ? '1' : '0') + '" class="catalog-eye-btn" title="' + (hidden ? 'Unhide for users' : 'Hide from users') + '" aria-label="' + (hidden ? 'Unhide' : 'Hide') + '">' + (hidden ? eyeOff : eyeOn) + '</button>'
+                  : '<button data-act="catalog-delete" class="danger-btn">Remove</button>';
+                return '<li class="user-row" data-name="' + escapeHtml(e.name || '') + '"' + (hidden ? ' style="opacity:0.6"' : '') + '>' +
+                  '<span class="user-name" style="min-width:0">' +
+                    '<span title="' + name + '" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</span>' +
+                    (meta ? '<span style="display:block;font-size:0.72rem;color:var(--muted);font-weight:400">' + escapeHtml(meta) + '</span>' : '') +
+                    (note ? '<span class="row-note">' + escapeHtml(note) + '</span>' : '') +
+                  '</span>' +
+                  '<div class="user-actions">' + action + '</div>' +
+                '</li>';
+              }).join('') + '</ul>';
+              list.querySelectorAll('button[data-act="catalog-delete"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                  const name = this.closest('.user-row').dataset.name;
+                  openConfirmModal({
+                    title: 'Remove from catalog',
+                    body: 'Remove "' + name + '" from the site catalog? Users who already imported it keep their copy.',
+                    confirmLabel: 'Remove',
+                    danger: true,
+                  }).then(ok => {
+                    if (!ok) return;
+                    this.disabled = true;
+                    api('POST', '/admin/catalog/delete', { names: [name] })
+                      .then(() => { state._catalogCache = null; render(); renderAdminCatalog(); })
+                      .catch(err => { this.disabled = false; alert('Failed: ' + err.message); });
+                  });
+                });
+              });
+              list.querySelectorAll('button[data-act="catalog-hide"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                  const name = this.closest('.user-row').dataset.name;
+                  const wantHidden = this.dataset.hidden !== '1';
+                  this.disabled = true;
+                  api('POST', '/admin/catalog/hide', { name, hidden: wantHidden })
+                    .then(() => { state._catalogCache = null; render(); renderAdminCatalog(); })
+                    .catch(err => { this.disabled = false; alert('Failed: ' + err.message); });
+                });
+              });
+              applyFilter();
+            }).catch(() => {
+              list.innerHTML = '<div class="hint">Could not load catalog.</div>';
+            });
+          }
+
+          function applyFilter() {
+            const q = filter.value.trim().toLowerCase();
+            list.querySelectorAll('.user-row').forEach(row => {
+              row.style.display = (!q || row.textContent.toLowerCase().includes(q)) ? '' : 'none';
+            });
+          }
+          filter.addEventListener('input', applyFilter);
+          const notesToggle = document.getElementById('cat-mgr-notes-toggle');
+          notesToggle.addEventListener('click', function() {
+            list.classList.add('notes-anim');
+            const on = list.classList.toggle('show-notes');
+            this.textContent = on ? 'Hide notes' : 'Show notes';
+          });
+          const clearBtn = document.getElementById('cat-mgr-clear');
+          if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+              openConfirmModal({
+                title: 'Remove all local catalog entries',
+                body: 'Empties only the local catalog additions. Shipped entries remain (toggle them off above to hide). Users who already imported keep their copies.',
+                confirmLabel: 'Remove all',
+                danger: true,
+              }).then(ok => {
+                if (!ok) return;
+                clearBtn.disabled = true;
+                api('POST', '/admin/catalog/clear')
+                  .then(() => { state._catalogCache = null; render(); renderAdminCatalog(); })
+                  .catch(err => alert('Failed: ' + err.message))
+                  .then(() => { clearBtn.disabled = false; });
+              });
+            });
+          }
+          render();
+        }
+      );
+    }
+
+    function openCatalogPicker() {
+      const own = Array.isArray(state.places) ? state.places : [];
+      if (!own.length) {
+        alert('You have no places to promote yet. Add some first.');
+        return;
+      }
+      api('GET', '/catalog').then(catalog => {
+        const inCatalog = new Set((Array.isArray(catalog) ? catalog : []).map(e => e && e.name).filter(Boolean));
+        const places = own.filter(p => !inCatalog.has(p.name));
+        if (!places.length) {
+          alert('All your places are already in the catalog.');
+          return;
+        }
+        places.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        renderCatalogPicker(places);
+      }).catch(err => alert('Could not load catalog: ' + err.message));
+    }
+
+    function renderCatalogPicker(places) {
+      const rows = places.map((p, i) => {
+        const meta = [p.category, p.country].filter(Boolean).join(' · ');
+        const name = escapeHtml(p.name || '(unnamed)');
+        const note = (p.note || '').trim();
+        return '<label class="browse-row" data-idx="' + i + '" style="display:flex;align-items:flex-start;gap:0.6rem;padding:0.45rem 0;border-bottom:1px solid var(--border);cursor:pointer">' +
+          '<input type="checkbox" class="cat-pick" data-idx="' + i + '" style="margin-top:0.2rem">' +
+          '<span style="flex:1;min-width:0">' +
+            '<span title="' + name + '" style="display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</span>' +
+            (meta ? '<span style="display:block;font-size:0.72rem;color:var(--muted)">' + escapeHtml(meta) + '</span>' : '') +
+            (note ? '<span class="row-note">' + escapeHtml(note) + '</span>' : '') +
+          '</span>' +
+        '</label>';
+      }).join('');
+      openModal(
+        '<button class="modal-close modal-close-floating" aria-label="Close">&times;</button>' +
+        '<h2>Add to catalog</h2>' +
+        '<input type="text" id="cat-filter" placeholder="Filter…" style="margin-bottom:0.5rem">' +
+        '<div id="cat-list" style="overflow-y:auto">' + rows + '</div>' +
+        '<div class="modal-error" id="add-error"></div>' +
+        '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
+          '<button type="button" class="row-notes-toggle" id="cat-notes-toggle">Show notes</button>' +
+          '<span id="cat-status" style="font-size:0.75rem;color:var(--muted);flex:1"></span>' +
+          '<button type="button" id="cat-add-all">Add all</button>' +
+          '<button type="button" class="primary" id="cat-submit" disabled>Add selected</button>' +
+        '</div>',
+        function() {
+          const filter = document.getElementById('cat-filter');
+          const list = document.getElementById('cat-list');
+          const submit = document.getElementById('cat-submit');
+          const addAll = document.getElementById('cat-add-all');
+          const status = document.getElementById('cat-status');
+          // state.places carries runtime annotations (`_slug`, normalized empty
+          // `category`) that aren't part of the server-side place schema; only
+          // forward the documented fields.
+          const ALLOWED = ['name', 'lat', 'lon', 'category', 'country', 'visited', 'note', 'sources', 'local_name', 'date_visited', 'rating'];
+          function visibleRows() {
+            return Array.from(list.querySelectorAll('.browse-row')).filter(r => r.style.display !== 'none');
+          }
+          function cleanPlace(p) {
+            const out = {};
+            for (const k of ALLOWED) {
+              if (p[k] === '' && k === 'category') continue;
+              if (p[k] !== undefined && p[k] !== null) out[k] = p[k];
+            }
+            return out;
+          }
+          function updateBtns() {
+            const checked = list.querySelectorAll('.cat-pick:checked').length;
+            submit.disabled = checked === 0;
+            submit.textContent = checked ? 'Add ' + checked + ' selected' : 'Add selected';
+            const v = visibleRows().length;
+            addAll.disabled = v === 0;
+            addAll.textContent = 'Add all' + (v && v < places.length ? ' (' + v + ')' : '');
+          }
+          list.addEventListener('change', updateBtns);
+          filter.addEventListener('input', function() {
+            const q = this.value.trim().toLowerCase();
+            list.querySelectorAll('.browse-row').forEach(row => {
+              row.style.display = (!q || row.textContent.toLowerCase().includes(q)) ? 'flex' : 'none';
+            });
+            updateBtns();
+          });
+          function submitPicks(picks) {
+            if (!picks.length) return;
+            submit.disabled = true;
+            addAll.disabled = true;
+            status.textContent = 'Adding…';
+            const errEl = document.getElementById('add-error');
+            if (errEl) errEl.classList.remove('visible');
+            return api('POST', '/admin/catalog/add', { entries: picks })
+              .then(r => {
+                state._catalogCache = null;
+                closeModal();
+                renderAdminCatalog();
+                if (r.skipped) {
+                  // Surface skip count so the admin knows dedup happened.
+                  alert('Added ' + r.added + ', skipped ' + r.skipped + ' (already in catalog).');
+                }
+              })
+              .catch(err => {
+                submit.disabled = false;
+                status.textContent = '';
+                updateBtns();
+                const e = document.getElementById('add-error');
+                if (e) { e.textContent = err.message; e.classList.add('visible'); }
+              });
+          }
+          submit.addEventListener('click', function() {
+            const picks = Array.from(list.querySelectorAll('.cat-pick:checked'))
+              .map(cb => places[parseInt(cb.dataset.idx, 10)])
+              .filter(Boolean)
+              .map(cleanPlace);
+            submitPicks(picks);
+          });
+          addAll.addEventListener('click', function() {
+            const picks = visibleRows()
+              .map(r => places[parseInt(r.dataset.idx, 10)])
+              .filter(Boolean)
+              .map(cleanPlace);
+            submitPicks(picks);
+          });
+          const notesToggle = document.getElementById('cat-notes-toggle');
+          notesToggle.addEventListener('click', function() {
+            list.classList.add('notes-anim');
+            const on = list.classList.toggle('show-notes');
+            this.textContent = on ? 'Hide notes' : 'Show notes';
+          });
+          updateBtns();
+        }
+      );
+    }
+
     function handleAdminUserAction(btn) {
       const row = btn.closest('.user-row');
       const uid = row.dataset.uid;
@@ -7327,15 +8026,28 @@
       const showPlaces = placesEnabled();
       const showTrails = trailsEnabled();
       if (!showPlaces && !showTrails) return;
-      let tab = initialTab || (showPlaces ? 'place' : 'trail');
-      if (tab === 'place' && !showPlaces) tab = 'trail';
-      if (tab === 'trail' && !showTrails) tab = 'place';
+      // Entry-point determines which tabs the modal exposes:
+      //   'place' (Places list Add)  -> [Place, Browse]
+      //   'trail' (Trails list Add)  -> just the GPX form, no tabs
+      //   null    (map FAB)          -> [Place, Trail, Browse], filtered by enabled features
+      let tabs;
+      if (initialTab === 'trail') {
+        tabs = ['trail'];
+      } else if (initialTab === 'place') {
+        tabs = showPlaces ? ['place', 'browse'] : ['trail'];
+      } else {
+        tabs = [];
+        if (showPlaces) tabs.push('place');
+        if (showTrails) tabs.push('trail');
+        if (showPlaces) tabs.push('browse');
+      }
+      let tab = tabs[0];
+      const tabLabels = { place: 'Place', trail: 'Trail', browse: 'Browse' };
       openModal(
         '<button class="modal-close modal-close-floating" aria-label="Close">&times;</button>' +
-        (showPlaces && showTrails ?
+        (tabs.length > 1 ?
           '<div class="modal-tabs" id="add-tabs">' +
-            '<button data-tab="place"' + (tab === 'place' ? ' class="active"' : '') + '>Place</button>' +
-            '<button data-tab="trail"' + (tab === 'trail' ? ' class="active"' : '') + '>Trail</button>' +
+            tabs.map(t => '<button data-tab="' + t + '"' + (t === tab ? ' class="active"' : '') + '>' + tabLabels[t] + '</button>').join('') +
           '</div>'
           : '') +
         '<div id="add-body"></div>',
@@ -7355,11 +8067,21 @@
         const body = document.getElementById('add-body');
         const firstRender = body.dataset.rendered !== '1';
         const oldH = firstRender ? 0 : body.offsetHeight;
-        body.innerHTML = tab === 'place' ? placeFormHtml() : gpxFormHtml();
+        body.innerHTML = tab === 'place' ? placeFormHtml()
+          : tab === 'trail' ? gpxFormHtml()
+          : browseFormHtml();
         if (tab === 'place') wirePlaceForm();
-        else wireGpxForm();
+        else if (tab === 'trail') wireGpxForm();
+        else wireBrowseForm();
         body.dataset.rendered = '1';
         if (firstRender) return;
+        if (tab === 'browse') {
+          // Browse content is async (loads after the catalog fetch lands), so
+          // animating to the "Loading..." height first and snapping to the
+          // list afterwards looks twitchy. Skip the height transition here.
+          body.style.height = 'auto';
+          return;
+        }
         // Measure the new content size, then animate from old to new height.
         // After the transition completes, release back to auto so the form can
         // grow naturally (e.g. when the Completed extras expand).
@@ -7392,14 +8114,14 @@
           '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem">' +
             '<button type="button" class="primary" id="pick-on-map" style="flex:0 0 auto">' + (c ? 'Re-pick on map' : 'Pick on map') + '</button>' +
             (c
-              ? '<span id="p-coords-display" style="font-size:0.78rem;color:var(--text)">' + c.lat.toFixed(6) + ', ' + c.lng.toFixed(6) + '</span>'
+              ? '<span id="p-coords-display" style="font-size:0.78rem;color:var(--text)">' + c.lat.toFixed(5) + ', ' + c.lng.toFixed(5) + '</span>'
               : '<a href="#" id="p-coords-manual" style="font-size:0.7rem;color:var(--muted);text-decoration:underline">or enter manually</a>') +
           '</div>' +
           '<div class="collapsible" id="p-coords-fields">' +
             '<div class="collapsible-inner">' +
               '<div class="row" style="margin-top:0.4rem">' +
-                '<div><label for="p-lat">Latitude</label><input type="number" id="p-lat" step="any" value="' + (c ? c.lat.toFixed(6) : '') + '"></div>' +
-                '<div><label for="p-lon">Longitude</label><input type="number" id="p-lon" step="any" value="' + (c ? c.lng.toFixed(6) : '') + '"></div>' +
+                '<div><label for="p-lat">Latitude</label><input type="number" id="p-lat" step="any" value="' + (c ? c.lat.toFixed(5) : '') + '"></div>' +
+                '<div><label for="p-lon">Longitude</label><input type="number" id="p-lon" step="any" value="' + (c ? c.lng.toFixed(5) : '') + '"></div>' +
               '</div>' +
             '</div>' +
           '</div>' +
@@ -7410,6 +8132,10 @@
           (getShowField('note') ?
             '<label for="p-note">Note (optional)</label>' +
             '<textarea id="p-note" style="min-height:40px"></textarea>'
+          : '') +
+          (getShowField('image') ?
+            '<label for="p-image">Image URL (optional)</label>' +
+            '<input type="url" id="p-image" placeholder="https://example.com/photo.jpg">'
           : '') +
           '<label for="p-sources">Sources (optional, one URL per line)</label>' +
           '<textarea id="p-sources" style="min-height:40px" placeholder="https://example.com/source"></textarea>' +
@@ -7619,6 +8345,159 @@
           .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
         });
       }
+
+      function browseFormHtml() {
+        return '<div id="browse-body">' +
+          '<div style="font-size:0.78rem;color:var(--muted);padding:0.5rem 0">Loading catalogue&hellip;</div>' +
+          '</div>';
+      }
+
+      function wireBrowseForm() {
+        const body = document.getElementById('browse-body');
+        // Cache the catalog across tab switches so reopening Browse renders
+        // instantly instead of flashing "Loading..." -> content. Admin mutations
+        // invalidate `state._catalogCache` in renderAdminCatalog / picker / mgr.
+        if (Array.isArray(state._catalogCache)) {
+          renderBrowse(state._catalogCache);
+          return;
+        }
+        api('GET', '/catalog')
+          .then(entries => {
+            state._catalogCache = Array.isArray(entries) ? entries : [];
+            renderBrowse(state._catalogCache);
+          })
+          .catch(err => { body.innerHTML = '<div class="modal-error" style="display:block">' + escapeHtml(err.message) + '</div>'; });
+
+        function renderBrowse(rawEntries) {
+          // Hide entries the user has already imported (tracked via the
+          // `from_catalog` field set on import). Re-imports skip silently.
+          const imported = new Set((state.places || []).map(p => p && p.from_catalog).filter(Boolean));
+          const entries = (rawEntries || []).filter(e => !imported.has(e && e.name));
+          if (!entries.length) {
+            const allHidden = (rawEntries || []).length > 0;
+            body.innerHTML = '<div style="font-size:0.78rem;color:var(--muted);padding:0.5rem 0">' +
+              (allHidden
+                ? "You've imported everything in the catalogue."
+                : 'No catalogue entries available yet. An admin can add some from Settings &rsaquo; Admin &rsaquo; Catalog.') +
+              '</div>';
+            return;
+          }
+          const rows = entries.map((e, i) => {
+            const meta = [e.category, e.country].filter(Boolean).join(' · ');
+            const name = escapeHtml(e.name || '(unnamed)');
+            const note = (e.note || '').trim();
+            const firstSource = Array.isArray(e.sources) ? e.sources.find(s => typeof s === 'string' && s.trim()) : null;
+            const sourceLink = firstSource
+              ? '<a href="' + escapeHtml(firstSource) + '" target="_blank" rel="noopener" class="row-src">Source</a>'
+              : '';
+            return '<label class="browse-row" data-idx="' + i + '" style="display:flex;align-items:flex-start;gap:0.6rem;padding:0.45rem 0;border-bottom:1px solid var(--border);cursor:pointer">' +
+              '<input type="checkbox" class="browse-pick" data-idx="' + i + '" style="margin-top:0.2rem">' +
+              '<span style="flex:1;min-width:0;display:block">' +
+                '<span style="display:flex;align-items:center;gap:0.5rem;width:100%">' +
+                  '<span title="' + name + '" style="flex:1;min-width:0;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</span>' +
+                  sourceLink +
+                '</span>' +
+                (meta ? '<span style="display:block;font-size:0.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(meta) + '</span>' : '') +
+                (note ? '<span class="row-note">' + escapeHtml(note) + '</span>' : '') +
+              '</span>' +
+            '</label>';
+          }).join('');
+          body.innerHTML =
+            '<input type="text" id="browse-filter" placeholder="Filter&hellip;" style="margin-bottom:0.5rem">' +
+            '<div id="browse-list" style="max-height:50vh;overflow-y:auto">' + rows + '</div>' +
+            '<div class="modal-error" id="add-error"></div>' +
+            '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
+              '<button type="button" class="row-notes-toggle" id="browse-notes-toggle">Show notes</button>' +
+              '<button type="button" class="row-notes-toggle" id="browse-select-all">Select all</button>' +
+              '<span id="browse-status" style="font-size:0.75rem;color:var(--muted);flex:1"></span>' +
+              '<button type="button" class="primary" id="browse-add" disabled>Add selected</button>' +
+            '</div>';
+
+          const filter = document.getElementById('browse-filter');
+          const list = document.getElementById('browse-list');
+          const addBtn = document.getElementById('browse-add');
+          const status = document.getElementById('browse-status');
+          const selectAllBtn = document.getElementById('browse-select-all');
+
+          function visibleRows() {
+            return Array.from(list.querySelectorAll('.browse-row'))
+              .filter(r => r.style.display !== 'none');
+          }
+          function updateBtn() {
+            const n = list.querySelectorAll('.browse-pick:checked').length;
+            addBtn.disabled = n === 0;
+            addBtn.textContent = n ? 'Add ' + n + ' selected' : 'Add selected';
+            const vis = visibleRows();
+            const visChecked = vis.filter(r => r.querySelector('.browse-pick').checked).length;
+            selectAllBtn.textContent = (vis.length && visChecked === vis.length) ? 'Clear selection' : 'Select all';
+            selectAllBtn.disabled = vis.length === 0;
+          }
+          list.addEventListener('change', updateBtn);
+
+          selectAllBtn.addEventListener('click', function() {
+            const vis = visibleRows();
+            const allChecked = vis.length && vis.every(r => r.querySelector('.browse-pick').checked);
+            vis.forEach(r => { r.querySelector('.browse-pick').checked = !allChecked; });
+            updateBtn();
+          });
+
+          filter.addEventListener('input', function() {
+            const q = this.value.trim().toLowerCase();
+            list.querySelectorAll('.browse-row').forEach(row => {
+              row.style.display = (!q || row.textContent.toLowerCase().includes(q)) ? 'flex' : 'none';
+            });
+            updateBtn();
+          });
+
+          // Source links sit inside a <label>; without this they'd toggle the
+          // row's checkbox as a side effect of the label's default behavior.
+          list.querySelectorAll('.row-src').forEach(a => {
+            a.addEventListener('click', function(ev) { ev.stopPropagation(); });
+          });
+
+          const notesToggle = document.getElementById('browse-notes-toggle');
+          notesToggle.addEventListener('click', function() {
+            list.classList.add('notes-anim');
+            const on = list.classList.toggle('show-notes');
+            this.textContent = on ? 'Hide notes' : 'Show notes';
+          });
+
+          addBtn.addEventListener('click', function() {
+            const picked = Array.from(list.querySelectorAll('.browse-pick:checked'))
+              .map(cb => entries[parseInt(cb.dataset.idx, 10)])
+              .filter(Boolean)
+              // _source is a server-side UI tag; the place schema rejects it.
+              // Tag the imported place with its catalog source so Browse can
+              // hide it on re-open and a future "Update from catalog" knows
+              // the lineage.
+              .map(e => { const { _source, ...rest } = e; return Object.assign({}, rest, { from_catalog: e.name }); });
+            if (!picked.length) return;
+            addBtn.disabled = true;
+            const prevColors = Object.assign({}, state.categoryColors);
+            let done = 0;
+            const errors = [];
+            (function next() {
+              if (done >= picked.length) {
+                refreshPlaces().then(() => {
+                  syncPlacesOnMap(prevColors);
+                  if (errors.length) {
+                    status.textContent = '';
+                    addBtn.disabled = false;
+                    showModalError(errors.length + ' of ' + picked.length + ' failed: ' + errors.join('; '));
+                  } else {
+                    closeModal();
+                  }
+                }).catch(err => { addBtn.disabled = false; showModalError(err.message); });
+                return;
+              }
+              status.textContent = 'Adding ' + (done + 1) + ' of ' + picked.length + '…';
+              api('POST', '/places', picked[done])
+                .catch(err => errors.push((picked[done].name || '?') + ': ' + err.message))
+                .then(() => { done++; next(); });
+            })();
+          });
+        }
+      }
     }
 
     // ----- Pick coordinates on the map -----
@@ -7627,7 +8506,9 @@
     function enterPickCoordsMode(onPick) {
       // Make sure we're on the unified map. If not, navigate there first.
       const base = (location.hash || '#/').split('?')[0];
-      if (base !== '#/' && base !== '#/map' && base !== '#') {
+      const onMapView = base === '#/' || base === '#/map' || base === '#'
+        || base.startsWith('#/place/') || base.startsWith('#/trail/');
+      if (!onMapView) {
         location.hash = '#/';
         setTimeout(function() { enterPickCoordsMode(onPick); }, 250);
         return;
@@ -7658,10 +8539,12 @@
       const app = document.getElementById('app');
       const existing = app.querySelector('.fab-add:not(.fab-leave)');
       const base = (location.hash || '#/').split('?')[0];
+      const onMapView = base === '#/' || base === '#' || base === '#/map'
+        || base.startsWith('#/place/') || base.startsWith('#/trail/');
       const shouldShow = state.auth.authenticated
         && !isReadOnly()
         && getShowMapAddButton()
-        && (base === '#/' || base === '#' || base === '#/map')
+        && onMapView
         && (placesEnabled() || trailsEnabled());
       const fabTitle = placesEnabled() && trailsEnabled()
         ? 'Add place or trail'
@@ -7819,6 +8702,17 @@
           return;
         }
         wrappedRouter();
+        // Warm the catalog cache in the background so the Browse tab in the
+        // Add modal renders instantly the first time it's opened, instead of
+        // flashing the Loading placeholder. Authed users only.
+        if (state.auth && state.auth.authenticated && !isReadOnly() && state._catalogCache == null) {
+          api('GET', '/catalog').then(entries => {
+            state._catalogCache = Array.isArray(entries) ? entries : [];
+            // If the user is sitting on the Places list when this lands,
+            // re-render so the "update available" badges reflect the cache.
+            if ((location.hash || '#/').startsWith('#/places')) wrappedRouter();
+          }).catch(() => {});
+        }
       });
     }
 

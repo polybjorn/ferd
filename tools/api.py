@@ -59,7 +59,8 @@ GPX_NS = "http://www.topografix.com/GPX/1/1"
 # dot-dot whole-string rejection lives in safe_path_component itself.
 PATH_COMPONENT_RE = re.compile(r"^[^\x00-\x1f/\\]{1,255}$")
 PLACE_REQUIRED = {"name", "lat", "lon"}
-PLACE_OPTIONAL = {"category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating"}
+PLACE_OPTIONAL = {"id", "category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating", "image", "from_catalog"}
+PLACE_ID_RE = re.compile(r"^[0-9a-f]{8}$")
 PLACE_ALL = PLACE_REQUIRED | PLACE_OPTIONAL
 
 # Trail metadata fields and their constraints (used by /api/metadata).
@@ -398,6 +399,33 @@ def publishing_open(conn: sqlite3.Connection) -> bool:
   publish state on (existing published users stay published until an admin
   unpublishes them). Defaults to open."""
   return setting_get(conn, "publishing", "open") == "open"
+
+
+def catalog_baseline_open(conn: sqlite3.Connection) -> bool:
+  """Admin-controlled global flag: when 'closed', the shipped baseline catalog
+  (`<static_dir>/catalog.json`, tracked in the repo) is not merged into
+  /api/catalog responses. Only local additions are served. Defaults to open."""
+  return setting_get(conn, "catalog_baseline", "open") == "open"
+
+
+def catalog_baseline_hidden(conn: sqlite3.Connection) -> set:
+  """Set of shipped catalog entry names the admin has suppressed individually.
+  Distinct from the all-or-nothing `catalog_baseline_open` toggle: lets the
+  admin keep most of the shipped baseline but hide specific entries."""
+  raw = setting_get(conn, "catalog_baseline_hidden", "")
+  if not raw:
+    return set()
+  try:
+    parsed = json.loads(raw)
+  except (json.JSONDecodeError, ValueError):
+    return set()
+  if not isinstance(parsed, list):
+    return set()
+  return {n for n in parsed if isinstance(n, str)}
+
+
+def catalog_baseline_set_hidden(conn: sqlite3.Connection, hidden: set) -> None:
+  setting_set(conn, "catalog_baseline_hidden", json.dumps(sorted(hidden)))
 
 
 def admin_count(conn: sqlite3.Connection) -> int:
@@ -762,6 +790,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_export_get()
     if path == "/api/public-maps":
       return self._h_public_maps()
+    if path == "/api/catalog":
+      return self._h_catalog_get()
     if path == "/api/admin/users":
       return self._h_admin_users_list()
     if path == "/api/admin/stats":
@@ -893,8 +923,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_sessions_revoke_others()
     if path == "/api/admin/settings/publishing":
       return self._h_admin_settings_publishing()
+    if path == "/api/admin/settings/catalog-baseline":
+      return self._h_admin_settings_catalog_baseline()
     if path == "/api/admin/unpublish-all":
       return self._h_admin_unpublish_all()
+    if path == "/api/admin/catalog/add":
+      return self._h_admin_catalog_add()
+    if path == "/api/admin/catalog/delete":
+      return self._h_admin_catalog_delete()
+    if path == "/api/admin/catalog/clear":
+      return self._h_admin_catalog_clear()
+    if path == "/api/admin/catalog/hide":
+      return self._h_admin_catalog_hide()
     if path.startswith("/api/admin/users/"):
       rest = path[len("/api/admin/users/"):]
       parts = rest.split("/", 1)
@@ -950,6 +990,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "published": published,
       "registration_open": registration_open(self.conn),
       "publishing_open": publishing_open(self.conn),
+      "catalog_baseline_open": catalog_baseline_open(self.conn),
       "has_users": user_count(self.conn) > 0,
       "requires_setup_token": Handler.setup_token is not None and user_count(self.conn) == 0,
       "version": APP_VERSION,
@@ -964,6 +1005,82 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {
       "usernames": [r["username"] for r in rows],
     })
+
+  def _h_catalog_get(self):
+    """Site-level catalog of curated places.
+
+    Two sources are merged at read time:
+      - Shipped baseline: `<static_dir>/catalog.json`, tracked in the repo and
+        community-contributable via PRs. Included unless admin has flipped the
+        `catalog_baseline` setting to 'closed'.
+      - Local additions: `<data_dir>/catalog.local.json`, gitignored,
+        admin-managed via the catalog admin endpoints.
+
+    Local entries override shipped ones with the same name (so admins can edit
+    a shipped entry by re-adding it locally). Each returned entry carries a
+    `_source` field of "shipped" or "local" so the UI can label them and gate
+    the Remove action."""
+    user = self._require_user()
+    if user is None:
+      return
+    # `?include_hidden=1` is an admin-only flag for the Manage catalog UI -
+    # it returns hidden shipped entries with `_hidden: true` so admins can see
+    # what they've suppressed and toggle it back. Anyone else gets a clean
+    # filtered list.
+    qs = parse_qs(urlparse(self.path).query)
+    include_hidden = qs.get("include_hidden", ["0"])[0] in ("1", "true")
+    if include_hidden and not user["is_admin"]:
+      include_hidden = False
+
+    data_dir = Path(self.cfg["data_dir"]).resolve()
+    static_dir = Path(self.cfg["static_dir"]).resolve()
+    local_path = data_dir / "catalog.local.json"
+    shipped_path = static_dir / "catalog.json"
+
+    try:
+      local = load_json_file(local_path, expected_type=list, required=False, label="catalog.local.json")
+    except ValidationError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+
+    shipped = []
+    if catalog_baseline_open(self.conn):
+      try:
+        shipped = load_json_file(shipped_path, expected_type=list, required=False, label="catalog.json") or []
+      except ValidationError as e:
+        return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+
+    hidden = catalog_baseline_hidden(self.conn)
+
+    # Build the merged list. Local entries win by name; we walk locals first so
+    # the order is "local additions, then shipped" minus any shadowed shipped.
+    seen: set = set()
+    merged: list = []
+    for entry in (local or []):
+      if not isinstance(entry, dict):
+        continue
+      name = entry.get("name")
+      if not isinstance(name, str):
+        continue
+      tagged = dict(entry)
+      tagged["_source"] = "local"
+      merged.append(tagged)
+      seen.add(name)
+    for entry in shipped:
+      if not isinstance(entry, dict):
+        continue
+      name = entry.get("name")
+      if not isinstance(name, str) or name in seen:
+        continue
+      is_hidden = name in hidden
+      if is_hidden and not include_hidden:
+        continue
+      tagged = dict(entry)
+      tagged["_source"] = "shipped"
+      if is_hidden:
+        tagged["_hidden"] = True
+      merged.append(tagged)
+      seen.add(name)
+    self._send_json(HTTPStatus.OK, merged)
 
   def _h_register(self):
     body = self._read_body_or_400()
@@ -1147,6 +1264,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
               details={"mode": mode})
     self._send_json(HTTPStatus.OK, {"publishing": mode})
 
+  def _h_admin_settings_catalog_baseline(self):
+    admin = self._require_admin()
+    if admin is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    mode = body.get("mode")
+    if mode not in ("open", "closed"):
+      return self._error(HTTPStatus.BAD_REQUEST, "mode must be 'open' or 'closed'")
+    with self.write_lock:
+      setting_set(self.conn, "catalog_baseline", mode)
+    log_event(self.conn, actor=admin["username"], action="admin.catalog_baseline",
+              details={"mode": mode})
+    self._send_json(HTTPStatus.OK, {"catalog_baseline": mode})
+
   def _admin_user_row(self, row: sqlite3.Row) -> dict:
     uname = row["username"]
     udir = user_dir(self.cfg, uname)
@@ -1307,6 +1440,134 @@ class Handler(http.server.BaseHTTPRequestHandler):
               details={"affected": affected})
     self._send_json(HTTPStatus.OK, {"ok": True, "affected": affected})
 
+  def _h_admin_catalog_add(self):
+    admin = self._require_admin()
+    if admin is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    entries = body.get("entries")
+    if not isinstance(entries, list) or not entries:
+      return self._error(HTTPStatus.BAD_REQUEST, "entries: non-empty list required")
+    cleaned = []
+    for i, raw in enumerate(entries):
+      try:
+        p = validate_place(raw)
+      except ValidationError as e:
+        return self._error(HTTPStatus.BAD_REQUEST, f"entry #{i}: {e}")
+      # Catalog entries describe a place, not a personal visit; drop visit-only fields.
+      for k in ("visited", "date_visited", "rating"):
+        p.pop(k, None)
+      cleaned.append(p)
+
+    catalog_path = Path(self.cfg["data_dir"]).resolve() / "catalog.local.json"
+    lock_path = catalog_path.parent / ".catalog.lock"
+    state = {"added": 0, "skipped": 0, "total": 0}
+
+    def do_add():
+      existing = load_json_file(catalog_path, expected_type=list, required=False, label="catalog.local.json")
+      names = {e["name"] for e in existing if isinstance(e, dict) and isinstance(e.get("name"), str)}
+      for e in cleaned:
+        if e["name"] in names:
+          state["skipped"] += 1
+          continue
+        existing.append(e)
+        names.add(e["name"])
+        state["added"] += 1
+      write_json_file(catalog_path, existing)
+      state["total"] = len(existing)
+
+    try:
+      with_file_lock(lock_path, do_add)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write catalog.local.json: {e}")
+
+    log_event(self.conn, actor=admin["username"], action="admin.catalog_add",
+              details={"added": state["added"], "skipped": state["skipped"]})
+    self._send_json(HTTPStatus.OK, {"ok": True, **state})
+
+  def _h_admin_catalog_delete(self):
+    admin = self._require_admin()
+    if admin is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    names_in = body.get("names")
+    if not isinstance(names_in, list) or not names_in or not all(isinstance(n, str) for n in names_in):
+      return self._error(HTTPStatus.BAD_REQUEST, "names: non-empty list of strings required")
+    drop = set(names_in)
+
+    catalog_path = Path(self.cfg["data_dir"]).resolve() / "catalog.local.json"
+    lock_path = catalog_path.parent / ".catalog.lock"
+    state = {"removed": 0, "total": 0}
+
+    def do_delete():
+      existing = load_json_file(catalog_path, expected_type=list, required=False, label="catalog.local.json")
+      kept = [e for e in existing if not (isinstance(e, dict) and e.get("name") in drop)]
+      state["removed"] = len(existing) - len(kept)
+      write_json_file(catalog_path, kept)
+      state["total"] = len(kept)
+
+    try:
+      with_file_lock(lock_path, do_delete)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write catalog.local.json: {e}")
+
+    log_event(self.conn, actor=admin["username"], action="admin.catalog_delete",
+              details={"removed": state["removed"]})
+    self._send_json(HTTPStatus.OK, {"ok": True, **state})
+
+  def _h_admin_catalog_clear(self):
+    admin = self._require_admin()
+    if admin is None:
+      return
+    catalog_path = Path(self.cfg["data_dir"]).resolve() / "catalog.local.json"
+    lock_path = catalog_path.parent / ".catalog.lock"
+    state = {"removed": 0}
+
+    def do_clear():
+      existing = load_json_file(catalog_path, expected_type=list, required=False, label="catalog.local.json")
+      state["removed"] = len(existing)
+      write_json_file(catalog_path, [])
+
+    try:
+      with_file_lock(lock_path, do_clear)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write catalog.local.json: {e}")
+
+    log_event(self.conn, actor=admin["username"], action="admin.catalog_clear",
+              details={"removed": state["removed"]})
+    self._send_json(HTTPStatus.OK, {"ok": True, "removed": state["removed"], "total": 0})
+
+  def _h_admin_catalog_hide(self):
+    """Toggle visibility of a single shipped catalog entry. Hidden names are
+    suppressed from /api/catalog responses for everyone; admin Manage UI sees
+    them via `?include_hidden=1`. Body: `{name: str, hidden: bool}`."""
+    admin = self._require_admin()
+    if admin is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    name = body.get("name")
+    if not isinstance(name, str) or not name.strip():
+      return self._error(HTTPStatus.BAD_REQUEST, "name required")
+    if "hidden" not in body or not isinstance(body["hidden"], bool):
+      return self._error(HTTPStatus.BAD_REQUEST, "hidden (bool) required")
+    name = name.strip()
+    with self.write_lock:
+      hidden = catalog_baseline_hidden(self.conn)
+      if body["hidden"]:
+        hidden.add(name)
+      else:
+        hidden.discard(name)
+      catalog_baseline_set_hidden(self.conn, hidden)
+    log_event(self.conn, actor=admin["username"], action="admin.catalog_hide",
+              target=name, details={"hidden": body["hidden"]})
+    self._send_json(HTTPStatus.OK, {"ok": True, "name": name, "hidden": body["hidden"]})
+
   def _h_admin_user_revoke_sessions(self, uid: int):
     admin = self._require_admin()
     if admin is None:
@@ -1463,6 +1724,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
     body = self._read_body_or_400()
     if body is None:
       return
+    # Ignore any client-supplied id; the server assigns one. Strip before
+    # validation so we don't accidentally honor a colliding hex string.
+    if isinstance(body, dict):
+      body.pop("id", None)
     try:
       place = validate_place(body)
     except ValidationError as e:
@@ -1474,6 +1739,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_append():
       existing = load_json_file(places_path, expected_type=list, required=False, label="places.json")
+      seen = {p["id"] for p in existing if isinstance(p, dict) and isinstance(p.get("id"), str)}
+      new_id = secrets.token_hex(4)
+      while new_id in seen:
+        new_id = secrets.token_hex(4)
+      place["id"] = new_id
       existing.append(place)
       write_json_file(places_path, existing)
       return len(existing)
@@ -1494,12 +1764,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
     body = self._read_body_or_400()
     if body is None:
       return
-    original_name = (body.get("original_name") or "").strip()
-    if not original_name:
-      return self._error(HTTPStatus.BAD_REQUEST, "original_name required")
+    target_id = (body.get("id") or "").strip()
+    if not target_id or not PLACE_ID_RE.match(target_id):
+      return self._error(HTTPStatus.BAD_REQUEST, "id required (8-char hex)")
     place_payload = body.get("place")
     if not isinstance(place_payload, dict):
       return self._error(HTTPStatus.BAD_REQUEST, "place required")
+    # The payload's id (if any) is overwritten with the target id so the row
+    # keeps its identity through the rename.
+    place_payload = dict(place_payload)
+    place_payload["id"] = target_id
     try:
       validated = validate_place(place_payload)
     except ValidationError as e:
@@ -1511,13 +1785,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_update():
       existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
-      # Locate by name (unique-ish; we update first match).
-      idx = next((i for i, p in enumerate(existing) if isinstance(p, dict) and p.get("name") == original_name), None)
+      idx = next((i for i, p in enumerate(existing) if isinstance(p, dict) and p.get("id") == target_id), None)
       if idx is None:
-        raise NotFoundError(f"place not found: {original_name}")
-      # If renaming, ensure no collision with another row.
-      if validated["name"] != original_name and any(p.get("name") == validated["name"] for i, p in enumerate(existing) if i != idx):
-        raise ValidationError(f"a different place already uses the name '{validated['name']}'")
+        raise NotFoundError(f"place not found: {target_id}")
       existing[idx] = validated
       write_json_file(places_path, existing)
 
@@ -1574,9 +1844,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
     body = self._read_body_or_400()
     if body is None:
       return
-    target_name = (body.get("name") or "").strip()
-    if not target_name:
-      return self._error(HTTPStatus.BAD_REQUEST, "name required")
+    target_id = (body.get("id") or "").strip()
+    if not target_id or not PLACE_ID_RE.match(target_id):
+      return self._error(HTTPStatus.BAD_REQUEST, "id required (8-char hex)")
 
     udir = self._user_dir(user["username"])
     places_path = udir / "places.json"
@@ -1584,12 +1854,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_delete():
       existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
-      original_count = len(existing)
-      new_list = [p for p in existing if not (isinstance(p, dict) and p.get("name") == target_name)]
-      if len(new_list) == original_count:
-        raise NotFoundError(f"place not found: {target_name}")
-      write_json_file(places_path, new_list)
-      return len(new_list)
+      idx = next((i for i, p in enumerate(existing) if isinstance(p, dict) and p.get("id") == target_id), None)
+      if idx is None:
+        raise NotFoundError(f"place not found: {target_id}")
+      del existing[idx]
+      write_json_file(places_path, existing)
+      return len(existing)
 
     try:
       total = with_file_lock(lock_path, do_delete)
@@ -2248,8 +2518,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     qs = parse_qs(urlparse(self.path).query)
     mode = (qs.get("mode") or ["replace"])[0]
-    if mode not in ("replace", "merge"):
-      return self._error(HTTPStatus.BAD_REQUEST, "mode must be 'replace' or 'merge'")
+    if mode not in ("replace", "merge", "prefs"):
+      return self._error(HTTPStatus.BAD_REQUEST, "mode must be 'replace', 'merge', or 'prefs'")
 
     ctype = (self.headers.get("Content-Type") or "").split(";")[0].strip()
     if ctype not in ("application/zip", "application/octet-stream"):
@@ -2333,7 +2603,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       # Re-stage the cleaned form so the writer below uses the canonical bytes.
       staged["category-labels.json"] = (json.dumps(cleaned_labels, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
 
-    if new_places is not None:
+    if mode != "prefs" and new_places is not None:
       for i, p in enumerate(new_places):
         try:
           validate_place(p)
@@ -2341,13 +2611,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
           return self._error(HTTPStatus.BAD_REQUEST, f"places.json[{i}]: {e}")
 
     cleaned_gpx: dict[str, bytes] = {}
-    for arcname, data in staged.items():
-      if not arcname.startswith("gpx/"):
-        continue
-      try:
-        cleaned_gpx[arcname] = strip_gpx_pii(data)
-      except ValidationError as e:
-        return self._error(HTTPStatus.BAD_REQUEST, f"{arcname}: {e}")
+    if mode != "prefs":
+      for arcname, data in staged.items():
+        if not arcname.startswith("gpx/"):
+          continue
+        try:
+          cleaned_gpx[arcname] = strip_gpx_pii(data)
+        except ValidationError as e:
+          return self._error(HTTPStatus.BAD_REQUEST, f"{arcname}: {e}")
 
     udir = self._user_dir(user["username"])
     lock_path = udir / ".import.lock"
@@ -2373,6 +2644,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
           "changed_meta": len(new_metadata or {}),
           "changed_prefs": len(new_prefs or {}),
         }
+      if mode == "prefs":
+        # Preferences-only import: merge prefs.json and category-labels.json,
+        # skip places/routes/metadata and any GPX entries in the archive.
+        changed_prefs = 0
+        if new_prefs is not None:
+          prefs_path = udir / "prefs.json"
+          existing = load_json_file(prefs_path, expected_type=dict, required=False, label="prefs.json")
+          changed_prefs = sum(1 for k, v in new_prefs.items() if existing.get(k) != v)
+          existing.update(new_prefs)
+          write_json_file(prefs_path, existing)
+        if new_labels is not None:
+          labels_path = udir / "category-labels.json"
+          existing = load_json_file(labels_path, expected_type=dict, required=False, label="category-labels.json")
+          existing.update(cleaned_labels)
+          write_json_file(labels_path, existing)
+        return {"added_places": 0, "changed_meta": 0, "changed_prefs": changed_prefs}
       # merge
       added = 0
       if new_places is not None:
@@ -2691,6 +2978,22 @@ def validate_place(p: object) -> dict:
         raise ValidationError("each source must be a string (<=500 chars)")
       if urlparse(s).scheme.lower() not in ("http", "https"):
         raise ValidationError("each source must be an http(s) URL")
+  if "image" in p and p["image"] is not None and p["image"] != "":
+    if not isinstance(p["image"], str) or len(p["image"]) > 1000:
+      raise ValidationError("image must be a string (<=1000 chars) or null")
+    if urlparse(p["image"]).scheme.lower() not in ("http", "https"):
+      raise ValidationError("image must be an http(s) URL")
+  # `from_catalog` is the name of the catalog entry this place was imported
+  # from; the UI uses it to hide already-imported entries in Browse and (later)
+  # to offer "Update from catalog" when the upstream entry diverges.
+  if "from_catalog" in p and p["from_catalog"] is not None and p["from_catalog"] != "":
+    if not isinstance(p["from_catalog"], str) or len(p["from_catalog"]) > 200:
+      raise ValidationError("from_catalog must be a string (<=200 chars) or null")
+  # `id` is a server-assigned per-row identifier (8-char hex). On create the
+  # client never sets it; on update the client echoes back what GET returned.
+  if "id" in p and p["id"] is not None and p["id"] != "":
+    if not isinstance(p["id"], str) or not PLACE_ID_RE.match(p["id"]):
+      raise ValidationError("id must be an 8-char hex string")
   # Return a normalized copy: trimmed strings, defaulted booleans.
   out = {
     "name": name.strip(),
@@ -2698,9 +3001,11 @@ def validate_place(p: object) -> dict:
     "lon": float(lon),
     "visited": bool(p.get("visited", False)),
   }
+  if isinstance(p.get("id"), str) and PLACE_ID_RE.match(p["id"]):
+    out["id"] = p["id"]
   if category is not None and category != "":
     out["category"] = category.strip()
-  for k in ("country", "note", "local_name", "sources"):
+  for k in ("country", "note", "local_name", "sources", "image", "from_catalog"):
     if k in p and p[k] is not None:
       out[k] = p[k].strip() if isinstance(p[k], str) else p[k]
   if "date_visited" in p and p["date_visited"]:

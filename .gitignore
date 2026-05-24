@@ -6,6 +6,8 @@ CLAUDE.md
 # App data + per-deployment config
 places.json
 routes.json
+catalog.local.json
+.catalog.lock
 gpx
 users/
 site-config.json
