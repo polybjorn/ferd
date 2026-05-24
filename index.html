@@ -5219,19 +5219,21 @@
       });
       addTileLayersToMap(map);
 
-      // Show the on-map elevation position marker only while an elevation chart is hovered.
+      // Show the on-map elevation position marker only while an elevation
+      // chart is hovered or touched. Uses pointer events so a single code
+      // path covers mouse, touch, and pen; the corresponding CSS rule
+      // hides .height-focus when .elev-hover is absent.
       const mapEl = map.getContainer();
       ['elevation-container', 'multi-elevation-container'].forEach(function(id) {
         const el = document.getElementById(id);
         if (!el) return;
-        el.addEventListener('mouseenter', function() { mapEl.classList.add('elev-hover'); });
-        el.addEventListener('mouseleave', function() { mapEl.classList.remove('elev-hover'); });
-        // Touch equivalents: keep the marker visible while a finger is on
-        // the chart. Without these, the .height-focus CSS rule hides the
-        // marker on mobile even though the chart fires its update events.
-        el.addEventListener('touchstart', function() { mapEl.classList.add('elev-hover'); }, { passive: true });
-        el.addEventListener('touchend', function() { mapEl.classList.remove('elev-hover'); });
-        el.addEventListener('touchcancel', function() { mapEl.classList.remove('elev-hover'); });
+        const show = function() { mapEl.classList.add('elev-hover'); };
+        const hide = function() { mapEl.classList.remove('elev-hover'); };
+        el.addEventListener('pointerenter', show);
+        el.addEventListener('pointerdown', show);
+        el.addEventListener('pointerleave', hide);
+        el.addEventListener('pointerup', hide);
+        el.addEventListener('pointercancel', hide);
       });
 
       // Expand-map toggle: hides the elevation chart and metadata panel.
