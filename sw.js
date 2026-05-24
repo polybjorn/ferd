@@ -1,6 +1,6 @@
 // Ferd service worker.
 // Bump CACHE_VERSION on each release that changes the app shell or vendor deps.
-const CACHE_VERSION = 'ferd-v53';
+const CACHE_VERSION = 'ferd-v54';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const TILE_CACHE = `${CACHE_VERSION}-tiles`;
@@ -30,6 +30,26 @@ const SHELL_ASSETS = [
   '/vendor/leaflet-gpx/gpx.min.js',
   '/vendor/leaflet-elevation/leaflet-elevation.css',
   '/vendor/leaflet-elevation/leaflet-elevation.js',
+  '/vendor/src/components/chart.js',
+  '/vendor/src/components/d3.js',
+  '/vendor/src/components/marker.js',
+  '/vendor/src/components/summary.js',
+  '/vendor/src/handlers/acceleration.js',
+  '/vendor/src/handlers/altitude.js',
+  '/vendor/src/handlers/cadence.js',
+  '/vendor/src/handlers/distance.js',
+  '/vendor/src/handlers/heart.js',
+  '/vendor/src/handlers/labels.js',
+  '/vendor/src/handlers/lineargradient.js',
+  '/vendor/src/handlers/pace.js',
+  '/vendor/src/handlers/runner.js',
+  '/vendor/src/handlers/slope.js',
+  '/vendor/src/handlers/speed.js',
+  '/vendor/src/handlers/temperature.js',
+  '/vendor/src/handlers/time.js',
+  '/vendor/libs/leaflet-distance-marker.min.js',
+  '/vendor/libs/leaflet-edgescale.min.js',
+  '/vendor/libs/leaflet-hotline.min.js',
 ];
 
 const TILE_HOSTS = [
