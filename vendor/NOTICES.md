@@ -1,10 +1,10 @@
 # Third-party notices
 
-Ferd vendors the following third-party libraries under `vendor/`. Each is governed by its own upstream license, retained alongside the code. All licenses below are compatible with Ferd's GPL-3.0 license; the combined work distributes as GPL-3.0.
+Ferd vendors the third-party libraries listed below under `vendor/`. Each retains its upstream license alongside the source. All licenses are compatible with Ferd's GPL-3.0 license, and the combined work is distributed under GPL-3.0.
 
-Update this file when a dependency is **added, removed, replaced, or version-bumped**.
+Entries are grouped by role: the map core, then top-level plugins loaded on every page, then libraries used only on the trail detail page. Each entry describes what the library does, where to find upstream, and how it's licensed.
 
-Entries are grouped by role: the map core, then top-level plugins loaded on every page, then libraries used only on the trail detail page.
+If you're contributing, see the [Maintenance](#maintenance) section at the bottom for when and how to update this file.
 
 ## Map core
 
@@ -80,3 +80,11 @@ Entries are grouped by role: the map core, then top-level plugins loaded on ever
 | d3 | ISC | Yes |
 
 BSD-2-Clause, BSD-3-Clause, ISC, and MIT are on the FSF's [list of GPL-compatible licenses](https://www.gnu.org/licenses/license-list.html). Each component retains its original license; redistribution of the combined work is under GPL-3.0.
+
+---
+
+## Maintenance
+
+This file must be updated whenever a vendored dependency is **added, removed, replaced, or version-bumped**. Keep the entry's role group, purpose line, version, upstream URL, and license accurate. If the new version's license differs from the previous one, also update the compatibility summary table and confirm the new license is GPL-3.0-compatible before merging.
+
+`scripts/check-vendor-versions.py` reads `scripts/vendor-versions.json` and reports drift against npm; keep both files in sync when bumping. Dependencies not published to npm should still be listed here but skipped in the version manifest.
