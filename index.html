@@ -951,6 +951,9 @@
       overflow: hidden;
       background: var(--surface);
       flex-shrink: 0;
+      /* Reserve the chart's final height up-front so the map container
+         doesn't shrink (and re-fit) once the elevation chart populates. */
+      min-height: 200px;
     }
     .elevation-wrap .elevation-detached { margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; }
     .elevation-wrap .elevation-detached svg { width: 100% !important; display: block; margin-top: -8px; margin-bottom: -20px; }
@@ -1096,6 +1099,8 @@
       flex-shrink: 0;
       overflow-y: auto;
       max-height: 50vh;
+      /* Same reservation as single-track elevation-wrap. */
+      min-height: 200px;
     }
     .elevation-track-panel {
       border: 1px solid var(--border);
