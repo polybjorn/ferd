@@ -889,6 +889,7 @@
     }
     .detail-layout.map-expanded > :not(#map) {
       max-height: 0 !important;
+      min-height: 0 !important;
       opacity: 0;
       margin-top: 0 !important;
       margin-bottom: 0 !important;
@@ -898,6 +899,11 @@
       border-bottom-width: 0 !important;
       pointer-events: none;
     }
+    /* Elevation containers carry a min-height to reserve their final
+       size so the map doesn't reflow during lazy-load; that min-height
+       also has to collapse when the map is expanded. */
+    .detail-layout.map-expanded .elevation-wrap,
+    .detail-layout.map-expanded #multi-elevation-container { min-height: 0 !important; }
     .detail-layout.map-expanded #map { flex: 1 1 auto; }
     @media (prefers-reduced-motion: reduce) {
       .detail-layout > :not(#map) { transition: none; }
