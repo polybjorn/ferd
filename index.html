@@ -5065,15 +5065,13 @@
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
       // Map container shrinks asynchronously as the elevation chart and
-      // other detail-view widgets settle. invalidateSize alone leaves the
-      // map centered on the pre-shrink viewport, so refit to the last
-      // known content bounds whenever the container resizes.
+      // other detail-view widgets settle. Sync Leaflet's known size and
+      // force a polyline repaint so the trail stays drawn, but leave the
+      // viewport alone — refitting against the new size would zoom-jump
+      // a moment after the initial bbox fit, which is jarring.
       if (typeof ResizeObserver !== 'undefined') {
         const ro = new ResizeObserver(function() {
           map.invalidateSize();
-          if (state._lastTrailBounds && state._lastTrailBounds.isValid()) {
-            map.fitBounds(state._lastTrailBounds, { padding: [40, 40], animate: false });
-          }
           map.eachLayer(function(l) { if (typeof l.redraw === 'function') l.redraw(); });
           adjustTrailStrokes();
         });
