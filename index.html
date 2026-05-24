@@ -1137,6 +1137,40 @@
       color: var(--muted);
       font-size: 0.85rem;
     }
+    body.signin-only nav,
+    body.signin-only #pwa-offline-banner,
+    body.signin-only #pwa-update-banner { display: none; }
+    body.signin-only #app {
+      height: 100vh;
+      overflow: hidden;
+      padding: 0;
+      max-width: none;
+    }
+    .signin-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 2rem 1rem;
+      gap: 1.25rem;
+      box-sizing: border-box;
+    }
+    .signin-page .signin-logo {
+      width: 64px;
+      height: 64px;
+      display: block;
+    }
+    .signin-page .signin-brand {
+      font-size: 1.25rem;
+      letter-spacing: 0.08em;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+    .signin-page .modal {
+      max-width: 360px;
+      box-shadow: 0 10px 40px var(--shadow);
+    }
 
     /* Leaflet overrides */
     .leaflet-bar { border-radius: var(--radius) !important; }
@@ -1242,12 +1276,6 @@
     .leaflet-control-layers label { color: var(--text); }
     .leaflet-control-layers-separator { border-color: var(--border) !important; }
 
-    /* Trail polylines: render with constant stroke width regardless of
-       parent SVG transform during zoom. Positions still track via the
-       parent transform; only stroke width stays at its set weight. */
-    path.trail-line {
-      vector-effect: non-scaling-stroke !important;
-    }
     /* Place canvas layer tooltip (hover text on desktop) */
     .place-canvas-tooltip {
       position: absolute;
@@ -2255,6 +2283,7 @@
   <div id="modal-root"></div>
 
   <script src="/vendor/leaflet/leaflet.js"></script>
+  <script src="/vendor/leaflet-smoothwheelzoom/SmoothWheelZoom.js"></script>
   <script src="/vendor/leaflet-tilelayer-nogap/L.TileLayer.NoGap.js"></script>
   <script src="/vendor/supercluster/supercluster.min.js"></script>
   <script src="/vendor/leaflet-gpx/gpx.js"></script>
@@ -2839,6 +2868,7 @@
       state._trailLayers = null;
       state._trailGroupCompleted = null;
       state._trailGroupPlanned = null;
+      state._trailRenderer = null;
     }
 
     function formatDistance(m) {
@@ -3014,9 +3044,15 @@
 
     function applyNonScalingStroke(layer) {
       if (layer && layer._path && layer._path.setAttribute) {
-        const sw = layer._path.getAttribute('stroke-width');
-        if (sw && !layer._path.dataset.origStrokeWidth) {
-          layer._path.dataset.origStrokeWidth = sw;
+        // Stamp from layer.options.weight (the intended weight) rather
+        // than the path's current stroke-width attribute. If a trail
+        // happens to load while the SVG is mid-CSS-scale (stepped zoom
+        // anim or fitBounds), getAttribute returns the counter-scaled
+        // value, which then becomes the frozen "orig" - and every later
+        // adjustTrailStrokes call restores it to that wrong width.
+        if (layer.options && typeof layer.options.weight === 'number'
+            && !layer._path.dataset.origStrokeWidth) {
+          layer._path.dataset.origStrokeWidth = String(layer.options.weight);
         }
       }
       if (layer && typeof layer.eachLayer === 'function') {
@@ -3028,21 +3064,27 @@
     // transform scale, so trails appear at constant pixel width even
     // while Leaflet CSS-scales the SVG container during zoom animation.
     function adjustTrailStrokes() {
-      const svgs = document.querySelectorAll('.leaflet-overlay-pane svg');
-      for (const svg of svgs) {
-        const transform = (svg.style && svg.style.transform) || '';
-        const m = transform.match(/scale\(([0-9.]+)\)/);
-        const scale = m ? parseFloat(m[1]) : 1;
-        const paths = svg.querySelectorAll('path');
-        for (const path of paths) {
-          let orig = path.dataset.origStrokeWidth;
-          if (!orig) {
-            orig = path.getAttribute('stroke-width') || '';
-            if (!orig) continue;
-            path.dataset.origStrokeWidth = orig;
-          }
-          path.setAttribute('stroke-width', String(parseFloat(orig) / scale));
+      // Re-project each polyline at the current zoom, then call the
+      // renderer's _update so the SVG container's viewBox, position,
+      // and child path d's all reflect the new map state with CSS
+      // scale held at 1. Bypasses the compositor-vs-main-thread race
+      // that smooth-wheel zoom causes when counter-scaling stroke-width
+      // against the SVG's CSS transform (the transform updates on the
+      // compositor while stroke-width goes through main-thread paint,
+      // briefly diverging mid-gesture). Costs more CPU than CSS-only
+      // but keeps strokes constant and positions sticky.
+      if (!state.currentMap || !state._trailLayers) return;
+      const visit = (layer) => {
+        if (layer._renderer && typeof layer._project === 'function') {
+          try { layer._project(); } catch (e) { /* ignore */ }
         }
+        if (typeof layer.eachLayer === 'function') {
+          layer.eachLayer(visit);
+        }
+      };
+      for (const t of state._trailLayers) visit(t.layer);
+      if (state._trailRenderer && state._trailRenderer._update) {
+        try { state._trailRenderer._update(); } catch (e) { /* ignore */ }
       }
     }
 
@@ -3351,6 +3393,12 @@
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
         markerZoomAnimation: false,
+        // Continuous wheel/trackpad zoom (vendor/leaflet-smoothwheelzoom).
+        // Disable Leaflet's stepped scrollWheelZoom in favor of the
+        // smooth handler, which animates zoom level continuously via rAF.
+        scrollWheelZoom: false,
+        smoothWheelZoom: true,
+        smoothSensitivity: 1.5,
         renderer: L.svg()
       }).setView(dv.center, dv.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
@@ -3359,7 +3407,11 @@
       // mobile pinch (fires per frame); zoomanim kicks off a brief rAF
       // loop to cover the desktop 250ms CSS animation where 'zoom'
       // doesn't fire until the end.
-      map.on('zoom', adjustTrailStrokes);
+      // 'move' fires after all 'zoom' listeners on each _move() call, so
+      // by the time we run, the SVG renderer has already applied its new
+      // CSS scale transform - we read the freshest value to counter-scale
+      // against. Also covers pan-only frames.
+      map.on('move', adjustTrailStrokes);
       map.on('zoomend moveend', adjustTrailStrokes);
       map.on('zoomanim', function() {
         const start = performance.now();
@@ -3465,6 +3517,21 @@
               if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
             }
             applyNonScalingStroke(e.target);
+            // Cache the renderer the first time a trail loads so
+            // adjustTrailStrokes can force a re-project on smooth-zoom
+            // frames. All polylines on the index map share one renderer.
+            if (!state._trailRenderer) {
+              const findRenderer = function(layer) {
+                if (layer._renderer) return layer._renderer;
+                if (typeof layer.eachLayer === 'function') {
+                  let found = null;
+                  layer.eachLayer(function(sub) { if (!found) found = findRenderer(sub); });
+                  return found;
+                }
+                return null;
+              };
+              state._trailRenderer = findRenderer(e.target);
+            }
           }).on('error', function(e) {
             console.warn('[ferd] gpx parse failed for', desc.gpxUrl, e && e.err);
             try { desc.parent.removeLayer(gpxLayer); } catch (_) {}
@@ -4127,13 +4194,38 @@
         const targetCenter = L.latLng(e.center);
         const startTime = performance.now();
         const duration = 250;
+        // Leaflet's tile transition uses CSS `cubic-bezier(0, 0, 0.25, 1)`.
+        // Match it exactly via Newton's method so pins track tiles through
+        // the animation. A polynomial ease-out approximation diverges by
+        // ~5% mid-animation, visible as drift+snap on every desktop zoom.
+        const easeLeaflet = function(t) {
+          let s = t;
+          for (let i = 0; i < 6; i++) {
+            const sm = 1 - s;
+            const x = 0.75 * sm * s * s + s * s * s;
+            const dx = 1.5 * s + 0.75 * s * s;
+            if (Math.abs(dx) < 1e-6) break;
+            s -= (x - t) / dx;
+            if (s < 0) s = 0; else if (s > 1) s = 1;
+          }
+          const sm = 1 - s;
+          return 3 * sm * s * s + s * s * s;
+        };
+        // Leaflet's tile transform interpolates SCALE linearly between
+        // 1 and the target scale (CSS transition on the transform
+        // property). Mapping that to zoom is logarithmic, not linear:
+        // at progress 0.5 of a +1 zoom step the visual scale is 1.5,
+        // not 2^0.5 = 1.414. Interpolating zoom linearly here put pins
+        // at the wrong fractional zoom relative to the tiles, which
+        // showed up as the drift-during-zoom you saw.
+        const targetScale = Math.pow(2, targetZoom - startZoom);
         const tick = () => {
           if (!this._map) return;
           const elapsed = performance.now() - startTime;
           const t = Math.min(elapsed / duration, 1);
-          // cubic-bezier(0, 0, 0.25, 1) approximation (Leaflet's default)
-          const eased = 1 - Math.pow(1 - t, 3);
-          const interpZoom = startZoom + (targetZoom - startZoom) * eased;
+          const eased = easeLeaflet(t);
+          const scaleAtP = 1 + eased * (targetScale - 1);
+          const interpZoom = startZoom + Math.log2(scaleAtP);
           const interpCenter = L.latLng(
             startCenter.lat + (targetCenter.lat - startCenter.lat) * eased,
             startCenter.lng + (targetCenter.lng - startCenter.lng) * eased
@@ -5052,6 +5144,12 @@
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
         markerZoomAnimation: false,
+        // Continuous wheel/trackpad zoom (vendor/leaflet-smoothwheelzoom).
+        // Disable Leaflet's stepped scrollWheelZoom in favor of the
+        // smooth handler, which animates zoom level continuously via rAF.
+        scrollWheelZoom: false,
+        smoothWheelZoom: true,
+        smoothSensitivity: 1.5,
         renderer: L.svg()
       });
       // Fit to the route's bbox up-front so the initial tile load is near
@@ -5088,7 +5186,11 @@
       // mobile pinch (fires per frame); zoomanim kicks off a brief rAF
       // loop to cover the desktop 250ms CSS animation where 'zoom'
       // doesn't fire until the end.
-      map.on('zoom', adjustTrailStrokes);
+      // 'move' fires after all 'zoom' listeners on each _move() call, so
+      // by the time we run, the SVG renderer has already applied its new
+      // CSS scale transform - we read the freshest value to counter-scale
+      // against. Also covers pan-only frames.
+      map.on('move', adjustTrailStrokes);
       map.on('zoomend moveend', adjustTrailStrokes);
       map.on('zoomanim', function() {
         const start = performance.now();
@@ -6886,15 +6988,17 @@
     }
 
     // ----- Sign-in / register modal -----
-    function openSignInModal() {
+    function signInFormHtml(includeClose) {
       const canRegister = state.auth.registration_open;
-      let mode = state.auth.has_users ? 'login' : 'register';
-      openModal(
-        '<h2><span id="modal-title">Sign in</span><button class="modal-close">&times;</button></h2>' +
-        '<div class="modal-tabs" id="auth-tabs">' +
-          '<button data-mode="login" class="active">Sign in</button>' +
-          (canRegister ? '<button data-mode="register">Register</button>' : '') +
-        '</div>' +
+      return '<h2><span id="modal-title">Sign in</span>' +
+          (includeClose ? '<button class="modal-close">&times;</button>' : '') +
+        '</h2>' +
+        (canRegister
+          ? '<div class="modal-tabs" id="auth-tabs">' +
+              '<button data-mode="login" class="active">Sign in</button>' +
+              '<button data-mode="register">Register</button>' +
+            '</div>'
+          : '') +
         '<form id="auth-form">' +
           '<label for="auth-username">Username</label>' +
           '<input type="text" id="auth-username" autocomplete="username" required>' +
@@ -6910,19 +7014,20 @@
           '<div class="modal-actions">' +
             '<button type="submit" class="primary" id="auth-submit">Sign in</button>' +
           '</div>' +
-        '</form>',
-        function() {
-          setMode(mode);
-          document.querySelectorAll('#auth-tabs button[data-mode]').forEach(b => {
-            b.addEventListener('click', function() { setMode(this.dataset.mode); });
-          });
-          document.getElementById('auth-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            submit();
-          });
-          document.getElementById('auth-username').focus();
-        }
-      );
+        '</form>';
+    }
+
+    function bindSignInForm(opts) {
+      let mode = state.auth.has_users ? 'login' : 'register';
+      setMode(mode);
+      document.querySelectorAll('#auth-tabs button[data-mode]').forEach(b => {
+        b.addEventListener('click', function() { setMode(this.dataset.mode); });
+      });
+      document.getElementById('auth-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        submit();
+      });
+      document.getElementById('auth-username').focus();
 
       function setMode(m) {
         mode = m;
@@ -6951,9 +7056,31 @@
         api('POST', '/' + mode, payload)
           .then(() => refreshAuthState())
           .then(() => loadSyncedPrefs())
-          .then(() => { closeModal(); return loadDataAndRender(); })
+          .then(() => { if (opts.onSuccess) return opts.onSuccess(); })
           .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
       }
+    }
+
+    function openSignInModal() {
+      openModal(signInFormHtml(true), function() {
+        bindSignInForm({ onSuccess: () => { closeModal(); return loadDataAndRender(); } });
+      });
+    }
+
+    function renderSignInPage() {
+      const app = document.getElementById('app');
+      document.body.classList.add('signin-only');
+      const brand = (state.config && state.config.brand) || 'Ferd';
+      app.innerHTML =
+        '<div class="signin-page">' +
+          '<img class="signin-logo" src="/favicon.svg" alt="">' +
+          '<div class="signin-brand">' + escapeHtml(brand) + '</div>' +
+          '<div class="modal">' + signInFormHtml(false) + '</div>' +
+        '</div>';
+      bindSignInForm({ onSuccess: () => {
+        document.body.classList.remove('signin-only');
+        return loadDataAndRender();
+      } });
     }
 
     // ----- Add place / GPX modal -----
@@ -7417,9 +7544,7 @@
         renderAuthWidget();
         const v = state.viewer;
         if (v.mode === 'owner' && !state.auth.authenticated) {
-          document.getElementById('app').innerHTML =
-            '<div class="loading">Sign in to view your map.</div>';
-          openSignInModal();
+          renderSignInPage();
           return;
         }
         return loadSyncedPrefs().then(() => loadDataAndRender());
