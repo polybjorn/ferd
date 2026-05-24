@@ -2942,6 +2942,8 @@
       gpxLayer.on('addpoint', function(e) {
         if (e.point_type !== 'waypoint') return;
         const m = e.point;
+        const symEl = e.element && (e.element.getElementsByTagName('sym')[0]);
+        m._ferdSym = symEl ? symEl.textContent.trim() : '';
         try { m.setIcon(makeWaypointIcon()); } catch (_) {}
         try { m.closePopup(); } catch (_) {}
       });
@@ -4813,10 +4815,16 @@
         const lat = parseFloat(w.getAttribute('lat'));
         const lon = parseFloat(w.getAttribute('lon'));
         if (!isFinite(lat) || !isFinite(lon)) continue;
+        // Only render waypoints with an explicit <sym>; waypoints without
+        // are typically routing artifacts from tools like gpx.studio or
+        // Google Maps (geocoded via-points), not user-marked POIs.
+        const symEl = w.getElementsByTagNameNS(GPX_NS, 'sym')[0] || w.getElementsByTagName('sym')[0];
+        const sym = symEl ? symEl.textContent.trim() : '';
+        if (!sym) continue;
         const nameEl = w.getElementsByTagNameNS(GPX_NS, 'name')[0] || w.getElementsByTagName('name')[0];
         const descEl = w.getElementsByTagNameNS(GPX_NS, 'desc')[0] || w.getElementsByTagName('desc')[0];
         out.push({
-          lat, lon,
+          lat, lon, sym,
           name: nameEl ? nameEl.textContent : '',
           desc: descEl ? descEl.textContent : '',
         });
@@ -5131,9 +5139,11 @@
             const startLL = flat[0];
             const endLL = flat[flat.length - 1];
             addStartEndMarkers(map, startLL, endLL);
-            // Drop waypoints that sit on top of the start/end markers.
+            // Drop waypoints that are routing artifacts (no <sym>) or sit
+            // on top of the start/end markers.
             gpx.eachLayer(function(layer) {
               if (!layer.options || layer.options.type !== 'waypoint' || !layer.getLatLng) return;
+              if (!layer._ferdSym) { gpx.removeLayer(layer); return; }
               const ll = layer.getLatLng();
               if (ll.distanceTo(startLL) < WAYPOINT_ENDPOINT_SUPPRESS_M
                   || ll.distanceTo(endLL) < WAYPOINT_ENDPOINT_SUPPRESS_M) {
