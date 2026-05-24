@@ -7640,9 +7640,15 @@
 
       if (!('serviceWorker' in navigator)) return;
 
+      // After a hard-refresh the browser loads without an SW controller,
+      // and the worker then takes over a moment later. That first
+      // takeover fires 'controllerchange' too, but it's not an update -
+      // reloading on it caused a spurious second refresh.
+      let hadController = !!navigator.serviceWorker.controller;
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (refreshing) return;
+        if (!hadController) { hadController = true; return; }
         refreshing = true;
         window.location.reload();
       });
