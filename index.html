@@ -418,7 +418,8 @@
       justify-self: start;
     }
     .nav-brand a { color: var(--text); text-decoration: none; }
-    #nav-back { display: none; opacity: 0.5; margin-right: 0.4rem; }
+    #nav-back { display: none; opacity: 0.5; margin-right: 0.4rem; vertical-align: -3px; }
+    #nav-back svg { width: 20px; height: 20px; }
     #nav-crumb { color: var(--muted); }
 
     .nav-info {
@@ -2237,7 +2238,7 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span id="nav-brand-text">Ferd</span></a><span id="nav-crumb"></span>
     </span>
     <div class="nav-info" id="nav-info"></div>
     <div class="nav-right">
