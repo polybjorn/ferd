@@ -1173,16 +1173,20 @@
       max-width: 360px;
       box-shadow: 0 10px 40px var(--shadow);
     }
+    #signin-public-maps {
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
     .signin-public-heading {
       font-size: 0.7rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--muted);
-      margin: 1.25rem 0 0.4rem;
-      text-align: center;
+      margin: 0 0 0.5rem;
+      font-weight: 400;
     }
-    #signin-public-maps { width: 100%; max-width: 360px; }
-    .public-maps-list { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.5rem; }
+    .public-maps-list { display: flex; flex-direction: column; gap: 0.4rem; }
     .public-maps-item {
       display: block;
       padding: 0.55rem 0.85rem;
@@ -7265,14 +7269,16 @@
         '<div class="signin-page">' +
           '<img class="signin-logo" src="/favicon.svg" alt="">' +
           '<div class="signin-brand">' + escapeHtml(brand) + '</div>' +
-          '<div class="modal">' + signInFormHtml(false) + '</div>' +
-          '<div id="signin-public-maps" hidden></div>' +
+          '<div class="modal">' +
+            signInFormHtml(false) +
+            '<div id="signin-public-maps" hidden></div>' +
+          '</div>' +
         '</div>';
       bindSignInForm({ onSuccess: () => {
         document.body.classList.remove('signin-only');
         return loadDataAndRender();
       } });
-      // Surface any published maps as a list below the sign-in form, so a
+      // Surface any published maps as a list inside the sign-in card, so a
       // visitor who isn't going to sign in can still reach a public map.
       fetchJson(apiUrl('/public-maps'), { usernames: [] }).then(function(resp) {
         const names = (resp && resp.usernames) || [];
@@ -7281,7 +7287,7 @@
         if (!box) return;
         box.hidden = false;
         box.innerHTML =
-          '<div class="signin-public-heading">Public maps</div>' +
+          '<h3 class="signin-public-heading">Public maps</h3>' +
           '<div class="public-maps-list">' +
             names.map(u =>
               '<a class="public-maps-item" href="/u/' + encodeURIComponent(u) + '/">' + escapeHtml(u) + '</a>'
