@@ -533,8 +533,8 @@
       align-items: center;
       gap: 0.5rem;
     }
-    .category-label.clickable, .region-label.clickable { cursor: pointer; }
-    .category-label.clickable:hover, .region-label.clickable:hover { color: var(--accent); border-bottom-color: var(--accent); }
+    .section-link { cursor: pointer; }
+    .section-link:hover { color: var(--accent); }
 
     .place-count,
     .route-count {
@@ -4606,10 +4606,12 @@
         html += '<div class="category-group fade-in">';
         // Only category grouping wires the label as a map filter today; country
         // grouping isn't a filterable axis yet.
-        const labelClass = 'category-label' + (byCategory ? ' clickable' : '');
-        const labelAttrs = byCategory ? ' data-filter-cat="' + escapeHtml(key) + '" title="Show only this category on the map"' : '';
-        html += '<div class="' + labelClass + '"' + labelAttrs + '>';
-        html += escapeHtml(byCategory ? displayCategory(key) : key);
+        const nameHtml = escapeHtml(byCategory ? displayCategory(key) : key);
+        const nameSpan = byCategory
+          ? '<span class="section-link" data-filter-cat="' + escapeHtml(key) + '" title="Show only this category on the map">' + nameHtml + '</span>'
+          : '<span>' + nameHtml + '</span>';
+        html += '<div class="category-label">';
+        html += nameSpan;
         html += '<span class="place-count">(' + keyVisited + '/' + items.length + ')</span>';
         html += '</div>';
         html += '<div class="place-grid">';
@@ -4628,7 +4630,7 @@
       if (!html) html = '<div class="loading">No matches</div>';
       const listEl = document.getElementById('place-list');
       listEl.innerHTML = html;
-      listEl.querySelectorAll('.category-label.clickable').forEach(function(label) {
+      listEl.querySelectorAll('.section-link[data-filter-cat]').forEach(function(label) {
         label.addEventListener('click', function() {
           const cat = label.dataset.filterCat;
           const allCats = Object.keys(state.categoryColors);
@@ -4714,8 +4716,8 @@
         const regionCompleted = region.routes.filter(r => r.completed).length;
         const regionSearch = region.name.toLowerCase();
         html += '<div class="region-group fade-in" data-region-search="' + escapeHtml(regionSearch) + '">';
-        html += '<div class="region-label clickable" data-filter-region="' + escapeHtml(region.name) + '" title="Show only this region on the map">';
-        html += escapeHtml(displayRegion(region.name));
+        html += '<div class="region-label">';
+        html += '<span class="section-link" data-filter-region="' + escapeHtml(region.name) + '" title="Show only this region on the map">' + escapeHtml(displayRegion(region.name)) + '</span>';
         html += '<span class="route-count">(' + regionCompleted + '/' + region.routes.length + ')</span>';
         html += '</div>';
         html += '<div class="route-grid">';
@@ -4804,7 +4806,7 @@
         applyTrailFilters();
       });
       updateFilterBtnLabel();
-      app.querySelectorAll('.region-label.clickable').forEach(function(label) {
+      app.querySelectorAll('.section-link[data-filter-region]').forEach(function(label) {
         label.addEventListener('click', function() {
           const r = label.dataset.filterRegion;
           const allRegions = regions.map(x => x.name);
