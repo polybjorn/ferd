@@ -5226,6 +5226,12 @@
         if (!el) return;
         el.addEventListener('mouseenter', function() { mapEl.classList.add('elev-hover'); });
         el.addEventListener('mouseleave', function() { mapEl.classList.remove('elev-hover'); });
+        // Touch equivalents: keep the marker visible while a finger is on
+        // the chart. Without these, the .height-focus CSS rule hides the
+        // marker on mobile even though the chart fires its update events.
+        el.addEventListener('touchstart', function() { mapEl.classList.add('elev-hover'); }, { passive: true });
+        el.addEventListener('touchend', function() { mapEl.classList.remove('elev-hover'); });
+        el.addEventListener('touchcancel', function() { mapEl.classList.remove('elev-hover'); });
       });
 
       // Expand-map toggle: hides the elevation chart and metadata panel.
