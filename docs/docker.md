@@ -42,7 +42,7 @@ docker compose pull
 docker compose up -d
 ```
 
-You can check which version is running under Settings -> General in the app, or hit `/api/state` and look at the `version` field.
+You can check which version is running under Menu -> About in the app, or hit `/api/state` and look at the `version` field.
 
 ## What the compose file does
 
