@@ -64,6 +64,7 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 - Auth hardening: optional TOTP 2FA.
 - Photo attachments on places and trails.
 - Custom iOS launch splash: add pre-rendered `apple-touch-startup-image` PNG files (one `<link>` per device size + orientation) in `index.html`. Without these iOS shows a generic splash with the auto-rendered icon.
+- Better logo - current placeholder favicon could use a more distinctive mark.
 
 ## License
 
