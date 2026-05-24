@@ -1173,6 +1173,21 @@
       max-width: 360px;
       box-shadow: 0 10px 40px var(--shadow);
     }
+    .public-maps-list { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.5rem; }
+    .public-maps-item {
+      display: block;
+      padding: 0.55rem 0.85rem;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+    .public-maps-item:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
 
     /* Leaflet overrides */
     .leaflet-bar { border-radius: var(--radius) !important; }
@@ -7231,6 +7246,31 @@
       });
     }
 
+    function renderPublicMapsLanding(usernames) {
+      const app = document.getElementById('app');
+      document.body.classList.add('signin-only');
+      const brand = (state.config && state.config.brand) || 'Ferd';
+      app.innerHTML =
+        '<div class="signin-page">' +
+          '<img class="signin-logo" src="/favicon.svg" alt="">' +
+          '<div class="signin-brand">' + escapeHtml(brand) + '</div>' +
+          '<div class="modal">' +
+            '<h2>Public maps</h2>' +
+            '<div class="public-maps-list">' +
+              usernames.map(u =>
+                '<a class="public-maps-item" href="/u/' + encodeURIComponent(u) + '/">' + escapeHtml(u) + '</a>'
+              ).join('') +
+            '</div>' +
+            '<div class="modal-actions" style="margin-top:1rem">' +
+              '<button type="button" class="primary" id="landing-signin">Sign in</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      document.getElementById('landing-signin').addEventListener('click', function() {
+        renderSignInPage();
+      });
+    }
+
     function renderSignInPage() {
       const app = document.getElementById('app');
       document.body.classList.add('signin-only');
@@ -7758,8 +7798,15 @@
         renderAuthWidget();
         const v = state.viewer;
         if (v.mode === 'owner' && !state.auth.authenticated) {
-          renderSignInPage();
-          return;
+          // If any users have published their maps, offer them as a
+          // landing page; otherwise fall straight through to sign-in.
+          return fetchJson(apiUrl('/public-maps'), { usernames: [] })
+            .then(function(resp) {
+              const names = (resp && resp.usernames) || [];
+              if (names.length) renderPublicMapsLanding(names);
+              else renderSignInPage();
+            })
+            .catch(function() { renderSignInPage(); });
         }
         return loadSyncedPrefs().then(() => loadDataAndRender());
       });

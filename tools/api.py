@@ -760,6 +760,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_me_category_labels_get()
     if path == "/api/me/export":
       return self._h_export_get()
+    if path == "/api/public-maps":
+      return self._h_public_maps()
     if path == "/api/admin/users":
       return self._h_admin_users_list()
     if path == "/api/admin/stats":
@@ -951,6 +953,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "has_users": user_count(self.conn) > 0,
       "requires_setup_token": Handler.setup_token is not None and user_count(self.conn) == 0,
       "version": APP_VERSION,
+    })
+
+  def _h_public_maps(self):
+    """Public list of usernames whose map is currently published.
+    Used by the logged-out landing page; no auth required."""
+    rows = self.conn.execute(
+      "SELECT username FROM users WHERE published=1 ORDER BY username"
+    ).fetchall()
+    self._send_json(HTTPStatus.OK, {
+      "usernames": [r["username"] for r in rows],
     })
 
   def _h_register(self):
