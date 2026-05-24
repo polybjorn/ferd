@@ -25,6 +25,13 @@ Update this file when a dependency is **added, removed, replaced, or version-bum
 - Note: GPL-3.0 is the reason Ferd as a whole is licensed under GPL-3.0.
 - Vendored layout: the main bundle lives in `leaflet-elevation/`; its lazy-loaded internal modules and bundled third-party libs are in `src/handlers/`, `src/components/`, and `libs/`. The `libs/` folder includes third-party code redistributed by leaflet-elevation (leaflet-hotline by iosphere, leaflet-edgescale by jjimenezshaw, leaflet-distance-marker by raruto). All compatible with GPL-3.0.
 
+## Leaflet.SmoothWheelZoom
+- Version: master (commit f090a2d), retrieved 2026-05-24
+- Upstream: https://github.com/mutsuyuki/Leaflet.SmoothWheelZoom
+- License: MIT
+- Copyright (c) 2018 mutsuyuki
+- Note: not published to npm, so `scripts/check-vendor-versions.py` cannot track it.
+
 ## Leaflet.TileLayer.NoGap
 - Version: 0.3.0
 - Upstream: https://github.com/Leaflet/Leaflet.TileLayer.NoGap
@@ -74,6 +81,7 @@ Update this file when a dependency is **added, removed, replaced, or version-bum
 | leaflet | BSD-2-Clause | Yes |
 | leaflet-gpx | BSD-2-Clause | Yes |
 | @raruto/leaflet-elevation | GPL-3.0-or-later | Same license |
+| Leaflet.SmoothWheelZoom | MIT | Yes |
 | Leaflet.TileLayer.NoGap | BSD-2-Clause | Yes |
 | supercluster | ISC | Yes |
 | d3 | ISC | Yes |

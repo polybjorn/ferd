@@ -389,7 +389,7 @@
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       display: grid;
-      grid-template-columns: 1fr auto 1fr;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
       align-items: center;
       gap: 1rem;
       padding: 0 1.5rem;
@@ -404,33 +404,19 @@
     }
 
     .nav-brand {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
       font-size: 0.85rem;
       font-weight: 400;
       color: var(--text);
       letter-spacing: 0.05em;
       white-space: nowrap;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
       justify-self: start;
     }
     .nav-brand a { color: var(--text); text-decoration: none; }
-    #nav-back { display: none; opacity: 0.5; margin-right: 0.4rem; }
-    #nav-crumb { color: var(--muted); }
+    #nav-home { white-space: nowrap; }
+    #nav-back { display: none; opacity: 0.5; vertical-align: middle; margin-right: 0.3rem; }
+    #nav-back svg { width: 1.1em; height: 1.1em; vertical-align: middle; }
+    #nav-crumb { color: var(--muted); white-space: nowrap; }
 
-    .nav-info {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-size: 0.75rem;
-      color: var(--muted);
-      min-width: 0;
-      white-space: nowrap;
-      justify-self: center;
-    }
 
     .nav-group {
       display: flex;
@@ -462,7 +448,7 @@
       border-radius: var(--radius);
       overflow: hidden;
       flex-shrink: 0;
-      justify-self: end;
+      justify-self: center;
     }
     .view-tabs a {
       color: var(--muted);
@@ -541,8 +527,8 @@
       align-items: center;
       gap: 0.5rem;
     }
-    .category-label.clickable, .region-label.clickable { cursor: pointer; }
-    .category-label.clickable:hover, .region-label.clickable:hover { color: var(--accent); border-bottom-color: var(--accent); }
+    .section-link { cursor: pointer; }
+    .section-link:hover { color: var(--accent); }
 
     .place-count,
     .route-count {
@@ -903,6 +889,7 @@
     }
     .detail-layout.map-expanded > :not(#map) {
       max-height: 0 !important;
+      min-height: 0 !important;
       opacity: 0;
       margin-top: 0 !important;
       margin-bottom: 0 !important;
@@ -912,6 +899,11 @@
       border-bottom-width: 0 !important;
       pointer-events: none;
     }
+    /* Elevation containers carry a min-height to reserve their final
+       size so the map doesn't reflow during lazy-load; that min-height
+       also has to collapse when the map is expanded. */
+    .detail-layout.map-expanded .elevation-wrap,
+    .detail-layout.map-expanded #multi-elevation-container { min-height: 0 !important; }
     .detail-layout.map-expanded #map { flex: 1 1 auto; }
     @media (prefers-reduced-motion: reduce) {
       .detail-layout > :not(#map) { transition: none; }
@@ -955,7 +947,7 @@
          doesn't shrink (and re-fit) once the elevation chart populates. */
       min-height: 200px;
     }
-    .elevation-wrap .elevation-detached { margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; }
+    .elevation-wrap .elevation-detached { margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; touch-action: none; }
     .elevation-wrap .elevation-detached svg { width: 100% !important; display: block; margin-top: -8px; margin-bottom: -20px; }
     .elevation-wrap .elevation-detached .elevation-summary { display: none !important; }
     .elevation-wrap .elevation-detached .elevation-toggle-icon { display: none !important; }
@@ -1131,7 +1123,7 @@
     .elevation-track-panel .elevation-track-chart { transition: max-height 0.2s ease; overflow: hidden; }
     .elevation-track-panel.collapsed .elevation-track-chart { max-height: 0 !important; }
     .elevation-track-label .color-dot { width: 8px; height: 3px; border-radius: 2px; }
-    .elevation-track-panel .elevation-detached { margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; }
+    .elevation-track-panel .elevation-detached { margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; touch-action: none; }
     .elevation-track-panel .elevation-detached svg { width: 100% !important; display: block; margin-top: -8px; margin-bottom: -20px; }
     .elevation-track-panel .elevation-detached .elevation-summary { display: none !important; }
     .elevation-track-panel .elevation-detached .elevation-toggle-icon { display: none !important; }
@@ -1144,6 +1136,40 @@
       height: 200px;
       color: var(--muted);
       font-size: 0.85rem;
+    }
+    body.signin-only nav,
+    body.signin-only #pwa-offline-banner,
+    body.signin-only #pwa-update-banner { display: none; }
+    body.signin-only #app {
+      height: 100vh;
+      overflow: hidden;
+      padding: 0;
+      max-width: none;
+    }
+    .signin-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 2rem 1rem;
+      gap: 1.25rem;
+      box-sizing: border-box;
+    }
+    .signin-page .signin-logo {
+      width: 64px;
+      height: 64px;
+      display: block;
+    }
+    .signin-page .signin-brand {
+      font-size: 1.25rem;
+      letter-spacing: 0.08em;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+    .signin-page .modal {
+      max-width: 360px;
+      box-shadow: 0 10px 40px var(--shadow);
     }
 
     /* Leaflet overrides */
@@ -1250,12 +1276,6 @@
     .leaflet-control-layers label { color: var(--text); }
     .leaflet-control-layers-separator { border-color: var(--border) !important; }
 
-    /* Trail polylines: render with constant stroke width regardless of
-       parent SVG transform during zoom. Positions still track via the
-       parent transform; only stroke width stays at its set weight. */
-    path.trail-line {
-      vector-effect: non-scaling-stroke !important;
-    }
     /* Place canvas layer tooltip (hover text on desktop) */
     .place-canvas-tooltip {
       position: absolute;
@@ -1304,11 +1324,9 @@
       .place-grid, .route-grid { grid-template-columns: 1fr; }
       .detail-layout { padding: 0; }
       nav { padding: 0.6rem 1rem; gap: 0.5rem; }
-      .nav-info { gap: 0.4rem; flex-wrap: wrap; }
       .nav-group { gap: 0.4rem; }
       .nav-group + .nav-group { padding-left: 0.4rem; }
       .nav-stat .label { font-size: 0.5rem; }
-      #nav-stats-dynamic { display: none; }
       #track-legend { gap: 0.4rem; padding: 0.4rem 0.5rem; }
       .track-legend-item .track-stat { display: none; }
       #multi-elevation-container { max-height: 40vh; }
@@ -1389,6 +1407,14 @@
       justify-content: flex-start;
     }
     .auth-menu button:hover { background: var(--surface2); color: var(--text); border-color: transparent; }
+    .auth-menu button.auth-menu-signout {
+      margin-top: 0.25rem;
+      padding-top: 0.55rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 0 0 4px 4px;
+    }
+    .auth-menu button.auth-menu-signout:hover { color: var(--text); }
 
     /* Floating add button */
     .fab-add {
@@ -2237,15 +2263,14 @@
 <body>
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back">&larr;</span><span id="nav-brand-text">Ferd</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-back" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span id="nav-brand-text">Ferd</span></a><span id="nav-crumb"></span>
     </span>
-    <div class="nav-info" id="nav-info"></div>
+    <div class="view-tabs">
+      <a href="#/places" data-view="places" id="tab-places">Places</a>
+      <a href="#/trails" data-view="trails" id="tab-trails">Trails</a>
+    </div>
     <div class="nav-right">
       <div class="nav-actions" id="nav-actions"></div>
-      <div class="view-tabs">
-        <a href="#/places" data-view="places" id="tab-places">Places</a>
-        <a href="#/trails" data-view="trails" id="tab-trails">Trails</a>
-      </div>
       <div class="auth-widget" id="auth-widget"></div>
     </div>
   </nav>
@@ -2258,6 +2283,7 @@
   <div id="modal-root"></div>
 
   <script src="/vendor/leaflet/leaflet.js"></script>
+  <script src="/vendor/leaflet-smoothwheelzoom/SmoothWheelZoom.js"></script>
   <script src="/vendor/leaflet-tilelayer-nogap/L.TileLayer.NoGap.js"></script>
   <script src="/vendor/supercluster/supercluster.min.js"></script>
   <script src="/vendor/leaflet-gpx/gpx.js"></script>
@@ -2581,8 +2607,18 @@
     function refreshTabVisibility() {
       const tabPlaces = document.getElementById('tab-places');
       const tabTrails = document.getElementById('tab-trails');
-      if (tabPlaces) tabPlaces.style.display = placesEnabled() ? '' : 'none';
-      if (tabTrails) tabTrails.style.display = trailsEnabled() ? '' : 'none';
+      if (tabPlaces) {
+        tabPlaces.style.display = placesEnabled() ? '' : 'none';
+        const n = Array.isArray(state.places) ? state.places.length : null;
+        tabPlaces.textContent = n == null ? 'Places' : 'Places (' + n + ')';
+      }
+      if (tabTrails) {
+        tabTrails.style.display = trailsEnabled() ? '' : 'none';
+        const n = state.manifest
+          ? state.manifest.regions.reduce(function (s, r) { return s + r.routes.length; }, 0)
+          : null;
+        tabTrails.textContent = n == null ? 'Trails' : 'Trails (' + n + ')';
+      }
     }
 
     // Skip tile loads during zoom animations. Default true is wasteful:
@@ -2832,6 +2868,7 @@
       state._trailLayers = null;
       state._trailGroupCompleted = null;
       state._trailGroupPlanned = null;
+      state._trailRenderer = null;
     }
 
     function formatDistance(m) {
@@ -2852,10 +2889,30 @@
       });
     }
 
+    let _crumbState = { text: '', showBack: false };
     function setCrumb(text, showBack) {
-      document.getElementById('nav-crumb').textContent = text ? ' / ' + text : '';
-      document.getElementById('nav-back').style.display = showBack ? 'inline' : 'none';
+      _crumbState = { text: text || '', showBack: !!showBack };
+      const crumbEl = document.getElementById('nav-crumb');
+      const backEl = document.getElementById('nav-back');
+      const brandEl = document.querySelector('.nav-brand');
+      const tabsEl = document.querySelector('.view-tabs');
+      backEl.style.display = _crumbState.showBack ? 'inline-flex' : 'none';
+      if (!_crumbState.text) { crumbEl.textContent = ''; return; }
+      crumbEl.textContent = ' / ' + _crumbState.text;
+      if (!brandEl || !tabsEl) return;
+      // Truncate the crumb char-by-char until the brand's right edge no
+      // longer collides with the tabs. Cheaper than it looks: the loop
+      // stops as soon as it fits, and getBoundingClientRect is fast.
+      const gap = 8; // breathing room before the tabs start
+      let len = _crumbState.text.length;
+      while (len > 0 && brandEl.getBoundingClientRect().right > tabsEl.getBoundingClientRect().left - gap) {
+        len--;
+        crumbEl.textContent = ' / ' + _crumbState.text.slice(0, len).trimEnd() + '…';
+      }
     }
+    window.addEventListener('resize', function() {
+      if (_crumbState.text) setCrumb(_crumbState.text, _crumbState.showBack);
+    });
 
     function createMarkerIcon(color, visited) {
       const size = getMarkerSize(), cx = size / 2, cy = size / 2;
@@ -3007,9 +3064,15 @@
 
     function applyNonScalingStroke(layer) {
       if (layer && layer._path && layer._path.setAttribute) {
-        const sw = layer._path.getAttribute('stroke-width');
-        if (sw && !layer._path.dataset.origStrokeWidth) {
-          layer._path.dataset.origStrokeWidth = sw;
+        // Stamp from layer.options.weight (the intended weight) rather
+        // than the path's current stroke-width attribute. If a trail
+        // happens to load while the SVG is mid-CSS-scale (stepped zoom
+        // anim or fitBounds), getAttribute returns the counter-scaled
+        // value, which then becomes the frozen "orig" - and every later
+        // adjustTrailStrokes call restores it to that wrong width.
+        if (layer.options && typeof layer.options.weight === 'number'
+            && !layer._path.dataset.origStrokeWidth) {
+          layer._path.dataset.origStrokeWidth = String(layer.options.weight);
         }
       }
       if (layer && typeof layer.eachLayer === 'function') {
@@ -3021,21 +3084,27 @@
     // transform scale, so trails appear at constant pixel width even
     // while Leaflet CSS-scales the SVG container during zoom animation.
     function adjustTrailStrokes() {
-      const svgs = document.querySelectorAll('.leaflet-overlay-pane svg');
-      for (const svg of svgs) {
-        const transform = (svg.style && svg.style.transform) || '';
-        const m = transform.match(/scale\(([0-9.]+)\)/);
-        const scale = m ? parseFloat(m[1]) : 1;
-        const paths = svg.querySelectorAll('path');
-        for (const path of paths) {
-          let orig = path.dataset.origStrokeWidth;
-          if (!orig) {
-            orig = path.getAttribute('stroke-width') || '';
-            if (!orig) continue;
-            path.dataset.origStrokeWidth = orig;
-          }
-          path.setAttribute('stroke-width', String(parseFloat(orig) / scale));
+      // Re-project each polyline at the current zoom, then call the
+      // renderer's _update so the SVG container's viewBox, position,
+      // and child path d's all reflect the new map state with CSS
+      // scale held at 1. Bypasses the compositor-vs-main-thread race
+      // that smooth-wheel zoom causes when counter-scaling stroke-width
+      // against the SVG's CSS transform (the transform updates on the
+      // compositor while stroke-width goes through main-thread paint,
+      // briefly diverging mid-gesture). Costs more CPU than CSS-only
+      // but keeps strokes constant and positions sticky.
+      if (!state.currentMap || !state._trailLayers) return;
+      const visit = (layer) => {
+        if (layer._renderer && typeof layer._project === 'function') {
+          try { layer._project(); } catch (e) { /* ignore */ }
         }
+        if (typeof layer.eachLayer === 'function') {
+          layer.eachLayer(visit);
+        }
+      };
+      for (const t of state._trailLayers) visit(t.layer);
+      if (state._trailRenderer && state._trailRenderer._update) {
+        try { state._trailRenderer._update(); } catch (e) { /* ignore */ }
       }
     }
 
@@ -3319,7 +3388,6 @@
     function renderUnifiedMap(focus) {
       setActiveTab('map');
       setCrumb('', false);
-      document.getElementById('nav-info').innerHTML = '';
       const prevView = state.currentMap
         ? { center: state.currentMap.getCenter(), zoom: state.currentMap.getZoom() }
         : null;
@@ -3345,6 +3413,12 @@
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
         markerZoomAnimation: false,
+        // Continuous wheel/trackpad zoom (vendor/leaflet-smoothwheelzoom).
+        // Disable Leaflet's stepped scrollWheelZoom in favor of the
+        // smooth handler, which animates zoom level continuously via rAF.
+        scrollWheelZoom: false,
+        smoothWheelZoom: true,
+        smoothSensitivity: 1.5,
         renderer: L.svg()
       }).setView(dv.center, dv.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
@@ -3353,7 +3427,11 @@
       // mobile pinch (fires per frame); zoomanim kicks off a brief rAF
       // loop to cover the desktop 250ms CSS animation where 'zoom'
       // doesn't fire until the end.
-      map.on('zoom', adjustTrailStrokes);
+      // 'move' fires after all 'zoom' listeners on each _move() call, so
+      // by the time we run, the SVG renderer has already applied its new
+      // CSS scale transform - we read the freshest value to counter-scale
+      // against. Also covers pan-only frames.
+      map.on('move', adjustTrailStrokes);
       map.on('zoomend moveend', adjustTrailStrokes);
       map.on('zoomanim', function() {
         const start = performance.now();
@@ -3459,6 +3537,21 @@
               if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
             }
             applyNonScalingStroke(e.target);
+            // Cache the renderer the first time a trail loads so
+            // adjustTrailStrokes can force a re-project on smooth-zoom
+            // frames. All polylines on the index map share one renderer.
+            if (!state._trailRenderer) {
+              const findRenderer = function(layer) {
+                if (layer._renderer) return layer._renderer;
+                if (typeof layer.eachLayer === 'function') {
+                  let found = null;
+                  layer.eachLayer(function(sub) { if (!found) found = findRenderer(sub); });
+                  return found;
+                }
+                return null;
+              };
+              state._trailRenderer = findRenderer(e.target);
+            }
           }).on('error', function(e) {
             console.warn('[ferd] gpx parse failed for', desc.gpxUrl, e && e.err);
             try { desc.parent.removeLayer(gpxLayer); } catch (_) {}
@@ -3555,13 +3648,6 @@
       }
       bindPopupActions(map);
 
-      // Nav summary
-      const placeCount = state.places ? state.places.length : 0;
-      const trailCount = state.manifest ? state.manifest.regions.reduce((n, r) => n + r.routes.length, 0) : 0;
-      let stats = '';
-      if (placesEnabled()) stats += '<div class="nav-stat"><span class="value">' + placeCount + ' places</span></div>';
-      if (trailsEnabled()) stats += '<div class="nav-stat"><span class="value">' + trailCount + ' trails</span></div>';
-      document.getElementById('nav-info').innerHTML = '<div class="nav-group">' + stats + '</div>';
     }
 
     function refreshFilterPanel() {
@@ -4128,13 +4214,38 @@
         const targetCenter = L.latLng(e.center);
         const startTime = performance.now();
         const duration = 250;
+        // Leaflet's tile transition uses CSS `cubic-bezier(0, 0, 0.25, 1)`.
+        // Match it exactly via Newton's method so pins track tiles through
+        // the animation. A polynomial ease-out approximation diverges by
+        // ~5% mid-animation, visible as drift+snap on every desktop zoom.
+        const easeLeaflet = function(t) {
+          let s = t;
+          for (let i = 0; i < 6; i++) {
+            const sm = 1 - s;
+            const x = 0.75 * sm * s * s + s * s * s;
+            const dx = 1.5 * s + 0.75 * s * s;
+            if (Math.abs(dx) < 1e-6) break;
+            s -= (x - t) / dx;
+            if (s < 0) s = 0; else if (s > 1) s = 1;
+          }
+          const sm = 1 - s;
+          return 3 * sm * s * s + s * s * s;
+        };
+        // Leaflet's tile transform interpolates SCALE linearly between
+        // 1 and the target scale (CSS transition on the transform
+        // property). Mapping that to zoom is logarithmic, not linear:
+        // at progress 0.5 of a +1 zoom step the visual scale is 1.5,
+        // not 2^0.5 = 1.414. Interpolating zoom linearly here put pins
+        // at the wrong fractional zoom relative to the tiles, which
+        // showed up as the drift-during-zoom you saw.
+        const targetScale = Math.pow(2, targetZoom - startZoom);
         const tick = () => {
           if (!this._map) return;
           const elapsed = performance.now() - startTime;
           const t = Math.min(elapsed / duration, 1);
-          // cubic-bezier(0, 0, 0.25, 1) approximation (Leaflet's default)
-          const eased = 1 - Math.pow(1 - t, 3);
-          const interpZoom = startZoom + (targetZoom - startZoom) * eased;
+          const eased = easeLeaflet(t);
+          const scaleAtP = 1 + eased * (targetScale - 1);
+          const interpZoom = startZoom + Math.log2(scaleAtP);
           const interpCenter = L.latLng(
             startCenter.lat + (targetCenter.lat - startCenter.lat) * eased,
             startCenter.lng + (targetCenter.lng - startCenter.lng) * eased
@@ -4484,7 +4595,7 @@
       setCrumb('', false);
       cleanupMap();
       const app = document.getElementById('app');
-      if (!state.places) { document.getElementById('nav-info').innerHTML = ''; app.innerHTML = '<div class="loading">Loading places...</div>'; return; }
+      if (!state.places) { app.innerHTML = '<div class="loading">Loading places...</div>'; return; }
 
       const places = state.places;
       const visited = places.filter(p => p.visited).length;
@@ -4492,13 +4603,6 @@
       const cats = sortedCategorySlugs(Object.keys(state.categoryColors));
       // The uncategorized bucket isn't a real category — exclude from the count.
       const realCatsCount = cats.filter(c => c !== '').length;
-
-      document.getElementById('nav-info').innerHTML =
-        '<div class="nav-group">' +
-        '<div class="nav-stat"><span class="value">' + visited + '/' + total + ' visited</span></div>' +
-        '<div class="nav-stat"><span class="value">' + realCatsCount + ' categories</span></div>' +
-        '<div class="nav-stat"><span class="value">' + [...new Set(places.map(p => p.country).filter(Boolean))].length + ' countries</span></div>' +
-        '</div>';
 
       const canAdd = state.auth.authenticated && !isReadOnly();
       const countries = [...new Set(places.map(p => p.country).filter(Boolean))].sort((a, b) => a.localeCompare(b));
@@ -4622,10 +4726,12 @@
         html += '<div class="category-group fade-in">';
         // Only category grouping wires the label as a map filter today; country
         // grouping isn't a filterable axis yet.
-        const labelClass = 'category-label' + (byCategory ? ' clickable' : '');
-        const labelAttrs = byCategory ? ' data-filter-cat="' + escapeHtml(key) + '" title="Show only this category on the map"' : '';
-        html += '<div class="' + labelClass + '"' + labelAttrs + '>';
-        html += escapeHtml(byCategory ? displayCategory(key) : key);
+        const nameHtml = escapeHtml(byCategory ? displayCategory(key) : key);
+        const nameSpan = byCategory
+          ? '<span class="section-link" data-filter-cat="' + escapeHtml(key) + '" title="Show only this category on the map">' + nameHtml + '</span>'
+          : '<span>' + nameHtml + '</span>';
+        html += '<div class="category-label">';
+        html += nameSpan;
         html += '<span class="place-count">(' + keyVisited + '/' + items.length + ')</span>';
         html += '</div>';
         html += '<div class="place-grid">';
@@ -4644,7 +4750,7 @@
       if (!html) html = '<div class="loading">No matches</div>';
       const listEl = document.getElementById('place-list');
       listEl.innerHTML = html;
-      listEl.querySelectorAll('.category-label.clickable').forEach(function(label) {
+      listEl.querySelectorAll('.section-link[data-filter-cat]').forEach(function(label) {
         label.addEventListener('click', function() {
           const cat = label.dataset.filterCat;
           const allCats = Object.keys(state.categoryColors);
@@ -4666,18 +4772,12 @@
       setCrumb('', false);
       cleanupMap();
       const app = document.getElementById('app');
-      if (!state.manifest) { document.getElementById('nav-info').innerHTML = ''; app.innerHTML = '<div class="loading">Loading routes...</div>'; return; }
+      if (!state.manifest) { app.innerHTML = '<div class="loading">Loading routes...</div>'; return; }
 
       const regions = state.manifest.regions;
       const allRoutes = regions.flatMap(r => r.routes);
       const total = allRoutes.length;
       const completed = allRoutes.filter(r => r.completed).length;
-
-      document.getElementById('nav-info').innerHTML =
-        '<div class="nav-group">' +
-        '<div class="nav-stat"><span class="value">' + completed + '/' + total + ' completed</span></div>' +
-        '<div class="nav-stat"><span class="value">' + regions.length + ' regions</span></div>' +
-        '</div>';
 
       const canAddTrail = state.auth.authenticated && !isReadOnly();
       const difficulties = ['easy', 'moderate', 'hard', 'expert'];
@@ -4736,8 +4836,8 @@
         const regionCompleted = region.routes.filter(r => r.completed).length;
         const regionSearch = region.name.toLowerCase();
         html += '<div class="region-group fade-in" data-region-search="' + escapeHtml(regionSearch) + '">';
-        html += '<div class="region-label clickable" data-filter-region="' + escapeHtml(region.name) + '" title="Show only this region on the map">';
-        html += escapeHtml(displayRegion(region.name));
+        html += '<div class="region-label">';
+        html += '<span class="section-link" data-filter-region="' + escapeHtml(region.name) + '" title="Show only this region on the map">' + escapeHtml(displayRegion(region.name)) + '</span>';
         html += '<span class="route-count">(' + regionCompleted + '/' + region.routes.length + ')</span>';
         html += '</div>';
         html += '<div class="route-grid">';
@@ -4826,7 +4926,7 @@
         applyTrailFilters();
       });
       updateFilterBtnLabel();
-      app.querySelectorAll('.region-label.clickable').forEach(function(label) {
+      app.querySelectorAll('.section-link[data-filter-region]').forEach(function(label) {
         label.addEventListener('click', function() {
           const r = label.dataset.filterRegion;
           const allRegions = regions.map(x => x.name);
@@ -4987,7 +5087,6 @@
       const color = ROUTE_COLOR;
       const statusLabel = route.completed ? 'Completed' : 'Planned';
 
-      document.getElementById('nav-info').innerHTML = '';
       let routeSourceHref = '';
       if (route.source) {
         try {
@@ -5065,6 +5164,12 @@
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
         markerZoomAnimation: false,
+        // Continuous wheel/trackpad zoom (vendor/leaflet-smoothwheelzoom).
+        // Disable Leaflet's stepped scrollWheelZoom in favor of the
+        // smooth handler, which animates zoom level continuously via rAF.
+        scrollWheelZoom: false,
+        smoothWheelZoom: true,
+        smoothSensitivity: 1.5,
         renderer: L.svg()
       });
       // Fit to the route's bbox up-front so the initial tile load is near
@@ -5101,7 +5206,11 @@
       // mobile pinch (fires per frame); zoomanim kicks off a brief rAF
       // loop to cover the desktop 250ms CSS animation where 'zoom'
       // doesn't fire until the end.
-      map.on('zoom', adjustTrailStrokes);
+      // 'move' fires after all 'zoom' listeners on each _move() call, so
+      // by the time we run, the SVG renderer has already applied its new
+      // CSS scale transform - we read the freshest value to counter-scale
+      // against. Also covers pan-only frames.
+      map.on('move', adjustTrailStrokes);
       map.on('zoomend moveend', adjustTrailStrokes);
       map.on('zoomanim', function() {
         const start = performance.now();
@@ -5116,13 +5225,21 @@
       });
       addTileLayersToMap(map);
 
-      // Show the on-map elevation position marker only while an elevation chart is hovered.
+      // Show the on-map elevation position marker only while an elevation
+      // chart is hovered or touched. Uses pointer events so a single code
+      // path covers mouse, touch, and pen; the corresponding CSS rule
+      // hides .height-focus when .elev-hover is absent.
       const mapEl = map.getContainer();
       ['elevation-container', 'multi-elevation-container'].forEach(function(id) {
         const el = document.getElementById(id);
         if (!el) return;
-        el.addEventListener('mouseenter', function() { mapEl.classList.add('elev-hover'); });
-        el.addEventListener('mouseleave', function() { mapEl.classList.remove('elev-hover'); });
+        const show = function() { mapEl.classList.add('elev-hover'); };
+        const hide = function() { mapEl.classList.remove('elev-hover'); };
+        el.addEventListener('pointerenter', show);
+        el.addEventListener('pointerdown', show);
+        el.addEventListener('pointerleave', hide);
+        el.addEventListener('pointerup', hide);
+        el.addEventListener('pointercancel', hide);
       });
 
       // Expand-map toggle: hides the elevation chart and metadata panel.
@@ -5537,7 +5654,7 @@
           '<div class="auth-menu" id="auth-menu" hidden>' +
             '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>' +
             '<button data-action="settings">Settings</button>' +
-            '<button data-action="signout">Sign out</button>' +
+            '<button class="auth-menu-signout" data-action="signout">Sign out</button>' +
           '</div>';
         const btn = document.getElementById('auth-menu-btn');
         const menu = document.getElementById('auth-menu');
@@ -5550,7 +5667,15 @@
           if (!action) return;
           menu.hidden = true;
           if (action.dataset.action === 'signout') {
-            api('POST', '/logout').then(function() { location.reload(); });
+            openConfirmModal({
+              title: 'Sign out?',
+              body: 'You will need to sign in again to edit places, trails, or settings.',
+              confirmLabel: 'Sign out',
+              danger: true,
+            }).then(ok => {
+              if (!ok) return;
+              api('POST', '/logout').then(function() { location.reload(); });
+            });
           } else if (action.dataset.action === 'settings') {
             openSettingsModal();
           }
@@ -6891,15 +7016,17 @@
     }
 
     // ----- Sign-in / register modal -----
-    function openSignInModal() {
+    function signInFormHtml(includeClose) {
       const canRegister = state.auth.registration_open;
-      let mode = state.auth.has_users ? 'login' : 'register';
-      openModal(
-        '<h2><span id="modal-title">Sign in</span><button class="modal-close">&times;</button></h2>' +
-        '<div class="modal-tabs" id="auth-tabs">' +
-          '<button data-mode="login" class="active">Sign in</button>' +
-          (canRegister ? '<button data-mode="register">Register</button>' : '') +
-        '</div>' +
+      return '<h2><span id="modal-title">Sign in</span>' +
+          (includeClose ? '<button class="modal-close">&times;</button>' : '') +
+        '</h2>' +
+        (canRegister
+          ? '<div class="modal-tabs" id="auth-tabs">' +
+              '<button data-mode="login" class="active">Sign in</button>' +
+              '<button data-mode="register">Register</button>' +
+            '</div>'
+          : '') +
         '<form id="auth-form">' +
           '<label for="auth-username">Username</label>' +
           '<input type="text" id="auth-username" autocomplete="username" required>' +
@@ -6915,19 +7042,20 @@
           '<div class="modal-actions">' +
             '<button type="submit" class="primary" id="auth-submit">Sign in</button>' +
           '</div>' +
-        '</form>',
-        function() {
-          setMode(mode);
-          document.querySelectorAll('#auth-tabs button[data-mode]').forEach(b => {
-            b.addEventListener('click', function() { setMode(this.dataset.mode); });
-          });
-          document.getElementById('auth-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            submit();
-          });
-          document.getElementById('auth-username').focus();
-        }
-      );
+        '</form>';
+    }
+
+    function bindSignInForm(opts) {
+      let mode = state.auth.has_users ? 'login' : 'register';
+      setMode(mode);
+      document.querySelectorAll('#auth-tabs button[data-mode]').forEach(b => {
+        b.addEventListener('click', function() { setMode(this.dataset.mode); });
+      });
+      document.getElementById('auth-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        submit();
+      });
+      document.getElementById('auth-username').focus();
 
       function setMode(m) {
         mode = m;
@@ -6956,9 +7084,31 @@
         api('POST', '/' + mode, payload)
           .then(() => refreshAuthState())
           .then(() => loadSyncedPrefs())
-          .then(() => { closeModal(); return loadDataAndRender(); })
+          .then(() => { if (opts.onSuccess) return opts.onSuccess(); })
           .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
       }
+    }
+
+    function openSignInModal() {
+      openModal(signInFormHtml(true), function() {
+        bindSignInForm({ onSuccess: () => { closeModal(); return loadDataAndRender(); } });
+      });
+    }
+
+    function renderSignInPage() {
+      const app = document.getElementById('app');
+      document.body.classList.add('signin-only');
+      const brand = (state.config && state.config.brand) || 'Ferd';
+      app.innerHTML =
+        '<div class="signin-page">' +
+          '<img class="signin-logo" src="/favicon.svg" alt="">' +
+          '<div class="signin-brand">' + escapeHtml(brand) + '</div>' +
+          '<div class="modal">' + signInFormHtml(false) + '</div>' +
+        '</div>';
+      bindSignInForm({ onSuccess: () => {
+        document.body.classList.remove('signin-only');
+        return loadDataAndRender();
+      } });
     }
 
     // ----- Add place / GPX modal -----
@@ -7398,6 +7548,7 @@
           state.manifest = routes;
           assignTrailSlugs(state.manifest);
         }
+        refreshTabVisibility();
         if ((placesAvailable() && !state.places) && (trailsAvailable() && !state.manifest)) {
           if (v.mode === 'public') {
             document.getElementById('app').innerHTML = '<div class="loading">Map not found, or owner has not published it.</div>';
@@ -7421,9 +7572,7 @@
         renderAuthWidget();
         const v = state.viewer;
         if (v.mode === 'owner' && !state.auth.authenticated) {
-          document.getElementById('app').innerHTML =
-            '<div class="loading">Sign in to view your map.</div>';
-          openSignInModal();
+          renderSignInPage();
           return;
         }
         return loadSyncedPrefs().then(() => loadDataAndRender());
