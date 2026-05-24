@@ -3851,6 +3851,11 @@
         // origin; default of 50% 50% would scale around the canvas center
         // and miscalculate every pin position during pinch/zoom.
         this._canvas.style.transformOrigin = '0 0';
+        // Canvas sits above the SVG overlay pane (zIndex 450 vs 400) so it
+        // would swallow clicks intended for trail polylines underneath.
+        // Hit detection happens against map clicks in _onClick, not the
+        // canvas itself, so pointer events on the canvas are unnecessary.
+        this._canvas.style.pointerEvents = 'none';
         this._sizeCanvas();
         // Mobile pinch + pan fire 'move' continuously and we redraw each
         // frame at the current zoom (pins at fixed size, positions track).
