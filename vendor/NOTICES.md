@@ -65,27 +65,6 @@ Entries are grouped by role: the map core, then top-level plugins loaded on ever
 - License: ISC
 - Copyright (c) Mike Bostock
 
-### @tmcw/togeojson
-- Purpose: converts GPX/KML to GeoJSON; lazy-loaded by leaflet-elevation when ingesting non-leaflet-gpx track sources.
-- Version: 7.1.2
-- Upstream: https://github.com/tmcw/togeojson
-- License: BSD-2-Clause
-- Copyright (c) Tom MacWright
-
-### leaflet-geometryutil
-- Purpose: distance, bearing, and "closest point on polyline" math; lazy-loaded by leaflet-elevation.
-- Version: 0.10.3
-- Upstream: https://github.com/makinacorpus/Leaflet.GeometryUtil
-- License: BSD-3-Clause (FreeBSD-style)
-- Copyright (c) Makina Corpus
-
-### leaflet-almostover
-- Purpose: emits "near polyline" mouse events when the cursor is close to (but not on) a line; lazy-loaded by leaflet-elevation.
-- Version: 1.0.1
-- Upstream: https://github.com/makinacorpus/Leaflet.AlmostOver
-- License: MIT
-- Copyright (c) Makina Corpus
-
 ---
 
 ## License compatibility summary
@@ -99,8 +78,5 @@ Entries are grouped by role: the map core, then top-level plugins loaded on ever
 | supercluster | ISC | Yes |
 | @raruto/leaflet-elevation | GPL-3.0-or-later | Same license |
 | d3 | ISC | Yes |
-| @tmcw/togeojson | BSD-2-Clause | Yes |
-| leaflet-geometryutil | BSD-3-Clause | Yes |
-| leaflet-almostover | MIT | Yes |
 
 BSD-2-Clause, BSD-3-Clause, ISC, and MIT are on the FSF's [list of GPL-compatible licenses](https://www.gnu.org/licenses/license-list.html). Each component retains its original license; redistribution of the combined work is under GPL-3.0.
