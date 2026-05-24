@@ -7477,14 +7477,29 @@
       const mapInput = document.getElementById('map-search-input');
       if (mapInput) {
         e.preventDefault();
-        document.body.classList.add('force-show-map-filter');
+        const wasForced = !document.body.classList.contains('force-show-map-filter');
+        if (wasForced) document.body.classList.add('force-show-map-filter');
         mapInput.focus();
         mapInput.select();
+        if (!wasForced) return;
+        // Restore on click outside the panel or on Escape. Using input
+        // 'blur' would fire as soon as the user mousedowns a search
+        // result (which takes focus from the input), hiding the panel
+        // before the click actually registers on the row.
         const restore = function() {
           document.body.classList.remove('force-show-map-filter');
-          mapInput.removeEventListener('blur', restore);
+          document.removeEventListener('mousedown', onOutside, true);
+          mapInput.removeEventListener('keydown', onEsc);
         };
-        mapInput.addEventListener('blur', restore);
+        const onOutside = function(ev) {
+          if (ev.target.closest && ev.target.closest('.map-panel')) return;
+          restore();
+        };
+        const onEsc = function(ev) {
+          if (ev.key === 'Escape') { mapInput.blur(); restore(); }
+        };
+        document.addEventListener('mousedown', onOutside, true);
+        mapInput.addEventListener('keydown', onEsc);
       }
     });
 
