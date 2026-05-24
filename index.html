@@ -3509,6 +3509,10 @@
         _trailEvalTimer = setTimeout(evaluateVisibleRoutes, 150);
       }
       map.on('moveend', scheduleTrailEval);
+      // Kick an initial evaluation: when the map opens at a stored or
+      // focus view, no moveend fires after we register the listener, so
+      // visible trails would only load on the user's first pan.
+      scheduleTrailEval();
 
       applyMapFilters();
 
@@ -5183,7 +5187,7 @@
           imperial: isImperial(),
           slope: false, speed: false, acceleration: false, time: false,
           legend: false, summary: false, ruler: false, downloadLink: false,
-          almostOver: false, distanceMarkers: false,
+          almostOver: false, distanceMarkers: false, autofitBounds: false, fitBounds: false,
           polyline: { color: color, opacity: 0.9, weight: 5 * getTrailWeightFactor() },
         }, ELEVATION_VENDOR_URLS)).addTo(map);
         state.currentElevation = elevationControl;
@@ -5298,7 +5302,7 @@
                 imperial: isImperial(),
                 slope: false, speed: false, acceleration: false, time: false,
                 legend: false, summary: false, ruler: false, downloadLink: false,
-                almostOver: false, distanceMarkers: false,
+                almostOver: false, distanceMarkers: false, autofitBounds: false, fitBounds: false,
                 polyline: false,
               }, ELEVATION_VENDOR_URLS)).addTo(map);
               ctrl.addData(trackToGeoJSON(track));
