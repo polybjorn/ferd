@@ -4549,9 +4549,11 @@
           }
         } else {
           const key = row.dataset.key;
-          const entry = state._trailLayers.find(t => t.route.key === key);
+          const entry = (state._trailLayers || []).find(t => t.route.key === key);
+          history.replaceState(null, '', '#/?focus=trail:' + encodeURIComponent(key));
           if (entry) {
-            // Find inner polyline bounds via the GPX layer
+            // Trail is already loaded - fit to its actual bounds and open
+            // the popup directly.
             const layers = [];
             entry.layer.eachLayer(l => { if (l.getBounds) layers.push(l); });
             if (layers.length) {
@@ -4559,7 +4561,21 @@
               if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
               if (entry.layer.openPopup) entry.layer.openPopup(b.getCenter());
             }
-            history.replaceState(null, '', '#/?focus=trail:' + encodeURIComponent(key));
+          } else {
+            // Not loaded yet (lazy-loaded by viewport intersection). Fit
+            // to the manifest bbox so the viewport intersects the trail,
+            // which kicks off the load.
+            let route = null;
+            if (state.manifest) {
+              for (const r of state.manifest.regions) {
+                const found = r.routes.find(rt => rt.key === key);
+                if (found) { route = found; break; }
+              }
+            }
+            if (route && route.bbox && route.bbox.length === 4) {
+              const b = L.latLngBounds([route.bbox[0], route.bbox[1]], [route.bbox[2], route.bbox[3]]);
+              if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
+            }
           }
         }
         input.value = '';
