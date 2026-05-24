@@ -3415,9 +3415,9 @@
                 const gpxLayer = new L.GPX(text, {
                   async: true,
                   polyline_options: { color: color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'trail-line' },
-                  markers: { startIcon: null, endIcon: null, wptIcons: { '': WAYPOINT_PLACEHOLDER_ICON } },
+                  // Waypoints hidden on the index map; revealed in detail view only.
+                  markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
                 });
-                attachWaypointHandlers(gpxLayer);
                 gpxLayer.on('loaded', function(e) {
                   const b = e.target.getBounds();
                   if (b.isValid()) trailBounds.extend(b);
@@ -4803,6 +4803,36 @@
       return result;
     }
 
+    function parseGpxWaypoints(xmlText) {
+      const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
+      let wpts = doc.getElementsByTagNameNS(GPX_NS, 'wpt');
+      if (wpts.length === 0) wpts = doc.getElementsByTagName('wpt');
+      const out = [];
+      for (let i = 0; i < wpts.length; i++) {
+        const w = wpts[i];
+        const lat = parseFloat(w.getAttribute('lat'));
+        const lon = parseFloat(w.getAttribute('lon'));
+        if (!isFinite(lat) || !isFinite(lon)) continue;
+        const nameEl = w.getElementsByTagNameNS(GPX_NS, 'name')[0] || w.getElementsByTagName('name')[0];
+        const descEl = w.getElementsByTagNameNS(GPX_NS, 'desc')[0] || w.getElementsByTagName('desc')[0];
+        out.push({
+          lat, lon,
+          name: nameEl ? nameEl.textContent : '',
+          desc: descEl ? descEl.textContent : '',
+        });
+      }
+      return out;
+    }
+
+    function addGpxWaypoints(map, waypoints) {
+      for (const w of waypoints) {
+        const m = L.marker([w.lat, w.lon], { icon: makeWaypointIcon() });
+        const body = '<b>' + escapeHtml(w.name) + '</b>' + (w.desc ? '<br>' + escapeHtml(w.desc) : '');
+        m.bindPopup(body, { closeButton: false });
+        m.addTo(map);
+      }
+    }
+
     function computeTrackStats(points) {
       let distance = 0, gain = 0, loss = 0, maxEle = -Infinity;
       for (let i = 1; i < points.length; i++) {
@@ -5112,6 +5142,7 @@
         .then(function(xmlText) {
           const tracks = parseGpxTracks(xmlText);
           if (tracks.length === 0) return;
+          addGpxWaypoints(map, parseGpxWaypoints(xmlText));
 
           const elevHeight = 200;
           const elevControls = [];
