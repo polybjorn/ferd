@@ -3405,16 +3405,22 @@
       let focusTrailKey = (focus && focus.type === 'trail') ? focus.name : null;
       let focusTrailLayer = null;
 
-      // Same rationale as places: always build the GPX layers; visibility is
-      // controlled by applyMapFilters.
+      // Lazy GPX loading. Building one polyline per route up-front grows
+      // linearly with the manifest; viewport-based on-demand loading keeps
+      // the working set bounded regardless of total trail count. The
+      // manifest's per-route bbox is still used synchronously for initial
+      // fit, so the map opens at the right area without waiting on any
+      // GPX fetch.
+      const trailDescriptors = [];
+      const loadedRouteKeys = new Set();
+      const pendingRouteKeys = new Set();
       if (state.manifest) {
         for (const region of state.manifest.regions) {
           for (const route of region.routes) {
             const color = trailStatusColor(route.completed);
             const parent = route.completed ? groupCompleted : groupPlanned;
             const gpxUrl = gpxUrlFor(route.file);
-            // Use the manifest-supplied bbox synchronously so initial map
-            // bounds reflect filtered trails without waiting on GPX async load.
+            trailDescriptors.push({ route, region, color, parent, gpxUrl });
             const visibleStatus = route.completed ? state.showCompleted : state.showPlanned;
             if (route.bbox && route.bbox.length === 4
                 && !state.hiddenRegions.has(region.name)
@@ -3422,37 +3428,6 @@
               trailBounds.extend([route.bbox[0], route.bbox[1]]);
               trailBounds.extend([route.bbox[2], route.bbox[3]]);
             }
-            (function(route, region, color, parent, gpxUrl) {
-              fetchGpxText(gpxUrl).then(function(text) {
-                const gpxLayer = new L.GPX(text, {
-                  async: true,
-                  polyline_options: { color: color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'trail-line' },
-                  // Waypoints hidden on the index map; revealed in detail view only.
-                  markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
-                });
-                gpxLayer.on('loaded', function(e) {
-                  const b = e.target.getBounds();
-                  if (b.isValid()) trailBounds.extend(b);
-                  if (focusTrailKey && route.key === focusTrailKey) {
-                    focusTrailLayer = e.target;
-                    if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
-                  }
-                  applyNonScalingStroke(e.target);
-                }).on('error', function(e) {
-                  console.warn('[ferd] gpx parse failed for', gpxUrl, e && e.err);
-                  try { parent.removeLayer(gpxLayer); } catch (_) {}
-                }).bindPopup(
-                  trailPopupHtml(route, region, color),
-                  { closeButton: false }
-                ).on('click', (function(slug) {
-                  return function() { history.replaceState(null, '', focusHash('trail', slug)); };
-                })(route._slug || route.key));
-                parent.addLayer(gpxLayer);
-                trailLayers.push({ route, region: region.name, layer: gpxLayer, completed: route.completed });
-              }).catch(function(err) {
-                console.warn('[ferd] gpx fetch failed for', gpxUrl, err);
-              });
-            })(route, region, color, parent, gpxUrl);
           }
         }
       }
@@ -3460,6 +3435,75 @@
       state._trailLayers = trailLayers;
       state._trailGroupCompleted = groupCompleted;
       state._trailGroupPlanned = groupPlanned;
+
+      function loadRouteLazy(desc) {
+        if (loadedRouteKeys.has(desc.route.key) || pendingRouteKeys.has(desc.route.key)) return;
+        pendingRouteKeys.add(desc.route.key);
+        fetchGpxText(desc.gpxUrl).then(function(text) {
+          const gpxLayer = new L.GPX(text, {
+            async: true,
+            polyline_options: { color: desc.color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'trail-line' },
+            // Waypoints hidden on the index map; revealed in detail view only.
+            markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
+          });
+          gpxLayer.on('loaded', function(e) {
+            const b = e.target.getBounds();
+            if (b.isValid()) trailBounds.extend(b);
+            if (focusTrailKey && desc.route.key === focusTrailKey) {
+              focusTrailLayer = e.target;
+              if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
+            }
+            applyNonScalingStroke(e.target);
+          }).on('error', function(e) {
+            console.warn('[ferd] gpx parse failed for', desc.gpxUrl, e && e.err);
+            try { desc.parent.removeLayer(gpxLayer); } catch (_) {}
+          }).bindPopup(
+            trailPopupHtml(desc.route, desc.region, desc.color),
+            { closeButton: false }
+          ).on('click', (function(slug) {
+            return function() { history.replaceState(null, '', focusHash('trail', slug)); };
+          })(desc.route._slug || desc.route.key));
+          trailLayers.push({ route: desc.route, region: desc.region.name, layer: gpxLayer, completed: desc.route.completed });
+          loadedRouteKeys.add(desc.route.key);
+          pendingRouteKeys.delete(desc.route.key);
+          applyMapFilters();
+        }).catch(function(err) {
+          pendingRouteKeys.delete(desc.route.key);
+          console.warn('[ferd] gpx fetch failed for', desc.gpxUrl, err);
+        });
+      }
+
+      // Skip routes whose bbox would render smaller than this many pixels
+      // at the current zoom; they'd be visual noise on a continent-zoom view.
+      const MIN_TRAIL_VISIBLE_PX = 6;
+      function routeShouldLoad(desc, paddedBounds, mapZoom) {
+        const b = desc.route.bbox;
+        if (!b || b.length !== 4) return true; // no bbox info, conservative
+        const sw = L.latLng(b[0], b[1]);
+        const ne = L.latLng(b[2], b[3]);
+        if (!paddedBounds.intersects(L.latLngBounds(sw, ne))) return false;
+        const sp = map.project(sw, mapZoom);
+        const np = map.project(ne, mapZoom);
+        const dx = Math.abs(np.x - sp.x);
+        const dy = Math.abs(np.y - sp.y);
+        return Math.sqrt(dx * dx + dy * dy) >= MIN_TRAIL_VISIBLE_PX;
+      }
+      function evaluateVisibleRoutes() {
+        if (!map._loaded) return;
+        const padded = map.getBounds().pad(0.5);
+        const zoom = map.getZoom();
+        for (const desc of trailDescriptors) {
+          if (loadedRouteKeys.has(desc.route.key) || pendingRouteKeys.has(desc.route.key)) continue;
+          if (focusTrailKey && desc.route.key === focusTrailKey) { loadRouteLazy(desc); continue; }
+          if (routeShouldLoad(desc, padded, zoom)) loadRouteLazy(desc);
+        }
+      }
+      let _trailEvalTimer = null;
+      function scheduleTrailEval() {
+        if (_trailEvalTimer) clearTimeout(_trailEvalTimer);
+        _trailEvalTimer = setTimeout(evaluateVisibleRoutes, 150);
+      }
+      map.on('moveend', scheduleTrailEval);
 
       applyMapFilters();
 
