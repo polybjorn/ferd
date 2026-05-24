@@ -5162,12 +5162,14 @@
         .then(function(xmlText) {
           const tracks = parseGpxTracks(xmlText);
           if (tracks.length === 0) return;
-          const firstPt = tracks[0].points[0];
-          const lastTrack = tracks[tracks.length - 1];
-          const lastPt = lastTrack.points[lastTrack.points.length - 1];
-          const startLL = firstPt ? L.latLng(firstPt.lat, firstPt.lon) : null;
-          const endLL = lastPt ? L.latLng(lastPt.lat, lastPt.lon) : null;
-          addGpxWaypoints(map, parseGpxWaypoints(xmlText), startLL, endLL);
+          {
+            const firstPt = tracks[0].points[0];
+            const last = tracks[tracks.length - 1];
+            const lastPt = last.points[last.points.length - 1];
+            const startLL = firstPt ? L.latLng(firstPt.lat, firstPt.lon) : null;
+            const endLL = lastPt ? L.latLng(lastPt.lat, lastPt.lon) : null;
+            addGpxWaypoints(map, parseGpxWaypoints(xmlText), startLL, endLL);
+          }
 
           const elevHeight = 200;
           const elevControls = [];
