@@ -418,8 +418,9 @@
       justify-self: start;
     }
     .nav-brand a { color: var(--text); text-decoration: none; }
-    #nav-back { display: none; opacity: 0.5; margin-right: 0.4rem; vertical-align: -3px; }
-    #nav-back svg { width: 20px; height: 20px; }
+    #nav-home { display: inline-flex; align-items: center; gap: 0.3rem; }
+    #nav-back { display: none; opacity: 0.5; line-height: 0; }
+    #nav-back svg { width: 1.1em; height: 1.1em; display: block; }
     #nav-crumb { color: var(--muted); }
 
     .nav-info {
@@ -2855,7 +2856,7 @@
 
     function setCrumb(text, showBack) {
       document.getElementById('nav-crumb').textContent = text ? ' / ' + text : '';
-      document.getElementById('nav-back').style.display = showBack ? 'inline' : 'none';
+      document.getElementById('nav-back').style.display = showBack ? 'inline-flex' : 'none';
     }
 
     function createMarkerIcon(color, visited) {
