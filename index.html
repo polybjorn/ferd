@@ -5944,14 +5944,14 @@
           '</div>'
           : '') +
         '<h3 class="settings-h">Map</h3>' +
-        '<div class="settings-inline-row"><label for="s-tile">Default tile layer</label>' +
+        '<div class="settings-grid-2">' +
+          '<label for="s-tile">Default tile layer</label>' +
+          '<label for="s-tile-filter">Tile style</label>' +
           '<select id="s-tile">' +
             ['CyclOSM', 'Dark', 'OpenStreetMap', 'OpenTopoMap', 'Satellite'].map(n =>
               '<option value="' + n + '"' + (getDefaultTileLayer() === n ? ' selected' : '') + '>' + n + '</option>'
             ).join('') +
           '</select>' +
-        '</div>' +
-        '<div class="settings-inline-row"><label for="s-tile-filter">Tile style</label>' +
           '<select id="s-tile-filter">' +
             [['none', 'None'], ['contrast', 'Contrast'], ['grayscale', 'Grayscale'], ['muted', 'Muted'], ['sepia', 'Sepia']].map(([v, l]) =>
               '<option value="' + v + '"' + (tileFilter === v ? ' selected' : '') + '>' + l + '</option>'
