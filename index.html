@@ -7480,12 +7480,14 @@
         return;
       }
       const mapInput = document.getElementById('map-search-input');
+      console.log('[s-debug]', { mapInput: !!mapInput, hideFilter: document.body.classList.contains('hide-map-filter'), chromeHidden: document.body.classList.contains('map-chrome-hidden') });
       if (mapInput) {
         e.preventDefault();
         const wasForced = !document.body.classList.contains('force-show-map-filter');
         if (wasForced) document.body.classList.add('force-show-map-filter');
         mapInput.focus();
         mapInput.select();
+        console.log('[s-debug] after focus', { activeId: document.activeElement && document.activeElement.id, panelOpacity: getComputedStyle(document.getElementById('map-panel')).opacity });
         if (!wasForced) return;
         // Restore on click outside the panel or on Escape. Using input
         // 'blur' would fire as soon as the user mousedowns a search
