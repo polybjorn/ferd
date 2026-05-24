@@ -3875,6 +3875,7 @@
             '<div><label for="e-lat">Latitude</label><input type="number" id="e-lat" step="any" required value="' + place.lat + '"></div>' +
             '<div><label for="e-lon">Longitude</label><input type="number" id="e-lon" step="any" required value="' + place.lon + '"></div>' +
           '</div>' +
+          '<div style="margin-top:0.25rem"><button type="button" id="e-pick-on-map">Pick on map</button></div>' +
           '<label for="e-category">Category</label>' +
           selectOrNewHtml('e-category', cats, place.category, displayCategory, '', 'New category name') +
           '<label for="e-country">Country (optional)</label>' +
@@ -3920,6 +3921,18 @@
               eVisitedExtras.classList.toggle('expanded', this.checked);
             });
           }
+          document.getElementById('e-pick-on-map').addEventListener('click', function() {
+            // Snapshot current form values so they survive the close+reopen
+            // around the map click. Lat/lon get overwritten with the pick.
+            const snapshot = readPlaceFormFields('e');
+            const draft = Object.assign({}, place, snapshot.payload || {});
+            closeModal();
+            enterPickCoordsMode(function(latlng) {
+              draft.lat = latlng.lat;
+              draft.lon = latlng.lng;
+              openEditPlaceModal(draft);
+            });
+          });
           document.getElementById('e-delete').addEventListener('click', function() {
             if (!confirm('Delete place "' + place.name + '"?')) return;
             this.disabled = true;
@@ -7395,12 +7408,14 @@
     }
 
     // ----- Pick coordinates on the map -----
-    function enterPickCoordsMode() {
+    // onPick is called with the chosen latlng. If omitted, the default
+    // behavior opens the Add modal pre-filled with those coordinates.
+    function enterPickCoordsMode(onPick) {
       // Make sure we're on the unified map. If not, navigate there first.
       const base = (location.hash || '#/').split('?')[0];
       if (base !== '#/' && base !== '#/map' && base !== '#') {
         location.hash = '#/';
-        setTimeout(enterPickCoordsMode, 250);
+        setTimeout(function() { enterPickCoordsMode(onPick); }, 250);
         return;
       }
       const banner = document.createElement('div');
@@ -7412,7 +7427,8 @@
       if (!map) { cleanup(); return; }
       function onClick(e) {
         cleanup();
-        openAddModal(e.latlng);
+        if (typeof onPick === 'function') onPick(e.latlng);
+        else openAddModal(e.latlng);
       }
       function cleanup() {
         map.off('click', onClick);
