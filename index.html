@@ -2916,6 +2916,21 @@
     // Apply current trail-weight to all live trail polylines without rebuilding.
     // Stamp the original stroke-width on first observation so later
     // adjustments can divide back without losing precision.
+    // leaflet-gpx 2.1.2 calls _parse_gpx_data(responseXML, ...) without
+    // null-checking, so when XHR XML parsing fails intermittently (e.g.
+    // index map racing dozens of parallel fetches) the uncaught TypeError
+    // leaks past every .on('error',...) handler. Patch to return null
+    // instead, which routes through the lib's existing error event path.
+    if (window.L && L.GPX && L.GPX.prototype && !L.GPX.prototype._parse_gpx_data._ferdPatched) {
+      const orig = L.GPX.prototype._parse_gpx_data;
+      const patched = function(xml, options) {
+        if (!xml) return null;
+        return orig.call(this, xml, options);
+      };
+      patched._ferdPatched = true;
+      L.GPX.prototype._parse_gpx_data = patched;
+    }
+
     function applyNonScalingStroke(layer) {
       if (layer && layer._path && layer._path.setAttribute) {
         const sw = layer._path.getAttribute('stroke-width');
@@ -3354,6 +3369,13 @@
               // pixel width regardless of SVG viewBox/transform changes
               // during zoom. Recurses since L.GPX nests polylines.
               applyNonScalingStroke(e.target);
+            }).on('error', function(e) {
+              // Parallel GPX loads on the index map occasionally race and
+              // leaflet-gpx surfaces an XML parse error on a file that is
+              // perfectly valid in isolation. Log and move on so one bad
+              // load doesn't break the rest of the map.
+              console.warn('[ferd] gpx load failed for', gpxUrl, e && e.err);
+              try { parent.removeLayer(gpxLayer); } catch (_) {}
             }).bindPopup(
               trailPopupHtml(route, region, color),
               { closeButton: false }
