@@ -2916,11 +2916,37 @@
     // Apply current trail-weight to all live trail polylines without rebuilding.
     // Stamp the original stroke-width on first observation so later
     // adjustments can divide back without losing precision.
-    // leaflet-gpx 2.1.2 calls _parse_gpx_data(responseXML, ...) without
-    // null-checking, so when XHR XML parsing fails intermittently (e.g.
-    // index map racing dozens of parallel fetches) the uncaught TypeError
-    // leaks past every .on('error',...) handler. Patch to return null
-    // instead, which routes through the lib's existing error event path.
+    // Concurrency-limited GPX text fetcher. The index map can have dozens
+    // of trails, and bursting that many parallel XHRs caused leaflet-gpx
+    // to occasionally see a null responseXML (Firefox's XML parser
+    // failing under load). Fetch + text + limited concurrency avoids the
+    // XHR path entirely and keeps the network polite.
+    const GPX_CONCURRENCY = 4;
+    const _gpxQueue = [];
+    let _gpxActive = 0;
+    function _gpxPump() {
+      while (_gpxActive < GPX_CONCURRENCY && _gpxQueue.length > 0) {
+        _gpxActive++;
+        const task = _gpxQueue.shift();
+        task().finally(function() { _gpxActive--; _gpxPump(); });
+      }
+    }
+    function fetchGpxText(url) {
+      return new Promise(function(resolve, reject) {
+        _gpxQueue.push(function() {
+          return fetch(url).then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.text();
+          }).then(resolve, reject);
+        });
+        _gpxPump();
+      });
+    }
+
+    // Defensive backstop: leaflet-gpx 2.1.2 calls _parse_gpx_data on
+    // responseXML without null-checking. We now feed it pre-fetched text
+    // (DOMParser-backed, never null), but keep the patch for any legacy
+    // call sites that still pass URLs directly.
     if (window.L && L.GPX && L.GPX.prototype && !L.GPX.prototype._parse_gpx_data._ferdPatched) {
       const orig = L.GPX.prototype._parse_gpx_data;
       const patched = function(xml, options) {
@@ -3353,37 +3379,36 @@
               trailBounds.extend([route.bbox[0], route.bbox[1]]);
               trailBounds.extend([route.bbox[2], route.bbox[3]]);
             }
-            const gpxLayer = new L.GPX(gpxUrl, {
-              async: true,
-              polyline_options: { color: color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'trail-line' },
-              markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
-            });
-            gpxLayer.on('loaded', function(e) {
-              const b = e.target.getBounds();
-              if (b.isValid()) trailBounds.extend(b);
-              if (focusTrailKey && route.key === focusTrailKey) {
-                focusTrailLayer = e.target;
-                if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
-              }
-              // Set vector-effect attribute so stroke renders at constant
-              // pixel width regardless of SVG viewBox/transform changes
-              // during zoom. Recurses since L.GPX nests polylines.
-              applyNonScalingStroke(e.target);
-            }).on('error', function(e) {
-              // Parallel GPX loads on the index map occasionally race and
-              // leaflet-gpx surfaces an XML parse error on a file that is
-              // perfectly valid in isolation. Log and move on so one bad
-              // load doesn't break the rest of the map.
-              console.warn('[ferd] gpx load failed for', gpxUrl, e && e.err);
-              try { parent.removeLayer(gpxLayer); } catch (_) {}
-            }).bindPopup(
-              trailPopupHtml(route, region, color),
-              { closeButton: false }
-            ).on('click', (function(slug) {
-              return function() { history.replaceState(null, '', focusHash('trail', slug)); };
-            })(route._slug || route.key));
-            parent.addLayer(gpxLayer);
-            trailLayers.push({ route, region: region.name, layer: gpxLayer, completed: route.completed });
+            (function(route, region, color, parent, gpxUrl) {
+              fetchGpxText(gpxUrl).then(function(text) {
+                const gpxLayer = new L.GPX(text, {
+                  async: true,
+                  polyline_options: { color: color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'trail-line' },
+                  markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
+                });
+                gpxLayer.on('loaded', function(e) {
+                  const b = e.target.getBounds();
+                  if (b.isValid()) trailBounds.extend(b);
+                  if (focusTrailKey && route.key === focusTrailKey) {
+                    focusTrailLayer = e.target;
+                    if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
+                  }
+                  applyNonScalingStroke(e.target);
+                }).on('error', function(e) {
+                  console.warn('[ferd] gpx parse failed for', gpxUrl, e && e.err);
+                  try { parent.removeLayer(gpxLayer); } catch (_) {}
+                }).bindPopup(
+                  trailPopupHtml(route, region, color),
+                  { closeButton: false }
+                ).on('click', (function(slug) {
+                  return function() { history.replaceState(null, '', focusHash('trail', slug)); };
+                })(route._slug || route.key));
+                parent.addLayer(gpxLayer);
+                trailLayers.push({ route, region: region.name, layer: gpxLayer, completed: route.completed });
+              }).catch(function(err) {
+                console.warn('[ferd] gpx fetch failed for', gpxUrl, err);
+              });
+            })(route, region, color, parent, gpxUrl);
           }
         }
       }
