@@ -29,6 +29,7 @@ import threading
 import time
 import xml.etree.ElementTree as ET
 import zipfile
+import hashlib
 from hashlib import pbkdf2_hmac
 from http import HTTPStatus
 from pathlib import Path
@@ -95,6 +96,46 @@ DEFAULT_CONFIG = {
   # window between deploy and first registration" risk for public deploys.
   "require_setup_token": False,
 }
+
+# sw.js source carries this placeholder; the static handler swaps it for a
+# content-derived version on every serve so we never bump CACHE_VERSION by
+# hand. Hash covers sw.js itself + every file listed in its SHELL_ASSETS,
+# so any shell change (frontend, vendor, manifest) yields a new version.
+SW_VERSION_PLACEHOLDER = "__FERD_CACHE_VERSION__"
+_SW_VERSION_CACHE: dict = {"version": None, "computed_at": 0.0}
+_SW_VERSION_TTL_SEC = 5
+
+def _compute_sw_version(static_dir: Path) -> str:
+  sw_path = static_dir / "sw.js"
+  try:
+    sw_text = sw_path.read_text(encoding="utf-8")
+  except OSError:
+    return "ferd-unknown"
+  h = hashlib.sha256()
+  h.update(sw_text.encode("utf-8"))
+  m = re.search(r"const\s+SHELL_ASSETS\s*=\s*\[(.*?)\];", sw_text, re.DOTALL)
+  if m:
+    for rel in re.findall(r"'([^']+)'", m.group(1)):
+      rel = rel.strip()
+      if not rel or rel == "/":
+        continue
+      f = static_dir / rel.lstrip("/")
+      if f.is_file():
+        try:
+          h.update(f.read_bytes())
+        except OSError:
+          pass
+  return "ferd-" + h.hexdigest()[:10]
+
+def get_sw_version(static_dir: Path) -> str:
+  import time
+  now = time.monotonic()
+  if (_SW_VERSION_CACHE["version"] is None
+      or now - _SW_VERSION_CACHE["computed_at"] > _SW_VERSION_TTL_SEC):
+    _SW_VERSION_CACHE["version"] = _compute_sw_version(static_dir)
+    _SW_VERSION_CACHE["computed_at"] = now
+  return _SW_VERSION_CACHE["version"]
+
 
 STATIC_MIME = {
   ".html": "text/html; charset=utf-8",
@@ -775,6 +816,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
       data = target.read_bytes()
     except OSError:
       return self._send_plain(HTTPStatus.INTERNAL_SERVER_ERROR, b"read failed")
+    # Substitute the CACHE_VERSION placeholder in sw.js with a hash of all
+    # shell assets so installed PWAs auto-update when anything they cache
+    # changes, without anyone editing sw.js by hand.
+    if rel == "sw.js" and SW_VERSION_PLACEHOLDER.encode() in data:
+      version = get_sw_version(base)
+      data = data.replace(SW_VERSION_PLACEHOLDER.encode(),
+                          version.encode())
     self.send_response(HTTPStatus.OK)
     self.send_header("Content-Type", ctype)
     self.send_header("Content-Length", str(len(data)))

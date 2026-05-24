@@ -1,6 +1,9 @@
 // Ferd service worker.
-// Bump CACHE_VERSION on each release that changes the app shell or vendor deps.
-const CACHE_VERSION = 'ferd-v71';
+// CACHE_VERSION is rewritten on serve by tools/api.py: the placeholder
+// below gets replaced with `ferd-<hash>` where the hash covers sw.js
+// itself plus every file in SHELL_ASSETS. Any shell change yields a new
+// version automatically; do not edit the literal by hand.
+const CACHE_VERSION = '__FERD_CACHE_VERSION__';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const TILE_CACHE = `${CACHE_VERSION}-tiles`;
