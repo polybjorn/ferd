@@ -5042,7 +5042,15 @@
         maxBoundsViscosity: 1.0,
         markerZoomAnimation: false,
         renderer: L.svg()
-      }).setView(dvt.center, dvt.zoom);
+      });
+      // Fit to the route's bbox up-front so the initial tile load is near
+      // the trail instead of the trails-default view (Norway), avoiding a
+      // visible jump when GPX-driven fitBounds settles a moment later.
+      if (route.bbox && route.bbox.length === 4) {
+        map.fitBounds([[route.bbox[0], route.bbox[1]], [route.bbox[2], route.bbox[3]]], { padding: [40, 40] });
+      } else {
+        map.setView(dvt.center, dvt.zoom);
+      }
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
       // Map container shrinks asynchronously as the elevation chart and
