@@ -1276,6 +1276,9 @@
     .leaflet-control-layers label { color: var(--text); }
     .leaflet-control-layers-separator { border-color: var(--border) !important; }
 
+    /* Pointer cursor over the trail "near-tap" zone, so hovering near a
+       polyline reads as interactive even when not directly on the stroke. */
+    .leaflet-container.trail-near-cursor { cursor: pointer; }
     /* Place canvas layer tooltip (hover text on desktop) */
     .place-canvas-tooltip {
       position: absolute;
@@ -2989,9 +2992,6 @@
     // to unpkg. The constants match the lib's internal option names.
     const ELEVATION_VENDOR_URLS = {
       __D3: '/vendor/d3/d3.min.js',
-      __TOGEOJSON: '/vendor/togeojson/togeojson.umd.js',
-      __LGEOMUTIL: '/vendor/leaflet-geometryutil/leaflet.geometryutil.js',
-      __LALMOSTOVER: '/vendor/leaflet-almostover/leaflet.almostover.js',
     };
 
     // Waypoint rendering helpers. leaflet-gpx skips creating a marker if
@@ -3519,6 +3519,66 @@
       state._trailGroupCompleted = groupCompleted;
       state._trailGroupPlanned = groupPlanned;
 
+      // Map-level near-tap detector: stock Leaflet only fires polyline
+      // click when the tap lands within ~1px of the stroke, which is
+      // brutal on touch. Walk visible trails on every map click and
+      // pick the closest segment within ~18px; if found, behave as if
+      // the user had hit the polyline exactly.
+      const NEAR_TAP_PX = 18;
+      function pointSegDistSq(p, a, b) {
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const len2 = dx * dx + dy * dy;
+        if (!len2) { const ax = p.x - a.x, ay = p.y - a.y; return ax * ax + ay * ay; }
+        let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2;
+        if (t < 0) t = 0; else if (t > 1) t = 1;
+        const cx = a.x + t * dx, cy = a.y + t * dy;
+        return (p.x - cx) * (p.x - cx) + (p.y - cy) * (p.y - cy);
+      }
+      function isLayerVisible(record) {
+        if (state.hiddenRegions.has(record.region)) return false;
+        return record.completed ? state.showCompleted : state.showPlanned;
+      }
+      function findNearTrail(containerPt) {
+        if (!state._trailLayers || !state._trailLayers.length) return null;
+        let best = null, bestDist = NEAR_TAP_PX * NEAR_TAP_PX;
+        const visit = function(layer, record) {
+          if (layer.getLatLngs && !layer.eachLayer) {
+            const raw = layer.getLatLngs();
+            const flat = Array.isArray(raw) && Array.isArray(raw[0]) ? [].concat.apply([], raw) : raw;
+            for (let i = 0; i < flat.length - 1; i++) {
+              const a = map.latLngToContainerPoint(flat[i]);
+              const b = map.latLngToContainerPoint(flat[i + 1]);
+              const d2 = pointSegDistSq(containerPt, a, b);
+              if (d2 < bestDist) { bestDist = d2; best = record; }
+            }
+          }
+          if (layer.eachLayer) layer.eachLayer(function(sub) { visit(sub, record); });
+        };
+        for (const record of state._trailLayers) {
+          if (!isLayerVisible(record)) continue;
+          visit(record.layer, record);
+        }
+        return best;
+      }
+      map.on('click', function(e) {
+        const best = findNearTrail(e.containerPoint);
+        if (best) {
+          const slug = best.route._slug || best.route.key;
+          history.replaceState(null, '', focusHash('trail', slug));
+          best.layer.openPopup(e.latlng);
+        }
+      });
+      // Show the pointer cursor across the full near-tap zone, not just
+      // the 1-2px polyline stroke. mousemove on Leaflet fires only when
+      // the cursor moves over the map, so this stays cheap.
+      let _nearCursor = false;
+      map.on('mousemove', function(e) {
+        const near = !!findNearTrail(e.containerPoint);
+        if (near === _nearCursor) return;
+        _nearCursor = near;
+        map.getContainer().classList.toggle('trail-near-cursor', near);
+      });
+
       function loadRouteLazy(desc) {
         if (loadedRouteKeys.has(desc.route.key) || pendingRouteKeys.has(desc.route.key)) return;
         pendingRouteKeys.add(desc.route.key);
@@ -3559,7 +3619,12 @@
             trailPopupHtml(desc.route, desc.region, desc.color),
             { closeButton: false }
           ).on('click', (function(slug) {
-            return function() { history.replaceState(null, '', focusHash('trail', slug)); };
+            return function(ev) {
+              // Stop propagation so the map-level near-tap handler
+              // doesn't fire a duplicate replaceState + popup toggle.
+              if (ev && ev.originalEvent) L.DomEvent.stopPropagation(ev.originalEvent);
+              history.replaceState(null, '', focusHash('trail', slug));
+            };
           })(desc.route._slug || desc.route.key));
           trailLayers.push({ route: desc.route, region: desc.region.name, layer: gpxLayer, completed: desc.route.completed });
           loadedRouteKeys.add(desc.route.key);
