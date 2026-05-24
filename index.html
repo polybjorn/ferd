@@ -4536,10 +4536,12 @@
 
       results.addEventListener('click', function(e) {
         const row = e.target.closest('.map-search-result');
+        console.log('[search-debug] click', { row: !!row, type: row && row.dataset.type, name: row && row.dataset.name, key: row && row.dataset.key });
         if (!row) return;
         if (row.dataset.type === 'place') {
           const name = row.dataset.name;
           const place = (state._placeRecords || []).find(p => p.name === name);
+          console.log('[search-debug] place lookup', { name, found: !!place, recordsLen: (state._placeRecords||[]).length });
           if (place) {
             revealPlaceMarker(map, place);
             history.replaceState(null, '', '#/?focus=place:' + encodeURIComponent(name));
