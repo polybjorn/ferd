@@ -22,7 +22,27 @@ Open http://localhost:8090 and register the first account. The first user is the
 
 To reach it from other devices on your LAN, the container already listens on every interface, so use `http://<host-ip>:8090`.
 
-There isn't a published image yet (it's on the roadmap). For now the quickstart builds locally. Once published, the workflow becomes `docker compose pull && docker compose up -d` without the `git clone`.
+Out of the box this compose file builds the image locally from source. If you'd rather pull a prebuilt image, see the next section.
+
+## Release tracks
+
+Ferd publishes two image tracks to GitHub Container Registry, both multi-arch (amd64, arm64):
+
+| Tag | What it is | When to pick it |
+|---|---|---|
+| `ghcr.io/polybjorn/ferd:latest` | Newest tagged stable release | Most installs. Predictable updates, only changes when a new version ships. |
+| `ghcr.io/polybjorn/ferd:dev` | Tip of the `main` branch | Early access to in-progress changes. Rebuilt on every commit; may break. |
+
+Pinned tags (`:1.0.0`, `:1.0`, `:1`) are also published so you can hold a specific stable release forever.
+
+To switch from the local build to a prebuilt image, edit [`compose.yml`](../compose.yml): comment out `build: .` and uncomment the `image:` line for the track you want. Then:
+
+```sh
+docker compose pull
+docker compose up -d
+```
+
+You can check which version is running under Settings -> General in the app, or hit `/api/state` and look at the `version` field.
 
 ## What the compose file does
 
@@ -103,18 +123,18 @@ docker compose exec ferd python3 -c \
 
 ## Updating
 
-For the current source-build flow:
+If you're pulling a prebuilt image (`ghcr.io/polybjorn/ferd:latest` or `:dev`):
+
+```sh
+docker compose pull
+docker compose up -d
+```
+
+If you're building from source:
 
 ```sh
 git pull
 docker compose build
-docker compose up -d
-```
-
-Once a prebuilt image is published, this becomes:
-
-```sh
-docker compose pull
 docker compose up -d
 ```
 
