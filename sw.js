@@ -1,6 +1,9 @@
 // Ferd service worker.
-// Bump CACHE_VERSION on each release that changes the app shell or vendor deps.
-const CACHE_VERSION = 'ferd-v69';
+// CACHE_VERSION is rewritten on serve by tools/api.py: the placeholder
+// below gets replaced with `ferd-<hash>` where the hash covers sw.js
+// itself plus every file in SHELL_ASSETS. Any shell change yields a new
+// version automatically; do not edit the literal by hand.
+const CACHE_VERSION = '__FERD_CACHE_VERSION__';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const TILE_CACHE = `${CACHE_VERSION}-tiles`;
@@ -27,7 +30,7 @@ const SHELL_ASSETS = [
   '/vendor/leaflet/images/layers-2x.png',
   '/vendor/leaflet-tilelayer-nogap/L.TileLayer.NoGap.js',
   '/vendor/supercluster/supercluster.min.js',
-  '/vendor/leaflet-gpx/gpx.min.js',
+  '/vendor/leaflet-gpx/gpx.js',
   '/vendor/leaflet-elevation/leaflet-elevation.css',
   '/vendor/leaflet-elevation/leaflet-elevation.js',
   '/vendor/src/components/chart.js',
@@ -51,6 +54,10 @@ const SHELL_ASSETS = [
   '/vendor/libs/leaflet-edgescale.min.js',
   '/vendor/libs/leaflet-hotline.min.js',
   '/vendor/images/elevation.svg',
+  '/vendor/d3/d3.min.js',
+  '/vendor/togeojson/togeojson.umd.js',
+  '/vendor/leaflet-geometryutil/leaflet.geometryutil.js',
+  '/vendor/leaflet-almostover/leaflet.almostover.js',
 ];
 
 const TILE_HOSTS = [
@@ -114,7 +121,14 @@ self.addEventListener('fetch', (event) => {
 
   // Same-origin routing.
   if (url.pathname.startsWith('/api/')) {
-    return; // network-only
+    // GPX downloads are large, immutable per filename, and the manifest is
+    // the source of truth for which file is current; cache them so trail
+    // detail navigation doesn't pay a network round-trip every time.
+    if (url.pathname.startsWith('/api/gpx/') && url.pathname.endsWith('.gpx')) {
+      event.respondWith(staleWhileRevalidate(req, RUNTIME_CACHE));
+    }
+    // Everything else under /api/ is network-only (auth, mutations, JSON).
+    return;
   }
 
   if (url.pathname === '/' || url.pathname === '/index.html') {

@@ -951,6 +951,9 @@
       overflow: hidden;
       background: var(--surface);
       flex-shrink: 0;
+      /* Reserve the chart's final height up-front so the map container
+         doesn't shrink (and re-fit) once the elevation chart populates. */
+      min-height: 200px;
     }
     .elevation-wrap .elevation-detached { margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; }
     .elevation-wrap .elevation-detached svg { width: 100% !important; display: block; margin-top: -8px; margin-bottom: -20px; }
@@ -1096,6 +1099,8 @@
       flex-shrink: 0;
       overflow-y: auto;
       max-height: 50vh;
+      /* Same reservation as single-track elevation-wrap. */
+      min-height: 200px;
     }
     .elevation-track-panel {
       border: 1px solid var(--border);
@@ -2255,7 +2260,7 @@
   <script src="/vendor/leaflet/leaflet.js"></script>
   <script src="/vendor/leaflet-tilelayer-nogap/L.TileLayer.NoGap.js"></script>
   <script src="/vendor/supercluster/supercluster.min.js"></script>
-  <script src="/vendor/leaflet-gpx/gpx.min.js"></script>
+  <script src="/vendor/leaflet-gpx/gpx.js"></script>
   <script src="/vendor/leaflet-elevation/leaflet-elevation.js"></script>
   <script>
     // ----- Shared -----
@@ -2922,6 +2927,16 @@
     // Apply current trail-weight to all live trail polylines without rebuilding.
     // Stamp the original stroke-width on first observation so later
     // adjustments can divide back without losing precision.
+    // Override leaflet-elevation's lazy-import URLs to point at our
+    // vendored copies so the chart works without a network round-trip
+    // to unpkg. The constants match the lib's internal option names.
+    const ELEVATION_VENDOR_URLS = {
+      __D3: '/vendor/d3/d3.min.js',
+      __TOGEOJSON: '/vendor/togeojson/togeojson.umd.js',
+      __LGEOMUTIL: '/vendor/leaflet-geometryutil/leaflet.geometryutil.js',
+      __LALMOSTOVER: '/vendor/leaflet-almostover/leaflet.almostover.js',
+    };
+
     // Waypoint rendering helpers. leaflet-gpx skips creating a marker if
     // wptIcons[''] is null (just logs a warning), so we feed it a
     // placeholder icon to trigger its 'addpoint' event, then replace the
@@ -3395,16 +3410,22 @@
       let focusTrailKey = (focus && focus.type === 'trail') ? focus.name : null;
       let focusTrailLayer = null;
 
-      // Same rationale as places: always build the GPX layers; visibility is
-      // controlled by applyMapFilters.
+      // Lazy GPX loading. Building one polyline per route up-front grows
+      // linearly with the manifest; viewport-based on-demand loading keeps
+      // the working set bounded regardless of total trail count. The
+      // manifest's per-route bbox is still used synchronously for initial
+      // fit, so the map opens at the right area without waiting on any
+      // GPX fetch.
+      const trailDescriptors = [];
+      const loadedRouteKeys = new Set();
+      const pendingRouteKeys = new Set();
       if (state.manifest) {
         for (const region of state.manifest.regions) {
           for (const route of region.routes) {
             const color = trailStatusColor(route.completed);
             const parent = route.completed ? groupCompleted : groupPlanned;
             const gpxUrl = gpxUrlFor(route.file);
-            // Use the manifest-supplied bbox synchronously so initial map
-            // bounds reflect filtered trails without waiting on GPX async load.
+            trailDescriptors.push({ route, region, color, parent, gpxUrl });
             const visibleStatus = route.completed ? state.showCompleted : state.showPlanned;
             if (route.bbox && route.bbox.length === 4
                 && !state.hiddenRegions.has(region.name)
@@ -3412,37 +3433,6 @@
               trailBounds.extend([route.bbox[0], route.bbox[1]]);
               trailBounds.extend([route.bbox[2], route.bbox[3]]);
             }
-            (function(route, region, color, parent, gpxUrl) {
-              fetchGpxText(gpxUrl).then(function(text) {
-                const gpxLayer = new L.GPX(text, {
-                  async: true,
-                  polyline_options: { color: color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'trail-line' },
-                  // Waypoints hidden on the index map; revealed in detail view only.
-                  markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
-                });
-                gpxLayer.on('loaded', function(e) {
-                  const b = e.target.getBounds();
-                  if (b.isValid()) trailBounds.extend(b);
-                  if (focusTrailKey && route.key === focusTrailKey) {
-                    focusTrailLayer = e.target;
-                    if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
-                  }
-                  applyNonScalingStroke(e.target);
-                }).on('error', function(e) {
-                  console.warn('[ferd] gpx parse failed for', gpxUrl, e && e.err);
-                  try { parent.removeLayer(gpxLayer); } catch (_) {}
-                }).bindPopup(
-                  trailPopupHtml(route, region, color),
-                  { closeButton: false }
-                ).on('click', (function(slug) {
-                  return function() { history.replaceState(null, '', focusHash('trail', slug)); };
-                })(route._slug || route.key));
-                parent.addLayer(gpxLayer);
-                trailLayers.push({ route, region: region.name, layer: gpxLayer, completed: route.completed });
-              }).catch(function(err) {
-                console.warn('[ferd] gpx fetch failed for', gpxUrl, err);
-              });
-            })(route, region, color, parent, gpxUrl);
           }
         }
       }
@@ -3450,6 +3440,79 @@
       state._trailLayers = trailLayers;
       state._trailGroupCompleted = groupCompleted;
       state._trailGroupPlanned = groupPlanned;
+
+      function loadRouteLazy(desc) {
+        if (loadedRouteKeys.has(desc.route.key) || pendingRouteKeys.has(desc.route.key)) return;
+        pendingRouteKeys.add(desc.route.key);
+        fetchGpxText(desc.gpxUrl).then(function(text) {
+          const gpxLayer = new L.GPX(text, {
+            async: true,
+            polyline_options: { color: desc.color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'trail-line' },
+            // Waypoints hidden on the index map; revealed in detail view only.
+            markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
+          });
+          gpxLayer.on('loaded', function(e) {
+            const b = e.target.getBounds();
+            if (b.isValid()) trailBounds.extend(b);
+            if (focusTrailKey && desc.route.key === focusTrailKey) {
+              focusTrailLayer = e.target;
+              if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
+            }
+            applyNonScalingStroke(e.target);
+          }).on('error', function(e) {
+            console.warn('[ferd] gpx parse failed for', desc.gpxUrl, e && e.err);
+            try { desc.parent.removeLayer(gpxLayer); } catch (_) {}
+          }).bindPopup(
+            trailPopupHtml(desc.route, desc.region, desc.color),
+            { closeButton: false }
+          ).on('click', (function(slug) {
+            return function() { history.replaceState(null, '', focusHash('trail', slug)); };
+          })(desc.route._slug || desc.route.key));
+          trailLayers.push({ route: desc.route, region: desc.region.name, layer: gpxLayer, completed: desc.route.completed });
+          loadedRouteKeys.add(desc.route.key);
+          pendingRouteKeys.delete(desc.route.key);
+          applyMapFilters();
+        }).catch(function(err) {
+          pendingRouteKeys.delete(desc.route.key);
+          console.warn('[ferd] gpx fetch failed for', desc.gpxUrl, err);
+        });
+      }
+
+      // Skip routes whose bbox would render smaller than this many pixels
+      // at the current zoom; they'd be visual noise on a continent-zoom view.
+      const MIN_TRAIL_VISIBLE_PX = 6;
+      function routeShouldLoad(desc, paddedBounds, mapZoom) {
+        const b = desc.route.bbox;
+        if (!b || b.length !== 4) return true; // no bbox info, conservative
+        const sw = L.latLng(b[0], b[1]);
+        const ne = L.latLng(b[2], b[3]);
+        if (!paddedBounds.intersects(L.latLngBounds(sw, ne))) return false;
+        const sp = map.project(sw, mapZoom);
+        const np = map.project(ne, mapZoom);
+        const dx = Math.abs(np.x - sp.x);
+        const dy = Math.abs(np.y - sp.y);
+        return Math.sqrt(dx * dx + dy * dy) >= MIN_TRAIL_VISIBLE_PX;
+      }
+      function evaluateVisibleRoutes() {
+        if (!map._loaded) return;
+        const padded = map.getBounds().pad(0.5);
+        const zoom = map.getZoom();
+        for (const desc of trailDescriptors) {
+          if (loadedRouteKeys.has(desc.route.key) || pendingRouteKeys.has(desc.route.key)) continue;
+          if (focusTrailKey && desc.route.key === focusTrailKey) { loadRouteLazy(desc); continue; }
+          if (routeShouldLoad(desc, padded, zoom)) loadRouteLazy(desc);
+        }
+      }
+      let _trailEvalTimer = null;
+      function scheduleTrailEval() {
+        if (_trailEvalTimer) clearTimeout(_trailEvalTimer);
+        _trailEvalTimer = setTimeout(evaluateVisibleRoutes, 150);
+      }
+      map.on('moveend', scheduleTrailEval);
+      // Kick an initial evaluation: when the map opens at a stored or
+      // focus view, no moveend fires after we register the listener, so
+      // visible trails would only load on the user's first pan.
+      scheduleTrailEval();
 
       applyMapFilters();
 
@@ -4777,6 +4840,15 @@
           location.hash = '#/';
         });
       });
+
+      // Warm the SW cache so clicking a trail from the list gets an
+      // already-cached GPX response and renders the polyline immediately.
+      // Fire immediately (not on idle) since the most common interaction
+      // is a fast click within a few hundred ms of the list rendering;
+      // the 4-at-a-time limiter in fetchGpxText keeps the burst polite.
+      for (const route of allRoutes) {
+        fetchGpxText(gpxUrlFor(route.file)).catch(function () { /* ignore */ });
+      }
     }
 
     // ----- Trail detail (elevation) -----
@@ -4965,7 +5037,13 @@
       html += '<div class="mobile-stats" id="mobile-stats"></div>';
       if (isMultiTrack) {
         html += '<div id="track-legend"></div>';
-        html += '<div id="multi-elevation-container"></div>';
+        // Reserve the populated height up-front (one expanded chart plus
+        // a header per collapsed track) so the map doesn't shrink when
+        // the panels render. trackCount comes from the manifest.
+        const trackHeaderPx = 30;
+        const expandedChartPx = 200;
+        const reservedPx = expandedChartPx + Math.max(0, (route.trackCount || 1) - 1) * trackHeaderPx;
+        html += '<div id="multi-elevation-container" style="min-height:' + reservedPx + 'px"></div>';
       } else {
         if (route.hasElevation) html += '<div class="elevation-wrap" id="elevation-container"></div>';
         else html += '<div class="no-elevation-notice">No elevation data available for this route</div>';
@@ -4988,19 +5066,31 @@
         maxBoundsViscosity: 1.0,
         markerZoomAnimation: false,
         renderer: L.svg()
-      }).setView(dvt.center, dvt.zoom);
+      });
+      // Fit to the route's bbox up-front so the initial tile load is near
+      // the trail instead of the trails-default view (Norway), avoiding a
+      // visible jump when GPX-driven fitBounds settles a moment later.
+      // Also stashes the bbox as state._lastTrailBounds so the GPX-load
+      // handlers and the ResizeObserver skip their own fitBounds (the
+      // manifest bbox includes waypoints, while gpx.getBounds() doesn't,
+      // and reconciling produces a perceptible re-zoom).
+      if (route.bbox && route.bbox.length === 4) {
+        const bb = L.latLngBounds([route.bbox[0], route.bbox[1]], [route.bbox[2], route.bbox[3]]);
+        map.fitBounds(bb, { padding: [40, 40] });
+        state._lastTrailBounds = bb;
+      } else {
+        map.setView(dvt.center, dvt.zoom);
+      }
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
       // Map container shrinks asynchronously as the elevation chart and
-      // other detail-view widgets settle. invalidateSize alone leaves the
-      // map centered on the pre-shrink viewport, so refit to the last
-      // known content bounds whenever the container resizes.
+      // other detail-view widgets settle. Sync Leaflet's known size and
+      // force a polyline repaint so the trail stays drawn, but leave the
+      // viewport alone — refitting against the new size would zoom-jump
+      // a moment after the initial bbox fit, which is jarring.
       if (typeof ResizeObserver !== 'undefined') {
         const ro = new ResizeObserver(function() {
           map.invalidateSize();
-          if (state._lastTrailBounds && state._lastTrailBounds.isValid()) {
-            map.fitBounds(state._lastTrailBounds, { padding: [40, 40], animate: false });
-          }
           map.eachLayer(function(l) { if (typeof l.redraw === 'function') l.redraw(); });
           adjustTrailStrokes();
         });
@@ -5094,7 +5184,7 @@
     function renderSingleTrack(map, route, color) {
       let elevationControl = null;
       if (route.hasElevation) {
-        elevationControl = L.control.elevation({
+        elevationControl = L.control.elevation(Object.assign({
           theme: 'custom-theme',
           detached: true,
           elevationDiv: '#elevation-container',
@@ -5102,9 +5192,9 @@
           imperial: isImperial(),
           slope: false, speed: false, acceleration: false, time: false,
           legend: false, summary: false, ruler: false, downloadLink: false,
-          almostOver: false, distanceMarkers: false,
+          almostOver: false, distanceMarkers: false, autofitBounds: false, fitBounds: false,
           polyline: { color: color, opacity: 0.9, weight: 5 * getTrailWeightFactor() },
-        }).addTo(map);
+        }, ELEVATION_VENDOR_URLS)).addTo(map);
         state.currentElevation = elevationControl;
       }
 
@@ -5118,7 +5208,7 @@
       singleGpx.on('loaded', function(e) {
         const gpx = e.target;
         const bounds = gpx.getBounds();
-        if (bounds.isValid()) {
+        if (bounds.isValid() && !state._lastTrailBounds) {
           state._lastTrailBounds = bounds;
           map.fitBounds(bounds, { padding: [40, 40] });
         }
@@ -5210,22 +5300,22 @@
             L.polyline(latlngs, { color: tc, opacity: 0.9, weight: 5 * getTrailWeightFactor() }).addTo(map);
             const hasEle = track.points.some(p => p.ele !== null);
             if (hasEle && container) {
-              const ctrl = L.control.elevation({
+              const ctrl = L.control.elevation(Object.assign({
                 theme: 'custom-theme', detached: true,
                 elevationDiv: '#elevation-track-' + i,
                 height: elevHeight,
                 imperial: isImperial(),
                 slope: false, speed: false, acceleration: false, time: false,
                 legend: false, summary: false, ruler: false, downloadLink: false,
-                almostOver: false, distanceMarkers: false,
+                almostOver: false, distanceMarkers: false, autofitBounds: false, fitBounds: false,
                 polyline: false,
-              }).addTo(map);
+              }, ELEVATION_VENDOR_URLS)).addTo(map);
               ctrl.addData(trackToGeoJSON(track));
               elevControls.push(ctrl);
             }
           }
           state.currentElevation = elevControls;
-          if (bounds.isValid()) {
+          if (bounds.isValid() && !state._lastTrailBounds) {
             state._lastTrailBounds = bounds;
             map.fitBounds(bounds, { padding: [40, 40] });
           }
@@ -7377,6 +7467,11 @@
             }
           });
         });
+        // Force an update check on every page load. Firefox especially is
+        // lazy about checking for new SW versions otherwise, and our
+        // content-hash CACHE_VERSION means sw.js bytes can change on any
+        // shell-file edit; users shouldn't have to unregister manually.
+        try { reg.update(); } catch (_) {}
       }).catch(() => { /* registration failed; app still works online */ });
     })();
   </script>
