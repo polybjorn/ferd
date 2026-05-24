@@ -1178,14 +1178,25 @@
       padding-top: 1rem;
       border-top: 1px solid var(--border);
     }
-    .signin-public-heading {
-      font-size: 0.7rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
+    .signin-public-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       color: var(--muted);
-      margin: 0 0 0.5rem;
-      font-weight: 400;
+      font: inherit;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
     }
+    .signin-public-toggle:hover { color: var(--text); border-color: var(--border-hover); }
+    .signin-public-chevron { transition: transform 0.2s ease; font-size: 0.55rem; }
+    .signin-public-toggle.expanded .signin-public-chevron { transform: rotate(180deg); }
+    #signin-public-collapsible.expanded .collapsible-inner { padding-top: 0.5rem; max-height: 40vh; overflow-y: auto; }
     .public-maps-list { display: flex; flex-direction: column; gap: 0.4rem; }
     .public-maps-item {
       display: block;
@@ -7278,8 +7289,9 @@
         document.body.classList.remove('signin-only');
         return loadDataAndRender();
       } });
-      // Surface any published maps as a list inside the sign-in card, so a
-      // visitor who isn't going to sign in can still reach a public map.
+      // Surface any published maps as a collapsible list inside the
+      // sign-in card. Starts collapsed so the card stays compact even
+      // with a long roster; the toggle button shows the count.
       fetchJson(apiUrl('/public-maps'), { usernames: [] }).then(function(resp) {
         const names = (resp && resp.usernames) || [];
         if (!names.length) return;
@@ -7287,12 +7299,26 @@
         if (!box) return;
         box.hidden = false;
         box.innerHTML =
-          '<h3 class="signin-public-heading">Public maps</h3>' +
-          '<div class="public-maps-list">' +
-            names.map(u =>
-              '<a class="public-maps-item" href="/u/' + encodeURIComponent(u) + '/">' + escapeHtml(u) + '</a>'
-            ).join('') +
+          '<button type="button" class="signin-public-toggle" aria-expanded="false">' +
+            '<span>Public maps (' + names.length + ')</span>' +
+            '<span class="signin-public-chevron" aria-hidden="true">&#x25BC;</span>' +
+          '</button>' +
+          '<div class="collapsible" id="signin-public-collapsible">' +
+            '<div class="collapsible-inner">' +
+              '<div class="public-maps-list">' +
+                names.map(u =>
+                  '<a class="public-maps-item" href="/u/' + encodeURIComponent(u) + '/">' + escapeHtml(u) + '</a>'
+                ).join('') +
+              '</div>' +
+            '</div>' +
           '</div>';
+        const toggle = box.querySelector('.signin-public-toggle');
+        const list = document.getElementById('signin-public-collapsible');
+        toggle.addEventListener('click', function() {
+          const expanded = list.classList.toggle('expanded');
+          toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+          toggle.classList.toggle('expanded', expanded);
+        });
       });
     }
 
