@@ -2809,6 +2809,7 @@
         try { state._currentMapResizeObserver.disconnect(); } catch (e) {}
         state._currentMapResizeObserver = null;
       }
+      state._lastTrailBounds = null;
       if (state.currentMap) {
         state.currentMap.remove();
         state.currentMap = null;
@@ -4862,11 +4863,16 @@
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
       // Map container shrinks asynchronously as the elevation chart and
-      // other detail-view widgets settle, leaving polylines drawn against
-      // a stale viewport until the user nudges the map. Watch the
-      // container and recalc on every real size change.
+      // other detail-view widgets settle. invalidateSize alone leaves the
+      // map centered on the pre-shrink viewport, so refit to the last
+      // known content bounds whenever the container resizes.
       if (typeof ResizeObserver !== 'undefined') {
-        const ro = new ResizeObserver(function() { map.invalidateSize(); });
+        const ro = new ResizeObserver(function() {
+          map.invalidateSize();
+          if (state._lastTrailBounds && state._lastTrailBounds.isValid()) {
+            map.fitBounds(state._lastTrailBounds, { padding: [40, 40], animate: false });
+          }
+        });
         ro.observe(map.getContainer());
         state._currentMapResizeObserver = ro;
       }
@@ -4977,7 +4983,10 @@
       }).on('loaded', function(e) {
         const gpx = e.target;
         const bounds = gpx.getBounds();
-        if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
+        if (bounds.isValid()) {
+          state._lastTrailBounds = bounds;
+          map.fitBounds(bounds, { padding: [40, 40] });
+        }
         applyNonScalingStroke(gpx);
 
         const layers = [];
@@ -5052,7 +5061,10 @@
             }
           }
           state.currentElevation = elevControls;
-          if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
+          if (bounds.isValid()) {
+            state._lastTrailBounds = bounds;
+            map.fitBounds(bounds, { padding: [40, 40] });
+          }
           const firstTrack = tracks[0];
           const lastTrack = tracks[tracks.length - 1];
           if (firstTrack.points.length > 0 && lastTrack.points.length > 0) {

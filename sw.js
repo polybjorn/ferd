@@ -1,6 +1,6 @@
 // Ferd service worker.
 // Bump CACHE_VERSION on each release that changes the app shell or vendor deps.
-const CACHE_VERSION = 'ferd-v55';
+const CACHE_VERSION = 'ferd-v56';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const TILE_CACHE = `${CACHE_VERSION}-tiles`;
