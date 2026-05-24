@@ -4842,14 +4842,13 @@
       });
 
       // Warm the SW cache so clicking a trail from the list gets an
-      // already-cached GPX response and renders the polyline immediately,
-      // instead of waiting on a network round-trip after navigation.
-      const prefetchSoon = window.requestIdleCallback || function (fn) { return setTimeout(fn, 200); };
-      prefetchSoon(function () {
-        for (const route of allRoutes) {
-          fetchGpxText(gpxUrlFor(route.file)).catch(function () { /* ignore */ });
-        }
-      });
+      // already-cached GPX response and renders the polyline immediately.
+      // Fire immediately (not on idle) since the most common interaction
+      // is a fast click within a few hundred ms of the list rendering;
+      // the 4-at-a-time limiter in fetchGpxText keeps the burst polite.
+      for (const route of allRoutes) {
+        fetchGpxText(gpxUrlFor(route.file)).catch(function () { /* ignore */ });
+      }
     }
 
     // ----- Trail detail (elevation) -----
