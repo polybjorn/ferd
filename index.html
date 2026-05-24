@@ -4824,9 +4824,16 @@
       return out;
     }
 
-    function addGpxWaypoints(map, waypoints) {
+    // Skip waypoints within this radius (m) of the trail's start/end so
+    // they don't visually collide with the start/end markers (common for
+    // loop trails where the GPX records the trailhead as a waypoint).
+    const WAYPOINT_ENDPOINT_SUPPRESS_M = 75;
+    function addGpxWaypoints(map, waypoints, startLatLng, endLatLng) {
       for (const w of waypoints) {
-        const m = L.marker([w.lat, w.lon], { icon: makeWaypointIcon() });
+        const ll = L.latLng(w.lat, w.lon);
+        if (startLatLng && ll.distanceTo(startLatLng) < WAYPOINT_ENDPOINT_SUPPRESS_M) continue;
+        if (endLatLng && ll.distanceTo(endLatLng) < WAYPOINT_ENDPOINT_SUPPRESS_M) continue;
+        const m = L.marker(ll, { icon: makeWaypointIcon() });
         const body = '<b>' + escapeHtml(w.name) + '</b>' + (w.desc ? '<br>' + escapeHtml(w.desc) : '');
         m.bindPopup(body, { closeButton: false });
         m.addTo(map);
@@ -5120,7 +5127,20 @@
         if (layers.length > 0) {
           const latlngs = layers[0].getLatLngs();
           const flat = Array.isArray(latlngs[0]) ? latlngs.flat() : latlngs;
-          if (flat.length > 1) addStartEndMarkers(map, flat[0], flat[flat.length - 1]);
+          if (flat.length > 1) {
+            const startLL = flat[0];
+            const endLL = flat[flat.length - 1];
+            addStartEndMarkers(map, startLL, endLL);
+            // Drop waypoints that sit on top of the start/end markers.
+            gpx.eachLayer(function(layer) {
+              if (!layer.options || layer.options.type !== 'waypoint' || !layer.getLatLng) return;
+              const ll = layer.getLatLng();
+              if (ll.distanceTo(startLL) < WAYPOINT_ENDPOINT_SUPPRESS_M
+                  || ll.distanceTo(endLL) < WAYPOINT_ENDPOINT_SUPPRESS_M) {
+                gpx.removeLayer(layer);
+              }
+            });
+          }
         }
 
         const dist = gpx.get_distance();
@@ -5142,7 +5162,12 @@
         .then(function(xmlText) {
           const tracks = parseGpxTracks(xmlText);
           if (tracks.length === 0) return;
-          addGpxWaypoints(map, parseGpxWaypoints(xmlText));
+          const firstPt = tracks[0].points[0];
+          const lastTrack = tracks[tracks.length - 1];
+          const lastPt = lastTrack.points[lastTrack.points.length - 1];
+          const startLL = firstPt ? L.latLng(firstPt.lat, firstPt.lon) : null;
+          const endLL = lastPt ? L.latLng(lastPt.lat, lastPt.lon) : null;
+          addGpxWaypoints(map, parseGpxWaypoints(xmlText), startLL, endLL);
 
           const elevHeight = 200;
           const elevControls = [];
