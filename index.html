@@ -1173,6 +1173,15 @@
       max-width: 360px;
       box-shadow: 0 10px 40px var(--shadow);
     }
+    .signin-public-heading {
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 1.25rem 0 0.4rem;
+      text-align: center;
+    }
+    #signin-public-maps { width: 100%; max-width: 360px; }
     .public-maps-list { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.5rem; }
     .public-maps-item {
       display: block;
@@ -7248,31 +7257,6 @@
       });
     }
 
-    function renderPublicMapsLanding(usernames) {
-      const app = document.getElementById('app');
-      document.body.classList.add('signin-only');
-      const brand = (state.config && state.config.brand) || 'Ferd';
-      app.innerHTML =
-        '<div class="signin-page">' +
-          '<img class="signin-logo" src="/favicon.svg" alt="">' +
-          '<div class="signin-brand">' + escapeHtml(brand) + '</div>' +
-          '<div class="modal">' +
-            '<h2>Public maps</h2>' +
-            '<div class="public-maps-list">' +
-              usernames.map(u =>
-                '<a class="public-maps-item" href="/u/' + encodeURIComponent(u) + '/">' + escapeHtml(u) + '</a>'
-              ).join('') +
-            '</div>' +
-            '<div class="modal-actions" style="margin-top:1rem">' +
-              '<button type="button" class="primary" id="landing-signin">Sign in</button>' +
-            '</div>' +
-          '</div>' +
-        '</div>';
-      document.getElementById('landing-signin').addEventListener('click', function() {
-        renderSignInPage();
-      });
-    }
-
     function renderSignInPage() {
       const app = document.getElementById('app');
       document.body.classList.add('signin-only');
@@ -7282,11 +7266,28 @@
           '<img class="signin-logo" src="/favicon.svg" alt="">' +
           '<div class="signin-brand">' + escapeHtml(brand) + '</div>' +
           '<div class="modal">' + signInFormHtml(false) + '</div>' +
+          '<div id="signin-public-maps" hidden></div>' +
         '</div>';
       bindSignInForm({ onSuccess: () => {
         document.body.classList.remove('signin-only');
         return loadDataAndRender();
       } });
+      // Surface any published maps as a list below the sign-in form, so a
+      // visitor who isn't going to sign in can still reach a public map.
+      fetchJson(apiUrl('/public-maps'), { usernames: [] }).then(function(resp) {
+        const names = (resp && resp.usernames) || [];
+        if (!names.length) return;
+        const box = document.getElementById('signin-public-maps');
+        if (!box) return;
+        box.hidden = false;
+        box.innerHTML =
+          '<div class="signin-public-heading">Public maps</div>' +
+          '<div class="public-maps-list">' +
+            names.map(u =>
+              '<a class="public-maps-item" href="/u/' + encodeURIComponent(u) + '/">' + escapeHtml(u) + '</a>'
+            ).join('') +
+          '</div>';
+      });
     }
 
     // ----- Add place / GPX modal -----
@@ -7800,15 +7801,8 @@
         renderAuthWidget();
         const v = state.viewer;
         if (v.mode === 'owner' && !state.auth.authenticated) {
-          // If any users have published their maps, offer them as a
-          // landing page; otherwise fall straight through to sign-in.
-          return fetchJson(apiUrl('/public-maps'), { usernames: [] })
-            .then(function(resp) {
-              const names = (resp && resp.usernames) || [];
-              if (names.length) renderPublicMapsLanding(names);
-              else renderSignInPage();
-            })
-            .catch(function() { renderSignInPage(); });
+          renderSignInPage();
+          return;
         }
         return loadSyncedPrefs().then(() => loadDataAndRender());
       });
