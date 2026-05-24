@@ -59,7 +59,7 @@ GPX_NS = "http://www.topografix.com/GPX/1/1"
 # dot-dot whole-string rejection lives in safe_path_component itself.
 PATH_COMPONENT_RE = re.compile(r"^[^\x00-\x1f/\\]{1,255}$")
 PLACE_REQUIRED = {"name", "lat", "lon"}
-PLACE_OPTIONAL = {"category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating"}
+PLACE_OPTIONAL = {"category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating", "image"}
 PLACE_ALL = PLACE_REQUIRED | PLACE_OPTIONAL
 
 # Trail metadata fields and their constraints (used by /api/metadata).
@@ -762,6 +762,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_export_get()
     if path == "/api/public-maps":
       return self._h_public_maps()
+    if path == "/api/catalog":
+      return self._h_catalog_get()
     if path == "/api/admin/users":
       return self._h_admin_users_list()
     if path == "/api/admin/stats":
@@ -895,6 +897,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_admin_settings_publishing()
     if path == "/api/admin/unpublish-all":
       return self._h_admin_unpublish_all()
+    if path == "/api/admin/catalog/add":
+      return self._h_admin_catalog_add()
+    if path == "/api/admin/catalog/delete":
+      return self._h_admin_catalog_delete()
+    if path == "/api/admin/catalog/clear":
+      return self._h_admin_catalog_clear()
     if path.startswith("/api/admin/users/"):
       rest = path[len("/api/admin/users/"):]
       parts = rest.split("/", 1)
@@ -964,6 +972,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {
       "usernames": [r["username"] for r in rows],
     })
+
+  def _h_catalog_get(self):
+    """Site-level catalog of curated places. Read-only via API; admin edits
+    `<data_dir>/catalog.json` directly. Returns [] if the file is missing."""
+    user = self._require_user()
+    if user is None:
+      return
+    catalog_path = Path(self.cfg["data_dir"]).resolve() / "catalog.json"
+    try:
+      data = load_json_file(catalog_path, expected_type=list, required=False, label="catalog.json")
+    except ValidationError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+    self._send_json(HTTPStatus.OK, data or [])
 
   def _h_register(self):
     body = self._read_body_or_400()
@@ -1306,6 +1327,107 @@ class Handler(http.server.BaseHTTPRequestHandler):
     log_event(self.conn, actor=admin["username"], action="admin.unpublish_all",
               details={"affected": affected})
     self._send_json(HTTPStatus.OK, {"ok": True, "affected": affected})
+
+  def _h_admin_catalog_add(self):
+    admin = self._require_admin()
+    if admin is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    entries = body.get("entries")
+    if not isinstance(entries, list) or not entries:
+      return self._error(HTTPStatus.BAD_REQUEST, "entries: non-empty list required")
+    cleaned = []
+    for i, raw in enumerate(entries):
+      try:
+        p = validate_place(raw)
+      except ValidationError as e:
+        return self._error(HTTPStatus.BAD_REQUEST, f"entry #{i}: {e}")
+      # Catalog entries describe a place, not a personal visit; drop visit-only fields.
+      for k in ("visited", "date_visited", "rating"):
+        p.pop(k, None)
+      cleaned.append(p)
+
+    catalog_path = Path(self.cfg["data_dir"]).resolve() / "catalog.json"
+    lock_path = catalog_path.parent / ".catalog.lock"
+    state = {"added": 0, "skipped": 0, "total": 0}
+
+    def do_add():
+      existing = load_json_file(catalog_path, expected_type=list, required=False, label="catalog.json")
+      names = {e["name"] for e in existing if isinstance(e, dict) and isinstance(e.get("name"), str)}
+      for e in cleaned:
+        if e["name"] in names:
+          state["skipped"] += 1
+          continue
+        existing.append(e)
+        names.add(e["name"])
+        state["added"] += 1
+      write_json_file(catalog_path, existing)
+      state["total"] = len(existing)
+
+    try:
+      with_file_lock(lock_path, do_add)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write catalog.json: {e}")
+
+    log_event(self.conn, actor=admin["username"], action="admin.catalog_add",
+              details={"added": state["added"], "skipped": state["skipped"]})
+    self._send_json(HTTPStatus.OK, {"ok": True, **state})
+
+  def _h_admin_catalog_delete(self):
+    admin = self._require_admin()
+    if admin is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    names_in = body.get("names")
+    if not isinstance(names_in, list) or not names_in or not all(isinstance(n, str) for n in names_in):
+      return self._error(HTTPStatus.BAD_REQUEST, "names: non-empty list of strings required")
+    drop = set(names_in)
+
+    catalog_path = Path(self.cfg["data_dir"]).resolve() / "catalog.json"
+    lock_path = catalog_path.parent / ".catalog.lock"
+    state = {"removed": 0, "total": 0}
+
+    def do_delete():
+      existing = load_json_file(catalog_path, expected_type=list, required=False, label="catalog.json")
+      kept = [e for e in existing if not (isinstance(e, dict) and e.get("name") in drop)]
+      state["removed"] = len(existing) - len(kept)
+      write_json_file(catalog_path, kept)
+      state["total"] = len(kept)
+
+    try:
+      with_file_lock(lock_path, do_delete)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write catalog.json: {e}")
+
+    log_event(self.conn, actor=admin["username"], action="admin.catalog_delete",
+              details={"removed": state["removed"]})
+    self._send_json(HTTPStatus.OK, {"ok": True, **state})
+
+  def _h_admin_catalog_clear(self):
+    admin = self._require_admin()
+    if admin is None:
+      return
+    catalog_path = Path(self.cfg["data_dir"]).resolve() / "catalog.json"
+    lock_path = catalog_path.parent / ".catalog.lock"
+    state = {"removed": 0}
+
+    def do_clear():
+      existing = load_json_file(catalog_path, expected_type=list, required=False, label="catalog.json")
+      state["removed"] = len(existing)
+      write_json_file(catalog_path, [])
+
+    try:
+      with_file_lock(lock_path, do_clear)
+    except OSError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write catalog.json: {e}")
+
+    log_event(self.conn, actor=admin["username"], action="admin.catalog_clear",
+              details={"removed": state["removed"]})
+    self._send_json(HTTPStatus.OK, {"ok": True, "removed": state["removed"], "total": 0})
 
   def _h_admin_user_revoke_sessions(self, uid: int):
     admin = self._require_admin()
@@ -2248,8 +2370,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     qs = parse_qs(urlparse(self.path).query)
     mode = (qs.get("mode") or ["replace"])[0]
-    if mode not in ("replace", "merge"):
-      return self._error(HTTPStatus.BAD_REQUEST, "mode must be 'replace' or 'merge'")
+    if mode not in ("replace", "merge", "prefs"):
+      return self._error(HTTPStatus.BAD_REQUEST, "mode must be 'replace', 'merge', or 'prefs'")
 
     ctype = (self.headers.get("Content-Type") or "").split(";")[0].strip()
     if ctype not in ("application/zip", "application/octet-stream"):
@@ -2333,7 +2455,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       # Re-stage the cleaned form so the writer below uses the canonical bytes.
       staged["category-labels.json"] = (json.dumps(cleaned_labels, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
 
-    if new_places is not None:
+    if mode != "prefs" and new_places is not None:
       for i, p in enumerate(new_places):
         try:
           validate_place(p)
@@ -2341,13 +2463,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
           return self._error(HTTPStatus.BAD_REQUEST, f"places.json[{i}]: {e}")
 
     cleaned_gpx: dict[str, bytes] = {}
-    for arcname, data in staged.items():
-      if not arcname.startswith("gpx/"):
-        continue
-      try:
-        cleaned_gpx[arcname] = strip_gpx_pii(data)
-      except ValidationError as e:
-        return self._error(HTTPStatus.BAD_REQUEST, f"{arcname}: {e}")
+    if mode != "prefs":
+      for arcname, data in staged.items():
+        if not arcname.startswith("gpx/"):
+          continue
+        try:
+          cleaned_gpx[arcname] = strip_gpx_pii(data)
+        except ValidationError as e:
+          return self._error(HTTPStatus.BAD_REQUEST, f"{arcname}: {e}")
 
     udir = self._user_dir(user["username"])
     lock_path = udir / ".import.lock"
@@ -2373,6 +2496,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
           "changed_meta": len(new_metadata or {}),
           "changed_prefs": len(new_prefs or {}),
         }
+      if mode == "prefs":
+        # Preferences-only import: merge prefs.json and category-labels.json,
+        # skip places/routes/metadata and any GPX entries in the archive.
+        changed_prefs = 0
+        if new_prefs is not None:
+          prefs_path = udir / "prefs.json"
+          existing = load_json_file(prefs_path, expected_type=dict, required=False, label="prefs.json")
+          changed_prefs = sum(1 for k, v in new_prefs.items() if existing.get(k) != v)
+          existing.update(new_prefs)
+          write_json_file(prefs_path, existing)
+        if new_labels is not None:
+          labels_path = udir / "category-labels.json"
+          existing = load_json_file(labels_path, expected_type=dict, required=False, label="category-labels.json")
+          existing.update(cleaned_labels)
+          write_json_file(labels_path, existing)
+        return {"added_places": 0, "changed_meta": 0, "changed_prefs": changed_prefs}
       # merge
       added = 0
       if new_places is not None:
@@ -2691,6 +2830,11 @@ def validate_place(p: object) -> dict:
         raise ValidationError("each source must be a string (<=500 chars)")
       if urlparse(s).scheme.lower() not in ("http", "https"):
         raise ValidationError("each source must be an http(s) URL")
+  if "image" in p and p["image"] is not None and p["image"] != "":
+    if not isinstance(p["image"], str) or len(p["image"]) > 1000:
+      raise ValidationError("image must be a string (<=1000 chars) or null")
+    if urlparse(p["image"]).scheme.lower() not in ("http", "https"):
+      raise ValidationError("image must be an http(s) URL")
   # Return a normalized copy: trimmed strings, defaulted booleans.
   out = {
     "name": name.strip(),
@@ -2700,7 +2844,7 @@ def validate_place(p: object) -> dict:
   }
   if category is not None and category != "":
     out["category"] = category.strip()
-  for k in ("country", "note", "local_name", "sources"):
+  for k in ("country", "note", "local_name", "sources", "image"):
     if k in p and p[k] is not None:
       out[k] = p[k].strip() if isinstance(p[k], str) else p[k]
   if "date_visited" in p and p["date_visited"]:

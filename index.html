@@ -1278,6 +1278,11 @@
     .leaflet-popup-content .popup-local { font-size: 0.75rem; color: var(--muted); font-weight: 300; font-style: italic; }
     .leaflet-popup-content .cat-text { color: var(--c); }
     [data-mode="light"] .leaflet-popup-content .cat-text { color: var(--cl); }
+    .leaflet-popup-content .popup-image {
+      display: block; width: 100%; max-width: 280px; aspect-ratio: 16 / 10;
+      object-fit: cover; border-radius: var(--radius); margin: 0.4rem auto;
+      background: var(--surface2);
+    }
     .leaflet-popup-content .popup-note { color: var(--text); font-size: 0.75rem; margin-top: 0.3rem; }
     .leaflet-popup-content .popup-summary {
       color: var(--text);
@@ -1912,8 +1917,21 @@
       border-bottom: 1px solid var(--border);
       margin-bottom: 1rem;
     }
-    .modal-backdrop:has(#settings-tabs) { align-items: flex-start; padding-top: 3rem; padding-bottom: 3rem; }
+    .modal-backdrop:has(#settings-tabs),
+    .modal-backdrop:has(#cat-rows),
+    .modal-backdrop:has(#cat-list),
+    .modal-backdrop:has(#cat-mgr-list),
+    .modal-backdrop:has(#rgn-rows) { align-items: flex-start; padding-top: 3rem; padding-bottom: 3rem; }
     .modal-backdrop:has(#settings-tabs) .modal { max-height: calc(100vh - 6rem); }
+    /* For the catalog list/manager: fixed height (not just max) so the modal
+       always takes the same tall area instead of shrinking with content. The
+       list flex-grows to fill the available space. */
+    .modal-backdrop:has(#cat-list) .modal,
+    .modal-backdrop:has(#cat-mgr-list) .modal { display: flex; flex-direction: column; height: calc(100vh - 6rem); }
+    .modal-backdrop:has(#cat-list) #cat-list,
+    .modal-backdrop:has(#cat-mgr-list) #cat-mgr-list { flex: 1; min-height: 0; max-height: none; }
+    .modal-backdrop:has(#cat-list) #cat-list,
+    .modal-backdrop:has(#cat-mgr-list) #cat-mgr-list { flex: 1; min-height: 0; max-height: none; }
     /* Pin the Add modal to the top so switching Place <-> Trail (different
        form heights) doesn't shift the modal vertically. The body itself
        animates height between renders. */
@@ -2162,6 +2180,50 @@
       font-size: 0.78rem;
       line-height: 1.4;
     }
+    .cat-color-dot {
+      flex: 0 0 auto; width: 1.5rem; height: 1.5rem; border-radius: 50%;
+      border: 2px solid var(--border); padding: 0; cursor: pointer;
+      transition: transform 80ms ease-out;
+    }
+    .cat-color-dot:hover { transform: scale(1.1); }
+    .cat-color-dot.open { box-shadow: 0 0 0 2px var(--text); }
+    .cat-swatches {
+      display: grid; grid-template-columns: repeat(10, auto);
+      justify-content: center; gap: 0.4rem;
+      max-height: 0; opacity: 0; overflow: hidden;
+      padding: 0;
+      transition: max-height 220ms ease, opacity 140ms ease, padding 220ms ease;
+    }
+    .cat-swatches.open { max-height: 12rem; opacity: 1; padding: 0.5rem 0 0.25rem; }
+    .cat-swatch {
+      width: 1.75rem; height: 1.75rem; border-radius: 50%; padding: 0;
+      border: 2px solid transparent; cursor: pointer;
+    }
+    .cat-swatch.active { border-color: var(--text); }
+    /* On touch devices, bump tap targets to comfortable sizes. */
+    @media (pointer: coarse) {
+      .cat-color-dot { width: 2rem; height: 2rem; }
+      .cat-swatch { width: 2.5rem; height: 2.5rem; }
+      .cat-swatches { grid-template-columns: repeat(5, auto); gap: 0.5rem; }
+      .cat-swatches.open { max-height: 16rem; }
+    }
+    .row-note {
+      display: block; max-height: 0; opacity: 0; overflow: hidden; margin-top: 0;
+      font-size: 0.7rem; color: var(--muted); white-space: pre-wrap; word-break: break-word;
+    }
+    .show-notes .row-note { max-height: 8rem; opacity: 1; margin-top: 0.15rem; }
+    /* Transitions activate only after the user clicks the toggle, so freshly
+       rendered rows don't fire the animation on first paint. */
+    .notes-anim .row-note {
+      transition: max-height 220ms ease, opacity 140ms ease, margin-top 220ms ease;
+    }
+    .row-src { flex: 0 0 auto; font-size: 0.72rem; color: var(--muted); text-decoration: none; padding: 0.05rem 0.45rem; border: 1px solid var(--border); border-radius: 999px; }
+    .row-src:hover { color: var(--text); border-color: var(--text); }
+    .row-notes-toggle {
+      background: transparent; border: none; color: var(--muted); cursor: pointer;
+      padding: 0; font-size: 0.75rem; letter-spacing: 0;
+    }
+    .row-notes-toggle:hover { color: var(--text); text-decoration: underline; }
     .modal .log-row:last-child { border-bottom: none; }
     .modal .log-row .log-head {
       display: flex;
@@ -2568,11 +2630,13 @@
       const country = val('country').trim();
       const note = val('note').trim();
       const localName = val('local-name').trim();
+      const image = val('image').trim();
       const dateVisited = val('date-visited').trim();
       const ratingRaw = readStarRating(prefix + '-rating');
       if (country) payload.country = country;
       if (note) payload.note = note;
       if (localName) payload.local_name = localName;
+      if (image) payload.image = image;
       if (sources && sources.length) payload.sources = sources;
       // Visit-only metadata: ignore if the visited toggle is off.
       if (payload.visited) {
@@ -3208,6 +3272,10 @@
       const catStyle = '--c:' + color + ';--cl:' + colorLight;
       let html = shareCornerHtml('place', p._slug || p.name);
       html += '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local cat-text" style="' + catStyle + '">&middot; ' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
+      if (p.image) {
+        // Hide broken/blocked images instead of showing the empty alt frame.
+        html += '<img class="popup-image" src="' + escapeHtml(p.image) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
+      }
       if (p.note) html += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
       if (p.sources && p.sources.length) html += '<div class="popup-sources">' + renderSources(p.sources) + '</div>';
       html += '<div class="popup-meta">' +
@@ -3756,7 +3824,21 @@
 
       // Initial bounds: places + trails, prefer focus
       if (focusPlace) {
-        setTimeout(function() { revealPlaceMarker(map, focusPlace); }, 300);
+        // On reload at a place URL, keep the user's prior view (prevView /
+        // storedView) instead of forcing a zoom-in to the place. Opening the
+        // popup is enough acknowledgement; zooming would push every other
+        // marker out of the viewport, which reads as "the overlays vanished".
+        const restoredView = !!(prevView || storedView);
+        setTimeout(function() {
+          if (restoredView) {
+            L.popup({ closeButton: false })
+              .setLatLng([focusPlace.lat, focusPlace.lon])
+              .setContent(placePopupHtml(focusPlace))
+              .openOn(map);
+          } else {
+            revealPlaceMarker(map, focusPlace);
+          }
+        }, 300);
       } else if (!focusTrailKey && !prevView && !storedView) {
         const combined = L.latLngBounds();
         if (placeBounds.isValid()) combined.extend(placeBounds);
@@ -4003,6 +4085,10 @@
           (getShowField('note') ?
             '<label for="e-note">Note (optional)</label>' +
             '<textarea id="e-note" style="min-height:40px">' + escapeHtml(place.note || '') + '</textarea>'
+          : '') +
+          (getShowField('image') ?
+            '<label for="e-image">Image URL (optional)</label>' +
+            '<input type="url" id="e-image" value="' + escapeHtml(place.image || '') + '" placeholder="https://example.com/photo.jpg">'
           : '') +
           '<label for="e-sources">Sources (optional, one URL per line)</label>' +
           '<textarea id="e-sources" style="min-height:40px">' + escapeHtml(sourcesText) + '</textarea>' +
@@ -5797,25 +5883,35 @@
         '</div>';
       const btn = document.getElementById('auth-menu-btn');
       const menu = document.getElementById('auth-menu');
+      // Outside-click closer is added on open and removed on close. We use the
+      // capture phase because Leaflet stops propagation on map-container clicks,
+      // which would otherwise leave the menu open when clicking the map.
+      function outsideCloser(ev) {
+        if (!el.contains(ev.target)) closeMenu();
+      }
+      function closeMenu() {
+        menu.hidden = true;
+        document.removeEventListener('mousedown', outsideCloser, true);
+        document.removeEventListener('touchstart', outsideCloser, true);
+      }
+      function openMenu() {
+        menu.hidden = false;
+        document.addEventListener('mousedown', outsideCloser, true);
+        document.addEventListener('touchstart', outsideCloser, true);
+      }
       btn.addEventListener('click', function(e) {
         e.stopPropagation();
-        menu.hidden = !menu.hidden;
+        if (menu.hidden) openMenu(); else closeMenu();
       });
       menu.addEventListener('click', function(e) {
         const action = e.target.closest('button[data-action]');
         if (!action) return;
-        menu.hidden = true;
+        closeMenu();
         switch (action.dataset.action) {
           case 'settings': openSettingsModal(); break;
           case 'logs':     openLogsModal(); break;
           case 'about':    openAboutModal(); break;
           case 'signout':  confirmSignOut(); break;
-        }
-      });
-      document.addEventListener('click', function closer(ev) {
-        if (!el.contains(ev.target)) {
-          menu.hidden = true;
-          document.removeEventListener('click', closer);
         }
       });
     }
@@ -5921,7 +6017,7 @@
         (!isReadOnly() ?
           '<h3 class="settings-h">Optional fields</h3>' +
           '<div class="feature-pills">' +
-            [['date', 'Date'], ['native-name', 'Native name'], ['note', 'Note'], ['rating', 'Rating']]
+            [['date', 'Date'], ['image', 'Image'], ['native-name', 'Native name'], ['note', 'Note'], ['rating', 'Rating']]
               .map(([key, label]) =>
                 '<label class="feature-pill' + (getShowField(key) ? ' active' : '') + '"><input type="checkbox" data-field="' + key + '"' + (getShowField(key) ? ' checked' : '') + '>' + label + '</label>'
               ).join('') +
@@ -6038,12 +6134,11 @@
         '</div>' +
         '<div class="modal-error" id="s-export-error"></div>' +
         '<h3 class="settings-h">Import</h3>' +
-        '<div style="display:flex;align-items:center;gap:1rem">' +
-          '<div class="modal-desc" style="flex:1;margin:0">Restore from a previous export.</div>' +
-          '<div class="radio-row radio-pills" style="margin:0;flex:0 0 auto">' +
-            '<label><input type="radio" name="import-mode" value="merge" checked>Merge</label>' +
-            '<label><input type="radio" name="import-mode" value="replace">Replace all</label>' +
-          '</div>' +
+        '<div class="modal-desc" style="margin:0">Restore from a previous export.</div>' +
+        '<div class="radio-row radio-pills" style="margin-top:0.5rem">' +
+          '<label><input type="radio" name="import-mode" value="merge" checked>Merge</label>' +
+          '<label><input type="radio" name="import-mode" value="replace">Replace all</label>' +
+          '<label><input type="radio" name="import-mode" value="prefs">Preferences only</label>' +
         '</div>' +
         '<div style="display:flex;align-items:center;gap:1rem;margin-top:0.75rem">' +
           '<div class="file-picker" style="flex:1;margin:0">' +
@@ -6084,7 +6179,9 @@
             '<input type="checkbox" class="settings-toggle" id="s-publishing"' + (state.auth.publishing_open ? ' checked' : '') + '>' +
             '<label for="s-publishing">Allow users to publish public maps</label>' +
           '</div>' +
-          '<div class="modal-desc">Turning this off blocks new publish actions and forces any currently public maps back to private.</div>' +
+          '<div class="modal-desc">Turning this off forces any currently public maps back to private and prevents new ones.</div>' +
+          '<h3 class="settings-h">Catalog</h3>' +
+          '<div id="s-admin-catalog"><div class="hint">Loading&hellip;</div></div>' +
           '<h3 class="settings-h">Users</h3>' +
           '<div id="s-admin-users"><div class="hint">Loading&hellip;</div></div>' +
           '</div>' +
@@ -6136,7 +6233,7 @@
               // Closing the gate also force-unpublishes anyone currently public.
               openConfirmModal({
                 title: 'Disable publishing',
-                body: 'New publish actions will be blocked and any currently public maps will be set back to private. Continue?',
+                body: 'Any currently public maps will be set back to private, and users will not be able to publish new ones. Continue?',
                 confirmLabel: 'Disable publishing',
                 danger: true,
               }).then(ok => {
@@ -6151,6 +6248,7 @@
           if (isAdmin) {
             renderAdminStats();
             renderAdminUsers();
+            renderAdminCatalog();
           }
           const pub = document.getElementById('s-publish');
           const pubLink = document.getElementById('s-publish-link');
@@ -6464,7 +6562,16 @@
       }
       const rows = allSlugs.map(slug => {
         const display = (labels[slug] && labels[slug].label) || '';
-        return { slug, display, original: display, count: placeCountBySlug[slug] || 0 };
+        // Color index: explicit stored value, or fall back to whatever the
+        // current palette assignment is for this slug (so the dot shows the
+        // color the user actually sees on the map).
+        let color = (labels[slug] && typeof labels[slug].color === 'number') ? labels[slug].color : -1;
+        if (color < 0) {
+          const cur = state.categoryColors && state.categoryColors[slug];
+          color = cur ? COLORS.indexOf(cur) : 0;
+          if (color < 0) color = 0;
+        }
+        return { slug, display, original: display, color, originalColor: color, count: placeCountBySlug[slug] || 0 };
       });
 
       openModal(
@@ -6478,8 +6585,9 @@
         '<div class="modal-error" id="cat-error"></div>' +
         '<h3 class="settings-h" style="margin-top:1.25rem">Categories</h3>' +
         '<div id="cat-rows"></div>' +
-        '<div class="modal-actions" style="margin-top:1rem">' +
-          '<div id="cat-clear-warning" class="action-warning" hidden></div>' +
+        '<div class="modal-actions" style="margin-top:1rem;display:flex;align-items:center;gap:0.6rem">' +
+          '<button type="button" class="row-notes-toggle" id="cat-reset-colors">Reset colors</button>' +
+          '<div id="cat-clear-warning" class="action-warning" style="flex:1;margin:0" hidden></div>' +
           '<button type="button" class="primary" id="cat-save" hidden>Save</button>' +
         '</div>',
         function() {
@@ -6488,14 +6596,16 @@
           const initialRowKeys = new Set(rows.map(r => r.slug));
           function hasChanges() {
             if (pendingClears.size) return true;
-            // Added or label-edited?
+            // Added, label-edited, or color-edited?
             if (rows.length !== initialRowKeys.size) return true;
             for (const r of rows) {
               if (!initialRowKeys.has(r.slug)) return true;
               if (r.display !== r.original) return true;
+              if (r.color !== r.originalColor) return true;
             }
             return false;
           }
+          let openSwatchIdx = -1;
           function refreshSaveBtn() {
             const btn = document.getElementById('cat-save');
             if (btn) btn.hidden = !hasChanges();
@@ -6517,16 +6627,73 @@
               return;
             }
             container.innerHTML = rows.map((r, i) => {
-              const dirty = r.display !== r.original;
+              const labelDirty = r.display !== r.original;
+              const colorDirty = r.color !== r.originalColor;
+              const dirty = labelDirty || colorDirty;
               const tag = dirty ? '<span class="row-tag dirty">edited</span>'
                         : r.count === 0 ? '<span class="row-tag">unused</span>'
                         : '<span class="row-tag">' + r.count + ' place' + (r.count === 1 ? '' : 's') + '</span>';
-              return '<div style="display:flex;gap:0.6rem;align-items:center;margin-top:0.5rem">' +
-                '<input type="text" data-i="' + i + '" class="cat-display' + (dirty ? ' dirty' : '') + '" value="' + escapeHtml(r.display) + '" placeholder="(falls back to title case)" title="' + escapeHtml('slug: ' + r.slug) + '" style="flex:1;min-width:0">' +
-                tag +
-                '<button type="button" data-i="' + i + '" class="cat-remove btn-x" aria-label="Remove" title="Remove" style="flex:0 0 auto">&times;</button>' +
+              const dotColor = COLORS[r.color % COLORS.length];
+              const open = openSwatchIdx === i;
+              const swatchGrid = '<div class="cat-swatches' + (open ? ' open' : '') + '">' + COLORS.map((c, ci) =>
+                '<button type="button" class="cat-swatch' + (ci === r.color ? ' active' : '') + '" data-i="' + i + '" data-ci="' + ci + '" style="background:' + c + '" title="Color ' + (ci + 1) + '"></button>'
+              ).join('') + '</div>';
+              return '<div style="margin-top:0.5rem">' +
+                '<div style="display:flex;gap:0.6rem;align-items:center">' +
+                  '<button type="button" class="cat-color-dot' + (open ? ' open' : '') + '" data-i="' + i + '" title="Change color" style="background:' + dotColor + '"></button>' +
+                  '<input type="text" data-i="' + i + '" class="cat-display' + (labelDirty ? ' dirty' : '') + '" value="' + escapeHtml(r.display) + '" placeholder="(falls back to title case)" title="' + escapeHtml('slug: ' + r.slug) + '" style="flex:1;min-width:0">' +
+                  tag +
+                  '<button type="button" data-i="' + i + '" class="cat-remove btn-x" aria-label="Remove" title="Remove" style="flex:0 0 auto">&times;</button>' +
+                '</div>' +
+                swatchGrid +
               '</div>';
             }).join('');
+            container.querySelectorAll('.cat-color-dot').forEach(btn => {
+              btn.addEventListener('click', function() {
+                const i = +this.dataset.i;
+                const willOpen = openSwatchIdx !== i;
+                // Close any previously-open grid so only one is expanded at a time.
+                container.querySelectorAll('.cat-swatches.open, .cat-color-dot.open')
+                  .forEach(el => el.classList.remove('open'));
+                if (willOpen) {
+                  const row = this.closest('div').parentElement;
+                  row.querySelector('.cat-swatches').classList.add('open');
+                  this.classList.add('open');
+                }
+                openSwatchIdx = willOpen ? i : -1;
+              });
+            });
+            container.querySelectorAll('.cat-swatch').forEach(btn => {
+              btn.addEventListener('click', function() {
+                const i = +this.dataset.i;
+                const ci = +this.dataset.ci;
+                const r = rows[i];
+                r.color = ci;
+                openSwatchIdx = -1;
+                // Animate the grid closed and update the dot color in place,
+                // without re-rendering the whole list (which would skip the
+                // closing transition).
+                const row = this.closest('.cat-swatches').parentElement;
+                row.querySelectorAll('.cat-swatch.active').forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+                row.querySelector('.cat-swatches').classList.remove('open');
+                const dot = row.querySelector('.cat-color-dot');
+                dot.style.background = COLORS[ci];
+                dot.classList.remove('open');
+                // Reflect dirty state in the row's tag without a full rerender.
+                const labelDirty = r.display !== r.original;
+                const colorDirty = r.color !== r.originalColor;
+                const dirty = labelDirty || colorDirty;
+                const tagEl = row.querySelector('.row-tag');
+                if (tagEl) {
+                  tagEl.classList.toggle('dirty', dirty);
+                  tagEl.textContent = dirty ? 'edited'
+                    : r.count === 0 ? 'unused'
+                    : (r.count + ' place' + (r.count === 1 ? '' : 's'));
+                }
+                refreshSaveBtn();
+              });
+            });
             container.querySelectorAll('.cat-display').forEach(inp => {
               inp.addEventListener('input', function() {
                 const i = +this.dataset.i;
@@ -6594,6 +6761,17 @@
             refreshSaveBtn();
           });
 
+          document.getElementById('cat-reset-colors').addEventListener('click', function() {
+            // Re-derive colors as if no overrides existed: sort by slug,
+            // assign 0..n-1 mod palette length. Matches the deterministic
+            // auto-assign that runs when starting from no stored colors.
+            const sorted = rows.slice().sort((a, b) => a.slug.localeCompare(b.slug));
+            sorted.forEach((r, i) => { r.color = i % COLORS.length; });
+            openSwatchIdx = -1;
+            rerender();
+            refreshSaveBtn();
+          });
+
           document.getElementById('cat-save').addEventListener('click', function() {
             const submit = this;
             submit.disabled = true;
@@ -6601,9 +6779,7 @@
             for (const r of rows) {
               const label = r.display.trim();
               if (!label) continue;
-              // Send only {label}; the server preserves any previously-assigned
-              // color for this slug (Manage Categories doesn't surface colors).
-              payload[r.slug] = { label };
+              payload[r.slug] = { label, color: r.color };
             }
             // Bulk-clear any in-use slugs the user removed, then PUT labels.
             // Clear failures abort the save so the label map and place data
@@ -7023,6 +7199,256 @@
       });
     }
 
+    function renderAdminCatalog() {
+      const el = document.getElementById('s-admin-catalog');
+      if (!el) return;
+      api('GET', '/catalog').then(entries => {
+        const list = Array.isArray(entries) ? entries : [];
+        const n = list.length;
+        el.innerHTML =
+          '<div style="display:flex;align-items:center;gap:0.6rem">' +
+            '<span class="modal-desc" style="margin:0;flex:1">Places users can import.</span>' +
+            (n ? '<button type="button" class="primary" id="s-catalog-manage">Manage</button>' : '') +
+            '<button type="button" class="primary" id="s-catalog-add">Add</button>' +
+          '</div>';
+        const manage = document.getElementById('s-catalog-manage');
+        if (manage) manage.addEventListener('click', openCatalogManager);
+        const add = document.getElementById('s-catalog-add');
+        if (add) add.addEventListener('click', openCatalogPicker);
+      }).catch(() => {
+        el.innerHTML = '<div class="hint">Could not load catalog.</div>';
+      });
+    }
+
+    function openCatalogManager() {
+      openModal(
+        '<button class="modal-close modal-close-floating" aria-label="Close">&times;</button>' +
+        '<h2><span>Manage catalog<span id="cat-mgr-count" style="color:var(--muted);font-weight:400;margin-left:0.4rem"></span></span></h2>' +
+        '<input type="text" id="cat-mgr-filter" placeholder="Filter…" style="margin-bottom:0.5rem">' +
+        '<div id="cat-mgr-list" style="overflow-y:auto"></div>' +
+        '<div class="log-toolbar" style="justify-content:space-between">' +
+          '<button type="button" class="row-notes-toggle" id="cat-mgr-notes-toggle">Show notes</button>' +
+          '<button type="button" id="cat-mgr-clear" class="danger-btn">Remove all</button>' +
+        '</div>',
+        function() {
+          const filter = document.getElementById('cat-mgr-filter');
+          const list = document.getElementById('cat-mgr-list');
+
+          const countEl = document.getElementById('cat-mgr-count');
+          function render() {
+            api('GET', '/catalog').then(entries => {
+              const items = Array.isArray(entries) ? entries.slice() : [];
+              countEl.textContent = items.length ? '(' + items.length + ')' : '';
+              if (!items.length) {
+                list.innerHTML = '<div class="hint">Catalog is empty.</div>';
+                return;
+              }
+              items.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+              list.innerHTML = '<ul class="user-list">' + items.map(e => {
+                const meta = [e.category, e.country].filter(Boolean).join(' · ');
+                const name = escapeHtml(e.name || '(unnamed)');
+                const note = (e.note || '').trim();
+                return '<li class="user-row" data-name="' + escapeHtml(e.name || '') + '">' +
+                  '<span class="user-name" style="min-width:0">' +
+                    '<span title="' + name + '" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</span>' +
+                    (meta ? '<span style="display:block;font-size:0.72rem;color:var(--muted);font-weight:400">' + escapeHtml(meta) + '</span>' : '') +
+                    (note ? '<span class="row-note">' + escapeHtml(note) + '</span>' : '') +
+                  '</span>' +
+                  '<div class="user-actions">' +
+                    '<button data-act="catalog-delete" class="danger-btn">Remove</button>' +
+                  '</div>' +
+                '</li>';
+              }).join('') + '</ul>';
+              list.querySelectorAll('button[data-act="catalog-delete"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                  const name = this.closest('.user-row').dataset.name;
+                  openConfirmModal({
+                    title: 'Remove from catalog',
+                    body: 'Remove "' + name + '" from the site catalog? Users who already imported it keep their copy.',
+                    confirmLabel: 'Remove',
+                    danger: true,
+                  }).then(ok => {
+                    if (!ok) return;
+                    this.disabled = true;
+                    api('POST', '/admin/catalog/delete', { names: [name] })
+                      .then(() => { state._catalogCache = null; render(); renderAdminCatalog(); })
+                      .catch(err => { this.disabled = false; alert('Failed: ' + err.message); });
+                  });
+                });
+              });
+              applyFilter();
+            }).catch(() => {
+              list.innerHTML = '<div class="hint">Could not load catalog.</div>';
+            });
+          }
+
+          function applyFilter() {
+            const q = filter.value.trim().toLowerCase();
+            list.querySelectorAll('.user-row').forEach(row => {
+              row.style.display = (!q || row.textContent.toLowerCase().includes(q)) ? '' : 'none';
+            });
+          }
+          filter.addEventListener('input', applyFilter);
+          const notesToggle = document.getElementById('cat-mgr-notes-toggle');
+          notesToggle.addEventListener('click', function() {
+            list.classList.add('notes-anim');
+            const on = list.classList.toggle('show-notes');
+            this.textContent = on ? 'Hide notes' : 'Show notes';
+          });
+          const clearBtn = document.getElementById('cat-mgr-clear');
+          if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+              openConfirmModal({
+                title: 'Remove all catalog entries',
+                body: 'Empties the site catalog. Users who already imported entries keep their copies.',
+                confirmLabel: 'Remove all',
+                danger: true,
+              }).then(ok => {
+                if (!ok) return;
+                clearBtn.disabled = true;
+                api('POST', '/admin/catalog/clear')
+                  .then(() => { state._catalogCache = null; render(); renderAdminCatalog(); })
+                  .catch(err => alert('Failed: ' + err.message))
+                  .then(() => { clearBtn.disabled = false; });
+              });
+            });
+          }
+          render();
+        }
+      );
+    }
+
+    function openCatalogPicker() {
+      const own = Array.isArray(state.places) ? state.places : [];
+      if (!own.length) {
+        alert('You have no places to promote yet. Add some first.');
+        return;
+      }
+      api('GET', '/catalog').then(catalog => {
+        const inCatalog = new Set((Array.isArray(catalog) ? catalog : []).map(e => e && e.name).filter(Boolean));
+        const places = own.filter(p => !inCatalog.has(p.name));
+        if (!places.length) {
+          alert('All your places are already in the catalog.');
+          return;
+        }
+        places.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        renderCatalogPicker(places);
+      }).catch(err => alert('Could not load catalog: ' + err.message));
+    }
+
+    function renderCatalogPicker(places) {
+      const rows = places.map((p, i) => {
+        const meta = [p.category, p.country].filter(Boolean).join(' · ');
+        const name = escapeHtml(p.name || '(unnamed)');
+        const note = (p.note || '').trim();
+        return '<label class="browse-row" data-idx="' + i + '" style="display:flex;align-items:flex-start;gap:0.6rem;padding:0.45rem 0;border-bottom:1px solid var(--border);cursor:pointer">' +
+          '<input type="checkbox" class="cat-pick" data-idx="' + i + '" style="margin-top:0.2rem">' +
+          '<span style="flex:1;min-width:0">' +
+            '<span title="' + name + '" style="display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</span>' +
+            (meta ? '<span style="display:block;font-size:0.72rem;color:var(--muted)">' + escapeHtml(meta) + '</span>' : '') +
+            (note ? '<span class="row-note">' + escapeHtml(note) + '</span>' : '') +
+          '</span>' +
+        '</label>';
+      }).join('');
+      openModal(
+        '<button class="modal-close modal-close-floating" aria-label="Close">&times;</button>' +
+        '<h2>Add to catalog</h2>' +
+        '<input type="text" id="cat-filter" placeholder="Filter…" style="margin-bottom:0.5rem">' +
+        '<div id="cat-list" style="overflow-y:auto">' + rows + '</div>' +
+        '<div class="modal-error" id="add-error"></div>' +
+        '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
+          '<button type="button" class="row-notes-toggle" id="cat-notes-toggle">Show notes</button>' +
+          '<span id="cat-status" style="font-size:0.75rem;color:var(--muted);flex:1"></span>' +
+          '<button type="button" id="cat-add-all">Add all</button>' +
+          '<button type="button" class="primary" id="cat-submit" disabled>Add selected</button>' +
+        '</div>',
+        function() {
+          const filter = document.getElementById('cat-filter');
+          const list = document.getElementById('cat-list');
+          const submit = document.getElementById('cat-submit');
+          const addAll = document.getElementById('cat-add-all');
+          const status = document.getElementById('cat-status');
+          // state.places carries runtime annotations (`_slug`, normalized empty
+          // `category`) that aren't part of the server-side place schema; only
+          // forward the documented fields.
+          const ALLOWED = ['name', 'lat', 'lon', 'category', 'country', 'visited', 'note', 'sources', 'local_name', 'date_visited', 'rating'];
+          function visibleRows() {
+            return Array.from(list.querySelectorAll('.browse-row')).filter(r => r.style.display !== 'none');
+          }
+          function cleanPlace(p) {
+            const out = {};
+            for (const k of ALLOWED) {
+              if (p[k] === '' && k === 'category') continue;
+              if (p[k] !== undefined && p[k] !== null) out[k] = p[k];
+            }
+            return out;
+          }
+          function updateBtns() {
+            const checked = list.querySelectorAll('.cat-pick:checked').length;
+            submit.disabled = checked === 0;
+            submit.textContent = checked ? 'Add ' + checked + ' selected' : 'Add selected';
+            const v = visibleRows().length;
+            addAll.disabled = v === 0;
+            addAll.textContent = 'Add all' + (v && v < places.length ? ' (' + v + ')' : '');
+          }
+          list.addEventListener('change', updateBtns);
+          filter.addEventListener('input', function() {
+            const q = this.value.trim().toLowerCase();
+            list.querySelectorAll('.browse-row').forEach(row => {
+              row.style.display = (!q || row.textContent.toLowerCase().includes(q)) ? 'flex' : 'none';
+            });
+            updateBtns();
+          });
+          function submitPicks(picks) {
+            if (!picks.length) return;
+            submit.disabled = true;
+            addAll.disabled = true;
+            status.textContent = 'Adding…';
+            const errEl = document.getElementById('add-error');
+            if (errEl) errEl.classList.remove('visible');
+            return api('POST', '/admin/catalog/add', { entries: picks })
+              .then(r => {
+                state._catalogCache = null;
+                closeModal();
+                renderAdminCatalog();
+                if (r.skipped) {
+                  // Surface skip count so the admin knows dedup happened.
+                  alert('Added ' + r.added + ', skipped ' + r.skipped + ' (already in catalog).');
+                }
+              })
+              .catch(err => {
+                submit.disabled = false;
+                status.textContent = '';
+                updateBtns();
+                const e = document.getElementById('add-error');
+                if (e) { e.textContent = err.message; e.classList.add('visible'); }
+              });
+          }
+          submit.addEventListener('click', function() {
+            const picks = Array.from(list.querySelectorAll('.cat-pick:checked'))
+              .map(cb => places[parseInt(cb.dataset.idx, 10)])
+              .filter(Boolean)
+              .map(cleanPlace);
+            submitPicks(picks);
+          });
+          addAll.addEventListener('click', function() {
+            const picks = visibleRows()
+              .map(r => places[parseInt(r.dataset.idx, 10)])
+              .filter(Boolean)
+              .map(cleanPlace);
+            submitPicks(picks);
+          });
+          const notesToggle = document.getElementById('cat-notes-toggle');
+          notesToggle.addEventListener('click', function() {
+            list.classList.add('notes-anim');
+            const on = list.classList.toggle('show-notes');
+            this.textContent = on ? 'Hide notes' : 'Show notes';
+          });
+          updateBtns();
+        }
+      );
+    }
+
     function handleAdminUserAction(btn) {
       const row = btn.closest('.user-row');
       const uid = row.dataset.uid;
@@ -7327,15 +7753,28 @@
       const showPlaces = placesEnabled();
       const showTrails = trailsEnabled();
       if (!showPlaces && !showTrails) return;
-      let tab = initialTab || (showPlaces ? 'place' : 'trail');
-      if (tab === 'place' && !showPlaces) tab = 'trail';
-      if (tab === 'trail' && !showTrails) tab = 'place';
+      // Entry-point determines which tabs the modal exposes:
+      //   'place' (Places list Add)  -> [Place, Browse]
+      //   'trail' (Trails list Add)  -> just the GPX form, no tabs
+      //   null    (map FAB)          -> [Place, Trail, Browse], filtered by enabled features
+      let tabs;
+      if (initialTab === 'trail') {
+        tabs = ['trail'];
+      } else if (initialTab === 'place') {
+        tabs = showPlaces ? ['place', 'browse'] : ['trail'];
+      } else {
+        tabs = [];
+        if (showPlaces) tabs.push('place');
+        if (showTrails) tabs.push('trail');
+        if (showPlaces) tabs.push('browse');
+      }
+      let tab = tabs[0];
+      const tabLabels = { place: 'Place', trail: 'Trail', browse: 'Browse' };
       openModal(
         '<button class="modal-close modal-close-floating" aria-label="Close">&times;</button>' +
-        (showPlaces && showTrails ?
+        (tabs.length > 1 ?
           '<div class="modal-tabs" id="add-tabs">' +
-            '<button data-tab="place"' + (tab === 'place' ? ' class="active"' : '') + '>Place</button>' +
-            '<button data-tab="trail"' + (tab === 'trail' ? ' class="active"' : '') + '>Trail</button>' +
+            tabs.map(t => '<button data-tab="' + t + '"' + (t === tab ? ' class="active"' : '') + '>' + tabLabels[t] + '</button>').join('') +
           '</div>'
           : '') +
         '<div id="add-body"></div>',
@@ -7355,11 +7794,21 @@
         const body = document.getElementById('add-body');
         const firstRender = body.dataset.rendered !== '1';
         const oldH = firstRender ? 0 : body.offsetHeight;
-        body.innerHTML = tab === 'place' ? placeFormHtml() : gpxFormHtml();
+        body.innerHTML = tab === 'place' ? placeFormHtml()
+          : tab === 'trail' ? gpxFormHtml()
+          : browseFormHtml();
         if (tab === 'place') wirePlaceForm();
-        else wireGpxForm();
+        else if (tab === 'trail') wireGpxForm();
+        else wireBrowseForm();
         body.dataset.rendered = '1';
         if (firstRender) return;
+        if (tab === 'browse') {
+          // Browse content is async (loads after the catalog fetch lands), so
+          // animating to the "Loading..." height first and snapping to the
+          // list afterwards looks twitchy. Skip the height transition here.
+          body.style.height = 'auto';
+          return;
+        }
         // Measure the new content size, then animate from old to new height.
         // After the transition completes, release back to auto so the form can
         // grow naturally (e.g. when the Completed extras expand).
@@ -7410,6 +7859,10 @@
           (getShowField('note') ?
             '<label for="p-note">Note (optional)</label>' +
             '<textarea id="p-note" style="min-height:40px"></textarea>'
+          : '') +
+          (getShowField('image') ?
+            '<label for="p-image">Image URL (optional)</label>' +
+            '<input type="url" id="p-image" placeholder="https://example.com/photo.jpg">'
           : '') +
           '<label for="p-sources">Sources (optional, one URL per line)</label>' +
           '<textarea id="p-sources" style="min-height:40px" placeholder="https://example.com/source"></textarea>' +
@@ -7619,6 +8072,128 @@
           .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
         });
       }
+
+      function browseFormHtml() {
+        return '<div id="browse-body">' +
+          '<div style="font-size:0.78rem;color:var(--muted);padding:0.5rem 0">Loading catalogue&hellip;</div>' +
+          '</div>';
+      }
+
+      function wireBrowseForm() {
+        const body = document.getElementById('browse-body');
+        // Cache the catalog across tab switches so reopening Browse renders
+        // instantly instead of flashing "Loading..." -> content. Admin mutations
+        // invalidate `state._catalogCache` in renderAdminCatalog / picker / mgr.
+        if (Array.isArray(state._catalogCache)) {
+          renderBrowse(state._catalogCache);
+          return;
+        }
+        api('GET', '/catalog')
+          .then(entries => {
+            state._catalogCache = Array.isArray(entries) ? entries : [];
+            renderBrowse(state._catalogCache);
+          })
+          .catch(err => { body.innerHTML = '<div class="modal-error" style="display:block">' + escapeHtml(err.message) + '</div>'; });
+
+        function renderBrowse(entries) {
+          if (!entries.length) {
+            body.innerHTML = '<div style="font-size:0.78rem;color:var(--muted);padding:0.5rem 0">' +
+              'No catalogue entries available yet. An admin can add some from Settings &rsaquo; Admin &rsaquo; Catalog.' +
+              '</div>';
+            return;
+          }
+          const rows = entries.map((e, i) => {
+            const meta = [e.category, e.country].filter(Boolean).join(' · ');
+            const name = escapeHtml(e.name || '(unnamed)');
+            const note = (e.note || '').trim();
+            const firstSource = Array.isArray(e.sources) ? e.sources.find(s => typeof s === 'string' && s.trim()) : null;
+            const sourceLink = firstSource
+              ? '<a href="' + escapeHtml(firstSource) + '" target="_blank" rel="noopener" class="row-src">Source</a>'
+              : '';
+            return '<label class="browse-row" data-idx="' + i + '" style="display:flex;align-items:flex-start;gap:0.6rem;padding:0.45rem 0;border-bottom:1px solid var(--border);cursor:pointer">' +
+              '<input type="checkbox" class="browse-pick" data-idx="' + i + '" style="margin-top:0.2rem">' +
+              '<span style="flex:1;min-width:0;display:block">' +
+                '<span style="display:flex;align-items:center;gap:0.5rem;width:100%">' +
+                  '<span title="' + name + '" style="flex:1;min-width:0;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</span>' +
+                  sourceLink +
+                '</span>' +
+                (meta ? '<span style="display:block;font-size:0.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(meta) + '</span>' : '') +
+                (note ? '<span class="row-note">' + escapeHtml(note) + '</span>' : '') +
+              '</span>' +
+            '</label>';
+          }).join('');
+          body.innerHTML =
+            '<input type="text" id="browse-filter" placeholder="Filter&hellip;" style="margin-bottom:0.5rem">' +
+            '<div id="browse-list" style="max-height:50vh;overflow-y:auto">' + rows + '</div>' +
+            '<div class="modal-error" id="add-error"></div>' +
+            '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
+              '<button type="button" class="row-notes-toggle" id="browse-notes-toggle">Show notes</button>' +
+              '<span id="browse-status" style="font-size:0.75rem;color:var(--muted);flex:1"></span>' +
+              '<button type="button" class="primary" id="browse-add" disabled>Add selected</button>' +
+            '</div>';
+
+          const filter = document.getElementById('browse-filter');
+          const list = document.getElementById('browse-list');
+          const addBtn = document.getElementById('browse-add');
+          const status = document.getElementById('browse-status');
+
+          function updateBtn() {
+            const n = list.querySelectorAll('.browse-pick:checked').length;
+            addBtn.disabled = n === 0;
+            addBtn.textContent = n ? 'Add ' + n + ' selected' : 'Add selected';
+          }
+          list.addEventListener('change', updateBtn);
+
+          filter.addEventListener('input', function() {
+            const q = this.value.trim().toLowerCase();
+            list.querySelectorAll('.browse-row').forEach(row => {
+              row.style.display = (!q || row.textContent.toLowerCase().includes(q)) ? 'flex' : 'none';
+            });
+          });
+
+          // Source links sit inside a <label>; without this they'd toggle the
+          // row's checkbox as a side effect of the label's default behavior.
+          list.querySelectorAll('.row-src').forEach(a => {
+            a.addEventListener('click', function(ev) { ev.stopPropagation(); });
+          });
+
+          const notesToggle = document.getElementById('browse-notes-toggle');
+          notesToggle.addEventListener('click', function() {
+            list.classList.add('notes-anim');
+            const on = list.classList.toggle('show-notes');
+            this.textContent = on ? 'Hide notes' : 'Show notes';
+          });
+
+          addBtn.addEventListener('click', function() {
+            const picked = Array.from(list.querySelectorAll('.browse-pick:checked'))
+              .map(cb => entries[parseInt(cb.dataset.idx, 10)]).filter(Boolean);
+            if (!picked.length) return;
+            addBtn.disabled = true;
+            const prevColors = Object.assign({}, state.categoryColors);
+            let done = 0;
+            const errors = [];
+            (function next() {
+              if (done >= picked.length) {
+                refreshPlaces().then(() => {
+                  syncPlacesOnMap(prevColors);
+                  if (errors.length) {
+                    status.textContent = '';
+                    addBtn.disabled = false;
+                    showModalError(errors.length + ' of ' + picked.length + ' failed: ' + errors.join('; '));
+                  } else {
+                    closeModal();
+                  }
+                }).catch(err => { addBtn.disabled = false; showModalError(err.message); });
+                return;
+              }
+              status.textContent = 'Adding ' + (done + 1) + ' of ' + picked.length + '…';
+              api('POST', '/places', picked[done])
+                .catch(err => errors.push((picked[done].name || '?') + ': ' + err.message))
+                .then(() => { done++; next(); });
+            })();
+          });
+        }
+      }
     }
 
     // ----- Pick coordinates on the map -----
@@ -7627,7 +8202,9 @@
     function enterPickCoordsMode(onPick) {
       // Make sure we're on the unified map. If not, navigate there first.
       const base = (location.hash || '#/').split('?')[0];
-      if (base !== '#/' && base !== '#/map' && base !== '#') {
+      const onMapView = base === '#/' || base === '#/map' || base === '#'
+        || base.startsWith('#/place/') || base.startsWith('#/trail/');
+      if (!onMapView) {
         location.hash = '#/';
         setTimeout(function() { enterPickCoordsMode(onPick); }, 250);
         return;
@@ -7658,10 +8235,12 @@
       const app = document.getElementById('app');
       const existing = app.querySelector('.fab-add:not(.fab-leave)');
       const base = (location.hash || '#/').split('?')[0];
+      const onMapView = base === '#/' || base === '#' || base === '#/map'
+        || base.startsWith('#/place/') || base.startsWith('#/trail/');
       const shouldShow = state.auth.authenticated
         && !isReadOnly()
         && getShowMapAddButton()
-        && (base === '#/' || base === '#' || base === '#/map')
+        && onMapView
         && (placesEnabled() || trailsEnabled());
       const fabTitle = placesEnabled() && trailsEnabled()
         ? 'Add place or trail'
@@ -7819,6 +8398,14 @@
           return;
         }
         wrappedRouter();
+        // Warm the catalog cache in the background so the Browse tab in the
+        // Add modal renders instantly the first time it's opened, instead of
+        // flashing the Loading placeholder. Authed users only.
+        if (state.auth && state.auth.authenticated && !isReadOnly() && state._catalogCache == null) {
+          api('GET', '/catalog').then(entries => {
+            state._catalogCache = Array.isArray(entries) ? entries : [];
+          }).catch(() => {});
+        }
       });
     }
 

@@ -52,7 +52,8 @@ All paths read and write the signed-in user's own folder (`users/<self>/`).
 | `PUT` | `/me/category-labels` | `{category_labels: {slug: {label, color?}, ...}}` | Replaces the label map. If a slug already had a `color` and the new payload omits it, the existing color is preserved (so Manage Categories can edit labels without stripping colors). |
 | `POST` | `/me/publish` | `{published: bool}` | Flip the public-read gate. Non-admins can always unpublish but can only publish when the site-wide publishing gate is open. |
 | `GET` | `/me/export` | - | Returns a zip of the user's folder (`places.json`, `routes.json`, `metadata.json`, `prefs.json`, `category-labels.json`, `gpx/...`). Excludes dotfiles. |
-| `POST` | `/me/import?mode=replace\|merge` | zip body | `Content-Type: application/zip`. Replace deletes existing top-level files and the `gpx/` tree before writing; merge appends places by unique name and updates metadata/prefs/labels by key. GPX files always have PII stripped on import. Triggers manifest regen. |
+| `POST` | `/me/import?mode=replace\|merge\|prefs` | zip body | `Content-Type: application/zip`. `replace` deletes existing top-level files and the `gpx/` tree before writing; `merge` appends places by unique name and updates metadata/prefs/labels by key; `prefs` only merges `prefs.json` + `category-labels.json` and skips places/trails/metadata/GPX even if they're in the archive. GPX files always have PII stripped on import. Triggers manifest regen. |
+| `GET` | `/catalog` | - | Site-wide catalog (array of place objects). Read-only for users; admins edit via the endpoints under `/admin/catalog/`. Served from `<data_dir>/catalog.json`, returns `[]` if absent. |
 
 ## Admin
 
@@ -71,6 +72,9 @@ All require `is_admin=1`. Audited.
 | `POST` | `/settings/registration` | `{mode: "open"\|"closed"}` | Site-wide registration gate. |
 | `POST` | `/admin/settings/publishing` | `{mode: "open"\|"closed"}` | Site-wide publishing gate. Closing it does *not* auto-unpublish existing users; use the next endpoint. |
 | `POST` | `/admin/unpublish-all` | - | Force every user's `published` off. Returns `{affected}`. |
+| `POST` | `/admin/catalog/add` | `{entries: [place, ...]}` | Append places to the site catalog. Each entry is validated as a regular place; `visited`, `date_visited`, and `rating` are stripped (the catalog describes a place, not a personal visit). Dedup is by `name`. Returns `{added, skipped, total}`. |
+| `POST` | `/admin/catalog/delete` | `{names: ["...", ...]}` | Remove catalog entries by name. Returns `{removed, total}`. |
+| `POST` | `/admin/catalog/clear` | - | Empty the catalog entirely. Returns `{removed, total: 0}`. |
 
 ## Public read
 
@@ -93,11 +97,11 @@ The browser-facing public URL is `/u/<username>/` (no `/api` prefix); the static
 ```json
 { "name": "Rome", "lat": 41.89, "lon": 12.49,
   "category": "ruins", "country": "Italy", "visited": true,
-  "note": "...", "sources": ["https://..."],
+  "note": "...", "sources": ["https://..."], "image": "https://...",
   "local_name": "Roma", "date_visited": "2024-07-15", "rating": 4 }
 ```
 
-Required: `name`, `lat`, `lon`. Optional: `category`, `country`, `visited`, `note`, `sources` (array of `http(s)` URLs), `local_name`, `date_visited` (YYYY-MM-DD), `rating` (1-5). A missing or empty `category` is stored as "uncategorized" (the field is stripped). Anything else is rejected.
+Required: `name`, `lat`, `lon`. Optional: `category`, `country`, `visited`, `note`, `sources` (array of `http(s)` URLs), `image` (single `http(s)` URL, max 1000 chars), `local_name`, `date_visited` (YYYY-MM-DD), `rating` (1-5). A missing or empty `category` is stored as "uncategorized" (the field is stripped). Anything else is rejected.
 
 **Trail metadata entry** (one value in `metadata.json`, keyed by `Region/Trail` or `Trail`):
 
