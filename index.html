@@ -1430,6 +1430,13 @@
       transform: scale(0.5);
       pointer-events: none;
     }
+    /* 'S' keyboard shortcut force-shows the map filter panel even when the
+       user has set it to hidden, so the search input is reachable. */
+    body.force-show-map-filter .map-panel {
+      opacity: 1 !important;
+      transform: none !important;
+      pointer-events: auto !important;
+    }
 
     /* "Pick on map" inline button for the Add Place form */
     .pick-row {
@@ -7447,6 +7454,38 @@
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
       e.preventDefault();
       document.body.classList.toggle('map-chrome-hidden');
+    });
+
+    // 'S': focus the search input on list pages, or the map search on the
+    // index map. If the map filter panel is hidden by user preference, the
+    // panel is force-shown while the search input is focused and restored
+    // on blur.
+    document.addEventListener('keydown', function(e) {
+      if (e.key !== 's' && e.key !== 'S') return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (document.getElementById('modal-root').children.length) return;
+      const t = e.target;
+      const tag = t && t.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+      const listInput = document.getElementById('search-input');
+      if (listInput && listInput.offsetParent !== null) {
+        e.preventDefault();
+        listInput.focus();
+        listInput.select();
+        return;
+      }
+      const mapInput = document.getElementById('map-search-input');
+      if (mapInput) {
+        e.preventDefault();
+        document.body.classList.add('force-show-map-filter');
+        mapInput.focus();
+        mapInput.select();
+        const restore = function() {
+          document.body.classList.remove('force-show-map-filter');
+          mapInput.removeEventListener('blur', restore);
+        };
+        mapInput.addEventListener('blur', restore);
+      }
     });
 
     // Long-press on the map (touch only): same toggle as spacebar.
