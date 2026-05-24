@@ -1287,6 +1287,12 @@
     .elevation-control .close-button, .elevation-control .elevation-toggle-icon, .elevation-detached .leaflet-close { display: none !important; }
     .leaflet-overlay-pane .leaflet-interactive { filter: drop-shadow(0 0 3px rgba(0,0,0,0.5)); }
     .marker-start, .marker-end { background: none !important; border: none !important; }
+    .gpx-waypoint-icon {
+      background: var(--surface);
+      border: 1.5px solid var(--text);
+      border-radius: 50%;
+      box-shadow: 0 0 2px rgba(0,0,0,0.4);
+    }
 
     @media (max-width: 900px) {
       #app { padding: 1rem 1rem 3rem; }
@@ -2916,6 +2922,15 @@
     // Apply current trail-weight to all live trail polylines without rebuilding.
     // Stamp the original stroke-width on first observation so later
     // adjustments can divide back without losing precision.
+    // Default icon for GPX waypoints (no sym/type match). Subtle so it
+    // reads as auxiliary metadata, not as a Ferd Place marker.
+    const WAYPOINT_ICON = L.divIcon({
+      className: 'gpx-waypoint-icon',
+      iconSize: [10, 10],
+      iconAnchor: [5, 5],
+      html: '',
+    });
+
     // Concurrency-limited GPX text fetcher. The index map can have dozens
     // of trails, and bursting that many parallel XHRs caused leaflet-gpx
     // to occasionally see a null responseXML (Firefox's XML parser
@@ -3384,7 +3399,7 @@
                 const gpxLayer = new L.GPX(text, {
                   async: true,
                   polyline_options: { color: color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'trail-line' },
-                  markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
+                  markers: { startIcon: null, endIcon: null, wptIcons: { '': WAYPOINT_ICON } },
                 });
                 gpxLayer.on('loaded', function(e) {
                   const b = e.target.getBounds();
@@ -5002,7 +5017,7 @@
         new L.GPX(gpxUrlFor(route.plannedFile), {
           async: true,
           polyline_options: { color: ROUTE_COLOR, opacity: 0.35, weight: 4 * getTrailWeightFactor(), dashArray: '8 6' },
-          markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
+          markers: { startIcon: null, endIcon: null, wptIcons: { '': WAYPOINT_ICON } },
         }).on('loaded', function(e) {
           applyNonScalingStroke(e.target);
         }).addTo(map);
@@ -5033,7 +5048,7 @@
       new L.GPX(gpxUrl, {
         async: true,
         polyline_options: { color: color, opacity: 0.9, weight: 5 * getTrailWeightFactor() },
-        markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
+        markers: { startIcon: null, endIcon: null, wptIcons: { '': WAYPOINT_ICON } },
       }).on('loaded', function(e) {
         const gpx = e.target;
         const bounds = gpx.getBounds();
