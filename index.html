@@ -2570,8 +2570,18 @@
     function refreshTabVisibility() {
       const tabPlaces = document.getElementById('tab-places');
       const tabTrails = document.getElementById('tab-trails');
-      if (tabPlaces) tabPlaces.style.display = placesEnabled() ? '' : 'none';
-      if (tabTrails) tabTrails.style.display = trailsEnabled() ? '' : 'none';
+      if (tabPlaces) {
+        tabPlaces.style.display = placesEnabled() ? '' : 'none';
+        const n = Array.isArray(state.places) ? state.places.length : null;
+        tabPlaces.textContent = n == null ? 'Places' : 'Places (' + n + ')';
+      }
+      if (tabTrails) {
+        tabTrails.style.display = trailsEnabled() ? '' : 'none';
+        const n = state.manifest
+          ? state.manifest.regions.reduce(function (s, r) { return s + r.routes.length; }, 0)
+          : null;
+        tabTrails.textContent = n == null ? 'Trails' : 'Trails (' + n + ')';
+      }
     }
 
     // Skip tile loads during zoom animations. Default true is wasteful:
