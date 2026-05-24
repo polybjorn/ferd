@@ -5984,7 +5984,7 @@
             '<input type="checkbox" class="settings-toggle" id="s-publish"' + (state.auth.published ? ' checked' : '') + '>' +
             '<label for="s-publish" style="margin:0">Make my map public</label>' +
           '</div>' +
-          '<div class="modal-desc">When on, anyone with the link can view your places and trails. They can\'t edit.</div>' +
+          '<div class="modal-desc">Anyone with the link gets read-only access.</div>' +
           '<div id="s-publish-link" style="display:' + (state.auth.published ? 'flex' : 'none') + ';align-items:center;gap:0.5rem;margin-top:0.5rem">' +
             '<input type="text" id="s-publish-url" readonly value="' + escapeHtml(location.origin + '/u/' + (state.auth.username || '') + '/') + '" style="flex:1;font-size:0.75rem">' +
             '<button type="button" class="primary" id="s-publish-copy" style="flex:0 0 auto">Copy</button>' +
