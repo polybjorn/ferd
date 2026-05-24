@@ -27,7 +27,7 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 - Per-user appearance settings sync across devices.
 
 **Phone and offline**
-- Installable as a standalone app on your phone (PWA).
+- Add to your phone's home screen for offline access in its own window.
 - Reads work offline: app shell, vendored map library and elevation chart deps, last loaded data, downloaded GPX files, and previously viewed tiles are cached locally.
 - Edits and uploads require network.
 
