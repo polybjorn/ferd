@@ -24,10 +24,10 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 **Customization**
 - Multiple themes, light and dark.
 - Run places-only, trails-only, or both per deployment.
-- Settings sync across devices for the same user (theme, mode, pin and trail styling).
+- Per-user appearance settings sync across devices.
 
 **Phone and offline**
-- Installable as a standalone app on your phone (PWA). See [docs/pwa.md](docs/pwa.md).
+- Installable as a standalone app on your phone (PWA).
 - Reads work offline: app shell, vendored map library and elevation chart deps, last loaded data, downloaded GPX files, and previously viewed tiles are cached locally.
 - Edits and uploads require network.
 
