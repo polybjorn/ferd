@@ -1421,6 +1421,12 @@
     }
     .auth-menu button.auth-menu-signout:hover { color: var(--text); }
     .about-body { text-align: center; padding: 0.5rem 0 0.25rem; }
+    .about-logo {
+      width: 64px;
+      height: 64px;
+      display: block;
+      margin: 0 auto 0.5rem;
+    }
     .about-brand {
       font-size: 1.4rem;
       letter-spacing: 0.08em;
@@ -5762,7 +5768,7 @@
         menu.hidden = true;
         switch (action.dataset.action) {
           case 'settings': openSettingsModal(); break;
-          case 'logs':     openSettingsModal('logs'); break;
+          case 'logs':     openLogsModal(); break;
           case 'about':    openAboutModal(); break;
           case 'signout':  confirmSignOut(); break;
         }
@@ -5793,6 +5799,7 @@
       openModal(
         '<h2>About<button class="modal-close">&times;</button></h2>' +
         '<div class="about-body">' +
+          '<img class="about-logo" src="/favicon.svg" alt="">' +
           '<div class="about-brand">' + escapeHtml(brand) + '</div>' +
           '<div class="about-version">' + escapeHtml(version) + '</div>' +
           '<div class="about-tagline">Your own map of where you&rsquo;ve been, where you want to go, and the journeys between them.</div>' +
@@ -5859,7 +5866,6 @@
           '<button data-tab="appearance">Appearance</button>' +
           '<button data-tab="account">Account</button>' +
           (isAdmin ? '<button data-tab="admin">Admin</button>' : '') +
-          (isAdmin ? '<button data-tab="logs">Logs</button>' : '') +
         '</div>' +
         '<div data-panel="general">' +
         ((placesAvailable() || trailsAvailable()) ?
@@ -6041,10 +6047,7 @@
           '<h3 class="settings-h">Users</h3>' +
           '<div id="s-admin-users"><div class="hint">Loading&hellip;</div></div>' +
           '</div>' +
-          '<div data-panel="logs" hidden>' +
-          '<div id="s-admin-logs"><div class="hint">Loading&hellip;</div></div>' +
-          '<div class="log-toolbar"><button type="button" id="s-logs-clear" class="danger-btn">Clear all</button></div>' +
-          '</div>'
+          ''
         : ''),
         function() {
           document.getElementById('settings-pw-form').addEventListener('submit', function(e) {
@@ -6360,13 +6363,23 @@
               document.querySelectorAll('.modal [data-panel]').forEach(p => {
                 p.hidden = p.dataset.panel !== tab;
               });
-              if (tab === 'logs') renderAdminLogs();
             });
           });
           if (initialTab) {
             const target = document.querySelector('#settings-tabs button[data-tab="' + initialTab + '"]');
             if (target) target.click();
           }
+        }
+      );
+    }
+
+    function openLogsModal() {
+      openModal(
+        '<h2>Audit log<button class="modal-close">&times;</button></h2>' +
+        '<div id="s-admin-logs"><div class="hint">Loading&hellip;</div></div>' +
+        '<div class="log-toolbar"><button type="button" id="s-logs-clear" class="danger-btn">Clear all</button></div>',
+        function() {
+          renderAdminLogs();
           const clearBtn = document.getElementById('s-logs-clear');
           if (clearBtn) {
             clearBtn.addEventListener('click', function() {
