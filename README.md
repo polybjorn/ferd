@@ -28,7 +28,7 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 
 **Phone and offline**
 - Installable as a standalone app on your phone (PWA). See [docs/pwa.md](docs/pwa.md).
-- Reads work offline: app shell, vendored map library, last loaded data, and previously viewed tiles are cached locally.
+- Reads work offline: app shell, vendored map library and elevation chart deps, last loaded data, downloaded GPX files, and previously viewed tiles are cached locally.
 - Edits and uploads require network.
 
 ## Install
