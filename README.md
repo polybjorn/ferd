@@ -64,6 +64,7 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 - Print / PDF stylesheet for trail and place details.
 - Auth hardening: optional TOTP 2FA.
 - Photo attachments on places and trails.
+- Render GPX `<wpt>` waypoints with proper icons + popups. Currently suppressed (with cosmetic "no waypoint icon" warnings) because the obvious leaflet-gpx default behavior auto-opens popups for every waypoint and renders content as `[object Object]` when supplying a custom divIcon. Needs a focused pass: monkey-patch leaflet-gpx to skip auto-openPopup, design a per-sym icon map, decide whether to render on index map or detail-only.
 - Custom iOS launch splash: add pre-rendered `apple-touch-startup-image` PNG files (one `<link>` per device size + orientation) in `index.html`. Without these iOS shows a generic splash with the auto-rendered icon.
 - Vendor leaflet-elevation's remaining external deps (d3, @tmcw/togeojson, leaflet-geometryutil, leaflet-almostover) so the elevation chart works offline. The lib's internal handlers, components, and bundled libs are already vendored under `vendor/src/` and `vendor/libs/`; only the CDN-loaded peers are left.
   - When this lands, total vendored deps goes from 5 to 9. Worth adding a small GitHub Action + check script at that point to flag upstream version bumps via issues; below 9 deps it isn't worth the ceremony.
