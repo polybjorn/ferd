@@ -1357,52 +1357,13 @@
       border-color: var(--border-hover);
       opacity: 1;
     }
-    .auth-menu {
-      position: absolute;
-      top: calc(100% + 0.4rem);
-      right: 0;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-      min-width: 160px;
-      z-index: 1500;
-      padding: 0.25rem;
-    }
-    .auth-menu[hidden] { display: none; }
-    .auth-menu .auth-menu-header {
-      padding: 0.5rem 0.7rem 0.4rem;
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 0.25rem;
-    }
-    .auth-menu .auth-menu-header strong { color: var(--text); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 0.8rem; display: block; margin-top: 0.15rem; }
-    .auth-menu button {
+    .settings-signout-row {
       display: flex;
-      width: 100%;
-      background: transparent;
-      border: none;
-      color: var(--text);
-      font-family: inherit;
-      font-size: 0.75rem;
-      text-align: left;
-      padding: 0.5rem 0.7rem;
-      border-radius: 4px;
-      cursor: pointer;
-      justify-content: flex-start;
-    }
-    .auth-menu button:hover { background: var(--surface2); color: var(--text); border-color: transparent; }
-    .auth-menu button.auth-menu-signout {
-      margin-top: 0.25rem;
-      padding-top: 0.55rem;
+      justify-content: center;
+      margin-top: 1.5rem;
+      padding-top: 1rem;
       border-top: 1px solid var(--border);
-      color: var(--muted);
-      border-radius: 0 0 4px 4px;
     }
-    .auth-menu button.auth-menu-signout:hover { color: var(--text); }
 
     /* Floating add button */
     .fab-add {
@@ -5657,47 +5618,24 @@
       const el = document.getElementById('auth-widget');
       if (!el) return;
       if (state.auth.authenticated) {
-        el.innerHTML =
-          '<button id="auth-menu-btn" title="Account menu">Menu</button>' +
-          '<div class="auth-menu" id="auth-menu" hidden>' +
-            '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>' +
-            '<button data-action="settings">Settings</button>' +
-            '<button class="auth-menu-signout" data-action="signout">Sign out</button>' +
-          '</div>';
-        const btn = document.getElementById('auth-menu-btn');
-        const menu = document.getElementById('auth-menu');
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          menu.hidden = !menu.hidden;
-        });
-        menu.addEventListener('click', function(e) {
-          const action = e.target.closest('button[data-action]');
-          if (!action) return;
-          menu.hidden = true;
-          if (action.dataset.action === 'signout') {
-            openConfirmModal({
-              title: 'Sign out?',
-              body: 'You will need to sign in again to edit places, trails, or settings.',
-              confirmLabel: 'Sign out',
-              danger: true,
-            }).then(ok => {
-              if (!ok) return;
-              api('POST', '/logout').then(function() { location.reload(); });
-            });
-          } else if (action.dataset.action === 'settings') {
-            openSettingsModal();
-          }
-        });
-        document.addEventListener('click', function closer(e) {
-          if (!el.contains(e.target)) {
-            menu.hidden = true;
-            document.removeEventListener('click', closer);
-          }
-        });
+        el.innerHTML = '<button id="auth-settings-btn" title="Settings">Settings</button>';
+        document.getElementById('auth-settings-btn').addEventListener('click', openSettingsModal);
       } else {
         el.innerHTML = '<button id="auth-signin">Sign in</button>';
         document.getElementById('auth-signin').addEventListener('click', openSignInModal);
       }
+    }
+
+    function confirmSignOut() {
+      return openConfirmModal({
+        title: 'Sign out?',
+        body: 'You will need to sign in again to edit places, trails, or settings.',
+        confirmLabel: 'Sign out',
+        danger: true,
+      }).then(ok => {
+        if (!ok) return;
+        api('POST', '/logout').then(function() { location.reload(); });
+      });
     }
 
     // ----- Settings modal -----
@@ -5791,6 +5729,9 @@
             '<button type="button" class="primary" id="s-manage-regions">Manage</button>' +
           '</div>'
         : '') +
+        '<div class="settings-signout-row">' +
+          '<button type="button" class="danger-btn" id="s-signout">Sign out</button>' +
+        '</div>' +
         '</div>' +
         '<div data-panel="appearance" hidden>' +
         '<div class="settings-grid-2">' +
@@ -6126,6 +6067,11 @@
           if (manageCats) manageCats.addEventListener('click', openManageCategoriesModal);
           const manageRegions = document.getElementById('s-manage-regions');
           if (manageRegions) manageRegions.addEventListener('click', openManageRegionsModal);
+          const signoutBtn = document.getElementById('s-signout');
+          if (signoutBtn) signoutBtn.addEventListener('click', function() {
+            closeTopModal();
+            confirmSignOut();
+          });
           document.querySelectorAll('.feature-pill input[data-field]').forEach(cb => {
             cb.addEventListener('change', function() {
               setPref('show-' + this.dataset.field, this.checked ? 'true' : 'false');
