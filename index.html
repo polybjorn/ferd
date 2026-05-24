@@ -2805,6 +2805,10 @@
         for (const ctrl of controls) { try { ctrl.remove(); } catch (e) {} }
         state.currentElevation = null;
       }
+      if (state._currentMapResizeObserver) {
+        try { state._currentMapResizeObserver.disconnect(); } catch (e) {}
+        state._currentMapResizeObserver = null;
+      }
       if (state.currentMap) {
         state.currentMap.remove();
         state.currentMap = null;
@@ -4857,6 +4861,15 @@
       }).setView(dvt.center, dvt.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
+      // Map container shrinks asynchronously as the elevation chart and
+      // other detail-view widgets settle, leaving polylines drawn against
+      // a stale viewport until the user nudges the map. Watch the
+      // container and recalc on every real size change.
+      if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(function() { map.invalidateSize(); });
+        ro.observe(map.getContainer());
+        state._currentMapResizeObserver = ro;
+      }
       // Counter-scale trail stroke widths during zoom. 'zoom' covers
       // mobile pinch (fires per frame); zoomanim kicks off a brief rAF
       // loop to cover the desktop 250ms CSS animation where 'zoom'
@@ -4964,7 +4977,6 @@
       }).on('loaded', function(e) {
         const gpx = e.target;
         const bounds = gpx.getBounds();
-        map.invalidateSize();
         if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
         applyNonScalingStroke(gpx);
 
@@ -5040,7 +5052,6 @@
             }
           }
           state.currentElevation = elevControls;
-          map.invalidateSize();
           if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
           const firstTrack = tracks[0];
           const lastTrack = tracks[tracks.length - 1];
