@@ -4872,6 +4872,7 @@
           if (state._lastTrailBounds && state._lastTrailBounds.isValid()) {
             map.fitBounds(state._lastTrailBounds, { padding: [40, 40], animate: false });
           }
+          map.eachLayer(function(l) { if (typeof l.redraw === 'function') l.redraw(); });
         });
         ro.observe(map.getContainer());
         state._currentMapResizeObserver = ro;
@@ -4988,6 +4989,10 @@
           map.fitBounds(bounds, { padding: [40, 40] });
         }
         applyNonScalingStroke(gpx);
+        // Polylines may be in the SVG DOM with correct coords but unpainted
+        // until the renderer next ticks. Force a redraw so the trail
+        // appears immediately instead of on first user pan/zoom.
+        gpx.eachLayer(function(l) { if (typeof l.redraw === 'function') l.redraw(); });
 
         const layers = [];
         gpx.eachLayer(function(layer) { if (layer.getLatLngs) layers.push(layer); });
@@ -5065,6 +5070,7 @@
             state._lastTrailBounds = bounds;
             map.fitBounds(bounds, { padding: [40, 40] });
           }
+          map.eachLayer(function(l) { if (typeof l.redraw === 'function') l.redraw(); });
           const firstTrack = tracks[0];
           const lastTrack = tracks[tracks.length - 1];
           if (firstTrack.points.length > 0 && lastTrack.points.length > 0) {
