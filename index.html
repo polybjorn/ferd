@@ -4771,13 +4771,13 @@
         const nameEl = trk.getElementsByTagNameNS(GPX_NS, 'name')[0] || trk.getElementsByTagName('name')[0];
         const name = nameEl ? nameEl.textContent : 'Track ' + (i + 1);
         const points = [];
-        let trkpts = trk.getElementsByTagNameNS(ns, 'trkpt');
+        let trkpts = trk.getElementsByTagNameNS(GPX_NS, 'trkpt');
         if (trkpts.length === 0) trkpts = trk.getElementsByTagName('trkpt');
         for (let j = 0; j < trkpts.length; j++) {
           const pt = trkpts[j];
           const lat = parseFloat(pt.getAttribute('lat'));
           const lon = parseFloat(pt.getAttribute('lon'));
-          const eleEl = pt.getElementsByTagNameNS(ns, 'ele')[0] || pt.getElementsByTagName('ele')[0];
+          const eleEl = pt.getElementsByTagNameNS(GPX_NS, 'ele')[0] || pt.getElementsByTagName('ele')[0];
           const ele = eleEl ? parseFloat(eleEl.textContent) : null;
           points.push({ lat, lon, ele });
         }
