@@ -1279,23 +1279,6 @@
     /* Pointer cursor over the trail "near-tap" zone, so hovering near a
        polyline reads as interactive even when not directly on the stroke. */
     .leaflet-container.trail-near-cursor { cursor: pointer; }
-    /* Place canvas layer tooltip (hover text on desktop) */
-    .place-canvas-tooltip {
-      position: absolute;
-      pointer-events: none;
-      display: none;
-      max-width: 240px;
-      padding: 0.25rem 0.5rem;
-      background: var(--surface);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      font-size: 0.75rem;
-      line-height: 1.3;
-      white-space: pre;
-      z-index: 700;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-    }
 
     /* Elevation control */
     .elevation-control .background { fill: var(--surface); }
@@ -4143,7 +4126,6 @@
         map.on('resize', this._redraw, this);
         map.on('click', this._onClick, this);
         map.on('mousemove', this._onMouseMove, this);
-        map.on('mouseout', this._hideTooltip, this);
         this._redraw();
         return this;
       },
@@ -4152,19 +4134,14 @@
         if (this._canvas && this._canvas.parentNode) {
           this._canvas.parentNode.removeChild(this._canvas);
         }
-        if (this._tooltipEl && this._tooltipEl.parentNode) {
-          this._tooltipEl.parentNode.removeChild(this._tooltipEl);
-        }
         map.off('move', this._redraw, this);
         map.off('zoomanim', this._onZoomAnim, this);
         map.off('zoomend', this._stopZoomAnim, this);
         map.off('resize', this._redraw, this);
         map.off('click', this._onClick, this);
         map.off('mousemove', this._onMouseMove, this);
-        map.off('mouseout', this._hideTooltip, this);
         this._stopZoomAnim();
         this._map = null;
-        this._tooltipEl = null;
         return this;
       },
 
@@ -4474,46 +4451,10 @@
       },
 
       _onMouseMove: function(e) {
-        // Skip tooltip work on touch devices (no real hover).
+        // Skip on touch devices (no real hover).
         if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
         const target = this._hitTest(e.containerPoint);
-        const container = this._map.getContainer();
-        if (target) {
-          container.style.cursor = 'pointer';
-          this._showTooltip(target, e.containerPoint);
-        } else {
-          container.style.cursor = '';
-          this._hideTooltip();
-        }
-      },
-
-      _ensureTooltipEl: function() {
-        if (!this._tooltipEl) {
-          this._tooltipEl = L.DomUtil.create('div',
-            'place-canvas-tooltip', this._map.getContainer());
-        }
-        return this._tooltipEl;
-      },
-
-      _showTooltip: function(target, cp) {
-        const el = this._ensureTooltipEl();
-        if (target.properties.cluster) {
-          const id = target.properties.cluster_id;
-          const total = target.properties.point_count;
-          const leaves = this._supercluster.getLeaves(id, 10);
-          let label = leaves.map(l => l.properties.place.name).sort().join('\n');
-          if (total > 10) label += '\n+' + (total - 10) + ' more';
-          el.textContent = label;
-        } else {
-          el.textContent = target.properties.place.name;
-        }
-        el.style.left = (cp.x + 12) + 'px';
-        el.style.top = (cp.y - 8) + 'px';
-        el.style.display = 'block';
-      },
-
-      _hideTooltip: function() {
-        if (this._tooltipEl) this._tooltipEl.style.display = 'none';
+        this._map.getContainer().style.cursor = target ? 'pointer' : '';
       },
 
     });
