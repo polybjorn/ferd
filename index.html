@@ -5038,7 +5038,13 @@
       html += '<div class="mobile-stats" id="mobile-stats"></div>';
       if (isMultiTrack) {
         html += '<div id="track-legend"></div>';
-        html += '<div id="multi-elevation-container"></div>';
+        // Reserve the populated height up-front (one expanded chart plus
+        // a header per collapsed track) so the map doesn't shrink when
+        // the panels render. trackCount comes from the manifest.
+        const trackHeaderPx = 30;
+        const expandedChartPx = 200;
+        const reservedPx = expandedChartPx + Math.max(0, (route.trackCount || 1) - 1) * trackHeaderPx;
+        html += '<div id="multi-elevation-container" style="min-height:' + reservedPx + 'px"></div>';
       } else {
         if (route.hasElevation) html += '<div class="elevation-wrap" id="elevation-container"></div>';
         else html += '<div class="no-elevation-notice">No elevation data available for this route</div>';
