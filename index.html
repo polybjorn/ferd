@@ -389,7 +389,7 @@
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       display: grid;
-      grid-template-columns: 1fr auto 1fr;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
       align-items: center;
       gap: 1rem;
       padding: 0 1.5rem;
@@ -404,24 +404,18 @@
     }
 
     .nav-brand {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
       font-size: 0.85rem;
       font-weight: 400;
       color: var(--text);
       letter-spacing: 0.05em;
       white-space: nowrap;
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
       justify-self: start;
     }
     .nav-brand a { color: var(--text); text-decoration: none; }
-    #nav-home { display: inline-flex; align-items: center; gap: 0.3rem; }
-    #nav-back { display: none; opacity: 0.5; line-height: 0; }
-    #nav-back svg { width: 1.1em; height: 1.1em; display: block; }
-    #nav-crumb { color: var(--muted); }
+    #nav-home { white-space: nowrap; }
+    #nav-back { display: none; opacity: 0.5; vertical-align: middle; margin-right: 0.3rem; }
+    #nav-back svg { width: 1.1em; height: 1.1em; vertical-align: middle; }
+    #nav-crumb { color: var(--muted); white-space: nowrap; }
 
 
     .nav-group {
@@ -2889,10 +2883,30 @@
       });
     }
 
+    let _crumbState = { text: '', showBack: false };
     function setCrumb(text, showBack) {
-      document.getElementById('nav-crumb').textContent = text ? ' / ' + text : '';
-      document.getElementById('nav-back').style.display = showBack ? 'inline-flex' : 'none';
+      _crumbState = { text: text || '', showBack: !!showBack };
+      const crumbEl = document.getElementById('nav-crumb');
+      const backEl = document.getElementById('nav-back');
+      const brandEl = document.querySelector('.nav-brand');
+      const tabsEl = document.querySelector('.view-tabs');
+      backEl.style.display = _crumbState.showBack ? 'inline-flex' : 'none';
+      if (!_crumbState.text) { crumbEl.textContent = ''; return; }
+      crumbEl.textContent = ' / ' + _crumbState.text;
+      if (!brandEl || !tabsEl) return;
+      // Truncate the crumb char-by-char until the brand's right edge no
+      // longer collides with the tabs. Cheaper than it looks: the loop
+      // stops as soon as it fits, and getBoundingClientRect is fast.
+      const gap = 8; // breathing room before the tabs start
+      let len = _crumbState.text.length;
+      while (len > 0 && brandEl.getBoundingClientRect().right > tabsEl.getBoundingClientRect().left - gap) {
+        len--;
+        crumbEl.textContent = ' / ' + _crumbState.text.slice(0, len).trimEnd() + '…';
+      }
     }
+    window.addEventListener('resize', function() {
+      if (_crumbState.text) setCrumb(_crumbState.text, _crumbState.showBack);
+    });
 
     function createMarkerIcon(color, visited) {
       const size = getMarkerSize(), cx = size / 2, cy = size / 2;
