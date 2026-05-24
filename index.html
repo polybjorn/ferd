@@ -2922,6 +2922,16 @@
     // Apply current trail-weight to all live trail polylines without rebuilding.
     // Stamp the original stroke-width on first observation so later
     // adjustments can divide back without losing precision.
+    // Override leaflet-elevation's lazy-import URLs to point at our
+    // vendored copies so the chart works without a network round-trip
+    // to unpkg. The constants match the lib's internal option names.
+    const ELEVATION_VENDOR_URLS = {
+      __D3: '/vendor/d3/d3.min.js',
+      __TOGEOJSON: '/vendor/togeojson/togeojson.umd.js',
+      __LGEOMUTIL: '/vendor/leaflet-geometryutil/leaflet.geometryutil.js',
+      __LALMOSTOVER: '/vendor/leaflet-almostover/leaflet.almostover.js',
+    };
+
     // Waypoint rendering helpers. leaflet-gpx skips creating a marker if
     // wptIcons[''] is null (just logs a warning), so we feed it a
     // placeholder icon to trigger its 'addpoint' event, then replace the
@@ -5094,7 +5104,7 @@
     function renderSingleTrack(map, route, color) {
       let elevationControl = null;
       if (route.hasElevation) {
-        elevationControl = L.control.elevation({
+        elevationControl = L.control.elevation(Object.assign({
           theme: 'custom-theme',
           detached: true,
           elevationDiv: '#elevation-container',
@@ -5104,7 +5114,7 @@
           legend: false, summary: false, ruler: false, downloadLink: false,
           almostOver: false, distanceMarkers: false,
           polyline: { color: color, opacity: 0.9, weight: 5 * getTrailWeightFactor() },
-        }).addTo(map);
+        }, ELEVATION_VENDOR_URLS)).addTo(map);
         state.currentElevation = elevationControl;
       }
 
@@ -5210,7 +5220,7 @@
             L.polyline(latlngs, { color: tc, opacity: 0.9, weight: 5 * getTrailWeightFactor() }).addTo(map);
             const hasEle = track.points.some(p => p.ele !== null);
             if (hasEle && container) {
-              const ctrl = L.control.elevation({
+              const ctrl = L.control.elevation(Object.assign({
                 theme: 'custom-theme', detached: true,
                 elevationDiv: '#elevation-track-' + i,
                 height: elevHeight,
@@ -5219,7 +5229,7 @@
                 legend: false, summary: false, ruler: false, downloadLink: false,
                 almostOver: false, distanceMarkers: false,
                 polyline: false,
-              }).addTo(map);
+              }, ELEVATION_VENDOR_URLS)).addTo(map);
               ctrl.addData(trackToGeoJSON(track));
               elevControls.push(ctrl);
             }

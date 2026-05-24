@@ -37,6 +37,34 @@ Update this file when a dependency is **added, removed, replaced, or version-bum
 - License: ISC
 - Copyright (c) Mapbox
 
+## d3
+- Version: 7.8.4
+- Upstream: https://github.com/d3/d3
+- License: ISC
+- Copyright (c) Mike Bostock
+- Note: lazy-loaded by leaflet-elevation when rendering an elevation chart.
+
+## @tmcw/togeojson
+- Version: 5.6.2
+- Upstream: https://github.com/tmcw/togeojson
+- License: BSD-2-Clause
+- Copyright (c) Tom MacWright
+- Note: lazy-loaded by leaflet-elevation to convert GPX/KML to GeoJSON.
+
+## leaflet-geometryutil
+- Version: 0.10.1
+- Upstream: https://github.com/makinacorpus/Leaflet.GeometryUtil
+- License: BSD-3-Clause (FreeBSD-style)
+- Copyright (c) Makina Corpus
+- Note: lazy-loaded by leaflet-elevation for distance/angle math along polylines.
+
+## leaflet-almostover
+- Version: 1.0.1
+- Upstream: https://github.com/makinacorpus/Leaflet.AlmostOver
+- License: MIT
+- Copyright (c) Makina Corpus
+- Note: lazy-loaded by leaflet-elevation for "near polyline" mouse interactions.
+
 ---
 
 ## License compatibility summary
@@ -48,5 +76,9 @@ Update this file when a dependency is **added, removed, replaced, or version-bum
 | @raruto/leaflet-elevation | GPL-3.0-or-later | Same license |
 | Leaflet.TileLayer.NoGap | BSD-2-Clause | Yes |
 | supercluster | ISC | Yes |
+| d3 | ISC | Yes |
+| @tmcw/togeojson | BSD-2-Clause | Yes |
+| leaflet-geometryutil | BSD-3-Clause | Yes |
+| leaflet-almostover | MIT | Yes |
 
-BSD-2-Clause and ISC are on the FSF's [list of GPL-compatible licenses](https://www.gnu.org/licenses/license-list.html). Each component retains its original license; redistribution of the combined work is under GPL-3.0.
+BSD-2-Clause, BSD-3-Clause, ISC, and MIT are on the FSF's [list of GPL-compatible licenses](https://www.gnu.org/licenses/license-list.html). Each component retains its original license; redistribution of the combined work is under GPL-3.0.

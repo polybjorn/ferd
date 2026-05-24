@@ -65,8 +65,7 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 - Auth hardening: optional TOTP 2FA.
 - Photo attachments on places and trails.
 - Custom iOS launch splash: add pre-rendered `apple-touch-startup-image` PNG files (one `<link>` per device size + orientation) in `index.html`. Without these iOS shows a generic splash with the auto-rendered icon.
-- Vendor leaflet-elevation's remaining external deps (d3, @tmcw/togeojson, leaflet-geometryutil, leaflet-almostover) so the elevation chart works offline. The lib's internal handlers, components, and bundled libs are already vendored under `vendor/src/` and `vendor/libs/`; only the CDN-loaded peers are left.
-  - When this lands, total vendored deps goes from 5 to 9. Worth adding a small GitHub Action + check script at that point to flag upstream version bumps via issues; below 9 deps it isn't worth the ceremony.
+- Add a GitHub Action + check script to flag upstream version bumps for vendored deps. Worth doing now that the count is at 9.
 - Automate the service worker `CACHE_VERSION` bump on release (currently a manual line edit in `sw.js`).
 
 ## License
