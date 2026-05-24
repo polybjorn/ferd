@@ -7467,6 +7467,11 @@
             }
           });
         });
+        // Force an update check on every page load. Firefox especially is
+        // lazy about checking for new SW versions otherwise, and our
+        // content-hash CACHE_VERSION means sw.js bytes can change on any
+        // shell-file edit; users shouldn't have to unregister manually.
+        try { reg.update(); } catch (_) {}
       }).catch(() => { /* registration failed; app still works online */ });
     })();
   </script>
