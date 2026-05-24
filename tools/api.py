@@ -105,6 +105,22 @@ SW_VERSION_PLACEHOLDER = "__FERD_CACHE_VERSION__"
 _SW_VERSION_CACHE: dict = {"version": None, "computed_at": 0.0}
 _SW_VERSION_TTL_SEC = 5
 
+
+def _read_app_version() -> str:
+  """Read the human-readable app version from the VERSION file at the repo
+  root. Falls back to 'unknown' if the file is missing (older deployments,
+  bare source layouts)."""
+  for candidate in (Path(__file__).resolve().parent.parent / "VERSION",
+                    Path(__file__).resolve().parent / "VERSION"):
+    try:
+      return candidate.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+      continue
+  return "unknown"
+
+
+APP_VERSION = _read_app_version()
+
 def _compute_sw_version(static_dir: Path) -> str:
   sw_path = static_dir / "sw.js"
   try:
@@ -934,6 +950,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "publishing_open": publishing_open(self.conn),
       "has_users": user_count(self.conn) > 0,
       "requires_setup_token": Handler.setup_token is not None and user_count(self.conn) == 0,
+      "version": APP_VERSION,
     })
 
   def _h_register(self):

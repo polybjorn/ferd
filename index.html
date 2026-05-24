@@ -1368,6 +1368,13 @@
       padding-top: 1rem;
       border-top: 1px solid var(--border);
     }
+    .settings-version {
+      text-align: center;
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-top: 0.75rem;
+      letter-spacing: 0.05em;
+    }
 
     /* Floating add button */
     .fab-add {
@@ -5775,6 +5782,7 @@
         '<div class="settings-signout-row">' +
           '<button type="button" class="danger-btn" id="s-signout">Sign out</button>' +
         '</div>' +
+        '<div class="settings-version">Ferd <span id="s-version">' + escapeHtml(state.auth.version || 'unknown') + '</span></div>' +
         '</div>' +
         '<div data-panel="appearance" hidden>' +
         '<div class="settings-grid-2">' +

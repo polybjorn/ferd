@@ -59,7 +59,6 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 
 ## Roadmap
 
-- Prebuilt multi-arch container image so deployments can `docker compose pull`.
 - Print / PDF stylesheet for trail and place details.
 - Auth hardening: optional TOTP 2FA.
 - Photo attachments on places and trails.
