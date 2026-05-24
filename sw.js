@@ -56,9 +56,6 @@ const SHELL_ASSETS = [
   '/vendor/libs/leaflet-hotline.min.js',
   '/vendor/images/elevation.svg',
   '/vendor/d3/d3.min.js',
-  '/vendor/togeojson/togeojson.umd.js',
-  '/vendor/leaflet-geometryutil/leaflet.geometryutil.js',
-  '/vendor/leaflet-almostover/leaflet.almostover.js',
 ];
 
 const TILE_HOSTS = [

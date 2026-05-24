@@ -6,9 +6,6 @@
     { "npm": "@raruto/leaflet-elevation", "version": "2.5.2" },
     { "npm": "leaflet.tilelayer.nogap", "version": "0.3.0" },
     { "npm": "supercluster", "version": "8.0.1" },
-    { "npm": "d3", "version": "7.9.0" },
-    { "npm": "@tmcw/togeojson", "version": "7.1.2" },
-    { "npm": "leaflet-geometryutil", "version": "0.10.3" },
-    { "npm": "leaflet-almostover", "version": "1.0.1" }
+    { "npm": "d3", "version": "7.9.0" }
   ]
 }

@@ -42,6 +42,8 @@ Placement: the submit button at the bottom of a form lives in `<div class="modal
 
 Specificity gotcha: the generic rule `.modal button:not(.modal-close)` is (0,2,2) because `:not()` takes the highest specificity of its argument. To beat it, repeat the `:not()` on your selector (e.g. `.modal button.primary:not(.modal-close)`).
 
+Source-order gotcha (media queries): a rule inside `@media (max-width: ...)` does NOT automatically beat a same-specificity rule placed later in the stylesheet. The cascade resolves identical specificity by source order, and the media-query block is just a wrapper, not a tiebreaker. If a mobile override appears earlier in the file than the desktop default, the default wins on mobile too. Either move the override to after the default, or bump its selector specificity (e.g. `nav .auth-widget button { ... }`).
+
 ## Forms and inputs
 
 - `<label>` sits on its own line above the input. Helper text goes in `.modal-desc` below.

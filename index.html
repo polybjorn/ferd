@@ -451,6 +451,8 @@
       justify-self: center;
     }
     .view-tabs a {
+      display: inline-flex;
+      align-items: center;
       color: var(--muted);
       text-decoration: none;
       font-size: 0.7rem;
@@ -1276,23 +1278,9 @@
     .leaflet-control-layers label { color: var(--text); }
     .leaflet-control-layers-separator { border-color: var(--border) !important; }
 
-    /* Place canvas layer tooltip (hover text on desktop) */
-    .place-canvas-tooltip {
-      position: absolute;
-      pointer-events: none;
-      display: none;
-      max-width: 240px;
-      padding: 0.25rem 0.5rem;
-      background: var(--surface);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      font-size: 0.75rem;
-      line-height: 1.3;
-      white-space: pre;
-      z-index: 700;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-    }
+    /* Pointer cursor over the trail "near-tap" zone, so hovering near a
+       polyline reads as interactive even when not directly on the stroke. */
+    .leaflet-container.trail-near-cursor { cursor: pointer; }
 
     /* Elevation control */
     .elevation-control .background { fill: var(--surface); }
@@ -1323,7 +1311,9 @@
       #app { padding: 1rem 1rem 3rem; }
       .place-grid, .route-grid { grid-template-columns: 1fr; }
       .detail-layout { padding: 0; }
-      nav { padding: 0.6rem 1rem; gap: 0.5rem; }
+      nav { padding: 0.5rem 0.75rem; gap: 0.5rem; }
+      nav .view-tabs a { font-size: 0.8rem; padding: 0.55rem 0.85rem; }
+      nav .auth-widget button, nav .auth-widget a { font-size: 0.8rem; padding: 0.55rem 0.85rem; }
       .nav-group { gap: 0.4rem; }
       .nav-group + .nav-group { padding-left: 0.4rem; }
       .nav-stat .label { font-size: 0.5rem; }
@@ -1354,8 +1344,10 @@
       color: var(--muted);
       font-family: inherit;
       font-size: 0.7rem;
+      font-weight: 400;
+      line-height: inherit;
       letter-spacing: 0.03em;
-      padding: 0.35rem 0.6rem;
+      padding: 0.4rem 0.7rem;
       border-radius: var(--radius);
       cursor: pointer;
       text-decoration: none;
@@ -1369,52 +1361,13 @@
       border-color: var(--border-hover);
       opacity: 1;
     }
-    .auth-menu {
-      position: absolute;
-      top: calc(100% + 0.4rem);
-      right: 0;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-      min-width: 160px;
-      z-index: 1500;
-      padding: 0.25rem;
-    }
-    .auth-menu[hidden] { display: none; }
-    .auth-menu .auth-menu-header {
-      padding: 0.5rem 0.7rem 0.4rem;
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 0.25rem;
-    }
-    .auth-menu .auth-menu-header strong { color: var(--text); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 0.8rem; display: block; margin-top: 0.15rem; }
-    .auth-menu button {
+    .settings-signout-row {
       display: flex;
-      width: 100%;
-      background: transparent;
-      border: none;
-      color: var(--text);
-      font-family: inherit;
-      font-size: 0.75rem;
-      text-align: left;
-      padding: 0.5rem 0.7rem;
-      border-radius: 4px;
-      cursor: pointer;
-      justify-content: flex-start;
-    }
-    .auth-menu button:hover { background: var(--surface2); color: var(--text); border-color: transparent; }
-    .auth-menu button.auth-menu-signout {
-      margin-top: 0.25rem;
-      padding-top: 0.55rem;
+      justify-content: center;
+      margin-top: 1.5rem;
+      padding-top: 1rem;
       border-top: 1px solid var(--border);
-      color: var(--muted);
-      border-radius: 0 0 4px 4px;
     }
-    .auth-menu button.auth-menu-signout:hover { color: var(--text); }
 
     /* Floating add button */
     .fab-add {
@@ -1463,7 +1416,10 @@
     }
     .fab-add:hover { transform: scale(1.05); }
 
-    body.map-chrome-hidden .leaflet-control-container,
+    /* Spacebar / long-press hides map UI but leaves the tile attribution
+       visible - Esri / OSM / OpenTopoMap terms require attribution to
+       remain on screen while their tiles are. */
+    body.map-chrome-hidden .leaflet-control-container .leaflet-control:not(.leaflet-control-attribution),
     body.map-chrome-hidden .fab-add,
     body.map-chrome-hidden .map-panel { display: none !important; }
     /* Per-control persistent toggles (Settings > Appearance > On-map controls).
@@ -1476,6 +1432,13 @@
       opacity: 0;
       transform: scale(0.5);
       pointer-events: none;
+    }
+    /* 'S' keyboard shortcut force-shows the map filter panel even when the
+       user has set it to hidden, so the search input is reachable. */
+    body.force-show-map-filter .map-panel {
+      opacity: 1 !important;
+      transform: none !important;
+      pointer-events: auto !important;
     }
 
     /* "Pick on map" inline button for the Add Place form */
@@ -2989,9 +2952,6 @@
     // to unpkg. The constants match the lib's internal option names.
     const ELEVATION_VENDOR_URLS = {
       __D3: '/vendor/d3/d3.min.js',
-      __TOGEOJSON: '/vendor/togeojson/togeojson.umd.js',
-      __LGEOMUTIL: '/vendor/leaflet-geometryutil/leaflet.geometryutil.js',
-      __LALMOSTOVER: '/vendor/leaflet-almostover/leaflet.almostover.js',
     };
 
     // Waypoint rendering helpers. leaflet-gpx skips creating a marker if
@@ -3519,6 +3479,66 @@
       state._trailGroupCompleted = groupCompleted;
       state._trailGroupPlanned = groupPlanned;
 
+      // Map-level near-tap detector: stock Leaflet only fires polyline
+      // click when the tap lands within ~1px of the stroke, which is
+      // brutal on touch. Walk visible trails on every map click and
+      // pick the closest segment within ~18px; if found, behave as if
+      // the user had hit the polyline exactly.
+      const NEAR_TAP_PX = 18;
+      function pointSegDistSq(p, a, b) {
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const len2 = dx * dx + dy * dy;
+        if (!len2) { const ax = p.x - a.x, ay = p.y - a.y; return ax * ax + ay * ay; }
+        let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2;
+        if (t < 0) t = 0; else if (t > 1) t = 1;
+        const cx = a.x + t * dx, cy = a.y + t * dy;
+        return (p.x - cx) * (p.x - cx) + (p.y - cy) * (p.y - cy);
+      }
+      function isLayerVisible(record) {
+        if (state.hiddenRegions.has(record.region)) return false;
+        return record.completed ? state.showCompleted : state.showPlanned;
+      }
+      function findNearTrail(containerPt) {
+        if (!state._trailLayers || !state._trailLayers.length) return null;
+        let best = null, bestDist = NEAR_TAP_PX * NEAR_TAP_PX;
+        const visit = function(layer, record) {
+          if (layer.getLatLngs && !layer.eachLayer) {
+            const raw = layer.getLatLngs();
+            const flat = Array.isArray(raw) && Array.isArray(raw[0]) ? [].concat.apply([], raw) : raw;
+            for (let i = 0; i < flat.length - 1; i++) {
+              const a = map.latLngToContainerPoint(flat[i]);
+              const b = map.latLngToContainerPoint(flat[i + 1]);
+              const d2 = pointSegDistSq(containerPt, a, b);
+              if (d2 < bestDist) { bestDist = d2; best = record; }
+            }
+          }
+          if (layer.eachLayer) layer.eachLayer(function(sub) { visit(sub, record); });
+        };
+        for (const record of state._trailLayers) {
+          if (!isLayerVisible(record)) continue;
+          visit(record.layer, record);
+        }
+        return best;
+      }
+      map.on('click', function(e) {
+        const best = findNearTrail(e.containerPoint);
+        if (best) {
+          const slug = best.route._slug || best.route.key;
+          history.replaceState(null, '', focusHash('trail', slug));
+          best.layer.openPopup(e.latlng);
+        }
+      });
+      // Show the pointer cursor across the full near-tap zone, not just
+      // the 1-2px polyline stroke. mousemove on Leaflet fires only when
+      // the cursor moves over the map, so this stays cheap.
+      let _nearCursor = false;
+      map.on('mousemove', function(e) {
+        const near = !!findNearTrail(e.containerPoint);
+        if (near === _nearCursor) return;
+        _nearCursor = near;
+        map.getContainer().classList.toggle('trail-near-cursor', near);
+      });
+
       function loadRouteLazy(desc) {
         if (loadedRouteKeys.has(desc.route.key) || pendingRouteKeys.has(desc.route.key)) return;
         pendingRouteKeys.add(desc.route.key);
@@ -3559,7 +3579,12 @@
             trailPopupHtml(desc.route, desc.region, desc.color),
             { closeButton: false }
           ).on('click', (function(slug) {
-            return function() { history.replaceState(null, '', focusHash('trail', slug)); };
+            return function(ev) {
+              // Stop propagation so the map-level near-tap handler
+              // doesn't fire a duplicate replaceState + popup toggle.
+              if (ev && ev.originalEvent) L.DomEvent.stopPropagation(ev.originalEvent);
+              history.replaceState(null, '', focusHash('trail', slug));
+            };
           })(desc.route._slug || desc.route.key));
           trailLayers.push({ route: desc.route, region: desc.region.name, layer: gpxLayer, completed: desc.route.completed });
           loadedRouteKeys.add(desc.route.key);
@@ -3850,6 +3875,7 @@
             '<div><label for="e-lat">Latitude</label><input type="number" id="e-lat" step="any" required value="' + place.lat + '"></div>' +
             '<div><label for="e-lon">Longitude</label><input type="number" id="e-lon" step="any" required value="' + place.lon + '"></div>' +
           '</div>' +
+          '<div style="margin-top:0.25rem;text-align:right"><button type="button" class="primary" id="e-pick-on-map">Pick on map</button></div>' +
           '<label for="e-category">Category</label>' +
           selectOrNewHtml('e-category', cats, place.category, displayCategory, '', 'New category name') +
           '<label for="e-country">Country (optional)</label>' +
@@ -3895,6 +3921,18 @@
               eVisitedExtras.classList.toggle('expanded', this.checked);
             });
           }
+          document.getElementById('e-pick-on-map').addEventListener('click', function() {
+            // Snapshot current form values so they survive the close+reopen
+            // around the map click. Lat/lon get overwritten with the pick.
+            const snapshot = readPlaceFormFields('e');
+            const draft = Object.assign({}, place, snapshot.payload || {});
+            closeModal();
+            enterPickCoordsMode(function(latlng) {
+              draft.lat = latlng.lat;
+              draft.lon = latlng.lng;
+              openEditPlaceModal(draft);
+            });
+          });
           document.getElementById('e-delete').addEventListener('click', function() {
             if (!confirm('Delete place "' + place.name + '"?')) return;
             this.disabled = true;
@@ -4076,7 +4114,6 @@
         map.on('resize', this._redraw, this);
         map.on('click', this._onClick, this);
         map.on('mousemove', this._onMouseMove, this);
-        map.on('mouseout', this._hideTooltip, this);
         this._redraw();
         return this;
       },
@@ -4085,19 +4122,14 @@
         if (this._canvas && this._canvas.parentNode) {
           this._canvas.parentNode.removeChild(this._canvas);
         }
-        if (this._tooltipEl && this._tooltipEl.parentNode) {
-          this._tooltipEl.parentNode.removeChild(this._tooltipEl);
-        }
         map.off('move', this._redraw, this);
         map.off('zoomanim', this._onZoomAnim, this);
         map.off('zoomend', this._stopZoomAnim, this);
         map.off('resize', this._redraw, this);
         map.off('click', this._onClick, this);
         map.off('mousemove', this._onMouseMove, this);
-        map.off('mouseout', this._hideTooltip, this);
         this._stopZoomAnim();
         this._map = null;
-        this._tooltipEl = null;
         return this;
       },
 
@@ -4407,46 +4439,10 @@
       },
 
       _onMouseMove: function(e) {
-        // Skip tooltip work on touch devices (no real hover).
+        // Skip on touch devices (no real hover).
         if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
         const target = this._hitTest(e.containerPoint);
-        const container = this._map.getContainer();
-        if (target) {
-          container.style.cursor = 'pointer';
-          this._showTooltip(target, e.containerPoint);
-        } else {
-          container.style.cursor = '';
-          this._hideTooltip();
-        }
-      },
-
-      _ensureTooltipEl: function() {
-        if (!this._tooltipEl) {
-          this._tooltipEl = L.DomUtil.create('div',
-            'place-canvas-tooltip', this._map.getContainer());
-        }
-        return this._tooltipEl;
-      },
-
-      _showTooltip: function(target, cp) {
-        const el = this._ensureTooltipEl();
-        if (target.properties.cluster) {
-          const id = target.properties.cluster_id;
-          const total = target.properties.point_count;
-          const leaves = this._supercluster.getLeaves(id, 10);
-          let label = leaves.map(l => l.properties.place.name).sort().join('\n');
-          if (total > 10) label += '\n+' + (total - 10) + ' more';
-          el.textContent = label;
-        } else {
-          el.textContent = target.properties.place.name;
-        }
-        el.style.left = (cp.x + 12) + 'px';
-        el.style.top = (cp.y - 8) + 'px';
-        el.style.display = 'block';
-      },
-
-      _hideTooltip: function() {
-        if (this._tooltipEl) this._tooltipEl.style.display = 'none';
+        this._map.getContainer().style.cursor = target ? 'pointer' : '';
       },
 
     });
@@ -4566,9 +4562,11 @@
           }
         } else {
           const key = row.dataset.key;
-          const entry = state._trailLayers.find(t => t.route.key === key);
+          const entry = (state._trailLayers || []).find(t => t.route.key === key);
+          history.replaceState(null, '', '#/?focus=trail:' + encodeURIComponent(key));
           if (entry) {
-            // Find inner polyline bounds via the GPX layer
+            // Trail is already loaded - fit to its actual bounds and open
+            // the popup directly.
             const layers = [];
             entry.layer.eachLayer(l => { if (l.getBounds) layers.push(l); });
             if (layers.length) {
@@ -4576,7 +4574,21 @@
               if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
               if (entry.layer.openPopup) entry.layer.openPopup(b.getCenter());
             }
-            history.replaceState(null, '', '#/?focus=trail:' + encodeURIComponent(key));
+          } else {
+            // Not loaded yet (lazy-loaded by viewport intersection). Fit
+            // to the manifest bbox so the viewport intersects the trail,
+            // which kicks off the load.
+            let route = null;
+            if (state.manifest) {
+              for (const r of state.manifest.regions) {
+                const found = r.routes.find(rt => rt.key === key);
+                if (found) { route = found; break; }
+              }
+            }
+            if (route && route.bbox && route.bbox.length === 4) {
+              const b = L.latLngBounds([route.bbox[0], route.bbox[1]], [route.bbox[2], route.bbox[3]]);
+              if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
+            }
           }
         }
         input.value = '';
@@ -5649,47 +5661,24 @@
       const el = document.getElementById('auth-widget');
       if (!el) return;
       if (state.auth.authenticated) {
-        el.innerHTML =
-          '<button id="auth-menu-btn" title="Account menu">Menu</button>' +
-          '<div class="auth-menu" id="auth-menu" hidden>' +
-            '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>' +
-            '<button data-action="settings">Settings</button>' +
-            '<button class="auth-menu-signout" data-action="signout">Sign out</button>' +
-          '</div>';
-        const btn = document.getElementById('auth-menu-btn');
-        const menu = document.getElementById('auth-menu');
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          menu.hidden = !menu.hidden;
-        });
-        menu.addEventListener('click', function(e) {
-          const action = e.target.closest('button[data-action]');
-          if (!action) return;
-          menu.hidden = true;
-          if (action.dataset.action === 'signout') {
-            openConfirmModal({
-              title: 'Sign out?',
-              body: 'You will need to sign in again to edit places, trails, or settings.',
-              confirmLabel: 'Sign out',
-              danger: true,
-            }).then(ok => {
-              if (!ok) return;
-              api('POST', '/logout').then(function() { location.reload(); });
-            });
-          } else if (action.dataset.action === 'settings') {
-            openSettingsModal();
-          }
-        });
-        document.addEventListener('click', function closer(e) {
-          if (!el.contains(e.target)) {
-            menu.hidden = true;
-            document.removeEventListener('click', closer);
-          }
-        });
+        el.innerHTML = '<button id="auth-settings-btn" title="Settings">Settings</button>';
+        document.getElementById('auth-settings-btn').addEventListener('click', openSettingsModal);
       } else {
         el.innerHTML = '<button id="auth-signin">Sign in</button>';
         document.getElementById('auth-signin').addEventListener('click', openSignInModal);
       }
+    }
+
+    function confirmSignOut() {
+      return openConfirmModal({
+        title: 'Sign out?',
+        body: 'You will need to sign in again to edit places, trails, or settings.',
+        confirmLabel: 'Sign out',
+        danger: true,
+      }).then(ok => {
+        if (!ok) return;
+        api('POST', '/logout').then(function() { location.reload(); });
+      });
     }
 
     // ----- Settings modal -----
@@ -5783,6 +5772,9 @@
             '<button type="button" class="primary" id="s-manage-regions">Manage</button>' +
           '</div>'
         : '') +
+        '<div class="settings-signout-row">' +
+          '<button type="button" class="danger-btn" id="s-signout">Sign out</button>' +
+        '</div>' +
         '</div>' +
         '<div data-panel="appearance" hidden>' +
         '<div class="settings-grid-2">' +
@@ -6118,6 +6110,11 @@
           if (manageCats) manageCats.addEventListener('click', openManageCategoriesModal);
           const manageRegions = document.getElementById('s-manage-regions');
           if (manageRegions) manageRegions.addEventListener('click', openManageRegionsModal);
+          const signoutBtn = document.getElementById('s-signout');
+          if (signoutBtn) signoutBtn.addEventListener('click', function() {
+            closeTopModal();
+            confirmSignOut();
+          });
           document.querySelectorAll('.feature-pill input[data-field]').forEach(cb => {
             cb.addEventListener('change', function() {
               setPref('show-' + this.dataset.field, this.checked ? 'true' : 'false');
@@ -7411,12 +7408,14 @@
     }
 
     // ----- Pick coordinates on the map -----
-    function enterPickCoordsMode() {
+    // onPick is called with the chosen latlng. If omitted, the default
+    // behavior opens the Add modal pre-filled with those coordinates.
+    function enterPickCoordsMode(onPick) {
       // Make sure we're on the unified map. If not, navigate there first.
       const base = (location.hash || '#/').split('?')[0];
       if (base !== '#/' && base !== '#/map' && base !== '#') {
         location.hash = '#/';
-        setTimeout(enterPickCoordsMode, 250);
+        setTimeout(function() { enterPickCoordsMode(onPick); }, 250);
         return;
       }
       const banner = document.createElement('div');
@@ -7428,7 +7427,8 @@
       if (!map) { cleanup(); return; }
       function onClick(e) {
         cleanup();
-        openAddModal(e.latlng);
+        if (typeof onPick === 'function') onPick(e.latlng);
+        else openAddModal(e.latlng);
       }
       function cleanup() {
         map.off('click', onClick);
@@ -7489,6 +7489,53 @@
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
       e.preventDefault();
       document.body.classList.toggle('map-chrome-hidden');
+    });
+
+    // 'S': focus the search input on list pages, or the map search on the
+    // index map. If the map filter panel is hidden by user preference, the
+    // panel is force-shown while the search input is focused and restored
+    // on blur.
+    document.addEventListener('keydown', function(e) {
+      if (e.key !== 's' && e.key !== 'S') return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (document.getElementById('modal-root').children.length) return;
+      const t = e.target;
+      const tag = t && t.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+      const listInput = document.getElementById('search-input');
+      if (listInput && listInput.offsetParent !== null) {
+        e.preventDefault();
+        listInput.focus();
+        listInput.select();
+        return;
+      }
+      const mapInput = document.getElementById('map-search-input');
+      if (mapInput) {
+        e.preventDefault();
+        const wasForced = !document.body.classList.contains('force-show-map-filter');
+        if (wasForced) document.body.classList.add('force-show-map-filter');
+        mapInput.focus();
+        mapInput.select();
+        if (!wasForced) return;
+        // Restore on click outside the panel or on Escape. Using input
+        // 'blur' would fire as soon as the user mousedowns a search
+        // result (which takes focus from the input), hiding the panel
+        // before the click actually registers on the row.
+        const restore = function() {
+          document.body.classList.remove('force-show-map-filter');
+          document.removeEventListener('mousedown', onOutside, true);
+          mapInput.removeEventListener('keydown', onEsc);
+        };
+        const onOutside = function(ev) {
+          if (ev.target.closest && ev.target.closest('.map-panel')) return;
+          restore();
+        };
+        const onEsc = function(ev) {
+          if (ev.key === 'Escape') { mapInput.blur(); restore(); }
+        };
+        document.addEventListener('mousedown', onOutside, true);
+        mapInput.addEventListener('keydown', onEsc);
+      }
     });
 
     // Long-press on the map (touch only): same toggle as spacebar.
@@ -7593,9 +7640,15 @@
 
       if (!('serviceWorker' in navigator)) return;
 
+      // After a hard-refresh the browser loads without an SW controller,
+      // and the worker then takes over a moment later. That first
+      // takeover fires 'controllerchange' too, but it's not an update -
+      // reloading on it caused a spurious second refresh.
+      let hadController = !!navigator.serviceWorker.controller;
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (refreshing) return;
+        if (!hadController) { hadController = true; return; }
         refreshing = true;
         window.location.reload();
       });
