@@ -1,0 +1,81 @@
+name: Bug report
+labels: ["Bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please fill in as much as you can; sparse reports are slow to act on.
+  - type: checkboxes
+    id: search
+    attributes:
+      label: Search
+      options:
+        - label: I have searched existing issues and this has not already been reported.
+          required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: Menu -> About in the app, or `/api/state` `version` field, or the VERSION file.
+      placeholder: "1.x.x"
+    validations:
+      required: true
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: Install method
+      options:
+        - Docker (ghcr.io image)
+        - Docker (built locally)
+        - Python (direct)
+        - Python (systemd / launchd service)
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system (host)
+      placeholder: "macOS 14.5, Debian 12, Synology DSM 7..."
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      placeholder: "Firefox 130, Safari 18, Chrome 128..."
+    validations:
+      required: true
+  - type: textarea
+    id: settings
+    attributes:
+      label: Relevant settings
+      description: Anything non-default in `site-config.json`, `.env`, reverse proxy, etc.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Server log and browser console
+      description: API server stderr and any errors from the browser devtools console (Ctrl/Cmd+Shift+I). Strip personal paths.
+      render: text

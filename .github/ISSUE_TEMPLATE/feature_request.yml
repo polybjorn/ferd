@@ -1,0 +1,39 @@
+name: Feature request
+description: Suggest an enhancement
+labels: ["Enhancement"]
+body:
+  - type: checkboxes
+    id: search
+    attributes:
+      label: Search
+      options:
+        - label: I have searched existing issues and this has not already been requested.
+          required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do that's currently awkward or impossible?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should the app do? Be specific about settings, commands, or behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds you've tried, or other ways this could be solved.
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Would you be willing to contribute a PR?
+      description: No pressure, just helpful for planning.
+      options:
+        - "No"
+        - "Maybe"
+        - "Yes"
