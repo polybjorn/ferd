@@ -28,7 +28,7 @@ RUN rm -f /app/site-config.json \
  && ln -s /data/site-config.json /app/site-config.json \
  && rm -f /app/tools/config.json \
  && install -d -o ferd -g ferd /data \
- && install -m 0755 /app/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+ && install -m 0755 /app/deploy/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 8090
 
@@ -36,7 +36,7 @@ ENV FERD_BIND=0.0.0.0:8090 \
     FERD_DB_PATH=/data/app.db \
     FERD_DATA_DIR=/data \
     FERD_STATIC_DIR=/app \
-    FERD_MANIFEST_CMD=/app/gpx-manifest.sh \
+    FERD_MANIFEST_CMD=/app/scripts/gpx-manifest.sh \
     FERD_SECURE_COOKIES=true
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

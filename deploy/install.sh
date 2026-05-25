@@ -86,15 +86,19 @@ if [ -e "$PREFIX" ]; then
 fi
 if confirm "  proceed?"; then
     install -d -m 0755 -o "$SVC_USER" -g "$SVC_USER" "$PREFIX"
-    install -d -m 0755 -o "$SVC_USER" -g "$SVC_USER" "$PREFIX/tools" "$PREFIX/deploy" "$PREFIX/gpx"
+    install -d -m 0755 -o "$SVC_USER" -g "$SVC_USER" "$PREFIX/tools" "$PREFIX/deploy" "$PREFIX/gpx" "$PREFIX/icons" "$PREFIX/scripts"
 
-    for f in index.html favicon.svg gpx-manifest.sh site-config.example.json LICENSE; do
+    for f in index.html site-config.example.json LICENSE; do
         if [ -f "$SRC_DIR/$f" ]; then
             install -m 0644 -o "$SVC_USER" -g "$SVC_USER" "$SRC_DIR/$f" "$PREFIX/$f"
         fi
     done
-    # gpx-manifest.sh needs to be executable.
-    if [ -f "$PREFIX/gpx-manifest.sh" ]; then chmod 0755 "$PREFIX/gpx-manifest.sh"; fi
+    if [ -f "$SRC_DIR/icons/favicon.svg" ]; then
+        install -m 0644 -o "$SVC_USER" -g "$SVC_USER" "$SRC_DIR/icons/favicon.svg" "$PREFIX/icons/favicon.svg"
+    fi
+    if [ -f "$SRC_DIR/scripts/gpx-manifest.sh" ]; then
+        install -m 0755 -o "$SVC_USER" -g "$SVC_USER" "$SRC_DIR/scripts/gpx-manifest.sh" "$PREFIX/scripts/gpx-manifest.sh"
+    fi
 
     install -m 0644 -o "$SVC_USER" -g "$SVC_USER" "$SRC_DIR/tools/api.py" "$PREFIX/tools/api.py"
     install -m 0644 -o "$SVC_USER" -g "$SVC_USER" "$SRC_DIR/tools/config.example.json" "$PREFIX/tools/config.example.json"

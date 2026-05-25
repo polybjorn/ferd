@@ -9,7 +9,7 @@ Follow the [Install](docs/python.md#install) section in python.md, with two dev 
 ```sh
 cp site-config.example.json site-config.json
 FERD_DATA_DIR="$PWD" FERD_STATIC_DIR="$PWD" \
-FERD_MANIFEST_CMD="$PWD/gpx-manifest.sh" \
+FERD_MANIFEST_CMD="$PWD/scripts/gpx-manifest.sh" \
 FERD_SECURE_COOKIES=false FERD_BIND=127.0.0.1:8090 \
   python3 tools/api.py
 ```
