@@ -674,15 +674,13 @@
     .place-card .catalog-mark svg { width: 0.95rem; height: 0.95rem; display: block; }
     .catalog-updates-notice {
       display: flex; align-items: center; gap: 0.75rem;
-      margin: 0 0 0.75rem 0; padding: 0.5rem 0.8rem;
+      margin: 0 0 1rem; padding: 0.5rem 0.8rem;
       background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
       font-size: 0.78rem; color: var(--text);
-      /* Track the multi-column index grid: hug the right column when the list
-         is two-wide, span full width on mobile (where the grid collapses). */
-      width: calc(50% - 0.75rem); margin-left: auto;
-    }
-    @media (max-width: 600px) {
-      .catalog-updates-notice { width: 100%; margin-left: 0; }
+      /* Lives inside the multicolumn grid and spans both columns as a header,
+         so the place groups still flow tight underneath - no wasted gap on
+         either side. */
+      column-span: all;
     }
     .catalog-updates-notice span { flex: 1; }
     .catalog-updates-notice button {
@@ -5055,21 +5053,11 @@
         '</div>' +
         (canAdd ? '<button type="button" class="primary" id="add-place-btn">Add place</button>' : '') +
         '</div>' +
-        (function() {
-          const n = placesWithCatalogUpdates().length;
-          if (!n) return '';
-          return '<div class="catalog-updates-notice">' +
-            '<span>Catalog has updated ' + n + ' of your places.</span>' +
-            '<button type="button" id="catalog-bulk-update">Refresh all</button>' +
-          '</div>';
-        })() +
         '<div class="category-grid" id="place-list"></div>';
       renderPlaceList('');
 
       const addBtn = document.getElementById('add-place-btn');
       if (addBtn) addBtn.addEventListener('click', function() { openAddModal(null, 'place'); });
-      const bulkBtn = document.getElementById('catalog-bulk-update');
-      if (bulkBtn) bulkBtn.addEventListener('click', openCatalogBulkUpdateModal);
       const placesSearchInput = document.getElementById('search-input');
       const statusSel = document.getElementById('filter-status');
       const catSel = document.getElementById('filter-category');
@@ -5187,8 +5175,19 @@
         html += '</div></div>';
       }
       if (!html) html = '<div class="loading">No matches</div>';
+      // Prepend the "catalog has updates" notice as a column-spanning header
+      // so the place groups underneath still flow tight in both columns.
+      const upd = placesWithCatalogUpdates().length;
+      if (upd) {
+        html = '<div class="catalog-updates-notice">' +
+          '<span>Catalog has updated ' + upd + ' of your places.</span>' +
+          '<button type="button" id="catalog-bulk-update">Refresh all</button>' +
+        '</div>' + html;
+      }
       const listEl = document.getElementById('place-list');
       listEl.innerHTML = html;
+      const bulkBtn = document.getElementById('catalog-bulk-update');
+      if (bulkBtn) bulkBtn.addEventListener('click', openCatalogBulkUpdateModal);
       // Catalog badge clicks stay on the place-card (which navigates to the
       // map via inline onclick); stop propagation and open the update modal
       // instead.
