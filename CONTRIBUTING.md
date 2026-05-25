@@ -22,8 +22,7 @@ Edits to `index.html` show up on reload.
 
 This page covers the workflow (run, test, submit). The deeper material lives in topic-specific docs:
 
-- [docs/architecture.md](docs/architecture.md) - repo layout, data flow, stack rules, and code style.
-- [docs/design.md](docs/design.md) - UI conventions: modal anatomy, button placement, status feedback, copy style. Read this before adding or changing anything in `index.html`.
+- [docs/architecture.md](docs/architecture.md) - repo layout, data flow, stack rules, platform targets, and code style.
 - [docs/themes.md](docs/themes.md) - "For contributors" half covers the CSS variable contract and how to add a theme.
 - [docs/api.md](docs/api.md) - every `/api/*` endpoint, plus smoke sequences for manually verifying auth and write changes.
 - [docs/catalog.md](docs/catalog.md) - the site catalog, including how to add a place to the shipped baseline.

@@ -46,7 +46,6 @@ docs/
   docker.md              # running with Docker
   configure.md           # config field reference
   themes.md              # theme system + how to add one
-  design.md              # UI conventions (modals, buttons, forms, status feedback)
   catalog.md             # site catalog (shipped baseline + local additions)
   api.md                 # /api/* endpoint reference + smoke recipes
   architecture.md        # this file
@@ -69,6 +68,19 @@ Two-person threshold: the project is small enough that a build step would cost m
 - No dependency for something that fits in fifty lines.
 
 If you're proposing a change that breaks one of these, lead the PR with the why.
+
+## Platform targets
+
+Minimums for any change to the frontend. Don't drop below them without a real reason.
+
+- **Browsers:** Baseline Widely Available (caniuse.com / web-platform-dx).
+- **Viewport:** desktop first (>=1024 px). Mobile portrait works down to 320 px. Installable as a PWA (own home-screen icon, standalone window), no native wrapper.
+- **CSS:** baseline only. In: `:has()`, `:is()`, `:where()`, grid, flex, custom properties, logical properties, `aspect-ratio`, `prefers-*`. Wait for baseline: container queries, subgrid, `color-mix()`, anchor positioning.
+- **Accessibility:** required. Semantic HTML, labels on every input, Esc closes modals, `prefers-reduced-motion` is respected, WCAG AA contrast on every theme.
+- **Network:** edits require network and fail loudly when offline. Reads are offline-capable through a hand-rolled service worker (`sw.js`) that precaches the app shell and vendored deps, runs `stale-while-revalidate` on JSON data, and cache-firsts map tiles with an LRU cap. See [pwa.md](pwa.md).
+- **Performance:** soft target under 1s first paint on a 5-year-old laptop, under 500 KB of JS+CSS+HTML on first load (tiles and GPX excluded).
+- **i18n:** English UI today. Keep the language `<select>` in place so localization can be added later. Data round-trips arbitrary Unicode.
+- **Privacy:** no third-party at runtime except map tile providers. No analytics, no third-party fonts, no external APIs from the page.
 
 ## Code style
 
