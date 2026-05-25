@@ -31,6 +31,10 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 
 ## Install
 
+**Requirements:** Python 3.9+ (or Docker), a modern browser. No build step, no Node, no database server (SQLite file).
+
+**Footprint:** ~2 MB of code and assets. Python uses about 28 MB of memory at idle; the Docker image is 43 MiB compressed (211 MB on disk) and runs at roughly the same memory plus a small container overhead.
+
 ### Python
 
 ```sh
@@ -54,10 +58,6 @@ docker compose up -d
 ```
 
 Open http://localhost:8090 and register the first account. See [docker.md](docs/docker.md) for tag tracks, reverse proxy, and updates.
-
-**Requirements:** Python 3.9+ (or Docker), a modern browser. No build step, no Node, no database server (SQLite file).
-
-**Footprint:** ~2 MB of code and assets. Python uses about 28 MB of memory at idle; the Docker image is 43 MiB compressed (211 MB on disk) and runs at roughly the same memory plus a small container overhead.
 
 ## Documentation
 
