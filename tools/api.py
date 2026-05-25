@@ -400,6 +400,13 @@ def publishing_open(conn: sqlite3.Connection) -> bool:
   return setting_get(conn, "publishing", "open") == "open"
 
 
+def catalog_baseline_open(conn: sqlite3.Connection) -> bool:
+  """Admin-controlled global flag: when 'closed', the shipped baseline catalog
+  (`<static_dir>/catalog.json`, tracked in the repo) is not merged into
+  /api/catalog responses. Only local additions are served. Defaults to open."""
+  return setting_get(conn, "catalog_baseline", "open") == "open"
+
+
 def admin_count(conn: sqlite3.Connection) -> int:
   return conn.execute("SELECT COUNT(*) AS n FROM users WHERE is_admin=1").fetchone()["n"]
 
@@ -895,6 +902,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_sessions_revoke_others()
     if path == "/api/admin/settings/publishing":
       return self._h_admin_settings_publishing()
+    if path == "/api/admin/settings/catalog-baseline":
+      return self._h_admin_settings_catalog_baseline()
     if path == "/api/admin/unpublish-all":
       return self._h_admin_unpublish_all()
     if path == "/api/admin/catalog/add":
@@ -958,6 +967,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "published": published,
       "registration_open": registration_open(self.conn),
       "publishing_open": publishing_open(self.conn),
+      "catalog_baseline_open": catalog_baseline_open(self.conn),
       "has_users": user_count(self.conn) > 0,
       "requires_setup_token": Handler.setup_token is not None and user_count(self.conn) == 0,
       "version": APP_VERSION,
@@ -974,17 +984,64 @@ class Handler(http.server.BaseHTTPRequestHandler):
     })
 
   def _h_catalog_get(self):
-    """Site-level catalog of curated places. Read-only via API; admin edits
-    `<data_dir>/catalog.json` directly. Returns [] if the file is missing."""
+    """Site-level catalog of curated places.
+
+    Two sources are merged at read time:
+      - Shipped baseline: `<static_dir>/catalog.json`, tracked in the repo and
+        community-contributable via PRs. Included unless admin has flipped the
+        `catalog_baseline` setting to 'closed'.
+      - Local additions: `<data_dir>/catalog.local.json`, gitignored,
+        admin-managed via the catalog admin endpoints.
+
+    Local entries override shipped ones with the same name (so admins can edit
+    a shipped entry by re-adding it locally). Each returned entry carries a
+    `_source` field of "shipped" or "local" so the UI can label them and gate
+    the Remove action."""
     user = self._require_user()
     if user is None:
       return
-    catalog_path = Path(self.cfg["data_dir"]).resolve() / "catalog.json"
+    data_dir = Path(self.cfg["data_dir"]).resolve()
+    static_dir = Path(self.cfg["static_dir"]).resolve()
+    local_path = data_dir / "catalog.local.json"
+    shipped_path = static_dir / "catalog.json"
+
     try:
-      data = load_json_file(catalog_path, expected_type=list, required=False, label="catalog.json")
+      local = load_json_file(local_path, expected_type=list, required=False, label="catalog.local.json")
     except ValidationError as e:
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
-    self._send_json(HTTPStatus.OK, data or [])
+
+    shipped = []
+    if catalog_baseline_open(self.conn):
+      try:
+        shipped = load_json_file(shipped_path, expected_type=list, required=False, label="catalog.json") or []
+      except ValidationError as e:
+        return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+
+    # Build the merged list. Local entries win by name; we walk locals first so
+    # the order is "local additions, then shipped" minus any shadowed shipped.
+    seen: set = set()
+    merged: list = []
+    for entry in (local or []):
+      if not isinstance(entry, dict):
+        continue
+      name = entry.get("name")
+      if not isinstance(name, str):
+        continue
+      tagged = dict(entry)
+      tagged["_source"] = "local"
+      merged.append(tagged)
+      seen.add(name)
+    for entry in shipped:
+      if not isinstance(entry, dict):
+        continue
+      name = entry.get("name")
+      if not isinstance(name, str) or name in seen:
+        continue
+      tagged = dict(entry)
+      tagged["_source"] = "shipped"
+      merged.append(tagged)
+      seen.add(name)
+    self._send_json(HTTPStatus.OK, merged)
 
   def _h_register(self):
     body = self._read_body_or_400()
@@ -1168,6 +1225,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
               details={"mode": mode})
     self._send_json(HTTPStatus.OK, {"publishing": mode})
 
+  def _h_admin_settings_catalog_baseline(self):
+    admin = self._require_admin()
+    if admin is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    mode = body.get("mode")
+    if mode not in ("open", "closed"):
+      return self._error(HTTPStatus.BAD_REQUEST, "mode must be 'open' or 'closed'")
+    with self.write_lock:
+      setting_set(self.conn, "catalog_baseline", mode)
+    log_event(self.conn, actor=admin["username"], action="admin.catalog_baseline",
+              details={"mode": mode})
+    self._send_json(HTTPStatus.OK, {"catalog_baseline": mode})
+
   def _admin_user_row(self, row: sqlite3.Row) -> dict:
     uname = row["username"]
     udir = user_dir(self.cfg, uname)
@@ -1349,12 +1422,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
         p.pop(k, None)
       cleaned.append(p)
 
-    catalog_path = Path(self.cfg["data_dir"]).resolve() / "catalog.json"
+    catalog_path = Path(self.cfg["data_dir"]).resolve() / "catalog.local.json"
     lock_path = catalog_path.parent / ".catalog.lock"
     state = {"added": 0, "skipped": 0, "total": 0}
 
     def do_add():
-      existing = load_json_file(catalog_path, expected_type=list, required=False, label="catalog.json")
+      existing = load_json_file(catalog_path, expected_type=list, required=False, label="catalog.local.json")
       names = {e["name"] for e in existing if isinstance(e, dict) and isinstance(e.get("name"), str)}
       for e in cleaned:
         if e["name"] in names:
@@ -1369,7 +1442,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     try:
       with_file_lock(lock_path, do_add)
     except OSError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write catalog.json: {e}")
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write catalog.local.json: {e}")
 
     log_event(self.conn, actor=admin["username"], action="admin.catalog_add",
               details={"added": state["added"], "skipped": state["skipped"]})
@@ -1387,12 +1460,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.BAD_REQUEST, "names: non-empty list of strings required")
     drop = set(names_in)
 
-    catalog_path = Path(self.cfg["data_dir"]).resolve() / "catalog.json"
+    catalog_path = Path(self.cfg["data_dir"]).resolve() / "catalog.local.json"
     lock_path = catalog_path.parent / ".catalog.lock"
     state = {"removed": 0, "total": 0}
 
     def do_delete():
-      existing = load_json_file(catalog_path, expected_type=list, required=False, label="catalog.json")
+      existing = load_json_file(catalog_path, expected_type=list, required=False, label="catalog.local.json")
       kept = [e for e in existing if not (isinstance(e, dict) and e.get("name") in drop)]
       state["removed"] = len(existing) - len(kept)
       write_json_file(catalog_path, kept)
@@ -1401,7 +1474,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     try:
       with_file_lock(lock_path, do_delete)
     except OSError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write catalog.json: {e}")
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write catalog.local.json: {e}")
 
     log_event(self.conn, actor=admin["username"], action="admin.catalog_delete",
               details={"removed": state["removed"]})
@@ -1411,19 +1484,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
     admin = self._require_admin()
     if admin is None:
       return
-    catalog_path = Path(self.cfg["data_dir"]).resolve() / "catalog.json"
+    catalog_path = Path(self.cfg["data_dir"]).resolve() / "catalog.local.json"
     lock_path = catalog_path.parent / ".catalog.lock"
     state = {"removed": 0}
 
     def do_clear():
-      existing = load_json_file(catalog_path, expected_type=list, required=False, label="catalog.json")
+      existing = load_json_file(catalog_path, expected_type=list, required=False, label="catalog.local.json")
       state["removed"] = len(existing)
       write_json_file(catalog_path, [])
 
     try:
       with_file_lock(lock_path, do_clear)
     except OSError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write catalog.json: {e}")
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write catalog.local.json: {e}")
 
     log_event(self.conn, actor=admin["username"], action="admin.catalog_clear",
               details={"removed": state["removed"]})

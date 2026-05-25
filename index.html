@@ -2784,7 +2784,7 @@
 
     const state = {
       config: DEFAULT_CONFIG,
-      auth: { authenticated: false, username: null, is_admin: false, published: false, registration_open: true, publishing_open: true, has_users: false, requires_setup_token: false },
+      auth: { authenticated: false, username: null, is_admin: false, published: false, registration_open: true, publishing_open: true, catalog_baseline_open: true, has_users: false, requires_setup_token: false },
       serverPrefs: {},
       viewer: detectViewer(),
       currentMap: null,
@@ -6181,6 +6181,11 @@
           '</div>' +
           '<div class="modal-desc">Turning this off forces any currently public maps back to private and prevents new ones.</div>' +
           '<h3 class="settings-h">Catalog</h3>' +
+          '<div class="settings-inline-row">' +
+            '<input type="checkbox" class="settings-toggle" id="s-catalog-baseline"' + (state.auth.catalog_baseline_open ? ' checked' : '') + '>' +
+            '<label for="s-catalog-baseline">Include shipped baseline catalog</label>' +
+          '</div>' +
+          '<div class="modal-desc">Off keeps the catalog to local additions only; on merges the catalog shipped with the app (entries marked as shipped in Manage).</div>' +
           '<div id="s-admin-catalog"><div class="hint">Loading&hellip;</div></div>' +
           '<h3 class="settings-h">Users</h3>' +
           '<div id="s-admin-users"><div class="hint">Loading&hellip;</div></div>' +
@@ -6249,6 +6254,15 @@
             renderAdminStats();
             renderAdminUsers();
             renderAdminCatalog();
+            const baseline = document.getElementById('s-catalog-baseline');
+            if (baseline) {
+              baseline.addEventListener('change', function() {
+                const wanted = this.checked;
+                api('POST', '/admin/settings/catalog-baseline', { mode: wanted ? 'open' : 'closed' })
+                  .then(() => { state.auth.catalog_baseline_open = wanted; state._catalogCache = null; renderAdminCatalog(); })
+                  .catch(err => { alert('Failed: ' + err.message); this.checked = !wanted; });
+              });
+            }
           }
           const pub = document.getElementById('s-publish');
           const pubLink = document.getElementById('s-publish-link');
@@ -7248,14 +7262,18 @@
                 const meta = [e.category, e.country].filter(Boolean).join(' · ');
                 const name = escapeHtml(e.name || '(unnamed)');
                 const note = (e.note || '').trim();
+                const shipped = e._source === 'shipped';
+                const sourceTag = shipped
+                  ? '<span style="font-size:0.7rem;color:var(--muted);font-weight:400;margin-left:0.4rem">shipped</span>'
+                  : '';
                 return '<li class="user-row" data-name="' + escapeHtml(e.name || '') + '">' +
                   '<span class="user-name" style="min-width:0">' +
-                    '<span title="' + name + '" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</span>' +
+                    '<span title="' + name + '" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + sourceTag + '</span>' +
                     (meta ? '<span style="display:block;font-size:0.72rem;color:var(--muted);font-weight:400">' + escapeHtml(meta) + '</span>' : '') +
                     (note ? '<span class="row-note">' + escapeHtml(note) + '</span>' : '') +
                   '</span>' +
                   '<div class="user-actions">' +
-                    '<button data-act="catalog-delete" class="danger-btn">Remove</button>' +
+                    (shipped ? '' : '<button data-act="catalog-delete" class="danger-btn">Remove</button>') +
                   '</div>' +
                 '</li>';
               }).join('') + '</ul>';
@@ -7299,8 +7317,8 @@
           if (clearBtn) {
             clearBtn.addEventListener('click', function() {
               openConfirmModal({
-                title: 'Remove all catalog entries',
-                body: 'Empties the site catalog. Users who already imported entries keep their copies.',
+                title: 'Remove all local catalog entries',
+                body: 'Empties only the local catalog additions. Shipped entries remain (toggle them off above to hide). Users who already imported keep their copies.',
                 confirmLabel: 'Remove all',
                 danger: true,
               }).then(ok => {

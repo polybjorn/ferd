@@ -53,7 +53,7 @@ All paths read and write the signed-in user's own folder (`users/<self>/`).
 | `POST` | `/me/publish` | `{published: bool}` | Flip the public-read gate. Non-admins can always unpublish but can only publish when the site-wide publishing gate is open. |
 | `GET` | `/me/export` | - | Returns a zip of the user's folder (`places.json`, `routes.json`, `metadata.json`, `prefs.json`, `category-labels.json`, `gpx/...`). Excludes dotfiles. |
 | `POST` | `/me/import?mode=replace\|merge\|prefs` | zip body | `Content-Type: application/zip`. `replace` deletes existing top-level files and the `gpx/` tree before writing; `merge` appends places by unique name and updates metadata/prefs/labels by key; `prefs` only merges `prefs.json` + `category-labels.json` and skips places/trails/metadata/GPX even if they're in the archive. GPX files always have PII stripped on import. Triggers manifest regen. |
-| `GET` | `/catalog` | - | Site-wide catalog (array of place objects). Read-only for users; admins edit via the endpoints under `/admin/catalog/`. Served from `<data_dir>/catalog.json`, returns `[]` if absent. |
+| `GET` | `/catalog` | - | Site-wide catalog (array of place objects). Merges the shipped baseline (`<static_dir>/catalog.json`, tracked in the repo) with local admin additions (`<data_dir>/catalog.local.json`, gitignored). Local entries win on name collisions. Each entry carries `_source: "shipped"\|"local"`. Returns `[]` if both sources are absent. Admin can suppress the shipped baseline via `/admin/settings/catalog-baseline`. |
 
 ## Admin
 
@@ -71,6 +71,7 @@ All require `is_admin=1`. Audited.
 | `DELETE` | `/admin/users/<uid>` | - | Delete the user; sessions cascade. Data dir is removed best-effort; response includes `cleanup_warning` if anything was left behind. Refuses to delete yourself or the last admin. |
 | `POST` | `/settings/registration` | `{mode: "open"\|"closed"}` | Site-wide registration gate. |
 | `POST` | `/admin/settings/publishing` | `{mode: "open"\|"closed"}` | Site-wide publishing gate. Closing it does *not* auto-unpublish existing users; use the next endpoint. |
+| `POST` | `/admin/settings/catalog-baseline` | `{mode: "open"\|"closed"}` | Whether the shipped baseline catalog is merged into `/api/catalog`. Closed = only local additions served. Defaults to open. |
 | `POST` | `/admin/unpublish-all` | - | Force every user's `published` off. Returns `{affected}`. |
 | `POST` | `/admin/catalog/add` | `{entries: [place, ...]}` | Append places to the site catalog. Each entry is validated as a regular place; `visited`, `date_visited`, and `rating` are stripped (the catalog describes a place, not a personal visit). Dedup is by `name`. Returns `{added, skipped, total}`. |
 | `POST` | `/admin/catalog/delete` | `{names: ["...", ...]}` | Remove catalog entries by name. Returns `{removed, total}`. |

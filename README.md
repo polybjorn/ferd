@@ -20,7 +20,7 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 - Optional read-only public sharing at `/u/<username>/`.
 - Per-user zip import/export, with a preferences-only mode for syncing settings between accounts.
 - Optional image URL per place, rendered in the marker popup.
-- Site catalog: admin promotes their own places into a curated list other users can browse and import.
+- Site catalog: a shipped baseline `catalog.json` (community-contributable via PRs) merged with each instance's local admin additions. Users browse and import; admins can disable the baseline per instance.
 - Admin tools: user management, site stats, registration and publishing toggles, audit log.
 
 **Customization**
