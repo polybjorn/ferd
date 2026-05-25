@@ -13,20 +13,17 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 - Filter by category, visit status, and trail completion.
 - Browse places by category or country, trails by region.
 - Trail detail with elevation profile and route stats.
+- Site catalog: browse and import community-curated places, or extend with your own.
 
 **Editing and multi-user**
 - Edit places and trails in the browser; optional GPX PII strip on upload.
 - Per-user data isolation - each account is its own map.
 - Optional read-only public sharing at `/u/<username>/`.
-- Per-user zip import/export, with a preferences-only mode for syncing settings between accounts.
-- Optional image URL per place, rendered in the marker popup.
-- Site catalog: a shipped baseline `catalog.json` (community-contributable via PRs) merged with each instance's local admin additions. Users browse and import; admins can disable the baseline per instance.
+- Per-user zip import/export.
 - Admin tools: user management, site stats, registration and publishing toggles, audit log.
 
 **Customization**
 - Multiple built-in themes.
-- Run places-only, trails-only, or both per deployment.
-- Per-user appearance settings sync across devices.
 
 **Installable and offline**
 - Add to your device for launch in its own window.
@@ -51,7 +48,7 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 
 | Guide | Covers |
 | --- | --- |
-| [API reference](docs/api.md) | Every `/api/*` endpoint, for scripting. |
+| [API](docs/api.md) | Every `/api/*` endpoint, for scripting. |
 | [Architecture](docs/architecture.md) | How the code is organized and where data lives. |
 | [Catalog](docs/catalog.md) | The site catalog: shipped baseline vs local, schema, how to contribute entries. |
 | [Configuration](docs/configure.md) | Settings and feature flags you can tweak. |
@@ -62,11 +59,11 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 
 ## Roadmap
 
-- Print / PDF stylesheet for trail and place details.
+- Print/PDF stylesheet for trail and place details.
 - Auth hardening: optional TOTP 2FA.
 - Uploaded image attachments on places and trails (today: URL only).
-- Custom iOS launch splash: add pre-rendered `apple-touch-startup-image` PNG files (one `<link>` per device size + orientation) in `index.html`. Without these iOS shows a generic splash with the auto-rendered icon.
-- Better logo - current placeholder favicon could use a more distinctive mark.
+- Custom iOS launch splash (today: generic auto-rendered icon).
+- Distinctive logo (today: placeholder favicon).
 
 ## License
 
