@@ -46,7 +46,7 @@ Ferd vendors the third-party libraries listed below under `vendor/`. Each retain
 - Upstream: https://github.com/Raruto/leaflet-elevation
 - License: GPL-3.0-or-later
 - Copyright: (c) Raruto
-- Notes: GPL-3.0 is the reason Ferd as a whole is licensed under GPL-3.0. Main bundle lives in `leaflet-elevation/`; lazy-loaded internal modules and bundled third-party libs are in `src/handlers/`, `src/components/`, and `libs/`. The `libs/` folder redistributes leaflet-hotline (iosphere), leaflet-edgescale (jjimenezshaw), and leaflet-distance-marker (raruto), all GPL-3.0-compatible.
+- Notes: bundles leaflet-hotline (iosphere), leaflet-edgescale (jjimenezshaw), and leaflet-distance-marker (raruto) under `libs/`, all GPL-3.0-compatible.
 
 ### d3
 - Purpose: drives the elevation chart's SVG axes, scales, and brush; lazy-loaded by leaflet-elevation only when a chart is rendered.
