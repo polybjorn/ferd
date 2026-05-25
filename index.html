@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ferd</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
+  <link rel="manifest" href="/icons/manifest.webmanifest">
   <meta name="theme-color" content="#6aaeee">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Ferd">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -6173,7 +6173,7 @@
       openModal(
         '<h2>About<button class="modal-close">&times;</button></h2>' +
         '<div class="about-body">' +
-          '<img class="about-logo" src="/favicon.svg" alt="">' +
+          '<img class="about-logo" src="/icons/favicon.svg" alt="">' +
           '<div class="about-brand">' + escapeHtml(brand) + '</div>' +
           '<div class="about-version">' + escapeHtml(version) + '</div>' +
           '<div class="about-tagline">Your own map of where you&rsquo;ve been, where you want to go, and the journeys between them.</div>' +
@@ -7977,7 +7977,7 @@
       const brand = (state.config && state.config.brand) || 'Ferd';
       app.innerHTML =
         '<div class="signin-page">' +
-          '<img class="signin-logo" src="/favicon.svg" alt="">' +
+          '<img class="signin-logo" src="/icons/favicon.svg" alt="">' +
           '<div class="signin-brand">' + escapeHtml(brand) + '</div>' +
           '<div class="modal">' +
             signInFormHtml(false) +

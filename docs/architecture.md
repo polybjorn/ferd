@@ -25,37 +25,57 @@ See [configure.md](configure.md#data-files) for the full file-by-file table.
 
 ## Repository layout
 
+Three groups: directories, repo-meta files, then the rest. Alphabetical (case-insensitive) within each.
+
 ```
-index.html               # the app (HTML/CSS/JS in one file)
-site-config.example.json # branding, default view, category labels, API base
-gpx-manifest.sh          # generates routes.json from gpx/<Region>/<Trail>.gpx
-tools/
-  api.py                 # stdlib-only API server (auth + write endpoints)
-  config.example.json    # API config template
-Dockerfile               # container image for the Docker Compose path
-compose.yml              # Docker Compose service definition
-.dockerignore            # files excluded from the image build context
 deploy/
-  ferd-api.socket       # systemd socket unit
-  ferd-api.service      # systemd service unit
-  ferd-api.plist        # macOS launchd template
-  nginx.example.conf     # nginx server block
-  install.sh             # guided installer
+  Caddyfile.example        # Caddy server block
+  docker-entrypoint.sh     # Docker entrypoint (UID/GID handling)
+  ferd-api.plist           # macOS launchd template
+  ferd-api.service         # systemd service unit
+  ferd-api.socket          # systemd socket unit
+  install.sh               # guided installer
+  nginx.example.conf       # nginx server block
+  uninstall.sh             # guided uninstaller
 docs/
-  python.md              # running with Python
-  docker.md              # running with Docker
-  configure.md           # config field reference
-  themes.md              # theme system + how to add one
-  design.md              # UI conventions (modals, buttons, forms, status feedback)
-  architecture.md        # this file
-  screenshots/           # images for README and docs
+  screenshots/             # images for README and docs
+  api.md                   # /api/* endpoint reference + smoke recipes
+  architecture.md          # this file
+  catalog.md               # site catalog (shipped baseline + local additions)
+  configure.md             # config field reference
+  docker.md                # running with Docker
+  pwa.md                   # PWA install + service-worker maintenance
+  python.md                # running with Python
+  themes.md                # theme system + how to add one
+icons/                     # favicon, PWA icons, web app manifest
+scripts/
+  check-vendor-versions.py # weekly CI drift check against npm
+  gpx-manifest.sh          # generates routes.json from gpx/<Region>/<Trail>.gpx
+  vendor-versions.json     # tracked versions per vendored dep
 tests/
-  test_api_helpers.py    # unit tests for pure helpers
-  test_api_integration.py# subprocess + HTTP integration tests
-SECURITY.md              # account model, setup token, threat notes
-CONTRIBUTING.md          # how to run, test, and submit changes
-CODE_OF_CONDUCT.md       # Contributor Covenant
-CHANGELOG.md             # release notes
+  test_api_helpers.py      # unit tests for pure helpers
+  test_api_integration.py  # subprocess + HTTP integration tests
+  test_shipped_catalog.py  # CI-enforced catalog conventions
+tools/
+  api.py                   # stdlib-only API server (auth + write endpoints)
+  config.example.json      # API config template
+vendor/                    # vendored third-party libs (see vendor/NOTICES.md)
+
+CHANGELOG.md               # release notes
+CONTRIBUTING.md            # how to run, test, and submit changes
+LICENSE
+README.md
+SECURITY.md                # account model, setup token, threat notes
+VERSION                    # app version (surfaced in /api/state)
+
+.dockerignore              # files excluded from image build context
+.env.example               # Docker env-var template
+catalog.json               # shipped baseline site catalog
+compose.yml                # Docker Compose service definition
+Dockerfile                 # container image
+index.html                 # the app (HTML/CSS/JS in one file)
+site-config.example.json   # branding, default view, category labels, API base
+sw.js                      # PWA service worker (cache shell, tiles, GPX)
 ```
 
 ## Why no build step
@@ -67,3 +87,22 @@ Two-person threshold: the project is small enough that a build step would cost m
 - No dependency for something that fits in fifty lines.
 
 If you're proposing a change that breaks one of these, lead the PR with the why.
+
+## Platform targets
+
+Minimums for any change to the frontend. Don't drop below them without a real reason.
+
+- **Browsers:** Baseline Widely Available (caniuse.com / web-platform-dx).
+- **Viewport:** desktop first (>=1024 px). Mobile portrait works down to 320 px. Installable as a PWA (own home-screen icon, standalone window), no native wrapper.
+- **CSS:** baseline only. In: `:has()`, `:is()`, `:where()`, grid, flex, custom properties, logical properties, `aspect-ratio`, `prefers-*`. Wait for baseline: container queries, subgrid, `color-mix()`, anchor positioning.
+- **Accessibility:** required. Semantic HTML, labels on every input, Esc closes modals, `prefers-reduced-motion` is respected, WCAG AA contrast on every theme.
+- **Network:** edits require network and fail loudly when offline. Reads are offline-capable through a hand-rolled service worker (`sw.js`) that precaches the app shell and vendored deps, runs `stale-while-revalidate` on JSON data, and cache-firsts map tiles with an LRU cap. See [pwa.md](pwa.md).
+- **Performance:** soft target under 1s first paint on a 5-year-old laptop, under 500 KB of JS+CSS+HTML on first load (tiles and GPX excluded).
+- **i18n:** English UI today. Keep the language `<select>` in place so localization can be added later. Data round-trips arbitrary Unicode.
+- **Privacy:** no third-party at runtime except map tile providers. No analytics, no third-party fonts, no external APIs from the page.
+
+## Code style
+
+- 2-space indentation, JavaScript and Python alike.
+- Comments only where the why is non-obvious. Don't document what the next line literally does.
+- Match the existing nesting and naming. The frontend uses lowercase camelCase functions; the API uses `_h_` prefixed handler methods and snake_case helpers.

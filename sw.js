@@ -15,12 +15,12 @@ const TILE_TRIM_BATCH = 250;
 const SHELL_ASSETS = [
   '/',
   '/index.html',
-  '/favicon.svg',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/icon-maskable.png',
-  '/apple-touch-icon.png',
-  '/manifest.webmanifest',
+  '/icons/favicon.svg',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/icon-maskable.png',
+  '/icons/apple-touch-icon.png',
+  '/icons/manifest.webmanifest',
   '/vendor/leaflet/leaflet.css',
   '/vendor/leaflet/leaflet.js',
   '/vendor/leaflet/images/marker-icon.png',
@@ -136,12 +136,7 @@ self.addEventListener('fetch', (event) => {
 
   if (
     url.pathname.startsWith('/vendor/') ||
-    url.pathname === '/favicon.svg' ||
-    url.pathname === '/icon-192.png' ||
-    url.pathname === '/icon-512.png' ||
-    url.pathname === '/icon-maskable.png' ||
-    url.pathname === '/apple-touch-icon.png' ||
-    url.pathname === '/manifest.webmanifest'
+    url.pathname.startsWith('/icons/')
   ) {
     event.respondWith(cacheFirst(req, SHELL_CACHE));
     return;

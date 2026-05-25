@@ -5,7 +5,7 @@ If you'd rather run it as a plain Python process, see [python.md](python.md).
 ## What you get
 
 - A single `ferd` container running the API on port 8090.
-- A `./data/` folder on the host that holds everything: the SQLite database, per-user folders (places, GPX files, preferences), and `site-config.json`. Nothing important lives inside the container itself, so rebuilding the image never touches your data.
+- A `./data/` folder on the host that holds everything: the SQLite database, per-user folders (places, GPX files, preferences), and `site-config.json`. Nothing important lives inside the container itself, so pulling a new image never touches your data.
 
 ## Quickstart
 
@@ -18,29 +18,21 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Open http://localhost:8090 and register the first account. The first user is the one who can change site-wide settings; everyone after is a regular user.
+This pulls `ghcr.io/polybjorn/ferd:latest` and runs it. Open http://localhost:8090 and register the first account; that user can change site-wide settings, everyone after is a regular user.
 
 To reach it from other devices on your LAN, the container already listens on every interface, so use `http://<host-ip>:8090`.
 
-Out of the box this compose file builds the image locally from source. If you'd rather pull a prebuilt image, see the next section.
+## Which tag to pick
 
-## Release tracks
-
-Ferd publishes two image tracks to GitHub Container Registry, both multi-arch (amd64, arm64):
+Ferd publishes multi-arch (amd64, arm64) images to GitHub Container Registry:
 
 | Tag | What it is | When to pick it |
 |---|---|---|
-| `ghcr.io/polybjorn/ferd:latest` | Newest tagged stable release | Most installs. Predictable updates, only changes when a new version ships. |
+| `ghcr.io/polybjorn/ferd:latest` | Newest tagged stable release | Default. Predictable updates, only changes when a new version ships. |
 | `ghcr.io/polybjorn/ferd:dev` | Tip of the `main` branch | Early access to in-progress changes. Rebuilt on every commit; may break. |
+| `ghcr.io/polybjorn/ferd:1.0.0`, `:1.0`, `:1` | Pinned stable release | Hold a specific version forever. |
 
-Pinned tags (`:1.0.0`, `:1.0`, `:1`) are also published so you can hold a specific stable release forever.
-
-To switch from the local build to a prebuilt image, edit [`compose.yml`](../compose.yml): comment out `build: .` and uncomment the `image:` line for the track you want. Then:
-
-```sh
-docker compose pull
-docker compose up -d
-```
+To switch tags, edit the `image:` line in [`compose.yml`](../compose.yml), then `docker compose pull && docker compose up -d`.
 
 You can check which version is running under Menu -> About in the app, or hit `/api/state` and look at the `version` field.
 
@@ -51,8 +43,7 @@ Trimmed for readability; the full file is at [`compose.yml`](../compose.yml) (en
 ```yaml
 services:
   ferd:
-    build: .
-    image: ferd:local
+    image: ghcr.io/polybjorn/ferd:latest
     restart: unless-stopped
     ports:
       - "8090:8090"
@@ -123,31 +114,20 @@ docker compose exec ferd python3 -c \
 
 ## Updating
 
-If you're pulling a prebuilt image (`ghcr.io/polybjorn/ferd:latest` or `:dev`):
-
 ```sh
 docker compose pull
 docker compose up -d
 ```
 
-If you're building from source:
-
-```sh
-git pull
-docker compose build
-docker compose up -d
-```
-
-Either way, `./data/` is untouched and schema migrations run on the next start.
+`./data/` is untouched and schema migrations run on the next start. If you've switched to `build: .` for contributing, swap `pull` for `build`.
 
 ## Uninstall
 
 ```sh
 docker compose down
 rm -rf data/
-docker image rm ferd:local
 ```
 
-## How the image is put together
+## What's in the image
 
-Base is `python:3.12-slim`. The only added packages are `tini` (clean signal handling) and `gosu` (drop privileges in the entrypoint). The API is stdlib-only Python, so there's no `pip install` step and no Python packages baked in. Around 43 MB compressed, 210 MB on disk; the app's own footprint is under 5 MB and the rest is the Debian-slim Python base.
+Base is `python:3.12-slim`. The only added packages are `tini` (clean signal handling) and `gosu` (drop privileges in the entrypoint). The API is stdlib-only Python, so there's no `pip install` step and no Python packages baked in. Around 43 MiB compressed, 211 MB on disk; the app's own footprint is around 2 MB and the rest is the Debian-slim Python base.

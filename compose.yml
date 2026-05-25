@@ -7,20 +7,20 @@
 #   docker compose up -d
 #   # open http://localhost:8090 and register the first account
 #
-# Two image tracks are published to GitHub Container Registry:
-#   ghcr.io/polybjorn/ferd:latest  - newest tagged release (stable)
-#   ghcr.io/polybjorn/ferd:dev     - tip of main (may break)
-# This compose file builds the image locally; to pull a prebuilt image
-# instead, comment out 'build: .' and uncomment one of the 'image:' lines.
+# Pulls ghcr.io/polybjorn/ferd:latest by default. Other tracks:
+#   :dev   - tip of main (may break)
+#   :1.0.0 - pinned stable release
+# To build from source instead (contributors), comment out the image
+# line and uncomment 'build: .' below.
 #
 # See docs/docker.md for the full walk-through.
 
 services:
   ferd:
-    build: .
-    image: ferd:local
-    # image: ghcr.io/polybjorn/ferd:latest  # stable
+    image: ghcr.io/polybjorn/ferd:latest
     # image: ghcr.io/polybjorn/ferd:dev     # bleeding edge
+    # build: .                              # build from source
+    # image: ferd:local                     # local build tag
     container_name: ferd
     restart: unless-stopped
     ports:
