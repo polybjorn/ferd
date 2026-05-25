@@ -671,6 +671,18 @@
     .place-card .catalog-mark.update-available:hover { color: var(--accent); filter: brightness(1.15); }
     .place-card .catalog-mark:hover { color: var(--text); }
     .place-card .catalog-mark svg { width: 0.95rem; height: 0.95rem; display: block; }
+    .catalog-updates-notice {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin: 0 0 0.75rem; padding: 0.5rem 0.8rem;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+      font-size: 0.78rem; color: var(--text);
+    }
+    .catalog-updates-notice span { flex: 1; }
+    .catalog-updates-notice button {
+      background: transparent; border: 1px solid var(--accent); color: var(--accent);
+      border-radius: 999px; padding: 0.15rem 0.6rem; font-size: 0.72rem; cursor: pointer;
+    }
+    .catalog-updates-notice button:hover { background: var(--accent); color: var(--surface); }
     .catalog-diff {
       margin: 0.5rem 0; padding: 0.6rem 0.8rem;
       background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
@@ -4891,6 +4903,74 @@
       ).join('') + '</div>';
     }
 
+    function placesWithCatalogUpdates() {
+      return (state.places || []).filter(p => findCatalogUpdate(p));
+    }
+
+    // Build the refreshed place object: catalog-tracked fields from the
+    // upstream entry, personal status fields preserved, from_catalog linked
+    // to the upstream name in case it was renamed.
+    function buildCatalogRefreshPayload(place, entry) {
+      const next = {};
+      for (const f of CATALOG_TRACKED_FIELDS) {
+        if (entry[f] !== undefined && entry[f] !== null && entry[f] !== '') next[f] = entry[f];
+      }
+      if (place.visited) next.visited = true;
+      if (place.date_visited) next.date_visited = place.date_visited;
+      if (place.rating) next.rating = place.rating;
+      next.from_catalog = entry.name;
+      return next;
+    }
+
+    function openCatalogBulkUpdateModal() {
+      const pending = placesWithCatalogUpdates();
+      if (!pending.length) { alert('No catalog updates available.'); return; }
+      const head = pending.slice(0, 8).map(p => {
+        const r = findCatalogUpdate(p);
+        const n = r ? r.changes.length : 0;
+        return '<li>' + escapeHtml(p.name) + ' <span style="color:var(--muted)">(' + n + ' field' + (n === 1 ? '' : 's') + ')</span></li>';
+      }).join('');
+      const more = pending.length > 8 ? '<li style="color:var(--muted)">+ ' + (pending.length - 8) + ' more</li>' : '';
+      openModal(
+        '<h2>Refresh from catalog<button class="modal-close">&times;</button></h2>' +
+        '<div class="modal-desc">' + pending.length + ' place' + (pending.length === 1 ? '' : 's') + ' will be refreshed. Visit status, date, and rating are preserved.</div>' +
+        '<ul style="font-size:0.78rem;margin:0.6rem 0 0.4rem;padding-left:1.2rem">' + head + more + '</ul>' +
+        '<div class="modal-error" id="catalog-bulk-error"></div>' +
+        '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
+          '<span id="catalog-bulk-status" style="font-size:0.75rem;color:var(--muted);flex:1"></span>' +
+          '<button type="button" data-role="cancel">Cancel</button>' +
+          '<button type="button" class="primary" id="catalog-bulk-confirm">Refresh all</button>' +
+        '</div>',
+        function(backdrop) {
+          backdrop.querySelector('[data-role="cancel"]').addEventListener('click', () => closeModal());
+          document.getElementById('catalog-bulk-confirm').addEventListener('click', function() {
+            const btn = this;
+            const status = document.getElementById('catalog-bulk-status');
+            btn.disabled = true;
+            const errors = [];
+            let i = 0;
+            (function next() {
+              if (i >= pending.length) {
+                refreshPlaces().then(() => {
+                  refreshPlacesPresentation();
+                  closeModal();
+                  if (errors.length) alert('Refresh complete with errors:\n' + errors.join('\n'));
+                }).catch(err => { btn.disabled = false; alert('Failed: ' + err.message); });
+                return;
+              }
+              const place = pending[i];
+              const result = findCatalogUpdate(place);
+              status.textContent = 'Refreshing ' + (i + 1) + ' of ' + pending.length + '…';
+              if (!result) { i++; return next(); }
+              api('PUT', '/places', { original_name: place.name, place: buildCatalogRefreshPayload(place, result.entry) })
+                .catch(err => errors.push((place.name) + ': ' + err.message))
+                .then(() => { i++; next(); });
+            })();
+          });
+        }
+      );
+    }
+
     function openCatalogUpdateModal(place) {
       const result = findCatalogUpdate(place);
       if (!result) {
@@ -4912,18 +4992,7 @@
           backdrop.querySelector('[data-role="cancel"]').addEventListener('click', () => closeModal());
           document.getElementById('catalog-update-confirm').addEventListener('click', function() {
             this.disabled = true;
-            // Take the catalog entry's tracked fields, drop the UI-only
-            // `_source` tag, preserve the user's personal status fields, and
-            // refresh the `from_catalog` link in case the catalog renamed.
-            const next = {};
-            for (const f of CATALOG_TRACKED_FIELDS) {
-              if (entry[f] !== undefined && entry[f] !== null && entry[f] !== '') next[f] = entry[f];
-            }
-            if (place.visited) next.visited = true;
-            if (place.date_visited) next.date_visited = place.date_visited;
-            if (place.rating) next.rating = place.rating;
-            next.from_catalog = entry.name;
-            api('PUT', '/places', { original_name: place.name, place: next })
+            api('PUT', '/places', { original_name: place.name, place: buildCatalogRefreshPayload(place, entry) })
               .then(() => refreshPlaces())
               .then(() => { closeModal(); refreshPlacesPresentation(); })
               .catch(err => { this.disabled = false; alert('Failed: ' + err.message); });
@@ -4979,11 +5048,21 @@
         '</div>' +
         (canAdd ? '<button type="button" class="primary" id="add-place-btn">Add place</button>' : '') +
         '</div>' +
+        (function() {
+          const n = placesWithCatalogUpdates().length;
+          if (!n) return '';
+          return '<div class="catalog-updates-notice">' +
+            '<span>Catalog has updated ' + n + ' of your places.</span>' +
+            '<button type="button" id="catalog-bulk-update">Refresh all</button>' +
+          '</div>';
+        })() +
         '<div class="category-grid" id="place-list"></div>';
       renderPlaceList('');
 
       const addBtn = document.getElementById('add-place-btn');
       if (addBtn) addBtn.addEventListener('click', function() { openAddModal(null, 'place'); });
+      const bulkBtn = document.getElementById('catalog-bulk-update');
+      if (bulkBtn) bulkBtn.addEventListener('click', openCatalogBulkUpdateModal);
       const placesSearchInput = document.getElementById('search-input');
       const statusSel = document.getElementById('filter-status');
       const catSel = document.getElementById('filter-category');
