@@ -47,6 +47,8 @@ docs/
   configure.md           # config field reference
   themes.md              # theme system + how to add one
   design.md              # UI conventions (modals, buttons, forms, status feedback)
+  catalog.md             # site catalog (shipped baseline + local additions)
+  api.md                 # /api/* endpoint reference + smoke recipes
   architecture.md        # this file
   screenshots/           # images for README and docs
 tests/
@@ -67,3 +69,9 @@ Two-person threshold: the project is small enough that a build step would cost m
 - No dependency for something that fits in fifty lines.
 
 If you're proposing a change that breaks one of these, lead the PR with the why.
+
+## Code style
+
+- 2-space indentation, JavaScript and Python alike.
+- Comments only where the why is non-obvious. Don't document what the next line literally does.
+- Match the existing nesting and naming. The frontend uses lowercase camelCase functions; the API uses `_h_` prefixed handler methods and snake_case helpers.

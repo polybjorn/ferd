@@ -53,6 +53,7 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 | --- | --- |
 | [API reference](docs/api.md) | Every `/api/*` endpoint, for scripting. |
 | [Architecture](docs/architecture.md) | How the code is organized and where data lives. |
+| [Catalog](docs/catalog.md) | The site catalog: shipped baseline vs local, schema, how to contribute entries. |
 | [Configuration](docs/configure.md) | Settings and feature flags you can tweak. |
 | [Docker](docs/docker.md) | Run it in a container. |
 | [PWA](docs/pwa.md) | Install, offline behavior, maintenance. |

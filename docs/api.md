@@ -53,7 +53,7 @@ All paths read and write the signed-in user's own folder (`users/<self>/`).
 | `POST` | `/me/publish` | `{published: bool}` | Flip the public-read gate. Non-admins can always unpublish but can only publish when the site-wide publishing gate is open. |
 | `GET` | `/me/export` | - | Returns a zip of the user's folder (`places.json`, `routes.json`, `metadata.json`, `prefs.json`, `category-labels.json`, `gpx/...`). Excludes dotfiles. |
 | `POST` | `/me/import?mode=replace\|merge\|prefs` | zip body | `Content-Type: application/zip`. `replace` deletes existing top-level files and the `gpx/` tree before writing; `merge` appends places by unique name and updates metadata/prefs/labels by key; `prefs` only merges `prefs.json` + `category-labels.json` and skips places/trails/metadata/GPX even if they're in the archive. GPX files always have PII stripped on import. Triggers manifest regen. |
-| `GET` | `/catalog?include_hidden=<bool>` | - | Site-wide catalog (array of place objects). Merges the shipped baseline (`<static_dir>/catalog.json`, tracked in the repo) with local admin additions (`<data_dir>/catalog.local.json`, gitignored). Local entries win on name collisions. Each entry carries `_source: "shipped"\|"local"`. Shipped entries the admin has individually hidden are filtered out; `?include_hidden=1` (admin only) returns them with `_hidden: true` so the Manage UI can unhide them. Admin can suppress the entire shipped baseline via `/admin/settings/catalog-baseline`. |
+| `GET` | `/catalog?include_hidden=<bool>` | - | Site-wide catalog (array of place objects). Merge of shipped baseline + local additions; see [catalog.md](catalog.md). Each entry carries `_source: "shipped"\|"local"`. Hidden shipped entries are filtered out; `?include_hidden=1` (admin only) returns them with `_hidden: true`. |
 
 ## Admin
 
@@ -156,4 +156,64 @@ Read a published user's places without signing in:
 
 ```
 curl http://localhost:8091/api/u/admin/places
+```
+
+## Smoke recipes
+
+End-to-end sequences for manually verifying the auth and write surfaces against a local dev server.
+
+### Auth
+
+```sh
+# Fresh server (no users yet)
+curl -s http://127.0.0.1:8091/api/state
+# expect: {"authenticated": false, "registration_open": true, "has_users": false, ...}
+
+# Register
+curl -s -c /tmp/c -H 'Content-Type: application/json' \
+  -d '{"username":"alice","password":"correcthorsebattery"}' \
+  http://127.0.0.1:8091/api/register
+
+# 2nd register denied (auto-closed)
+curl -s -H 'Content-Type: application/json' \
+  -d '{"username":"other","password":"correcthorsebattery"}' \
+  http://127.0.0.1:8091/api/register
+# expect: {"error":"registration is closed"}
+
+# Sign out, then bad and good logins
+curl -s -b /tmp/c -X POST http://127.0.0.1:8091/api/logout
+curl -s -H 'Content-Type: application/json' -d '{"username":"alice","password":"wrong"}' http://127.0.0.1:8091/api/login
+curl -s -c /tmp/c -H 'Content-Type: application/json' -d '{"username":"alice","password":"correcthorsebattery"}' http://127.0.0.1:8091/api/login
+```
+
+### Writes
+
+```sh
+# Add a place
+curl -s -b /tmp/c -H 'Content-Type: application/json' \
+  -d '{"name":"Smoke","lat":1,"lon":2,"category":"nature"}' \
+  -X POST http://127.0.0.1:8091/api/places
+
+# Edit it
+curl -s -b /tmp/c -H 'Content-Type: application/json' \
+  -d '{"original_name":"Smoke","place":{"name":"Smoke2","lat":3,"lon":4,"category":"nature"}}' \
+  -X PUT http://127.0.0.1:8091/api/places
+
+# Delete it
+curl -s -b /tmp/c -H 'Content-Type: application/json' -d '{"name":"Smoke2"}' \
+  -X DELETE http://127.0.0.1:8091/api/places
+
+# Upload a tiny valid GPX
+cat > /tmp/t.gpx <<'X'
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1">
+  <trk><name>T</name><trkseg><trkpt lat="1" lon="1"/><trkpt lat="2" lon="2"/></trkseg></trk>
+</gpx>
+X
+curl -s -b /tmp/c -X POST --data-binary @/tmp/t.gpx \
+  'http://127.0.0.1:8091/api/gpx?region=SmokeTest&name=T'
+
+# Delete it
+curl -s -b /tmp/c -H 'Content-Type: application/json' \
+  -d '{"region":"SmokeTest","name":"T"}' -X DELETE http://127.0.0.1:8091/api/gpx
 ```

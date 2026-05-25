@@ -16,16 +16,17 @@ FERD_SECURE_COOKIES=false FERD_BIND=127.0.0.1:8090 \
 
 To start completely fresh, delete `tools/app.db*` and `users/` (both gitignored).
 
+Edits to `index.html` show up on reload.
+
 ## Where to look
 
-This page covers the workflow (run, test, smoke-check, submit). The deeper material lives in topic-specific docs:
+This page covers the workflow (run, test, submit). The deeper material lives in topic-specific docs:
 
-- [docs/architecture.md](docs/architecture.md) - repo layout, data flow, and the stack rules (no build step, stdlib only, no framework).
+- [docs/architecture.md](docs/architecture.md) - repo layout, data flow, stack rules, and code style.
 - [docs/design.md](docs/design.md) - UI conventions: modal anatomy, button placement, status feedback, copy style. Read this before adding or changing anything in `index.html`.
 - [docs/themes.md](docs/themes.md) - "For contributors" half covers the CSS variable contract and how to add a theme.
-- [docs/api.md](docs/api.md) - every `/api/*` endpoint.
-
-Edits to `index.html` show up on reload.
+- [docs/api.md](docs/api.md) - every `/api/*` endpoint, plus smoke recipes for manually verifying auth and write changes.
+- [docs/catalog.md](docs/catalog.md) - the site catalog, including how to add a place to the shipped baseline.
 
 ## Tests
 
@@ -37,92 +38,7 @@ python3 -m unittest discover -s tests
 
 Stdlib only, no deps. Two layers: unit tests for pure helpers and file utilities in `tools/api.py`, and integration tests that launch the API in a subprocess and hit endpoints over HTTP. Run before opening a PR. If your change touches the API surface or one of the helpers, add a case.
 
-The PRs I review against locally walk through the smoke sequences below.
-
-## Smoke tests
-
-Run against the local dev server above. Useful when reviewing a change to auth or write endpoints; see [docs/api.md](docs/api.md) for the full endpoint reference.
-
-### Auth API
-
-```sh
-# Fresh server (no users yet)
-curl -s http://127.0.0.1:8090/api/state
-# expect: {"authenticated": false, "registration_open": true, "has_users": false, ...}
-
-# Register
-curl -s -c /tmp/c -H 'Content-Type: application/json' \
-  -d '{"username":"alice","password":"correcthorsebattery"}' \
-  http://127.0.0.1:8090/api/register
-
-# 2nd register denied (auto-closed)
-curl -s -H 'Content-Type: application/json' \
-  -d '{"username":"other","password":"correcthorsebattery"}' \
-  http://127.0.0.1:8090/api/register
-# expect: {"error":"registration is closed"}
-
-# Sign out, then bad and good logins
-curl -s -b /tmp/c -X POST http://127.0.0.1:8090/api/logout
-curl -s -H 'Content-Type: application/json' -d '{"username":"alice","password":"wrong"}' http://127.0.0.1:8090/api/login
-curl -s -c /tmp/c -H 'Content-Type: application/json' -d '{"username":"alice","password":"correcthorsebattery"}' http://127.0.0.1:8090/api/login
-```
-
-### Write API
-
-```sh
-# Add a place
-curl -s -b /tmp/c -H 'Content-Type: application/json' \
-  -d '{"name":"Smoke","lat":1,"lon":2,"category":"nature"}' \
-  -X POST http://127.0.0.1:8090/api/places
-
-# Edit it
-curl -s -b /tmp/c -H 'Content-Type: application/json' \
-  -d '{"original_name":"Smoke","place":{"name":"Smoke2","lat":3,"lon":4,"category":"nature"}}' \
-  -X PUT http://127.0.0.1:8090/api/places
-
-# Delete it
-curl -s -b /tmp/c -H 'Content-Type: application/json' -d '{"name":"Smoke2"}' \
-  -X DELETE http://127.0.0.1:8090/api/places
-
-# Upload a tiny valid GPX
-cat > /tmp/t.gpx <<'X'
-<?xml version="1.0" encoding="UTF-8"?>
-<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1">
-  <trk><name>T</name><trkseg><trkpt lat="1" lon="1"/><trkpt lat="2" lon="2"/></trkseg></trk>
-</gpx>
-X
-curl -s -b /tmp/c -X POST --data-binary @/tmp/t.gpx \
-  'http://127.0.0.1:8090/api/gpx?region=SmokeTest&name=T'
-
-# Delete it
-curl -s -b /tmp/c -H 'Content-Type: application/json' \
-  -d '{"region":"SmokeTest","name":"T"}' -X DELETE http://127.0.0.1:8090/api/gpx
-```
-
-### UI
-
 To verify the static side end to end, run the dev server above, sign in, and do all of: add a place from the map ("Pick on map" then form), edit a place from its popup, delete a place, upload a GPX, delete a trail, switch themes, change your password, revoke a session.
-
-## Contributing to the shipped catalog
-
-`catalog.json` at the repo root is the community-curated baseline catalog that ships with every Ferd instance. To add a place:
-
-1. Add a new object to the array. Entries are sorted alphabetically by `name` (case-insensitive); insert in place rather than appending. Follow the canonical field order: `name`, `lat`, `lon`, `category`, `country`, `local_name`, `note`, `image`, `sources`.
-2. `lat`/`lon` to 5 decimals (~1 m; matches what the in-app map picker rounds to). Source from OSM Nominatim or by picking on the map in the app, not from Wikipedia's "geo" links - those are often village-center, not the specific landmark.
-3. `category` must be one of the slugs in `CATEGORY_VOCAB` (`tests/test_shipped_catalog.py`). To introduce a new slug, extend the set in the same PR.
-4. `local_name` should be the place's native script (e.g. `Ακρόπολη της Λίνδου`, `京都駅`), not a romanized transliteration. Skip if the native form is the same as `name`.
-5. `note` is a one-line identifier, capped at 60 chars. Anything longer belongs in `sources`.
-6. `image` should be a stable thumbnail URL when one is available. Wikipedia Commons works (`https://upload.wikimedia.org/wikipedia/commons/thumb/…/1280px-…`); browsers downsize to ~280 px in the popup and the service worker caches repeats. Stick to 1280 px - smaller pre-cached widths often 400 from the thumbnailer.
-7. `sources` is one URL, usually Wikipedia. Multiple only if a single source can't carry the claim.
-
-`tests/test_shipped_catalog.py` (runs in CI) enforces these conventions plus the place schema, so PRs catch malformed entries at review time.
-
-## Code style
-
-- 2-space indentation, JavaScript and Python alike.
-- Comments only where the why is non-obvious. Don't document what the next line literally does.
-- Match the existing nesting and naming. The frontend uses lowercase camelCase functions; the API uses `_h_` prefixed handler methods and snake_case helpers.
-- Stack rules (no frameworks, stdlib only, no deps for things under fifty lines) are in [docs/architecture.md > Why no build step](docs/architecture.md#why-no-build-step).
 
 ## Reporting issues
 
