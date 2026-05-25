@@ -8408,6 +8408,7 @@
             '<div class="modal-error" id="add-error"></div>' +
             '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
               '<button type="button" class="row-notes-toggle" id="browse-notes-toggle">Show notes</button>' +
+              '<button type="button" class="row-notes-toggle" id="browse-select-all">Select all</button>' +
               '<span id="browse-status" style="font-size:0.75rem;color:var(--muted);flex:1"></span>' +
               '<button type="button" class="primary" id="browse-add" disabled>Add selected</button>' +
             '</div>';
@@ -8416,19 +8417,36 @@
           const list = document.getElementById('browse-list');
           const addBtn = document.getElementById('browse-add');
           const status = document.getElementById('browse-status');
+          const selectAllBtn = document.getElementById('browse-select-all');
 
+          function visibleRows() {
+            return Array.from(list.querySelectorAll('.browse-row'))
+              .filter(r => r.style.display !== 'none');
+          }
           function updateBtn() {
             const n = list.querySelectorAll('.browse-pick:checked').length;
             addBtn.disabled = n === 0;
             addBtn.textContent = n ? 'Add ' + n + ' selected' : 'Add selected';
+            const vis = visibleRows();
+            const visChecked = vis.filter(r => r.querySelector('.browse-pick').checked).length;
+            selectAllBtn.textContent = (vis.length && visChecked === vis.length) ? 'Clear selection' : 'Select all';
+            selectAllBtn.disabled = vis.length === 0;
           }
           list.addEventListener('change', updateBtn);
+
+          selectAllBtn.addEventListener('click', function() {
+            const vis = visibleRows();
+            const allChecked = vis.length && vis.every(r => r.querySelector('.browse-pick').checked);
+            vis.forEach(r => { r.querySelector('.browse-pick').checked = !allChecked; });
+            updateBtn();
+          });
 
           filter.addEventListener('input', function() {
             const q = this.value.trim().toLowerCase();
             list.querySelectorAll('.browse-row').forEach(row => {
               row.style.display = (!q || row.textContent.toLowerCase().includes(q)) ? 'flex' : 'none';
             });
+            updateBtn();
           });
 
           // Source links sit inside a <label>; without this they'd toggle the
