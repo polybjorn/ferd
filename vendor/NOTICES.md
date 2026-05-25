@@ -58,6 +58,6 @@ Ferd vendors the third-party libraries listed below under `vendor/`. Each retain
 
 ## Maintenance
 
-Adding, removing, replacing, or bumping a vendored dep means updating the entry here. New deps need a GPL-3.0-compatible license.
+Adding, removing, replacing, or bumping a vendored dep means updating the entry here.
 
 Version drift is tracked by `scripts/check-vendor-versions.py` against `scripts/vendor-versions.json`. Deps not on npm are listed here but omitted from that manifest.
