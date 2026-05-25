@@ -59,7 +59,8 @@ GPX_NS = "http://www.topografix.com/GPX/1/1"
 # dot-dot whole-string rejection lives in safe_path_component itself.
 PATH_COMPONENT_RE = re.compile(r"^[^\x00-\x1f/\\]{1,255}$")
 PLACE_REQUIRED = {"name", "lat", "lon"}
-PLACE_OPTIONAL = {"category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating", "image", "from_catalog"}
+PLACE_OPTIONAL = {"id", "category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating", "image", "from_catalog"}
+PLACE_ID_RE = re.compile(r"^[0-9a-f]{8}$")
 PLACE_ALL = PLACE_REQUIRED | PLACE_OPTIONAL
 
 # Trail metadata fields and their constraints (used by /api/metadata).
@@ -1723,6 +1724,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
     body = self._read_body_or_400()
     if body is None:
       return
+    # Ignore any client-supplied id; the server assigns one. Strip before
+    # validation so we don't accidentally honor a colliding hex string.
+    if isinstance(body, dict):
+      body.pop("id", None)
     try:
       place = validate_place(body)
     except ValidationError as e:
@@ -1734,6 +1739,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_append():
       existing = load_json_file(places_path, expected_type=list, required=False, label="places.json")
+      seen = {p["id"] for p in existing if isinstance(p, dict) and isinstance(p.get("id"), str)}
+      new_id = secrets.token_hex(4)
+      while new_id in seen:
+        new_id = secrets.token_hex(4)
+      place["id"] = new_id
       existing.append(place)
       write_json_file(places_path, existing)
       return len(existing)
@@ -1754,12 +1764,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
     body = self._read_body_or_400()
     if body is None:
       return
-    original_name = (body.get("original_name") or "").strip()
-    if not original_name:
-      return self._error(HTTPStatus.BAD_REQUEST, "original_name required")
+    target_id = (body.get("id") or "").strip()
+    if not target_id or not PLACE_ID_RE.match(target_id):
+      return self._error(HTTPStatus.BAD_REQUEST, "id required (8-char hex)")
     place_payload = body.get("place")
     if not isinstance(place_payload, dict):
       return self._error(HTTPStatus.BAD_REQUEST, "place required")
+    # The payload's id (if any) is overwritten with the target id so the row
+    # keeps its identity through the rename.
+    place_payload = dict(place_payload)
+    place_payload["id"] = target_id
     try:
       validated = validate_place(place_payload)
     except ValidationError as e:
@@ -1771,13 +1785,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_update():
       existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
-      # Locate by name (unique-ish; we update first match).
-      idx = next((i for i, p in enumerate(existing) if isinstance(p, dict) and p.get("name") == original_name), None)
+      idx = next((i for i, p in enumerate(existing) if isinstance(p, dict) and p.get("id") == target_id), None)
       if idx is None:
-        raise NotFoundError(f"place not found: {original_name}")
-      # If renaming, ensure no collision with another row.
-      if validated["name"] != original_name and any(p.get("name") == validated["name"] for i, p in enumerate(existing) if i != idx):
-        raise ValidationError(f"a different place already uses the name '{validated['name']}'")
+        raise NotFoundError(f"place not found: {target_id}")
       existing[idx] = validated
       write_json_file(places_path, existing)
 
@@ -1834,9 +1844,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
     body = self._read_body_or_400()
     if body is None:
       return
-    target_name = (body.get("name") or "").strip()
-    if not target_name:
-      return self._error(HTTPStatus.BAD_REQUEST, "name required")
+    target_id = (body.get("id") or "").strip()
+    if not target_id or not PLACE_ID_RE.match(target_id):
+      return self._error(HTTPStatus.BAD_REQUEST, "id required (8-char hex)")
 
     udir = self._user_dir(user["username"])
     places_path = udir / "places.json"
@@ -1844,12 +1854,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_delete():
       existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
-      original_count = len(existing)
-      new_list = [p for p in existing if not (isinstance(p, dict) and p.get("name") == target_name)]
-      if len(new_list) == original_count:
-        raise NotFoundError(f"place not found: {target_name}")
-      write_json_file(places_path, new_list)
-      return len(new_list)
+      idx = next((i for i, p in enumerate(existing) if isinstance(p, dict) and p.get("id") == target_id), None)
+      if idx is None:
+        raise NotFoundError(f"place not found: {target_id}")
+      del existing[idx]
+      write_json_file(places_path, existing)
+      return len(existing)
 
     try:
       total = with_file_lock(lock_path, do_delete)
@@ -2979,6 +2989,11 @@ def validate_place(p: object) -> dict:
   if "from_catalog" in p and p["from_catalog"] is not None and p["from_catalog"] != "":
     if not isinstance(p["from_catalog"], str) or len(p["from_catalog"]) > 200:
       raise ValidationError("from_catalog must be a string (<=200 chars) or null")
+  # `id` is a server-assigned per-row identifier (8-char hex). On create the
+  # client never sets it; on update the client echoes back what GET returned.
+  if "id" in p and p["id"] is not None and p["id"] != "":
+    if not isinstance(p["id"], str) or not PLACE_ID_RE.match(p["id"]):
+      raise ValidationError("id must be an 8-char hex string")
   # Return a normalized copy: trimmed strings, defaulted booleans.
   out = {
     "name": name.strip(),
@@ -2986,6 +3001,8 @@ def validate_place(p: object) -> dict:
     "lon": float(lon),
     "visited": bool(p.get("visited", False)),
   }
+  if isinstance(p.get("id"), str) and PLACE_ID_RE.match(p["id"]):
+    out["id"] = p["id"]
   if category is not None and category != "":
     out["category"] = category.strip()
   for k in ("country", "note", "local_name", "sources", "image", "from_catalog"):

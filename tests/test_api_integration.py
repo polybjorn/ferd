@@ -237,12 +237,12 @@ class TestPlacesAuthGates(unittest.TestCase):
   def test_anon_update_blocked(self):
     c = Client(_server.base_url)  # type: ignore[union-attr]
     status, _ = c.request("PUT", "/api/places",
-                          {"original_name": "x", "place": self.PAYLOAD})
+                          {"id": "0" * 8, "place": self.PAYLOAD})
     self.assertEqual(status, 401)
 
   def test_anon_delete_blocked(self):
     c = Client(_server.base_url)  # type: ignore[union-attr]
-    status, _ = c.request("DELETE", "/api/places", {"name": "x"})
+    status, _ = c.request("DELETE", "/api/places", {"id": "0" * 8})
     self.assertEqual(status, 401)
 
 
@@ -268,42 +268,60 @@ class TestPlacesCRUD(unittest.TestCase):
     self.assertIn("lat", body["error"])
 
   def test_update_rename(self):
-    self.c.request("POST", "/api/places",
-                   {"name": "Old", "lat": 0, "lon": 0, "category": "cat"})
+    _, created = self.c.request("POST", "/api/places",
+                                {"name": "Old", "lat": 0, "lon": 0, "category": "cat"})
+    pid = created["place"]["id"]
     status, _ = self.c.request("PUT", "/api/places",
-                               {"original_name": "Old",
+                               {"id": pid,
                                 "place": {"name": "New", "lat": 0, "lon": 0, "category": "cat"}})
     self.assertEqual(status, 200)
     on_disk = json.loads((admin_dir() / "places.json").read_text())
     self.assertEqual(on_disk[0]["name"], "New")
+    self.assertEqual(on_disk[0]["id"], pid)
 
-  def test_update_collision(self):
-    for name in ("A", "B"):
-      self.c.request("POST", "/api/places",
-                     {"name": name, "lat": 0, "lon": 0, "category": "cat"})
-    # Renaming A to B should fail.
-    status, body = self.c.request("PUT", "/api/places",
-                                  {"original_name": "A",
-                                   "place": {"name": "B", "lat": 0, "lon": 0, "category": "cat"}})
-    self.assertEqual(status, 409)
-    self.assertIn("already uses", body["error"])
+  def test_update_same_name_targets_correct_row(self):
+    # Two rows with the same name are allowed; update by id hits the right one.
+    _, a = self.c.request("POST", "/api/places",
+                          {"name": "Dup", "lat": 1, "lon": 1, "category": "cat"})
+    _, b = self.c.request("POST", "/api/places",
+                          {"name": "Dup", "lat": 2, "lon": 2, "category": "cat"})
+    status, _ = self.c.request("PUT", "/api/places",
+                               {"id": b["place"]["id"],
+                                "place": {"name": "Dup", "lat": 9, "lon": 9, "category": "cat"}})
+    self.assertEqual(status, 200)
+    on_disk = json.loads((admin_dir() / "places.json").read_text())
+    by_id = {p["id"]: p for p in on_disk}
+    self.assertEqual(by_id[a["place"]["id"]]["lat"], 1)
+    self.assertEqual(by_id[b["place"]["id"]]["lat"], 9)
 
   def test_update_not_found(self):
     status, _ = self.c.request("PUT", "/api/places",
-                               {"original_name": "ghost",
+                               {"id": "0" * 8,
                                 "place": {"name": "ghost", "lat": 0, "lon": 0, "category": "cat"}})
     self.assertEqual(status, 404)
 
   def test_delete(self):
-    self.c.request("POST", "/api/places",
-                   {"name": "ToGo", "lat": 0, "lon": 0, "category": "cat"})
-    status, body = self.c.request("DELETE", "/api/places", {"name": "ToGo"})
+    _, created = self.c.request("POST", "/api/places",
+                                {"name": "ToGo", "lat": 0, "lon": 0, "category": "cat"})
+    status, body = self.c.request("DELETE", "/api/places", {"id": created["place"]["id"]})
     self.assertEqual(status, 200)
     self.assertEqual(body["total_places"], 0)
 
+  def test_delete_same_name_removes_only_targeted_row(self):
+    _, a = self.c.request("POST", "/api/places",
+                          {"name": "Twin", "lat": 1, "lon": 1, "category": "cat"})
+    _, b = self.c.request("POST", "/api/places",
+                          {"name": "Twin", "lat": 2, "lon": 2, "category": "cat"})
+    status, body = self.c.request("DELETE", "/api/places", {"id": a["place"]["id"]})
+    self.assertEqual(status, 200)
+    self.assertEqual(body["total_places"], 1)
+    on_disk = json.loads((admin_dir() / "places.json").read_text())
+    self.assertEqual(on_disk[0]["id"], b["place"]["id"])
+
   def test_delete_not_found(self):
-    status, _ = self.c.request("DELETE", "/api/places", {"name": "never-was"})
+    status, _ = self.c.request("DELETE", "/api/places", {"id": "0" * 8})
     self.assertEqual(status, 404)
+
 
   def test_create_without_category(self):
     status, _ = self.c.request("POST", "/api/places",
