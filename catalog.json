@@ -3,25 +3,27 @@
     "name": "Acropolis of Lindos",
     "lat": 36.0919,
     "lon": 28.0856,
+    "category": "ruins",
+    "country": "Greece",
+    "local_name": "Ακρόπολη της Λίνδου",
     "note": "Hilltop citadel on Rhodes with a 4th-century BC Temple of Athena overlooking the sea",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/20210826-Lindos-DJI_0205.jpg/1280px-20210826-Lindos-DJI_0205.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Lindos"
-    ],
-    "local_name": "Akropoli Lindou",
-    "country": "Greece",
-    "category": "ruins"
+    ]
   },
   {
     "name": "Palace of the Grand Master",
     "lat": 36.4456,
     "lon": 28.2242,
     "category": "castle",
+    "country": "Greece",
+    "local_name": "Παλάτι του Μεγάλου Μαγίστρου",
     "note": "Medieval Knights Hospitaller fortress in Rhodes Old Town",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes_%289451928431%29.jpg/1280px-Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes_%289451928431%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes"
-    ],
-    "local_name": "Palati tou Megalou Magistrou",
-    "country": "Greece"
+    ]
   },
   {
     "name": "Kaputas Beach",
@@ -29,8 +31,9 @@
     "lon": 29.4283,
     "category": "beach",
     "country": "Turkey",
+    "local_name": "Kaputaş Plajı",
     "note": "Narrow canyon beach between cliffs",
-    "local_name": "Kaputas Plaji",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg/1280px-Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Kaputas_Beach"
     ]

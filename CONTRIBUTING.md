@@ -103,6 +103,19 @@ curl -s -b /tmp/c -H 'Content-Type: application/json' \
 
 To verify the static side end to end, run the dev server above, sign in, and do all of: add a place from the map ("Pick on map" then form), edit a place from its popup, delete a place, upload a GPX, delete a trail, switch themes, change your password, revoke a session.
 
+## Contributing to the shipped catalog
+
+`catalog.json` at the repo root is the community-curated baseline catalog that ships with every Ferd instance. To add a place:
+
+1. Append a new object to the array, following the canonical field order: `name`, `lat`, `lon`, `category`, `country`, `local_name`, `note`, `image`, `sources`.
+2. `category` must be one of the slugs in `CATEGORY_VOCAB` (`tests/test_shipped_catalog.py`). To introduce a new slug, extend the set in the same PR.
+3. `local_name` should be the place's native script (e.g. `Ακρόπολη της Λίνδου`, `京都駅`), not a romanized transliteration. Skip if the native form is the same as `name`.
+4. `note` is a one-line identifier, capped at 200 chars. Anything longer belongs in `sources`.
+5. `image` should be a stable thumbnail URL when one is available. Wikipedia Commons works (`https://upload.wikimedia.org/wikipedia/commons/thumb/…/1280px-…`); browsers downsize to ~280 px in the popup and the service worker caches repeats. Stick to 1280 px - smaller pre-cached widths often 400 from the thumbnailer.
+6. `sources` is one URL, usually Wikipedia. Multiple only if a single source can't carry the claim.
+
+`tests/test_shipped_catalog.py` (runs in CI) enforces these conventions plus the place schema, so PRs catch malformed entries at review time.
+
 ## Code style
 
 - 2-space indentation, JavaScript and Python alike.
