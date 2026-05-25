@@ -2615,11 +2615,15 @@
       const category = readSelectOrNew(prefix + '-category');
       const sourcesRaw = val('sources').trim();
       const sources = sourcesRaw ? sourcesRaw.split('\n').map(s => s.trim()).filter(Boolean) : null;
-      const lat = parseFloat(val('lat'));
-      const lon = parseFloat(val('lon'));
-      if (Number.isNaN(lat) || Number.isNaN(lon)) {
+      const rawLat = parseFloat(val('lat'));
+      const rawLon = parseFloat(val('lon'));
+      if (Number.isNaN(rawLat) || Number.isNaN(rawLon)) {
         return { error: 'Pick a location on the map (or enter coordinates manually).' };
       }
+      // Round to 6 decimals (~11 cm). Anything beyond is JS float noise and
+      // pollutes the stored JSON; the marker is a 30-px dot anyway.
+      const lat = Math.round(rawLat * 1e6) / 1e6;
+      const lon = Math.round(rawLon * 1e6) / 1e6;
       const payload = {
         name: val('name').trim(),
         lat,
