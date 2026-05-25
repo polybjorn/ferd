@@ -21,7 +21,7 @@ Each theme runs in Light, Dark, or System mode. Theme and mode are picked from S
 - Page chrome: background, surfaces, borders, text, muted text.
 - Accent color (links, focus rings, cluster halos).
 - Semantic colors: green (visited/completed), red (planned/want to visit).
-- Trail line colors (`--completed`, `--planned`) and cluster halos.
+- Route line colors (`--completed`, `--planned`) and cluster halos.
 
 ### What the theme does NOT control
 
@@ -37,9 +37,9 @@ Everything theme-related lives in `index.html`. Find by name:
 - CSS variable blocks: one per `[data-theme="X"][data-mode="Y"]` pair near the top of the file, plus a base `:root` block (Nord dark) as fallback.
 - `THEMES` array: registered theme keys.
 - `themeLabels` object: display names for the Settings dropdown.
-- `applyTheme(theme, mode)`: sets the two HTML attributes, resolves "system" via `matchMedia`, and invalidates the trail-color cache.
+- `applyTheme(theme, mode)`: sets the two HTML attributes, resolves "system" via `matchMedia`, and invalidates the route-color cache.
 - `COLORS` / `COLORS_LIGHT`: category palette. Each category's index is stored alongside its label in `category-labels.json`; see [Category palette](#category-palette).
-- `trailStatusColor(completed)`: returns the resolved `--completed` / `--planned` color for the active theme. Cached after the first read and invalidated in `applyTheme`, so a `getComputedStyle` runs once per theme change instead of once per polyline. Legend dots and search-result lines reference the same vars directly via `.completed` / `.planned` CSS classes.
+- `routeStatusColor(completed)`: returns the resolved `--completed` / `--planned` color for the active theme. Cached after the first read and invalidated in `applyTheme`, so a `getComputedStyle` runs once per theme change instead of once per polyline. Legend dots and search-result lines reference the same vars directly via `.completed` / `.planned` CSS classes.
 
 ### CSS variable contract
 
@@ -57,8 +57,8 @@ Each `[data-theme][data-mode]` block must define:
 | `--accent` | Links, focus rings, interactive accent |
 | `--red` | "Want to visit", errors, planned status |
 | `--green` | "Visited", completed status, success |
-| `--completed` | Completed trail polylines |
-| `--planned` | Planned trail polylines |
+| `--completed` | Completed route polylines |
+| `--planned` | Planned route polylines |
 | `--cluster-fill` | Marker cluster fill (rgba with alpha) |
 | `--cluster-halo` | Marker cluster halo (rgba with alpha) |
 | `--shadow` * | Popup/card shadow |

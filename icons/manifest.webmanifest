@@ -1,7 +1,7 @@
 {
   "name": "Ferd",
   "short_name": "Ferd",
-  "description": "Personal map of places and trails",
+  "description": "Personal map of places and routes",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

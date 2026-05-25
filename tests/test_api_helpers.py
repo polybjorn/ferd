@@ -48,7 +48,7 @@ class TestValidPassword(unittest.TestCase):
 
 class TestSafePathComponent(unittest.TestCase):
   def test_valid(self):
-    self.assertEqual(api.safe_path_component("trail-01"), "trail-01")
+    self.assertEqual(api.safe_path_component("route-01"), "route-01")
     self.assertEqual(api.safe_path_component("  spaced  "), "spaced")
     self.assertEqual(api.safe_path_component("rødt fjell (1)"), "rødt fjell (1)")
 
@@ -178,7 +178,7 @@ class TestValidatePlace(unittest.TestCase):
     self.assertEqual(out["rating"], 4)
 
   def test_date_visited_bad(self):
-    # Regex-level validation (matches the trail date_hiked behavior). Bogus
+    # Regex-level validation (matches the route date_hiked behavior). Bogus
     # months like 2024-13-01 pass the regex; that's a known limitation.
     for bad in ("2024/07/15", "yesterday", "07-15-2024", 123):
       with self.assertRaises(api.ValidationError):
@@ -306,7 +306,7 @@ class TestStripGpxPii(unittest.TestCase):
     b'<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="MyDevice">'
     b"<metadata><time>2024-01-01T00:00:00Z</time>"
     b"<author><name>Alice</name></author></metadata>"
-    b'<trk><name>Trail</name><trkseg>'
+    b'<trk><name>Route</name><trkseg>'
     b'<trkpt lat="60.0" lon="5.0"><time>2024-01-01T00:00:01Z</time><ele>10</ele></trkpt>'
     b'<trkpt lat="60.1" lon="5.1"><ele>20</ele></trkpt>'
     b"</trkseg></trk></gpx>"
@@ -321,7 +321,7 @@ class TestStripGpxPii(unittest.TestCase):
   def test_preserves_track_and_elevation(self):
     out = api.strip_gpx_pii(self.GPX)
     self.assertIn(b"<trk", out)
-    self.assertIn(b"Trail", out)
+    self.assertIn(b"Route", out)
     self.assertIn(b"<ele>10</ele>", out)
     self.assertIn(b"<ele>20</ele>", out)
     self.assertIn(b'lat="60.0"', out)

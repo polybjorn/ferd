@@ -9,7 +9,7 @@ Two things glued together at one HTTP origin:
 1. **A single-file SPA frontend.** `index.html` is the whole app: HTML, CSS, and vanilla JavaScript in one file. It loads Leaflet from a CDN and fetches everything else (`site-config.json`, places, routes, GPX) from the API. No build step, no framework, no bundler.
 2. **The Python API.** `tools/api.py` is a stdlib-only HTTP server (`http.server` + `sqlite3`) that handles auth, per-user reads and writes, and serves the static files so the app runs from one origin.
 
-The frontend talks to the API via `fetch`; the API stores users, sessions, and per-user publish state in SQLite and writes each user's places/trails to JSON and GPX files under their own folder on disk.
+The frontend talks to the API via `fetch`; the API stores users, sessions, and per-user publish state in SQLite and writes each user's places/routes to JSON and GPX files under their own folder on disk.
 
 ## Data on disk
 
@@ -50,7 +50,7 @@ docs/
 icons/                     # favicon, PWA icons, web app manifest
 scripts/
   check-vendor-versions.py # weekly CI drift check against npm
-  gpx-manifest.sh          # generates routes.json from gpx/<Region>/<Trail>.gpx
+  gpx-manifest.sh          # generates routes.json from gpx/<Region>/<Route>.gpx
   vendor-versions.json     # tracked versions per vendored dep
 tests/
   test_api_helpers.py      # unit tests for pure helpers

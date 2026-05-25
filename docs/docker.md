@@ -97,7 +97,7 @@ The image includes a `HEALTHCHECK` that pings `http://127.0.0.1:8090/` every 30 
 
 ## Backups
 
-For a single user backing up their own places and trails, the easiest option is the zip export under Settings in the app. It downloads as a normal file in the browser and re-imports through the same UI. No host access needed.
+For a single user backing up their own places and routes, the easiest option is the zip export under Settings in the app. It downloads as a normal file in the browser and re-imports through the same UI. No host access needed.
 
 For a full-server backup (all users, the database, and `site-config.json`), everything you need is in `./data/`. The simplest way is to tar it:
 

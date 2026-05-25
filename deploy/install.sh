@@ -162,7 +162,7 @@ echo "  2. Pick a reverse proxy:"
 echo "       Caddy:  cp $PREFIX/deploy/Caddyfile.example /etc/caddy/Caddyfile  (then edit + reload)"
 echo "       nginx:  see $PREFIX/deploy/nginx.example.conf"
 echo "  3. Open the site and register the first account. They become the admin."
-echo "     Each user manages their own places/trails through the in-browser UI;"
+echo "     Each user manages their own places/routes through the in-browser UI;"
 echo "     any pre-existing $PREFIX/places.json or $PREFIX/gpx/ is auto-migrated"
 echo "     into that admin's $PREFIX/users/<admin>/ folder on first start."
 echo

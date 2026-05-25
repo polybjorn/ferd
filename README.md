@@ -9,14 +9,14 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 ## Features
 
 **Map and data**
-- World map with clustered place pins and GPX trail polylines.
-- Filter by category, visit status, and trail completion.
-- Browse places by category or country, trails by region.
-- Trail detail with elevation profile and route stats.
+- World map with clustered place pins and GPX route polylines.
+- Filter by category, visit status, and route completion.
+- Browse places by category or country, routes by region.
+- Route detail with elevation profile and route stats.
 - Site catalog: browse and import community-curated places, or extend with your own.
 
 **Editing and multi-user**
-- Edit places and trails in the browser; optional GPX PII strip on upload.
+- Edit places and routes in the browser; optional GPX PII strip on upload.
 - Per-user data isolation - each account is its own map.
 - Optional read-only public sharing at `/u/<username>/`.
 - Per-user zip import/export.
@@ -74,9 +74,9 @@ Open http://localhost:8090 and register the first account. See [docker.md](docs/
 
 ## Roadmap
 
-- Print/PDF stylesheet for trail and place details.
+- Print/PDF stylesheet for route and place details.
 - Auth hardening: optional TOTP 2FA.
-- Uploaded image attachments on places and trails (today: URL only).
+- Uploaded image attachments on places and routes (today: URL only).
 - Custom iOS launch splash (today: generic auto-rendered icon).
 - Distinctive logo (today: placeholder favicon).
 - Custom social preview image for the GitHub repo (today: GitHub avatar fallback).

@@ -6,7 +6,7 @@ Ferd is meant to be installed on your phone as a standalone app with offline rea
 
 - App shell: HTML, CSS, JS, vendored Leaflet and plugins, PWA icons.
 - Elevation chart and its deps (d3, plus leaflet-elevation's own modular handlers and components). All vendored under `vendor/` and precached on install.
-- Last loaded places, trails, GPX files, and category labels. `stale-while-revalidate` refreshes them in the background when you're back online. `/api/gpx/*.gpx` is cached the same way.
+- Last loaded places, routes, GPX files, and category labels. `stale-while-revalidate` refreshes them in the background when you're back online. `/api/gpx/*.gpx` is cached the same way.
 - Tiles you've previously viewed. Cap is ~50 MB with LRU eviction.
 - Site config, manifest, and the full icon set.
 
@@ -61,11 +61,11 @@ Add a path to `SHELL_ASSETS` in `sw.js` for any new `vendor/` file the app needs
 
 `TILE_MAX_ENTRIES = 2500` (~50 MB) and `TILE_TRIM_BATCH` in `sw.js` control the offline tile budget.
 
-### Trail loading
+### Route loading
 
-Index map fetches GPX lazily: routes are pulled in only when their manifest `bbox` intersects the padded viewport AND would render at least 6px diagonally at the current zoom. The trail list view prefetches every GPX on render (4 at a time via the `fetchGpxText` limiter), so detail-view navigation hits the SW cache and the polyline renders with the first frame.
+Index map fetches GPX lazily: routes are pulled in only when their manifest `bbox` intersects the padded viewport AND would render at least 6px diagonally at the current zoom. The route list view prefetches every GPX on render (4 at a time via the `fetchGpxText` limiter), so detail-view navigation hits the SW cache and the polyline renders with the first frame.
 
-Loaded trails stay on the map until the page is left. No eviction. If memory ever bites at large trail counts, add an LRU drop on `state._trailLayers`.
+Loaded routes stay on the map until the page is left. No eviction. If memory ever bites at large route counts, add an LRU drop on `state._routeLayers`.
 
 ## Serving over HTTPS
 

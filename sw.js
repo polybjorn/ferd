@@ -120,7 +120,7 @@ self.addEventListener('fetch', (event) => {
   // Same-origin routing.
   if (url.pathname.startsWith('/api/')) {
     // GPX downloads are large, immutable per filename, and the manifest is
-    // the source of truth for which file is current; cache them so trail
+    // the source of truth for which file is current; cache them so route
     // detail navigation doesn't pay a network round-trip every time.
     if (url.pathname.startsWith('/api/gpx/') && url.pathname.endsWith('.gpx')) {
       event.respondWith(staleWhileRevalidate(req, RUNTIME_CACHE));

@@ -2,7 +2,7 @@
 """API server.
 
 Stdlib-only. Provides auth (register/login/logout/change-password/state) and
-per-user data endpoints (places, GPX trails, prefs, publish toggle, export)
+per-user data endpoints (places, GPX routes, prefs, publish toggle, export)
 backed by SQLite for accounts and a per-user folder for content.
 
 Run: python3 tools/api.py [--config tools/config.json]
@@ -63,11 +63,11 @@ PLACE_OPTIONAL = {"id", "category", "country", "visited", "note", "sources", "lo
 PLACE_ID_RE = re.compile(r"^[0-9a-f]{8}$")
 PLACE_ALL = PLACE_REQUIRED | PLACE_OPTIONAL
 
-# Trail metadata fields and their constraints (used by /api/metadata).
-TRAIL_META_FIELDS = {"source", "date_hiked", "rating", "notes", "tags", "difficulty", "local_name"}
-TRAIL_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-TRAIL_TAG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
-TRAIL_DIFFICULTIES = ("easy", "moderate", "hard", "expert")
+# Route metadata fields and their constraints (used by /api/metadata).
+ROUTE_META_FIELDS = {"source", "date_hiked", "rating", "notes", "tags", "difficulty", "local_name"}
+ROUTE_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+ROUTE_TAG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
+ROUTE_DIFFICULTIES = ("easy", "moderate", "hard", "expert")
 
 # Precomputed dummy hash used to equalize timing when a username doesn't exist.
 _DUMMY_SALT = b"\x00" * SALT_BYTES
@@ -475,7 +475,7 @@ def count_user_places(udir: Path) -> int:
     return 0
 
 
-def count_user_trails(udir: Path) -> int:
+def count_user_routes(udir: Path) -> int:
   gpx_root = udir / "gpx"
   if not gpx_root.exists():
     return 0
@@ -1295,7 +1295,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "created_at": row["created_at"],
       "sessions": sessions,
       "places": count_user_places(udir),
-      "trails": count_user_trails(udir),
+      "routes": count_user_routes(udir),
     }
 
   def _h_admin_users_list(self):
@@ -1317,13 +1317,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
     data_dir = Path(self.cfg["data_dir"]).resolve()
     users_root = data_dir / "users"
     places_total = 0
-    trails_total = 0
+    routes_total = 0
     if users_root.exists():
       for child in users_root.iterdir():
         if not child.is_dir():
           continue
         places_total += count_user_places(child)
-        trails_total += count_user_trails(child)
+        routes_total += count_user_routes(child)
     db_path = Path(self.cfg["db_path"]).resolve()
     try:
       db_bytes = db_path.stat().st_size
@@ -1334,7 +1334,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "users": users,
       "published_users": published_users,
       "places": places_total,
-      "trails": trails_total,
+      "routes": routes_total,
       "db_bytes": db_bytes,
       "data_bytes": data_bytes,
     })
@@ -1992,11 +1992,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
     })
 
   def _h_gpx_move(self):
-    """Move and/or rename a trail (and any .planned.gpx sibling). Re-keys
+    """Move and/or rename a route (and any .planned.gpx sibling). Re-keys
     its metadata.json entry, prunes the old region dir if empty, and
     regenerates the manifest. Body: {key, new_region, new_name?}. Key is
-    'Region/Trail' or 'Trail' (no region); new_region is '' for no-region;
-    new_name is optional (defaults to the current trail name)."""
+    'Region/Route' or 'Route' (no region); new_region is '' for no-region;
+    new_name is optional (defaults to the current route name)."""
     user = self._require_user()
     if user is None:
       return
@@ -2015,22 +2015,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     parts = key.split("/")
     if len(parts) == 1:
-      old_region, trail_name = "", parts[0]
+      old_region, route_name = "", parts[0]
     elif len(parts) == 2:
-      old_region, trail_name = parts
+      old_region, route_name = parts
     else:
       return self._error(HTTPStatus.BAD_REQUEST, f"invalid key: {key}")
 
     try:
       if old_region:
         safe_path_component(old_region)
-      safe_path_component(trail_name)
+      safe_path_component(route_name)
       new_region = safe_path_component(new_region_raw) if new_region_raw else ""
-      final_name = safe_path_component((new_name_raw or trail_name).strip())
+      final_name = safe_path_component((new_name_raw or route_name).strip())
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    if old_region == new_region and trail_name == final_name:
+    if old_region == new_region and route_name == final_name:
       return self._send_json(HTTPStatus.OK, {"ok": True, "old_key": key, "new_key": key, "moved": 0})
 
     udir = self._user_dir(user["username"])
@@ -2041,11 +2041,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
     # Move both the walked and planned variants if either exists.
     pairs = []  # (src_path, dst_path)
     for suffix in (".gpx", ".planned.gpx"):
-      src = src_dir / f"{trail_name}{suffix}"
+      src = src_dir / f"{route_name}{suffix}"
       if src.is_file():
         pairs.append((src, dst_dir / f"{final_name}{suffix}"))
     if not pairs:
-      return self._error(HTTPStatus.NOT_FOUND, f"trail not found: {key}")
+      return self._error(HTTPStatus.NOT_FOUND, f"route not found: {key}")
     conflicts = [dst.name for src, dst in pairs if dst.exists() and dst != src]
     if conflicts:
       return self._error(HTTPStatus.CONFLICT,
@@ -2086,10 +2086,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
     })
 
   def _h_gpx_set_completed(self):
-    """Flip a trail between completed (.gpx) and planned (.planned.gpx) by
-    renaming the file. Body: {key, completed}. No-op if the trail is already
-    in the requested state. 404 if the trail doesn't exist. 409 if marking
-    a completed trail as planned would collide with an existing
+    """Flip a route between completed (.gpx) and planned (.planned.gpx) by
+    renaming the file. Body: {key, completed}. No-op if the route is already
+    in the requested state. 404 if the route doesn't exist. 409 if marking
+    a completed route as planned would collide with an existing
     .planned.gpx sibling (or vice versa)."""
     user = self._require_user()
     if user is None:
@@ -2106,37 +2106,37 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     parts = key.split("/")
     if len(parts) == 1:
-      region, trail_name = "", parts[0]
+      region, route_name = "", parts[0]
     elif len(parts) == 2:
-      region, trail_name = parts
+      region, route_name = parts
     else:
       return self._error(HTTPStatus.BAD_REQUEST, f"invalid key: {key}")
     try:
       if region:
         safe_path_component(region)
-      safe_path_component(trail_name)
+      safe_path_component(route_name)
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
     udir = self._user_dir(user["username"])
     base_dir = (udir / "gpx" / region) if region else (udir / "gpx")
-    walked = base_dir / f"{trail_name}.gpx"
-    planned = base_dir / f"{trail_name}.planned.gpx"
+    walked = base_dir / f"{route_name}.gpx"
+    planned = base_dir / f"{route_name}.planned.gpx"
 
     if completed:
       if walked.is_file():
         return self._send_json(HTTPStatus.OK, {"ok": True, "completed": True, "changed": False})
       if not planned.is_file():
-        return self._error(HTTPStatus.NOT_FOUND, f"trail not found: {key}")
+        return self._error(HTTPStatus.NOT_FOUND, f"route not found: {key}")
       src, dst = planned, walked
     else:
       if not walked.is_file():
         if not planned.is_file():
-          return self._error(HTTPStatus.NOT_FOUND, f"trail not found: {key}")
+          return self._error(HTTPStatus.NOT_FOUND, f"route not found: {key}")
         return self._send_json(HTTPStatus.OK, {"ok": True, "completed": False, "changed": False})
       if planned.is_file():
         return self._error(HTTPStatus.CONFLICT,
-                           "cannot mark as planned: a planned variant already exists for this trail")
+                           "cannot mark as planned: a planned variant already exists for this route")
       src, dst = walked, planned
 
     lock_path = udir / ".gpx.lock"
@@ -2183,11 +2183,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     meta_path = udir / "metadata.json"
     lock_path = udir / ".gpx.lock"
-    moved = {"trails": 0, "metadata": 0}
+    moved = {"routes": 0, "metadata": 0}
 
     def do_rename():
       src.rename(dst)
-      moved["trails"] = sum(1 for p in dst.glob("*.gpx") if p.is_file())
+      moved["routes"] = sum(1 for p in dst.glob("*.gpx") if p.is_file())
       if meta_path.exists():
         existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
         prefix = old_name + "/"
@@ -2208,7 +2208,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     manifest_status = self._regenerate_manifest(udir)
     self._send_json(HTTPStatus.OK, {
       "ok": True, "from": old_name, "to": new_name,
-      "trails": moved["trails"], "metadata": moved["metadata"],
+      "routes": moved["routes"], "metadata": moved["metadata"],
       "manifest": manifest_status,
     })
 
@@ -2244,15 +2244,15 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     meta_path = udir / "metadata.json"
     lock_path = udir / ".gpx.lock"
-    moved = {"trails": 0, "metadata": 0}
+    moved = {"routes": 0, "metadata": 0}
 
     def do_clear():
       for p in files:
         p.rename(gpx_root / p.name)
-        # Count one per unique trail base (collapse .planned siblings).
+        # Count one per unique route base (collapse .planned siblings).
         if not p.name.endswith(".planned.gpx"):
-          moved["trails"] += 1
-      # Rewrite metadata keys: "<name>/Trail" -> "Trail"
+          moved["routes"] += 1
+      # Rewrite metadata keys: "<name>/Route" -> "Route"
       if meta_path.exists():
         existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
         prefix = name + "/"
@@ -2279,7 +2279,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     manifest_status = self._regenerate_manifest(udir)
     self._send_json(HTTPStatus.OK, {
       "ok": True, "name": name,
-      "trails": moved["trails"], "metadata": moved["metadata"],
+      "routes": moved["routes"], "metadata": moved["metadata"],
       "manifest": manifest_status,
     })
 
@@ -2381,7 +2381,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, data or {})
 
   def _h_metadata_put(self):
-    """Upsert metadata for one trail. Body: {key, metadata}. Empty metadata
+    """Upsert metadata for one route. Body: {key, metadata}. Empty metadata
     deletes the key. Triggers a manifest regen so routes.json picks up the
     change."""
     user = self._require_user()
@@ -2395,19 +2395,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.BAD_REQUEST, "key required")
     if len(key) > 256:
       return self._error(HTTPStatus.BAD_REQUEST, "key too long")
-    # Key shape: "Region/Trail" for regioned trails, or just "Trail" for
+    # Key shape: "Region/Route" for regioned routes, or just "Route" for
     # root-level (no region). Defense in depth; the value never touches the
     # filesystem on this path, but rejecting weird input keeps metadata.json clean.
     parts = key.split("/")
     if len(parts) not in (1, 2):
-      return self._error(HTTPStatus.BAD_REQUEST, "key must be 'Region/Trail name' or 'Trail name'")
+      return self._error(HTTPStatus.BAD_REQUEST, "key must be 'Region/Route name' or 'Route name'")
     try:
       for p in parts:
         safe_path_component(p)
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, f"invalid key: {e}")
     try:
-      entry = validate_trail_metadata(body.get("metadata") or {})
+      entry = validate_route_metadata(body.get("metadata") or {})
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
@@ -2964,7 +2964,7 @@ def validate_place(p: object) -> dict:
   if "local_name" in p and p["local_name"] is not None and not (isinstance(p["local_name"], str) and len(p["local_name"]) <= 200):
     raise ValidationError("local_name must be a string (<=200 chars) or null")
   if "date_visited" in p and p["date_visited"] is not None and p["date_visited"] != "":
-    if not isinstance(p["date_visited"], str) or not TRAIL_DATE_RE.match(p["date_visited"]):
+    if not isinstance(p["date_visited"], str) or not ROUTE_DATE_RE.match(p["date_visited"]):
       raise ValidationError("date_visited must be YYYY-MM-DD")
   if "rating" in p and p["rating"] is not None and p["rating"] != "":
     r = p["rating"]
@@ -3015,13 +3015,13 @@ def validate_place(p: object) -> dict:
   return out
 
 
-def validate_trail_metadata(m: object) -> dict:
-  """Validate a per-trail metadata payload. Returns a normalized dict containing
+def validate_route_metadata(m: object) -> dict:
+  """Validate a per-route metadata payload. Returns a normalized dict containing
   only the fields that have a non-empty value. Raises ValidationError on any
   invalid input."""
   if not isinstance(m, dict):
     raise ValidationError("metadata must be an object")
-  unknown = set(m.keys()) - TRAIL_META_FIELDS
+  unknown = set(m.keys()) - ROUTE_META_FIELDS
   if unknown:
     raise ValidationError(f"unknown fields: {sorted(unknown)}")
   out: dict = {}
@@ -3044,7 +3044,7 @@ def validate_trail_metadata(m: object) -> dict:
 
   d = m.get("date_hiked")
   if d is not None and d != "":
-    if not isinstance(d, str) or not TRAIL_DATE_RE.match(d):
+    if not isinstance(d, str) or not ROUTE_DATE_RE.match(d):
       raise ValidationError("date_hiked must be YYYY-MM-DD")
     out["date_hiked"] = d
 
@@ -3076,7 +3076,7 @@ def validate_trail_metadata(m: object) -> dict:
       tn = t.strip().lower()
       if not tn:
         continue
-      if not TRAIL_TAG_RE.match(tn):
+      if not ROUTE_TAG_RE.match(tn):
         raise ValidationError(f"invalid tag: {tn!r} (lowercase alphanumerics + hyphen, 1-32 chars, starts with alphanumeric)")
       if tn not in seen:
         seen.add(tn)
@@ -3088,8 +3088,8 @@ def validate_trail_metadata(m: object) -> dict:
 
   diff = m.get("difficulty")
   if diff is not None and diff != "":
-    if diff not in TRAIL_DIFFICULTIES:
-      raise ValidationError(f"difficulty must be one of: {', '.join(TRAIL_DIFFICULTIES)}")
+    if diff not in ROUTE_DIFFICULTIES:
+      raise ValidationError(f"difficulty must be one of: {', '.join(ROUTE_DIFFICULTIES)}")
     out["difficulty"] = diff
 
   ln = m.get("local_name")

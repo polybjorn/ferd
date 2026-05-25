@@ -499,7 +499,7 @@
       max-width: none;
     }
 
-    /* Index grids (places + trails) */
+    /* Index grids (places + routes) */
     .category-grid,
     .region-grid {
       columns: 2;
@@ -708,7 +708,7 @@
     .status-dot.want { background: transparent; border: 1.5px solid var(--red); }
     .status-dot.planned { background: transparent; border: 1.5px solid var(--planned); }
 
-    /* Trails index */
+    /* Routes index */
     .route-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -902,7 +902,7 @@
       .legend-item.pulse, .status-chip.pulse { animation: none !important; }
     }
 
-    /* Trails detail view */
+    /* Routes detail view */
     .detail-layout {
       display: flex;
       flex-direction: column;
@@ -1015,7 +1015,7 @@
       margin-top: 0.75rem;
     }
 
-    .trail-meta-panel {
+    .route-meta-panel {
       margin-top: 0.5rem;
       padding: 0.75rem 0.9rem;
       background: var(--surface);
@@ -1027,14 +1027,14 @@
       color: var(--text);
       flex-shrink: 0;
     }
-    .trail-meta-header {
+    .route-meta-header {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 0.4rem 1.25rem;
       justify-content: space-between;
     }
-    .trail-meta-line {
+    .route-meta-line {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
@@ -1042,29 +1042,29 @@
       line-height: 1.6;
       color: var(--muted);
     }
-    .trail-meta-line .fact {
+    .route-meta-line .fact {
       display: inline-flex;
       align-items: center;
       color: var(--text);
       white-space: nowrap;
     }
-    .trail-meta-line .fact .dot {
+    .route-meta-line .fact .dot {
       width: 0.5rem;
       height: 0.5rem;
       border-radius: 50%;
       display: inline-block;
       margin-right: 0.4rem;
     }
-    .trail-meta-line .sep {
+    .route-meta-line .sep {
       color: var(--border);
       user-select: none;
     }
-    .trail-meta-tags {
+    .route-meta-tags {
       display: flex;
       flex-wrap: wrap;
       gap: 0.25rem 0.5rem;
     }
-    .trail-meta-tags .tag {
+    .route-meta-tags .tag {
       font-size: 0.7rem;
       color: var(--muted);
       background: var(--bg);
@@ -1072,7 +1072,7 @@
       border-radius: 999px;
       padding: 0.05rem 0.5rem;
     }
-    .trail-meta-notes {
+    .route-meta-notes {
       font-size: 0.75rem;
       color: var(--text);
       line-height: 1.5;
@@ -1081,7 +1081,7 @@
       padding-top: 0.6rem;
       border-top: 1px solid var(--border);
     }
-    .trail-meta-notes-label {
+    .route-meta-notes-label {
       display: block;
       font-size: 0.55rem;
       font-weight: 600;
@@ -1355,9 +1355,9 @@
     .leaflet-control-layers label { color: var(--text); }
     .leaflet-control-layers-separator { border-color: var(--border) !important; }
 
-    /* Pointer cursor over the trail "near-tap" zone, so hovering near a
+    /* Pointer cursor over the route "near-tap" zone, so hovering near a
        polyline reads as interactive even when not directly on the stroke. */
-    .leaflet-container.trail-near-cursor { cursor: pointer; }
+    .leaflet-container.route-near-cursor { cursor: pointer; }
 
     /* Elevation control */
     .elevation-control .background { fill: var(--surface); }
@@ -1782,7 +1782,7 @@
     .settings-inline-row {
       display: grid;
       /* Fixed label column so the control side starts at the same x in every
-         row — pill groups line up across rows. Width is tuned to fit "Trail
+         row — pill groups line up across rows. Width is tuned to fit "Route
          line thickness" while leaving enough room for 3 pill-style options. */
       grid-template-columns: 9rem 1fr;
       gap: 0.5rem 0.75rem;
@@ -1973,7 +1973,7 @@
     .modal-backdrop:has(#cat-mgr-list) #cat-mgr-list { flex: 1; min-height: 0; max-height: none; }
     .modal-backdrop:has(#cat-list) #cat-list,
     .modal-backdrop:has(#cat-mgr-list) #cat-mgr-list { flex: 1; min-height: 0; max-height: none; }
-    /* Pin the Add modal to the top so switching Place <-> Trail (different
+    /* Pin the Add modal to the top so switching Place <-> Route (different
        form heights) doesn't shift the modal vertically. The body itself
        animates height between renders. */
     .modal-backdrop:has(#add-tabs) { align-items: flex-start; padding-top: 4rem; padding-bottom: 4rem; }
@@ -2453,7 +2453,7 @@
     </span>
     <div class="view-tabs">
       <a href="#/places" data-view="places" id="tab-places">Places</a>
-      <a href="#/trails" data-view="trails" id="tab-trails">Trails</a>
+      <a href="#/routes" data-view="routes" id="tab-routes">Routes</a>
     </div>
     <div class="nav-right">
       <div class="nav-actions" id="nav-actions"></div>
@@ -2522,18 +2522,18 @@
       return !!(state.viewer && state.viewer.mode === 'public');
     }
 
-    let _trailColorCache = null;
-    function trailStatusColor(completed) {
+    let _routeColorCache = null;
+    function routeStatusColor(completed) {
       // Cache both values per theme; applyTheme() invalidates. Avoids one
       // getComputedStyle (and forced style recalc) per polyline draw.
-      if (!_trailColorCache) {
+      if (!_routeColorCache) {
         const cs = getComputedStyle(document.documentElement);
-        _trailColorCache = {
+        _routeColorCache = {
           completed: cs.getPropertyValue('--completed').trim() || '#a3be8c',
           planned:   cs.getPropertyValue('--planned').trim()   || '#bf616a',
         };
       }
-      return completed ? _trailColorCache.completed : _trailColorCache.planned;
+      return completed ? _routeColorCache.completed : _routeColorCache.planned;
     }
 
     function fetchJson(url, fallback) {
@@ -2704,7 +2704,7 @@
 
     const DEFAULT_CONFIG = {
       brand: 'Ferd',
-      features: { places: true, trails: true },
+      features: { places: true, routes: true },
       default_view: { center: [45, 10], zoom: 4 },
       default_view_trails: { center: [59.5, 6.5], zoom: 10 },
       category_labels: {},
@@ -2712,7 +2712,7 @@
     };
 
     function placesAvailable() { return state.config.features.places !== false; }
-    function trailsAvailable() { return state.config.features.trails !== false; }
+    function routesAvailable() { return state.config.features.trails !== false; }
     function getHiddenFeatures() {
       try {
         const raw = localStorage.getItem('hidden-features');
@@ -2725,13 +2725,13 @@
       try { localStorage.setItem('hidden-features', JSON.stringify([...s])); } catch {}
     }
     function placesEnabled() { return placesAvailable() && !getHiddenFeatures().has('places'); }
-    function trailsEnabled() { return trailsAvailable() && !getHiddenFeatures().has('trails'); }
+    function routesEnabled() { return routesAvailable() && !getHiddenFeatures().has('routes'); }
 
     function getPref(key, def) {
       try { const v = localStorage.getItem(key); return v === null ? def : v; }
       catch { return def; }
     }
-    const SYNCED_PREF_KEYS = new Set(['theme', 'mode', 'pin-style', 'marker-size', 'trail-weight', 'tile-filter']);
+    const SYNCED_PREF_KEYS = new Set(['theme', 'mode', 'pin-style', 'marker-size', 'route-weight', 'tile-filter']);
     function setPref(key, val) {
       try { localStorage.setItem(key, val); } catch {}
       if (SYNCED_PREF_KEYS.has(key) && state.auth && state.auth.authenticated) {
@@ -2798,18 +2798,18 @@
 
     function refreshTabVisibility() {
       const tabPlaces = document.getElementById('tab-places');
-      const tabTrails = document.getElementById('tab-trails');
+      const tabTrails = document.getElementById('tab-routes');
       if (tabPlaces) {
         tabPlaces.style.display = placesEnabled() ? '' : 'none';
         const n = Array.isArray(state.places) ? state.places.length : null;
         tabPlaces.textContent = n == null ? 'Places' : 'Places (' + n + ')';
       }
       if (tabTrails) {
-        tabTrails.style.display = trailsEnabled() ? '' : 'none';
+        tabTrails.style.display = routesEnabled() ? '' : 'none';
         const n = state.manifest
           ? state.manifest.regions.reduce(function (s, r) { return s + r.routes.length; }, 0)
           : null;
-        tabTrails.textContent = n == null ? 'Trails' : 'Trails (' + n + ')';
+        tabTrails.textContent = n == null ? 'Routes' : 'Routes (' + n + ')';
       }
     }
 
@@ -2853,9 +2853,9 @@
       // unified-map layer refs
       _placeRecords: null,
       _placeClusterGroup: null,
-      _trailLayers: null,        // [{ route, layer, completed }]
-      _trailGroupCompleted: null,
-      _trailGroupPlanned: null,
+      _routeLayers: null,        // [{ route, layer, completed }]
+      _routeGroupCompleted: null,
+      _routeGroupPlanned: null,
     };
 
     function escapeHtml(str) {
@@ -3057,10 +3057,10 @@
       state.tilePickerLayers = null;
       state._placeRecords = null;
       state._placeClusterGroup = null;
-      state._trailLayers = null;
-      state._trailGroupCompleted = null;
-      state._trailGroupPlanned = null;
-      state._trailRenderer = null;
+      state._routeLayers = null;
+      state._routeGroupCompleted = null;
+      state._routeGroupPlanned = null;
+      state._routeRenderer = null;
     }
 
     function formatDistance(m) {
@@ -3076,7 +3076,7 @@
     }
 
     function setActiveTab(view) {
-      ['places', 'trails'].forEach(v => {
+      ['places', 'routes'].forEach(v => {
         document.getElementById('tab-' + v).classList.toggle('active', v === view);
       });
     }
@@ -3173,7 +3173,7 @@
       state._placeClusterGroup.redraw();
     }
 
-    // Apply current trail-weight to all live trail polylines without rebuilding.
+    // Apply current route-weight to all live route polylines without rebuilding.
     // Stamp the original stroke-width on first observation so later
     // adjustments can divide back without losing precision.
     // Override leaflet-elevation's lazy-import URLs to point at our
@@ -3211,7 +3211,7 @@
     }
 
     // Concurrency-limited GPX text fetcher. The index map can have dozens
-    // of trails, and bursting that many parallel XHRs caused leaflet-gpx
+    // of routes, and bursting that many parallel XHRs caused leaflet-gpx
     // to occasionally see a null responseXML (Firefox's XML parser
     // failing under load). Fetch + text + limited concurrency avoids the
     // XHR path entirely and keeps the network polite.
@@ -3254,7 +3254,7 @@
     function applyNonScalingStroke(layer) {
       if (layer && layer._path && layer._path.setAttribute) {
         // Stamp from layer.options.weight (the intended weight) rather
-        // than the path's current stroke-width attribute. If a trail
+        // than the path's current stroke-width attribute. If a route
         // happens to load while the SVG is mid-CSS-scale (stepped zoom
         // anim or fitBounds), getAttribute returns the counter-scaled
         // value, which then becomes the frozen "orig" - and every later
@@ -3269,8 +3269,8 @@
       }
     }
 
-    // Counter-scale trail stroke widths against the SVG's current CSS
-    // transform scale, so trails appear at constant pixel width even
+    // Counter-scale route stroke widths against the SVG's current CSS
+    // transform scale, so routes appear at constant pixel width even
     // while Leaflet CSS-scales the SVG container during zoom animation.
     function adjustTrailStrokes() {
       // Re-project each polyline at the current zoom, then call the
@@ -3282,7 +3282,7 @@
       // compositor while stroke-width goes through main-thread paint,
       // briefly diverging mid-gesture). Costs more CPU than CSS-only
       // but keeps strokes constant and positions sticky.
-      if (!state.currentMap || !state._trailLayers) return;
+      if (!state.currentMap || !state._routeLayers) return;
       const visit = (layer) => {
         if (layer._renderer && typeof layer._project === 'function') {
           try { layer._project(); } catch (e) { /* ignore */ }
@@ -3291,16 +3291,16 @@
           layer.eachLayer(visit);
         }
       };
-      for (const t of state._trailLayers) visit(t.layer);
-      if (state._trailRenderer && state._trailRenderer._update) {
-        try { state._trailRenderer._update(); } catch (e) { /* ignore */ }
+      for (const t of state._routeLayers) visit(t.layer);
+      if (state._routeRenderer && state._routeRenderer._update) {
+        try { state._routeRenderer._update(); } catch (e) { /* ignore */ }
       }
     }
 
     function refreshTrailWeights() {
-      if (!state._trailLayers) { wrappedRouter(); return; }
+      if (!state._routeLayers) { wrappedRouter(); return; }
       const w = 4 * getTrailWeightFactor();
-      for (const t of state._trailLayers) {
+      for (const t of state._routeLayers) {
         try { t.layer.setStyle({ weight: w }); } catch (e) {}
       }
     }
@@ -3356,11 +3356,11 @@
 
     const DIFFICULTY_LABELS = { easy: 'Easy', moderate: 'Moderate', hard: 'Hard', expert: 'Expert' };
 
-    function trailMetadataKey(route, regionName) {
+    function routeMetadataKey(route, regionName) {
       // The manifest keys metadata by the on-disk region directory, not the
-      // display name. For a trail in a region, route.file is "Region/Trail.gpx"
-      // and we use the first segment. For a no-region (root-level) trail,
-      // route.file is just "Trail.gpx" and the key omits the region prefix.
+      // display name. For a route in a region, route.file is "Region/Route.gpx"
+      // and we use the first segment. For a no-region (root-level) route,
+      // route.file is just "Route.gpx" and the key omits the region prefix.
       const file = route.file || '';
       if (!file.includes('/')) return route.name;
       return file.split('/')[0] + '/' + route.name;
@@ -3376,10 +3376,10 @@
       return filled + '<span style="opacity:0.35">' + '★'.repeat(empty) + '</span>';
     }
 
-    function trailPopupHtml(route, region, color) {
+    function routePopupHtml(route, region, color) {
       const regionName = region.name;
-      let html = shareCornerHtml('trail', route._slug || route.key);
-      html += '<a class="popup-name popup-name-link" href="#/trails/route/' + encodeURIComponent(route.key) + '">' + escapeHtml(route.name) + (route.local_name ? ' <span class="popup-local">&middot; ' + escapeHtml(route.local_name) + '</span>' : '') + '</a>';
+      let html = shareCornerHtml('route', route._slug || route.key);
+      html += '<a class="popup-name popup-name-link" href="#/routes/route/' + encodeURIComponent(route.key) + '">' + escapeHtml(route.name) + (route.local_name ? ' <span class="popup-local">&middot; ' + escapeHtml(route.local_name) + '</span>' : '') + '</a>';
       // First meta line: difficulty / rating / date arranged left / center / right.
       // Render each slot even if empty so the columns hold their position.
       const diffSlot = route.difficulty ? escapeHtml(DIFFICULTY_LABELS[route.difficulty] || route.difficulty) : '';
@@ -3410,14 +3410,14 @@
         '<span style="color:' + color + '">' + (route.completed ? 'Completed' : 'Planned') + '</span>' +
         '<span>' + escapeHtml(displayRegion(regionName)) + '</span>' +
         (state.auth.authenticated && !isReadOnly() ?
-          '<a href="#" class="popup-trail-edit" data-key="' + escapeHtml(route.key) + '">Edit</a>'
+          '<a href="#" class="popup-route-edit" data-key="' + escapeHtml(route.key) + '">Edit</a>'
         : '') +
         '</div>';
       return html;
     }
 
     function deleteTrail(route, regionName) {
-      if (!confirm('Delete trail "' + route.name + '" (' + displayRegion(regionName) + ')? This removes the GPX file.')) return Promise.resolve(false);
+      if (!confirm('Delete route "' + route.name + '" (' + displayRegion(regionName) + ')? This removes the GPX file.')) return Promise.resolve(false);
       return api('DELETE', '/gpx', { region: regionName, name: route.name })
         .then(() => refreshRoutes())
         .then(() => true)
@@ -3435,7 +3435,7 @@
     }
 
     function openEditTrailMetadataModal(route, regionName) {
-      const key = trailMetadataKey(route, regionName);
+      const key = routeMetadataKey(route, regionName);
       const currentRegion = regionName || '';
       const allRegions = ((state.manifest && state.manifest.regions) || [])
         .map(r => r.name).filter(Boolean).sort((a, b) => a.localeCompare(b));
@@ -3447,8 +3447,8 @@
         '<option value="__new__">(Add new region&hellip;)</option>',
       ].join('');
       openModal(
-        '<h2>Edit trail<button class="modal-close">&times;</button></h2>' +
-        '<form id="trail-meta-form">' +
+        '<h2>Edit route<button class="modal-close">&times;</button></h2>' +
+        '<form id="route-meta-form">' +
           '<label for="tm-name">Name</label>' +
           '<input type="text" id="tm-name" required maxlength="64" value="' + escapeHtml(route.name) + '">' +
           (getShowField('native-name') ?
@@ -3467,10 +3467,10 @@
             '<textarea id="tm-notes" maxlength="2000">' + escapeHtml(route.notes || '') + '</textarea>'
           : '') +
           '<label for="tm-source">Source URL (optional)</label>' +
-          '<input type="url" id="tm-source" value="' + escapeHtml(route.source || '') + '" placeholder="https://example.com/trail">' +
+          '<input type="url" id="tm-source" value="' + escapeHtml(route.source || '') + '" placeholder="https://example.com/route">' +
           '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
             '<input type="checkbox" class="settings-toggle" id="tm-completed"' + (route.completed ? ' checked' : '') + '>' +
-            '<label for="tm-completed" style="margin:0">I&rsquo;ve completed this trail</label>' +
+            '<label for="tm-completed" style="margin:0">I&rsquo;ve completed this route</label>' +
           '</div>' +
           ((getShowField('date') || getShowField('rating')) ?
             '<div class="collapsible' + (route.completed ? ' expanded' : '') + '" id="tm-completed-extras">' +
@@ -3517,7 +3517,7 @@
               else { btn.disabled = false; }
             });
           });
-          document.getElementById('trail-meta-form').addEventListener('submit', function(e) {
+          document.getElementById('route-meta-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
             const dateVal = get('tm-date').trim();
@@ -3597,7 +3597,7 @@
       const app = document.getElementById('app');
       app.innerHTML = '<div id="map"></div>';
 
-      const dv = prevView || storedView || ((!placesEnabled() && trailsEnabled())
+      const dv = prevView || storedView || ((!placesEnabled() && routesEnabled())
         ? (state.config.default_view_trails || DEFAULT_CONFIG.default_view_trails)
         : (state.config.default_view || DEFAULT_CONFIG.default_view));
       const map = L.map('map', {
@@ -3616,7 +3616,7 @@
       }).setView(dv.center, dv.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
-      // Counter-scale trail stroke widths during zoom. 'zoom' covers
+      // Counter-scale route stroke widths during zoom. 'zoom' covers
       // mobile pinch (fires per frame); zoomanim kicks off a brief rAF
       // loop to cover the desktop 250ms CSS animation where 'zoom'
       // doesn't fire until the end.
@@ -3673,48 +3673,48 @@
       state._placeRecords = placeRecords;
       state._placeClusterGroup = clusterGroup;
 
-      // Trails: two groups by status
+      // Routes: two groups by status
       const groupCompleted = L.featureGroup();
       const groupPlanned = L.featureGroup();
-      const trailLayers = [];
-      const trailBounds = L.latLngBounds();
-      let focusTrailKey = (focus && focus.type === 'trail') ? focus.name : null;
+      const routeLayers = [];
+      const routeBounds = L.latLngBounds();
+      let focusTrailKey = (focus && focus.type === 'route') ? focus.name : null;
       let focusTrailLayer = null;
 
       // Lazy GPX loading. Building one polyline per route up-front grows
       // linearly with the manifest; viewport-based on-demand loading keeps
-      // the working set bounded regardless of total trail count. The
+      // the working set bounded regardless of total route count. The
       // manifest's per-route bbox is still used synchronously for initial
       // fit, so the map opens at the right area without waiting on any
       // GPX fetch.
-      const trailDescriptors = [];
+      const routeDescriptors = [];
       const loadedRouteKeys = new Set();
       const pendingRouteKeys = new Set();
       if (state.manifest) {
         for (const region of state.manifest.regions) {
           for (const route of region.routes) {
-            const color = trailStatusColor(route.completed);
+            const color = routeStatusColor(route.completed);
             const parent = route.completed ? groupCompleted : groupPlanned;
             const gpxUrl = gpxUrlFor(route.file);
-            trailDescriptors.push({ route, region, color, parent, gpxUrl });
+            routeDescriptors.push({ route, region, color, parent, gpxUrl });
             const visibleStatus = route.completed ? state.showCompleted : state.showPlanned;
             if (route.bbox && route.bbox.length === 4
                 && !state.hiddenRegions.has(region.name)
                 && visibleStatus) {
-              trailBounds.extend([route.bbox[0], route.bbox[1]]);
-              trailBounds.extend([route.bbox[2], route.bbox[3]]);
+              routeBounds.extend([route.bbox[0], route.bbox[1]]);
+              routeBounds.extend([route.bbox[2], route.bbox[3]]);
             }
           }
         }
       }
 
-      state._trailLayers = trailLayers;
-      state._trailGroupCompleted = groupCompleted;
-      state._trailGroupPlanned = groupPlanned;
+      state._routeLayers = routeLayers;
+      state._routeGroupCompleted = groupCompleted;
+      state._routeGroupPlanned = groupPlanned;
 
       // Map-level near-tap detector: stock Leaflet only fires polyline
       // click when the tap lands within ~1px of the stroke, which is
-      // brutal on touch. Walk visible trails on every map click and
+      // brutal on touch. Walk visible routes on every map click and
       // pick the closest segment within ~18px; if found, behave as if
       // the user had hit the polyline exactly.
       const NEAR_TAP_PX = 18;
@@ -3732,7 +3732,7 @@
         return record.completed ? state.showCompleted : state.showPlanned;
       }
       function findNearTrail(containerPt) {
-        if (!state._trailLayers || !state._trailLayers.length) return null;
+        if (!state._routeLayers || !state._routeLayers.length) return null;
         let best = null, bestDist = NEAR_TAP_PX * NEAR_TAP_PX;
         const visit = function(layer, record) {
           if (layer.getLatLngs && !layer.eachLayer) {
@@ -3747,7 +3747,7 @@
           }
           if (layer.eachLayer) layer.eachLayer(function(sub) { visit(sub, record); });
         };
-        for (const record of state._trailLayers) {
+        for (const record of state._routeLayers) {
           if (!isLayerVisible(record)) continue;
           visit(record.layer, record);
         }
@@ -3757,7 +3757,7 @@
         const best = findNearTrail(e.containerPoint);
         if (best) {
           const slug = best.route._slug || best.route.key;
-          history.replaceState(null, '', focusHash('trail', slug));
+          history.replaceState(null, '', focusHash('route', slug));
           best.layer.openPopup(e.latlng);
         }
       });
@@ -3769,7 +3769,7 @@
         const near = !!findNearTrail(e.containerPoint);
         if (near === _nearCursor) return;
         _nearCursor = near;
-        map.getContainer().classList.toggle('trail-near-cursor', near);
+        map.getContainer().classList.toggle('route-near-cursor', near);
       });
 
       function loadRouteLazy(desc) {
@@ -3778,22 +3778,22 @@
         fetchGpxText(desc.gpxUrl).then(function(text) {
           const gpxLayer = new L.GPX(text, {
             async: true,
-            polyline_options: { color: desc.color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'trail-line' },
+            polyline_options: { color: desc.color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'route-line' },
             // Waypoints hidden on the index map; revealed in detail view only.
             markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
           });
           gpxLayer.on('loaded', function(e) {
             const b = e.target.getBounds();
-            if (b.isValid()) trailBounds.extend(b);
+            if (b.isValid()) routeBounds.extend(b);
             if (focusTrailKey && desc.route.key === focusTrailKey) {
               focusTrailLayer = e.target;
               if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
             }
             applyNonScalingStroke(e.target);
-            // Cache the renderer the first time a trail loads so
+            // Cache the renderer the first time a route loads so
             // adjustTrailStrokes can force a re-project on smooth-zoom
             // frames. All polylines on the index map share one renderer.
-            if (!state._trailRenderer) {
+            if (!state._routeRenderer) {
               const findRenderer = function(layer) {
                 if (layer._renderer) return layer._renderer;
                 if (typeof layer.eachLayer === 'function') {
@@ -3803,23 +3803,23 @@
                 }
                 return null;
               };
-              state._trailRenderer = findRenderer(e.target);
+              state._routeRenderer = findRenderer(e.target);
             }
           }).on('error', function(e) {
             console.warn('[ferd] gpx parse failed for', desc.gpxUrl, e && e.err);
             try { desc.parent.removeLayer(gpxLayer); } catch (_) {}
           }).bindPopup(
-            trailPopupHtml(desc.route, desc.region, desc.color),
+            routePopupHtml(desc.route, desc.region, desc.color),
             { closeButton: false }
           ).on('click', (function(slug) {
             return function(ev) {
               // Stop propagation so the map-level near-tap handler
               // doesn't fire a duplicate replaceState + popup toggle.
               if (ev && ev.originalEvent) L.DomEvent.stopPropagation(ev.originalEvent);
-              history.replaceState(null, '', focusHash('trail', slug));
+              history.replaceState(null, '', focusHash('route', slug));
             };
           })(desc.route._slug || desc.route.key));
-          trailLayers.push({ route: desc.route, region: desc.region.name, layer: gpxLayer, completed: desc.route.completed });
+          routeLayers.push({ route: desc.route, region: desc.region.name, layer: gpxLayer, completed: desc.route.completed });
           loadedRouteKeys.add(desc.route.key);
           pendingRouteKeys.delete(desc.route.key);
           applyMapFilters();
@@ -3831,7 +3831,7 @@
 
       // Skip routes whose bbox would render smaller than this many pixels
       // at the current zoom; they'd be visual noise on a continent-zoom view.
-      const MIN_TRAIL_VISIBLE_PX = 6;
+      const MIN_ROUTE_VISIBLE_PX = 6;
       function routeShouldLoad(desc, paddedBounds, mapZoom) {
         const b = desc.route.bbox;
         if (!b || b.length !== 4) return true; // no bbox info, conservative
@@ -3842,32 +3842,32 @@
         const np = map.project(ne, mapZoom);
         const dx = Math.abs(np.x - sp.x);
         const dy = Math.abs(np.y - sp.y);
-        return Math.sqrt(dx * dx + dy * dy) >= MIN_TRAIL_VISIBLE_PX;
+        return Math.sqrt(dx * dx + dy * dy) >= MIN_ROUTE_VISIBLE_PX;
       }
       function evaluateVisibleRoutes() {
         if (!map._loaded) return;
         const padded = map.getBounds().pad(0.5);
         const zoom = map.getZoom();
-        for (const desc of trailDescriptors) {
+        for (const desc of routeDescriptors) {
           if (loadedRouteKeys.has(desc.route.key) || pendingRouteKeys.has(desc.route.key)) continue;
           if (focusTrailKey && desc.route.key === focusTrailKey) { loadRouteLazy(desc); continue; }
           if (routeShouldLoad(desc, padded, zoom)) loadRouteLazy(desc);
         }
       }
-      let _trailEvalTimer = null;
+      let _routeEvalTimer = null;
       function scheduleTrailEval() {
-        if (_trailEvalTimer) clearTimeout(_trailEvalTimer);
-        _trailEvalTimer = setTimeout(evaluateVisibleRoutes, 150);
+        if (_routeEvalTimer) clearTimeout(_routeEvalTimer);
+        _routeEvalTimer = setTimeout(evaluateVisibleRoutes, 150);
       }
       map.on('moveend', scheduleTrailEval);
       // Kick an initial evaluation: when the map opens at a stored or
       // focus view, no moveend fires after we register the listener, so
-      // visible trails would only load on the user's first pan.
+      // visible routes would only load on the user's first pan.
       scheduleTrailEval();
 
       applyMapFilters();
 
-      // Initial bounds: places + trails, prefer focus
+      // Initial bounds: places + routes, prefer focus
       if (focusPlace) {
         // On reload at a place URL, keep the user's prior view (prevView /
         // storedView) instead of forcing a zoom-in to the place. Opening the
@@ -3887,7 +3887,7 @@
       } else if (!focusTrailKey && !prevView && !storedView) {
         const combined = L.latLngBounds();
         if (placeBounds.isValid()) combined.extend(placeBounds);
-        if (trailBounds.isValid()) combined.extend(trailBounds);
+        if (routeBounds.isValid()) combined.extend(routeBounds);
         if (combined.isValid()) map.fitBounds(combined, { padding: [40, 40] });
       }
 
@@ -3897,22 +3897,22 @@
         onAdd: function() {
           const div = L.DomUtil.create('div', 'map-panel');
           div.id = 'map-panel';
-          const searchPlaceholder = placesEnabled() && trailsEnabled()
-            ? 'Search places + trails...'
-            : (placesEnabled() ? 'Search places...' : 'Search trails...');
+          const searchPlaceholder = placesEnabled() && routesEnabled()
+            ? 'Search places + routes...'
+            : (placesEnabled() ? 'Search places...' : 'Search routes...');
           div.innerHTML =
             '<div class="panel-search" id="map-search">' +
             '<input type="text" id="map-search-input" placeholder="' + searchPlaceholder + '">' +
             '<div class="map-search-results" id="map-search-results"></div>' +
             '</div>' +
             (placesEnabled() ? panelSectionHtml('places', 'Places') : '') +
-            (trailsEnabled() ? panelSectionHtml('trails', 'Trails') : '');
+            (routesEnabled() ? panelSectionHtml('routes', 'Routes') : '');
           L.DomEvent.disableClickPropagation(div);
           L.DomEvent.disableScrollPropagation(div);
           return div;
         }
       });
-      if (placesEnabled() || trailsEnabled()) {
+      if (placesEnabled() || routesEnabled()) {
         map.addControl(new PanelControl());
         bindFilterPanel();
         refreshFilterPanel();
@@ -3943,13 +3943,13 @@
         placesBody.innerHTML = html;
       }
 
-      const trailsBody = document.getElementById('trails-body');
-      if (trailsBody) {
+      const routesBody = document.getElementById('routes-body');
+      if (routesBody) {
         let html = '<div class="legend-cats" style="grid-template-columns:1fr">';
-        html += '<div class="legend-item' + (state.showCompleted ? '' : ' disabled') + '" data-trail-status="completed">';
+        html += '<div class="legend-item' + (state.showCompleted ? '' : ' disabled') + '" data-route-status="completed">';
         html += '<span class="legend-line completed"></span>Completed';
         html += '</div>';
-        html += '<div class="legend-item' + (state.showPlanned ? '' : ' disabled') + '" data-trail-status="planned">';
+        html += '<div class="legend-item' + (state.showPlanned ? '' : ' disabled') + '" data-route-status="planned">';
         html += '<span class="legend-line planned"></span>Planned';
         html += '</div>';
         html += '</div>';
@@ -3964,7 +3964,7 @@
           }
           html += '</div>';
         }
-        trailsBody.innerHTML = html;
+        routesBody.innerHTML = html;
       }
     }
 
@@ -3994,9 +3994,9 @@
         applyMapFilters();
       });
 
-      // Toggle-all (trails) - mirrors Places: covers regions + completed/planned.
-      const trailsToggle = document.getElementById('trails-toggle-all');
-      if (trailsToggle) trailsToggle.addEventListener('click', function(e) {
+      // Toggle-all (routes) - mirrors Places: covers regions + completed/planned.
+      const routesToggle = document.getElementById('routes-toggle-all');
+      if (routesToggle) routesToggle.addEventListener('click', function(e) {
         e.stopPropagation();
         const regions = state.manifest ? state.manifest.regions.map(r => r.name) : [];
         const allOn = state.hiddenRegions.size === 0 && state.showCompleted && state.showPlanned;
@@ -4033,11 +4033,11 @@
         }
       });
 
-      const trailsBody = document.getElementById('trails-body');
-      if (trailsBody) trailsBody.addEventListener('click', function(e) {
-        const item = e.target.closest('.legend-item[data-trail-status]');
+      const routesBody = document.getElementById('routes-body');
+      if (routesBody) routesBody.addEventListener('click', function(e) {
+        const item = e.target.closest('.legend-item[data-route-status]');
         if (item) {
-          const s = item.dataset.trailStatus;
+          const s = item.dataset.routeStatus;
           if (s === 'completed') state.showCompleted = !state.showCompleted;
           else state.showPlanned = !state.showPlanned;
           item.classList.toggle('disabled');
@@ -4071,10 +4071,10 @@
           }
           return;
         }
-        const trailEdit = e.target.closest('.popup-trail-edit');
-        if (trailEdit) {
+        const routeEdit = e.target.closest('.popup-route-edit');
+        if (routeEdit) {
           e.preventDefault();
-          const found = findRouteByKey(trailEdit.dataset.key);
+          const found = findRouteByKey(routeEdit.dataset.key);
           if (found) {
             map.closePopup();
             openEditTrailMetadataModal(found.route, found.region.name);
@@ -4354,7 +4354,7 @@
         // and miscalculate every pin position during pinch/zoom.
         this._canvas.style.transformOrigin = '0 0';
         // Canvas sits above the SVG overlay pane (zIndex 450 vs 400) so it
-        // would swallow clicks intended for trail polylines underneath.
+        // would swallow clicks intended for route polylines underneath.
         // Hit detection happens against map clicks in _onClick, not the
         // canvas itself, so pointer events on the canvas are unnecessary.
         this._canvas.style.pointerEvents = 'none';
@@ -4740,14 +4740,14 @@
         }
       }
 
-      // Trails
-      const gc = state._trailGroupCompleted;
-      const gp = state._trailGroupPlanned;
-      if (gc && gp && state._trailLayers) {
+      // Routes
+      const gc = state._routeGroupCompleted;
+      const gp = state._routeGroupPlanned;
+      if (gc && gp && state._routeLayers) {
         gc.clearLayers();
         gp.clearLayers();
-        if (trailsEnabled()) {
-          for (const t of state._trailLayers) {
+        if (routesEnabled()) {
+          for (const t of state._routeLayers) {
             if (state.hiddenRegions.has(t.region)) continue;
             if (t.completed && !state.showCompleted) continue;
             if (!t.completed && !state.showPlanned) continue;
@@ -4775,11 +4775,11 @@
           || p.category.toLowerCase().includes(lower)
           || (p.country && p.country.toLowerCase().includes(lower))
         ).slice(0, 6) : [];
-        const trailMatches = state.manifest ? state.manifest.regions.flatMap(r =>
+        const routeMatches = state.manifest ? state.manifest.regions.flatMap(r =>
           r.routes.filter(route => route.name.toLowerCase().includes(lower) || r.name.toLowerCase().includes(lower)).map(route => ({ route, region: r.name }))
         ).slice(0, 6) : [];
 
-        if (!placeMatches.length && !trailMatches.length) {
+        if (!placeMatches.length && !routeMatches.length) {
           results.classList.remove('visible');
           results.innerHTML = '';
           return;
@@ -4793,9 +4793,9 @@
           html += escapeHtml(p.name);
           html += '<span class="result-meta">' + escapeHtml(p.country || '') + '</span></div>';
         }
-        for (const t of trailMatches) {
+        for (const t of routeMatches) {
           const statusClass = t.route.completed ? 'completed' : 'planned';
-          html += '<div class="map-search-result" data-type="trail" data-key="' + escapeHtml(t.route.key) + '">';
+          html += '<div class="map-search-result" data-type="route" data-key="' + escapeHtml(t.route.key) + '">';
           html += '<span class="result-line ' + statusClass + '"></span>';
           html += escapeHtml(t.route.name);
           html += '<span class="result-meta">' + escapeHtml(t.region) + '</span></div>';
@@ -4818,10 +4818,10 @@
           }
         } else {
           const key = row.dataset.key;
-          const entry = (state._trailLayers || []).find(t => t.route.key === key);
-          history.replaceState(null, '', '#/?focus=trail:' + encodeURIComponent(key));
+          const entry = (state._routeLayers || []).find(t => t.route.key === key);
+          history.replaceState(null, '', '#/?focus=route:' + encodeURIComponent(key));
           if (entry) {
-            // Trail is already loaded - fit to its actual bounds and open
+            // Route is already loaded - fit to its actual bounds and open
             // the popup directly.
             const layers = [];
             entry.layer.eachLayer(l => { if (l.getBounds) layers.push(l); });
@@ -4832,7 +4832,7 @@
             }
           } else {
             // Not loaded yet (lazy-loaded by viewport intersection). Fit
-            // to the manifest bbox so the viewport intersects the trail,
+            // to the manifest bbox so the viewport intersects the route,
             // which kicks off the load.
             let route = null;
             if (state.manifest) {
@@ -5212,7 +5212,7 @@
           const cat = label.dataset.filterCat;
           const allCats = Object.keys(state.categoryColors);
           state.hiddenCategories = new Set(allCats.filter(c => c !== cat));
-          // Strong intent: "show only this category". Hide all trails too;
+          // Strong intent: "show only this category". Hide all routes too;
           // user can re-enable from the filter panel.
           const allRegions = state.manifest ? state.manifest.regions.map(r => r.name) : [];
           state.hiddenRegions = new Set(allRegions);
@@ -5223,9 +5223,9 @@
       });
     }
 
-    // ----- Trails browse list -----
+    // ----- Routes browse list -----
     function renderTrailsIndex() {
-      setActiveTab('trails');
+      setActiveTab('routes');
       setCrumb('', false);
       cleanupMap();
       const app = document.getElementById('app');
@@ -5251,7 +5251,7 @@
       }
       const allTags = [...tagSet].sort((a, b) => a.localeCompare(b));
       let html = '<div class="index-controls">' +
-        '<input type="text" id="search-input" placeholder="Filter trails...">' +
+        '<input type="text" id="search-input" placeholder="Filter routes...">' +
         '<div class="filter-dropdown">' +
           '<button type="button" class="filter-btn" id="filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
           '<div class="filter-popover" id="filter-popover" hidden>' +
@@ -5286,7 +5286,7 @@
             '<button type="button" class="filter-clear" id="filter-clear">Clear filters</button>' +
           '</div>' +
         '</div>' +
-        (canAddTrail ? '<button type="button" class="primary" id="add-trail-btn">Add trail</button>' : '') +
+        (canAddTrail ? '<button type="button" class="primary" id="add-route-btn">Add route</button>' : '') +
         '</div>';
       html += '<div class="region-grid">';
       for (const region of regions) {
@@ -5299,7 +5299,7 @@
         html += '</div>';
         html += '<div class="route-grid">';
         for (const route of region.routes) {
-          const href = '#/trails/route/' + encodeURIComponent(route.key);
+          const href = '#/routes/route/' + encodeURIComponent(route.key);
           const statusClass = route.completed ? 'completed' : 'planned';
           const diffAttr = route.difficulty ? ' data-route-difficulty="' + escapeHtml(route.difficulty) + '"' : '';
           const ratingAttr = route.rating ? ' data-route-rating="' + Number(route.rating) + '"' : '';
@@ -5314,8 +5314,8 @@
       }
       html += '</div>';
       app.innerHTML = html;
-      const addTrailBtn = document.getElementById('add-trail-btn');
-      if (addTrailBtn) addTrailBtn.addEventListener('click', function() { openAddModal(null, 'trail'); });
+      const addTrailBtn = document.getElementById('add-route-btn');
+      if (addTrailBtn) addTrailBtn.addEventListener('click', function() { openAddModal(null, 'route'); });
       const searchInput = document.getElementById('search-input');
       const statusSel = document.getElementById('filter-status');
       const regionSel = document.getElementById('filter-region');
@@ -5398,7 +5398,7 @@
         });
       });
 
-      // Warm the SW cache so clicking a trail from the list gets an
+      // Warm the SW cache so clicking a route from the list gets an
       // already-cached GPX response and renders the polyline immediately.
       // Fire immediately (not on idle) since the most common interaction
       // is a fast click within a few hundred ms of the list rendering;
@@ -5408,7 +5408,7 @@
       }
     }
 
-    // ----- Trail detail (elevation) -----
+    // ----- Route detail (elevation) -----
     function parseGpxTracks(xmlText) {
       const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
       let tracks = doc.getElementsByTagNameNS(GPX_NS, 'trk');
@@ -5461,9 +5461,9 @@
       return out;
     }
 
-    // Skip waypoints within this radius (m) of the trail's start/end so
+    // Skip waypoints within this radius (m) of the route's start/end so
     // they don't visually collide with the start/end markers (common for
-    // loop trails where the GPX records the trailhead as a waypoint).
+    // loop routes where the GPX records the start point as a waypoint).
     const WAYPOINT_ENDPOINT_SUPPRESS_M = 75;
     function addGpxWaypoints(map, waypoints, startLatLng, endLatLng) {
       for (const w of waypoints) {
@@ -5525,7 +5525,7 @@
     }
 
     function renderTrailDetail(routeKey) {
-      setActiveTab('trails');
+      setActiveTab('routes');
       cleanupMap();
       const app = document.getElementById('app');
       if (!state.manifest) { app.innerHTML = '<div class="loading">Loading routes...</div>'; return; }
@@ -5566,15 +5566,15 @@
       const hasNotes = !!route.notes;
       let metaHtml = '';
       if (facts.length || hasTags || hasNotes) {
-        metaHtml = '<div class="trail-meta-panel">';
-        metaHtml += '<div class="trail-meta-header">';
-        metaHtml += '<div class="trail-meta-line">' + facts.join('<span class="sep">&middot;</span>') + '</div>';
+        metaHtml = '<div class="route-meta-panel">';
+        metaHtml += '<div class="route-meta-header">';
+        metaHtml += '<div class="route-meta-line">' + facts.join('<span class="sep">&middot;</span>') + '</div>';
         if (hasTags) {
-          metaHtml += '<div class="trail-meta-tags">' + route.tags.map(t => '<span class="tag">#' + escapeHtml(t) + '</span>').join('') + '</div>';
+          metaHtml += '<div class="route-meta-tags">' + route.tags.map(t => '<span class="tag">#' + escapeHtml(t) + '</span>').join('') + '</div>';
         }
         metaHtml += '</div>';
         if (hasNotes) {
-          metaHtml += '<div class="trail-meta-notes"><span class="trail-meta-notes-label">Notes</span>' + escapeHtml(route.notes) + '</div>';
+          metaHtml += '<div class="route-meta-notes"><span class="route-meta-notes-label">Notes</span>' + escapeHtml(route.notes) + '</div>';
         }
         metaHtml += '</div>';
       }
@@ -5582,7 +5582,7 @@
       const navActionsEl = document.getElementById('nav-actions');
       if (navActionsEl) {
         navActionsEl.innerHTML = showActions
-          ? '<button type="button" id="trail-edit-btn" class="nav-action-btn">Edit</button>'
+          ? '<button type="button" id="route-edit-btn" class="nav-action-btn">Edit</button>'
           : '';
       }
 
@@ -5608,7 +5608,7 @@
       html += '</div>';
       app.innerHTML = html;
 
-      const editBtn = document.getElementById('trail-edit-btn');
+      const editBtn = document.getElementById('route-edit-btn');
       if (editBtn) editBtn.addEventListener('click', function(e) {
         e.preventDefault();
         openEditTrailMetadataModal(route, regionName);
@@ -5630,7 +5630,7 @@
         renderer: L.svg()
       });
       // Fit to the route's bbox up-front so the initial tile load is near
-      // the trail instead of the trails-default view (Norway), avoiding a
+      // the route instead of the routes-default view (Norway), avoiding a
       // visible jump when GPX-driven fitBounds settles a moment later.
       // Also stashes the bbox as state._lastTrailBounds so the GPX-load
       // handlers and the ResizeObserver skip their own fitBounds (the
@@ -5647,7 +5647,7 @@
       state.currentMap = map;
       // Map container shrinks asynchronously as the elevation chart and
       // other detail-view widgets settle. Sync Leaflet's known size and
-      // force a polyline repaint so the trail stays drawn, but leave the
+      // force a polyline repaint so the route stays drawn, but leave the
       // viewport alone — refitting against the new size would zoom-jump
       // a moment after the initial bbox fit, which is jarring.
       if (typeof ResizeObserver !== 'undefined') {
@@ -5659,7 +5659,7 @@
         ro.observe(map.getContainer());
         state._currentMapResizeObserver = ro;
       }
-      // Counter-scale trail stroke widths during zoom. 'zoom' covers
+      // Counter-scale route stroke widths during zoom. 'zoom' covers
       // mobile pinch (fires per frame); zoomanim kicks off a brief rAF
       // loop to cover the desktop 250ms CSS animation where 'zoom'
       // doesn't fire until the end.
@@ -5936,16 +5936,16 @@
         const place = (state.places || []).find(p => p._slug === slug || p.name === slug);
         return { type: 'place', name: place ? place.name : slug };
       }
-      if (base.startsWith('#/trail/')) {
-        const slug = decodeURIComponent(base.slice('#/trail/'.length));
+      if (base.startsWith('#/route/')) {
+        const slug = decodeURIComponent(base.slice('#/route/'.length));
         if (state.manifest && state.manifest.regions) {
           for (const r of state.manifest.regions) {
             for (const route of r.routes) {
-              if (route._slug === slug || route.key === slug) return { type: 'trail', name: route.key };
+              if (route._slug === slug || route.key === slug) return { type: 'route', name: route.key };
             }
           }
         }
-        return { type: 'trail', name: slug };
+        return { type: 'route', name: slug };
       }
       // Legacy: #/?focus=type:id
       const q = hash.split('?')[1];
@@ -5965,19 +5965,19 @@
       if (navActions) navActions.innerHTML = '';
       const hash = location.hash || '#/';
       const base = hash.split('?')[0];
-      if (base.startsWith('#/place/') || base.startsWith('#/trail/')) return renderUnifiedMap(parseFocus(hash));
+      if (base.startsWith('#/place/') || base.startsWith('#/route/')) return renderUnifiedMap(parseFocus(hash));
       if (base === '#/' || base === '#' || base === '#/map') return renderUnifiedMap(parseFocus(hash));
       if (base === '#/places') {
         if (!placesEnabled()) { location.hash = '#/'; return; }
         return renderPlacesIndex();
       }
-      if (base === '#/trails') {
-        if (!trailsEnabled()) { location.hash = '#/'; return; }
+      if (base === '#/routes') {
+        if (!routesEnabled()) { location.hash = '#/'; return; }
         return renderTrailsIndex();
       }
-      if (base.startsWith('#/trails/route/')) {
-        if (!trailsEnabled()) { location.hash = '#/'; return; }
-        const key = decodeURIComponent(base.replace('#/trails/route/', ''));
+      if (base.startsWith('#/routes/route/')) {
+        if (!routesEnabled()) { location.hash = '#/'; return; }
+        const key = decodeURIComponent(base.replace('#/routes/route/', ''));
         return renderTrailDetail(key);
       }
       renderUnifiedMap(null);
@@ -6016,7 +6016,7 @@
         : mode;
       document.documentElement.setAttribute('data-theme', theme);
       document.documentElement.setAttribute('data-mode', eff);
-      _trailColorCache = null;
+      _routeColorCache = null;
       // Canvas clusters read theme CSS variables on each draw; force a
       // redraw so the new theme's cluster colors apply immediately.
       if (state && state._placeClusterGroup && state._placeClusterGroup.redraw) {
@@ -6031,7 +6031,7 @@
       } catch { return 'ring'; }
     }
     const MARKER_SIZES = { small: 14, default: 18, large: 24 };
-    const TRAIL_WEIGHT_FACTORS = { thin: 0.7, default: 1, thick: 1.4 };
+    const ROUTE_WEIGHT_FACTORS = { thin: 0.7, default: 1, thick: 1.4 };
     const TILE_FILTERS = ['none', 'muted', 'grayscale', 'sepia', 'contrast'];
     function getMarkerSizeKey() {
       try {
@@ -6042,11 +6042,11 @@
     function getMarkerSize() { return MARKER_SIZES[getMarkerSizeKey()]; }
     function getTrailWeightKey() {
       try {
-        const v = localStorage.getItem('trail-weight');
-        return TRAIL_WEIGHT_FACTORS[v] ? v : 'default';
+        const v = localStorage.getItem('route-weight');
+        return ROUTE_WEIGHT_FACTORS[v] ? v : 'default';
       } catch { return 'default'; }
     }
-    function getTrailWeightFactor() { return TRAIL_WEIGHT_FACTORS[getTrailWeightKey()]; }
+    function getTrailWeightFactor() { return ROUTE_WEIGHT_FACTORS[getTrailWeightKey()]; }
     function getTileFilter() {
       try {
         const v = localStorage.getItem('tile-filter');
@@ -6158,7 +6158,7 @@
     function confirmSignOut() {
       return openConfirmModal({
         title: 'Sign out?',
-        body: 'You will need to sign in again to edit places, trails, or settings.',
+        body: 'You will need to sign in again to edit places, routes, or settings.',
         confirmLabel: 'Sign out',
         danger: true,
       }).then(ok => {
@@ -6222,7 +6222,7 @@
       const mode = getStoredMode();
       const pinStyle = getPinStyle();
       const markerSize = getMarkerSizeKey();
-      const trailWeight = getTrailWeightKey();
+      const routeWeight = getTrailWeightKey();
       const tileFilter = getTileFilter();
       const themeLabels = {
         nord: 'Nord',
@@ -6242,14 +6242,14 @@
           (isAdmin ? '<button data-tab="admin">Admin</button>' : '') +
         '</div>' +
         '<div data-panel="general">' +
-        ((placesAvailable() || trailsAvailable()) ?
+        ((placesAvailable() || routesAvailable()) ?
           '<h3 class="settings-h">Visible features</h3>' +
           '<div class="feature-pills">' +
             (placesAvailable() ?
               '<label class="feature-pill' + (placesEnabled() ? ' active' : '') + '"><input type="checkbox" id="s-feat-places"' + (placesEnabled() ? ' checked' : '') + '>Places</label>'
               : '') +
-            (trailsAvailable() ?
-              '<label class="feature-pill' + (trailsEnabled() ? ' active' : '') + '"><input type="checkbox" id="s-feat-trails"' + (trailsEnabled() ? ' checked' : '') + '>Trails</label>'
+            (routesAvailable() ?
+              '<label class="feature-pill' + (routesEnabled() ? ' active' : '') + '"><input type="checkbox" id="s-feat-routes"' + (routesEnabled() ? ' checked' : '') + '>Routes</label>'
               : '') +
           '</div>'
         : '') +
@@ -6275,10 +6275,10 @@
             '<button type="button" class="primary" id="s-manage-cats">Manage</button>' +
           '</div>'
         : '') +
-        (trailsAvailable() && !isReadOnly() ?
+        (routesAvailable() && !isReadOnly() ?
           '<h3 class="settings-h">Regions</h3>' +
           '<div style="display:flex;align-items:center;gap:1rem">' +
-            '<div class="modal-desc" style="flex:1;margin:0">Group your trails on the map and in the list.</div>' +
+            '<div class="modal-desc" style="flex:1;margin:0">Group your routes on the map and in the list.</div>' +
             '<button type="button" class="primary" id="s-manage-regions">Manage</button>' +
           '</div>'
         : '') +
@@ -6298,7 +6298,7 @@
             ).join('') +
           '</select>' +
         '</div>' +
-        '<h3 class="settings-h">Markers and trails</h3>' +
+        '<h3 class="settings-h">Markers and routes</h3>' +
         '<div class="settings-inline-row"><label for="s-pin-style">Pin style</label>' +
           '<select id="s-pin-style">' +
             [['dot', 'Dot'], ['tag', 'Flag'], ['pin', 'Pin'], ['ring', 'Ring']].map(([v, l]) =>
@@ -6309,8 +6309,8 @@
         '<div class="settings-inline-row"><label>Marker size</label>' +
           radioPillsHtml('marker-size', [['small', 'Small'], ['default', 'Default'], ['large', 'Large']], markerSize) +
         '</div>' +
-        '<div class="settings-inline-row"><label>Trail line thickness</label>' +
-          radioPillsHtml('trail-weight', [['thin', 'Thin'], ['default', 'Default'], ['thick', 'Thick']], trailWeight) +
+        '<div class="settings-inline-row"><label>Route line thickness</label>' +
+          radioPillsHtml('route-weight', [['thin', 'Thin'], ['default', 'Default'], ['thick', 'Thick']], routeWeight) +
         '</div>' +
         (placesAvailable() ?
           '<div class="settings-inline-row"><label for="s-cluster">Cluster places</label>' +
@@ -6368,7 +6368,7 @@
         : '') +
         '<h3 class="settings-h">Export</h3>' +
         '<div style="display:flex;align-items:center;gap:1rem">' +
-          '<div class="modal-desc" style="flex:1;margin:0">Download your places, trails, and preferences as a zip.</div>' +
+          '<div class="modal-desc" style="flex:1;margin:0">Download your places, routes, and preferences as a zip.</div>' +
           '<button type="button" class="primary" id="s-export">Export</button>' +
         '</div>' +
         '<div class="modal-error" id="s-export-error"></div>' +
@@ -6549,13 +6549,13 @@
             refreshPlaceMarkerIcons();
           });
           bindRadioPref('marker-size', 'marker-size', refreshPlaceMarkerIcons);
-          bindRadioPref('trail-weight', 'trail-weight', refreshTrailWeights);
+          bindRadioPref('route-weight', 'route-weight', refreshTrailWeights);
           const tfSel = document.getElementById('s-tile-filter');
           if (tfSel) tfSel.addEventListener('change', function() {
             setPref('tile-filter', this.value);
             applyTileFilter(this.value);
           });
-          ['places', 'trails'].forEach(function(feat) {
+          ['places', 'routes'].forEach(function(feat) {
             const cb = document.getElementById('s-feat-' + feat);
             if (!cb) return;
             cb.addEventListener('change', function() {
@@ -6708,7 +6708,7 @@
               return;
             }
             const mode = document.querySelector('input[name="import-mode"]:checked').value;
-            if (mode === 'replace' && !confirm('Replace all current places, trails, and preferences with the contents of this zip?')) {
+            if (mode === 'replace' && !confirm('Replace all current places, routes, and preferences with the contents of this zip?')) {
               return;
             }
             importBtn.disabled = true;
@@ -6728,7 +6728,7 @@
               const successEl = document.getElementById('s-import-success');
               const parts = [];
               if (c.places) parts.push(c.places + ' places');
-              if (c.gpx)    parts.push(c.gpx    + ' trails');
+              if (c.gpx)    parts.push(c.gpx    + ' routes');
               successEl.textContent = parts.length
                 ? 'Imported ' + parts.join(', ') + '.'
                 : 'Nothing was imported.';
@@ -7072,7 +7072,7 @@
         .map(r => ({ name: r.name, original: r.name, count: r.routes.length }))
         .sort((a, b) => a.name.localeCompare(b.name));
       // Empty regions: Save calls delete-region. Non-empty regions: Save calls
-      // clear-region, which moves the trails to "No region" and removes the dir.
+      // clear-region, which moves the routes to "No region" and removes the dir.
       const pendingDeletes = new Set();   // empty regions removed by X
       const pendingClears = new Set();    // non-empty regions removed by X
 
@@ -7080,7 +7080,7 @@
         '<h2>Manage regions<button class="modal-close">&times;</button></h2>' +
         '<h3 class="settings-h" style="margin-top:0.75rem">Regions</h3>' +
         '<div id="rgn-rows"></div>' +
-        '<div id="rgn-empty" class="hint" hidden>No regions yet. Upload a trail with a region to create one.</div>' +
+        '<div id="rgn-empty" class="hint" hidden>No regions yet. Upload a route with a region to create one.</div>' +
         '<div class="modal-error" id="rgn-error"></div>' +
         '<div class="modal-actions" style="margin-top:1rem">' +
           '<div id="rgn-clear-warning" class="action-warning" hidden></div>' +
@@ -7106,7 +7106,7 @@
               return n + (region ? region.routes.length : 0);
             }, 0);
             const slugList = slugs.map(s => '"' + s + '"').join(', ');
-            banner.textContent = 'On Save: ' + total + ' trail' + (total === 1 ? '' : 's') +
+            banner.textContent = 'On Save: ' + total + ' route' + (total === 1 ? '' : 's') +
               ' will move to No region (' + slugList + ').';
             banner.hidden = false;
           }
@@ -7124,8 +7124,8 @@
               const empty = r.count === 0;
               const tag = dirty ? '<span class="row-tag dirty">edited</span>'
                         : empty ? '<span class="row-tag">empty</span>'
-                        : '<span class="row-tag">' + r.count + ' trail' + (r.count === 1 ? '' : 's') + '</span>';
-              const xTitle = empty ? 'Remove empty region' : 'Remove region (trails will move to No region)';
+                        : '<span class="row-tag">' + r.count + ' route' + (r.count === 1 ? '' : 's') + '</span>';
+              const xTitle = empty ? 'Remove empty region' : 'Remove region (routes will move to No region)';
               return '<div style="display:flex;gap:0.6rem;align-items:center;margin-top:0.5rem">' +
                 '<input type="text" data-i="' + i + '" class="rgn-name' + (dirty ? ' dirty' : '') + '" value="' + escapeHtml(r.name) + '" style="flex:1;min-width:0">' +
                 tag +
@@ -7146,7 +7146,7 @@
                   tagEl.classList.add('dirty');
                 } else {
                   tagEl.classList.remove('dirty');
-                  tagEl.textContent = r.count === 0 ? 'empty' : (r.count + ' trail' + (r.count === 1 ? '' : 's'));
+                  tagEl.textContent = r.count === 0 ? 'empty' : (r.count + ' route' + (r.count === 1 ? '' : 's'));
                 }
                 refreshSaveBtn();
               });
@@ -7273,7 +7273,7 @@
           ['Users', s.users],
           ['Published', s.published_users],
           ['Places', s.places],
-          ['Trails', s.trails],
+          ['Routes', s.routes],
           ['Files', formatBytes(s.data_bytes)],
           ['Database', formatBytes(s.db_bytes)],
         ];
@@ -7321,7 +7321,7 @@
             '<div class="user-counts">' +
               '<span><b>' + u.sessions + '</b>sessions</span>' +
               '<span><b>' + u.places + '</b>places</span>' +
-              '<span><b>' + u.trails + '</b>trails</span>' +
+              '<span><b>' + u.routes + '</b>routes</span>' +
             '</div>' +
           '</li>';
         };
@@ -7369,7 +7369,7 @@
           msg = actor + (d.published ? ' made map public' : ' made map private');
           break;
         case 'user.import':
-          msg = actor + ' imported ' + (d.places || 0) + ' places, ' + (d.gpx || 0) + ' trails';
+          msg = actor + ' imported ' + (d.places || 0) + ' places, ' + (d.gpx || 0) + ' routes';
           detail = d.mode + ' mode';
           break;
         case 'admin.user_role_change':
@@ -7765,7 +7765,7 @@
       } else if (act === 'delete') {
         openConfirmModal({
           title: 'Delete user ' + uname,
-          body: 'Permanently removes ' + uname + ', all their sessions, and their data folder (places, trails, preferences). This cannot be undone.',
+          body: 'Permanently removes ' + uname + ', all their sessions, and their data folder (places, routes, preferences). This cannot be undone.',
           confirmLabel: 'Delete user',
           danger: true,
         }).then(ok => {
@@ -8024,25 +8024,25 @@
     // ----- Add place / GPX modal -----
     function openAddModal(prefillCoords, initialTab) {
       const showPlaces = placesEnabled();
-      const showTrails = trailsEnabled();
+      const showTrails = routesEnabled();
       if (!showPlaces && !showTrails) return;
       // Entry-point determines which tabs the modal exposes:
       //   'place' (Places list Add)  -> [Place, Browse]
-      //   'trail' (Trails list Add)  -> just the GPX form, no tabs
-      //   null    (map FAB)          -> [Place, Trail, Browse], filtered by enabled features
+      //   'route' (Routes list Add)  -> just the GPX form, no tabs
+      //   null    (map FAB)          -> [Place, Route, Browse], filtered by enabled features
       let tabs;
-      if (initialTab === 'trail') {
-        tabs = ['trail'];
+      if (initialTab === 'route') {
+        tabs = ['route'];
       } else if (initialTab === 'place') {
-        tabs = showPlaces ? ['place', 'browse'] : ['trail'];
+        tabs = showPlaces ? ['place', 'browse'] : ['route'];
       } else {
         tabs = [];
         if (showPlaces) tabs.push('place');
-        if (showTrails) tabs.push('trail');
+        if (showTrails) tabs.push('route');
         if (showPlaces) tabs.push('browse');
       }
       let tab = tabs[0];
-      const tabLabels = { place: 'Place', trail: 'Trail', browse: 'Browse' };
+      const tabLabels = { place: 'Place', route: 'Route', browse: 'Browse' };
       openModal(
         '<button class="modal-close modal-close-floating" aria-label="Close">&times;</button>' +
         (tabs.length > 1 ?
@@ -8068,10 +8068,10 @@
         const firstRender = body.dataset.rendered !== '1';
         const oldH = firstRender ? 0 : body.offsetHeight;
         body.innerHTML = tab === 'place' ? placeFormHtml()
-          : tab === 'trail' ? gpxFormHtml()
+          : tab === 'route' ? gpxFormHtml()
           : browseFormHtml();
         if (tab === 'place') wirePlaceForm();
-        else if (tab === 'trail') wireGpxForm();
+        else if (tab === 'route') wireGpxForm();
         else wireBrowseForm();
         body.dataset.rendered = '1';
         if (firstRender) return;
@@ -8191,14 +8191,14 @@
             '<textarea id="g-notes" style="min-height:40px" maxlength="2000"></textarea>'
           : '') +
           '<label for="g-source">Source URL (optional)</label>' +
-          '<input type="url" id="g-source" placeholder="https://example.com/trail">' +
+          '<input type="url" id="g-source" placeholder="https://example.com/route">' +
           '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
             '<input type="checkbox" class="settings-toggle" id="g-strip-pii">' +
             '<label for="g-strip-pii" title="Removes timestamps, author, and creator from the GPX file" style="margin:0">Strip personal data from GPX</label>' +
           '</div>' +
           '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
             '<input type="checkbox" class="settings-toggle" id="g-completed">' +
-            '<label for="g-completed" style="margin:0">I&rsquo;ve completed this trail</label>' +
+            '<label for="g-completed" style="margin:0">I&rsquo;ve completed this route</label>' +
           '</div>' +
           ((getShowField('date') || getShowField('rating')) ?
             '<div class="collapsible" id="g-completed-extras">' +
@@ -8216,7 +8216,7 @@
           : '') +
           '<div class="modal-error" id="add-error"></div>' +
           '<div class="modal-actions">' +
-            '<button type="submit" class="primary" id="gpx-submit">Upload trail</button>' +
+            '<button type="submit" class="primary" id="gpx-submit">Upload route</button>' +
           '</div>' +
         '</form>';
       }
@@ -8300,7 +8300,7 @@
           // dashed overlay. Toggling "completed" saves the walked variant.
           const storedName = completed ? name : (name + '.planned');
 
-          // Optional metadata. date_hiked + rating only apply to completed trails.
+          // Optional metadata. date_hiked + rating only apply to completed routes.
           // Each field may be hidden by user preference; guard with optional chaining.
           const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
           const source = get('g-source').trim();
@@ -8507,7 +8507,7 @@
       // Make sure we're on the unified map. If not, navigate there first.
       const base = (location.hash || '#/').split('?')[0];
       const onMapView = base === '#/' || base === '#/map' || base === '#'
-        || base.startsWith('#/place/') || base.startsWith('#/trail/');
+        || base.startsWith('#/place/') || base.startsWith('#/route/');
       if (!onMapView) {
         location.hash = '#/';
         setTimeout(function() { enterPickCoordsMode(onPick); }, 250);
@@ -8540,15 +8540,15 @@
       const existing = app.querySelector('.fab-add:not(.fab-leave)');
       const base = (location.hash || '#/').split('?')[0];
       const onMapView = base === '#/' || base === '#' || base === '#/map'
-        || base.startsWith('#/place/') || base.startsWith('#/trail/');
+        || base.startsWith('#/place/') || base.startsWith('#/route/');
       const shouldShow = state.auth.authenticated
         && !isReadOnly()
         && getShowMapAddButton()
         && onMapView
-        && (placesEnabled() || trailsEnabled());
-      const fabTitle = placesEnabled() && trailsEnabled()
-        ? 'Add place or trail'
-        : (placesEnabled() ? 'Add place' : 'Add trail');
+        && (placesEnabled() || routesEnabled());
+      const fabTitle = placesEnabled() && routesEnabled()
+        ? 'Add place or route'
+        : (placesEnabled() ? 'Add place' : 'Add route');
       if (shouldShow && existing) {
         existing.title = fabTitle;
         return;
@@ -8665,7 +8665,7 @@
       const placesP = placesAvailable()
         ? fetchJson(dataUrl('places'), null).catch(() => null)
         : Promise.resolve(null);
-      const routesP = trailsAvailable()
+      const routesP = routesAvailable()
         ? fetchJson(dataUrl('routes'), null).catch(() => null)
         : Promise.resolve(null);
       const labelsP = placesAvailable()
@@ -8693,7 +8693,7 @@
           assignTrailSlugs(state.manifest);
         }
         refreshTabVisibility();
-        if ((placesAvailable() && !state.places) && (trailsAvailable() && !state.manifest)) {
+        if ((placesAvailable() && !state.places) && (routesAvailable() && !state.manifest)) {
           if (v.mode === 'public') {
             document.getElementById('app').innerHTML = '<div class="loading">Map not found, or owner has not published it.</div>';
             return;

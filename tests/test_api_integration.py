@@ -453,7 +453,7 @@ class TestCategoryLabels(unittest.TestCase):
 GPX_BODY = (
   b'<?xml version="1.0" encoding="UTF-8"?>'
   b'<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="Test">'
-  b'<trk><name>Trail</name><trkseg>'
+  b'<trk><name>Route</name><trkseg>'
   b'<trkpt lat="60.0" lon="5.0"><time>2024-01-01T00:00:00Z</time><ele>10</ele></trkpt>'
   b'<trkpt lat="60.1" lon="5.1"><ele>20</ele></trkpt>'
   b'</trkseg></trk></gpx>'
@@ -470,27 +470,27 @@ class TestGpx(unittest.TestCase):
   def test_upload_preserves_pii_by_default(self):
     """PII stripping is opt-in; an unflagged upload keeps timestamps/creator."""
     c = admin_client()
-    status, _ = c.request("POST", "/api/gpx?region=TestRegion&name=trail-a",
+    status, _ = c.request("POST", "/api/gpx?region=TestRegion&name=route-a",
                           raw_body=GPX_BODY, content_type="application/gpx+xml")
     self.assertEqual(status, 201)
-    on_disk = (admin_dir() / "gpx" / "TestRegion" / "trail-a.gpx").read_bytes()
+    on_disk = (admin_dir() / "gpx" / "TestRegion" / "route-a.gpx").read_bytes()
     self.assertIn(b"<time>", on_disk)
     # Delete it.
     status, body = c.request("DELETE", "/api/gpx",
-                             {"region": "TestRegion", "name": "trail-a"})
+                             {"region": "TestRegion", "name": "route-a"})
     self.assertEqual(status, 200)
-    self.assertIn("trail-a.gpx", body["removed"])
+    self.assertIn("route-a.gpx", body["removed"])
 
   def test_upload_strips_pii_when_requested(self):
     c = admin_client()
-    status, _ = c.request("POST", "/api/gpx?region=TestRegion&name=trail-b&strip_pii=true",
+    status, _ = c.request("POST", "/api/gpx?region=TestRegion&name=route-b&strip_pii=true",
                           raw_body=GPX_BODY, content_type="application/gpx+xml")
     self.assertEqual(status, 201)
-    on_disk = (admin_dir() / "gpx" / "TestRegion" / "trail-b.gpx").read_bytes()
+    on_disk = (admin_dir() / "gpx" / "TestRegion" / "route-b.gpx").read_bytes()
     self.assertNotIn(b"<time>", on_disk)
     self.assertNotIn(b"creator=", on_disk)
     self.assertIn(b"<trk", on_disk)
-    c.request("DELETE", "/api/gpx", {"region": "TestRegion", "name": "trail-b"})
+    c.request("DELETE", "/api/gpx", {"region": "TestRegion", "name": "route-b"})
 
   def test_upload_rejects_non_gpx(self):
     c = admin_client()
@@ -507,20 +507,20 @@ class TestGpx(unittest.TestCase):
   def test_upload_serve_delete_without_region(self):
     """Region is optional: GPX can live at gpx/<file>.gpx (root-level)."""
     c = admin_client()
-    status, body = c.request("POST", "/api/gpx?name=loose-trail",
+    status, body = c.request("POST", "/api/gpx?name=loose-route",
                              raw_body=GPX_BODY, content_type="application/gpx+xml")
     self.assertEqual(status, 201)
-    self.assertEqual(body["saved"], "gpx/loose-trail.gpx")
-    self.assertTrue((admin_dir() / "gpx" / "loose-trail.gpx").exists())
+    self.assertEqual(body["saved"], "gpx/loose-route.gpx")
+    self.assertTrue((admin_dir() / "gpx" / "loose-route.gpx").exists())
     # Serve via single-segment URL (binary body, so skip the JSON client).
-    req = urllib.request.Request(_server.base_url + "/api/gpx/loose-trail.gpx")  # type: ignore[union-attr]
+    req = urllib.request.Request(_server.base_url + "/api/gpx/loose-route.gpx")  # type: ignore[union-attr]
     with c.opener.open(req) as r:
       self.assertEqual(r.status, 200)
       self.assertIn(b"<trk", r.read())
     # Delete: omit region from the body.
-    status, body = c.request("DELETE", "/api/gpx", {"name": "loose-trail"})
+    status, body = c.request("DELETE", "/api/gpx", {"name": "loose-route"})
     self.assertEqual(status, 200)
-    self.assertFalse((admin_dir() / "gpx" / "loose-trail.gpx").exists())
+    self.assertFalse((admin_dir() / "gpx" / "loose-route.gpx").exists())
 
 
 class TestRegions(unittest.TestCase):
@@ -532,7 +532,7 @@ class TestRegions(unittest.TestCase):
       shutil.rmtree(gpx_root)
 
   def test_rename_moves_dir_and_metadata(self):
-    # Upload one trail under Old, then rename to New.
+    # Upload one route under Old, then rename to New.
     self.c.request("POST", "/api/gpx?region=Old&name=t",
                    raw_body=GPX_BODY, content_type="application/gpx+xml")
     self.c.request("PUT", "/api/metadata",
@@ -540,7 +540,7 @@ class TestRegions(unittest.TestCase):
     status, body = self.c.request("POST", "/api/regions/rename",
                                   {"from": "Old", "to": "New"})
     self.assertEqual(status, 200)
-    self.assertEqual(body["trails"], 1)
+    self.assertEqual(body["routes"], 1)
     self.assertEqual(body["metadata"], 1)
     self.assertFalse((admin_dir() / "gpx" / "Old").exists())
     self.assertTrue((admin_dir() / "gpx" / "New" / "t.gpx").exists())
@@ -561,11 +561,11 @@ class TestRegions(unittest.TestCase):
     self.assertEqual(status, 404)
 
   def test_delete_empty(self):
-    # Upload then delete the trail, leaving the dir empty.
-    self.c.request("POST", "/api/gpx?region=Solo&name=trail",
+    # Upload then delete the route, leaving the dir empty.
+    self.c.request("POST", "/api/gpx?region=Solo&name=route",
                    raw_body=GPX_BODY, content_type="application/gpx+xml")
-    self.c.request("DELETE", "/api/gpx", {"region": "Solo", "name": "trail"})
-    # Delete-trail already prunes the empty dir; recreate it for this test.
+    self.c.request("DELETE", "/api/gpx", {"region": "Solo", "name": "route"})
+    # Delete-route already prunes the empty dir; recreate it for this test.
     (admin_dir() / "gpx" / "Solo").mkdir(parents=True, exist_ok=True)
     status, _ = self.c.request("POST", "/api/regions/delete", {"name": "Solo"})
     self.assertEqual(status, 200)
@@ -577,7 +577,7 @@ class TestRegions(unittest.TestCase):
     status, _ = self.c.request("POST", "/api/regions/delete", {"name": "Full"})
     self.assertEqual(status, 409)
 
-  def test_clear_moves_trails_to_root(self):
+  def test_clear_moves_routes_to_root(self):
     self.c.request("POST", "/api/gpx?region=Drop&name=a",
                    raw_body=GPX_BODY, content_type="application/gpx+xml")
     self.c.request("POST", "/api/gpx?region=Drop&name=b",
@@ -586,7 +586,7 @@ class TestRegions(unittest.TestCase):
                    {"key": "Drop/a", "metadata": {"rating": 3}})
     status, body = self.c.request("POST", "/api/regions/clear", {"name": "Drop"})
     self.assertEqual(status, 200)
-    self.assertEqual(body["trails"], 2)
+    self.assertEqual(body["routes"], 2)
     self.assertFalse((admin_dir() / "gpx" / "Drop").exists())
     self.assertTrue((admin_dir() / "gpx" / "a.gpx").exists())
     self.assertTrue((admin_dir() / "gpx" / "b.gpx").exists())
@@ -595,7 +595,7 @@ class TestRegions(unittest.TestCase):
     self.assertNotIn("Drop/a", meta)
 
   def test_clear_conflict_with_existing_root_file(self):
-    # A trail "x" exists at root (no region); clearing a region that contains
+    # A route "x" exists at root (no region); clearing a region that contains
     # another "x.gpx" must fail rather than silently overwriting.
     self.c.request("POST", "/api/gpx?name=x",
                    raw_body=GPX_BODY, content_type="application/gpx+xml")
@@ -729,7 +729,7 @@ class TestGpxSetCompleted(unittest.TestCase):
     self.assertTrue((admin_dir() / "gpx" / "R" / "t.planned.gpx").exists())
 
   def test_mark_completed(self):
-    # Upload as a normal trail then rename to planned to set up the state.
+    # Upload as a normal route then rename to planned to set up the state.
     self.c.request("POST", "/api/gpx?region=R&name=t",
                    raw_body=GPX_BODY, content_type="application/gpx+xml")
     self.c.request("POST", "/api/gpx/set-completed", {"key": "R/t", "completed": False})
@@ -765,7 +765,7 @@ class TestGpxSetCompleted(unittest.TestCase):
 
 
 class TestTrailMetadata(unittest.TestCase):
-  KEY = "Region/Trail"
+  KEY = "Region/Route"
 
   def setUp(self):
     self.c = admin_client()
@@ -835,7 +835,7 @@ class TestTrailMetadata(unittest.TestCase):
     self.assertIn("unknown", body["error"])
 
   def test_root_level_key_accepted(self):
-    # No-region trails use a 1-part key (no slash).
+    # No-region routes use a 1-part key (no slash).
     status, _ = self.c.request("PUT", "/api/metadata", {"key": "no-slash", "metadata": {"rating": 3}})
     self.assertEqual(status, 200)
 
@@ -1084,13 +1084,13 @@ class TestAdmin(unittest.TestCase):
     self.assertIn(SEED_USER, names)
     self.assertIn("bob", names)
     bob = next(u for u in body["users"] if u["username"] == "bob")
-    for key in ("id", "is_admin", "published", "sessions", "places", "trails"):
+    for key in ("id", "is_admin", "published", "sessions", "places", "routes"):
       self.assertIn(key, bob)
 
   def test_stats_shape(self):
     status, body = self.c.request("GET", "/api/admin/stats")
     self.assertEqual(status, 200)
-    for key in ("users", "published_users", "places", "trails", "db_bytes", "data_bytes"):
+    for key in ("users", "published_users", "places", "routes", "db_bytes", "data_bytes"):
       self.assertIn(key, body)
     self.assertGreaterEqual(body["users"], 2)
 

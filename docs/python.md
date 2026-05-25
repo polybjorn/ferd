@@ -69,7 +69,7 @@ Your config and data are never touched.
 
 Two paths matter:
 
-- `users/` (everyone's places, trails, prefs, and uploaded GPX files)
+- `users/` (everyone's places, routes, prefs, and uploaded GPX files)
 - `tools/app.db*` (users, sessions, publish flags, site-wide settings - SQLite database plus its `-shm` and `-wal` siblings)
 
 Lose the first and you lose data. Lose the second and accounts are gone but data survives.
