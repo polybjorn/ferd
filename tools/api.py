@@ -59,7 +59,7 @@ GPX_NS = "http://www.topografix.com/GPX/1/1"
 # dot-dot whole-string rejection lives in safe_path_component itself.
 PATH_COMPONENT_RE = re.compile(r"^[^\x00-\x1f/\\]{1,255}$")
 PLACE_REQUIRED = {"name", "lat", "lon"}
-PLACE_OPTIONAL = {"category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating", "image"}
+PLACE_OPTIONAL = {"category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating", "image", "from_catalog"}
 PLACE_ALL = PLACE_REQUIRED | PLACE_OPTIONAL
 
 # Trail metadata fields and their constraints (used by /api/metadata).
@@ -2908,6 +2908,12 @@ def validate_place(p: object) -> dict:
       raise ValidationError("image must be a string (<=1000 chars) or null")
     if urlparse(p["image"]).scheme.lower() not in ("http", "https"):
       raise ValidationError("image must be an http(s) URL")
+  # `from_catalog` is the name of the catalog entry this place was imported
+  # from; the UI uses it to hide already-imported entries in Browse and (later)
+  # to offer "Update from catalog" when the upstream entry diverges.
+  if "from_catalog" in p and p["from_catalog"] is not None and p["from_catalog"] != "":
+    if not isinstance(p["from_catalog"], str) or len(p["from_catalog"]) > 200:
+      raise ValidationError("from_catalog must be a string (<=200 chars) or null")
   # Return a normalized copy: trimmed strings, defaulted booleans.
   out = {
     "name": name.strip(),
@@ -2917,7 +2923,7 @@ def validate_place(p: object) -> dict:
   }
   if category is not None and category != "":
     out["category"] = category.strip()
-  for k in ("country", "note", "local_name", "sources", "image"):
+  for k in ("country", "note", "local_name", "sources", "image", "from_catalog"):
     if k in p and p[k] is not None:
       out[k] = p[k].strip() if isinstance(p[k], str) else p[k]
   if "date_visited" in p and p["date_visited"]:

@@ -4158,6 +4158,9 @@
             e.preventDefault();
             const r = readPlaceFormFields('e');
             if (r.error) { showModalError(r.error); return; }
+            // Preserve the catalog lineage tag across edits; the form has no
+            // input for it, but it shouldn't disappear on a rename/note change.
+            if (place.from_catalog) r.payload.from_catalog = place.from_catalog;
             const submit = document.getElementById('e-submit');
             submit.disabled = true;
             const prevColors = Object.assign({}, state.categoryColors);
@@ -8118,10 +8121,17 @@
           })
           .catch(err => { body.innerHTML = '<div class="modal-error" style="display:block">' + escapeHtml(err.message) + '</div>'; });
 
-        function renderBrowse(entries) {
+        function renderBrowse(rawEntries) {
+          // Hide entries the user has already imported (tracked via the
+          // `from_catalog` field set on import). Re-imports skip silently.
+          const imported = new Set((state.places || []).map(p => p && p.from_catalog).filter(Boolean));
+          const entries = (rawEntries || []).filter(e => !imported.has(e && e.name));
           if (!entries.length) {
+            const allHidden = (rawEntries || []).length > 0;
             body.innerHTML = '<div style="font-size:0.78rem;color:var(--muted);padding:0.5rem 0">' +
-              'No catalogue entries available yet. An admin can add some from Settings &rsaquo; Admin &rsaquo; Catalog.' +
+              (allHidden
+                ? "You've imported everything in the catalogue."
+                : 'No catalogue entries available yet. An admin can add some from Settings &rsaquo; Admin &rsaquo; Catalog.') +
               '</div>';
             return;
           }
@@ -8192,7 +8202,10 @@
               .map(cb => entries[parseInt(cb.dataset.idx, 10)])
               .filter(Boolean)
               // _source is a server-side UI tag; the place schema rejects it.
-              .map(e => { const { _source, ...rest } = e; return rest; });
+              // Tag the imported place with its catalog source so Browse can
+              // hide it on re-open and a future "Update from catalog" knows
+              // the lineage.
+              .map(e => { const { _source, ...rest } = e; return Object.assign({}, rest, { from_catalog: e.name }); });
             if (!picked.length) return;
             addBtn.disabled = true;
             const prevColors = Object.assign({}, state.categoryColors);
