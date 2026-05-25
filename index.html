@@ -662,11 +662,11 @@
     .place-card .place-text { min-width: 0; flex: 1; }
     .place-card .name { font-size: 0.85rem; font-weight: 300; }
     .place-card .note { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; }
-    .place-card .catalog-badge {
-      font-size: 0.6rem; font-weight: 400; color: var(--muted);
-      border: 1px solid var(--border); border-radius: 999px;
-      padding: 0.05rem 0.4rem; margin-left: 0.4rem; vertical-align: middle;
+    .place-card .catalog-mark {
+      flex: 0 0 auto; color: var(--muted); display: inline-flex;
+      align-items: center; align-self: center; margin-left: 0.5rem;
     }
+    .place-card .catalog-mark svg { width: 0.95rem; height: 0.95rem; display: block; }
 
     .status-dot {
       width: 7px;
@@ -4973,10 +4973,15 @@
           html += '<div class="place-card" onclick="location.hash=\'' + href.replace(/'/g, "\\'") + '\'">';
           html += '<span class="status-dot ' + statusClass + '"></span>';
           html += '<div class="place-text">';
-          const catalogBadge = p.from_catalog ? '<span class="catalog-badge" title="Imported from the site catalog">catalog</span>' : '';
-          html += '<div class="name">' + escapeHtml(p.name) + catalogBadge + '</div>';
+          html += '<div class="name">' + escapeHtml(p.name) + '</div>';
           if (p.note) html += '<div class="note">' + escapeHtml(p.note) + '</div>';
-          html += '</div></div>';
+          html += '</div>';
+          if (p.from_catalog) {
+            html += '<span class="catalog-mark" title="Imported from the site catalog">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>' +
+              '</span>';
+          }
+          html += '</div>';
         }
         html += '</div></div>';
       }
