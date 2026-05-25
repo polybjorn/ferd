@@ -65,7 +65,7 @@ Open http://localhost:8090 and register the first account. See [docker.md](docs/
 | --- | --- |
 | [API](docs/api.md) | Every `/api/*` endpoint, for scripting. |
 | [Architecture](docs/architecture.md) | How the code is organized and where data lives. |
-| [Catalog](docs/catalog.md) | The site catalog: shipped baseline vs local, schema, how to contribute entries. |
+| [Catalog](docs/catalog.md) | Curated places users can browse and import. |
 | [Configuration](docs/configure.md) | Settings and feature flags you can tweak. |
 | [Docker](docs/docker.md) | Run it in a container. |
 | [PWA](docs/pwa.md) | Install, offline behavior, maintenance. |
