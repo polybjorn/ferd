@@ -53,7 +53,7 @@ All paths read and write the signed-in user's own folder (`users/<self>/`).
 | `POST` | `/me/publish` | `{published: bool}` | Flip the public-read gate. Non-admins can always unpublish but can only publish when the site-wide publishing gate is open. |
 | `GET` | `/me/export` | - | Returns a zip of the user's folder (`places.json`, `routes.json`, `metadata.json`, `prefs.json`, `category-labels.json`, `gpx/...`). Excludes dotfiles. |
 | `POST` | `/me/import?mode=replace\|merge\|prefs` | zip body | `Content-Type: application/zip`. `replace` deletes existing top-level files and the `gpx/` tree before writing; `merge` appends places by unique name and updates metadata/prefs/labels by key; `prefs` only merges `prefs.json` + `category-labels.json` and skips places/trails/metadata/GPX even if they're in the archive. GPX files always have PII stripped on import. Triggers manifest regen. |
-| `GET` | `/catalog` | - | Site-wide catalog (array of place objects). Merges the shipped baseline (`<static_dir>/catalog.json`, tracked in the repo) with local admin additions (`<data_dir>/catalog.local.json`, gitignored). Local entries win on name collisions. Each entry carries `_source: "shipped"\|"local"`. Returns `[]` if both sources are absent. Admin can suppress the shipped baseline via `/admin/settings/catalog-baseline`. |
+| `GET` | `/catalog?include_hidden=<bool>` | - | Site-wide catalog (array of place objects). Merges the shipped baseline (`<static_dir>/catalog.json`, tracked in the repo) with local admin additions (`<data_dir>/catalog.local.json`, gitignored). Local entries win on name collisions. Each entry carries `_source: "shipped"\|"local"`. Shipped entries the admin has individually hidden are filtered out; `?include_hidden=1` (admin only) returns them with `_hidden: true` so the Manage UI can unhide them. Admin can suppress the entire shipped baseline via `/admin/settings/catalog-baseline`. |
 
 ## Admin
 
@@ -76,6 +76,7 @@ All require `is_admin=1`. Audited.
 | `POST` | `/admin/catalog/add` | `{entries: [place, ...]}` | Append places to the site catalog. Each entry is validated as a regular place; `visited`, `date_visited`, and `rating` are stripped (the catalog describes a place, not a personal visit). Dedup is by `name`. Returns `{added, skipped, total}`. |
 | `POST` | `/admin/catalog/delete` | `{names: ["...", ...]}` | Remove catalog entries by name. Returns `{removed, total}`. |
 | `POST` | `/admin/catalog/clear` | - | Empty the catalog entirely. Returns `{removed, total: 0}`. |
+| `POST` | `/admin/catalog/hide` | `{name: str, hidden: bool}` | Suppress an individual shipped catalog entry (or restore it). Hidden names are stored in the `catalog_baseline_hidden` setting and filtered from `/api/catalog` for everyone; the Manage UI sees them via `?include_hidden=1`. |
 
 ## Public read
 

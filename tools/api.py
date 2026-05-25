@@ -407,6 +407,26 @@ def catalog_baseline_open(conn: sqlite3.Connection) -> bool:
   return setting_get(conn, "catalog_baseline", "open") == "open"
 
 
+def catalog_baseline_hidden(conn: sqlite3.Connection) -> set:
+  """Set of shipped catalog entry names the admin has suppressed individually.
+  Distinct from the all-or-nothing `catalog_baseline_open` toggle: lets the
+  admin keep most of the shipped baseline but hide specific entries."""
+  raw = setting_get(conn, "catalog_baseline_hidden", "")
+  if not raw:
+    return set()
+  try:
+    parsed = json.loads(raw)
+  except (json.JSONDecodeError, ValueError):
+    return set()
+  if not isinstance(parsed, list):
+    return set()
+  return {n for n in parsed if isinstance(n, str)}
+
+
+def catalog_baseline_set_hidden(conn: sqlite3.Connection, hidden: set) -> None:
+  setting_set(conn, "catalog_baseline_hidden", json.dumps(sorted(hidden)))
+
+
 def admin_count(conn: sqlite3.Connection) -> int:
   return conn.execute("SELECT COUNT(*) AS n FROM users WHERE is_admin=1").fetchone()["n"]
 
@@ -912,6 +932,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_admin_catalog_delete()
     if path == "/api/admin/catalog/clear":
       return self._h_admin_catalog_clear()
+    if path == "/api/admin/catalog/hide":
+      return self._h_admin_catalog_hide()
     if path.startswith("/api/admin/users/"):
       rest = path[len("/api/admin/users/"):]
       parts = rest.split("/", 1)
@@ -1000,6 +1022,15 @@ class Handler(http.server.BaseHTTPRequestHandler):
     user = self._require_user()
     if user is None:
       return
+    # `?include_hidden=1` is an admin-only flag for the Manage catalog UI -
+    # it returns hidden shipped entries with `_hidden: true` so admins can see
+    # what they've suppressed and toggle it back. Anyone else gets a clean
+    # filtered list.
+    qs = parse_qs(urlparse(self.path).query)
+    include_hidden = qs.get("include_hidden", ["0"])[0] in ("1", "true")
+    if include_hidden and not user["is_admin"]:
+      include_hidden = False
+
     data_dir = Path(self.cfg["data_dir"]).resolve()
     static_dir = Path(self.cfg["static_dir"]).resolve()
     local_path = data_dir / "catalog.local.json"
@@ -1016,6 +1047,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         shipped = load_json_file(shipped_path, expected_type=list, required=False, label="catalog.json") or []
       except ValidationError as e:
         return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+
+    hidden = catalog_baseline_hidden(self.conn)
 
     # Build the merged list. Local entries win by name; we walk locals first so
     # the order is "local additions, then shipped" minus any shadowed shipped.
@@ -1037,8 +1070,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
       name = entry.get("name")
       if not isinstance(name, str) or name in seen:
         continue
+      is_hidden = name in hidden
+      if is_hidden and not include_hidden:
+        continue
       tagged = dict(entry)
       tagged["_source"] = "shipped"
+      if is_hidden:
+        tagged["_hidden"] = True
       merged.append(tagged)
       seen.add(name)
     self._send_json(HTTPStatus.OK, merged)
@@ -1501,6 +1539,33 @@ class Handler(http.server.BaseHTTPRequestHandler):
     log_event(self.conn, actor=admin["username"], action="admin.catalog_clear",
               details={"removed": state["removed"]})
     self._send_json(HTTPStatus.OK, {"ok": True, "removed": state["removed"], "total": 0})
+
+  def _h_admin_catalog_hide(self):
+    """Toggle visibility of a single shipped catalog entry. Hidden names are
+    suppressed from /api/catalog responses for everyone; admin Manage UI sees
+    them via `?include_hidden=1`. Body: `{name: str, hidden: bool}`."""
+    admin = self._require_admin()
+    if admin is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    name = body.get("name")
+    if not isinstance(name, str) or not name.strip():
+      return self._error(HTTPStatus.BAD_REQUEST, "name required")
+    if "hidden" not in body or not isinstance(body["hidden"], bool):
+      return self._error(HTTPStatus.BAD_REQUEST, "hidden (bool) required")
+    name = name.strip()
+    with self.write_lock:
+      hidden = catalog_baseline_hidden(self.conn)
+      if body["hidden"]:
+        hidden.add(name)
+      else:
+        hidden.discard(name)
+      catalog_baseline_set_hidden(self.conn, hidden)
+    log_event(self.conn, actor=admin["username"], action="admin.catalog_hide",
+              target=name, details={"hidden": body["hidden"]})
+    self._send_json(HTTPStatus.OK, {"ok": True, "name": name, "hidden": body["hidden"]})
 
   def _h_admin_user_revoke_sessions(self, uid: int):
     admin = self._require_admin()

@@ -1738,6 +1738,14 @@
     }
     .btn-x:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
     .btn-x:disabled { opacity: 0.4; cursor: not-allowed; }
+    .catalog-eye-btn {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); width: 1.9rem; height: 1.9rem;
+      padding: 0; border-radius: var(--radius); cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .catalog-eye-btn:hover:not(:disabled) { color: var(--text); border-color: var(--border-hover); }
+    .catalog-eye-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .modal input.dirty { border-color: var(--accent); }
     .row-tag {
       font-size: 0.7rem;
@@ -7480,7 +7488,10 @@
 
           const countEl = document.getElementById('cat-mgr-count');
           function render() {
-            api('GET', '/catalog').then(entries => {
+            // `?include_hidden=1` brings back the shipped entries the admin
+            // has suppressed (tagged with _hidden: true) so they can be
+            // unhidden from this modal.
+            api('GET', '/catalog?include_hidden=1').then(entries => {
               const items = Array.isArray(entries) ? entries.slice() : [];
               countEl.textContent = items.length ? '(' + items.length + ')' : '';
               if (!items.length) {
@@ -7488,23 +7499,27 @@
                 return;
               }
               items.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+              const eyeOn = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+              const eyeOff = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>';
               list.innerHTML = '<ul class="user-list">' + items.map(e => {
                 const meta = [e.category, e.country].filter(Boolean).join(' · ');
                 const name = escapeHtml(e.name || '(unnamed)');
                 const note = (e.note || '').trim();
                 const shipped = e._source === 'shipped';
-                const sourceTag = shipped
-                  ? '<span style="font-size:0.7rem;color:var(--muted);font-weight:400;margin-left:0.4rem">shipped</span>'
+                const hidden = !!e._hidden;
+                const tag = shipped
+                  ? '<span style="font-size:0.7rem;color:var(--muted);font-weight:400;margin-left:0.4rem">' + (hidden ? 'shipped · hidden' : 'shipped') + '</span>'
                   : '';
-                return '<li class="user-row" data-name="' + escapeHtml(e.name || '') + '">' +
+                const action = shipped
+                  ? '<button data-act="catalog-hide" data-hidden="' + (hidden ? '1' : '0') + '" class="catalog-eye-btn" title="' + (hidden ? 'Unhide' : 'Hide') + ' (suppresses for everyone)" aria-label="' + (hidden ? 'Unhide' : 'Hide') + '">' + (hidden ? eyeOff : eyeOn) + '</button>'
+                  : '<button data-act="catalog-delete" class="danger-btn">Remove</button>';
+                return '<li class="user-row" data-name="' + escapeHtml(e.name || '') + '"' + (hidden ? ' style="opacity:0.6"' : '') + '>' +
                   '<span class="user-name" style="min-width:0">' +
-                    '<span title="' + name + '" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + sourceTag + '</span>' +
+                    '<span title="' + name + '" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + tag + '</span>' +
                     (meta ? '<span style="display:block;font-size:0.72rem;color:var(--muted);font-weight:400">' + escapeHtml(meta) + '</span>' : '') +
                     (note ? '<span class="row-note">' + escapeHtml(note) + '</span>' : '') +
                   '</span>' +
-                  '<div class="user-actions">' +
-                    (shipped ? '' : '<button data-act="catalog-delete" class="danger-btn">Remove</button>') +
-                  '</div>' +
+                  '<div class="user-actions">' + action + '</div>' +
                 '</li>';
               }).join('') + '</ul>';
               list.querySelectorAll('button[data-act="catalog-delete"]').forEach(btn => {
@@ -7522,6 +7537,16 @@
                       .then(() => { state._catalogCache = null; render(); renderAdminCatalog(); })
                       .catch(err => { this.disabled = false; alert('Failed: ' + err.message); });
                   });
+                });
+              });
+              list.querySelectorAll('button[data-act="catalog-hide"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                  const name = this.closest('.user-row').dataset.name;
+                  const wantHidden = this.dataset.hidden !== '1';
+                  this.disabled = true;
+                  api('POST', '/admin/catalog/hide', { name, hidden: wantHidden })
+                    .then(() => { state._catalogCache = null; render(); renderAdminCatalog(); })
+                    .catch(err => { this.disabled = false; alert('Failed: ' + err.message); });
                 });
               });
               applyFilter();
