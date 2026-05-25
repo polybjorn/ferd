@@ -1,2 +1,2 @@
 [files]
-extend-exclude = ["vendor/"]
+extend-exclude = ["vendor/", "catalog.json"]

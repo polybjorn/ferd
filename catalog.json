@@ -1,1 +1,38 @@
-[]
+[
+  {
+    "name": "Acropolis of Lindos",
+    "lat": 36.0919,
+    "lon": 28.0856,
+    "note": "Hilltop citadel on Rhodes with a 4th-century BC Temple of Athena overlooking the sea",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Lindos"
+    ],
+    "local_name": "Akropoli Lindou",
+    "country": "Greece",
+    "category": "ruins"
+  },
+  {
+    "name": "Palace of the Grand Master",
+    "lat": 36.4456,
+    "lon": 28.2242,
+    "category": "castle",
+    "note": "Medieval Knights Hospitaller fortress in Rhodes Old Town",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes"
+    ],
+    "local_name": "Palati tou Megalou Magistrou",
+    "country": "Greece"
+  },
+  {
+    "name": "Kaputas Beach",
+    "lat": 36.1784,
+    "lon": 29.4283,
+    "category": "beach",
+    "country": "Turkey",
+    "note": "Narrow canyon beach between cliffs",
+    "local_name": "Kaputas Plaji",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Kaputas_Beach"
+    ]
+  }
+]
