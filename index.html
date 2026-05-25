@@ -4138,8 +4138,10 @@
             const draft = Object.assign({}, place, snapshot.payload || {});
             closeModal();
             enterPickCoordsMode(function(latlng) {
-              draft.lat = latlng.lat;
-              draft.lon = latlng.lng;
+              // Same rounding as readPlaceFormFields on save, so the form
+              // shows the value that will actually be stored.
+              draft.lat = Math.round(latlng.lat * 1e5) / 1e5;
+              draft.lon = Math.round(latlng.lng * 1e5) / 1e5;
               openEditPlaceModal(draft);
             });
           });
