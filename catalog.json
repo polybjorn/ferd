@@ -76,5 +76,57 @@
     "sources": [
       "https://en.wikipedia.org/wiki/Skaros"
     ]
+  },
+  {
+    "name": "Teide",
+    "lat": 28.27210,
+    "lon": -16.64200,
+    "category": "mountain",
+    "country": "Spain",
+    "local_name": "El Teide",
+    "note": "Active volcano, Spain's highest peak at 3715 m",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Roque_Cinchado_und_Teide.jpg/1280px-Roque_Cinchado_und_Teide.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Teide"
+    ]
+  },
+  {
+    "name": "Door of No Return",
+    "lat": 14.66778,
+    "lon": -17.39722,
+    "category": "monument",
+    "country": "Senegal",
+    "local_name": "Porte du Voyage sans Retour",
+    "note": "Doorway from the House of Slaves on Gorée Island",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/La_maison_des_esclaves.jpg/1280px-La_maison_des_esclaves.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/House_of_Slaves"
+    ]
+  },
+  {
+    "name": "Chefchaouen",
+    "lat": 35.17139,
+    "lon": -5.26972,
+    "category": "city",
+    "country": "Morocco",
+    "local_name": "شفشاون",
+    "note": "Blue-washed medina town in the Rif Mountains",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Chefchaouen_%2852189357475%29.jpg/1280px-Chefchaouen_%2852189357475%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Chefchaouen"
+    ]
+  },
+  {
+    "name": "Fes el-Bali",
+    "lat": 34.06250,
+    "lon": -4.97250,
+    "category": "city",
+    "country": "Morocco",
+    "local_name": "فاس البالي",
+    "note": "Walled medina of Fez, world's largest car-free area",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Fes_Bab_Bou_Jeloud_2011.jpg/1280px-Fes_Bab_Bou_Jeloud_2011.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Fes_el_Bali"
+    ]
   }
 ]
