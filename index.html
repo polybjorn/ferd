@@ -662,6 +662,11 @@
     .place-card .place-text { min-width: 0; flex: 1; }
     .place-card .name { font-size: 0.85rem; font-weight: 300; }
     .place-card .note { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; }
+    .place-card .catalog-badge {
+      font-size: 0.6rem; font-weight: 400; color: var(--muted);
+      border: 1px solid var(--border); border-radius: 999px;
+      padding: 0.05rem 0.4rem; margin-left: 0.4rem; vertical-align: middle;
+    }
 
     .status-dot {
       width: 7px;
@@ -4968,7 +4973,8 @@
           html += '<div class="place-card" onclick="location.hash=\'' + href.replace(/'/g, "\\'") + '\'">';
           html += '<span class="status-dot ' + statusClass + '"></span>';
           html += '<div class="place-text">';
-          html += '<div class="name">' + escapeHtml(p.name) + '</div>';
+          const catalogBadge = p.from_catalog ? '<span class="catalog-badge" title="Imported from the site catalog">catalog</span>' : '';
+          html += '<div class="name">' + escapeHtml(p.name) + catalogBadge + '</div>';
           if (p.note) html += '<div class="note">' + escapeHtml(p.note) + '</div>';
           html += '</div></div>';
         }
