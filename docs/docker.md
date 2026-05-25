@@ -130,4 +130,4 @@ rm -rf data/
 
 ## What's in the image
 
-Base is `python:3.12-slim`. The only added packages are `tini` (clean signal handling) and `gosu` (drop privileges in the entrypoint). The API is stdlib-only Python, so there's no `pip install` step and no Python packages baked in. Around 43 MB compressed, 210 MB on disk; the app's own footprint is under 5 MB and the rest is the Debian-slim Python base.
+Base is `python:3.12-slim`. The only added packages are `tini` (clean signal handling) and `gosu` (drop privileges in the entrypoint). The API is stdlib-only Python, so there's no `pip install` step and no Python packages baked in. Around 43 MiB compressed, 211 MB on disk; the app's own footprint is around 2 MB and the rest is the Debian-slim Python base.

@@ -31,6 +31,21 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 
 ## Install
 
+### Docker (recommended)
+
+```sh
+git clone https://github.com/polybjorn/ferd.git
+cd ferd
+mkdir -p data
+cp site-config.example.json data/site-config.json
+cp .env.example .env
+docker compose up -d
+```
+
+Open http://localhost:8090 and register the first account; that user becomes the admin. See [docker.md](docs/docker.md) for tag tracks, reverse proxy, and updates.
+
+### Python
+
 ```sh
 git clone https://github.com/polybjorn/ferd.git
 cd ferd
@@ -38,11 +53,11 @@ cp tools/config.example.json tools/config.json
 python3 tools/api.py
 ```
 
-Open http://localhost:8091 and register the first account; that user becomes the admin.
+Open http://localhost:8091 and register the first account. See [python.md](docs/python.md) for systemd/launchd service install, reverse proxy, and pre-seeded credentials.
 
-**Requirements:** Python 3.9+, a modern browser. No build step, no Node, no database server (SQLite file).
+**Requirements:** Python 3.9+ (or Docker), a modern browser. No build step, no Node, no database server (SQLite file).
 
-Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse proxy, and pre-seeded credentials, see [python.md](docs/python.md). For a public domain, front either with any reverse proxy. Sample configs in `deploy/`.
+**Footprint:** ~2 MB of code and assets. Python uses about 28 MB of memory at idle; the Docker image is 43 MiB compressed (211 MB on disk) and runs at roughly the same memory plus a small container overhead.
 
 ## Documentation
 
