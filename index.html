@@ -665,8 +665,22 @@
     .place-card .catalog-mark {
       flex: 0 0 auto; color: var(--muted); display: inline-flex;
       align-items: center; align-self: center; margin-left: 0.5rem;
+      background: transparent; border: none; padding: 0.2rem; cursor: pointer;
     }
+    .place-card .catalog-mark.update-available { color: var(--accent); }
+    .place-card .catalog-mark.update-available:hover { color: var(--accent); filter: brightness(1.15); }
+    .place-card .catalog-mark:hover { color: var(--text); }
     .place-card .catalog-mark svg { width: 0.95rem; height: 0.95rem; display: block; }
+    .catalog-diff {
+      margin: 0.5rem 0; padding: 0.6rem 0.8rem;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+      font-size: 0.78rem;
+    }
+    .catalog-diff-field { display: grid; grid-template-columns: 5rem 1fr; gap: 0.5rem; align-items: start; }
+    .catalog-diff-field + .catalog-diff-field { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border); }
+    .catalog-diff-label { color: var(--muted); font-size: 0.72rem; padding-top: 0.1rem; }
+    .catalog-diff-old { color: var(--muted); text-decoration: line-through; word-break: break-word; }
+    .catalog-diff-new { color: var(--text); word-break: break-word; margin-top: 0.1rem; }
 
     .status-dot {
       width: 7px;
@@ -4822,6 +4836,102 @@
     }
 
     // ----- Places browse list -----
+    // Fields the catalog "owns" - personal status (visited / date_visited /
+    // rating / from_catalog / runtime annotations) is preserved on refresh.
+    const CATALOG_TRACKED_FIELDS = ['name', 'lat', 'lon', 'category', 'country', 'local_name', 'note', 'image', 'sources'];
+
+    // Returns { entry, changes: [{field, before, after}] } when the upstream
+    // catalog entry for a place's from_catalog has diverged from the local
+    // copy, else null. Catalog source is the client-side cache populated on
+    // boot; if it isn't loaded yet, returns null (no false-positive indicator).
+    function findCatalogUpdate(place) {
+      if (!place || !place.from_catalog) return null;
+      if (!Array.isArray(state._catalogCache)) return null;
+      const entry = state._catalogCache.find(e => e && e.name === place.from_catalog);
+      if (!entry) return null;
+      const norm = v => {
+        if (v === undefined || v === null) return null;
+        if (typeof v === 'string') return v.trim() || null;
+        if (Array.isArray(v)) return v.length ? v.map(norm) : null;
+        return v;
+      };
+      const eq = (a, b) => {
+        if (a === b) return true;
+        if (a === null || b === null) return a === b;
+        if (Array.isArray(a) && Array.isArray(b)) {
+          if (a.length !== b.length) return false;
+          return a.every((x, i) => eq(x, b[i]));
+        }
+        return false;
+      };
+      const changes = [];
+      for (const f of CATALOG_TRACKED_FIELDS) {
+        if (!eq(norm(place[f]), norm(entry[f]))) {
+          changes.push({ field: f, before: place[f], after: entry[f] });
+        }
+      }
+      return changes.length ? { entry, changes } : null;
+    }
+
+    function formatCatalogDiffValue(v) {
+      if (v === null || v === undefined || v === '') return '<em style="color:var(--muted)">(none)</em>';
+      if (Array.isArray(v)) return v.map(x => escapeHtml(String(x))).join('<br>');
+      return escapeHtml(String(v));
+    }
+
+    function renderCatalogDiff(changes) {
+      return '<div class="catalog-diff">' + changes.map(c =>
+        '<div class="catalog-diff-field">' +
+          '<span class="catalog-diff-label">' + escapeHtml(c.field) + '</span>' +
+          '<span>' +
+            '<div class="catalog-diff-old">' + formatCatalogDiffValue(c.before) + '</div>' +
+            '<div class="catalog-diff-new">' + formatCatalogDiffValue(c.after) + '</div>' +
+          '</span>' +
+        '</div>'
+      ).join('') + '</div>';
+    }
+
+    function openCatalogUpdateModal(place) {
+      const result = findCatalogUpdate(place);
+      if (!result) {
+        // Badge was tagged update-available but the cache shifted (admin
+        // toggled baseline off, or another tab refreshed). Treat as no-op.
+        alert('No catalog updates for this place.');
+        return;
+      }
+      const { entry, changes } = result;
+      openModal(
+        '<h2>Update from catalog<button class="modal-close">&times;</button></h2>' +
+        '<div class="modal-desc">' + escapeHtml(place.name) + ' will be refreshed from the catalog. Your visit status, date, and rating are preserved.</div>' +
+        renderCatalogDiff(changes) +
+        '<div class="modal-actions">' +
+          '<button type="button" data-role="cancel">Cancel</button>' +
+          '<button type="button" class="primary" id="catalog-update-confirm">Refresh from catalog</button>' +
+        '</div>',
+        function(backdrop) {
+          backdrop.querySelector('[data-role="cancel"]').addEventListener('click', () => closeModal());
+          document.getElementById('catalog-update-confirm').addEventListener('click', function() {
+            this.disabled = true;
+            // Take the catalog entry's tracked fields, drop the UI-only
+            // `_source` tag, preserve the user's personal status fields, and
+            // refresh the `from_catalog` link in case the catalog renamed.
+            const next = {};
+            for (const f of CATALOG_TRACKED_FIELDS) {
+              if (entry[f] !== undefined && entry[f] !== null && entry[f] !== '') next[f] = entry[f];
+            }
+            if (place.visited) next.visited = true;
+            if (place.date_visited) next.date_visited = place.date_visited;
+            if (place.rating) next.rating = place.rating;
+            next.from_catalog = entry.name;
+            api('PUT', '/places', { original_name: place.name, place: next })
+              .then(() => refreshPlaces())
+              .then(() => { closeModal(); refreshPlacesPresentation(); })
+              .catch(err => { this.disabled = false; alert('Failed: ' + err.message); });
+          });
+        }
+      );
+    }
+
     function renderPlacesIndex() {
       setActiveTab('places');
       setCrumb('', false);
@@ -4977,9 +5087,14 @@
           if (p.note) html += '<div class="note">' + escapeHtml(p.note) + '</div>';
           html += '</div>';
           if (p.from_catalog) {
-            html += '<span class="catalog-mark" title="Imported from the site catalog">' +
+            const upd = findCatalogUpdate(p);
+            const cls = 'catalog-mark' + (upd ? ' update-available' : '');
+            const title = upd
+              ? 'Catalog updated this entry (' + upd.changes.length + ' field' + (upd.changes.length === 1 ? '' : 's') + '). Click to review.'
+              : 'Imported from the site catalog';
+            html += '<button type="button" class="' + cls + '" data-place-name="' + escapeHtml(p.name) + '" title="' + escapeHtml(title) + '">' +
               '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>' +
-              '</span>';
+              '</button>';
           }
           html += '</div>';
         }
@@ -4988,6 +5103,19 @@
       if (!html) html = '<div class="loading">No matches</div>';
       const listEl = document.getElementById('place-list');
       listEl.innerHTML = html;
+      // Catalog badge clicks stay on the place-card (which navigates to the
+      // map via inline onclick); stop propagation and open the update modal
+      // instead.
+      listEl.querySelectorAll('.catalog-mark').forEach(btn => {
+        btn.addEventListener('click', function(ev) {
+          ev.stopPropagation();
+          ev.preventDefault();
+          const name = this.dataset.placeName;
+          const place = (state.places || []).find(p => p.name === name);
+          if (!place) return;
+          if (findCatalogUpdate(place)) openCatalogUpdateModal(place);
+        });
+      });
       listEl.querySelectorAll('.section-link[data-filter-cat]').forEach(function(label) {
         label.addEventListener('click', function() {
           const cat = label.dataset.filterCat;
@@ -8454,6 +8582,9 @@
         if (state.auth && state.auth.authenticated && !isReadOnly() && state._catalogCache == null) {
           api('GET', '/catalog').then(entries => {
             state._catalogCache = Array.isArray(entries) ? entries : [];
+            // If the user is sitting on the Places list when this lands,
+            // re-render so the "update available" badges reflect the cache.
+            if ((location.hash || '#/').startsWith('#/places')) wrappedRouter();
           }).catch(() => {});
         }
       });
