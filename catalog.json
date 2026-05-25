@@ -6,36 +6,62 @@
     "category": "ruins",
     "country": "Greece",
     "local_name": "Ακρόπολη της Λίνδου",
-    "note": "Hilltop citadel with a 4th-century BC Temple of Athena TEST",
+    "note": "Hilltop citadel with a 4th-century BC Temple of Athena",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/20210826-Lindos-DJI_0205.jpg/1280px-20210826-Lindos-DJI_0205.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Lindos"
     ]
   },
   {
-    "name": "Palace of the Grand Master",
-    "lat": 36.44578,
-    "lon": 28.2241,
-    "category": "castle",
+    "name": "Ancient Thera",
+    "lat": 36.36464,
+    "lon": 25.47798,
+    "category": "archaeological-site",
     "country": "Greece",
-    "local_name": "Παλάτι του Μεγάλου Μαγίστρου",
-    "note": "Medieval Knights Hospitaller fortress in Rhodes Old Town",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes_%289451928431%29.jpg/1280px-Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes_%289451928431%29.jpg",
+    "local_name": "Αρχαία Θήρα",
+    "note": "Ancient city ruins on Mesa Vouno, founded 9th c. BC",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Santorini_ancient_thera_1.jpg/1280px-Santorini_ancient_thera_1.jpg",
     "sources": [
-      "https://en.wikipedia.org/wiki/Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes"
+      "https://en.wikipedia.org/wiki/Ancient_Thera"
     ]
   },
   {
-    "name": "Kaputas Beach",
-    "lat": 36.22892,
-    "lon": 29.44912,
-    "category": "beach",
-    "country": "Turkey",
-    "local_name": "Kaputaş Plajı",
-    "note": "Narrow canyon beach between cliffs",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg/1280px-Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg",
+    "name": "Chefchaouen",
+    "lat": 35.17139,
+    "lon": -5.26972,
+    "category": "city",
+    "country": "Morocco",
+    "local_name": "شفشاون",
+    "note": "Blue-washed medina town in the Rif Mountains",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Chefchaouen_%2852189357475%29.jpg/1280px-Chefchaouen_%2852189357475%29.jpg",
     "sources": [
-      "https://en.wikipedia.org/wiki/Kaputas_Beach"
+      "https://en.wikipedia.org/wiki/Chefchaouen"
+    ]
+  },
+  {
+    "name": "Door of No Return",
+    "lat": 14.66778,
+    "lon": -17.39722,
+    "category": "monument",
+    "country": "Senegal",
+    "local_name": "Porte du Voyage sans Retour",
+    "note": "Doorway from the House of Slaves on Gorée Island",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/La_maison_des_esclaves.jpg/1280px-La_maison_des_esclaves.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/House_of_Slaves"
+    ]
+  },
+  {
+    "name": "Fes el-Bali",
+    "lat": 34.0625,
+    "lon": -4.9725,
+    "category": "city",
+    "country": "Morocco",
+    "local_name": "فاس البالي",
+    "note": "Walled medina of Fez, world's largest car-free area",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Fes_Bab_Bou_Jeloud_2011.jpg/1280px-Fes_Bab_Bou_Jeloud_2011.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Fes_el_Bali"
     ]
   },
   {
@@ -52,16 +78,29 @@
     ]
   },
   {
-    "name": "Ancient Thera",
-    "lat": 36.36464,
-    "lon": 25.47798,
-    "category": "archaeological-site",
-    "country": "Greece",
-    "local_name": "Αρχαία Θήρα",
-    "note": "Ancient city ruins on Mesa Vouno, founded 9th c. BC",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Santorini_ancient_thera_1.jpg/1280px-Santorini_ancient_thera_1.jpg",
+    "name": "Kaputas Beach",
+    "lat": 36.22892,
+    "lon": 29.44912,
+    "category": "beach",
+    "country": "Turkey",
+    "local_name": "Kaputaş Plajı",
+    "note": "Narrow canyon beach between cliffs",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg/1280px-Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg",
     "sources": [
-      "https://en.wikipedia.org/wiki/Ancient_Thera"
+      "https://en.wikipedia.org/wiki/Kaputas_Beach"
+    ]
+  },
+  {
+    "name": "Palace of the Grand Master",
+    "lat": 36.44578,
+    "lon": 28.2241,
+    "category": "castle",
+    "country": "Greece",
+    "local_name": "Παλάτι του Μεγάλου Μαγίστρου",
+    "note": "Medieval Knights Hospitaller fortress in Rhodes Old Town",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes_%289451928431%29.jpg/1280px-Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes_%289451928431%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes"
     ]
   },
   {
@@ -79,8 +118,8 @@
   },
   {
     "name": "Teide",
-    "lat": 28.27210,
-    "lon": -16.64200,
+    "lat": 28.2721,
+    "lon": -16.642,
     "category": "mountain",
     "country": "Spain",
     "local_name": "El Teide",
@@ -91,42 +130,16 @@
     ]
   },
   {
-    "name": "Door of No Return",
-    "lat": 14.66778,
-    "lon": -17.39722,
+    "name": "Verona Arena",
+    "lat": 45.43889,
+    "lon": 10.99444,
     "category": "monument",
-    "country": "Senegal",
-    "local_name": "Porte du Voyage sans Retour",
-    "note": "Doorway from the House of Slaves on Gorée Island",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/La_maison_des_esclaves.jpg/1280px-La_maison_des_esclaves.jpg",
+    "country": "Italy",
+    "local_name": "Arena di Verona",
+    "note": "1st-century Roman amphitheatre, famed for its opera season",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Arena-XE3F2406a.jpg/1280px-Arena-XE3F2406a.jpg",
     "sources": [
-      "https://en.wikipedia.org/wiki/House_of_Slaves"
-    ]
-  },
-  {
-    "name": "Chefchaouen",
-    "lat": 35.17139,
-    "lon": -5.26972,
-    "category": "city",
-    "country": "Morocco",
-    "local_name": "شفشاون",
-    "note": "Blue-washed medina town in the Rif Mountains",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Chefchaouen_%2852189357475%29.jpg/1280px-Chefchaouen_%2852189357475%29.jpg",
-    "sources": [
-      "https://en.wikipedia.org/wiki/Chefchaouen"
-    ]
-  },
-  {
-    "name": "Fes el-Bali",
-    "lat": 34.06250,
-    "lon": -4.97250,
-    "category": "city",
-    "country": "Morocco",
-    "local_name": "فاس البالي",
-    "note": "Walled medina of Fez, world's largest car-free area",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Fes_Bab_Bou_Jeloud_2011.jpg/1280px-Fes_Bab_Bou_Jeloud_2011.jpg",
-    "sources": [
-      "https://en.wikipedia.org/wiki/Fes_el_Bali"
+      "https://en.wikipedia.org/wiki/Verona_Arena"
     ]
   }
 ]
