@@ -82,7 +82,7 @@ Multiple themes x light/dark (see [themes.md](themes.md)). Always use CSS variab
 
 `.index-controls` is the top row on the Places and Trails list pages: search input (flex:1), optional Filters popover, primary Add button. Keep this row to three slots on mobile. New controls (grouping, secondary filters) belong in the popover, not as a fourth widget next to the Add button.
 
-Filters popover: `.filter-dropdown` wraps a `.filter-btn` and a `.filter-popover` anchored to the button's right edge. The popover holds a vertical stack of compact `<select>`s whose first option names the dimension ("All statuses", "Any difficulty"), so no per-select labels are needed. View-mode controls like "Group by" sit below a `.filter-divider` line. A `.filter-clear` text-link button at the bottom resets every select. When one or more narrowing filters are active, the button shows a `Filters (N)` badge with an accent border.
+Filters popover: `.filter-dropdown` wraps a `.filter-btn` and a `.filter-popover` anchored to the button's right edge. The popover holds a vertical stack of compact `<select>`s whose first option names the dimension as a bare noun ("Status", "Category", "Country", "Region", "Difficulty", "Rating", "Catalog"), so no per-select labels are needed. The bare noun reads as a header at rest and a hint about what changes when the user picks another option; "All X" / "Any X" prefixes were dropped because they implied the default was actively filtering. View-mode controls like "Group by" sit below a `.filter-divider` line. A `.filter-clear` text-link button at the bottom resets every select. When one or more narrowing filters are active, the button shows a `Filters (N)` badge with an accent border.
 
 ## UI copy
 

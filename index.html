@@ -5026,22 +5026,22 @@
           '<button type="button" class="filter-btn" id="filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
           '<div class="filter-popover" id="filter-popover" hidden>' +
             '<select id="filter-status">' +
-              '<option value="all">All statuses</option>' +
+              '<option value="all">Status</option>' +
               '<option value="visited">Visited</option>' +
               '<option value="want">Want to visit</option>' +
             '</select>' +
             '<select id="filter-category">' +
-              '<option value="all">All categories</option>' +
+              '<option value="all">Category</option>' +
               cats.map(c => '<option value="' + escapeHtml(c) + '">' + escapeHtml(displayCategory(c)) + '</option>').join('') +
             '</select>' +
             (countries.length ?
               '<select id="filter-country">' +
-                '<option value="all">All countries</option>' +
+                '<option value="all">Country</option>' +
                 countries.map(c => '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>').join('') +
               '</select>'
               : '') +
             '<select id="filter-catalog">' +
-              '<option value="all">Any catalog state</option>' +
+              '<option value="all">Catalog</option>' +
               '<option value="from-catalog">From catalog</option>' +
               '<option value="updates-available">Updates available</option>' +
             '</select>' +
@@ -5246,20 +5246,20 @@
           '<button type="button" class="filter-btn" id="filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
           '<div class="filter-popover" id="filter-popover" hidden>' +
             '<select id="filter-status">' +
-              '<option value="all">All statuses</option>' +
+              '<option value="all">Status</option>' +
               '<option value="completed">Completed</option>' +
               '<option value="planned">Planned</option>' +
             '</select>' +
             '<select id="filter-region">' +
-              '<option value="all">All regions</option>' +
+              '<option value="all">Region</option>' +
               regionNames.map(n => '<option value="' + escapeHtml(n.toLowerCase()) + '">' + escapeHtml(displayRegion(n)) + '</option>').join('') +
             '</select>' +
             '<select id="filter-difficulty">' +
-              '<option value="all">Any difficulty</option>' +
+              '<option value="all">Difficulty</option>' +
               difficulties.map(d => '<option value="' + d + '">' + d[0].toUpperCase() + d.slice(1) + '</option>').join('') +
             '</select>' +
             '<select id="filter-rating">' +
-              '<option value="all">Any rating</option>' +
+              '<option value="all">Rating</option>' +
               '<option value="unrated">Unrated</option>' +
               '<option value="1">1 star</option>' +
               '<option value="2">2 stars</option>' +
