@@ -25,7 +25,7 @@ See [configure.md](configure.md#data-files) for the full file-by-file table.
 
 ## Repository layout
 
-Sorted alphabetically (case-insensitive), directories before files at each level.
+Three groups: directories, repo-meta files, then the rest. Directories and the rest sort alphabetically (case-insensitive); repo-meta follows a reading order.
 
 ```
 deploy/
@@ -60,20 +60,22 @@ tools/
   api.py                   # stdlib-only API server (auth + write endpoints)
   config.example.json      # API config template
 vendor/                    # vendored third-party libs (see vendor/NOTICES.md)
+
+README.md
+LICENSE
+VERSION                    # app version (surfaced in /api/state)
+CONTRIBUTING.md            # how to run, test, and submit changes
+SECURITY.md                # account model, setup token, threat notes
+CHANGELOG.md               # release notes
+
 .dockerignore              # files excluded from image build context
 .env.example               # Docker env-var template
 catalog.json               # shipped baseline site catalog
-CHANGELOG.md               # release notes
 compose.yml                # Docker Compose service definition
-CONTRIBUTING.md            # how to run, test, and submit changes
 Dockerfile                 # container image
 index.html                 # the app (HTML/CSS/JS in one file)
-LICENSE
-README.md
-SECURITY.md                # account model, setup token, threat notes
 site-config.example.json   # branding, default view, category labels, API base
 sw.js                      # PWA service worker (cache shell, tiles, GPX)
-VERSION                    # app version (surfaced in /api/state)
 ```
 
 ## Why no build step
