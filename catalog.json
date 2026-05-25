@@ -15,7 +15,7 @@
   {
     "name": "Palace of the Grand Master",
     "lat": 36.44578,
-    "lon": 28.22410,
+    "lon": 28.2241,
     "category": "castle",
     "country": "Greece",
     "local_name": "Παλάτι του Μεγάλου Μαγίστρου",
@@ -36,6 +36,45 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg/1280px-Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Kaputas_Beach"
+    ]
+  },
+  {
+    "name": "Fira",
+    "lat": 36.41831,
+    "lon": 25.42761,
+    "category": "city",
+    "country": "Greece",
+    "local_name": "Φηρά",
+    "note": "Cliff-perched capital of Santorini on the caldera rim",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Santorini_Fira3_tango7174.jpg/1280px-Santorini_Fira3_tango7174.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Fira"
+    ]
+  },
+  {
+    "name": "Ancient Thera",
+    "lat": 36.36363,
+    "lon": 25.4782,
+    "category": "archaeological-site",
+    "country": "Greece",
+    "local_name": "Αρχαία Θήρα",
+    "note": "Ancient city ruins on Mesa Vouno, founded 9th c. BC",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Santorini_ancient_thera_1.jpg/1280px-Santorini_ancient_thera_1.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Ancient_Thera"
+    ]
+  },
+  {
+    "name": "Skaros",
+    "lat": 36.43121,
+    "lon": 25.42504,
+    "category": "ruins",
+    "country": "Greece",
+    "local_name": "Σκάρος",
+    "note": "Ruined Venetian rock fortress in Imerovigli",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Skaros_Rock.jpg/1280px-Skaros_Rock.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Skaros"
     ]
   }
 ]
