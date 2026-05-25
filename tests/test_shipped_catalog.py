@@ -51,7 +51,7 @@ CATEGORY_VOCAB = {
 
 # Catalog notes are one-line identifiers, kept short on purpose. Personal
 # place notes can be up to 2000 chars; this is just the catalog convention.
-NOTE_MAX = 200
+NOTE_MAX = 60
 
 # Canonical field order in catalog entries. Optional fields may be absent
 # but when present must appear in this relative order. Keeps PR diffs
