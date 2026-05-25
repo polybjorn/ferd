@@ -500,7 +500,15 @@
     }
 
     /* Index grids (places + trails) */
-    .category-grid,
+    .category-grid {
+      /* CSS Grid so the catalog-updates notice can sit at column 2 row 1
+         while the place groups fill from the top of both columns. */
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-auto-flow: row dense;
+      gap: 0 1.5rem;
+      align-items: start;
+    }
     .region-grid {
       columns: 2;
       column-gap: 1.5rem;
@@ -539,7 +547,8 @@
     }
 
     @media (max-width: 600px) {
-      .category-grid, .region-grid { columns: 1; }
+      .category-grid { grid-template-columns: 1fr; }
+      .region-grid { columns: 1; }
     }
 
     /* Places index */
@@ -674,13 +683,17 @@
     .place-card .catalog-mark svg { width: 0.95rem; height: 0.95rem; display: block; }
     .catalog-updates-notice {
       display: flex; align-items: center; gap: 0.75rem;
-      margin: 0 0 1rem; padding: 0.5rem 0.8rem;
+      margin: 0 0 1.5rem; padding: 0.5rem 0.8rem;
       background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
       font-size: 0.78rem; color: var(--text);
-      /* Lives inside the multicolumn grid and spans both columns as a header,
-         so the place groups still flow tight underneath - no wasted gap on
-         either side. */
-      column-span: all;
+      /* Anchored to column 2 row 1 of the places CSS Grid - leaves the left
+         column free to start at the top. On mobile the grid is one column,
+         so the notice naturally spans full width. */
+      grid-column: 2 / 3;
+      grid-row: 1;
+    }
+    @media (max-width: 600px) {
+      .catalog-updates-notice { grid-column: 1; }
     }
     .catalog-updates-notice span { flex: 1; }
     .catalog-updates-notice button {
