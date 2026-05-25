@@ -64,7 +64,3 @@ Prefer Docker? See [docker.md](docs/docker.md). For service install, reverse pro
 - Uploaded image attachments on places and trails (today: URL only).
 - Custom iOS launch splash (today: generic auto-rendered icon).
 - Distinctive logo (today: placeholder favicon).
-
-## License
-
-GPL-3.0-or-later. See [LICENSE](LICENSE); third-party deps in [vendor/NOTICES.md](vendor/NOTICES.md).

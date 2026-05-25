@@ -26,41 +26,52 @@ See [configure.md](configure.md#data-files) for the full file-by-file table.
 ## Repository layout
 
 ```
-index.html               # the app (HTML/CSS/JS in one file)
-site-config.example.json # branding, default view, category labels, API base
+index.html                 # the app (HTML/CSS/JS in one file)
+sw.js                      # PWA service worker (cache shell, tiles, GPX)
+catalog.json               # shipped baseline site catalog
+site-config.example.json   # branding, default view, category labels, API base
+.env.example               # Docker env-var template
+VERSION                    # app version (surfaced in /api/state)
+icons/                     # favicon, PWA icons, web app manifest
 scripts/
-  gpx-manifest.sh        # generates routes.json from gpx/<Region>/<Trail>.gpx
+  gpx-manifest.sh          # generates routes.json from gpx/<Region>/<Trail>.gpx
   check-vendor-versions.py # weekly CI drift check against npm
-icons/                   # favicon, PWA icons, web app manifest
+  vendor-versions.json     # tracked versions per vendored dep
 tools/
-  api.py                 # stdlib-only API server (auth + write endpoints)
-  config.example.json    # API config template
-Dockerfile               # container image for the Docker Compose path
-compose.yml              # Docker Compose service definition
-.dockerignore            # files excluded from the image build context
+  api.py                   # stdlib-only API server (auth + write endpoints)
+  config.example.json      # API config template
+vendor/                    # vendored third-party libs (see vendor/NOTICES.md)
+Dockerfile                 # container image
+compose.yml                # Docker Compose service definition
+.dockerignore              # files excluded from image build context
 deploy/
-  ferd-api.socket        # systemd socket unit
-  ferd-api.service       # systemd service unit
-  ferd-api.plist         # macOS launchd template
-  nginx.example.conf     # nginx server block
-  install.sh             # guided installer
-  docker-entrypoint.sh   # Docker entrypoint (UID/GID handling)
+  ferd-api.socket          # systemd socket unit
+  ferd-api.service         # systemd service unit
+  ferd-api.plist           # macOS launchd template
+  nginx.example.conf       # nginx server block
+  Caddyfile.example        # Caddy server block
+  install.sh               # guided installer
+  uninstall.sh             # guided uninstaller
+  docker-entrypoint.sh     # Docker entrypoint (UID/GID handling)
 docs/
-  python.md              # running with Python
-  docker.md              # running with Docker
-  configure.md           # config field reference
-  themes.md              # theme system + how to add one
-  catalog.md             # site catalog (shipped baseline + local additions)
-  api.md                 # /api/* endpoint reference + smoke recipes
-  architecture.md        # this file
-  screenshots/           # images for README and docs
+  api.md                   # /api/* endpoint reference + smoke recipes
+  architecture.md          # this file
+  catalog.md               # site catalog (shipped baseline + local additions)
+  configure.md             # config field reference
+  docker.md                # running with Docker
+  pwa.md                   # PWA install + service-worker maintenance
+  python.md                # running with Python
+  themes.md                # theme system + how to add one
+  screenshots/             # images for README and docs
 tests/
-  test_api_helpers.py    # unit tests for pure helpers
-  test_api_integration.py# subprocess + HTTP integration tests
-SECURITY.md              # account model, setup token, threat notes
-CONTRIBUTING.md          # how to run, test, and submit changes
-CODE_OF_CONDUCT.md       # Contributor Covenant
-CHANGELOG.md             # release notes
+  test_api_helpers.py      # unit tests for pure helpers
+  test_api_integration.py  # subprocess + HTTP integration tests
+  test_shipped_catalog.py  # CI-enforced catalog conventions
+README.md
+LICENSE
+SECURITY.md                # account model, setup token, threat notes
+CONTRIBUTING.md            # how to run, test, and submit changes
+CHANGELOG.md               # release notes
 ```
 
 ## Why no build step
