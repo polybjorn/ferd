@@ -7507,15 +7507,15 @@
                 const note = (e.note || '').trim();
                 const shipped = e._source === 'shipped';
                 const hidden = !!e._hidden;
-                const tag = shipped
-                  ? '<span style="font-size:0.7rem;color:var(--muted);font-weight:400;margin-left:0.4rem">' + (hidden ? 'shipped · hidden' : 'shipped') + '</span>'
-                  : '';
+                // Source is conveyed by the action button (eye for shipped,
+                // Remove for local). Hidden state is conveyed by the row
+                // opacity + the eye-off glyph. No text tag.
                 const action = shipped
-                  ? '<button data-act="catalog-hide" data-hidden="' + (hidden ? '1' : '0') + '" class="catalog-eye-btn" title="' + (hidden ? 'Unhide' : 'Hide') + ' (suppresses for everyone)" aria-label="' + (hidden ? 'Unhide' : 'Hide') + '">' + (hidden ? eyeOff : eyeOn) + '</button>'
+                  ? '<button data-act="catalog-hide" data-hidden="' + (hidden ? '1' : '0') + '" class="catalog-eye-btn" title="' + (hidden ? 'Unhide for users' : 'Hide from users') + '" aria-label="' + (hidden ? 'Unhide' : 'Hide') + '">' + (hidden ? eyeOff : eyeOn) + '</button>'
                   : '<button data-act="catalog-delete" class="danger-btn">Remove</button>';
                 return '<li class="user-row" data-name="' + escapeHtml(e.name || '') + '"' + (hidden ? ' style="opacity:0.6"' : '') + '>' +
                   '<span class="user-name" style="min-width:0">' +
-                    '<span title="' + name + '" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + tag + '</span>' +
+                    '<span title="' + name + '" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</span>' +
                     (meta ? '<span style="display:block;font-size:0.72rem;color:var(--muted);font-weight:400">' + escapeHtml(meta) + '</span>' : '') +
                     (note ? '<span class="row-note">' + escapeHtml(note) + '</span>' : '') +
                   '</span>' +
