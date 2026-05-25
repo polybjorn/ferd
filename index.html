@@ -2932,7 +2932,7 @@
         let url;
         try { url = new URL(s, location.href); } catch { return escapeHtml(s); }
         if (url.protocol !== 'http:' && url.protocol !== 'https:') return escapeHtml(s);
-        return '<a href="' + escapeHtml(url.href) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(domainFromUrl(s)) + ' &#x2197;</a>';
+        return '<a href="' + escapeHtml(url.href) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(domainFromUrl(s)) + '</a>';
       }).join(' &middot; ');
     }
 
@@ -8409,14 +8409,12 @@
             '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
               '<button type="button" class="row-notes-toggle" id="browse-notes-toggle">Show notes</button>' +
               '<button type="button" class="row-notes-toggle" id="browse-select-all">Select all</button>' +
-              '<span id="browse-status" style="font-size:0.75rem;color:var(--muted);flex:1"></span>' +
-              '<button type="button" class="primary" id="browse-add" disabled>Add selected</button>' +
+              '<button type="button" class="primary" id="browse-add" disabled style="margin-left:auto">Add selected</button>' +
             '</div>';
 
           const filter = document.getElementById('browse-filter');
           const list = document.getElementById('browse-list');
           const addBtn = document.getElementById('browse-add');
-          const status = document.getElementById('browse-status');
           const selectAllBtn = document.getElementById('browse-select-all');
 
           function visibleRows() {
@@ -8481,16 +8479,15 @@
                 refreshPlaces().then(() => {
                   syncPlacesOnMap(prevColors);
                   if (errors.length) {
-                    status.textContent = '';
-                    addBtn.disabled = false;
+                    updateBtn();
                     showModalError(errors.length + ' of ' + picked.length + ' failed: ' + errors.join('; '));
                   } else {
                     closeModal();
                   }
-                }).catch(err => { addBtn.disabled = false; showModalError(err.message); });
+                }).catch(err => { updateBtn(); showModalError(err.message); });
                 return;
               }
-              status.textContent = 'Adding ' + (done + 1) + ' of ' + picked.length + '…';
+              addBtn.textContent = 'Adding ' + (done + 1) + ' of ' + picked.length + '…';
               api('POST', '/places', picked[done])
                 .catch(err => errors.push((picked[done].name || '?') + ': ' + err.message))
                 .then(() => { done++; next(); });
