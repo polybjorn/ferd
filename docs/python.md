@@ -15,7 +15,7 @@ python3 tools/api.py
 
 Open http://localhost:8091 and register the first account; that user becomes the admin. The defaults in `tools/config.json` bind to loopback and store data in the current directory. Most app configuration (appearance, publishing, sessions, admin tools) lives in the in-browser Settings dialog.
 
-To reach the site from other devices on your network, change `bind` to `0.0.0.0:8090` and set `secure_cookies: false` (required when there's no HTTPS in front).
+To reach the site from other devices on your network, change `bind` to `0.0.0.0:8091` and set `secure_cookies: false` (required when there's no HTTPS in front).
 
 ## Run it as a service
 
