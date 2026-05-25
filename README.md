@@ -31,7 +31,18 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 
 ## Install
 
-### Docker (recommended)
+### Python
+
+```sh
+git clone https://github.com/polybjorn/ferd.git
+cd ferd
+cp tools/config.example.json tools/config.json
+python3 tools/api.py
+```
+
+Open http://localhost:8091 and register the first account; that user becomes the admin. See [python.md](docs/python.md) for systemd/launchd service install, reverse proxy, and pre-seeded credentials.
+
+### Docker
 
 ```sh
 git clone https://github.com/polybjorn/ferd.git
@@ -42,18 +53,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Open http://localhost:8090 and register the first account; that user becomes the admin. See [docker.md](docs/docker.md) for tag tracks, reverse proxy, and updates.
-
-### Python
-
-```sh
-git clone https://github.com/polybjorn/ferd.git
-cd ferd
-cp tools/config.example.json tools/config.json
-python3 tools/api.py
-```
-
-Open http://localhost:8091 and register the first account. See [python.md](docs/python.md) for systemd/launchd service install, reverse proxy, and pre-seeded credentials.
+Open http://localhost:8090 and register the first account. See [docker.md](docs/docker.md) for tag tracks, reverse proxy, and updates.
 
 **Requirements:** Python 3.9+ (or Docker), a modern browser. No build step, no Node, no database server (SQLite file).
 
