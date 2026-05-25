@@ -40,8 +40,8 @@
   },
   {
     "name": "Fira",
-    "lat": 36.41831,
-    "lon": 25.42761,
+    "lat": 36.41907,
+    "lon": 25.43224,
     "category": "city",
     "country": "Greece",
     "local_name": "Φηρά",
@@ -53,8 +53,8 @@
   },
   {
     "name": "Ancient Thera",
-    "lat": 36.36363,
-    "lon": 25.4782,
+    "lat": 36.36464,
+    "lon": 25.47798,
     "category": "archaeological-site",
     "country": "Greece",
     "local_name": "Αρχαία Θήρα",
@@ -66,8 +66,8 @@
   },
   {
     "name": "Skaros",
-    "lat": 36.43121,
-    "lon": 25.42504,
+    "lat": 36.43246,
+    "lon": 25.41818,
     "category": "ruins",
     "country": "Greece",
     "local_name": "Σκάρος",
