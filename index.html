@@ -8183,7 +8183,10 @@
 
           addBtn.addEventListener('click', function() {
             const picked = Array.from(list.querySelectorAll('.browse-pick:checked'))
-              .map(cb => entries[parseInt(cb.dataset.idx, 10)]).filter(Boolean);
+              .map(cb => entries[parseInt(cb.dataset.idx, 10)])
+              .filter(Boolean)
+              // _source is a server-side UI tag; the place schema rejects it.
+              .map(e => { const { _source, ...rest } = e; return rest; });
             if (!picked.length) return;
             addBtn.disabled = true;
             const prevColors = Object.assign({}, state.categoryColors);
