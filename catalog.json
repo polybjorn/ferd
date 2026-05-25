@@ -1,8 +1,8 @@
 [
   {
     "name": "Acropolis of Lindos",
-    "lat": 36.091671,
-    "lon": 28.086362,
+    "lat": 36.09167,
+    "lon": 28.08636,
     "category": "ruins",
     "country": "Greece",
     "local_name": "Ακρόπολη της Λίνδου",
@@ -14,8 +14,8 @@
   },
   {
     "name": "Palace of the Grand Master",
-    "lat": 36.445771,
-    "lon": 28.223686,
+    "lat": 36.44577,
+    "lon": 28.22369,
     "category": "castle",
     "country": "Greece",
     "local_name": "Παλάτι του Μεγάλου Μαγίστρου",
@@ -27,8 +27,8 @@
   },
   {
     "name": "Kaputas Beach",
-    "lat": 36.228919,
-    "lon": 29.449123,
+    "lat": 36.22892,
+    "lon": 29.44912,
     "category": "beach",
     "country": "Turkey",
     "local_name": "Kaputaş Plajı",

@@ -2620,10 +2620,10 @@
       if (Number.isNaN(rawLat) || Number.isNaN(rawLon)) {
         return { error: 'Pick a location on the map (or enter coordinates manually).' };
       }
-      // Round to 6 decimals (~11 cm). Anything beyond is JS float noise and
+      // Round to 5 decimals (~1 m). Anything beyond is JS float noise and
       // pollutes the stored JSON; the marker is a 30-px dot anyway.
-      const lat = Math.round(rawLat * 1e6) / 1e6;
-      const lon = Math.round(rawLon * 1e6) / 1e6;
+      const lat = Math.round(rawLat * 1e5) / 1e5;
+      const lon = Math.round(rawLon * 1e5) / 1e5;
       const payload = {
         name: val('name').trim(),
         lat,
@@ -7862,14 +7862,14 @@
           '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem">' +
             '<button type="button" class="primary" id="pick-on-map" style="flex:0 0 auto">' + (c ? 'Re-pick on map' : 'Pick on map') + '</button>' +
             (c
-              ? '<span id="p-coords-display" style="font-size:0.78rem;color:var(--text)">' + c.lat.toFixed(6) + ', ' + c.lng.toFixed(6) + '</span>'
+              ? '<span id="p-coords-display" style="font-size:0.78rem;color:var(--text)">' + c.lat.toFixed(5) + ', ' + c.lng.toFixed(5) + '</span>'
               : '<a href="#" id="p-coords-manual" style="font-size:0.7rem;color:var(--muted);text-decoration:underline">or enter manually</a>') +
           '</div>' +
           '<div class="collapsible" id="p-coords-fields">' +
             '<div class="collapsible-inner">' +
               '<div class="row" style="margin-top:0.4rem">' +
-                '<div><label for="p-lat">Latitude</label><input type="number" id="p-lat" step="any" value="' + (c ? c.lat.toFixed(6) : '') + '"></div>' +
-                '<div><label for="p-lon">Longitude</label><input type="number" id="p-lon" step="any" value="' + (c ? c.lng.toFixed(6) : '') + '"></div>' +
+                '<div><label for="p-lat">Latitude</label><input type="number" id="p-lat" step="any" value="' + (c ? c.lat.toFixed(5) : '') + '"></div>' +
+                '<div><label for="p-lon">Longitude</label><input type="number" id="p-lon" step="any" value="' + (c ? c.lng.toFixed(5) : '') + '"></div>' +
               '</div>' +
             '</div>' +
           '</div>' +
