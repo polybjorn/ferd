@@ -114,6 +114,14 @@ class ShippedCatalogTests(unittest.TestCase):
           msg=f"keys are out of canonical order. Expected {ordered}, got {keys}."
         )
 
+  def test_alphabetical_order(self):
+    names = [e.get("name", "") for e in self.entries]
+    expected = sorted(names, key=str.lower)
+    self.assertEqual(
+      names, expected,
+      msg="catalog entries must be sorted alphabetically by name (case-insensitive)."
+    )
+
   def test_required_fields_present(self):
     # validate_place enforces lat/lon/name, but the catalog convention also
     # treats category and country as required (the UI filters/groups on them).

@@ -107,7 +107,7 @@ To verify the static side end to end, run the dev server above, sign in, and do 
 
 `catalog.json` at the repo root is the community-curated baseline catalog that ships with every Ferd instance. To add a place:
 
-1. Append a new object to the array, following the canonical field order: `name`, `lat`, `lon`, `category`, `country`, `local_name`, `note`, `image`, `sources`.
+1. Add a new object to the array. Entries are sorted alphabetically by `name` (case-insensitive); insert in place rather than appending. Follow the canonical field order: `name`, `lat`, `lon`, `category`, `country`, `local_name`, `note`, `image`, `sources`.
 2. `lat`/`lon` to 5 decimals (~1 m; matches what the in-app map picker rounds to). Source from OSM Nominatim or by picking on the map in the app, not from Wikipedia's "geo" links - those are often village-center, not the specific landmark.
 3. `category` must be one of the slugs in `CATEGORY_VOCAB` (`tests/test_shipped_catalog.py`). To introduce a new slug, extend the set in the same PR.
 4. `local_name` should be the place's native script (e.g. `Ακρόπολη της Λίνδου`, `京都駅`), not a romanized transliteration. Skip if the native form is the same as `name`.
