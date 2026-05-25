@@ -82,7 +82,11 @@ Multiple themes x light/dark (see [themes.md](themes.md)). Always use CSS variab
 
 `.index-controls` is the top row on the Places and Trails list pages: search input (flex:1), optional Filters popover, primary Add button. Keep this row to three slots on mobile. New controls (grouping, secondary filters) belong in the popover, not as a fourth widget next to the Add button.
 
-Filters popover: `.filter-dropdown` wraps a `.filter-btn` and a `.filter-popover` anchored to the button's right edge. The popover holds a vertical stack of compact `<select>`s whose first option names the dimension as a bare noun ("Status", "Category", "Country", "Region", "Difficulty", "Rating", "Catalog"), so no per-select labels are needed. The bare noun reads as a header at rest and a hint about what changes when the user picks another option; "All X" / "Any X" prefixes were dropped because they implied the default was actively filtering. View-mode controls like "Group by" sit below a `.filter-divider` line. A `.filter-clear` text-link button at the bottom resets every select. When one or more narrowing filters are active, the button shows a `Filters (N)` badge with an accent border.
+Filters popover:
+- Markup: `.filter-dropdown` wraps a `.filter-btn` and a `.filter-popover` anchored to the button's right edge. The popover holds a vertical stack of compact `<select>`s.
+- Each select's first option is the dimension as a bare noun ("Status", "Category", "Country", "Region", "Difficulty", "Rating", "Catalog"), so no per-select labels are needed. "All X" / "Any X" prefixes were dropped because they implied the default was actively filtering.
+- View-mode controls like "Group by" sit below a `.filter-divider` line. A `.filter-clear` text-link button at the bottom resets every select.
+- When one or more narrowing filters are active, the button shows a `Filters (N)` badge with an accent border.
 
 ## UI copy
 
@@ -96,11 +100,11 @@ Filters popover: `.filter-dropdown` wraps a `.filter-btn` and a `.filter-popover
 Durations are 100-180ms. Easing is `ease-out` for entry, `ease-in` for exit. Every animation is wrapped in `@media (prefers-reduced-motion: reduce) { ... animation: none !important; transition: none !important; }` so reduced-motion users get instant transitions.
 
 Patterns:
-- **Entry from a class** (FAB appearing, tile picker opening): add the class when you create the element, then call `playEnter(el, cls)`. It forces a reflow and then strips the class, so the transition runs from the class state back to the base state. Without the reflow, the browser collapses both class changes into one paint and the transition never fires.
-- **Leave to a class** (FAB disappearing, tile picker closing): call `playLeave(el, cls, done)`. It adds the class, listens for `transitionend`, and falls back to a 300ms timer in case the transition is suppressed (reduced motion, or a `display: none` ancestor).
-- **One-shot keyframe pulse** (chip toggle feedback): `pulseChip(el)` removes any existing pulse class, forces a reflow via `forceReflow(el)`, then re-adds the class. It cleans up on `animationend`.
-- **Modal open/close**: handled by CSS keyframes on `.modal-backdrop` (fade) and `.modal-backdrop > .modal` (scale from 0.96 to 1). Close adds `.closing`, which fills forward to the leaving state.
-- **Tab fade**: `.modal [data-panel]:not([hidden]) { animation: tab-fade-in 160ms; }`. Runs whenever a panel becomes visible.
+- **Entry from a class** (FAB appearing, tile picker opening): `playEnter(el, cls)`. Forces a reflow so the transition fires when the class is stripped.
+- **Leave to a class** (FAB disappearing, tile picker closing): `playLeave(el, cls, done)`. Listens for `transitionend` with a 300ms fallback for suppressed transitions.
+- **One-shot keyframe pulse** (chip toggle feedback): `pulseChip(el)`.
+- **Modal open/close**: CSS keyframes on `.modal-backdrop` (fade) and `.modal-backdrop > .modal` (scale 0.96 -> 1). Close adds `.closing` for the leaving state.
+- **Tab fade**: `.modal [data-panel]:not([hidden]) { animation: tab-fade-in 160ms; }`.
 
 Don't animate map view changes that come from settings - those are explicit user actions, not UI flourishes.
 
