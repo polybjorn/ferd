@@ -25,7 +25,7 @@ See [configure.md](configure.md#data-files) for the full file-by-file table.
 
 ## Repository layout
 
-Three groups: directories, repo-meta files, then the rest. Directories and the rest sort alphabetically (case-insensitive); repo-meta follows a reading order.
+Three groups: directories, repo-meta files, then the rest. Alphabetical (case-insensitive) within each.
 
 ```
 deploy/
@@ -61,12 +61,12 @@ tools/
   config.example.json      # API config template
 vendor/                    # vendored third-party libs (see vendor/NOTICES.md)
 
-README.md
-LICENSE
-VERSION                    # app version (surfaced in /api/state)
-CONTRIBUTING.md            # how to run, test, and submit changes
-SECURITY.md                # account model, setup token, threat notes
 CHANGELOG.md               # release notes
+CONTRIBUTING.md            # how to run, test, and submit changes
+LICENSE
+README.md
+SECURITY.md                # account model, setup token, threat notes
+VERSION                    # app version (surfaced in /api/state)
 
 .dockerignore              # files excluded from image build context
 .env.example               # Docker env-var template
