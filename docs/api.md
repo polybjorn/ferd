@@ -108,7 +108,7 @@ Required: `name`, `lat`, `lon`. Optional: `category`, `country`, `visited`, `not
 **Route metadata entry** (one value in `metadata.json`, keyed by `Region/Route` or `Route`):
 
 ```json
-{ "source": "https://...", "date_hiked": "2024-07-15", "rating": 4,
+{ "source": "https://...", "date_completed": "2024-07-15", "rating": 4,
   "notes": "...", "tags": ["loop", "viewpoint"],
   "difficulty": "moderate", "local_name": "..." }
 ```

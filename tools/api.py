@@ -64,7 +64,7 @@ PLACE_ID_RE = re.compile(r"^[0-9a-f]{8}$")
 PLACE_ALL = PLACE_REQUIRED | PLACE_OPTIONAL
 
 # Route metadata fields and their constraints (used by /api/metadata).
-ROUTE_META_FIELDS = {"source", "date_hiked", "rating", "notes", "tags", "difficulty", "local_name"}
+ROUTE_META_FIELDS = {"source", "date_completed", "rating", "notes", "tags", "difficulty", "local_name"}
 ROUTE_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 ROUTE_TAG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
 ROUTE_DIFFICULTIES = ("easy", "moderate", "hard", "expert")
@@ -3042,11 +3042,11 @@ def validate_route_metadata(m: object) -> dict:
         raise ValidationError("source must be an http or https URL")
       out["source"] = s
 
-  d = m.get("date_hiked")
+  d = m.get("date_completed")
   if d is not None and d != "":
     if not isinstance(d, str) or not ROUTE_DATE_RE.match(d):
-      raise ValidationError("date_hiked must be YYYY-MM-DD")
-    out["date_hiked"] = d
+      raise ValidationError("date_completed must be YYYY-MM-DD")
+    out["date_completed"] = d
 
   r = m.get("rating")
   if r is not None and r != "":

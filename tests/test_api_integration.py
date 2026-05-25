@@ -785,7 +785,7 @@ class TestTrailMetadata(unittest.TestCase):
   def test_full_roundtrip(self):
     payload = {
       "source": "https://example.com/x",
-      "date_hiked": "2024-08-15",
+      "date_completed": "2024-08-15",
       "rating": 4,
       "notes": "Loved it. Stunning views.",
       "tags": ["summit", "panorama"],
@@ -817,7 +817,7 @@ class TestTrailMetadata(unittest.TestCase):
     self.assertEqual(self._put({"rating": "five"})[0], 400)
 
   def test_bad_date(self):
-    status, _ = self._put({"date_hiked": "yesterday"})
+    status, _ = self._put({"date_completed": "yesterday"})
     self.assertEqual(status, 400)
 
   def test_bad_difficulty(self):

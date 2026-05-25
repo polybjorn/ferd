@@ -2706,13 +2706,13 @@
       brand: 'Ferd',
       features: { places: true, routes: true },
       default_view: { center: [45, 10], zoom: 4 },
-      default_view_trails: { center: [59.5, 6.5], zoom: 10 },
+      default_view_routes: { center: [59.5, 6.5], zoom: 10 },
       category_labels: {},
       api_base: '/api',
     };
 
     function placesAvailable() { return state.config.features.places !== false; }
-    function routesAvailable() { return state.config.features.trails !== false; }
+    function routesAvailable() { return state.config.features.routes !== false; }
     function getHiddenFeatures() {
       try {
         const raw = localStorage.getItem('hidden-features');
@@ -3384,7 +3384,7 @@
       // Render each slot even if empty so the columns hold their position.
       const diffSlot = route.difficulty ? escapeHtml(DIFFICULTY_LABELS[route.difficulty] || route.difficulty) : '';
       const rateSlot = route.rating ? '<span title="' + route.rating + '/5">' + ratingStarsText(route.rating) + '</span>' : '';
-      const dateSlot = route.date_hiked ? escapeHtml(route.date_hiked) : '';
+      const dateSlot = route.date_completed ? escapeHtml(route.date_completed) : '';
       if (diffSlot || rateSlot || dateSlot) {
         html += '<div class="popup-summary">' +
           '<span>' + diffSlot + '</span>' +
@@ -3476,8 +3476,8 @@
             '<div class="collapsible' + (route.completed ? ' expanded' : '') + '" id="tm-completed-extras">' +
               '<div class="collapsible-inner">' +
                 (getShowField('date') ?
-                  '<label for="tm-date">Date hiked</label>' +
-                  '<input type="date" id="tm-date" value="' + escapeHtml(route.date_hiked || '') + '">'
+                  '<label for="tm-date">Date completed</label>' +
+                  '<input type="date" id="tm-date" value="' + escapeHtml(route.date_completed || '') + '">'
                 : '') +
                 (getShowField('rating') ?
                   '<label for="tm-rating">Rating</label>' +
@@ -3529,7 +3529,7 @@
             const notes = get('tm-notes');
             const localName = get('tm-local-name').trim();
             const metadata = {};
-            if (dateVal) metadata.date_hiked = dateVal;
+            if (dateVal) metadata.date_completed = dateVal;
             if (ratingRaw) metadata.rating = parseInt(ratingRaw, 10);
             if (difficulty) metadata.difficulty = difficulty;
             if (tags.length) metadata.tags = tags;
@@ -3598,7 +3598,7 @@
       app.innerHTML = '<div id="map"></div>';
 
       const dv = prevView || storedView || ((!placesEnabled() && routesEnabled())
-        ? (state.config.default_view_trails || DEFAULT_CONFIG.default_view_trails)
+        ? (state.config.default_view_routes || DEFAULT_CONFIG.default_view_routes)
         : (state.config.default_view || DEFAULT_CONFIG.default_view));
       const map = L.map('map', {
         zoomControl: true,
@@ -5559,7 +5559,7 @@
       facts.push('<span class="fact">' + escapeHtml(displayRegion(regionName)) + '</span>');
       if (route.difficulty) facts.push('<span class="fact">' + escapeHtml(DIFFICULTY_LABELS[route.difficulty] || route.difficulty) + '</span>');
       if (route.rating) facts.push('<span class="fact" title="' + route.rating + '/5">' + ratingStarsText(route.rating) + '</span>');
-      if (route.date_hiked) facts.push('<span class="fact">' + escapeHtml(route.date_hiked) + '</span>');
+      if (route.date_completed) facts.push('<span class="fact">' + escapeHtml(route.date_completed) + '</span>');
 
       const showActions = state.auth.authenticated && !isReadOnly();
       const hasTags = route.tags && route.tags.length;
@@ -5614,7 +5614,7 @@
         openEditTrailMetadataModal(route, regionName);
       });
 
-      const dvt = state.config.default_view_trails || DEFAULT_CONFIG.default_view_trails;
+      const dvt = state.config.default_view_routes || DEFAULT_CONFIG.default_view_routes;
       const map = L.map('map', {
         zoomControl: true,
         attributionControl: false,
@@ -8204,7 +8204,7 @@
             '<div class="collapsible" id="g-completed-extras">' +
               '<div class="collapsible-inner">' +
                 (getShowField('date') ?
-                  '<label for="g-date">Date hiked</label>' +
+                  '<label for="g-date">Date completed</label>' +
                   '<input type="date" id="g-date">'
                 : '') +
                 (getShowField('rating') ?
@@ -8300,7 +8300,7 @@
           // dashed overlay. Toggling "completed" saves the walked variant.
           const storedName = completed ? name : (name + '.planned');
 
-          // Optional metadata. date_hiked + rating only apply to completed routes.
+          // Optional metadata. date_completed + rating only apply to completed routes.
           // Each field may be hidden by user preference; guard with optional chaining.
           const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
           const source = get('g-source').trim();
@@ -8317,7 +8317,7 @@
           if (completed) {
             const dateVal = get('g-date').trim();
             const ratingRaw = readStarRating('g-rating');
-            if (dateVal) metadata.date_hiked = dateVal;
+            if (dateVal) metadata.date_completed = dateVal;
             if (ratingRaw) metadata.rating = parseInt(ratingRaw, 10);
           }
           const metaKey = region ? region + '/' + name : name;

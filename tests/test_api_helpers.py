@@ -178,7 +178,7 @@ class TestValidatePlace(unittest.TestCase):
     self.assertEqual(out["rating"], 4)
 
   def test_date_visited_bad(self):
-    # Regex-level validation (matches the route date_hiked behavior). Bogus
+    # Regex-level validation (matches the route date_completed behavior). Bogus
     # months like 2024-13-01 pass the regex; that's a known limitation.
     for bad in ("2024/07/15", "yesterday", "07-15-2024", 123):
       with self.assertRaises(api.ValidationError):

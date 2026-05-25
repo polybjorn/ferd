@@ -109,7 +109,7 @@ for key, route in routes.items():
         route["trackNames"] = track_names
 
     meta = metadata.get(key, {})
-    for f in ("source", "date_hiked", "rating", "notes", "tags", "difficulty", "local_name"):
+    for f in ("source", "date_completed", "rating", "notes", "tags", "difficulty", "local_name"):
         if f in meta:
             route[f] = meta[f]
 
@@ -132,7 +132,7 @@ for route in routes.values():
     if "trackCount" in route:
         entry["trackCount"] = route["trackCount"]
         entry["trackNames"] = route["trackNames"]
-    for f in ("source", "date_hiked", "rating", "notes", "tags", "difficulty", "local_name"):
+    for f in ("source", "date_completed", "rating", "notes", "tags", "difficulty", "local_name"):
         if f in route:
             entry[f] = route[f]
     regions[rname]["routes"].append(entry)
