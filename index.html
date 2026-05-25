@@ -5040,6 +5040,11 @@
                 countries.map(c => '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>').join('') +
               '</select>'
               : '') +
+            '<select id="filter-catalog">' +
+              '<option value="all">All places</option>' +
+              '<option value="from-catalog">From catalog</option>' +
+              '<option value="updates-available">Updates available</option>' +
+            '</select>' +
             '<div class="filter-divider"></div>' +
             '<select id="filter-group-by">' +
               '<option value="category"' + (state.groupBy === 'category' ? ' selected' : '') + '>Group by category</option>' +
@@ -5059,10 +5064,11 @@
       const statusSel = document.getElementById('filter-status');
       const catSel = document.getElementById('filter-category');
       const countrySel = document.getElementById('filter-country');
+      const catalogSel = document.getElementById('filter-catalog');
       const filterBtn = document.getElementById('filter-btn');
       const filterPop = document.getElementById('filter-popover');
       const filterClear = document.getElementById('filter-clear');
-      const filterSels = [statusSel, catSel, countrySel].filter(Boolean);
+      const filterSels = [statusSel, catSel, countrySel, catalogSel].filter(Boolean);
       function updateFilterBtnLabel() {
         const n = filterSels.reduce((acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
         if (filterBtn) {
@@ -5112,6 +5118,8 @@
       const wantStatus = statusEl ? statusEl.value : 'all';
       const wantCat = catEl ? catEl.value : 'all';
       const wantCountry = countryEl ? countryEl.value : 'all';
+      const catalogEl = document.getElementById('filter-catalog');
+      const wantCatalog = catalogEl ? catalogEl.value : 'all';
       const filtered = state.places.filter(p => {
         if (q && !(
           p.name.toLowerCase().includes(q) ||
@@ -5123,6 +5131,8 @@
         if (wantStatus === 'want' && p.visited) return false;
         if (wantCat !== 'all' && p.category !== wantCat) return false;
         if (wantCountry !== 'all' && p.country !== wantCountry) return false;
+        if (wantCatalog === 'from-catalog' && !p.from_catalog) return false;
+        if (wantCatalog === 'updates-available' && !findCatalogUpdate(p)) return false;
         return true;
       });
       const grouped = {};
@@ -5172,19 +5182,8 @@
         html += '</div></div>';
       }
       if (!html) html = '<div class="loading">No matches</div>';
-      // Prepend the "catalog has updates" notice as a column-spanning header
-      // so the place groups underneath still flow tight in both columns.
-      const upd = placesWithCatalogUpdates().length;
-      if (upd) {
-        html = '<div class="catalog-updates-notice">' +
-          '<span>Catalog has updated ' + upd + ' of your places.</span>' +
-          '<button type="button" id="catalog-bulk-update">Refresh all</button>' +
-        '</div>' + html;
-      }
       const listEl = document.getElementById('place-list');
       listEl.innerHTML = html;
-      const bulkBtn = document.getElementById('catalog-bulk-update');
-      if (bulkBtn) bulkBtn.addEventListener('click', openCatalogBulkUpdateModal);
       // Catalog badge clicks stay on the place-card (which navigates to the
       // map via inline onclick); stop propagation and open the update modal
       // instead.
