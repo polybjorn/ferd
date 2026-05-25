@@ -86,16 +86,21 @@ if [ -e "$PREFIX" ]; then
 fi
 if confirm "  proceed?"; then
     install -d -m 0755 -o "$SVC_USER" -g "$SVC_USER" "$PREFIX"
-    install -d -m 0755 -o "$SVC_USER" -g "$SVC_USER" "$PREFIX/tools" "$PREFIX/deploy" "$PREFIX/gpx" "$PREFIX/icons" "$PREFIX/scripts"
+    install -d -m 0755 -o "$SVC_USER" -g "$SVC_USER" "$PREFIX/tools" "$PREFIX/deploy" "$PREFIX/gpx" "$PREFIX/icons" "$PREFIX/scripts" "$PREFIX/vendor"
 
-    for f in index.html site-config.example.json LICENSE; do
+    for f in index.html sw.js catalog.json VERSION site-config.example.json LICENSE; do
         if [ -f "$SRC_DIR/$f" ]; then
             install -m 0644 -o "$SVC_USER" -g "$SVC_USER" "$SRC_DIR/$f" "$PREFIX/$f"
         fi
     done
-    if [ -f "$SRC_DIR/icons/favicon.svg" ]; then
-        install -m 0644 -o "$SVC_USER" -g "$SVC_USER" "$SRC_DIR/icons/favicon.svg" "$PREFIX/icons/favicon.svg"
-    fi
+    for d in icons vendor; do
+        if [ -d "$SRC_DIR/$d" ]; then
+            cp -R "$SRC_DIR/$d/." "$PREFIX/$d/"
+            chown -R "$SVC_USER:$SVC_USER" "$PREFIX/$d"
+            find "$PREFIX/$d" -type d -exec chmod 0755 {} +
+            find "$PREFIX/$d" -type f -exec chmod 0644 {} +
+        fi
+    done
     if [ -f "$SRC_DIR/scripts/gpx-manifest.sh" ]; then
         install -m 0755 -o "$SVC_USER" -g "$SVC_USER" "$SRC_DIR/scripts/gpx-manifest.sh" "$PREFIX/scripts/gpx-manifest.sh"
     fi

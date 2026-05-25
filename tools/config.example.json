@@ -2,6 +2,7 @@
   "bind": "127.0.0.1:8091",
   "db_path": "tools/app.db",
   "data_dir": ".",
+  "static_dir": ".",
   "manifest_cmd": "./scripts/gpx-manifest.sh",
   "initial_user": null,
   "initial_password": null,
