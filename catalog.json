@@ -104,6 +104,19 @@
     ]
   },
   {
+    "name": "Rialto Bridge",
+    "lat": 45.4381,
+    "lon": 12.3358,
+    "category": "bridge",
+    "country": "Italy",
+    "local_name": "Ponte di Rialto",
+    "note": "16th-century stone arch over the Grand Canal",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Rialto_2025_4.jpg/1280px-Rialto_2025_4.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Rialto_Bridge"
+    ]
+  },
+  {
     "name": "Skaros",
     "lat": 36.43246,
     "lon": 25.41818,
