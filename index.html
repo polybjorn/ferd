@@ -5043,6 +5043,7 @@
             '<select id="filter-catalog">' +
               '<option value="all">Catalog</option>' +
               '<option value="from-catalog">From catalog</option>' +
+              '<option value="not-from-catalog">Not from catalog</option>' +
               '<option value="updates-available">Updates available</option>' +
             '</select>' +
             '<div class="filter-divider"></div>' +
@@ -5132,6 +5133,7 @@
         if (wantCat !== 'all' && p.category !== wantCat) return false;
         if (wantCountry !== 'all' && p.country !== wantCountry) return false;
         if (wantCatalog === 'from-catalog' && !p.from_catalog) return false;
+        if (wantCatalog === 'not-from-catalog' && p.from_catalog) return false;
         if (wantCatalog === 'updates-available' && !findCatalogUpdate(p)) return false;
         return true;
       });
