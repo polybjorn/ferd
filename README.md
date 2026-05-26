@@ -74,9 +74,19 @@ Open http://localhost:8090 and register the first account. See [docker.md](docs/
 
 ## Roadmap
 
-- Print/PDF stylesheet for route and place details.
-- Auth hardening: optional TOTP 2FA.
-- Uploaded image attachments on places and routes (today: URL only).
-- Custom iOS launch splash (today: generic auto-rendered icon).
-- Distinctive logo (today: placeholder favicon).
-- Custom social preview image for the GitHub repo (today: GitHub avatar fallback).
+### Features
+- Print and PDF stylesheet for route and place details.
+- Uploaded image attachments on places and routes.
+
+### Authentication and security
+- Optional TOTP two-factor authentication.
+- Bearer-token authentication for non-browser clients.
+
+### Native clients
+- Configurable API base URL with a server-picker screen.
+- Android application via Trusted Web Activity.
+
+### Branding
+- Distinctive logo.
+- Custom iOS launch splash (PWA).
+- Custom social preview image for the GitHub repository.
