@@ -6,6 +6,13 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Fixed
 - Backup import now silently skips archiver junk entries (`__MACOSX/`, `._*`, `.DS_Store`, `Thumbs.db`, `desktop.ini`, `*.bak`, `*~`) instead of rejecting the whole zip. Zips made by macOS Finder, Windows Explorer, and editor backups now import without manual cleanup.
+- Install docs: python.md LAN-bind port corrected from 8090 to 8091.
+
+### Security
+- API handlers that touch the filesystem now verify the resolved path stays under the expected directory. The static handler also catches symlink escapes that the prior lexical check could not see.
+- GPX uploads reject DOCTYPE and entity declarations, blocking XML-bomb expansion (uploads remain admin-only).
+- Place and trail list rows escape backslashes when building inline click handlers.
+- The tests workflow runs with explicit read-only token permissions.
 
 ## [1.0.0] - 2026-05-25
 
