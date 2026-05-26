@@ -2547,6 +2547,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
       name = info.filename
       if name.startswith("/") or "\\" in name or ".." in name.split("/"):
         return self._error(HTTPStatus.BAD_REQUEST, f"invalid entry: {name}")
+      # Silently skip junk added by OS archivers: macOS resource forks
+      # (__MACOSX/, ._*), macOS folder metadata (.DS_Store), Windows
+      # (Thumbs.db, desktop.ini), and editor backups (*.bak, *~).
+      base = name.rsplit("/", 1)[-1]
+      if (name.startswith("__MACOSX/") or base.startswith("._")
+          or base in (".DS_Store", "Thumbs.db", "desktop.ini")
+          or base.endswith(".bak") or base.endswith("~")):
+        continue
       parts = name.split("/")
       if name in IMPORT_TOP_FILES:
         pass

@@ -1004,6 +1004,25 @@ class TestImport(unittest.TestCase):
     status, body = self._post_zip(self.c, "replace", zip_payload)
     self.assertEqual(status, 400, body)
 
+  def test_skips_archiver_junk(self):
+    # macOS Finder/zip, Windows, and editor backups frequently sneak junk
+    # entries into archives. The importer should silently ignore them.
+    fresh_places([])
+    zip_payload = self._make_zip({
+      "__MACOSX/._places.json": b"junk",
+      "._places.json": b"junk",
+      ".DS_Store": b"junk",
+      "Thumbs.db": b"junk",
+      "places.json.bak": b"junk",
+      "places.json~": b"junk",
+      "places.json": json.dumps([
+        {"name": "Real", "lat": 1, "lon": 2, "category": "x"},
+      ]).encode("utf-8"),
+    })
+    status, body = self._post_zip(self.c, "replace", zip_payload)
+    self.assertEqual(status, 200, body)
+    self.assertEqual(body["imported"]["places"], 1)
+
   def test_rejects_invalid_place(self):
     zip_payload = self._make_zip({
       "places.json": json.dumps([{"name": "BadLat", "lat": 999, "lon": 0, "category": "x"}]).encode("utf-8"),
