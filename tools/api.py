@@ -858,9 +858,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
     # Resolved containment check: in addition to the lexical traversal guard
     # above, verify the final resolved path stays under `base`. Catches symlink
     # escapes the lexical check can't see.
-    base_resolved = base.resolve()
-    target = (base_resolved / rel).resolve()
-    if target != base_resolved and not target.is_relative_to(base_resolved):
+    try:
+      target = resolve_under(base, rel)
+    except ValidationError:
       return self._send_plain(HTTPStatus.FORBIDDEN, b"forbidden")
     if not target.exists() or not target.is_file():
       return self._send_plain(HTTPStatus.NOT_FOUND, b"not found")
