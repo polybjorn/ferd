@@ -14,16 +14,13 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 - Browse places by category or country, routes by region.
 - Route detail with elevation profile and route stats.
 - Site catalog: browse and import community-curated places, or extend with your own.
+- Multiple built-in UI themes.
+- Pick a map tile layer independent of the theme, with adjustable filters.
 
-**Editing and multi-user**
-- Edit places and routes in the browser; optional GPX PII strip on upload.
+**Multi-user**
 - Per-user data isolation - each account is its own map.
 - Optional read-only public sharing at `/u/<username>/`.
-- Per-user zip import/export.
-- Admin tools: user management, site stats, registration and publishing toggles, audit log.
-
-**Customization**
-- Multiple built-in themes.
+- Admin tools: user management, site stats, registration and publishing toggles.
 
 **Installable and offline**
 - Add to your device for launch in its own window.
