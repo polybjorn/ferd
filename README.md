@@ -35,6 +35,8 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 
 **Footprint:** ~2 MB of code and assets. Python uses about 28 MB of memory at idle; the Docker image is 43 MiB compressed (211 MB on disk) and runs at roughly the same memory plus a small container overhead.
 
+For configuration, themes, the catalog, PWA install, the API, and architecture notes, see [docs/](docs/).
+
 ### Python
 
 ```sh
@@ -58,19 +60,6 @@ docker compose up -d
 ```
 
 Open http://localhost:8090 and register the first account. See [docker.md](docs/docker.md) for tag tracks, reverse proxy, and updates.
-
-## Documentation
-
-| Guide | Covers |
-| --- | --- |
-| [API](docs/api.md) | Every `/api/*` endpoint, for scripting. |
-| [Architecture](docs/architecture.md) | How the code is organized and where data lives. |
-| [Catalog](docs/catalog.md) | Curated places users can browse and import. |
-| [Configuration](docs/configure.md) | Settings and feature flags you can tweak. |
-| [Docker](docs/docker.md) | Run it in a container. |
-| [PWA](docs/pwa.md) | Install, offline behavior, maintenance. |
-| [Python](docs/python.md) | Run it as a plain Python process (LAN, systemd, launchd). |
-| [Themes](docs/themes.md) | Look and feel options, and how to add your own. |
 
 ## Roadmap
 
