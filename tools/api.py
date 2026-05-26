@@ -373,9 +373,9 @@ def seed_initial_user(conn: sqlite3.Connection, cfg: dict) -> None:
 def user_dir(cfg: dict, username: str) -> Path:
   """Per-user data folder: <data_dir>/users/<username>/. Caller must already
   have validated that `username` is one of the real DB usernames; we still run
-  it through safe_path_component as defense-in-depth."""
+  it through safe_path_component plus resolve_under containment as defense-in-depth."""
   base = Path(cfg["data_dir"]).resolve() / "users"
-  return base / safe_path_component(username)
+  return resolve_under(base, safe_path_component(username))
 
 
 def ensure_user_dir(cfg: dict, username: str) -> Path:
@@ -855,7 +855,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
     # Neither should be reachable through the static handler.
     if parts[0] in ("tools", "deploy", ".git"):
       return self._send_plain(HTTPStatus.FORBIDDEN, b"forbidden")
-    target = base / rel
+    # Resolved containment check: in addition to the lexical traversal guard
+    # above, verify the final resolved path stays under `base`. Catches symlink
+    # escapes the lexical check can't see.
+    base_resolved = base.resolve()
+    target = (base_resolved / rel).resolve()
+    if target != base_resolved and not target.is_relative_to(base_resolved):
+      return self._send_plain(HTTPStatus.FORBIDDEN, b"forbidden")
     if not target.exists() or not target.is_file():
       return self._send_plain(HTTPStatus.NOT_FOUND, b"not found")
     suffix = target.suffix.lower()
@@ -2035,15 +2041,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     udir = self._user_dir(user["username"])
     gpx_root = udir / "gpx"
-    src_dir = (gpx_root / old_region) if old_region else gpx_root
-    dst_dir = (gpx_root / new_region) if new_region else gpx_root
+    try:
+      src_dir = resolve_under(gpx_root, old_region) if old_region else resolve_under(gpx_root)
+      dst_dir = resolve_under(gpx_root, new_region) if new_region else resolve_under(gpx_root)
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
     # Move both the walked and planned variants if either exists.
     pairs = []  # (src_path, dst_path)
     for suffix in (".gpx", ".planned.gpx"):
-      src = src_dir / f"{route_name}{suffix}"
+      try:
+        src = resolve_under(src_dir, f"{route_name}{suffix}")
+        dst = resolve_under(dst_dir, f"{final_name}{suffix}")
+      except ValidationError as e:
+        return self._error(HTTPStatus.BAD_REQUEST, str(e))
       if src.is_file():
-        pairs.append((src, dst_dir / f"{final_name}{suffix}"))
+        pairs.append((src, dst))
     if not pairs:
       return self._error(HTTPStatus.NOT_FOUND, f"route not found: {key}")
     conflicts = [dst.name for src, dst in pairs if dst.exists() and dst != src]
@@ -2119,9 +2132,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
     udir = self._user_dir(user["username"])
-    base_dir = (udir / "gpx" / region) if region else (udir / "gpx")
-    walked = base_dir / f"{route_name}.gpx"
-    planned = base_dir / f"{route_name}.planned.gpx"
+    gpx_root = udir / "gpx"
+    try:
+      parts_walked = (region, f"{route_name}.gpx") if region else (f"{route_name}.gpx",)
+      parts_planned = (region, f"{route_name}.planned.gpx") if region else (f"{route_name}.planned.gpx",)
+      walked = resolve_under(gpx_root, *parts_walked)
+      planned = resolve_under(gpx_root, *parts_planned)
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
     if completed:
       if walked.is_file():
@@ -2863,10 +2881,12 @@ def safe_path_component(value: str) -> str:
 
 
 def resolve_under(base: Path, *parts: str) -> Path:
-  """Join base with sanitized components, then assert the result stays inside."""
-  candidate = base.joinpath(*parts).resolve()
+  """Join base with sanitized components, then assert the result stays inside.
+  Uses Path.resolve() + is_relative_to to make the containment check explicit
+  for static analyzers (CodeQL py/path-injection)."""
   base_resolved = base.resolve()
-  if base_resolved != candidate and base_resolved not in candidate.parents:
+  candidate = base_resolved.joinpath(*parts).resolve()
+  if candidate != base_resolved and not candidate.is_relative_to(base_resolved):
     raise ValidationError("path escapes base directory")
   return candidate
 
@@ -3115,12 +3135,51 @@ def validate_route_metadata(m: object) -> dict:
 
 # ---------- gpx PII strip + validation ----------
 
+def _safe_xml_fromstring(xml_bytes: bytes):
+  """Parse XML to an Element with internal DTD / entity declarations rejected
+  at the expat layer. This blocks billion-laughs / quadratic-blowup XML bombs
+  before any entity expansion happens. Raises ValidationError on parse error
+  or on any DOCTYPE/entity declaration. Builds the tree directly via expat +
+  ET.TreeBuilder because ET.XMLParser doesn't expose its expat parser on all
+  supported Python versions."""
+  from xml.parsers import expat
+  builder = ET.TreeBuilder()
+  parser = expat.ParserCreate(namespace_separator="}")
+
+  def _reject(*_a, **_kw):
+    raise ValidationError("XML DOCTYPE or entity declarations are not allowed")
+
+  def _start(name, attrs):
+    # expat with namespace_separator="}" emits names as "URI}local"; ET wants
+    # them as "{URI}local". Normalize on the fly. Same for attribute keys.
+    if "}" in name:
+      name = "{" + name
+    fixed = {("{" + k) if "}" in k else k: v for k, v in attrs.items()}
+    builder.start(name, fixed)
+
+  def _end(name):
+    if "}" in name:
+      name = "{" + name
+    builder.end(name)
+
+  parser.StartElementHandler = _start
+  parser.EndElementHandler = _end
+  parser.CharacterDataHandler = builder.data
+  parser.EntityDeclHandler = _reject
+  parser.UnparsedEntityDeclHandler = _reject
+  parser.StartDoctypeDeclHandler = _reject
+  parser.ExternalEntityRefHandler = lambda *_a, **_kw: False
+
+  try:
+    parser.Parse(xml_bytes, True)
+  except expat.ExpatError as e:
+    raise ValidationError(f"not valid XML: {e}")
+  return builder.close()
+
+
 def validate_gpx(xml_bytes: bytes) -> None:
   """Parse to confirm well-formed XML with a <gpx> root. Does not modify."""
-  try:
-    root = ET.fromstring(xml_bytes)
-  except ET.ParseError as e:
-    raise ValidationError(f"not valid XML: {e}")
+  root = _safe_xml_fromstring(xml_bytes)
   root_tag = root.tag.split("}", 1)[-1] if "}" in root.tag else root.tag
   if root_tag != "gpx":
     raise ValidationError(f"root element must be <gpx>, got <{root_tag}>")
@@ -3140,10 +3199,7 @@ def strip_gpx_pii(xml_bytes: bytes) -> bytes:
     ("xsi", "http://www.w3.org/2001/XMLSchema-instance"),
   ):
     ET.register_namespace(prefix, uri)
-  try:
-    root = ET.fromstring(xml_bytes)
-  except ET.ParseError as e:
-    raise ValidationError(f"not valid XML: {e}")
+  root = _safe_xml_fromstring(xml_bytes)
   root_tag = root.tag.split("}", 1)[-1] if "}" in root.tag else root.tag
   if root_tag != "gpx":
     raise ValidationError(f"root element must be <gpx>, got <{root_tag}>")

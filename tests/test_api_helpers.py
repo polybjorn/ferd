@@ -356,5 +356,38 @@ class TestParseBind(unittest.TestCase):
     self.assertEqual(api.parse_bind("::1:8090"), ("::1", 8090))
 
 
+class TestSafeXmlFromString(unittest.TestCase):
+  def test_plain_gpx_parses(self):
+    xml = b'<?xml version="1.0"?><gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>t</name></trk></gpx>'
+    root = api._safe_xml_fromstring(xml)
+    self.assertTrue(root.tag.endswith("gpx"))
+
+  def test_doctype_rejected(self):
+    xml = b'<?xml version="1.0"?><!DOCTYPE gpx><gpx/>'
+    with self.assertRaises(api.ValidationError):
+      api._safe_xml_fromstring(xml)
+
+  def test_internal_entity_rejected(self):
+    xml = (b'<?xml version="1.0"?>'
+           b'<!DOCTYPE lolz [<!ENTITY lol "lol">]>'
+           b'<gpx>&lol;</gpx>')
+    with self.assertRaises(api.ValidationError):
+      api._safe_xml_fromstring(xml)
+
+  def test_billion_laughs_rejected(self):
+    xml = (b'<?xml version="1.0"?>'
+           b'<!DOCTYPE lolz ['
+           b'<!ENTITY lol "lol">'
+           b'<!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">'
+           b']>'
+           b'<gpx>&lol2;</gpx>')
+    with self.assertRaises(api.ValidationError):
+      api._safe_xml_fromstring(xml)
+
+  def test_malformed_xml_rejected(self):
+    with self.assertRaises(api.ValidationError):
+      api._safe_xml_fromstring(b"<gpx><unclosed>")
+
+
 if __name__ == "__main__":
   unittest.main()

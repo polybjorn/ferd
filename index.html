@@ -5171,7 +5171,7 @@
         for (const p of items) {
           const statusClass = p.visited ? 'visited' : 'want';
           const href = '#/?focus=place:' + encodeURIComponent(p.name);
-          html += '<div class="place-card" onclick="location.hash=\'' + href.replace(/'/g, "\\'") + '\'">';
+          html += '<div class="place-card" onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
           html += '<span class="status-dot ' + statusClass + '"></span>';
           html += '<div class="place-text">';
           html += '<div class="name">' + escapeHtml(p.name) + '</div>';
@@ -5305,7 +5305,7 @@
           const ratingAttr = route.rating ? ' data-route-rating="' + Number(route.rating) + '"' : '';
           const tagAttr = (Array.isArray(route.tags) && route.tags.length) ? ' data-route-tags="' + escapeHtml(route.tags.map(t => String(t).toLowerCase()).join(',')) + '"' : '';
           const regionAttr = ' data-route-region="' + escapeHtml(region.name.toLowerCase()) + '"';
-          html += '<div class="route-card" data-route-search="' + escapeHtml(route.name.toLowerCase()) + '" data-route-status="' + statusClass + '"' + regionAttr + diffAttr + ratingAttr + tagAttr + ' onclick="location.hash=\'' + href.replace(/'/g, "\\'") + '\'">';
+          html += '<div class="route-card" data-route-search="' + escapeHtml(route.name.toLowerCase()) + '" data-route-status="' + statusClass + '"' + regionAttr + diffAttr + ratingAttr + tagAttr + ' onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
           html += '<span class="status-dot ' + statusClass + '"></span>';
           html += '<span class="name">' + escapeHtml(route.name) + '</span>';
           html += '</div>';
