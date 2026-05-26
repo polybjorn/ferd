@@ -32,7 +32,7 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 
 **Footprint:** ~2 MB of code and assets. Python uses about 28 MB of memory at idle; the Docker image is 43 MiB compressed (211 MB on disk) and runs at roughly the same memory plus a small container overhead.
 
-For configuration, themes, the catalog, PWA install, the API, and architecture notes, see [docs/](docs/).
+Full documentation in [docs/](docs/).
 
 ### Python
 
@@ -43,9 +43,11 @@ cp tools/config.example.json tools/config.json
 python3 tools/api.py
 ```
 
-Open http://localhost:8091 and register the first account; that user becomes the admin. See [python.md](docs/python.md) for systemd/launchd service install, reverse proxy, and pre-seeded credentials.
+Open http://localhost:8091 and register the first account. See [python.md](docs/python.md) for systemd/launchd setup, first-run hardening, and backups.
 
 ### Docker
+
+Quickstart against [`compose.yml`](compose.yml):
 
 ```sh
 git clone https://github.com/polybjorn/ferd.git
@@ -56,7 +58,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Open http://localhost:8090 and register the first account. See [docker.md](docs/docker.md) for tag tracks, reverse proxy, and updates.
+Open http://localhost:8090 and register the first account. See [docker.md](docs/docker.md) for tag tracks, FERD_* env vars, and data folder permissions.
 
 ## Roadmap
 
