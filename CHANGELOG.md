@@ -47,6 +47,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places and Routes list "Clear filters" no longer re-renders the list when no filters are active. The button is now a no-op in that state instead of causing a visible blink. It also clears the search input now, not just the filter dropdowns.
 - Places list: applying the last catalog update inside a group now fades the empty group header out alongside the card. Previously the header (with its `(0/N)` count) stayed visible until the next full re-render.
 - Map popup now refreshes in place after editing a place or applying a catalog update. Previously the popup kept showing the old image / note / fields until manually closed and reopened.
+- `image_focus` was silently dropped by `validate_place` (left out of the normalized output it builds). PUT /places looked successful but the field never landed on disk, so catalog updates that only touched `image_focus` kept showing "Update available" forever. Now preserved; whitespace-only / empty values are stripped as a no-op instead of erroring.
 
 ### Security
 - API handlers that touch the filesystem now verify the resolved path stays under the expected directory. The static handler also catches symlink escapes that the prior lexical check could not see.

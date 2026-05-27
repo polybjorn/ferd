@@ -126,6 +126,28 @@ class TestValidatePlace(unittest.TestCase):
     self.assertTrue(out["visited"])
     self.assertEqual(out["sources"], ["https://example.com/x"])
 
+  def test_image_focus_preserved(self):
+    # Regression: validate_place builds a normalized output that only includes
+    # fields it explicitly lists. image_focus was missing from that list, so a
+    # valid PUT silently dropped the value, leaving catalog updates with a
+    # permanent "Update available" diff.
+    for v in ("top", "bottom", "center", "left", "right", "50% 20%"):
+      out = api.validate_place(self.minimal(image_focus=v))
+      self.assertEqual(out["image_focus"], v, msg=f"image_focus {v!r} dropped during validate")
+
+  def test_image_focus_invalid_rejected(self):
+    for bad in ("topp", "100", "down", "50%", "50 50"):
+      with self.assertRaises(api.ValidationError):
+        api.validate_place(self.minimal(image_focus=bad))
+
+  def test_image_focus_empty_stripped(self):
+    # Empty/whitespace-only values are equivalent to "field not set" and must
+    # not land in the stored output (would fail the no-empty-optional catalog
+    # rule and clutter places.json).
+    for empty in ("", "   ", "\t", None):
+      out = api.validate_place(self.minimal(image_focus=empty))
+      self.assertNotIn("image_focus", out)
+
   def test_non_dict_rejected(self):
     with self.assertRaises(api.ValidationError):
       api.validate_place("not a dict")

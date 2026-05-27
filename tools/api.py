@@ -3030,8 +3030,11 @@ def validate_place(p: object) -> dict:
       raise ValidationError("image must be a string (<=1000 chars) or null")
     if urlparse(p["image"]).scheme.lower() not in ("http", "https"):
       raise ValidationError("image must be an http(s) URL")
-  if "image_focus" in p and p["image_focus"] is not None and p["image_focus"] != "":
-    if not isinstance(p["image_focus"], str) or not re.match(r"^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$", p["image_focus"].strip()):
+  if "image_focus" in p and p["image_focus"] is not None:
+    if not isinstance(p["image_focus"], str):
+      raise ValidationError("image_focus must be a string")
+    stripped = p["image_focus"].strip()
+    if stripped and not re.match(r"^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$", stripped):
       raise ValidationError("image_focus must be one of top/bottom/center/left/right or 'N% N%'")
   # `from_catalog` is the name of the catalog entry this place was imported
   # from; the UI uses it to hide already-imported entries in Browse and (later)
@@ -3077,6 +3080,8 @@ def validate_place(p: object) -> dict:
   for k in ("country", "note", "local_name", "sources", "image", "from_catalog"):
     if k in p and p[k] is not None:
       out[k] = p[k].strip() if isinstance(p[k], str) else p[k]
+  if "image_focus" in p and isinstance(p["image_focus"], str) and p["image_focus"].strip():
+    out["image_focus"] = p["image_focus"].strip()
   if "date_visited" in p and p["date_visited"]:
     out["date_visited"] = p["date_visited"]
   if "rating" in p and p["rating"] not in (None, ""):
