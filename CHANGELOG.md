@@ -8,8 +8,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Shipped catalog: 27 new entries.
 - `GET /api/health` for liveness checks; returns `{status: "ok", version}`.
 - Install docs and installer output now point at the source clone as the place to re-run `install.sh` from on updates.
-- Places list: new "Group by letter" filter option, with sections in Norwegian alphabetical order (A-Z, Æ, Ø, Å, then non-alphabetic starts as "#").
-- Trails list: new "Group by letter" filter option, alongside the existing region grouping. Same Norwegian ordering as places.
+- Places list: new "Group by letter" filter option. Letter buckets follow the browser's locale collation, so each user sees their own alphabetical order; non-Latin scripts get their own buckets; digit/punctuation starts go in "#".
+- Trails list: new "Group by letter" filter option, alongside the existing region grouping. Same locale-aware ordering as places.
 - Right-click (or long-press on touch) a place or trail card to open a context menu with Open on map, Edit, Open source (when present), Apply catalog update (places only, when applicable), and Delete.
 
 ### Changed

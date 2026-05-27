@@ -5149,23 +5149,24 @@
       updateFilterBtnLabel();
     }
 
-    // Bucket key for "Group by letter". Norwegian Æ/Ø/Å stay as their own
-    // letters; other diacritics fold to the base letter (Café -> C). Names
-    // starting with anything non-alphabetic (digit, punctuation) go in "#".
+    // Bucket key for "Group by letter". Keep the first character as-is for any
+    // Unicode letter (no folding) so non-Latin scripts get their own buckets
+    // alongside Latin ones. Non-letter starts (digits, punctuation) go in "#".
     function letterBucket(name) {
       const raw = (name || '').charAt(0);
-      if (/[ÆØÅæøå]/.test(raw)) return raw.toUpperCase();
-      const folded = (name || '').normalize('NFD').replace(/[̀-ͯ]/g, '').charAt(0);
-      return /[A-Za-z]/.test(folded) ? folded.toUpperCase() : '#';
+      if (!raw) return '#';
+      return /\p{L}/u.test(raw) ? raw.toUpperCase() : '#';
     }
-    // Norwegian alphabetical order: Æ/Ø/Å come after Z, "#" bucket last.
-    const LETTER_ORDER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ#';
+    // Locale-agnostic sort. Browser-default locale gives each user the
+    // ordering they expect (Norwegian: Æ Ø Å after Z; Swedish: Å Ä Ö; etc.).
+    // "#" bucket always last.
+    const NAME_COLLATOR = new Intl.Collator(undefined, { sensitivity: 'base' });
     function compareLetterKeys(a, b) {
-      const ia = LETTER_ORDER.indexOf(a);
-      const ib = LETTER_ORDER.indexOf(b);
-      return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+      if (a === '#' && b === '#') return 0;
+      if (a === '#') return 1;
+      if (b === '#') return -1;
+      return NAME_COLLATOR.compare(a, b);
     }
-    const NAME_COLLATOR = new Intl.Collator('nb', { sensitivity: 'base' });
 
     function renderPlaceList(query) {
       if (query === undefined) {
