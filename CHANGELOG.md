@@ -20,6 +20,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places list (Group by category): each section header is prefixed with a small dot in the category's palette color.
 
 ### Changed
+- "Native name" relabeled to "Local name" everywhere in the UI (edit and add modals, settings field-toggle, popups) to match the underlying `local_name` field. The per-browser "show local name" toggle key migrates from `show-native-name` to `show-local-name` on first load; the old key is removed.
 - Places list groups (by category, country, or letter) now list items alphabetically within each group instead of in insertion order. The chosen grouping is persisted across page reloads.
 - Routes list now lists routes alphabetically within each region (or letter). The chosen grouping is persisted across page reloads.
 - Routes list re-renders on filter changes instead of hiding cards with CSS. Empty groups disappear from the list rather than collapsing to zero height.
@@ -29,7 +30,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - "Add place" / "Add route" relabeled to "Add" so the button doesn't change width when switching tabs.
 - Filter popover "Clear filters" restyled as an accent-colored outline button.
 - Map popups for places and routes: removed the inline "Edit" link and the top-right copy-link icon (both now reachable via right-click). Top-right is now a "go to source" arrow that opens the entry's first source URL. The separate source line in the popup body is gone.
-- Native name in popups aligns to the right of the title on a single line and wraps to a separate left-aligned line when it doesn't fit. Middot separator removed.
+- Local name in popups aligns to the right of the title on a single line and wraps to a separate left-aligned line when it doesn't fit. Middot separator removed.
 - Right-click context menus rendered with a tighter minimum width.
 - Catalog update modal: strikethrough on a diff row now appears only when the field is checked (about to be replaced). Unchecked rows show both values without strikethrough, with the catalog value dimmed. The previous behavior struck whichever value "wouldn't survive" the action, which inverted the visual when toggling.
 - Category color palette: boosted saturation for higher contrast against dark surfaces. Hues are preserved, so existing per-category color assignments look the same as before, just denser.

@@ -2870,6 +2870,21 @@
     function placesEnabled() { return placesAvailable() && !getHiddenFeatures().has('places'); }
     function routesEnabled() { return routesAvailable() && !getHiddenFeatures().has('routes'); }
 
+    // One-shot rename of the per-browser "show local name field" toggle, which
+    // used the legacy `show-native-name` key before 1.1.0. Copy the old value
+    // over to the new key and drop the stale entry. Safe to leave indefinitely
+    // (no-op once both keys are absent); remove after a future release once
+    // we're confident no browsers carry the old key anymore.
+    try {
+      const oldKey = 'show-native-name';
+      const newKey = 'show-local-name';
+      const oldVal = localStorage.getItem(oldKey);
+      if (oldVal !== null && localStorage.getItem(newKey) === null) {
+        localStorage.setItem(newKey, oldVal);
+      }
+      if (oldVal !== null) localStorage.removeItem(oldKey);
+    } catch {}
+
     function getPref(key, def) {
       try { const v = localStorage.getItem(key); return v === null ? def : v; }
       catch { return def; }
@@ -3613,8 +3628,8 @@
         '<form id="route-meta-form">' +
           '<label for="tm-name">Name</label>' +
           '<input type="text" id="tm-name" required maxlength="64" value="' + escapeHtml(route.name) + '">' +
-          (getShowField('native-name') ?
-            '<label for="tm-local-name">Native name (optional)</label>' +
+          (getShowField('local-name') ?
+            '<label for="tm-local-name">Local name (optional)</label>' +
             '<input type="text" id="tm-local-name" placeholder="e.g. 金閣寺路" value="' + escapeHtml(route.local_name || '') + '">'
           : '') +
           '<label for="tm-region">Region</label>' +
@@ -4248,8 +4263,8 @@
         '<form id="edit-place-form">' +
           '<label for="e-name">Name</label>' +
           '<input type="text" id="e-name" required value="' + escapeHtml(place.name) + '">' +
-          (getShowField('native-name') ?
-            '<label for="e-local-name">Native name (optional)</label>' +
+          (getShowField('local-name') ?
+            '<label for="e-local-name">Local name (optional)</label>' +
             '<input type="text" id="e-local-name" placeholder="e.g. 東京" value="' + escapeHtml(place.local_name || '') + '">'
           : '') +
           '<div class="row">' +
@@ -4995,7 +5010,7 @@
     // Fields the catalog "owns" - personal status (visited / date_visited /
     // rating / from_catalog / runtime annotations) is preserved on refresh.
     const CATALOG_TRACKED_FIELDS = ['name', 'lat', 'lon', 'category', 'country', 'local_name', 'note', 'image', 'image_focus', 'sources'];
-    const CATALOG_FIELD_LABELS = { name: 'Name', lat: 'Latitude', lon: 'Longitude', category: 'Category', country: 'Country', local_name: 'Native name', note: 'Note', image: 'Image', image_focus: 'Image focus', sources: 'Sources' };
+    const CATALOG_FIELD_LABELS = { name: 'Name', lat: 'Latitude', lon: 'Longitude', category: 'Category', country: 'Country', local_name: 'Local name', note: 'Note', image: 'Image', image_focus: 'Image focus', sources: 'Sources' };
 
     // Returns { entry, changes: [{field, before, after}] } when the upstream
     // catalog entry for a place's from_catalog has diverged from the local
@@ -6719,7 +6734,7 @@
         (!isReadOnly() ?
           '<h3 class="settings-h">Optional fields</h3>' +
           '<div class="feature-pills">' +
-            [['date', 'Date'], ['image', 'Image'], ['native-name', 'Native name'], ['note', 'Note'], ['rating', 'Rating']]
+            [['date', 'Date'], ['image', 'Image'], ['local-name', 'Local name'], ['note', 'Note'], ['rating', 'Rating']]
               .map(([key, label]) =>
                 '<label class="feature-pill' + (getShowField(key) ? ' active' : '') + '"><input type="checkbox" data-field="' + key + '"' + (getShowField(key) ? ' checked' : '') + '>' + label + '</label>'
               ).join('') +
@@ -8843,8 +8858,8 @@
         return '<form id="place-form">' +
           '<label for="p-name">Name</label>' +
           '<input type="text" id="p-name" required placeholder="e.g. Acropolis">' +
-          (getShowField('native-name') ?
-            '<label for="p-local-name">Native name (optional)</label>' +
+          (getShowField('local-name') ?
+            '<label for="p-local-name">Local name (optional)</label>' +
             '<input type="text" id="p-local-name" placeholder="e.g. Ακρόπολη">'
           : '') +
           '<label>Coordinates</label>' +
@@ -8907,8 +8922,8 @@
         return '<form id="gpx-form">' +
           '<label for="g-name">Name</label>' +
           '<input type="text" id="g-name" required placeholder="e.g. Summit Loop">' +
-          (getShowField('native-name') ?
-            '<label for="g-local-name">Native name (optional)</label>' +
+          (getShowField('local-name') ?
+            '<label for="g-local-name">Local name (optional)</label>' +
             '<input type="text" id="g-local-name" placeholder="e.g. 金閣寺路">'
           : '') +
           '<label>GPX file</label>' +
