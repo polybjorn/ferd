@@ -2841,6 +2841,7 @@
       categoryColorsLight: {},
       // browse-list state
       groupBy: (function(){ try { return localStorage.getItem('places-group-by') || 'category'; } catch { return 'category'; } })(),
+      trailsGroupBy: (function(){ try { return localStorage.getItem('trails-group-by') || 'region'; } catch { return 'region'; } })(),
       // unified-map filter state
       hiddenCategories: new Set(),
       hiddenRegions: new Set(),
@@ -5313,37 +5314,17 @@
                 allTags.map(t => '<option value="' + escapeHtml(t) + '">' + escapeHtml(t) + '</option>').join('') +
               '</select>'
               : '') +
+            '<div class="filter-divider"></div>' +
+            '<select id="filter-group-by">' +
+              '<option value="region"' + (state.trailsGroupBy === 'region' ? ' selected' : '') + '>Group by region</option>' +
+              '<option value="letter"' + (state.trailsGroupBy === 'letter' ? ' selected' : '') + '>Group by letter</option>' +
+            '</select>' +
             '<button type="button" class="filter-clear" id="filter-clear">Clear filters</button>' +
           '</div>' +
         '</div>' +
         (canAddTrail ? '<button type="button" class="primary" id="add-route-btn">Add route</button>' : '') +
         '</div>';
-      html += '<div class="region-grid">';
-      for (const region of regions) {
-        const regionCompleted = region.routes.filter(r => r.completed).length;
-        const regionSearch = region.name.toLowerCase();
-        html += '<div class="region-group fade-in" data-region-search="' + escapeHtml(regionSearch) + '">';
-        html += '<div class="region-label">';
-        html += '<span class="section-link" data-filter-region="' + escapeHtml(region.name) + '" title="Show only this region on the map">' + escapeHtml(displayRegion(region.name)) + '</span>';
-        html += '<span class="route-count">(' + regionCompleted + '/' + region.routes.length + ')</span>';
-        html += '</div>';
-        html += '<div class="route-grid">';
-        const sortedRoutes = region.routes.slice().sort((a, b) => NAME_COLLATOR.compare(a.name || a.key || '', b.name || b.key || ''));
-        for (const route of sortedRoutes) {
-          const href = '#/routes/route/' + encodeURIComponent(route.key);
-          const statusClass = route.completed ? 'completed' : 'planned';
-          const diffAttr = route.difficulty ? ' data-route-difficulty="' + escapeHtml(route.difficulty) + '"' : '';
-          const ratingAttr = route.rating ? ' data-route-rating="' + Number(route.rating) + '"' : '';
-          const tagAttr = (Array.isArray(route.tags) && route.tags.length) ? ' data-route-tags="' + escapeHtml(route.tags.map(t => String(t).toLowerCase()).join(',')) + '"' : '';
-          const regionAttr = ' data-route-region="' + escapeHtml(region.name.toLowerCase()) + '"';
-          html += '<div class="route-card" data-route-search="' + escapeHtml(route.name.toLowerCase()) + '" data-route-status="' + statusClass + '"' + regionAttr + diffAttr + ratingAttr + tagAttr + ' onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
-          html += '<span class="status-dot ' + statusClass + '"></span>';
-          html += '<span class="name">' + escapeHtml(route.name) + '</span>';
-          html += '</div>';
-        }
-        html += '</div></div>';
-      }
-      html += '</div>';
+      html += '<div class="region-grid" id="trails-list-mount"></div>';
       app.innerHTML = html;
       const addTrailBtn = document.getElementById('add-route-btn');
       if (addTrailBtn) addTrailBtn.addEventListener('click', function() { openAddModal(null, 'route'); });
@@ -5353,9 +5334,11 @@
       const diffSel = document.getElementById('filter-difficulty');
       const ratingSel = document.getElementById('filter-rating');
       const tagSel = document.getElementById('filter-tag');
+      const groupBySel = document.getElementById('filter-group-by');
       const filterBtn = document.getElementById('filter-btn');
       const filterPop = document.getElementById('filter-popover');
       const filterClear = document.getElementById('filter-clear');
+      const mountEl = document.getElementById('trails-list-mount');
       const filterSels = [statusSel, regionSel, diffSel, ratingSel, tagSel].filter(Boolean);
       function updateFilterBtnLabel() {
         const n = filterSels.reduce((acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
@@ -5364,36 +5347,100 @@
           filterBtn.classList.toggle('has-active', n > 0);
         }
       }
-      function applyTrailFilters() {
+      // Flatten once: each entry pairs a route with its parent region name.
+      const flatRoutes = regions.flatMap(r => r.routes.map(rt => ({route: rt, region: r.name})));
+      function routeMatches(entry, q, wantStatus, wantRegion, wantDiff, wantRating, wantTag) {
+        const route = entry.route;
+        if (q) {
+          const inName = route.name.toLowerCase().includes(q);
+          const inRegion = entry.region.toLowerCase().includes(q);
+          if (!inName && !inRegion) return false;
+        }
+        if (wantStatus === 'completed' && !route.completed) return false;
+        if (wantStatus === 'planned' && route.completed) return false;
+        if (wantRegion !== 'all' && entry.region.toLowerCase() !== wantRegion) return false;
+        if (wantDiff !== 'all' && route.difficulty !== wantDiff) return false;
+        if (wantRating === 'unrated' && route.rating) return false;
+        if (wantRating !== 'all' && wantRating !== 'unrated' && String(route.rating || '') !== wantRating) return false;
+        if (wantTag !== 'all') {
+          const tags = Array.isArray(route.tags) ? route.tags.map(t => String(t).toLowerCase()) : [];
+          if (!tags.includes(wantTag)) return false;
+        }
+        return true;
+      }
+      function renderTrailsList() {
         const q = (searchInput && searchInput.value.trim().toLowerCase()) || '';
         const wantStatus = statusSel ? statusSel.value : 'all';
         const wantRegion = regionSel ? regionSel.value : 'all';
         const wantDiff = diffSel ? diffSel.value : 'all';
         const wantRating = ratingSel ? ratingSel.value : 'all';
         const wantTag = tagSel ? tagSel.value : 'all';
-        app.querySelectorAll('.region-group').forEach(function(group) {
-          const regionMatch = !q || group.dataset.regionSearch.includes(q);
-          let visibleCount = 0;
-          group.querySelectorAll('.route-card').forEach(function(card) {
-            const textMatch = !q || regionMatch || card.dataset.routeSearch.includes(q);
-            const statusMatch = wantStatus === 'all' || card.dataset.routeStatus === wantStatus;
-            const regionOk = wantRegion === 'all' || card.dataset.routeRegion === wantRegion;
-            const diffMatch = wantDiff === 'all' || card.dataset.routeDifficulty === wantDiff;
-            const ratingOk = wantRating === 'all'
-              || (wantRating === 'unrated' && !card.dataset.routeRating)
-              || (card.dataset.routeRating === wantRating);
-            const tagOk = wantTag === 'all'
-              || (card.dataset.routeTags && card.dataset.routeTags.split(',').includes(wantTag));
-            const match = textMatch && statusMatch && regionOk && diffMatch && ratingOk && tagOk;
-            card.style.display = match ? '' : 'none';
-            if (match) visibleCount++;
+        const filtered = flatRoutes.filter(e => routeMatches(e, q, wantStatus, wantRegion, wantDiff, wantRating, wantTag));
+        const byLetter = state.trailsGroupBy === 'letter';
+        const grouped = {};
+        for (const entry of filtered) {
+          const key = byLetter ? letterBucket(entry.route.name) : entry.region;
+          (grouped[key] = grouped[key] || []).push(entry);
+        }
+        for (const key in grouped) {
+          grouped[key].sort((a, b) => NAME_COLLATOR.compare(a.route.name || a.route.key || '', b.route.name || b.route.key || ''));
+        }
+        const keys = byLetter
+          ? Object.keys(grouped).sort(compareLetterKeys)
+          : Object.keys(grouped).sort((a, b) => {
+              if (a === '') return 1;
+              if (b === '') return -1;
+              return a.localeCompare(b);
+            });
+        let inner = '';
+        for (const key of keys) {
+          const items = grouped[key];
+          const keyCompleted = items.filter(e => e.route.completed).length;
+          inner += '<div class="region-group fade-in">';
+          inner += '<div class="region-label">';
+          if (byLetter) {
+            inner += '<span>' + escapeHtml(key) + '</span>';
+          } else {
+            inner += '<span class="section-link" data-filter-region="' + escapeHtml(key) + '" title="Show only this region on the map">' + escapeHtml(displayRegion(key)) + '</span>';
+          }
+          inner += '<span class="route-count">(' + keyCompleted + '/' + items.length + ')</span>';
+          inner += '</div>';
+          inner += '<div class="route-grid">';
+          for (const entry of items) {
+            const route = entry.route;
+            const href = '#/routes/route/' + encodeURIComponent(route.key);
+            const statusClass = route.completed ? 'completed' : 'planned';
+            inner += '<div class="route-card" onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
+            inner += '<span class="status-dot ' + statusClass + '"></span>';
+            inner += '<span class="name">' + escapeHtml(route.name) + '</span>';
+            inner += '</div>';
+          }
+          inner += '</div></div>';
+        }
+        mountEl.innerHTML = inner;
+        mountEl.querySelectorAll('.section-link[data-filter-region]').forEach(function(label) {
+          label.addEventListener('click', function() {
+            const r = label.dataset.filterRegion;
+            const allRegions = regions.map(x => x.name);
+            state.hiddenRegions = new Set(allRegions.filter(x => x !== r));
+            // Strong intent: "show only this region". Hide all places too;
+            // user can re-enable from the filter panel.
+            const allCats = Object.keys(state.categoryColors);
+            state.hiddenCategories = new Set(allCats);
+            state.showCompleted = true;
+            state.showPlanned = true;
+            location.hash = '#/';
           });
-          group.style.display = visibleCount > 0 ? '' : 'none';
         });
         updateFilterBtnLabel();
       }
-      if (searchInput) searchInput.addEventListener('input', applyTrailFilters);
-      filterSels.forEach(s => s.addEventListener('change', applyTrailFilters));
+      if (searchInput) searchInput.addEventListener('input', renderTrailsList);
+      filterSels.forEach(s => s.addEventListener('change', renderTrailsList));
+      if (groupBySel) groupBySel.addEventListener('change', function() {
+        state.trailsGroupBy = this.value;
+        setPref('trails-group-by', this.value);
+        renderTrailsList();
+      });
       if (filterBtn && filterPop) {
         filterBtn.addEventListener('click', function(e) {
           e.stopPropagation();
@@ -5411,23 +5458,9 @@
       }
       if (filterClear) filterClear.addEventListener('click', function() {
         filterSels.forEach(s => { s.value = 'all'; });
-        applyTrailFilters();
+        renderTrailsList();
       });
-      updateFilterBtnLabel();
-      app.querySelectorAll('.section-link[data-filter-region]').forEach(function(label) {
-        label.addEventListener('click', function() {
-          const r = label.dataset.filterRegion;
-          const allRegions = regions.map(x => x.name);
-          state.hiddenRegions = new Set(allRegions.filter(x => x !== r));
-          // Strong intent: "show only this region". Hide all places too;
-          // user can re-enable from the filter panel.
-          const allCats = Object.keys(state.categoryColors);
-          state.hiddenCategories = new Set(allCats);
-          state.showCompleted = true;
-          state.showPlanned = true;
-          location.hash = '#/';
-        });
-      });
+      renderTrailsList();
 
       // Warm the SW cache so clicking a route from the list gets an
       // already-cached GPX response and renders the polyline immediately.

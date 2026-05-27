@@ -9,10 +9,12 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - `GET /api/health` for liveness checks; returns `{status: "ok", version}`.
 - Install docs and installer output now point at the source clone as the place to re-run `install.sh` from on updates.
 - Places list: new "Group by letter" filter option, with sections in Norwegian alphabetical order (A-Z, Æ, Ø, Å, then non-alphabetic starts as "#").
+- Trails list: new "Group by letter" filter option, alongside the existing region grouping. Same Norwegian ordering as places.
 
 ### Changed
 - Places list groups (by category, country, or letter) now list items alphabetically within each group instead of in insertion order. The chosen grouping is persisted across page reloads.
-- Trails list now lists routes alphabetically within each region.
+- Trails list now lists routes alphabetically within each region (or letter). The chosen grouping is persisted across page reloads.
+- Trails list re-renders on filter changes instead of hiding cards with CSS. Empty groups disappear from the list rather than collapsing to zero height.
 
 ### Fixed
 - Backup import now silently skips archiver junk entries (`__MACOSX/`, `._*`, `.DS_Store`, `Thumbs.db`, `desktop.ini`, `*.bak`, `*~`) instead of rejecting the whole zip. Zips made by macOS Finder, Windows Explorer, and editor backups now import without manual cleanup.
