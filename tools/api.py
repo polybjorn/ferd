@@ -59,7 +59,7 @@ GPX_NS = "http://www.topografix.com/GPX/1/1"
 # dot-dot whole-string rejection lives in safe_path_component itself.
 PATH_COMPONENT_RE = re.compile(r"^[^\x00-\x1f/\\]{1,255}$")
 PLACE_REQUIRED = {"name", "lat", "lon"}
-PLACE_OPTIONAL = {"id", "category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating", "image", "from_catalog"}
+PLACE_OPTIONAL = {"id", "category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating", "image", "from_catalog", "catalog_skip"}
 PLACE_ID_RE = re.compile(r"^[0-9a-f]{8}$")
 PLACE_ALL = PLACE_REQUIRED | PLACE_OPTIONAL
 
@@ -3022,6 +3022,25 @@ def validate_place(p: object) -> dict:
   if "from_catalog" in p and p["from_catalog"] is not None and p["from_catalog"] != "":
     if not isinstance(p["from_catalog"], str) or len(p["from_catalog"]) > 200:
       raise ValidationError("from_catalog must be a string (<=200 chars) or null")
+  # `catalog_skip` records catalog-tracked fields the user has opted out of
+  # for this place, mapped to the catalog value at the time of opt-out. Used
+  # to suppress "Update available" for diffs the user has already considered;
+  # if the catalog value later changes, the field reappears as a new update.
+  if "catalog_skip" in p and p["catalog_skip"] is not None:
+    cs = p["catalog_skip"]
+    if not isinstance(cs, dict) or len(cs) > 20:
+      raise ValidationError("catalog_skip must be an object (<=20 entries)")
+    for k, v in cs.items():
+      if not isinstance(k, str) or not k or len(k) > 64:
+        raise ValidationError("catalog_skip keys must be non-empty strings (<=64 chars)")
+      if v is not None and not isinstance(v, (str, int, float, bool, list)):
+        raise ValidationError("catalog_skip values must be JSON scalars or lists")
+      if isinstance(v, list):
+        if len(v) > 50:
+          raise ValidationError("catalog_skip list values capped at 50 items")
+        for item in v:
+          if not isinstance(item, (str, int, float, bool)) or (isinstance(item, str) and len(item) > 500):
+            raise ValidationError("catalog_skip list items must be JSON scalars (strings <=500 chars)")
   # `id` is a server-assigned per-row identifier (8-char hex). On create the
   # client never sets it; on update the client echoes back what GET returned.
   if "id" in p and p["id"] is not None and p["id"] != "":
@@ -3045,6 +3064,8 @@ def validate_place(p: object) -> dict:
     out["date_visited"] = p["date_visited"]
   if "rating" in p and p["rating"] not in (None, ""):
     out["rating"] = p["rating"]
+  if isinstance(p.get("catalog_skip"), dict) and p["catalog_skip"]:
+    out["catalog_skip"] = p["catalog_skip"]
   return out
 
 

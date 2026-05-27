@@ -613,8 +613,21 @@
     .filter-popover label { display: block; font-size: 0.7rem; color: var(--muted); margin-bottom: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
     .filter-popover select { width: 100%; padding: 0.45rem 0.6rem; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 0.85rem; font-family: inherit; cursor: pointer; outline: none; }
     .filter-popover select:focus { border-color: var(--accent); }
-    .filter-popover .filter-clear { background: transparent; border: none; color: var(--muted); font-size: 0.75rem; cursor: pointer; padding: 0; text-align: left; }
-    .filter-popover .filter-clear:hover { color: var(--text); text-decoration: underline; }
+    .filter-popover .filter-clear {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-family: inherit;
+      letter-spacing: 0.05em;
+      padding: 0.45rem 0.6rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      text-align: center;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .filter-popover .filter-clear:hover { background: var(--accent); color: var(--fab-text); }
     .filter-popover .filter-divider { height: 1px; background: var(--border); margin: 0.2rem -0.25rem; }
 
     .context-menu {
@@ -691,15 +704,24 @@
     .place-card .name { font-size: 0.85rem; font-weight: 300; }
     .place-card .note { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; }
     .place-card .catalog-mark {
+      position: relative;
       flex: 0 0 auto; color: var(--muted); display: inline-flex;
       align-items: center; align-self: center; margin-left: 0.5rem;
       background: transparent; border: none; padding: 0.2rem; cursor: pointer;
     }
-    .place-card .catalog-mark.update-available { color: var(--accent); }
-    .place-card .catalog-mark.update-available svg path { fill: currentColor; }
-    .place-card .catalog-mark.update-available:hover { color: var(--accent); filter: brightness(1.15); }
     .place-card .catalog-mark:hover { color: var(--text); }
     .place-card .catalog-mark svg { width: 0.95rem; height: 0.95rem; display: block; }
+    .place-card .catalog-mark.update-available::after {
+      content: '';
+      position: absolute;
+      top: 0.05rem;
+      right: 0.05rem;
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 2px var(--surface);
+    }
     .catalog-updates-notice {
       display: flex; align-items: center; gap: 0.75rem;
       margin: 0 0 1rem; padding: 0.5rem 0.8rem;
@@ -717,12 +739,47 @@
       margin: 0.5rem 0; padding: 0.6rem 0.8rem;
       background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
       font-size: 0.78rem;
+      /* Parent grid: rows use `subgrid` so the label column auto-sizes to
+         the widest label across all diff rows. Saves space when labels are
+         short while keeping multi-row labels visually aligned. */
+      display: grid; column-gap: 0.5rem;
+      grid-template-columns: max-content 1fr;
     }
-    .catalog-diff-field { display: grid; grid-template-columns: 5rem 1fr; gap: 0.5rem; align-items: start; }
+    .catalog-diff:has(.catalog-diff-field.selectable) {
+      grid-template-columns: 1.4rem max-content 1fr;
+      column-gap: 0.75rem;
+    }
+    .catalog-diff-field,
+    .modal label.catalog-diff-field {
+      display: grid;
+      grid-template-columns: subgrid;
+      grid-column: 1 / -1;
+      align-items: center;
+      margin: 0;
+    }
+    .catalog-diff-field.selectable,
+    .modal label.catalog-diff-field.selectable { cursor: pointer; }
     .catalog-diff-field + .catalog-diff-field { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border); }
+    .catalog-diff-check { margin: 0.15rem 0 0; cursor: pointer; accent-color: var(--accent); width: 1rem; height: 1rem; }
     .catalog-diff-label { color: var(--muted); font-size: 0.72rem; padding-top: 0.1rem; }
     .catalog-diff-old { color: var(--muted); text-decoration: line-through; word-break: break-word; }
     .catalog-diff-new { color: var(--text); word-break: break-word; margin-top: 0.1rem; }
+    /* When a row is unchecked (user keeps local), invert the strike-through:
+       the current value is what stays, the catalog value is what's rejected. */
+    .catalog-diff-field.selectable:has(.catalog-diff-check:not(:checked)) .catalog-diff-old { color: var(--text); text-decoration: none; }
+    .catalog-diff-field.selectable:has(.catalog-diff-check:not(:checked)) .catalog-diff-new { color: var(--muted); text-decoration: line-through; }
+    /* Two-label crossfade on the Apply button: wider label sets width;
+       the alt label sits on top and fades in when fields are selected. */
+    #catalog-update-confirm { position: relative; }
+    #catalog-update-confirm .lbl-default,
+    #catalog-update-confirm .lbl-alt { transition: opacity 0.18s ease; }
+    #catalog-update-confirm .lbl-alt { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; }
+    #catalog-update-confirm.has-selection .lbl-default { opacity: 0; }
+    #catalog-update-confirm.has-selection .lbl-alt { opacity: 1; }
+    @media (prefers-reduced-motion: reduce) {
+      #catalog-update-confirm .lbl-default,
+      #catalog-update-confirm .lbl-alt { transition: none; }
+    }
 
     .status-dot {
       width: 7px;
@@ -2369,6 +2426,7 @@
       border-radius: var(--radius);
       cursor: pointer;
       letter-spacing: 0.05em;
+      transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, opacity 0.12s ease;
     }
     /* Theme-aware primary button outside the modal (e.g. list-page Add buttons).
        Inside the modal, the higher-specificity rule above still wins. */
@@ -2458,6 +2516,7 @@
     }
     @media (prefers-reduced-motion: reduce) {
       .pwa-update-toast.visible { animation: none; }
+      .modal button:not(.modal-close) { transition: none; }
     }
     .pwa-banner button,
     .pwa-update-toast button {
@@ -4894,6 +4953,7 @@
     // Fields the catalog "owns" - personal status (visited / date_visited /
     // rating / from_catalog / runtime annotations) is preserved on refresh.
     const CATALOG_TRACKED_FIELDS = ['name', 'lat', 'lon', 'category', 'country', 'local_name', 'note', 'image', 'sources'];
+    const CATALOG_FIELD_LABELS = { name: 'Name', lat: 'Latitude', lon: 'Longitude', category: 'Category', country: 'Country', local_name: 'Native name', note: 'Note', image: 'Image', sources: 'Sources' };
 
     // Returns { entry, changes: [{field, before, after}] } when the upstream
     // catalog entry for a place's from_catalog has diverged from the local
@@ -4919,11 +4979,17 @@
         }
         return false;
       };
+      const skip = (place && place.catalog_skip) || {};
       const changes = [];
       for (const f of CATALOG_TRACKED_FIELDS) {
-        if (!eq(norm(place[f]), norm(entry[f]))) {
-          changes.push({ field: f, before: place[f], after: entry[f] });
-        }
+        const a = norm(place[f]);
+        const b = norm(entry[f]);
+        if (eq(a, b)) continue;
+        // Skipped: hide the diff while the catalog value still matches what
+        // the user dismissed. If the catalog value has moved on, surface it
+        // again as a fresh update.
+        if (f in skip && eq(norm(skip[f]), b)) continue;
+        changes.push({ field: f, before: place[f], after: entry[f] });
       }
       return changes.length ? { entry, changes } : null;
     }
@@ -4934,34 +5000,120 @@
       return escapeHtml(String(v));
     }
 
-    function renderCatalogDiff(changes) {
-      return '<div class="catalog-diff">' + changes.map(c =>
-        '<div class="catalog-diff-field">' +
-          '<span class="catalog-diff-label">' + escapeHtml(c.field) + '</span>' +
+    function renderCatalogDiff(changes, opts) {
+      const selectable = !!(opts && opts.selectable);
+      return '<div class="catalog-diff">' + changes.map(c => {
+        const check = selectable
+          ? '<input type="checkbox" class="catalog-diff-check" data-field="' + escapeHtml(c.field) + '">'
+          : '';
+        return '<label class="catalog-diff-field' + (selectable ? ' selectable' : '') + '">' +
+          check +
+          '<span class="catalog-diff-label">' + escapeHtml(CATALOG_FIELD_LABELS[c.field] || c.field) + '</span>' +
           '<span>' +
             '<div class="catalog-diff-old">' + formatCatalogDiffValue(c.before) + '</div>' +
             '<div class="catalog-diff-new">' + formatCatalogDiffValue(c.after) + '</div>' +
           '</span>' +
-        '</div>'
-      ).join('') + '</div>';
+        '</label>';
+      }).join('') + '</div>';
     }
 
     function placesWithCatalogUpdates() {
       return (state.places || []).filter(p => findCatalogUpdate(p));
     }
 
-    // Build the refreshed place object: catalog-tracked fields from the
-    // upstream entry, personal status fields preserved, from_catalog linked
-    // to the upstream name in case it was renamed.
-    function buildCatalogRefreshPayload(place, entry) {
+    // Update a single rendered place card in place: name, note, badge state.
+    // Used after Apply / Keep so the list doesn't visibly re-render.
+    function updatePlaceCardAfterCatalogChange(place) {
+      if (!place) return;
+      const card = document.querySelector('.place-card[data-place-slug="' + (place._slug || '') + '"]');
+      if (!card) return;
+      const nameEl = card.querySelector('.name');
+      if (nameEl) nameEl.textContent = place.name;
+      const placeText = card.querySelector('.place-text');
+      if (placeText) {
+        let noteEl = placeText.querySelector('.note');
+        if (place.note) {
+          if (!noteEl) {
+            noteEl = document.createElement('div');
+            noteEl.className = 'note';
+            placeText.appendChild(noteEl);
+          }
+          noteEl.textContent = place.note;
+        } else if (noteEl) {
+          noteEl.remove();
+        }
+      }
+      const upd = findCatalogUpdate(place);
+      const badge = card.querySelector('.catalog-mark');
+      if (badge) {
+        badge.classList.toggle('update-available', !!upd);
+        badge.title = upd
+          ? 'Catalog updated this entry (' + upd.changes.length + ' field' + (upd.changes.length === 1 ? '' : 's') + '). Click to review.'
+          : 'Imported from the site catalog';
+      }
+      // If the user is filtered to "Updates available" and this place no longer
+      // has any, fade the card out so the list reflects the filter.
+      if (state.placeFilters && state.placeFilters.catalog === 'updates-available' && !upd) {
+        card.style.transition = 'opacity 0.2s ease';
+        card.style.opacity = '0';
+        setTimeout(() => card.remove(), 220);
+      }
+    }
+
+    // Build the refreshed place object. `applyFields` (set of field names) is
+    // the user's selection from the per-field checkboxes; for fields outside
+    // that set we keep the local value and record the upstream value in
+    // `catalog_skip` so we don't re-prompt until the catalog changes again.
+    // When `applyFields` is omitted, every catalog-tracked field is applied
+    // (used by the bulk-refresh path).
+    function buildCatalogRefreshPayload(place, entry, changes, applyFields) {
       const next = {};
+      const applyAll = !applyFields;
       for (const f of CATALOG_TRACKED_FIELDS) {
-        if (entry[f] !== undefined && entry[f] !== null && entry[f] !== '') next[f] = entry[f];
+        const ev = entry[f];
+        const apply = applyAll || applyFields.has(f);
+        if (apply) {
+          if (ev !== undefined && ev !== null && ev !== '') next[f] = ev;
+        } else {
+          // Keep local value (or absence) for this field.
+          if (place[f] !== undefined && place[f] !== null && place[f] !== '') next[f] = place[f];
+        }
       }
       if (place.visited) next.visited = true;
       if (place.date_visited) next.date_visited = place.date_visited;
       if (place.rating) next.rating = place.rating;
       next.from_catalog = entry.name;
+      // Carry over prior skips, drop any whose catalog value is now being
+      // applied (no longer needed) or where the catalog has moved away from
+      // the recorded snapshot (it will surface as a fresh diff next round).
+      const prevSkip = place.catalog_skip || {};
+      const nextSkip = {};
+      const norm = v => {
+        if (v === undefined || v === null) return null;
+        if (typeof v === 'string') return v.trim() || null;
+        if (Array.isArray(v)) return v.length ? v.map(norm) : null;
+        return v;
+      };
+      const eq = (a, b) => {
+        if (a === b) return true;
+        if (a === null || b === null) return a === b;
+        if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((x, i) => eq(x, b[i]));
+        return false;
+      };
+      for (const f in prevSkip) {
+        if (applyAll || applyFields.has(f)) continue;
+        if (!eq(norm(prevSkip[f]), norm(entry[f]))) continue;
+        nextSkip[f] = prevSkip[f];
+      }
+      // Add new skips for the currently-shown diff fields the user kept local.
+      if (changes && !applyAll) {
+        for (const c of changes) {
+          if (applyFields.has(c.field)) continue;
+          const v = entry[c.field];
+          nextSkip[c.field] = (v === undefined ? null : v);
+        }
+      }
+      if (Object.keys(nextSkip).length) next.catalog_skip = nextSkip;
       return next;
     }
 
@@ -5005,7 +5157,7 @@
               const result = findCatalogUpdate(place);
               status.textContent = 'Refreshing ' + (i + 1) + ' of ' + pending.length + '…';
               if (!result) { i++; return next(); }
-              api('PUT', '/places', { id: place.id, place: buildCatalogRefreshPayload(place, result.entry) })
+              api('PUT', '/places', { id: place.id, place: buildCatalogRefreshPayload(place, result.entry, result.changes) })
                 .catch(err => errors.push((place.name) + ': ' + err.message))
                 .then(() => { i++; next(); });
             })();
@@ -5025,21 +5177,54 @@
       const { entry, changes } = result;
       openModal(
         '<h2>Update from catalog<button class="modal-close">&times;</button></h2>' +
-        '<div class="modal-desc">' + escapeHtml(place.name) + ' will be refreshed from the catalog. Your visit status, date, and rating are preserved.</div>' +
-        renderCatalogDiff(changes) +
+        renderCatalogDiff(changes, { selectable: true }) +
         '<div class="modal-actions">' +
-          '<button type="button" data-role="cancel">Cancel</button>' +
-          '<button type="button" class="primary" id="catalog-update-confirm">Refresh from catalog</button>' +
+          '<button type="button" class="primary" id="catalog-update-skip" style="margin-right:auto">Keep all</button>' +
+          '<button type="button" class="primary" id="catalog-update-confirm">' +
+            '<span class="lbl-default">Apply all</span>' +
+            '<span class="lbl-alt">Apply</span>' +
+          '</button>' +
         '</div>',
         function(backdrop) {
-          backdrop.querySelector('[data-role="cancel"]').addEventListener('click', () => closeModal());
-          document.getElementById('catalog-update-confirm').addEventListener('click', function() {
-            this.disabled = true;
-            api('PUT', '/places', { id: place.id, place: buildCatalogRefreshPayload(place, entry) })
+          const applyBtn = document.getElementById('catalog-update-confirm');
+          const skipBtn = document.getElementById('catalog-update-skip');
+          function selectedFields() {
+            const set = new Set();
+            backdrop.querySelectorAll('.catalog-diff-check').forEach(cb => {
+              if (cb.checked) set.add(cb.dataset.field);
+            });
+            return set;
+          }
+          function syncButtons() {
+            const any = selectedFields().size > 0;
+            applyBtn.classList.add('primary');
+            applyBtn.classList.toggle('has-selection', any);
+            skipBtn.classList.toggle('primary', !any);
+            skipBtn.disabled = any;
+          }
+          backdrop.querySelectorAll('.catalog-diff-check').forEach(cb => cb.addEventListener('change', syncButtons));
+          function submit(applyFields, btn) {
+            btn.disabled = true;
+            api('PUT', '/places', { id: place.id, place: buildCatalogRefreshPayload(place, entry, changes, applyFields) })
               .then(() => refreshPlaces())
-              .then(() => { closeModal(); refreshPlacesPresentation(); })
-              .catch(err => { this.disabled = false; alert('Failed: ' + err.message); });
+              .then(() => {
+                closeModal();
+                // Surgical card update - no full list re-render, no blink.
+                // We only touched one place's tracked fields and badge state;
+                // every other card stays exactly as it is.
+                const fresh = (state.places || []).find(p => p.id === place.id) || place;
+                updatePlaceCardAfterCatalogChange(fresh);
+                if (state._placeClusterGroup) state._placeClusterGroup.redraw();
+              })
+              .catch(err => { btn.disabled = false; alert('Failed: ' + err.message); });
+          }
+          applyBtn.addEventListener('click', function() {
+            // No selection means "Apply all" - apply every shown change.
+            const sel = selectedFields();
+            const fields = sel.size ? sel : new Set(changes.map(c => c.field));
+            submit(fields, this);
           });
+          skipBtn.addEventListener('click', function() { submit(new Set(), this); });
         }
       );
     }
@@ -5091,12 +5276,12 @@
             '<select id="filter-group-by">' +
               '<option value="category"' + (state.groupBy === 'category' ? ' selected' : '') + '>Group by category</option>' +
               '<option value="country"' + (state.groupBy === 'country' ? ' selected' : '') + '>Group by country</option>' +
-              '<option value="letter"' + (state.groupBy === 'letter' ? ' selected' : '') + '>Group by letter</option>' +
+              '<option value="letter"' + (state.groupBy === 'letter' ? ' selected' : '') + '>Group by first letter</option>' +
             '</select>' +
             '<button type="button" class="filter-clear" id="filter-clear">Clear filters</button>' +
           '</div>' +
         '</div>' +
-        (canAdd ? '<button type="button" class="primary" id="add-place-btn">Add place</button>' : '') +
+        (canAdd ? '<button type="button" class="primary" id="add-place-btn">Add</button>' : '') +
         '</div>' +
         '<div class="category-grid" id="place-list"></div>';
       renderPlaceList('');
@@ -5251,7 +5436,7 @@
         for (const p of items) {
           const statusClass = p.visited ? 'visited' : 'want';
           const href = '#/?focus=place:' + encodeURIComponent(p.name);
-          html += '<div class="place-card" data-place-name="' + escapeHtml(p.name) + '" onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
+          html += '<div class="place-card" data-place-name="' + escapeHtml(p.name) + '" data-place-slug="' + escapeHtml(p._slug || '') + '" onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
           html += '<span class="status-dot ' + statusClass + '"></span>';
           html += '<div class="place-text">';
           html += '<div class="name">' + escapeHtml(p.name) + '</div>';
@@ -5263,8 +5448,8 @@
             const title = upd
               ? 'Catalog updated this entry (' + upd.changes.length + ' field' + (upd.changes.length === 1 ? '' : 's') + '). Click to review.'
               : 'Imported from the site catalog';
-            html += '<button type="button" class="' + cls + '" data-place-name="' + escapeHtml(p.name) + '" title="' + escapeHtml(title) + '">' +
-              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>' +
+            html += '<button type="button" class="' + cls + '" data-place-slug="' + escapeHtml(p._slug || '') + '" title="' + escapeHtml(title) + '">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>' +
               '</button>';
           }
           html += '</div>';
@@ -5281,16 +5466,16 @@
         btn.addEventListener('click', function(ev) {
           ev.stopPropagation();
           ev.preventDefault();
-          const name = this.dataset.placeName;
-          const place = (state.places || []).find(p => p.name === name);
+          const slug = this.dataset.placeSlug;
+          const place = (state.places || []).find(p => p._slug === slug);
           if (!place) return;
           if (findCatalogUpdate(place)) openCatalogUpdateModal(place);
         });
       });
       listEl.querySelectorAll('.place-card').forEach(function(card) {
         attachContextMenu(card, function() {
-          const name = card.dataset.placeName;
-          const place = (state.places || []).find(p => p.name === name);
+          const slug = card.dataset.placeSlug;
+          const place = (state.places || []).find(p => p._slug === slug);
           if (!place) return [];
           const items = [];
           items.push({ label: 'Open on map', onClick: function() { location.hash = '#/?focus=place:' + encodeURIComponent(place.name); } });
@@ -5398,12 +5583,12 @@
             '<div class="filter-divider"></div>' +
             '<select id="filter-group-by">' +
               '<option value="region"' + (state.trailsGroupBy === 'region' ? ' selected' : '') + '>Group by region</option>' +
-              '<option value="letter"' + (state.trailsGroupBy === 'letter' ? ' selected' : '') + '>Group by letter</option>' +
+              '<option value="letter"' + (state.trailsGroupBy === 'letter' ? ' selected' : '') + '>Group by first letter</option>' +
             '</select>' +
             '<button type="button" class="filter-clear" id="filter-clear">Clear filters</button>' +
           '</div>' +
         '</div>' +
-        (canAddTrail ? '<button type="button" class="primary" id="add-route-btn">Add route</button>' : '') +
+        (canAddTrail ? '<button type="button" class="primary" id="add-route-btn">Add</button>' : '') +
         '</div>';
       html += '<div class="region-grid" id="trails-list-mount"></div>';
       app.innerHTML = html;

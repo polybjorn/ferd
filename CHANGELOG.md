@@ -8,18 +8,24 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Shipped catalog: 54 new entries.
 - `GET /api/health` for liveness checks; returns `{status: "ok", version}`.
 - Install docs and installer output now point at the source clone as the place to re-run `install.sh` from on updates.
-- Places list: new "Group by letter" filter option. Letter buckets follow the browser's locale collation, so each user sees their own alphabetical order; non-Latin scripts get their own buckets; digit/punctuation starts go in "#".
-- Trails list: new "Group by letter" filter option, alongside the existing region grouping. Same locale-aware ordering as places.
+- Places list: new "Group by first letter" filter option. Letter buckets follow the browser's locale collation, so each user sees their own alphabetical order; non-Latin scripts get their own buckets; digit/punctuation starts go in "#".
+- Trails list: new "Group by first letter" filter option, alongside the existing region grouping. Same locale-aware ordering as places.
 - Right-click (or long-press on touch) a place or trail card to open a context menu with Open on map, Edit, Open source (when present), Apply catalog update (places only, when applicable), and Delete.
+- Catalog update modal: pick per-field which catalog values to apply (Apply), or dismiss the diff so the entry stops showing as Update available (Keep all). Skipped fields reappear only if the catalog later moves to a new value.
 
 ### Changed
 - Places list groups (by category, country, or letter) now list items alphabetically within each group instead of in insertion order. The chosen grouping is persisted across page reloads.
 - Trails list now lists routes alphabetically within each region (or letter). The chosen grouping is persisted across page reloads.
 - Trails list re-renders on filter changes instead of hiding cards with CSS. Empty groups disappear from the list rather than collapsing to zero height.
 - Shipped catalog: non-Latin `local_name` values switched from native script to Latin transliteration (Iran, Russia, Greece) so labels are readable to Latin-alphabet users. Two Iran entries renamed to English: Arg-e Bam -> Bam Citadel, Gonbad-e Qabus -> Qabus Tower.
+- Catalog mark on place cards: open-book icon (was bookmark), with an accent dot in the corner to mark "update available" (replacing the previous color-swap behavior).
+- Accepting a catalog update no longer triggers a full list re-render; only the affected card updates in place.
+- "Add place" / "Add route" relabeled to "Add" so the button doesn't change width when switching tabs.
+- Filter popover "Clear filters" restyled as an accent-colored outline button.
 
 ### Fixed
 - Places and trails list filter selections no longer reset when the list re-renders (e.g. after accepting a catalog update).
+- Right-click context menu and catalog-mark click on place cards now resolve the correct entry when multiple places share a name (looked up by slug instead of name).
 - Places list now refreshes immediately after a place is deleted, edited, or saved, instead of waiting for a page reload.
 - Backup import now silently skips archiver junk entries (`__MACOSX/`, `._*`, `.DS_Store`, `Thumbs.db`, `desktop.ini`, `*.bak`, `*~`) instead of rejecting the whole zip. Zips made by macOS Finder, Windows Explorer, and editor backups now import without manual cleanup.
 - Install docs: python.md LAN-bind port corrected from 8090 to 8091.
