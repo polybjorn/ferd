@@ -18,6 +18,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Trails list re-renders on filter changes instead of hiding cards with CSS. Empty groups disappear from the list rather than collapsing to zero height.
 
 ### Fixed
+- Places list now refreshes immediately after a place is deleted, edited, or saved, instead of waiting for a page reload.
 - Backup import now silently skips archiver junk entries (`__MACOSX/`, `._*`, `.DS_Store`, `Thumbs.db`, `desktop.ini`, `*.bak`, `*~`) instead of rejecting the whole zip. Zips made by macOS Finder, Windows Explorer, and editor backups now import without manual cleanup.
 - Install docs: python.md LAN-bind port corrected from 8090 to 8091.
 

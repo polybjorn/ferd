@@ -4221,7 +4221,7 @@
             const prevColors = Object.assign({}, state.categoryColors);
             api('DELETE', '/places', { id: place.id })
               .then(() => refreshPlaces())
-              .then(() => { closeModal(); syncPlacesOnMap(prevColors); })
+              .then(() => { closeModal(); syncPlacesOnMap(prevColors); if (document.getElementById('place-list')) renderPlaceList(); })
               .catch(err => { this.disabled = false; showModalError(err.message); });
           });
           document.getElementById('edit-place-form').addEventListener('submit', function(e) {
@@ -4236,7 +4236,7 @@
             const prevColors = Object.assign({}, state.categoryColors);
             api('PUT', '/places', { id: place.id, place: r.payload })
               .then(() => refreshPlaces())
-              .then(() => { closeModal(); syncPlacesOnMap(prevColors); })
+              .then(() => { closeModal(); syncPlacesOnMap(prevColors); if (document.getElementById('place-list')) renderPlaceList(); })
               .catch(err => { submit.disabled = false; showModalError(err.message); });
           });
         }
@@ -5168,6 +5168,10 @@
     const NAME_COLLATOR = new Intl.Collator('nb', { sensitivity: 'base' });
 
     function renderPlaceList(query) {
+      if (query === undefined) {
+        const si = document.getElementById('search-input');
+        query = si ? si.value : '';
+      }
       const q = query.toLowerCase().trim();
       const groupMode = state.groupBy;
       const byCategory = groupMode === 'category';
@@ -5295,7 +5299,7 @@
                 const prevColors = Object.assign({}, state.categoryColors);
                 api('DELETE', '/places', { id: place.id })
                   .then(() => refreshPlaces())
-                  .then(() => syncPlacesOnMap(prevColors))
+                  .then(() => { syncPlacesOnMap(prevColors); if (document.getElementById('place-list')) renderPlaceList(); })
                   .catch(err => alert('Delete failed: ' + err.message));
               });
             }});
