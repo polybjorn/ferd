@@ -5066,11 +5066,20 @@
           : 'Imported from the site catalog';
       }
       // If the user is filtered to "Updates available" and this place no longer
-      // has any, fade the card out so the list reflects the filter.
+      // has any, fade the card out so the list reflects the filter. If that
+      // leaves the group empty, fade the group header out too.
       if (state.placeFilters && state.placeFilters.catalog === 'updates-available' && !upd) {
+        const group = card.closest('.category-group');
         card.style.transition = 'opacity 0.2s ease';
         card.style.opacity = '0';
-        setTimeout(() => card.remove(), 220);
+        setTimeout(() => {
+          card.remove();
+          if (group && !group.querySelector('.place-card')) {
+            group.style.transition = 'opacity 0.2s ease';
+            group.style.opacity = '0';
+            setTimeout(() => group.remove(), 220);
+          }
+        }, 220);
       }
     }
 
@@ -5354,12 +5363,16 @@
         filterPop.addEventListener('click', function(e) { e.stopPropagation(); });
       }
       if (filterClear) filterClear.addEventListener('click', function() {
-        if (!filterSels.some(s => s.value !== 'all')) return;
+        const hasSearch = placesSearchInput && placesSearchInput.value !== '';
+        const hasFilter = filterSels.some(s => s.value !== 'all');
+        if (!hasSearch && !hasFilter) return;
         filterSels.forEach(s => { s.value = 'all'; });
         state.placeFilters.status = 'all';
         state.placeFilters.category = 'all';
         state.placeFilters.country = 'all';
         state.placeFilters.catalog = 'all';
+        if (placesSearchInput) placesSearchInput.value = '';
+        state.placeFilters.search = '';
         rerender();
       });
       updateFilterBtnLabel();
@@ -5786,13 +5799,17 @@
         filterPop.addEventListener('click', function(e) { e.stopPropagation(); });
       }
       if (filterClear) filterClear.addEventListener('click', function() {
-        if (!filterSels.some(s => s.value !== 'all')) return;
+        const hasSearch = searchInput && searchInput.value !== '';
+        const hasFilter = filterSels.some(s => s.value !== 'all');
+        if (!hasSearch && !hasFilter) return;
         filterSels.forEach(s => { s.value = 'all'; });
         state.trailFilters.status = 'all';
         state.trailFilters.region = 'all';
         state.trailFilters.difficulty = 'all';
         state.trailFilters.rating = 'all';
         state.trailFilters.tag = 'all';
+        if (searchInput) searchInput.value = '';
+        state.trailFilters.search = '';
         renderTrailsList();
       });
       renderTrailsList();

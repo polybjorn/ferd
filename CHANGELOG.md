@@ -40,7 +40,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Backup import now silently skips archiver junk entries (`__MACOSX/`, `._*`, `.DS_Store`, `Thumbs.db`, `desktop.ini`, `*.bak`, `*~`) instead of rejecting the whole zip. Zips made by macOS Finder, Windows Explorer, and editor backups now import without manual cleanup.
 - Install docs: python.md LAN-bind port corrected from 8090 to 8091.
 - PWA "Reload" button is no longer a no-op when the waiting service worker reference goes stale. The handler re-resolves the worker at click time and falls back to a plain page reload after 2 seconds if the worker never takes over.
-- Places and Routes list "Clear filters" no longer re-renders the list when no filters are active. The button is now a no-op in that state instead of causing a visible blink.
+- Places and Routes list "Clear filters" no longer re-renders the list when no filters are active. The button is now a no-op in that state instead of causing a visible blink. It also clears the search input now, not just the filter dropdowns.
+- Places list: applying the last catalog update inside a group now fades the empty group header out alongside the card. Previously the header (with its `(0/N)` count) stayed visible until the next full re-render.
 
 ### Security
 - API handlers that touch the filesystem now verify the resolved path stays under the expected directory. The static handler also catches symlink escapes that the prior lexical check could not see.
