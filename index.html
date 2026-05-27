@@ -771,6 +771,13 @@
     .catalog-diff-label { color: var(--muted); font-size: 0.72rem; padding-top: 0.1rem; }
     .catalog-diff-old { color: var(--muted); text-decoration: line-through; word-break: break-word; }
     .catalog-diff-new { color: var(--text); word-break: break-word; margin-top: 0.1rem; }
+    .catalog-diff-image {
+      display: block; width: 100%; max-width: 220px; aspect-ratio: 16 / 10;
+      object-fit: cover; border-radius: var(--radius); background: var(--surface2);
+    }
+    .catalog-diff-old .catalog-diff-image { opacity: 0.55; }
+    .catalog-diff-field.selectable:has(.catalog-diff-check:not(:checked)) .catalog-diff-old .catalog-diff-image { opacity: 1; }
+    .catalog-diff-field.selectable:has(.catalog-diff-check:not(:checked)) .catalog-diff-new .catalog-diff-image { opacity: 0.55; }
     /* When a row is unchecked (user keeps local), invert the strike-through:
        the current value is what stays, the catalog value is what's rejected. */
     .catalog-diff-field.selectable:has(.catalog-diff-check:not(:checked)) .catalog-diff-old { color: var(--text); text-decoration: none; }
@@ -5029,24 +5036,42 @@
       return changes.length ? { entry, changes } : null;
     }
 
-    function formatCatalogDiffValue(v) {
+    function formatCatalogDiffValue(v, field, focus) {
       if (v === null || v === undefined || v === '') return '<em style="color:var(--muted)">(none)</em>';
+      if (field === 'image') {
+        const url = String(v);
+        const focusAttr = focus && /^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$/.test(String(focus).trim())
+          ? ' style="object-position: ' + String(focus).trim() + '"'
+          : '';
+        return '<img class="catalog-diff-image" src="' + escapeHtml(url) + '"' + focusAttr +
+          ' alt="" loading="lazy" referrerpolicy="no-referrer" title="' + escapeHtml(url) +
+          '" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:this.title,style:\'color:var(--muted);font-size:0.7rem;word-break:break-all\'}))">';
+      }
       if (Array.isArray(v)) return v.map(x => escapeHtml(String(x))).join('<br>');
       return escapeHtml(String(v));
     }
 
     function renderCatalogDiff(changes, opts) {
       const selectable = !!(opts && opts.selectable);
+      // Pair image with its focus so the thumbnail previews the actual crop.
+      // `before` focus comes from the place (current state), `after` from the catalog entry.
+      const focusChange = changes.find(c => c.field === 'image_focus');
+      const place = opts && opts.place;
+      const entry = opts && opts.entry;
+      const beforeFocus = focusChange ? focusChange.before : (place ? place.image_focus : undefined);
+      const afterFocus = focusChange ? focusChange.after : (entry ? entry.image_focus : undefined);
       return '<div class="catalog-diff">' + changes.map(c => {
         const check = selectable
           ? '<input type="checkbox" class="catalog-diff-check" data-field="' + escapeHtml(c.field) + '">'
           : '';
+        const bf = c.field === 'image' ? beforeFocus : undefined;
+        const af = c.field === 'image' ? afterFocus : undefined;
         return '<label class="catalog-diff-field' + (selectable ? ' selectable' : '') + '">' +
           check +
           '<span class="catalog-diff-label">' + escapeHtml(CATALOG_FIELD_LABELS[c.field] || c.field) + '</span>' +
           '<span>' +
-            '<div class="catalog-diff-old">' + formatCatalogDiffValue(c.before) + '</div>' +
-            '<div class="catalog-diff-new">' + formatCatalogDiffValue(c.after) + '</div>' +
+            '<div class="catalog-diff-old">' + formatCatalogDiffValue(c.before, c.field, bf) + '</div>' +
+            '<div class="catalog-diff-new">' + formatCatalogDiffValue(c.after, c.field, af) + '</div>' +
           '</span>' +
         '</label>';
       }).join('') + '</div>';
@@ -5221,7 +5246,7 @@
       const { entry, changes } = result;
       openModal(
         '<h2>Update from catalog<button class="modal-close">&times;</button></h2>' +
-        renderCatalogDiff(changes, { selectable: true }) +
+        renderCatalogDiff(changes, { selectable: true, place, entry }) +
         '<div class="modal-actions">' +
           '<button type="button" class="primary" id="catalog-update-skip" style="margin-right:auto">Keep all</button>' +
           '<button type="button" class="primary" id="catalog-update-confirm">' +
