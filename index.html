@@ -5273,14 +5273,14 @@
           if (!place) return [];
           const items = [];
           items.push({ label: 'Open on map', onClick: function() { location.hash = '#/?focus=place:' + encodeURIComponent(place.name); } });
+          if (Array.isArray(place.sources) && place.sources.length) {
+            items.push({ label: 'Open source', onClick: function() { window.open(place.sources[0], '_blank', 'noopener'); } });
+          }
           if (!isReadOnly() && state.auth && state.auth.authenticated) {
             items.push({ label: 'Edit', onClick: function() { openEditPlaceModal(place); } });
           }
           if (place.from_catalog && findCatalogUpdate(place)) {
             items.push({ label: 'Apply catalog update', onClick: function() { openCatalogUpdateModal(place); } });
-          }
-          if (Array.isArray(place.sources) && place.sources.length) {
-            items.push({ label: 'Open source', onClick: function() { window.open(place.sources[0], '_blank', 'noopener'); } });
           }
           if (!isReadOnly() && state.auth && state.auth.authenticated) {
             items.push(null);
@@ -5493,11 +5493,11 @@
             const items = [];
             items.push({ label: 'Open on map', onClick: function() { location.hash = '#/?focus=route:' + encodeURIComponent(route.key); } });
             items.push({ label: 'Open detail', onClick: function() { location.hash = '#/routes/route/' + encodeURIComponent(route.key); } });
-            if (!isReadOnly() && state.auth && state.auth.authenticated) {
-              items.push({ label: 'Edit', onClick: function() { openEditTrailMetadataModal(route, regionName); } });
-            }
             if (route.source) {
               items.push({ label: 'Open source', onClick: function() { window.open(route.source, '_blank', 'noopener'); } });
+            }
+            if (!isReadOnly() && state.auth && state.auth.authenticated) {
+              items.push({ label: 'Edit', onClick: function() { openEditTrailMetadataModal(route, regionName); } });
             }
             if (!isReadOnly() && state.auth && state.auth.authenticated) {
               items.push(null);
