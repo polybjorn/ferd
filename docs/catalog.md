@@ -19,7 +19,8 @@ Each entry in `catalog.json` is a JSON object with these fields, in this order:
 - `country` - country name in English.
 - `local_name` - the place's name in the local language, in Latin romanization (e.g. `Akropoli tis Lindou`, `Takht-e Jamshid`, `Gosudarstvenny Ermitazh`). Use the standard transliteration; don't store native script. Omit if the romanized form equals `name`.
 - `note` - one-line identifier, max 60 chars.
-- `image` - stable thumbnail URL. Wikipedia Commons works (`…/thumb/…/1280px-…`); browsers downsize to ~280 px in the popup and the service worker caches repeats. Stick to 1280 px - smaller widths often 400 from the thumbnailer.
+- `image` - stable thumbnail URL. For Wikipedia Commons sources, always use the 1280 px thumb form (`https://upload.wikimedia.org/wikipedia/commons/thumb/X/XY/<file>/1280px-<file>`), not the full-resolution original (`https://upload.wikimedia.org/wikipedia/commons/X/XY/<file>`). The popup downsizes to ~280 px and the service worker caches repeats, so the original is just wasted bandwidth - often multi-MB per load. Smaller thumb widths often 400 from the thumbnailer; stick to 1280. Prefer landscape (`width >= height`); portrait images crop poorly unless paired with `image_focus`.
+- `image_focus` - optional. Crop anchor for the landscape popup frame, applied as CSS `object-position`. Accepts `top`, `bottom`, `left`, `right`, `center`, or `"X% Y%"`. Omit for landscape images (default `center` is fine). Set for portrait images so the meaningful part of the photo stays in frame (e.g. `top` for towers, `bottom` when the foreground matters). The server clears this field automatically when `image` changes, so it always tracks a specific photo.
 - `sources` - array of URLs, usually one Wikipedia link. Add more only if a single source can't carry the claim.
 
 Insert new entries in alphabetical order by `name` (case-insensitive). Example:

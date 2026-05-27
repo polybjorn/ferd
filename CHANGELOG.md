@@ -5,6 +5,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
+- Place schema: optional `image_focus` field controls the popup image's crop anchor (`top`, `bottom`, `left`, `right`, `center`, or `"X% Y%"`). Lets portrait photos render in the landscape popup frame without the meaningful subject getting cropped out. Flows through the catalog: catalog entries can set it, the "Update from catalog" diff tracks it, and the server clears it automatically when `image` changes so it always tracks a specific photo.
+- Catalog test: optional fields cannot be present with empty values (e.g. `"image": ""`). Omit the field instead.
 - Shipped catalog: 54 new entries.
 - `GET /api/health` for liveness checks; returns `{status: "ok", version}`.
 - Install docs and installer output now point at the source clone as the place to re-run `install.sh` from on updates.
@@ -42,6 +44,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - PWA "Reload" button is no longer a no-op when the waiting service worker reference goes stale. The handler re-resolves the worker at click time and falls back to a plain page reload after 2 seconds if the worker never takes over.
 - Places and Routes list "Clear filters" no longer re-renders the list when no filters are active. The button is now a no-op in that state instead of causing a visible blink. It also clears the search input now, not just the filter dropdowns.
 - Places list: applying the last catalog update inside a group now fades the empty group header out alongside the card. Previously the header (with its `(0/N)` count) stayed visible until the next full re-render.
+- Map popup now refreshes in place after editing a place or applying a catalog update. Previously the popup kept showing the old image / note / fields until manually closed and reopened.
 
 ### Security
 - API handlers that touch the filesystem now verify the resolved path stays under the expected directory. The static handler also catches symlink escapes that the prior lexical check could not see.

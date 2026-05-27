@@ -59,7 +59,7 @@ GPX_NS = "http://www.topografix.com/GPX/1/1"
 # dot-dot whole-string rejection lives in safe_path_component itself.
 PATH_COMPONENT_RE = re.compile(r"^[^\x00-\x1f/\\]{1,255}$")
 PLACE_REQUIRED = {"name", "lat", "lon"}
-PLACE_OPTIONAL = {"id", "category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating", "image", "from_catalog", "catalog_skip"}
+PLACE_OPTIONAL = {"id", "category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating", "image", "image_focus", "from_catalog", "catalog_skip"}
 PLACE_ID_RE = re.compile(r"^[0-9a-f]{8}$")
 PLACE_ALL = PLACE_REQUIRED | PLACE_OPTIONAL
 
@@ -1793,6 +1793,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     # keeps its identity through the rename.
     place_payload = dict(place_payload)
     place_payload["id"] = target_id
+    focus_in_payload = "image_focus" in place_payload
     try:
       validated = validate_place(place_payload)
     except ValidationError as e:
@@ -1807,6 +1808,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
       idx = next((i for i, p in enumerate(existing) if isinstance(p, dict) and p.get("id") == target_id), None)
       if idx is None:
         raise NotFoundError(f"place not found: {target_id}")
+      # Drop stale image_focus when image changes and the caller didn't
+      # explicitly set a new focus. Focus is tied to a specific image's
+      # framing; an image swap invalidates the old anchor.
+      if not focus_in_payload and existing[idx].get("image") != validated.get("image"):
+        validated.pop("image_focus", None)
       existing[idx] = validated
       write_json_file(places_path, existing)
 
@@ -3024,6 +3030,9 @@ def validate_place(p: object) -> dict:
       raise ValidationError("image must be a string (<=1000 chars) or null")
     if urlparse(p["image"]).scheme.lower() not in ("http", "https"):
       raise ValidationError("image must be an http(s) URL")
+  if "image_focus" in p and p["image_focus"] is not None and p["image_focus"] != "":
+    if not isinstance(p["image_focus"], str) or not re.match(r"^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$", p["image_focus"].strip()):
+      raise ValidationError("image_focus must be one of top/bottom/center/left/right or 'N% N%'")
   # `from_catalog` is the name of the catalog entry this place was imported
   # from; the UI uses it to hide already-imported entries in Browse and (later)
   # to offer "Update from catalog" when the upstream entry diverges.

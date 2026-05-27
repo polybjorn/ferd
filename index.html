@@ -3465,7 +3465,9 @@
       html += '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local cat-text" style="' + catStyle + '">' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
       if (p.image) {
         // Hide broken/blocked images instead of showing the empty alt frame.
-        html += '<img class="popup-image" src="' + escapeHtml(p.image) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
+        const focus = typeof p.image_focus === 'string' && /^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$/.test(p.image_focus.trim()) ? p.image_focus.trim() : '';
+        const focusAttr = focus ? ' style="object-position: ' + focus + '"' : '';
+        html += '<img class="popup-image" src="' + escapeHtml(p.image) + '" alt=""' + focusAttr + ' loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
       }
       if (p.note) html += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
       html += '<div class="popup-meta">' +
@@ -3485,6 +3487,7 @@
         state.categoryColorsLight = cc.light;
         state._placeClusterGroup.redraw();
         if (typeof refreshFilterPanel === 'function') refreshFilterPanel();
+        refreshOpenPlacePopup();
       }
       if ((location.hash || '#/').startsWith('#/places')) wrappedRouter();
     }
@@ -3496,6 +3499,24 @@
       state._placeRecords = (state.places || []).slice();
       refreshFilterPanel();
       applyMapFilters();
+      refreshOpenPlacePopup();
+    }
+
+    // If a place popup is currently open on the home map, re-render its
+    // content from the latest state. Without this the popup keeps showing
+    // stale data (old image, old note, old anchor) after an edit save until
+    // the user manually closes and reopens it.
+    function refreshOpenPlacePopup() {
+      const map = state.currentMap;
+      if (!map || !map._popup || !map._popup.isOpen || !map._popup.isOpen()) return;
+      const ll = map._popup.getLatLng();
+      if (!ll) return;
+      const places = state.places || [];
+      const place = places.find(p =>
+        Math.abs((p.lat || 0) - ll.lat) < 1e-6 && Math.abs((p.lon || 0) - ll.lng) < 1e-6
+      );
+      if (!place) return;
+      map._popup.setContent(placePopupHtml(place));
     }
 
     const DIFFICULTY_LABELS = { easy: 'Easy', moderate: 'Moderate', hard: 'Hard', expert: 'Expert' };
@@ -4966,8 +4987,8 @@
     // ----- Places browse list -----
     // Fields the catalog "owns" - personal status (visited / date_visited /
     // rating / from_catalog / runtime annotations) is preserved on refresh.
-    const CATALOG_TRACKED_FIELDS = ['name', 'lat', 'lon', 'category', 'country', 'local_name', 'note', 'image', 'sources'];
-    const CATALOG_FIELD_LABELS = { name: 'Name', lat: 'Latitude', lon: 'Longitude', category: 'Category', country: 'Country', local_name: 'Native name', note: 'Note', image: 'Image', sources: 'Sources' };
+    const CATALOG_TRACKED_FIELDS = ['name', 'lat', 'lon', 'category', 'country', 'local_name', 'note', 'image', 'image_focus', 'sources'];
+    const CATALOG_FIELD_LABELS = { name: 'Name', lat: 'Latitude', lon: 'Longitude', category: 'Category', country: 'Country', local_name: 'Native name', note: 'Note', image: 'Image', image_focus: 'Image focus', sources: 'Sources' };
 
     // Returns { entry, changes: [{field, before, after}] } when the upstream
     // catalog entry for a place's from_catalog has diverged from the local
@@ -5238,6 +5259,7 @@
                 const fresh = (state.places || []).find(p => p.id === place.id) || place;
                 updatePlaceCardAfterCatalogChange(fresh);
                 if (state._placeClusterGroup) state._placeClusterGroup.redraw();
+                refreshOpenPlacePopup();
               })
               .catch(err => { btn.disabled = false; alert('Failed: ' + err.message); });
           }

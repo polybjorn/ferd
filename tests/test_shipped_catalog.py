@@ -12,6 +12,7 @@ catalog-specific conventions:
 - Canonical field order across all entries so PR diffs stay readable.
 """
 import json
+import re
 import unittest
 from pathlib import Path
 
@@ -59,8 +60,10 @@ NOTE_MAX = 60
 CANONICAL_ORDER = [
   "name", "lat", "lon",
   "category", "country", "local_name",
-  "note", "image", "sources",
+  "note", "image", "image_focus", "sources",
 ]
+
+IMAGE_FOCUS_RE = re.compile(r"^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$")
 
 
 class ShippedCatalogTests(unittest.TestCase):
@@ -121,6 +124,36 @@ class ShippedCatalogTests(unittest.TestCase):
       names, expected,
       msg="catalog entries must be sorted alphabetically by name (case-insensitive)."
     )
+
+  def test_no_empty_optional_values(self):
+    # Optional fields, when present, must hold a non-empty value. Empty
+    # strings / nulls / empty lists are not the same as "omitted" and clutter
+    # the diff. Required numeric fields (lat/lon) are exempt: 0 is a valid
+    # coordinate.
+    EXEMPT = {"lat", "lon"}
+    for i, entry in enumerate(self.entries):
+      for k, v in entry.items():
+        if k in EXEMPT:
+          continue
+        with self.subTest(i=i, name=entry.get("name", "?"), field=k):
+          if isinstance(v, str):
+            self.assertTrue(v.strip(), msg=f"empty string for {k!r}; omit the field instead")
+          elif isinstance(v, (list, dict)):
+            self.assertTrue(v, msg=f"empty {type(v).__name__} for {k!r}; omit the field instead")
+          else:
+            self.assertIsNotNone(v, msg=f"null for {k!r}; omit the field instead")
+
+  def test_image_focus_format(self):
+    for i, entry in enumerate(self.entries):
+      if "image_focus" not in entry:
+        continue
+      with self.subTest(i=i, name=entry.get("name", "?")):
+        v = entry["image_focus"]
+        self.assertIsInstance(v, str, msg="image_focus must be a string")
+        self.assertRegex(
+          v.strip(), IMAGE_FOCUS_RE,
+          msg=f"image_focus {v!r} must be one of top/bottom/center/left/right or 'N% N%'",
+        )
 
   def test_required_fields_present(self):
     # validate_place enforces lat/lon/name, but the catalog convention also
