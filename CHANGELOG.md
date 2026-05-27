@@ -5,7 +5,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
-- Shipped catalog: 27 new entries.
+- Shipped catalog: 54 new entries.
 - `GET /api/health` for liveness checks; returns `{status: "ok", version}`.
 - Install docs and installer output now point at the source clone as the place to re-run `install.sh` from on updates.
 - Places list: new "Group by letter" filter option. Letter buckets follow the browser's locale collation, so each user sees their own alphabetical order; non-Latin scripts get their own buckets; digit/punctuation starts go in "#".
@@ -16,6 +16,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places list groups (by category, country, or letter) now list items alphabetically within each group instead of in insertion order. The chosen grouping is persisted across page reloads.
 - Trails list now lists routes alphabetically within each region (or letter). The chosen grouping is persisted across page reloads.
 - Trails list re-renders on filter changes instead of hiding cards with CSS. Empty groups disappear from the list rather than collapsing to zero height.
+- Shipped catalog: non-Latin `local_name` values switched from native script to Latin transliteration (Iran, Russia, Greece) so labels are readable to Latin-alphabet users. Two Iran entries renamed to English: Arg-e Bam -> Bam Citadel, Gonbad-e Qabus -> Qabus Tower.
 
 ### Fixed
 - Places list now refreshes immediately after a place is deleted, edited, or saved, instead of waiting for a page reload.

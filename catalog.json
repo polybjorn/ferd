@@ -5,11 +5,50 @@
     "lon": 28.08854,
     "category": "ruins",
     "country": "Greece",
-    "local_name": "Ακρόπολη της Λίνδου",
+    "local_name": "Akropoli tis Lindou",
     "note": "Hilltop citadel with a 4th-century BC Temple of Athena",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/20210826-Lindos-DJI_0205.jpg/1280px-20210826-Lindos-DJI_0205.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Lindos"
+    ]
+  },
+  {
+    "name": "Akbarieh Garden",
+    "lat": 32.85306,
+    "lon": 59.22806,
+    "category": "garden",
+    "country": "Iran",
+    "local_name": "Bagh-e Akbarieh",
+    "note": "Qajar Persian garden in Birjand, eastern Iran",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/%D9%85%D8%AC%D9%85%D9%88%D8%B9%D9%87_%D8%A7%DA%A9%D8%A8%D8%B1%DB%8C%D9%87%D8%8C_%D9%85%D8%B3%D8%AC%D8%AF_%D9%88_%D8%B9%D9%85%D8%A7%D8%B1%D8%AA_%D9%88_%D8%A8%D8%A7%D8%BA.jpg/1280px-%D9%85%D8%AC%D9%85%D9%88%D8%B9%D9%87_%D8%A7%DA%A9%D8%A8%D8%B1%DB%8C%D9%87%D8%8C_%D9%85%D8%B3%D8%AC%D8%AF_%D9%88_%D8%B9%D9%85%D8%A7%D8%B1%D8%AA_%D9%88_%D8%A8%D8%A7%D8%BA.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Akbarieh_Garden"
+    ]
+  },
+  {
+    "name": "Ali Qapu",
+    "lat": 32.65722,
+    "lon": 51.67667,
+    "category": "palace",
+    "country": "Iran",
+    "local_name": "عالی‌قاپو",
+    "note": "Safavid imperial palace on Naqsh-e Jahan, Isfahan",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/%C4%80l%C4%AB_Q%C4%81p%C5%AB_in_golden_time.jpg/1280px-%C4%80l%C4%AB_Q%C4%81p%C5%AB_in_golden_time.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Ali_Qapu"
+    ]
+  },
+  {
+    "name": "Ali-Sadr Cave",
+    "lat": 35.30161,
+    "lon": 48.30388,
+    "category": "cave",
+    "country": "Iran",
+    "local_name": "Ghar-e Ali Sadr",
+    "note": "Water cave with navigable underground lakes, Hamedan",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Ali_Sadr_Cave%2C_Hamadan_Province%2C_Iran%2Csiamak_sabet.jpg/1280px-Ali_Sadr_Cave%2C_Hamadan_Province%2C_Iran%2Csiamak_sabet.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Ali-Sadr_Cave"
     ]
   },
   {
@@ -42,7 +81,7 @@
     "lon": 25.47798,
     "category": "archaeological-site",
     "country": "Greece",
-    "local_name": "Αρχαία Θήρα",
+    "local_name": "Archaia Thira",
     "note": "Ancient city ruins on Mesa Vouno, founded 9th c. BC",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Santorini_ancient_thera_1.jpg/1280px-Santorini_ancient_thera_1.jpg",
     "sources": [
@@ -50,12 +89,12 @@
     ]
   },
   {
-    "name": "Arg-e Bam",
+    "name": "Bam Citadel",
     "lat": 29.11694,
     "lon": 58.36861,
     "category": "castle",
     "country": "Iran",
-    "local_name": "ارگ بم",
+    "local_name": "Arg-e Bam",
     "note": "Massive adobe citadel of Bam, Silk Road landmark",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/010213-Kerman-IMG_0371-2.jpg/1280px-010213-Kerman-IMG_0371-2.jpg",
     "sources": [
@@ -89,6 +128,32 @@
     ]
   },
   {
+    "name": "Borazjan Castle",
+    "lat": 29.26725,
+    "lon": 51.20844,
+    "category": "castle",
+    "country": "Iran",
+    "local_name": "Dezh-e Borazjan",
+    "note": "Qajar fortified stone caravanserai, Bushehr province",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/%D9%86%D9%85%D8%A7%DB%8C_%D8%A8%DB%8C%D8%B1%D9%88%D9%86%DB%8C_%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D9%85%D8%B4%DB%8C%D8%B1%D8%A7%D9%84%D9%85%D9%84%DA%A9_%D8%A8%D8%B1%D8%A7%D8%B2%D8%AC%D8%A7%D9%86.jpg/1280px-%D9%86%D9%85%D8%A7%DB%8C_%D8%A8%DB%8C%D8%B1%D9%88%D9%86%DB%8C_%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D9%85%D8%B4%DB%8C%D8%B1%D8%A7%D9%84%D9%85%D9%84%DA%A9_%D8%A8%D8%B1%D8%A7%D8%B2%D8%AC%D8%A7%D9%86.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Borazjan_Castle"
+    ]
+  },
+  {
+    "name": "Cathedral of Christ the Saviour",
+    "lat": 55.74444,
+    "lon": 37.60556,
+    "category": "religious",
+    "country": "Russia",
+    "local_name": "Khram Khrista Spasitelya",
+    "note": "Russian Orthodox cathedral on the Moskva, Moscow",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Moscow_July_2011-7a.jpg/1280px-Moscow_July_2011-7a.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Cathedral_of_Christ_the_Saviour"
+    ]
+  },
+  {
     "name": "Chefchaouen",
     "lat": 35.17139,
     "lon": -5.26972,
@@ -99,6 +164,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Chefchaouen_%2852189357475%29.jpg/1280px-Chefchaouen_%2852189357475%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Chefchaouen"
+    ]
+  },
+  {
+    "name": "Chehel Sotoun",
+    "lat": 32.6575,
+    "lon": 51.67222,
+    "category": "garden",
+    "country": "Iran",
+    "local_name": "Bagh-e Chehel Sotoun",
+    "note": "17th-c. Safavid pavilion of 'forty columns', Isfahan",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Chehel_Sotoon.jpg/1280px-Chehel_Sotoon.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Chehel_Sotoun"
     ]
   },
   {
@@ -115,6 +193,45 @@
     ]
   },
   {
+    "name": "Chogha Zanbil",
+    "lat": 32.00833,
+    "lon": 48.52083,
+    "category": "ruins",
+    "country": "Iran",
+    "local_name": "چغازنبيل",
+    "note": "13th-c. BC Elamite ziggurat, southwest Iran",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/%D8%B2%DB%8C%DA%AF%D9%88%D8%B1%D8%A7%D8%AA_%DA%86%D8%BA%D8%A7_%D8%B2%D9%86%D8%A8%DB%8C%D9%84.jpg/1280px-%D8%B2%DB%8C%DA%AF%D9%88%D8%B1%D8%A7%D8%AA_%DA%86%D8%BA%D8%A7_%D8%B2%D9%86%D8%A8%DB%8C%D9%84.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Chogha_Zanbil"
+    ]
+  },
+  {
+    "name": "Dayr-e Gachin",
+    "lat": 35.0583,
+    "lon": 51.4202,
+    "category": "monument",
+    "country": "Iran",
+    "local_name": "Karvansaray-e Deir-e Gachin",
+    "note": "Sasanian caravanserai rebuilt by Safavids, Qom",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D8%AF%DB%8C%D8%B1_%DA%AF%DA%86%DB%8C%D9%86_%D8%A7%D8%B3%D8%AA%D8%A7%D9%86_%D9%82%D9%85_-_%D9%88%DB%8C%DA%A9%DB%8C_%D8%AF%D9%88%D8%B3%D8%AA%D8%AF%D8%A7%D8%B1_%DB%8C%D8%A7%D8%AF%D9%85%D8%A7%D9%86_2018_21.jpg/1280px-%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D8%AF%DB%8C%D8%B1_%DA%AF%DA%86%DB%8C%D9%86_%D8%A7%D8%B3%D8%AA%D8%A7%D9%86_%D9%82%D9%85_-_%D9%88%DB%8C%DA%A9%DB%8C_%D8%AF%D9%88%D8%B3%D8%AA%D8%AF%D8%A7%D8%B1_%DB%8C%D8%A7%D8%AF%D9%85%D8%A7%D9%86_2018_21.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Dayr-e_Gachin"
+    ]
+  },
+  {
+    "name": "Dome of Soltaniyeh",
+    "lat": 36.43397,
+    "lon": 48.79603,
+    "category": "monument",
+    "country": "Iran",
+    "local_name": "Gonbad-e Soltaniyeh",
+    "note": "14th-c. Ilkhanid mausoleum, northwest Iran",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Gonbad_Soltaniye.jpg/1280px-Gonbad_Soltaniye.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Dome_of_Soltaniyeh"
+    ]
+  },
+  {
     "name": "Door of No Return",
     "lat": 14.66778,
     "lon": -17.39722,
@@ -125,6 +242,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/La_maison_des_esclaves.jpg/1280px-La_maison_des_esclaves.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/House_of_Slaves"
+    ]
+  },
+  {
+    "name": "Dowlatabad Garden",
+    "lat": 31.90278,
+    "lon": 54.35222,
+    "category": "garden",
+    "country": "Iran",
+    "local_name": "Bagh-e Dowlatabad",
+    "note": "18th-c. Persian garden with giant windcatcher, Yazd",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Dolat_Abad_Garden_-_Pavilion_01.jpg/1280px-Dolat_Abad_Garden_-_Pavilion_01.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Dowlatabad_Garden"
     ]
   },
   {
@@ -141,6 +271,19 @@
     ]
   },
   {
+    "name": "Eram Garden",
+    "lat": 29.63583,
+    "lon": 52.52528,
+    "category": "garden",
+    "country": "Iran",
+    "local_name": "Bagh-e Eram",
+    "note": "Qajar Persian garden with cypress avenue, Shiraz",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Bagh_Eram_Shiraz.jpg/1280px-Bagh_Eram_Shiraz.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Eram_Garden"
+    ]
+  },
+  {
     "name": "Fes el-Bali",
     "lat": 34.0625,
     "lon": -4.9725,
@@ -154,12 +297,24 @@
     ]
   },
   {
+    "name": "Fin Garden",
+    "lat": 33.94638,
+    "lon": 51.37259,
+    "category": "garden",
+    "country": "Iran",
+    "local_name": "Bagh-e Fin",
+    "note": "Safavid Persian garden with spring-fed pools, Kashan",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Jard%C3%ADn_de_Fin%2C_Kashan%2C_Ir%C3%A1n%2C_2016-09-19%2C_DD_22.jpg/1280px-Jard%C3%ADn_de_Fin%2C_Kashan%2C_Ir%C3%A1n%2C_2016-09-19%2C_DD_22.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Fin_Garden"
+    ]
+  },
+  {
     "name": "Fira",
     "lat": 36.41907,
     "lon": 25.43224,
     "category": "city",
     "country": "Greece",
-    "local_name": "Φηρά",
     "note": "Cliff-perched capital of Santorini on the caldera rim",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Santorini_Fira3_tango7174.jpg/1280px-Santorini_Fira3_tango7174.jpg",
     "sources": [
@@ -185,24 +340,11 @@
     "lon": 51.42028,
     "category": "palace",
     "country": "Iran",
-    "local_name": "کاخ گلستان",
+    "local_name": "Kakh-e Golestan",
     "note": "Qajar royal palace complex in central Tehran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Palais_du_Golestan%2C_T%C3%A9h%C3%A9ran_%285%29.jpg/1280px-Palais_du_Golestan%2C_T%C3%A9h%C3%A9ran_%285%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Golestan_Palace"
-    ]
-  },
-  {
-    "name": "Gonbad-e Qabus",
-    "lat": 37.25803,
-    "lon": 55.169,
-    "category": "monument",
-    "country": "Iran",
-    "local_name": "برج گنبد قابوس",
-    "note": "11th-c. brick funerary tower for Qabus, NE Iran",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/%D8%A8%D8%B1%D8%AC_%D9%87%D8%B2%D8%A7%D8%B1_%D8%B3%D8%A7%D9%84%D9%87.JPG/1280px-%D8%A8%D8%B1%D8%AC_%D9%87%D8%B2%D8%A7%D8%B1_%D8%B3%D8%A7%D9%84%D9%87.JPG",
-    "sources": [
-      "https://en.wikipedia.org/wiki/Gonbad-e_Qabus_(tower)"
     ]
   },
   {
@@ -224,7 +366,7 @@
     "lon": 30.3136,
     "category": "museum",
     "country": "Russia",
-    "local_name": "Государственный Эрмитаж",
+    "local_name": "Gosudarstvenny Ermitazh",
     "note": "Imperial art collection in Saint Petersburg's Winter Palace",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/RUS-2016-Aerial-SPB-Winter_Palace_%28crop%29.jpg/1280px-RUS-2016-Aerial-SPB-Winter_Palace_%28crop%29.jpg",
     "sources": [
@@ -244,12 +386,38 @@
     ]
   },
   {
+    "name": "Imam Reza Shrine",
+    "lat": 36.288,
+    "lon": 59.6157,
+    "category": "religious",
+    "country": "Iran",
+    "local_name": "Haram-e Emam Reza",
+    "note": "Tomb of 8th Shia Imam, vast pilgrimage complex, Mashhad",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/%D8%B5%D8%AD%D9%86_%D8%A7%DB%8C%D9%88%D8%A7%D9%86_%D8%B7%D9%84%D8%A7_%D9%88_%D8%B3%D9%82%D8%A7%D8%AE%D8%A7%D9%86%D9%87.jpg/1280px-%D8%B5%D8%AD%D9%86_%D8%A7%DB%8C%D9%88%D8%A7%D9%86_%D8%B7%D9%84%D8%A7_%D9%88_%D8%B3%D9%82%D8%A7%D8%AE%D8%A7%D9%86%D9%87.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Imam_Reza_shrine"
+    ]
+  },
+  {
+    "name": "Jamalabad Caravanserai",
+    "lat": 37.27189,
+    "lon": 47.84306,
+    "category": "monument",
+    "country": "Iran",
+    "local_name": "Karvansaray-e Jamalabad",
+    "note": "Ilkhanid caravanserai near Mianeh, northwest Iran",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Jamal_abad_caravansary.jpg/1280px-Jamal_abad_caravansary.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Jamalabad_Caravanserai"
+    ]
+  },
+  {
     "name": "Jameh Mosque of Isfahan",
     "lat": 32.66972,
     "lon": 51.68528,
     "category": "religious",
     "country": "Iran",
-    "local_name": "مسجد جامع اصفهان",
+    "local_name": "Masjed-e Jameh Esfahan",
     "note": "Friday mosque of Isfahan, founder of four-iwan plan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/20180301124354_IMG_4179And6more_Interior_3.jpg/1280px-20180301124354_IMG_4179And6more_Interior_3.jpg",
     "sources": [
@@ -267,6 +435,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg/1280px-Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Kaputas_Beach"
+    ]
+  },
+  {
+    "name": "Lenin's Mausoleum",
+    "lat": 55.75361,
+    "lon": 37.61972,
+    "category": "monument",
+    "country": "Russia",
+    "local_name": "Mavzoley Lenina",
+    "note": "Granite mausoleum housing Lenin's body, Red Square",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Mauzoleumlenina_%28cropped%29.jpeg/1280px-Mauzoleumlenina_%28cropped%29.jpeg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Lenin%27s_Mausoleum"
     ]
   },
   {
@@ -300,7 +481,7 @@
     "lon": 28.2241,
     "category": "castle",
     "country": "Greece",
-    "local_name": "Παλάτι του Μεγάλου Μαγίστρου",
+    "local_name": "Palati tou Megalou Magistrou",
     "note": "Medieval Knights Hospitaller fortress in Rhodes Old Town",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes_%289451928431%29.jpg/1280px-Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes_%289451928431%29.jpg",
     "sources": [
@@ -339,7 +520,7 @@
     "lon": 52.8906,
     "category": "ruins",
     "country": "Iran",
-    "local_name": "تخت جمشید",
+    "local_name": "Takht-e Jamshid",
     "note": "Ceremonial capital of the Achaemenid Empire",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Apadana_palace_persepolis.JPG/1280px-Apadana_palace_persepolis.JPG",
     "sources": [
@@ -359,6 +540,45 @@
     ]
   },
   {
+    "name": "Pushkin Museum",
+    "lat": 55.74703,
+    "lon": 37.60603,
+    "category": "museum",
+    "country": "Russia",
+    "local_name": "Muzey imeni A. S. Pushkina",
+    "note": "European art museum named for Pushkin, Moscow",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Gmii.jpg/1280px-Gmii.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Pushkin_Museum"
+    ]
+  },
+  {
+    "name": "Qabus Tower",
+    "lat": 37.25803,
+    "lon": 55.169,
+    "category": "monument",
+    "country": "Iran",
+    "local_name": "Gonbad-e Qabus",
+    "note": "11th-c. brick funerary tower for Qabus, NE Iran",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/%D8%A8%D8%B1%D8%AC_%D9%87%D8%B2%D8%A7%D8%B1_%D8%B3%D8%A7%D9%84%D9%87.JPG/1280px-%D8%A8%D8%B1%D8%AC_%D9%87%D8%B2%D8%A7%D8%B1_%D8%B3%D8%A7%D9%84%D9%87.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Gonbad-e_Qabus_(tower)"
+    ]
+  },
+  {
+    "name": "Qavam House",
+    "lat": 29.60784,
+    "lon": 52.55257,
+    "category": "garden",
+    "country": "Iran",
+    "local_name": "Narenjestan-e Qavam",
+    "note": "Qajar mansion and orange garden in Shiraz",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Qavam_House_2018.jpg/1280px-Qavam_House_2018.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Qavam_House"
+    ]
+  },
+  {
     "name": "Rialto Bridge",
     "lat": 45.4381,
     "lon": 12.3358,
@@ -369,6 +589,45 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Rialto_2025_4.jpg/1280px-Rialto_2025_4.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Rialto_Bridge"
+    ]
+  },
+  {
+    "name": "Ribat of Zein-o-din",
+    "lat": 31.41165,
+    "lon": 54.70687,
+    "category": "monument",
+    "country": "Iran",
+    "local_name": "Robat-e Zein-o-din",
+    "note": "Safavid Silk Road caravanserai with circular towers",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Zeinodin_Caravanserai.jpg/1280px-Zeinodin_Caravanserai.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Ribat_of_Zein-o-din"
+    ]
+  },
+  {
+    "name": "Ribat-i Sharaf",
+    "lat": 36.2664,
+    "lon": 60.6555,
+    "category": "monument",
+    "country": "Iran",
+    "local_name": "رباط شرف",
+    "note": "12th-c. Seljuk caravanserai, northeast Iran",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/%D9%86%D9%85%D8%A7%DB%8C_%D8%B3%D9%87_%D8%B1%D8%AE_%D8%B1%D8%A8%D8%A7%D8%B7_%D8%B4%D8%B1%D9%81.jpg/1280px-%D9%86%D9%85%D8%A7%DB%8C_%D8%B3%D9%87_%D8%B1%D8%AE_%D8%B1%D8%A8%D8%A7%D8%B7_%D8%B4%D8%B1%D9%81.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Ribat-i_Sharaf"
+    ]
+  },
+  {
+    "name": "Sa'd al-Saltaneh Caravanserai",
+    "lat": 36.26889,
+    "lon": 50.00056,
+    "category": "monument",
+    "country": "Iran",
+    "local_name": "Karvansaray-e Sa'd al-Saltaneh",
+    "note": "Qajar urban caravanserai, the largest in Iran, Qazvin",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/%D8%B3%D8%B1%D8%A7%DB%8C_%D8%B3%D8%B9%D8%AF%D8%A7%D9%84%D8%B3%D9%84%D8%B7%D9%86%D9%87_%D9%82%D8%B2%D9%88%DB%8C%D9%86.jpg/1280px-%D8%B3%D8%B1%D8%A7%DB%8C_%D8%B3%D8%B9%D8%AF%D8%A7%D9%84%D8%B3%D9%84%D8%B7%D9%86%D9%87_%D9%82%D8%B2%D9%88%DB%8C%D9%86.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Sa%27d_al-Saltaneh_Caravanserai"
     ]
   },
   {
@@ -390,7 +649,7 @@
     "lon": 37.62306,
     "category": "religious",
     "country": "Russia",
-    "local_name": "Собор Василия Блаженного",
+    "local_name": "Sobor Vasiliya Blazhennogo",
     "note": "Onion-domed cathedral on Moscow's Red Square",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Saint_Basil%27s_Cathedral_in_Moscow.jpg/1280px-Saint_Basil%27s_Cathedral_in_Moscow.jpg",
     "sources": [
@@ -424,16 +683,67 @@
     ]
   },
   {
+    "name": "Shazdeh Garden",
+    "lat": 30.02388,
+    "lon": 57.28209,
+    "category": "garden",
+    "country": "Iran",
+    "local_name": "Bagh-e Shazdeh Mahan",
+    "note": "Qajar Persian garden with terraced waterworks, Mahan",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/%D8%A8%D8%A7%D8%BA_%D8%B4%D8%A7%D9%87%D8%B2%D8%A7%D8%AF%D9%87-%D9%85%D8%A7%D9%87%D8%A7%D9%86-%DA%A9%D8%B1%D9%85%D8%A7%D9%86.jpg/1280px-%D8%A8%D8%A7%D8%BA_%D8%B4%D8%A7%D9%87%D8%B2%D8%A7%D8%AF%D9%87-%D9%85%D8%A7%D9%87%D8%A7%D9%86-%DA%A9%D8%B1%D9%85%D8%A7%D9%86.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Shazdeh_Garden"
+    ]
+  },
+  {
+    "name": "Shrine of Sheikh Safi al-Din",
+    "lat": 38.24861,
+    "lon": 48.29139,
+    "category": "religious",
+    "country": "Iran",
+    "local_name": "Aramgah-e Sheikh Safi al-Din",
+    "note": "16th-c. Safavid Sufi shrine in Ardabil, northwest Iran",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Sheikh_Safi_Al_Din_Ardabili_Tomb.jpg/1280px-Sheikh_Safi_Al_Din_Ardabili_Tomb.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Sheikh_Safi_al-Din_Kh%C4%81neg%C4%81h_and_Shrine_Ensemble"
+    ]
+  },
+  {
+    "name": "Shushtar Historical Hydraulic System",
+    "lat": 32.0441,
+    "lon": 48.8585,
+    "category": "archaeological-site",
+    "country": "Iran",
+    "local_name": "Sazeha-ye Abi-ye Shushtar",
+    "note": "Sasanian canals, dams, and watermills, southwest Iran",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Shushtar_Historical_Hydraulic_System_Panorama.jpg/1280px-Shushtar_Historical_Hydraulic_System_Panorama.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Shushtar_Historical_Hydraulic_System"
+    ]
+  },
+  {
     "name": "Skaros",
     "lat": 36.43246,
     "lon": 25.41818,
     "category": "ruins",
     "country": "Greece",
-    "local_name": "Σκάρος",
     "note": "Ruined Venetian rock fortress in Imerovigli",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Skaros_Rock.jpg/1280px-Skaros_Rock.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Skaros"
+    ]
+  },
+  {
+    "name": "State Historical Museum",
+    "lat": 55.755,
+    "lon": 37.6181,
+    "category": "museum",
+    "country": "Russia",
+    "local_name": "Gosudarstvenny Istorichesky Muzey",
+    "note": "Russian national history museum on Red Square, Moscow",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Museo_Estatal_de_Historia%2C_Mosc%C3%BA%2C_Rusia%2C_2016-10-03%2C_DD_49.jpg/1280px-Museo_Estatal_de_Historia%2C_Mosc%C3%BA%2C_Rusia%2C_2016-10-03%2C_DD_49.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/State_Historical_Museum"
     ]
   },
   {
@@ -450,6 +760,19 @@
     ]
   },
   {
+    "name": "Temple of Anahita",
+    "lat": 34.50139,
+    "lon": 47.96028,
+    "category": "ruins",
+    "country": "Iran",
+    "local_name": "Parastashgah-e Anahita",
+    "note": "Ancient temple ruins ascribed to Anahita, Kermanshah",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Anahita_temple_Iran.jpg/1280px-Anahita_temple_Iran.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Temple_of_Anahita,_Kangavar"
+    ]
+  },
+  {
     "name": "Temple of the Inscriptions",
     "lat": 17.4836,
     "lon": -92.0468,
@@ -463,12 +786,38 @@
     ]
   },
   {
+    "name": "The Burnt City",
+    "lat": 30.59528,
+    "lon": 61.32639,
+    "category": "ruins",
+    "country": "Iran",
+    "local_name": "Shahr-e Sukhteh",
+    "note": "Bronze Age city ruins on the Helmand, southeast Iran",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/C20R1002.jpg/1280px-C20R1002.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Shahr-e_Sukhteh"
+    ]
+  },
+  {
+    "name": "Throne of Solomon",
+    "lat": 36.60317,
+    "lon": 47.23595,
+    "category": "ruins",
+    "country": "Iran",
+    "local_name": "Takht-e Soleyman",
+    "note": "Sasanian fire temple ruins, northwest Iran",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Takht-e-soleiman-1.jpg/1280px-Takht-e-soleiman-1.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Takht-e_Soleym%C4%81n"
+    ]
+  },
+  {
     "name": "Tomb of Cyrus the Great",
     "lat": 30.19389,
     "lon": 53.16722,
     "category": "monument",
     "country": "Iran",
-    "local_name": "آرامگاه کوروش بزرگ",
+    "local_name": "Aramgah-e Kurosh-e Bozorg",
     "note": "6th-c. BC mausoleum of Cyrus the Great at Pasargadae",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Pasargad_Tomb_Cyrus3.jpg/1280px-Pasargad_Tomb_Cyrus3.jpg",
     "sources": [
@@ -481,7 +830,7 @@
     "lon": 52.87472,
     "category": "monument",
     "country": "Iran",
-    "local_name": "آرامگاه داریوش بزرگ",
+    "local_name": "Aramgah-e Daryush-e Bozorg",
     "note": "Darius the Great's cliff tomb at Naqsh-e Rostam",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Tomb_of_Darius_I.jpg/1280px-Tomb_of_Darius_I.jpg",
     "sources": [
