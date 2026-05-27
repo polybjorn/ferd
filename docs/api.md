@@ -143,7 +143,7 @@ Upload a GPX with PII stripped, into a region:
 
 ```sh
 curl -b jar -X POST \
-  'http://localhost:8091/api/gpx?name=My%20Trail&region=Alps&strip_pii=true' \
+  'http://localhost:8091/api/gpx?name=My%20Route&region=Alps&strip_pii=true' \
   --data-binary @my-route.gpx
 ```
 
