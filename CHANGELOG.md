@@ -6,6 +6,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Added
 - Shipped catalog: 27 new entries.
+- `GET /api/health` for liveness checks; returns `{status: "ok", version}`.
+- Install docs and installer output now point at the source clone as the place to re-run `install.sh` from on updates.
 
 ### Fixed
 - Backup import now silently skips archiver junk entries (`__MACOSX/`, `._*`, `.DS_Store`, `Thumbs.db`, `desktop.ini`, `*.bak`, `*~`) instead of rejecting the whole zip. Zips made by macOS Finder, Windows Explorer, and editor backups now import without manual cleanup.

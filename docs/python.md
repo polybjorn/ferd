@@ -27,6 +27,8 @@ sudo ./deploy/install.sh --yes
 
 Audit the script first if you like (`less deploy/install.sh`); it's a couple of hundred lines of `cp`, `useradd`, and `systemctl`.
 
+Keep the source clone somewhere stable (e.g. `/opt/ferd-src` or `~/src/ferd`). The installer copies files into `/srv/ferd` but never touches the source; you re-run it from the same clone on every update.
+
 ### macOS (launchd)
 
 Edit the `/Users/YOU/ferd` paths in `deploy/ferd-api.plist`, then load it as a per-user agent:
@@ -61,9 +63,10 @@ cd /path/to/source
 git pull
 sudo ./deploy/install.sh --yes        # if you used the guided installer
 sudo systemctl restart ferd-api.service
+curl -fs http://127.0.0.1:8092/api/health   # smoke check; prints {"status":"ok",...}
 ```
 
-Your config and data are never touched.
+Your config and data are never touched. If you deleted the source clone after install, just clone it again anywhere and run `install.sh` from there.
 
 ## Backups
 

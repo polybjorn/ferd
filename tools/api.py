@@ -772,6 +772,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
   def do_GET(self):
     path = urlparse(self.path).path
+    if path == "/api/health":
+      return self._h_health()
     if path == "/api/state":
       return self._h_state()
     if path == "/api/sessions":
@@ -983,6 +985,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._error(HTTPStatus.NOT_FOUND, "not found")
 
   # ---- handlers ----
+
+  def _h_health(self):
+    self._send_json(HTTPStatus.OK, {"status": "ok", "version": APP_VERSION})
 
   def _h_state(self):
     user = self._current_user()

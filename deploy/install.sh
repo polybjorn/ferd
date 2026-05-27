@@ -162,6 +162,7 @@ fi
 
 echo
 echo "Done. Next steps:"
+echo "  Source kept at: $SRC_DIR (keep it around; re-run this script from there to update)."
 echo "  1. Edit $PREFIX/tools/config.json (paths, secure_cookies, initial_user)."
 echo "  2. Pick a reverse proxy:"
 echo "       Caddy:  cp $PREFIX/deploy/Caddyfile.example /etc/caddy/Caddyfile  (then edit + reload)"

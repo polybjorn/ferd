@@ -15,6 +15,7 @@ Every endpoint exposed by `tools/api.py`. Useful if you want to script against F
 
 | Method | Path | Auth | Body | Notes |
 |---|---|---|---|---|
+| `GET` | `/health` | none | - | Returns `{status: "ok", version}`. Cheap liveness probe for monitoring and reverse-proxy health checks. |
 | `GET` | `/state` | none | - | Returns `{authenticated, username, is_admin, published, registration_open, publishing_open, has_users, requires_setup_token}`. Drives the SPA's boot decisions. |
 | `POST` | `/register` | none | `{username, password, setup_token?}` | First-run only by default (creates admin); requires `setup_token` if `require_setup_token=true` and no users exist. After that, requires the admin to flip the registration gate open. Sets a session cookie. |
 | `POST` | `/login` | none | `{username, password}` | Per-IP rate-limited (10 fails / 15 min). Sets a session cookie. |
