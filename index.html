@@ -617,6 +617,34 @@
     .filter-popover .filter-clear:hover { color: var(--text); text-decoration: underline; }
     .filter-popover .filter-divider { height: 1px; background: var(--border); margin: 0.2rem -0.25rem; }
 
+    .context-menu {
+      position: fixed;
+      z-index: 5000;
+      min-width: 160px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.3rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 24px var(--shadow);
+      font-size: 0.85rem;
+    }
+    .context-menu[hidden] { display: none; }
+    .context-menu button {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      text-align: left;
+      padding: 0.45rem 0.6rem;
+      border-radius: calc(var(--radius) - 2px);
+      cursor: pointer;
+      font: inherit;
+    }
+    .context-menu button:hover { background: var(--surface2); }
+    .context-menu button.danger { color: var(--red); }
+    .context-menu .ctx-divider { height: 1px; background: var(--border); margin: 0.2rem 0; }
+
     .group-toggle {
       display: flex;
       flex-shrink: 0;
@@ -5202,7 +5230,7 @@
         for (const p of items) {
           const statusClass = p.visited ? 'visited' : 'want';
           const href = '#/?focus=place:' + encodeURIComponent(p.name);
-          html += '<div class="place-card" onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
+          html += '<div class="place-card" data-place-name="' + escapeHtml(p.name) + '" onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
           html += '<span class="status-dot ' + statusClass + '"></span>';
           html += '<div class="place-text">';
           html += '<div class="name">' + escapeHtml(p.name) + '</div>';
@@ -5236,6 +5264,43 @@
           const place = (state.places || []).find(p => p.name === name);
           if (!place) return;
           if (findCatalogUpdate(place)) openCatalogUpdateModal(place);
+        });
+      });
+      listEl.querySelectorAll('.place-card').forEach(function(card) {
+        attachContextMenu(card, function() {
+          const name = card.dataset.placeName;
+          const place = (state.places || []).find(p => p.name === name);
+          if (!place) return [];
+          const items = [];
+          items.push({ label: 'Open on map', onClick: function() { location.hash = '#/?focus=place:' + encodeURIComponent(place.name); } });
+          if (!isReadOnly() && state.auth && state.auth.authenticated) {
+            items.push({ label: 'Edit', onClick: function() { openEditPlaceModal(place); } });
+          }
+          if (place.from_catalog && findCatalogUpdate(place)) {
+            items.push({ label: 'Apply catalog update', onClick: function() { openCatalogUpdateModal(place); } });
+          }
+          if (Array.isArray(place.sources) && place.sources.length) {
+            items.push({ label: 'Open source', onClick: function() { window.open(place.sources[0], '_blank', 'noopener'); } });
+          }
+          if (!isReadOnly() && state.auth && state.auth.authenticated) {
+            items.push(null);
+            items.push({ label: 'Delete', danger: true, onClick: function() {
+              openConfirmModal({
+                title: 'Delete place',
+                body: 'Delete "' + place.name + '"? This cannot be undone.',
+                confirmLabel: 'Delete',
+                danger: true,
+              }).then(function(ok) {
+                if (!ok) return;
+                const prevColors = Object.assign({}, state.categoryColors);
+                api('DELETE', '/places', { id: place.id })
+                  .then(() => refreshPlaces())
+                  .then(() => syncPlacesOnMap(prevColors))
+                  .catch(err => alert('Delete failed: ' + err.message));
+              });
+            }});
+          }
+          return items;
         });
       });
       listEl.querySelectorAll('.section-link[data-filter-cat]').forEach(function(label) {
@@ -5410,7 +5475,7 @@
             const route = entry.route;
             const href = '#/routes/route/' + encodeURIComponent(route.key);
             const statusClass = route.completed ? 'completed' : 'planned';
-            inner += '<div class="route-card" onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
+            inner += '<div class="route-card" data-route-key="' + escapeHtml(route.key) + '" onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
             inner += '<span class="status-dot ' + statusClass + '"></span>';
             inner += '<span class="name">' + escapeHtml(route.name) + '</span>';
             inner += '</div>';
@@ -5418,6 +5483,42 @@
           inner += '</div></div>';
         }
         mountEl.innerHTML = inner;
+        mountEl.querySelectorAll('.route-card').forEach(function(card) {
+          attachContextMenu(card, function() {
+            const key = card.dataset.routeKey;
+            const found = findRouteByKey(key);
+            if (!found) return [];
+            const route = found.route;
+            const regionName = found.region.name;
+            const items = [];
+            items.push({ label: 'Open on map', onClick: function() { location.hash = '#/?focus=route:' + encodeURIComponent(route.key); } });
+            items.push({ label: 'Open detail', onClick: function() { location.hash = '#/routes/route/' + encodeURIComponent(route.key); } });
+            if (!isReadOnly() && state.auth && state.auth.authenticated) {
+              items.push({ label: 'Edit', onClick: function() { openEditTrailMetadataModal(route, regionName); } });
+            }
+            if (route.source) {
+              items.push({ label: 'Open source', onClick: function() { window.open(route.source, '_blank', 'noopener'); } });
+            }
+            if (!isReadOnly() && state.auth && state.auth.authenticated) {
+              items.push(null);
+              items.push({ label: 'Delete', danger: true, onClick: function() {
+                openConfirmModal({
+                  title: 'Delete route',
+                  body: 'Delete "' + route.name + '" (' + displayRegion(regionName) + ')? This removes the GPX file.',
+                  confirmLabel: 'Delete',
+                  danger: true,
+                }).then(function(ok) {
+                  if (!ok) return;
+                  api('DELETE', '/gpx', { region: regionName, name: route.name })
+                    .then(() => refreshRoutes())
+                    .then(() => renderTrailsList())
+                    .catch(err => alert('Delete failed: ' + err.message));
+                });
+              }});
+            }
+            return items;
+          });
+        });
         mountEl.querySelectorAll('.section-link[data-filter-region]').forEach(function(label) {
           label.addEventListener('click', function() {
             const r = label.dataset.filterRegion;
@@ -7843,6 +7944,105 @@
           }).catch(fail);
         });
       }
+    }
+
+    // Generic floating context menu. Pass `items` as an array of
+    // { label, onClick, danger? } objects, or `null` to insert a divider.
+    // Auto-closes on click outside, Escape, scroll, or window blur.
+    let _ctxMenuEl = null;
+    function closeContextMenu() {
+      if (_ctxMenuEl) { _ctxMenuEl.remove(); _ctxMenuEl = null; }
+    }
+    function openContextMenu({ x, y, items }) {
+      closeContextMenu();
+      const menu = document.createElement('div');
+      menu.className = 'context-menu';
+      for (const item of items) {
+        if (item === null) {
+          const sep = document.createElement('div');
+          sep.className = 'ctx-divider';
+          menu.appendChild(sep);
+          continue;
+        }
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = item.label;
+        if (item.danger) btn.className = 'danger';
+        btn.addEventListener('click', function() {
+          closeContextMenu();
+          try { item.onClick(); } catch (e) { console.error(e); }
+        });
+        menu.appendChild(btn);
+      }
+      document.body.appendChild(menu);
+      // Clamp to viewport (measure after mount).
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const rect = menu.getBoundingClientRect();
+      const left = Math.min(x, vw - rect.width - 8);
+      const top  = Math.min(y, vh - rect.height - 8);
+      menu.style.left = Math.max(8, left) + 'px';
+      menu.style.top  = Math.max(8, top) + 'px';
+      _ctxMenuEl = menu;
+      // Dismissal listeners (next tick so the opening click doesn't fire them).
+      setTimeout(function() {
+        document.addEventListener('click', _ctxOutsideClick, true);
+        document.addEventListener('contextmenu', _ctxOutsideClick, true);
+        document.addEventListener('keydown', _ctxKey, true);
+        window.addEventListener('scroll', closeContextMenu, true);
+        window.addEventListener('blur', closeContextMenu);
+      }, 0);
+    }
+    function _ctxOutsideClick(e) {
+      if (!_ctxMenuEl) return;
+      if (_ctxMenuEl.contains(e.target)) return;
+      closeContextMenu();
+      _ctxTeardown();
+    }
+    function _ctxKey(e) {
+      if (e.key === 'Escape') { closeContextMenu(); _ctxTeardown(); }
+    }
+    function _ctxTeardown() {
+      document.removeEventListener('click', _ctxOutsideClick, true);
+      document.removeEventListener('contextmenu', _ctxOutsideClick, true);
+      document.removeEventListener('keydown', _ctxKey, true);
+      window.removeEventListener('scroll', closeContextMenu, true);
+      window.removeEventListener('blur', closeContextMenu);
+    }
+
+    // Wire contextmenu (desktop right-click) and long-press (touch) on an
+    // element to invoke `buildItems(event)` and open a context menu.
+    function attachContextMenu(el, buildItems) {
+      el.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        const items = buildItems(e);
+        if (items && items.length) openContextMenu({ x: e.clientX, y: e.clientY, items });
+      });
+      // Touch long-press (~400ms). Suppress the click that follows.
+      let pressTimer = null;
+      let pressX = 0, pressY = 0;
+      let firedLongPress = false;
+      el.addEventListener('touchstart', function(e) {
+        if (!e.touches || !e.touches[0]) return;
+        firedLongPress = false;
+        pressX = e.touches[0].clientX;
+        pressY = e.touches[0].clientY;
+        pressTimer = setTimeout(function() {
+          firedLongPress = true;
+          const items = buildItems(e);
+          if (items && items.length) openContextMenu({ x: pressX, y: pressY, items });
+        }, 400);
+      }, { passive: true });
+      const cancelLongPress = function() {
+        if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+      };
+      el.addEventListener('touchmove', cancelLongPress, { passive: true });
+      el.addEventListener('touchend', cancelLongPress);
+      el.addEventListener('touchcancel', cancelLongPress);
+      // Swallow the synthetic click that follows a long-press.
+      el.addEventListener('click', function(e) {
+        if (firedLongPress) { e.preventDefault(); e.stopPropagation(); firedLongPress = false; }
+      }, true);
     }
 
     function openConfirmModal({ title, body, confirmLabel, danger }) {

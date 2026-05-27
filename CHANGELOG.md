@@ -10,6 +10,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Install docs and installer output now point at the source clone as the place to re-run `install.sh` from on updates.
 - Places list: new "Group by letter" filter option, with sections in Norwegian alphabetical order (A-Z, Æ, Ø, Å, then non-alphabetic starts as "#").
 - Trails list: new "Group by letter" filter option, alongside the existing region grouping. Same Norwegian ordering as places.
+- Right-click (or long-press on touch) a place or trail card to open a context menu with Open on map, Edit, Open source (when present), Apply catalog update (places only, when applicable), and Delete.
 
 ### Changed
 - Places list groups (by category, country, or letter) now list items alphabetically within each group instead of in insertion order. The chosen grouping is persisted across page reloads.
