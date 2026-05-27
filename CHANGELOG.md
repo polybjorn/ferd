@@ -20,7 +20,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places list groups (by category, country, or letter) now list items alphabetically within each group instead of in insertion order. The chosen grouping is persisted across page reloads.
 - Routes list now lists routes alphabetically within each region (or letter). The chosen grouping is persisted across page reloads.
 - Routes list re-renders on filter changes instead of hiding cards with CSS. Empty groups disappear from the list rather than collapsing to zero height.
-- Shipped catalog: non-Latin `local_name` values switched from native script to Latin transliteration (Iran, Russia, Greece) so labels are readable to Latin-alphabet users. Two Iran entries renamed to English: Arg-e Bam -> Bam Citadel, Gonbad-e Qabus -> Qabus Tower.
+- Shipped catalog: non-Latin `local_name` values switched from native script to Latin transliteration (Iran, Russia, Greece) so labels are readable to Latin-alphabet users. Two Iran entries renamed to English: Arg-e Bam -> Bam Citadel, Gonbad-e Qabus -> Qabus Tower. The seven entries whose romanization equaled `name` (Ali Qapu, Chefchaouen, Chogha Zanbil, Fes el-Bali, Fira, Ribat-i Sharaf, Skaros) now have `local_name` omitted entirely instead of keeping the native script.
 - Catalog mark on place cards: open-book icon (was bookmark), with an accent dot in the corner to mark "update available" (replacing the previous color-swap behavior).
 - Accepting a catalog update no longer triggers a full list re-render; only the affected card updates in place.
 - "Add place" / "Add route" relabeled to "Add" so the button doesn't change width when switching tabs.
@@ -28,6 +28,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Map popups for places and routes: removed the inline "Edit" link and the top-right copy-link icon (both now reachable via right-click). Top-right is now a "go to source" arrow that opens the entry's first source URL. The separate source line in the popup body is gone.
 - Native name in popups aligns to the right of the title on a single line and wraps to a separate left-aligned line when it doesn't fit. Middot separator removed.
 - Right-click context menus rendered with a tighter minimum width.
+- Catalog update modal: strikethrough on a diff row now appears only when the field is checked (about to be replaced). Unchecked rows show both values without strikethrough, with the catalog value dimmed. The previous behavior struck whichever value "wouldn't survive" the action, which inverted the visual when toggling.
 - Category color palette: boosted saturation for higher contrast against dark surfaces. Hues are preserved, so existing per-category color assignments look the same as before, just denser.
 - Manage categories rows: removed the always-on "N places" tag. The "edited" indicator is now a small chip inside the name input and hides while you're typing.
 - Manage categories and Manage regions modals now cap at viewport height; the row list scrolls internally and the scrollbar anchors to the modal's right edge.

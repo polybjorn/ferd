@@ -31,7 +31,6 @@
     "lon": 51.67667,
     "category": "palace",
     "country": "Iran",
-    "local_name": "عالی‌قاپو",
     "note": "Safavid imperial palace on Naqsh-e Jahan, Isfahan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/%C4%80l%C4%AB_Q%C4%81p%C5%AB_in_golden_time.jpg/1280px-%C4%80l%C4%AB_Q%C4%81p%C5%AB_in_golden_time.jpg",
     "sources": [
@@ -159,7 +158,6 @@
     "lon": -5.26972,
     "category": "city",
     "country": "Morocco",
-    "local_name": "شفشاون",
     "note": "Blue-washed medina town in the Rif Mountains",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Chefchaouen_%2852189357475%29.jpg/1280px-Chefchaouen_%2852189357475%29.jpg",
     "sources": [
@@ -198,7 +196,6 @@
     "lon": 48.52083,
     "category": "ruins",
     "country": "Iran",
-    "local_name": "چغازنبيل",
     "note": "13th-c. BC Elamite ziggurat, southwest Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/%D8%B2%DB%8C%DA%AF%D9%88%D8%B1%D8%A7%D8%AA_%DA%86%D8%BA%D8%A7_%D8%B2%D9%86%D8%A8%DB%8C%D9%84.jpg/1280px-%D8%B2%DB%8C%DA%AF%D9%88%D8%B1%D8%A7%D8%AA_%DA%86%D8%BA%D8%A7_%D8%B2%D9%86%D8%A8%DB%8C%D9%84.jpg",
     "sources": [
@@ -289,7 +286,6 @@
     "lon": -4.9725,
     "category": "city",
     "country": "Morocco",
-    "local_name": "فاس البالي",
     "note": "Walled medina of Fez, world's largest car-free area",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Fes_Bab_Bou_Jeloud_2011.jpg/1280px-Fes_Bab_Bou_Jeloud_2011.jpg",
     "sources": [
@@ -315,7 +311,6 @@
     "lon": 25.43224,
     "category": "city",
     "country": "Greece",
-    "local_name": "Φηρά",
     "note": "Cliff-perched capital of Santorini on the caldera rim",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Santorini_Fira3_tango7174.jpg/1280px-Santorini_Fira3_tango7174.jpg",
     "sources": [
@@ -611,7 +606,6 @@
     "lon": 60.6555,
     "category": "monument",
     "country": "Iran",
-    "local_name": "رباط شرف",
     "note": "12th-c. Seljuk caravanserai, northeast Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/%D9%86%D9%85%D8%A7%DB%8C_%D8%B3%D9%87_%D8%B1%D8%AE_%D8%B1%D8%A8%D8%A7%D8%B7_%D8%B4%D8%B1%D9%81.jpg/1280px-%D9%86%D9%85%D8%A7%DB%8C_%D8%B3%D9%87_%D8%B1%D8%AE_%D8%B1%D8%A8%D8%A7%D8%B7_%D8%B4%D8%B1%D9%81.jpg",
     "sources": [
@@ -728,7 +722,6 @@
     "lon": 25.41818,
     "category": "ruins",
     "country": "Greece",
-    "local_name": "Σκάρος",
     "note": "Ruined Venetian rock fortress in Imerovigli",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Skaros_Rock.jpg/1280px-Skaros_Rock.jpg",
     "sources": [

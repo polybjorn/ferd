@@ -17,7 +17,7 @@ Each entry in `catalog.json` is a JSON object with these fields, in this order:
 - `lat`, `lon` - 5 decimals (~1 m, matches the in-app picker). Source from OSM Nominatim or by picking on the map in the app, not from Wikipedia's "geo" links (often village-center, not the specific landmark).
 - `category` - one of the slugs in `CATEGORY_VOCAB` (`tests/test_shipped_catalog.py`). New slugs go in the same PR.
 - `country` - country name in English.
-- `local_name` - native script (e.g. `Ακρόπολη της Λίνδου`, `京都駅`), not a transliteration. Omit if identical to `name`.
+- `local_name` - the place's name in the local language, in Latin romanization (e.g. `Akropoli tis Lindou`, `Takht-e Jamshid`, `Gosudarstvenny Ermitazh`). Use the standard transliteration; don't store native script. Omit if the romanized form equals `name`.
 - `note` - one-line identifier, max 60 chars.
 - `image` - stable thumbnail URL. Wikipedia Commons works (`…/thumb/…/1280px-…`); browsers downsize to ~280 px in the popup and the service worker caches repeats. Stick to 1280 px - smaller widths often 400 from the thumbnailer.
 - `sources` - array of URLs, usually one Wikipedia link. Add more only if a single source can't carry the claim.
