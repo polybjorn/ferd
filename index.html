@@ -2870,6 +2870,10 @@
       // browse-list state
       groupBy: (function(){ try { return localStorage.getItem('places-group-by') || 'category'; } catch { return 'category'; } })(),
       trailsGroupBy: (function(){ try { return localStorage.getItem('trails-group-by') || 'region'; } catch { return 'region'; } })(),
+      // Filter values are kept in memory only — they survive in-page re-renders
+      // (catalog refresh, CRUD writes) but reset on a full page reload.
+      placeFilters: { search: '', status: 'all', category: 'all', country: 'all', catalog: 'all' },
+      trailFilters: { search: '', status: 'all', region: 'all', difficulty: 'all', rating: 'all', tag: 'all' },
       // unified-map filter state
       hiddenCategories: new Set(),
       hiddenRegions: new Set(),
@@ -5058,30 +5062,30 @@
       const countries = [...new Set(places.map(p => p.country).filter(Boolean))].sort((a, b) => a.localeCompare(b));
       app.innerHTML =
         '<div class="index-controls">' +
-        '<input type="text" id="search-input" placeholder="Filter places...">' +
+        '<input type="text" id="search-input" placeholder="Filter places..." value="' + escapeHtml(state.placeFilters.search) + '">' +
         '<div class="filter-dropdown">' +
           '<button type="button" class="filter-btn" id="filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
           '<div class="filter-popover" id="filter-popover" hidden>' +
             '<select id="filter-status">' +
               '<option value="all">Status</option>' +
-              '<option value="visited">Visited</option>' +
-              '<option value="want">Want to visit</option>' +
+              '<option value="visited"' + (state.placeFilters.status === 'visited' ? ' selected' : '') + '>Visited</option>' +
+              '<option value="want"' + (state.placeFilters.status === 'want' ? ' selected' : '') + '>Want to visit</option>' +
             '</select>' +
             '<select id="filter-category">' +
               '<option value="all">Category</option>' +
-              cats.map(c => '<option value="' + escapeHtml(c) + '">' + escapeHtml(displayCategory(c)) + '</option>').join('') +
+              cats.map(c => '<option value="' + escapeHtml(c) + '"' + (state.placeFilters.category === c ? ' selected' : '') + '>' + escapeHtml(displayCategory(c)) + '</option>').join('') +
             '</select>' +
             (countries.length ?
               '<select id="filter-country">' +
                 '<option value="all">Country</option>' +
-                countries.map(c => '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>').join('') +
+                countries.map(c => '<option value="' + escapeHtml(c) + '"' + (state.placeFilters.country === c ? ' selected' : '') + '>' + escapeHtml(c) + '</option>').join('') +
               '</select>'
               : '') +
             '<select id="filter-catalog">' +
               '<option value="all">Catalog</option>' +
-              '<option value="from-catalog">From catalog</option>' +
-              '<option value="not-from-catalog">Not from catalog</option>' +
-              '<option value="updates-available">Updates available</option>' +
+              '<option value="from-catalog"' + (state.placeFilters.catalog === 'from-catalog' ? ' selected' : '') + '>From catalog</option>' +
+              '<option value="not-from-catalog"' + (state.placeFilters.catalog === 'not-from-catalog' ? ' selected' : '') + '>Not from catalog</option>' +
+              '<option value="updates-available"' + (state.placeFilters.catalog === 'updates-available' ? ' selected' : '') + '>Updates available</option>' +
             '</select>' +
             '<div class="filter-divider"></div>' +
             '<select id="filter-group-by">' +
@@ -5119,8 +5123,16 @@
         renderPlaceList(placesSearchInput ? placesSearchInput.value : '');
         updateFilterBtnLabel();
       }
-      if (placesSearchInput) placesSearchInput.addEventListener('input', rerender);
-      filterSels.forEach(s => s.addEventListener('change', rerender));
+      if (placesSearchInput) placesSearchInput.addEventListener('input', function() {
+        state.placeFilters.search = this.value;
+        rerender();
+      });
+      const filterKeyById = { 'filter-status': 'status', 'filter-category': 'category', 'filter-country': 'country', 'filter-catalog': 'catalog' };
+      filterSels.forEach(s => s.addEventListener('change', function() {
+        const k = filterKeyById[s.id];
+        if (k) state.placeFilters[k] = s.value;
+        rerender();
+      }));
       const groupBySel = document.getElementById('filter-group-by');
       if (groupBySel) groupBySel.addEventListener('change', function() {
         state.groupBy = this.value;
@@ -5144,6 +5156,10 @@
       }
       if (filterClear) filterClear.addEventListener('click', function() {
         filterSels.forEach(s => { s.value = 'all'; });
+        state.placeFilters.status = 'all';
+        state.placeFilters.category = 'all';
+        state.placeFilters.country = 'all';
+        state.placeFilters.catalog = 'all';
         rerender();
       });
       updateFilterBtnLabel();
@@ -5352,36 +5368,31 @@
       }
       const allTags = [...tagSet].sort((a, b) => a.localeCompare(b));
       let html = '<div class="index-controls">' +
-        '<input type="text" id="search-input" placeholder="Filter routes...">' +
+        '<input type="text" id="search-input" placeholder="Filter routes..." value="' + escapeHtml(state.trailFilters.search) + '">' +
         '<div class="filter-dropdown">' +
           '<button type="button" class="filter-btn" id="filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
           '<div class="filter-popover" id="filter-popover" hidden>' +
             '<select id="filter-status">' +
               '<option value="all">Status</option>' +
-              '<option value="completed">Completed</option>' +
-              '<option value="planned">Planned</option>' +
+              '<option value="completed"' + (state.trailFilters.status === 'completed' ? ' selected' : '') + '>Completed</option>' +
+              '<option value="planned"' + (state.trailFilters.status === 'planned' ? ' selected' : '') + '>Planned</option>' +
             '</select>' +
             '<select id="filter-region">' +
               '<option value="all">Region</option>' +
-              regionNames.map(n => '<option value="' + escapeHtml(n.toLowerCase()) + '">' + escapeHtml(displayRegion(n)) + '</option>').join('') +
+              regionNames.map(n => { const v = n.toLowerCase(); return '<option value="' + escapeHtml(v) + '"' + (state.trailFilters.region === v ? ' selected' : '') + '>' + escapeHtml(displayRegion(n)) + '</option>'; }).join('') +
             '</select>' +
             '<select id="filter-difficulty">' +
               '<option value="all">Difficulty</option>' +
-              difficulties.map(d => '<option value="' + d + '">' + d[0].toUpperCase() + d.slice(1) + '</option>').join('') +
+              difficulties.map(d => '<option value="' + d + '"' + (state.trailFilters.difficulty === d ? ' selected' : '') + '>' + d[0].toUpperCase() + d.slice(1) + '</option>').join('') +
             '</select>' +
             '<select id="filter-rating">' +
               '<option value="all">Rating</option>' +
-              '<option value="unrated">Unrated</option>' +
-              '<option value="1">1 star</option>' +
-              '<option value="2">2 stars</option>' +
-              '<option value="3">3 stars</option>' +
-              '<option value="4">4 stars</option>' +
-              '<option value="5">5 stars</option>' +
+              ['unrated','1','2','3','4','5'].map(v => '<option value="' + v + '"' + (state.trailFilters.rating === v ? ' selected' : '') + '>' + (v === 'unrated' ? 'Unrated' : (v + ' star' + (v === '1' ? '' : 's'))) + '</option>').join('') +
             '</select>' +
             (allTags.length ?
               '<select id="filter-tag">' +
                 '<option value="all">Any tag</option>' +
-                allTags.map(t => '<option value="' + escapeHtml(t) + '">' + escapeHtml(t) + '</option>').join('') +
+                allTags.map(t => '<option value="' + escapeHtml(t) + '"' + (state.trailFilters.tag === t ? ' selected' : '') + '>' + escapeHtml(t) + '</option>').join('') +
               '</select>'
               : '') +
             '<div class="filter-divider"></div>' +
@@ -5540,8 +5551,16 @@
         });
         updateFilterBtnLabel();
       }
-      if (searchInput) searchInput.addEventListener('input', renderTrailsList);
-      filterSels.forEach(s => s.addEventListener('change', renderTrailsList));
+      if (searchInput) searchInput.addEventListener('input', function() {
+        state.trailFilters.search = this.value;
+        renderTrailsList();
+      });
+      const trailFilterKeyById = { 'filter-status': 'status', 'filter-region': 'region', 'filter-difficulty': 'difficulty', 'filter-rating': 'rating', 'filter-tag': 'tag' };
+      filterSels.forEach(s => s.addEventListener('change', function() {
+        const k = trailFilterKeyById[s.id];
+        if (k) state.trailFilters[k] = s.value;
+        renderTrailsList();
+      }));
       if (groupBySel) groupBySel.addEventListener('change', function() {
         state.trailsGroupBy = this.value;
         setPref('trails-group-by', this.value);
@@ -5564,6 +5583,11 @@
       }
       if (filterClear) filterClear.addEventListener('click', function() {
         filterSels.forEach(s => { s.value = 'all'; });
+        state.trailFilters.status = 'all';
+        state.trailFilters.region = 'all';
+        state.trailFilters.difficulty = 'all';
+        state.trailFilters.rating = 'all';
+        state.trailFilters.tag = 'all';
         renderTrailsList();
       });
       renderTrailsList();

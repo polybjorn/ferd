@@ -19,6 +19,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Shipped catalog: non-Latin `local_name` values switched from native script to Latin transliteration (Iran, Russia, Greece) so labels are readable to Latin-alphabet users. Two Iran entries renamed to English: Arg-e Bam -> Bam Citadel, Gonbad-e Qabus -> Qabus Tower.
 
 ### Fixed
+- Places and trails list filter selections no longer reset when the list re-renders (e.g. after accepting a catalog update).
 - Places list now refreshes immediately after a place is deleted, edited, or saved, instead of waiting for a page reload.
 - Backup import now silently skips archiver junk entries (`__MACOSX/`, `._*`, `.DS_Store`, `Thumbs.db`, `desktop.ini`, `*.bak`, `*~`) instead of rejecting the whole zip. Zips made by macOS Finder, Windows Explorer, and editor backups now import without manual cleanup.
 - Install docs: python.md LAN-bind port corrected from 8090 to 8091.
