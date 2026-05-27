@@ -2840,7 +2840,7 @@
       categoryColors: {},
       categoryColorsLight: {},
       // browse-list state
-      groupBy: 'category',
+      groupBy: (function(){ try { return localStorage.getItem('places-group-by') || 'category'; } catch { return 'category'; } })(),
       // unified-map filter state
       hiddenCategories: new Set(),
       hiddenRegions: new Set(),
@@ -5058,6 +5058,7 @@
             '<select id="filter-group-by">' +
               '<option value="category"' + (state.groupBy === 'category' ? ' selected' : '') + '>Group by category</option>' +
               '<option value="country"' + (state.groupBy === 'country' ? ' selected' : '') + '>Group by country</option>' +
+              '<option value="letter"' + (state.groupBy === 'letter' ? ' selected' : '') + '>Group by letter</option>' +
             '</select>' +
             '<button type="button" class="filter-clear" id="filter-clear">Clear filters</button>' +
           '</div>' +
@@ -5094,6 +5095,7 @@
       const groupBySel = document.getElementById('filter-group-by');
       if (groupBySel) groupBySel.addEventListener('change', function() {
         state.groupBy = this.value;
+        setPref('places-group-by', this.value);
         rerender();
       });
       if (filterBtn && filterPop) {
@@ -5118,9 +5120,29 @@
       updateFilterBtnLabel();
     }
 
+    // Bucket key for "Group by letter". Norwegian Æ/Ø/Å stay as their own
+    // letters; other diacritics fold to the base letter (Café -> C). Names
+    // starting with anything non-alphabetic (digit, punctuation) go in "#".
+    function letterBucket(name) {
+      const raw = (name || '').charAt(0);
+      if (/[ÆØÅæøå]/.test(raw)) return raw.toUpperCase();
+      const folded = (name || '').normalize('NFD').replace(/[̀-ͯ]/g, '').charAt(0);
+      return /[A-Za-z]/.test(folded) ? folded.toUpperCase() : '#';
+    }
+    // Norwegian alphabetical order: Æ/Ø/Å come after Z, "#" bucket last.
+    const LETTER_ORDER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ#';
+    function compareLetterKeys(a, b) {
+      const ia = LETTER_ORDER.indexOf(a);
+      const ib = LETTER_ORDER.indexOf(b);
+      return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+    }
+    const NAME_COLLATOR = new Intl.Collator('nb', { sensitivity: 'base' });
+
     function renderPlaceList(query) {
       const q = query.toLowerCase().trim();
-      const byCategory = state.groupBy === 'category';
+      const groupMode = state.groupBy;
+      const byCategory = groupMode === 'category';
+      const byLetter = groupMode === 'letter';
       const statusEl = document.getElementById('filter-status');
       const catEl = document.getElementById('filter-category');
       const countryEl = document.getElementById('filter-country');
@@ -5147,11 +5169,19 @@
       });
       const grouped = {};
       for (const p of filtered) {
-        const key = byCategory ? p.category : (p.country || 'Other');
+        const key = byCategory ? p.category
+                  : byLetter   ? letterBucket(p.name)
+                  :              (p.country || 'Other');
         if (!grouped[key]) grouped[key] = [];
         grouped[key].push(p);
       }
-      const keys = Object.keys(grouped).sort();
+      // Alphabetical within each bucket (Norwegian locale: Æ/Ø/Å after Z).
+      for (const key in grouped) {
+        grouped[key].sort((a, b) => NAME_COLLATOR.compare(a.name, b.name));
+      }
+      const keys = byLetter
+        ? Object.keys(grouped).sort(compareLetterKeys)
+        : Object.keys(grouped).sort();
       let html = '';
       for (const key of keys) {
         const items = grouped[key];
@@ -5298,7 +5328,8 @@
         html += '<span class="route-count">(' + regionCompleted + '/' + region.routes.length + ')</span>';
         html += '</div>';
         html += '<div class="route-grid">';
-        for (const route of region.routes) {
+        const sortedRoutes = region.routes.slice().sort((a, b) => NAME_COLLATOR.compare(a.name || a.key || '', b.name || b.key || ''));
+        for (const route of sortedRoutes) {
           const href = '#/routes/route/' + encodeURIComponent(route.key);
           const statusClass = route.completed ? 'completed' : 'planned';
           const diffAttr = route.difficulty ? ' data-route-difficulty="' + escapeHtml(route.difficulty) + '"' : '';
