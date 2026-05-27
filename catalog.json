@@ -13,6 +13,30 @@
     ]
   },
   {
+    "name": "Alte Nationalgalerie",
+    "lat": 52.52083,
+    "lon": 13.39806,
+    "category": "museum",
+    "country": "Germany",
+    "note": "19th-century art museum on Berlin's Museum Island",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/AlteNationalgalerie_1a.jpg/1280px-AlteNationalgalerie_1a.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Alte_Nationalgalerie"
+    ]
+  },
+  {
+    "name": "Altes Museum",
+    "lat": 52.51944,
+    "lon": 13.39833,
+    "category": "museum",
+    "country": "Germany",
+    "note": "Schinkel's Neoclassical museum on Berlin's Museum Island",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Altes_Museum_%28Berlin%29_%286339770591%29.jpg/1280px-Altes_Museum_%28Berlin%29_%286339770591%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Altes_Museum"
+    ]
+  },
+  {
     "name": "Ancient Thera",
     "lat": 36.36464,
     "lon": 25.47798,
@@ -23,6 +47,45 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Santorini_ancient_thera_1.jpg/1280px-Santorini_ancient_thera_1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Ancient_Thera"
+    ]
+  },
+  {
+    "name": "Arg-e Bam",
+    "lat": 29.11694,
+    "lon": 58.36861,
+    "category": "castle",
+    "country": "Iran",
+    "local_name": "ارگ بم",
+    "note": "Massive adobe citadel of Bam, Silk Road landmark",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/010213-Kerman-IMG_0371-2.jpg/1280px-010213-Kerman-IMG_0371-2.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Arg-e_Bam"
+    ]
+  },
+  {
+    "name": "Berlin Cathedral",
+    "lat": 52.51917,
+    "lon": 13.40111,
+    "category": "religious",
+    "country": "Germany",
+    "local_name": "Berliner Dom",
+    "note": "Domed Protestant cathedral on Berlin's Museum Island",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/141227_Berliner_Dom.jpg/1280px-141227_Berliner_Dom.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Berlin_Cathedral"
+    ]
+  },
+  {
+    "name": "Bode Museum",
+    "lat": 52.52194,
+    "lon": 13.39472,
+    "category": "museum",
+    "country": "Germany",
+    "local_name": "Bode-Museum",
+    "note": "Sculpture and Byzantine art on Berlin's Museum Island",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Berlin_Museumsinsel_Fernsehturm.jpg/1280px-Berlin_Museumsinsel_Fernsehturm.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Bode_Museum"
     ]
   },
   {
@@ -39,6 +102,19 @@
     ]
   },
   {
+    "name": "Chillon Castle",
+    "lat": 46.4142,
+    "lon": 6.9273,
+    "category": "castle",
+    "country": "Switzerland",
+    "local_name": "Château de Chillon",
+    "note": "Lake Geneva island fortress, subject of Byron's poem",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/001_Chateau_de_Chillon_and_Dents_du_Midi_Photo_by_Giles_Laurent.jpg/1280px-001_Chateau_de_Chillon_and_Dents_du_Midi_Photo_by_Giles_Laurent.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Ch%C3%A2teau_de_Chillon"
+    ]
+  },
+  {
     "name": "Door of No Return",
     "lat": 14.66778,
     "lon": -17.39722,
@@ -49,6 +125,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/La_maison_des_esclaves.jpg/1280px-La_maison_des_esclaves.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/House_of_Slaves"
+    ]
+  },
+  {
+    "name": "Egyptian Museum",
+    "lat": 45.0686,
+    "lon": 7.6842,
+    "category": "museum",
+    "country": "Italy",
+    "local_name": "Museo Egizio",
+    "note": "Largest Egyptian collection outside Cairo",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Museo_Egizio_e_Galleria_sabauda%2C_Torino.jpg/1280px-Museo_Egizio_e_Galleria_sabauda%2C_Torino.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Museo_Egizio"
     ]
   },
   {
@@ -78,6 +167,96 @@
     ]
   },
   {
+    "name": "German Historical Museum",
+    "lat": 52.51806,
+    "lon": 13.39694,
+    "category": "museum",
+    "country": "Germany",
+    "local_name": "Deutsches Historisches Museum",
+    "note": "German history museum in Berlin's Baroque Zeughaus",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Zeughaus_Berlin_2012.jpg/1280px-Zeughaus_Berlin_2012.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Deutsches_Historisches_Museum"
+    ]
+  },
+  {
+    "name": "Golestan Palace",
+    "lat": 35.67972,
+    "lon": 51.42028,
+    "category": "palace",
+    "country": "Iran",
+    "local_name": "کاخ گلستان",
+    "note": "Qajar royal palace complex in central Tehran",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Palais_du_Golestan%2C_T%C3%A9h%C3%A9ran_%285%29.jpg/1280px-Palais_du_Golestan%2C_T%C3%A9h%C3%A9ran_%285%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Golestan_Palace"
+    ]
+  },
+  {
+    "name": "Gonbad-e Qabus",
+    "lat": 37.25803,
+    "lon": 55.169,
+    "category": "monument",
+    "country": "Iran",
+    "local_name": "برج گنبد قابوس",
+    "note": "11th-c. brick funerary tower for Qabus, NE Iran",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/%D8%A8%D8%B1%D8%AC_%D9%87%D8%B2%D8%A7%D8%B1_%D8%B3%D8%A7%D9%84%D9%87.JPG/1280px-%D8%A8%D8%B1%D8%AC_%D9%87%D8%B2%D8%A7%D8%B1_%D8%B3%D8%A7%D9%84%D9%87.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Gonbad-e_Qabus_(tower)"
+    ]
+  },
+  {
+    "name": "Heidelberg Castle",
+    "lat": 49.4104,
+    "lon": 8.7153,
+    "category": "castle",
+    "country": "Germany",
+    "local_name": "Heidelberger Schloss",
+    "note": "Romantic ruin overlooking the Neckar valley",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Heidelberg-2726936.jpg/1280px-Heidelberg-2726936.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Heidelberg_Castle"
+    ]
+  },
+  {
+    "name": "Hermitage Museum",
+    "lat": 59.9406,
+    "lon": 30.3136,
+    "category": "museum",
+    "country": "Russia",
+    "local_name": "Государственный Эрмитаж",
+    "note": "Imperial art collection in Saint Petersburg's Winter Palace",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/RUS-2016-Aerial-SPB-Winter_Palace_%28crop%29.jpg/1280px-RUS-2016-Aerial-SPB-Winter_Palace_%28crop%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Hermitage_Museum"
+    ]
+  },
+  {
+    "name": "Humboldt Forum",
+    "lat": 52.5175,
+    "lon": 13.40278,
+    "category": "museum",
+    "country": "Germany",
+    "note": "Non-European art in Berlin's reconstructed palace",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Berlin-BerlinerSchloss-6-Asio.JPG/1280px-Berlin-BerlinerSchloss-6-Asio.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Humboldt_Forum"
+    ]
+  },
+  {
+    "name": "Jameh Mosque of Isfahan",
+    "lat": 32.66972,
+    "lon": 51.68528,
+    "category": "religious",
+    "country": "Iran",
+    "local_name": "مسجد جامع اصفهان",
+    "note": "Friday mosque of Isfahan, founder of four-iwan plan",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/20180301124354_IMG_4179And6more_Interior_3.jpg/1280px-20180301124354_IMG_4179And6more_Interior_3.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Jameh_Mosque_of_Isfahan"
+    ]
+  },
+  {
     "name": "Kaputas Beach",
     "lat": 36.22892,
     "lon": 29.44912,
@@ -88,6 +267,31 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg/1280px-Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Kaputas_Beach"
+    ]
+  },
+  {
+    "name": "Neues Museum",
+    "lat": 52.52056,
+    "lon": 13.39778,
+    "category": "museum",
+    "country": "Germany",
+    "note": "Berlin's Egyptian and prehistory museum on Museum Island",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Berlin_Neues_Museum_001.JPG/1280px-Berlin_Neues_Museum_001.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Neues_Museum"
+    ]
+  },
+  {
+    "name": "Neuschwanstein Castle",
+    "lat": 47.5577,
+    "lon": 10.7496,
+    "category": "castle",
+    "country": "Germany",
+    "local_name": "Schloss Neuschwanstein",
+    "note": "Ludwig II's 19th-c. fairy-tale castle in Bavaria",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Schloss_Neuschwanstein_2013.jpg/1280px-Schloss_Neuschwanstein_2013.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Neuschwanstein_Castle"
     ]
   },
   {
@@ -104,6 +308,57 @@
     ]
   },
   {
+    "name": "Park Güell",
+    "lat": 41.4145,
+    "lon": 2.1527,
+    "category": "monument",
+    "country": "Spain",
+    "local_name": "Parc Güell",
+    "note": "Gaudí's mosaic-tiled park on Carmel Hill, Barcelona",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Parc_guell_-_panoramio.jpg/1280px-Parc_guell_-_panoramio.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Park_G%C3%BCell"
+    ]
+  },
+  {
+    "name": "Pergamon Museum",
+    "lat": 52.5213,
+    "lon": 13.3965,
+    "category": "museum",
+    "country": "Germany",
+    "local_name": "Pergamonmuseum",
+    "note": "Berlin museum of monumental reconstructed antiquities",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Pergamonmuseum_Front.jpg/1280px-Pergamonmuseum_Front.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Pergamon_Museum"
+    ]
+  },
+  {
+    "name": "Persepolis",
+    "lat": 29.9352,
+    "lon": 52.8906,
+    "category": "ruins",
+    "country": "Iran",
+    "local_name": "تخت جمشید",
+    "note": "Ceremonial capital of the Achaemenid Empire",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Apadana_palace_persepolis.JPG/1280px-Apadana_palace_persepolis.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Persepolis"
+    ]
+  },
+  {
+    "name": "Pont du Gard",
+    "lat": 43.9472,
+    "lon": 4.5354,
+    "category": "monument",
+    "country": "France",
+    "note": "Three-tier Roman aqueduct bridge spanning the Gardon",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Pont_du_Gard_BLS.jpg/1280px-Pont_du_Gard_BLS.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Pont_du_Gard"
+    ]
+  },
+  {
     "name": "Rialto Bridge",
     "lat": 45.4381,
     "lon": 12.3358,
@@ -114,6 +369,58 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Rialto_2025_4.jpg/1280px-Rialto_2025_4.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Rialto_Bridge"
+    ]
+  },
+  {
+    "name": "Sagrada Família",
+    "lat": 41.4036,
+    "lon": 2.1744,
+    "category": "religious",
+    "country": "Spain",
+    "local_name": "Basílica de la Sagrada Família",
+    "note": "Gaudí's Barcelona basilica, begun 1882",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/SF_maig_2026.jpg/1280px-SF_maig_2026.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Sagrada_Fam%C3%ADlia"
+    ]
+  },
+  {
+    "name": "Saint Basil's Cathedral",
+    "lat": 55.7525,
+    "lon": 37.62306,
+    "category": "religious",
+    "country": "Russia",
+    "local_name": "Собор Василия Блаженного",
+    "note": "Onion-domed cathedral on Moscow's Red Square",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Saint_Basil%27s_Cathedral_in_Moscow.jpg/1280px-Saint_Basil%27s_Cathedral_in_Moscow.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Saint_Basil%27s_Cathedral"
+    ]
+  },
+  {
+    "name": "Sanssouci Palace",
+    "lat": 52.40326,
+    "lon": 13.03863,
+    "category": "palace",
+    "country": "Germany",
+    "local_name": "Schloss Sanssouci",
+    "note": "Rococo summer palace of Frederick the Great, Potsdam",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Schloss_Sanssouci_2014.jpg/1280px-Schloss_Sanssouci_2014.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Sanssouci"
+    ]
+  },
+  {
+    "name": "Sforza Castle",
+    "lat": 45.47,
+    "lon": 9.17861,
+    "category": "castle",
+    "country": "Italy",
+    "local_name": "Castello Sforzesco",
+    "note": "15th-c. Milanese fortress, now civic museums",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/20110725_Castello_Sforzesco_Milan_5557.jpg/1280px-20110725_Castello_Sforzesco_Milan_5557.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Sforza_Castle"
     ]
   },
   {
@@ -140,6 +447,45 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Roque_Cinchado_und_Teide.jpg/1280px-Roque_Cinchado_und_Teide.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Teide"
+    ]
+  },
+  {
+    "name": "Temple of the Inscriptions",
+    "lat": 17.4836,
+    "lon": -92.0468,
+    "category": "archaeological-site",
+    "country": "Mexico",
+    "local_name": "Templo de las Inscripciones",
+    "note": "Palenque pyramid with Pakal's tomb and Maya glyphs",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Tumba_de_pakal%2C_Chiapas.JPG/1280px-Tumba_de_pakal%2C_Chiapas.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Temple_of_the_Inscriptions"
+    ]
+  },
+  {
+    "name": "Tomb of Cyrus the Great",
+    "lat": 30.19389,
+    "lon": 53.16722,
+    "category": "monument",
+    "country": "Iran",
+    "local_name": "آرامگاه کوروش بزرگ",
+    "note": "6th-c. BC mausoleum of Cyrus the Great at Pasargadae",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Pasargad_Tomb_Cyrus3.jpg/1280px-Pasargad_Tomb_Cyrus3.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Tomb_of_Cyrus"
+    ]
+  },
+  {
+    "name": "Tomb of Darius the Great",
+    "lat": 29.98889,
+    "lon": 52.87472,
+    "category": "monument",
+    "country": "Iran",
+    "local_name": "آرامگاه داریوش بزرگ",
+    "note": "Darius the Great's cliff tomb at Naqsh-e Rostam",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Tomb_of_Darius_I.jpg/1280px-Tomb_of_Darius_I.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Tomb_of_Darius_the_Great"
     ]
   },
   {
