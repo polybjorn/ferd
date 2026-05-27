@@ -13,6 +13,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Right-click (or long-press on touch) a place or route card to open a context menu with Open on map, Edit, Open source (when present), Apply catalog update (places only, when applicable), and Delete.
 - Catalog update modal: pick per-field which catalog values to apply (Apply), or dismiss the diff so the entry stops showing as Update available (Keep all). Skipped fields reappear only if the catalog later moves to a new value.
 - Right-click (or long-press on touch) a place pin or route on the home map opens a context menu with Open, Go to source, Edit, Apply catalog update (places, when applicable), Copy link, and Delete. Mirrors the list-view right-click menu.
+- Manage categories: drag rows up or down to reorder; the order persists. "Reset colors" now assigns palette indices in the displayed order, so reordering lets you pick which category gets which color.
+- Places list (Group by category): each section header is prefixed with a small dot in the category's palette color.
 
 ### Changed
 - Places list groups (by category, country, or letter) now list items alphabetically within each group instead of in insertion order. The chosen grouping is persisted across page reloads.
@@ -26,6 +28,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Map popups for places and routes: removed the inline "Edit" link and the top-right copy-link icon (both now reachable via right-click). Top-right is now a "go to source" arrow that opens the entry's first source URL. The separate source line in the popup body is gone.
 - Native name in popups aligns to the right of the title on a single line and wraps to a separate left-aligned line when it doesn't fit. Middot separator removed.
 - Right-click context menus rendered with a tighter minimum width.
+- Category color palette: boosted saturation for higher contrast against dark surfaces. Hues are preserved, so existing per-category color assignments look the same as before, just denser.
+- Manage categories rows: removed the always-on "N places" tag. The "edited" indicator is now a small chip inside the name input and hides while you're typing.
+- Manage categories and Manage regions modals now cap at viewport height; the row list scrolls internally and the scrollbar anchors to the modal's right edge.
 
 ### Fixed
 - Places and routes list filter selections no longer reset when the list re-renders (e.g. after accepting a catalog update).
@@ -33,6 +38,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places list now refreshes immediately after a place is deleted, edited, or saved, instead of waiting for a page reload.
 - Backup import now silently skips archiver junk entries (`__MACOSX/`, `._*`, `.DS_Store`, `Thumbs.db`, `desktop.ini`, `*.bak`, `*~`) instead of rejecting the whole zip. Zips made by macOS Finder, Windows Explorer, and editor backups now import without manual cleanup.
 - Install docs: python.md LAN-bind port corrected from 8090 to 8091.
+- PWA "Reload" button is no longer a no-op when the waiting service worker reference goes stale. The handler re-resolves the worker at click time and falls back to a plain page reload after 2 seconds if the worker never takes over.
+- Places and Routes list "Clear filters" no longer re-renders the list when no filters are active. The button is now a no-op in that state instead of causing a visible blink.
 
 ### Security
 - API handlers that touch the filesystem now verify the resolved path stays under the expected directory. The static handler also catches symlink escapes that the prior lexical check could not see.

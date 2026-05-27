@@ -1712,7 +1712,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
           raise ValidationError(f"color for '{slug_clean}' must be an integer")
         if color < 0 or color > 99:
           raise ValidationError(f"color for '{slug_clean}' out of range [0, 99]")
-      extra = set(value.keys()) - {"label", "color"}
+      order = value.get("order")
+      if order is not None:
+        if not isinstance(order, int) or isinstance(order, bool):
+          raise ValidationError(f"order for '{slug_clean}' must be an integer")
+        if order < 0 or order > 999:
+          raise ValidationError(f"order for '{slug_clean}' out of range [0, 999]")
+      extra = set(value.keys()) - {"label", "color", "order"}
       if extra:
         raise ValidationError(f"unknown key(s) for '{slug_clean}': {', '.join(sorted(extra))}")
       display_clean = display.strip()
@@ -1723,6 +1729,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       entry: dict = {"label": display_clean}
       if color is not None:
         entry["color"] = color
+      if order is not None:
+        entry["order"] = order
       cleaned[slug_clean] = entry
     return cleaned
 

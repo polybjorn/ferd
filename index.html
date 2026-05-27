@@ -531,6 +531,13 @@
     }
     .section-link { cursor: pointer; }
     .section-link:hover { color: var(--accent); }
+    .group-color-dot {
+      display: inline-block;
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      flex: 0 0 auto;
+    }
 
     .place-count,
     .route-count {
@@ -1852,6 +1859,34 @@
       color: var(--accent);
       animation: rowTagIn 0.2s ease-out;
     }
+    .row-tag.in-input {
+      position: absolute;
+      right: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      flex: none;
+      background: var(--surface2);
+      padding: 0 0.25rem;
+    }
+    .cat-row:not(.dragging) { transition: transform 160ms ease-out; }
+    @media (prefers-reduced-motion: reduce) {
+      .cat-row { transition: none !important; }
+    }
+    .row-tag.in-input:empty { display: none; }
+    /* The base .row-tag.dirty animation uses translateX(6px) which would wipe
+       the translateY(-50%) that vertical-centers the in-input badge, causing
+       it to flash from the lower-right corner. Use a paired-axis keyframe. */
+    .row-tag.in-input.dirty { animation: rowTagInInside 0.2s ease-out; }
+    @keyframes rowTagInInside {
+      from { opacity: 0; transform: translate(6px, -50%); }
+      to   { opacity: 1; transform: translate(0, -50%); }
+    }
+    .cat-input-wrap > .cat-display { padding-right: 4rem; transition: padding-right 120ms ease-out; }
+    /* While the input is focused, give it full width and snap-hide the badge
+       so the user only sees "edited" after they leave the field. */
+    .cat-input-wrap:has(.cat-display:focus) > .cat-display { padding-right: 0.7rem; }
+    .cat-input-wrap:has(.cat-display:focus) .row-tag.in-input { display: none; }
     @keyframes rowTagIn {
       from { opacity: 0; transform: translateX(6px); }
       to   { opacity: 1; transform: translateX(0); }
@@ -2059,6 +2094,10 @@
     .modal-backdrop:has(#cat-mgr-list),
     .modal-backdrop:has(#rgn-rows) { align-items: flex-start; padding-top: 3rem; padding-bottom: 3rem; }
     .modal-backdrop:has(#settings-tabs) .modal { max-height: calc(100vh - 6rem); }
+    .modal-backdrop:has(#cat-rows) .modal,
+    .modal-backdrop:has(#rgn-rows) .modal { display: flex; flex-direction: column; max-height: calc(100vh - 6rem); }
+    .modal-backdrop:has(#cat-rows) #cat-rows,
+    .modal-backdrop:has(#rgn-rows) #rgn-rows { flex: 1; min-height: 0; overflow-y: auto; margin-right: -1.5rem; padding-right: 1.5rem; scrollbar-gutter: stable; }
     /* For the catalog list/manager: fixed height (not just max) so the modal
        always takes the same tall area instead of shrinking with content. The
        list flex-grows to fill the available space. */
@@ -2580,8 +2619,8 @@
     // same order, used as fallback once 10+ categories accumulate.
     // COLORS_LIGHT are HSL-darkened to L=30% for legibility on light surfaces;
     // saturation preserved so gray stays gray.
-    const COLORS       = ['#4e79a7', '#f28e2c', '#59a14f', '#e15759', '#499894', '#b07aa1', '#b6992d', '#d37295', '#9d7660', '#79706e', '#a0cbe8', '#ffbe7d', '#8cd17d', '#ff9d9a', '#86bcb6', '#d4a6c8', '#f1ce63', '#fabfd2', '#d7b5a6', '#bab0ab'];
-    const COLORS_LIGHT = ['#314c68', '#904c09', '#396732', '#821719', '#326765', '#603955', '#7b671e', '#752441', '#5f473a', '#504a49', '#1e567b', '#994c00', '#357128', '#990500', '#37625e', '#673259', '#8c6d0d', '#8e0b35', '#6a412f', '#544a45'];
+    const COLORS       = ['#3e78b7', '#ff8e1f', '#4eaf41', '#f93f42', '#3ba6a0', '#b971a5', '#cea715', '#e46190', '#a87355', '#7b6f6c', '#93cdf5', '#ffbe7d', '#83e06e', '#ff9d9a', '#7dc5bd', '#dc9ecc', '#ffd555', '#ffbad0', '#e0b29d', '#bdafa8'];
+    const COLORS_LIGHT = ['#274c72', '#994c00', '#327029', '#950407', '#29706e', '#673258', '#8b700e', '#83163d', '#654534', '#514948', '#0e598b', '#994c00', '#2d7e1b', '#990500', '#2f6a64', '#70295d', '#997400', '#990031', '#743d25', '#574942'];
     if (COLORS.length !== COLORS_LIGHT.length) console.warn('COLORS and COLORS_LIGHT length mismatch');
     const TRACK_COLORS = COLORS;
     const ROUTE_COLOR = '#6aaeee';
@@ -3092,11 +3131,15 @@
         const lbl = (labels[slug] && labels[slug].label) || categoryFallbackLabel(slug);
         payload[slug] = { label: lbl };
         if (typeof labels[slug].color === 'number') payload[slug].color = labels[slug].color;
+        if (typeof labels[slug].order === 'number') payload[slug].order = labels[slug].order;
       }
       for (const slug in newAssignments) {
-        const existingLabel = (labels[slug] && labels[slug].label) || categoryFallbackLabel(slug);
-        labels[slug] = { label: existingLabel, color: newAssignments[slug] };
-        payload[slug] = { label: existingLabel, color: newAssignments[slug] };
+        const existing = labels[slug] || {};
+        const existingLabel = existing.label || categoryFallbackLabel(slug);
+        const merged = { label: existingLabel, color: newAssignments[slug] };
+        if (typeof existing.order === 'number') merged.order = existing.order;
+        labels[slug] = merged;
+        payload[slug] = { ...merged };
       }
       api('PUT', '/me/category-labels', { category_labels: payload }).catch(function() {
         // Best-effort: if the write fails, the same indices will be re-assigned
@@ -5311,6 +5354,7 @@
         filterPop.addEventListener('click', function(e) { e.stopPropagation(); });
       }
       if (filterClear) filterClear.addEventListener('click', function() {
+        if (!filterSels.some(s => s.value !== 'all')) return;
         filterSels.forEach(s => { s.value = 'all'; });
         state.placeFilters.status = 'all';
         state.placeFilters.category = 'all';
@@ -5400,6 +5444,10 @@
           ? '<span class="section-link" data-filter-cat="' + escapeHtml(key) + '" title="Show only this category on the map">' + nameHtml + '</span>'
           : '<span>' + nameHtml + '</span>';
         html += '<div class="category-label">';
+        if (byCategory) {
+          const dotColor = state.categoryColors[key] || 'var(--muted)';
+          html += '<span class="group-color-dot" style="background:' + dotColor + '"></span>';
+        }
         html += nameSpan;
         html += '<span class="place-count">(' + keyVisited + '/' + items.length + ')</span>';
         html += '</div>';
@@ -5738,6 +5786,7 @@
         filterPop.addEventListener('click', function(e) { e.stopPropagation(); });
       }
       if (filterClear) filterClear.addEventListener('click', function() {
+        if (!filterSels.some(s => s.value !== 'all')) return;
         filterSels.forEach(s => { s.value = 'all'; });
         state.trailFilters.status = 'all';
         state.trailFilters.region = 'all';
@@ -7154,7 +7203,15 @@
       const labels = state.config.category_labels || {};
       // Uncategorized ('') isn't a manageable slug — drop it.
       const slugsFromPlaces = state.places ? [...new Set(state.places.map(p => p.category).filter(Boolean))] : [];
-      const allSlugs = [...new Set([...Object.keys(labels), ...slugsFromPlaces])].sort();
+      const allSlugs = [...new Set([...Object.keys(labels), ...slugsFromPlaces])];
+      // Stored `order` (if any) wins; entries without one fall to the end,
+      // ordered alphabetically by slug so the modal stays deterministic.
+      allSlugs.sort((a, b) => {
+        const oa = labels[a] && typeof labels[a].order === 'number' ? labels[a].order : Infinity;
+        const ob = labels[b] && typeof labels[b].order === 'number' ? labels[b].order : Infinity;
+        if (oa !== ob) return oa - ob;
+        return a.localeCompare(b);
+      });
       const placeCountBySlug = {};
       if (state.places) {
         for (const p of state.places) {
@@ -7162,7 +7219,7 @@
           placeCountBySlug[p.category] = (placeCountBySlug[p.category] || 0) + 1;
         }
       }
-      const rows = allSlugs.map(slug => {
+      const rows = allSlugs.map((slug, i) => {
         const display = (labels[slug] && labels[slug].label) || '';
         // Color index: explicit stored value, or fall back to whatever the
         // current palette assignment is for this slug (so the dot shows the
@@ -7173,7 +7230,7 @@
           color = cur ? COLORS.indexOf(cur) : 0;
           if (color < 0) color = 0;
         }
-        return { slug, display, original: display, color, originalColor: color, count: placeCountBySlug[slug] || 0 };
+        return { slug, display, original: display, color, originalColor: color, originalOrder: i, count: placeCountBySlug[slug] || 0 };
       });
 
       openModal(
@@ -7198,12 +7255,14 @@
           const initialRowKeys = new Set(rows.map(r => r.slug));
           function hasChanges() {
             if (pendingClears.size) return true;
-            // Added, label-edited, or color-edited?
+            // Added, label-edited, color-edited, or reordered?
             if (rows.length !== initialRowKeys.size) return true;
-            for (const r of rows) {
+            for (let i = 0; i < rows.length; i++) {
+              const r = rows[i];
               if (!initialRowKeys.has(r.slug)) return true;
               if (r.display !== r.original) return true;
               if (r.color !== r.originalColor) return true;
+              if (r.originalOrder !== i) return true;
             }
             return false;
           }
@@ -7231,20 +7290,24 @@
             container.innerHTML = rows.map((r, i) => {
               const labelDirty = r.display !== r.original;
               const colorDirty = r.color !== r.originalColor;
-              const dirty = labelDirty || colorDirty;
-              const tag = dirty ? '<span class="row-tag dirty">edited</span>'
-                        : r.count === 0 ? '<span class="row-tag">unused</span>'
-                        : '<span class="row-tag">' + r.count + ' place' + (r.count === 1 ? '' : 's') + '</span>';
+              const orderDirty = r.originalOrder !== i;
+              const dirty = labelDirty || colorDirty || orderDirty;
               const dotColor = COLORS[r.color % COLORS.length];
               const open = openSwatchIdx === i;
               const swatchGrid = '<div class="cat-swatches' + (open ? ' open' : '') + '">' + COLORS.map((c, ci) =>
                 '<button type="button" class="cat-swatch' + (ci === r.color ? ' active' : '') + '" data-i="' + i + '" data-ci="' + ci + '" style="background:' + c + '" title="Color ' + (ci + 1) + '"></button>'
               ).join('') + '</div>';
-              return '<div style="margin-top:0.5rem">' +
+              const innerTag = dirty ? '<span class="row-tag in-input dirty">edited</span>'
+                              : r.count === 0 ? '<span class="row-tag in-input">unused</span>'
+                              : '<span class="row-tag in-input"></span>';
+              return '<div class="cat-row" data-i="' + i + '" style="margin-top:0.5rem">' +
                 '<div style="display:flex;gap:0.6rem;align-items:center">' +
+                  '<button type="button" class="cat-drag btn-x" data-i="' + i + '" aria-label="Drag to reorder" title="Drag to reorder" style="flex:0 0 auto;cursor:grab;touch-action:none">&#x2630;</button>' +
                   '<button type="button" class="cat-color-dot' + (open ? ' open' : '') + '" data-i="' + i + '" title="Change color" style="background:' + dotColor + '"></button>' +
-                  '<input type="text" data-i="' + i + '" class="cat-display' + (labelDirty ? ' dirty' : '') + '" value="' + escapeHtml(r.display) + '" placeholder="(falls back to title case)" title="' + escapeHtml('slug: ' + r.slug) + '" style="flex:1;min-width:0">' +
-                  tag +
+                  '<span class="cat-input-wrap" style="position:relative;flex:1;min-width:0;display:block">' +
+                    '<input type="text" data-i="' + i + '" class="cat-display' + (labelDirty ? ' dirty' : '') + '" value="' + escapeHtml(r.display) + '" placeholder="(falls back to title case)" title="' + escapeHtml('slug: ' + r.slug) + '" style="width:100%">' +
+                    innerTag +
+                  '</span>' +
                   '<button type="button" data-i="' + i + '" class="cat-remove btn-x" aria-label="Remove" title="Remove" style="flex:0 0 auto">&times;</button>' +
                 '</div>' +
                 swatchGrid +
@@ -7291,7 +7354,7 @@
                   tagEl.classList.toggle('dirty', dirty);
                   tagEl.textContent = dirty ? 'edited'
                     : r.count === 0 ? 'unused'
-                    : (r.count + ' place' + (r.count === 1 ? '' : 's'));
+                    : '';
                 }
                 refreshSaveBtn();
               });
@@ -7312,9 +7375,7 @@
                   tagEl.classList.add('dirty');
                 } else {
                   tagEl.classList.remove('dirty');
-                  tagEl.textContent = r.count === 0
-                    ? 'unused'
-                    : (r.count + ' place' + (r.count === 1 ? '' : 's'));
+                  tagEl.textContent = r.count === 0 ? 'unused' : '';
                 }
                 refreshSaveBtn();
               });
@@ -7329,6 +7390,88 @@
                 rerender();
                 refreshClearWarning();
                 refreshSaveBtn();
+              });
+            });
+            container.querySelectorAll('.cat-drag').forEach(handle => {
+              handle.addEventListener('pointerdown', function(ev) {
+                ev.preventDefault();
+                const startIdx = +this.dataset.i;
+                const rowEls = Array.from(container.querySelectorAll('.cat-row'));
+                const rowEl = rowEls[startIdx];
+                if (!rowEl) return;
+                const startRect = rowEl.getBoundingClientRect();
+                const offsetY = ev.clientY - startRect.top;
+                let curIdx = startIdx;
+                openSwatchIdx = -1;
+                rowEl.classList.add('dragging');
+                rowEl.style.position = 'relative';
+                rowEl.style.zIndex = '5';
+                rowEl.style.pointerEvents = 'none';
+                rowEl.style.opacity = '0.85';
+                this.style.cursor = 'grabbing';
+                document.body.style.cursor = 'grabbing';
+                function onMove(e) {
+                  // Reorder check first (compare cursor against the adjacent
+                  // non-dragged neighbor's center).
+                  let newIdx = curIdx;
+                  if (curIdx > 0) {
+                    const prev = rowEls[curIdx - 1].getBoundingClientRect();
+                    if (e.clientY < prev.top + prev.height / 2) newIdx = curIdx - 1;
+                  }
+                  if (newIdx === curIdx && curIdx < rowEls.length - 1) {
+                    const next = rowEls[curIdx + 1].getBoundingClientRect();
+                    if (e.clientY > next.top + next.height / 2) newIdx = curIdx + 1;
+                  }
+                  if (newIdx !== curIdx) {
+                    // FLIP-animate the displaced neighbor(s): record old top,
+                    // do the DOM swap, set inverse transform, clear on next
+                    // frame to animate.
+                    const lo = Math.min(curIdx, newIdx);
+                    const hi = Math.max(curIdx, newIdx);
+                    const affected = [];
+                    for (let k = lo; k <= hi; k++) {
+                      if (k === curIdx) continue;
+                      affected.push({ el: rowEls[k], oldTop: rowEls[k].getBoundingClientRect().top });
+                    }
+                    const ref = newIdx > curIdx ? rowEls[newIdx].nextSibling : rowEls[newIdx];
+                    container.insertBefore(rowEl, ref);
+                    rowEls.splice(curIdx, 1);
+                    rowEls.splice(newIdx, 0, rowEl);
+                    curIdx = newIdx;
+                    for (const a of affected) {
+                      const newTop = a.el.getBoundingClientRect().top;
+                      const dy = a.oldTop - newTop;
+                      if (!dy) continue;
+                      a.el.style.transition = 'none';
+                      a.el.style.transform = 'translateY(' + dy + 'px)';
+                      requestAnimationFrame(() => {
+                        a.el.style.transition = '';
+                        a.el.style.transform = '';
+                      });
+                    }
+                  }
+                  // Re-anchor the dragged row under the cursor. Done AFTER any
+                  // DOM reorder so there's no paint-frame gap where the row
+                  // sits in its new slot without the lift transform.
+                  rowEl.style.transform = '';
+                  const natural = rowEl.getBoundingClientRect();
+                  rowEl.style.transform = 'translateY(' + (e.clientY - offsetY - natural.top) + 'px)';
+                }
+                function onUp() {
+                  document.removeEventListener('pointermove', onMove);
+                  document.removeEventListener('pointerup', onUp);
+                  document.removeEventListener('pointercancel', onUp);
+                  document.body.style.cursor = '';
+                  if (curIdx !== startIdx) {
+                    const [moved] = rows.splice(startIdx, 1);
+                    rows.splice(curIdx, 0, moved);
+                  }
+                  rerender();
+                  refreshSaveBtn();
+                }
+                document.addEventListener('pointermove', onMove);
+                document.addEventListener('pointerup', onUp);
+                document.addEventListener('pointercancel', onUp);
               });
             });
           }
@@ -7355,8 +7498,7 @@
             const slug = slugifyCategory(display);
             if (!slug) { err.textContent = 'Display label has no usable letters or digits for a slug'; err.classList.add('visible'); return; }
             if (rows.some(r => r.slug === slug)) { err.textContent = 'A category with slug "' + slug + '" already exists'; err.classList.add('visible'); return; }
-            rows.push({ slug, display, original: '', count: 0 });
-            rows.sort((a, b) => a.slug.localeCompare(b.slug));
+            rows.push({ slug, display, original: '', color: 0, originalColor: 0, originalOrder: rows.length, count: 0 });
             newDisplay.value = '';
             slugPreview.hidden = true;
             rerender();
@@ -7364,11 +7506,10 @@
           });
 
           document.getElementById('cat-reset-colors').addEventListener('click', function() {
-            // Re-derive colors as if no overrides existed: sort by slug,
-            // assign 0..n-1 mod palette length. Matches the deterministic
-            // auto-assign that runs when starting from no stored colors.
-            const sorted = rows.slice().sort((a, b) => a.slug.localeCompare(b.slug));
-            sorted.forEach((r, i) => { r.color = i % COLORS.length; });
+            // Assign 0..n-1 mod palette length in current display order, so
+            // reordering rows lets the user pick which category gets which
+            // palette slot.
+            rows.forEach((r, i) => { r.color = i % COLORS.length; });
             openSwatchIdx = -1;
             rerender();
             refreshSaveBtn();
@@ -7378,11 +7519,11 @@
             const submit = this;
             submit.disabled = true;
             const payload = {};
-            for (const r of rows) {
+            rows.forEach((r, i) => {
               const label = r.display.trim();
-              if (!label) continue;
-              payload[r.slug] = { label, color: r.color };
-            }
+              if (!label) return;
+              payload[r.slug] = { label, color: r.color, order: i };
+            });
             // Bulk-clear any in-use slugs the user removed, then PUT labels.
             // Clear failures abort the save so the label map and place data
             // don't get out of sync.
@@ -9290,19 +9431,34 @@
         window.location.reload();
       });
 
-      function promptUpdate(worker) {
+      let pendingReg = null;
+      function promptUpdate(reg) {
+        pendingReg = reg;
         updateBanner.classList.add('visible');
-        updateBtn.onclick = () => worker.postMessage({ type: 'SKIP_WAITING' });
       }
+      updateBtn.onclick = () => {
+        // Re-resolve the waiting worker at click time. A captured worker
+        // reference goes stale if the browser swapped or terminated it,
+        // which left Reload doing nothing.
+        const worker = (pendingReg && (pendingReg.waiting || pendingReg.installing)) || null;
+        if (worker) worker.postMessage({ type: 'SKIP_WAITING' });
+        // Safety net: if no controllerchange fires within 2s (no waiting
+        // worker, message ignored, etc.), reload anyway - the user asked.
+        setTimeout(() => {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        }, 2000);
+      };
 
       navigator.serviceWorker.register('/sw.js').then((reg) => {
-        if (reg.waiting) promptUpdate(reg.waiting);
+        if (reg.waiting) promptUpdate(reg);
         reg.addEventListener('updatefound', () => {
           const worker = reg.installing;
           if (!worker) return;
           worker.addEventListener('statechange', () => {
             if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-              promptUpdate(worker);
+              promptUpdate(reg);
             }
           });
         });
