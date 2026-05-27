@@ -12,6 +12,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Routes list: new "Group by first letter" filter option, alongside the existing region grouping. Same locale-aware ordering as places.
 - Right-click (or long-press on touch) a place or route card to open a context menu with Open on map, Edit, Open source (when present), Apply catalog update (places only, when applicable), and Delete.
 - Catalog update modal: pick per-field which catalog values to apply (Apply), or dismiss the diff so the entry stops showing as Update available (Keep all). Skipped fields reappear only if the catalog later moves to a new value.
+- Right-click (or long-press on touch) a place pin or route on the home map opens a context menu with Open, Go to source, Edit, Apply catalog update (places, when applicable), Copy link, and Delete. Mirrors the list-view right-click menu.
 
 ### Changed
 - Places list groups (by category, country, or letter) now list items alphabetically within each group instead of in insertion order. The chosen grouping is persisted across page reloads.
@@ -22,6 +23,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Accepting a catalog update no longer triggers a full list re-render; only the affected card updates in place.
 - "Add place" / "Add route" relabeled to "Add" so the button doesn't change width when switching tabs.
 - Filter popover "Clear filters" restyled as an accent-colored outline button.
+- Map popups for places and routes: removed the inline "Edit" link and the top-right copy-link icon (both now reachable via right-click). Top-right is now a "go to source" arrow that opens the entry's first source URL. The separate source line in the popup body is gone.
+- Native name in popups aligns to the right of the title on a single line and wraps to a separate left-aligned line when it doesn't fit. Middot separator removed.
+- Right-click context menus rendered with a tighter minimum width.
 
 ### Fixed
 - Places and routes list filter selections no longer reset when the list re-renders (e.g. after accepting a catalog update).

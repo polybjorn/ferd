@@ -633,7 +633,7 @@
     .context-menu {
       position: fixed;
       z-index: 5000;
-      min-width: 160px;
+      min-width: 120px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -1373,10 +1373,20 @@
     .leaflet-popup-tip { background: var(--surface) !important; }
     .leaflet-popup-content { font-size: 0.8rem; font-weight: 300; margin: 10px 14px; position: relative; min-width: 220px; }
     .leaflet-popup-content a { color: var(--accent); }
-    .leaflet-popup-content .popup-name { font-weight: 400; font-size: 0.85rem; margin-bottom: 0.25rem; padding-right: 1.6rem; display: block; }
+    .leaflet-popup-content .popup-name {
+      font-weight: 400;
+      font-size: 0.85rem;
+      margin-bottom: 0.25rem;
+      padding-right: 1.6rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      column-gap: 0.4rem;
+    }
     .leaflet-popup-content a.popup-name-link { color: var(--text); text-decoration: none; }
     .leaflet-popup-content a.popup-name-link:hover { color: var(--accent); }
-    .leaflet-popup-content .popup-share-corner {
+    .leaflet-popup-content .popup-source-link {
       position: absolute;
       top: 0;
       right: 0;
@@ -1389,11 +1399,11 @@
       cursor: pointer;
       opacity: 0.55;
       text-decoration: none;
+      transition: opacity 0.15s ease, color 0.15s ease;
     }
-    .leaflet-popup-content .popup-share-corner:hover { opacity: 1; color: var(--accent); }
-    .leaflet-popup-content .popup-share-corner.copied { opacity: 1; color: var(--green); }
-    .leaflet-popup-content .popup-share-corner svg { width: 0.95rem; height: 0.95rem; display: block; }
-    .leaflet-popup-content .popup-local { font-size: 0.75rem; color: var(--muted); font-weight: 300; font-style: italic; }
+    .leaflet-popup-content .popup-source-link:hover { opacity: 1; color: var(--accent); }
+    .leaflet-popup-content .popup-source-link svg { width: 0.95rem; height: 0.95rem; display: block; }
+    .leaflet-popup-content .popup-local { font-size: 0.75rem; color: var(--muted); font-weight: 300; font-style: italic; white-space: nowrap; }
     .leaflet-popup-content .cat-text { color: var(--c); }
     [data-mode="light"] .leaflet-popup-content .cat-text { color: var(--cl); }
     .leaflet-popup-content .popup-image {
@@ -3397,28 +3407,27 @@
       }
     }
 
-    const SHARE_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+    const EXTERNAL_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
 
-    function shareCornerHtml(type, id) {
-      return '<a href="#" class="popup-share-corner popup-share" data-type="' + type + '" data-id="' + escapeHtml(id) + '" title="Copy link to clipboard" aria-label="Copy link">' + SHARE_ICON_SVG + '</a>';
-    }
 
     function placePopupHtml(p) {
       const color = state.categoryColors[p.category];
       const colorLight = state.categoryColorsLight[p.category];
       const catStyle = '--c:' + color + ';--cl:' + colorLight;
-      let html = shareCornerHtml('place', p._slug || p.name);
-      html += '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local cat-text" style="' + catStyle + '">&middot; ' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
+      const sourceUrl = (Array.isArray(p.sources) && p.sources.length) ? p.sources[0] : '';
+      let html = '';
+      if (sourceUrl) {
+        html += '<a class="popup-source-link" href="' + escapeHtml(sourceUrl) + '" target="_blank" rel="noopener noreferrer" title="Go to source" aria-label="Go to source">' + EXTERNAL_ICON_SVG + '</a>';
+      }
+      html += '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local cat-text" style="' + catStyle + '">' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
       if (p.image) {
         // Hide broken/blocked images instead of showing the empty alt frame.
         html += '<img class="popup-image" src="' + escapeHtml(p.image) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
       }
       if (p.note) html += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
-      if (p.sources && p.sources.length) html += '<div class="popup-sources">' + renderSources(p.sources) + '</div>';
       html += '<div class="popup-meta">' +
         '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(displayCategory(p.category)) + '</span>' +
-        '<span style="color:' + (p.visited ? 'var(--green)' : 'var(--red)') + '">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
-        (state.auth.authenticated && !isReadOnly() ? '<a href="#" class="popup-edit" data-place="' + escapeHtml(p.name) + '">Edit</a>' : '') +
+        '<span style="grid-column:3;color:' + (p.visited ? 'var(--green)' : 'var(--red)') + '">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
       '</div>';
       return html;
     }
@@ -3470,8 +3479,11 @@
 
     function routePopupHtml(route, region, color) {
       const regionName = region.name;
-      let html = shareCornerHtml('route', route._slug || route.key);
-      html += '<a class="popup-name popup-name-link" href="#/routes/route/' + encodeURIComponent(route.key) + '">' + escapeHtml(route.name) + (route.local_name ? ' <span class="popup-local">&middot; ' + escapeHtml(route.local_name) + '</span>' : '') + '</a>';
+      let html = '';
+      if (route.source) {
+        html += '<a class="popup-source-link" href="' + escapeHtml(route.source) + '" target="_blank" rel="noopener noreferrer" title="Go to source" aria-label="Go to source">' + EXTERNAL_ICON_SVG + '</a>';
+      }
+      html += '<a class="popup-name popup-name-link" href="#/routes/route/' + encodeURIComponent(route.key) + '">' + escapeHtml(route.name) + (route.local_name ? ' <span class="popup-local">' + escapeHtml(route.local_name) + '</span>' : '') + '</a>';
       // First meta line: difficulty / rating / date arranged left / center / right.
       // Render each slot even if empty so the columns hold their position.
       const diffSlot = route.difficulty ? escapeHtml(DIFFICULTY_LABELS[route.difficulty] || route.difficulty) : '';
@@ -3488,22 +3500,9 @@
         html += '<div class="popup-tags">' + route.tags.map(t => '#' + escapeHtml(t)).join(' ') + '</div>';
       }
       if (route.notes) html += '<div class="popup-note">' + escapeHtml(route.notes) + '</div>';
-      if (route.source) {
-        let safeHref = '';
-        try {
-          const u = new URL(route.source, location.href);
-          if (u.protocol === 'http:' || u.protocol === 'https:') safeHref = u.href;
-        } catch {}
-        if (safeHref) {
-          html += '<div class="popup-sources popup-sources-center"><a href="' + escapeHtml(safeHref) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(domainFromUrl(route.source)) + '</a></div>';
-        }
-      }
       html += '<div class="popup-meta">' +
         '<span style="color:' + color + '">' + (route.completed ? 'Completed' : 'Planned') + '</span>' +
         '<span>' + escapeHtml(displayRegion(regionName)) + '</span>' +
-        (state.auth.authenticated && !isReadOnly() ?
-          '<a href="#" class="popup-route-edit" data-key="' + escapeHtml(route.key) + '">Edit</a>'
-        : '') +
         '</div>';
       return html;
     }
@@ -3853,6 +3852,27 @@
           best.layer.openPopup(e.latlng);
         }
       });
+      // Right-click on the map: hit-test for a place pin first (canvas
+      // layer), then a route polyline (near-tap detector). The first hit
+      // wins; if nothing's under the cursor the browser context menu shows.
+      map.on('contextmenu', function(e) {
+        const cg = state._placeClusterGroup;
+        if (cg && typeof cg._hitTest === 'function') {
+          const target = cg._hitTest(e.containerPoint);
+          if (target && !target.properties.cluster) {
+            L.DomEvent.preventDefault(e.originalEvent);
+            L.DomEvent.stopPropagation(e.originalEvent);
+            openMapPlaceContextMenu(target.properties.place, e.originalEvent, map);
+            return;
+          }
+        }
+        const best = findNearTrail(e.containerPoint);
+        if (best) {
+          L.DomEvent.preventDefault(e.originalEvent);
+          L.DomEvent.stopPropagation(e.originalEvent);
+          openMapRouteContextMenu(best.route, best.region, e.originalEvent, map);
+        }
+      });
       // Show the pointer cursor across the full near-tap zone, not just
       // the 1-2px polyline stroke. mousemove on Leaflet fires only when
       // the cursor moves over the map, so this stays cheap.
@@ -4010,8 +4030,6 @@
         refreshFilterPanel();
         initUnifiedSearch(map);
       }
-      bindPopupActions(map);
-
     }
 
     function refreshFilterPanel() {
@@ -4144,53 +4162,6 @@
           else { state.hiddenRegions.add(r); region.classList.add('disabled'); }
           pulseChip(region);
           applyMapFilters();
-        }
-      });
-    }
-
-    function bindPopupActions(map) {
-      // Delegated click on popup contents. Leaflet popups are rendered into the
-      // map container, so a single delegated handler covers all of them.
-      map.getContainer().addEventListener('click', function(e) {
-        const edit = e.target.closest('.popup-edit');
-        if (edit) {
-          e.preventDefault();
-          const name = edit.dataset.place;
-          const place = state.places.find(p => p.name === name);
-          if (place) {
-            map.closePopup();
-            openEditPlaceModal(place);
-          }
-          return;
-        }
-        const routeEdit = e.target.closest('.popup-route-edit');
-        if (routeEdit) {
-          e.preventDefault();
-          const found = findRouteByKey(routeEdit.dataset.key);
-          if (found) {
-            map.closePopup();
-            openEditTrailMetadataModal(found.route, found.region.name);
-          }
-          return;
-        }
-        const share = e.target.closest('.popup-share');
-        if (share) {
-          e.preventDefault();
-          const type = share.dataset.type;
-          const id = share.dataset.id;
-          const url = location.origin + location.pathname + focusHash(type, id);
-          const done = () => {
-            const original = share.getAttribute('title') || '';
-            share.setAttribute('title', 'Copied!');
-            share.classList.add('copied');
-            setTimeout(() => { share.setAttribute('title', original); share.classList.remove('copied'); }, 1500);
-          };
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(url).then(done, () => prompt('Copy this link:', url));
-          } else {
-            prompt('Copy this link:', url);
-          }
-          return;
         }
       });
     }
@@ -8167,6 +8138,89 @@
     function closeContextMenu() {
       if (_ctxMenuEl) { _ctxMenuEl.remove(); _ctxMenuEl = null; }
     }
+    function copyShareLink(type, slug) {
+      const url = location.origin + location.pathname + focusHash(type, slug);
+      const fallback = () => prompt('Copy this link:', url);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).catch(fallback);
+      } else {
+        fallback();
+      }
+    }
+
+    // Place pin right-click on the home map.
+    function openMapPlaceContextMenu(place, oe, map) {
+      const items = [];
+      items.push({ label: 'Open', onClick: function() {
+        L.popup({ closeButton: false })
+          .setLatLng([place.lat, place.lon])
+          .setContent(placePopupHtml(place))
+          .openOn(map);
+        history.replaceState(null, '', focusHash('place', place._slug || place.name));
+      } });
+      if (Array.isArray(place.sources) && place.sources.length) {
+        items.push({ label: 'Go to source', onClick: function() { window.open(place.sources[0], '_blank', 'noopener'); } });
+      }
+      if (!isReadOnly() && state.auth && state.auth.authenticated) {
+        items.push({ label: 'Edit', onClick: function() { openEditPlaceModal(place); } });
+      }
+      if (place.from_catalog && findCatalogUpdate(place)) {
+        items.push({ label: 'Apply catalog update', onClick: function() { openCatalogUpdateModal(place); } });
+      }
+      items.push({ label: 'Copy link', onClick: function() { copyShareLink('place', place._slug || place.name); } });
+      if (!isReadOnly() && state.auth && state.auth.authenticated) {
+        items.push(null);
+        items.push({ label: 'Delete', danger: true, onClick: function() {
+          openConfirmModal({
+            title: 'Delete place',
+            body: 'Delete "' + place.name + '"? This cannot be undone.',
+            confirmLabel: 'Delete',
+            danger: true,
+          }).then(function(ok) {
+            if (!ok) return;
+            const prevColors = Object.assign({}, state.categoryColors);
+            api('DELETE', '/places', { id: place.id })
+              .then(() => refreshPlaces())
+              .then(() => { syncPlacesOnMap(prevColors); })
+              .catch(err => alert('Delete failed: ' + err.message));
+          });
+        }});
+      }
+      openContextMenu({ x: oe.clientX, y: oe.clientY, items });
+    }
+
+    // Route polyline right-click on the home map.
+    function openMapRouteContextMenu(route, region, oe, map) {
+      const items = [];
+      const slug = route._slug || route.key;
+      items.push({ label: 'Open', onClick: function() { location.hash = '#/routes/route/' + encodeURIComponent(route.key); } });
+      if (route.source) {
+        items.push({ label: 'Go to source', onClick: function() { window.open(route.source, '_blank', 'noopener'); } });
+      }
+      if (!isReadOnly() && state.auth && state.auth.authenticated) {
+        items.push({ label: 'Edit', onClick: function() { openEditTrailMetadataModal(route, region.name); } });
+      }
+      items.push({ label: 'Copy link', onClick: function() { copyShareLink('route', slug); } });
+      if (!isReadOnly() && state.auth && state.auth.authenticated) {
+        items.push(null);
+        items.push({ label: 'Delete', danger: true, onClick: function() {
+          openConfirmModal({
+            title: 'Delete route',
+            body: 'Delete "' + route.name + '" (' + displayRegion(region.name) + ')? This removes the GPX file.',
+            confirmLabel: 'Delete',
+            danger: true,
+          }).then(function(ok) {
+            if (!ok) return;
+            api('DELETE', '/gpx', { region: region.name, name: route.name })
+              .then(() => refreshRoutes())
+              .then(() => { if (typeof wrappedRouter === 'function') wrappedRouter(); })
+              .catch(err => alert('Delete failed: ' + err.message));
+          });
+        }});
+      }
+      openContextMenu({ x: oe.clientX, y: oe.clientY, items });
+    }
+
     function openContextMenu({ x, y, items }) {
       closeContextMenu();
       const menu = document.createElement('div');
