@@ -315,6 +315,7 @@
     "lon": 25.43224,
     "category": "city",
     "country": "Greece",
+    "local_name": "Φηρά",
     "note": "Cliff-perched capital of Santorini on the caldera rim",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Santorini_Fira3_tango7174.jpg/1280px-Santorini_Fira3_tango7174.jpg",
     "sources": [
@@ -727,6 +728,7 @@
     "lon": 25.41818,
     "category": "ruins",
     "country": "Greece",
+    "local_name": "Σκάρος",
     "note": "Ruined Venetian rock fortress in Imerovigli",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Skaros_Rock.jpg/1280px-Skaros_Rock.jpg",
     "sources": [
