@@ -43,6 +43,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Fixed
 - Admin catalog edits (add/remove/hide an entry, toggle the shipped baseline) now refresh the places list's catalog badges and orphan markers live, instead of leaving them stale until a page reload.
+- Adding places to the local catalog now skips duplicates by primary source URL as well as by name, matching how imports are linked, so the same place can't be added twice under different names.
 - Catalog imports stay linked when a catalog entry is renamed. The link now falls back from the stored name to matching the catalog entry's primary source URL (which is stable across renames), so a rename surfaces as an applicable "name changed" update instead of orphaning the import and offering the renamed entry as a duplicate. Sourceless entries keep name-only matching.
 - Toggling a visible feature (Places/Routes) off in Settings now also drops its tab from the map filter panel, instead of leaving a dead tab behind; re-enabling adds it back.
 - Backup replace-import no longer fails with "Cannot call rmtree on a symbolic link" when the user's GPX directory is a symlink; the link is replaced rather than its target deleted.

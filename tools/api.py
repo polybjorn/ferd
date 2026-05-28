@@ -1476,15 +1476,27 @@ class Handler(http.server.BaseHTTPRequestHandler):
     lock_path = catalog_path.parent / ".catalog.lock"
     state = {"added": 0, "skipped": 0, "total": 0}
 
+    def primary_source(e):
+      s = e.get("sources") if isinstance(e, dict) else None
+      return s[0] if isinstance(s, list) and s and isinstance(s[0], str) else None
+
     def do_add():
       existing = load_json_file(catalog_path, expected_type=list, required=False, label="catalog.local.json")
       names = {e["name"] for e in existing if isinstance(e, dict) and isinstance(e.get("name"), str)}
+      # Dedup by primary source URL as well as name, matching how imports are
+      # linked client-side: two entries sharing a source are the same place
+      # even under different display names.
+      sources = {primary_source(e) for e in existing}
+      sources.discard(None)
       for e in cleaned:
-        if e["name"] in names:
+        psrc = primary_source(e)
+        if e["name"] in names or (psrc is not None and psrc in sources):
           state["skipped"] += 1
           continue
         existing.append(e)
         names.add(e["name"])
+        if psrc is not None:
+          sources.add(psrc)
         state["added"] += 1
       write_json_file(catalog_path, existing)
       state["total"] = len(existing)
