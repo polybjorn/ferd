@@ -43,6 +43,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Right-click context menu and catalog-mark click on place cards now resolve the correct entry when multiple places share a name (looked up by slug instead of name).
 - Clicking a place card in the list now opens the correct entry when multiple places share a name. The card link and the map's focus lookup both go through the slug instead of falling back to the first name match.
 - Places list now refreshes immediately after a place is deleted, edited, or saved, instead of waiting for a page reload.
+- Deleting a place from the list animates the card collapsing to zero height; remaining cards flow up smoothly instead of the whole list flashing as it re-renders.
 - Backup import now silently skips archiver junk entries (`__MACOSX/`, `._*`, `.DS_Store`, `Thumbs.db`, `desktop.ini`, `*.bak`, `*~`) instead of rejecting the whole zip. Zips made by macOS Finder, Windows Explorer, and editor backups now import without manual cleanup.
 - Install docs: python.md LAN-bind port corrected from 8090 to 8091.
 - PWA "Reload" button is no longer a no-op when the waiting service worker reference goes stale. The handler re-resolves the worker at click time and falls back to a plain page reload after 2 seconds if the worker never takes over.

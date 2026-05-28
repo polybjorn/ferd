@@ -4345,10 +4345,14 @@
             if (!confirm('Delete place "' + place.name + '"?')) return;
             this.disabled = true;
             const prevColors = Object.assign({}, state.categoryColors);
+            const slug = place._slug || '';
+            const wasVisited = !!place.visited;
+            const anim = animatePlaceCardOut(slug);
             api('DELETE', '/places', { id: place.id })
               .then(() => refreshPlaces())
-              .then(() => { closeModal(); syncPlacesOnMap(prevColors); if (document.getElementById('place-list')) renderPlaceList(); })
-              .catch(err => { this.disabled = false; showModalError(err.message); });
+              .then(() => anim)
+              .then(() => { closeModal(); syncPlacesOnMap(prevColors); removePlaceCardFromList(slug, wasVisited); })
+              .catch(err => { this.disabled = false; if (document.getElementById('place-list')) renderPlaceList(); showModalError(err.message); });
           });
           document.getElementById('edit-place-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -4409,6 +4413,65 @@
       const fire = () => { if (fired) return; fired = true; done(); };
       el.addEventListener('transitionend', fire, { once: true });
       setTimeout(fire, fallbackMs || 300);
+    }
+
+    // Collapse a place card to zero height + opacity, then resolve. Lets
+    // following cards in the grid flow up smoothly instead of jumping when
+    // the list re-renders. Reduced-motion users get an immediate resolve.
+    function animatePlaceCardOut(slug) {
+      return new Promise(function(resolve) {
+        if (!slug) { resolve(); return; }
+        const card = document.querySelector('.place-card[data-place-slug="' + slug + '"]');
+        if (!card) { resolve(); return; }
+        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduce) { resolve(); return; }
+        const h = card.offsetHeight;
+        card.style.height = h + 'px';
+        card.style.overflow = 'hidden';
+        forceReflow(card);
+        card.style.transition = 'height 180ms ease-in, opacity 180ms ease-in, padding 180ms ease-in, border-width 180ms ease-in, margin 180ms ease-in';
+        card.style.height = '0';
+        card.style.opacity = '0';
+        card.style.paddingTop = '0';
+        card.style.paddingBottom = '0';
+        card.style.marginTop = '0';
+        card.style.marginBottom = '0';
+        card.style.borderTopWidth = '0';
+        card.style.borderBottomWidth = '0';
+        setTimeout(resolve, 190);
+      });
+    }
+
+    // After a successful delete + collapse animation, drop the card from the
+    // DOM and patch its group's (visited/total) count. Avoids the innerHTML
+    // wipe of a full re-render so the rest of the list doesn't flash.
+    function removePlaceCardFromList(slug, wasVisited) {
+      if (!slug) return;
+      const card = document.querySelector('.place-card[data-place-slug="' + slug + '"]');
+      if (!card) return;
+      const grid = card.parentElement;
+      const group = grid ? grid.closest('.category-group') : null;
+      card.remove();
+      if (group) {
+        const remaining = grid.querySelectorAll('.place-card').length;
+        if (remaining === 0) {
+          group.remove();
+        } else {
+          const countEl = group.querySelector('.place-count');
+          if (countEl) {
+            const m = /\((\d+)\/(\d+)\)/.exec(countEl.textContent);
+            if (m) {
+              const v = Math.max(0, parseInt(m[1], 10) - (wasVisited ? 1 : 0));
+              const t = Math.max(0, parseInt(m[2], 10) - 1);
+              countEl.textContent = '(' + v + '/' + t + ')';
+            }
+          }
+        }
+      }
+      const listEl = document.getElementById('place-list');
+      if (listEl && !listEl.querySelector('.place-card')) {
+        listEl.innerHTML = '<div class="loading">No matches</div>';
+      }
     }
 
     function pulseChip(el) {
@@ -5599,10 +5662,14 @@
               }).then(function(ok) {
                 if (!ok) return;
                 const prevColors = Object.assign({}, state.categoryColors);
+                const slug = place._slug || '';
+                const wasVisited = !!place.visited;
+                const anim = animatePlaceCardOut(slug);
                 api('DELETE', '/places', { id: place.id })
                   .then(() => refreshPlaces())
-                  .then(() => { syncPlacesOnMap(prevColors); if (document.getElementById('place-list')) renderPlaceList(); })
-                  .catch(err => alert('Delete failed: ' + err.message));
+                  .then(() => anim)
+                  .then(() => { syncPlacesOnMap(prevColors); removePlaceCardFromList(slug, wasVisited); })
+                  .catch(err => { if (document.getElementById('place-list')) renderPlaceList(); alert('Delete failed: ' + err.message); });
               });
             }});
           }
