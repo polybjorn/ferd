@@ -33,8 +33,8 @@
       --green:        #a3be8c;
       --radius:       6px;
 
-      --completed:    #a3be8c;
-      --planned:      #bf616a;
+      --completed:    #2ea043;
+      --planned:      #d23f3f;
 
       --attribution-bg: var(--attribution-bg);
       --cluster-fill:   rgba(136, 192, 208, 0.6);
@@ -358,6 +358,13 @@
       --backdrop:       rgba(87, 82, 121, 0.4);
       --fab-text:       #fffaf3;
     }
+
+    /* Status indicators use a fixed red/green pair across every theme so the
+       statuses read consistently and stay balanced, instead of inheriting each
+       theme's palette red/green (which can be pinkish or pastel, e.g. Nord).
+       Same specificity as the theme blocks but placed after them, so it wins.
+       Danger/error keep --red and success keeps --green. */
+    [data-theme][data-mode] { --planned: #d23f3f; --completed: #2ea043; }
 
     .leaflet-div-icon { background: transparent; border: none; }
     /* Selector targets .leaflet-tile-container so it applies to both the
@@ -806,9 +813,9 @@
       flex-shrink: 0;
       box-sizing: border-box;
     }
-    .status-dot.visited { background: var(--green); }
+    .status-dot.visited { background: var(--completed); }
     .status-dot.completed { background: var(--completed); }
-    .status-dot.want { background: transparent; border: 1.5px solid var(--red); }
+    .status-dot.want { background: transparent; border: 1.5px solid var(--planned); }
     .status-dot.planned { background: transparent; border: 1.5px solid var(--planned); }
 
     /* Routes index */
@@ -841,8 +848,11 @@
       background: var(--surface);
       border-radius: var(--radius);
       border: 1px solid var(--border);
-      min-width: 200px;
-      max-width: 260px;
+      /* Fixed width so the panel doesn't resize as content (categories vs
+         regions) changes between tabs. Trimmed to just fit the 2-column
+         category grid. Mobile caps it below. */
+      width: 246px;
+      max-width: 246px;
     }
 
     .panel-search {
@@ -899,14 +909,16 @@
     .map-search-result .result-meta { color: var(--muted); margin-left: auto; font-size: 0.6rem; }
 
     /* Filter panel sections */
-    .panel-section {
+    .panel-tabs {
+      display: flex;
       border-top: 1px solid var(--border);
     }
-
-    .panel-section-header {
+    .panel-tab {
+      flex: 1;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 0.4rem;
       padding: 0.45rem 0.65rem;
       cursor: pointer;
       user-select: none;
@@ -915,35 +927,43 @@
       color: var(--text);
       letter-spacing: 0.03em;
     }
-    .panel-section-header .section-arrow {
-      font-size: 0.55rem;
+    .panel-tab + .panel-tab { border-left: 1px solid var(--border); }
+    .panel-tab .section-arrow {
+      display: inline-flex;
       color: var(--muted);
       transition: transform 0.15s;
     }
-    .panel-section.collapsed .section-arrow { transform: rotate(-90deg); }
-    .panel-section.collapsed .panel-section-body { display: none; }
-
-    .panel-section-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+    .panel-tab .section-arrow svg { width: 0.85rem; height: 0.85rem; display: block; }
+    /* Tabs sit at the panel bottom and the list opens upward, so a collapsed
+       tab points up (open upward) and an open tab points down (collapse). */
+    .panel-tab:not(.expanded) .section-arrow { transform: rotate(180deg); }
+    /* Accordion height animation: the section is a grid that animates its row
+       from 0fr (collapsed) to 1fr (open). Keeps the body rendered the whole
+       time so it animates reliably (a display:none body won't transition). */
+    .panel-section {
+      display: grid;
+      grid-template-rows: 0fr;
+      opacity: 0;
+      transition: grid-template-rows 0.2s ease, opacity 0.2s ease;
     }
-    .panel-action {
-      font-size: 0.6rem;
-      color: var(--muted);
-      cursor: pointer;
-      user-select: none;
-      padding: 0.1rem 0.3rem;
-      border-radius: 3px;
+    .panel-section:not(.collapsed) { grid-template-rows: 1fr; opacity: 1; }
+    @media (prefers-reduced-motion: reduce) {
+      .panel-section { transition: none; }
     }
-    .panel-action:hover { color: var(--text); }
 
     .panel-section-body {
-      border-top: 1px solid var(--border);
-      padding: 0.4rem 0.65rem;
+      box-sizing: border-box;
+      overflow: hidden;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
+    }
+    /* Border + padding only when open, so a collapsed section (incl. its
+       non-compressible padding) flattens to nothing instead of leaving a gap. */
+    .panel-section:not(.collapsed) .panel-section-body {
+      border-top: 1px solid var(--border);
+      padding: 0.4rem 0.65rem;
     }
 
     .legend-cats {
@@ -957,13 +977,18 @@
       align-items: center;
       gap: 0.35rem;
       font-size: 0.65rem;
-      color: var(--muted);
+      color: var(--text);
       cursor: pointer;
       user-select: none;
-      transition: opacity 0.15s;
+      transition: color 0.15s;
       padding: 0.15rem 0;
     }
-    .legend-item.disabled { opacity: 0.35; }
+    /* On = white label + full dot; off = grey label + faded dot. */
+    .legend-item .legend-dot,
+    .legend-item .legend-line { transition: opacity 0.15s; }
+    .legend-item.disabled { color: var(--muted); }
+    .legend-item.disabled .legend-dot,
+    .legend-item.disabled .legend-line { opacity: 0.2; }
 
     .legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
     .legend-line { width: 14px; height: 3px; border-radius: 2px; flex-shrink: 0; }
@@ -972,27 +997,47 @@
 
     .legend-status {
       display: flex;
-      justify-content: center;
+      align-items: center;
       gap: 0.35rem;
       margin-top: 0.25rem;
       padding-top: 0.35rem;
       border-top: 1px solid var(--border);
     }
+    /* Shared status footer: pinned below the accordion sections so it doesn't
+       move when tabs animate. A 1fr/auto/1fr grid keeps the middle "Planned"
+       chip dead-centered regardless of the leading chip's width, so it doesn't
+       shift when Visited <-> Completed swaps. Done chip pins left, Toggle all
+       pins right. */
+    .panel-status {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0;
+      padding: 0.4rem 0.65rem;
+    }
+    .panel-status > .status-chip:first-child { justify-self: start; }
+    .panel-status > .panel-toggle-all { justify-self: end; }
 
     .status-chip {
       display: flex;
       align-items: center;
       gap: 0.3rem;
       font-size: 0.6rem;
-      color: var(--muted);
+      color: var(--text);
       cursor: pointer;
       user-select: none;
       padding: 0.2rem 0.45rem;
       border: 1px solid var(--border);
       border-radius: 3px;
-      transition: opacity 0.15s, border-color 0.15s;
+      transition: opacity 0.15s, border-color 0.15s, color 0.15s;
     }
-    .status-chip.active { border-color: var(--border-hover); color: var(--text); }
+    .status-chip.active { border-color: var(--border-hover); }
+    /* On = white label + full dot; off = grey label + faded dot. Toggle-all is
+       an action, not a toggle, so it stays white. */
+    .status-chip .status-dot { transition: opacity 0.15s; }
+    .status-chip:not(.active):not(.panel-toggle-all) { color: var(--muted); }
+    .status-chip:not(.active) .status-dot { opacity: 0.2; }
     .status-chip:hover { border-color: var(--border-hover); }
     .legend-item, .status-chip { transform-origin: center; }
     .legend-item.pulse, .status-chip.pulse { animation: chip-pulse 180ms ease-out; }
@@ -2838,13 +2883,17 @@
       return { payload };
     }
 
-    function panelSectionHtml(id, label) {
+    function panelTabsHtml() {
+      const chevron = '<span class="section-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>';
+      let h = '<div class="panel-tabs">';
+      if (placesEnabled()) h += '<div class="panel-tab" data-section="places-section">Places' + chevron + '</div>';
+      if (routesEnabled()) h += '<div class="panel-tab" data-section="routes-section">Routes' + chevron + '</div>';
+      h += '</div>';
+      return h;
+    }
+
+    function panelBodyHtml(id) {
       return '<div class="panel-section collapsed" id="' + id + '-section">' +
-        '<div class="panel-section-header" data-section="' + id + '-section">' + label +
-        '<span class="panel-section-actions">' +
-        '<span class="panel-action" id="' + id + '-toggle-all">Toggle</span>' +
-        '<span class="section-arrow">&#x25BC;</span>' +
-        '</span></div>' +
         '<div class="panel-section-body" id="' + id + '-body"></div>' +
         '</div>';
     }
@@ -3499,7 +3548,7 @@
       if (p.note && getShowField('note')) html += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
       html += '<div class="popup-meta">' +
         '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(displayCategory(p.category)) + '</span>' +
-        '<span style="grid-column:3;color:' + (p.visited ? 'var(--green)' : 'var(--red)') + '">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
+        '<span style="grid-column:3;color:' + (p.visited ? 'var(--completed)' : 'var(--planned)') + '">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
       '</div>';
       return html;
     }
@@ -4101,16 +4150,15 @@
         onAdd: function() {
           const div = L.DomUtil.create('div', 'map-panel');
           div.id = 'map-panel';
-          const searchPlaceholder = placesEnabled() && routesEnabled()
-            ? 'Search places + routes...'
-            : (placesEnabled() ? 'Search places...' : 'Search routes...');
           div.innerHTML =
             '<div class="panel-search" id="map-search">' +
-            '<input type="text" id="map-search-input" placeholder="' + searchPlaceholder + '">' +
+            '<input type="text" id="map-search-input" placeholder="Search...">' +
             '<div class="map-search-results" id="map-search-results"></div>' +
             '</div>' +
-            (placesEnabled() ? panelSectionHtml('places', 'Places') : '') +
-            (routesEnabled() ? panelSectionHtml('routes', 'Routes') : '');
+            (placesEnabled() ? panelBodyHtml('places') : '') +
+            (routesEnabled() ? panelBodyHtml('routes') : '') +
+            '<div class="legend-status panel-status" id="panel-status"></div>' +
+            panelTabsHtml();
           L.DomEvent.disableClickPropagation(div);
           L.DomEvent.disableScrollPropagation(div);
           return div;
@@ -4138,26 +4186,15 @@
           html += '</div>';
         }
         html += '</div>';
-        html += '<div class="legend-status">';
-        html += '<div class="status-chip' + (state.showVisited ? ' active' : '') + '" data-filter="visited">Visited</div>';
-        html += '<div class="status-chip' + (state.showWant ? ' active' : '') + '" data-filter="want">Want</div>';
-        html += '</div>';
         placesBody.innerHTML = html;
       }
 
       const routesBody = document.getElementById('routes-body');
       if (routesBody) {
-        let html = '<div class="legend-cats" style="grid-template-columns:1fr">';
-        html += '<div class="legend-item' + (state.showCompleted ? '' : ' disabled') + '" data-route-status="completed">';
-        html += '<span class="legend-line completed"></span>Completed';
-        html += '</div>';
-        html += '<div class="legend-item' + (state.showPlanned ? '' : ' disabled') + '" data-route-status="planned">';
-        html += '<span class="legend-line planned"></span>Planned';
-        html += '</div>';
-        html += '</div>';
+        let html = '';
         const regions = state.manifest && state.manifest.regions ? state.manifest.regions.map(r => r.name) : [];
         if (regions.length) {
-          html += '<div class="legend-cats" style="margin-top:0.4rem">';
+          html += '<div class="legend-cats">';
           for (const r of regions) {
             const hidden = state.hiddenRegions.has(r);
             html += '<div class="legend-item' + (hidden ? ' disabled' : '') + '" data-region="' + escapeHtml(r) + '">';
@@ -4168,93 +4205,134 @@
         }
         routesBody.innerHTML = html;
       }
+      renderPanelStatus();
+    }
+
+    // Which section is currently open (accordion = at most one).
+    function activePanelSection() {
+      const p = document.getElementById('places-section');
+      if (p && !p.classList.contains('collapsed')) return 'places';
+      const r = document.getElementById('routes-section');
+      if (r && !r.classList.contains('collapsed')) return 'routes';
+      return null;
+    }
+
+    // The status chips live in one persistent footer (not inside the animated
+    // section bodies) so they stay put across tab switches; only the leading
+    // chip's label swaps Visited<->Completed for the active tab. Hidden when
+    // both tabs are collapsed.
+    function renderPanelStatus() {
+      const el = document.getElementById('panel-status');
+      if (!el) return;
+      const active = activePanelSection();
+      if (!active) { el.innerHTML = ''; el.style.display = 'none'; return; }
+      el.style.display = '';
+      let html = '';
+      if (active === 'places') {
+        html += '<div class="status-chip' + (state.showVisited ? ' active' : '') + '" data-filter="visited"><span class="status-dot visited"></span>Visited</div>';
+        html += '<div class="status-chip' + (state.showWant ? ' active' : '') + '" data-filter="want"><span class="status-dot want"></span>Planned</div>';
+        html += '<div class="status-chip panel-toggle-all" data-toggle-all="places">Toggle all</div>';
+      } else {
+        html += '<div class="status-chip' + (state.showCompleted ? ' active' : '') + '" data-route-status="completed"><span class="status-dot completed"></span>Completed</div>';
+        html += '<div class="status-chip' + (state.showPlanned ? ' active' : '') + '" data-route-status="planned"><span class="status-dot planned"></span>Planned</div>';
+        html += '<div class="status-chip panel-toggle-all" data-toggle-all="routes">Toggle all</div>';
+      }
+      el.innerHTML = html;
+    }
+
+    // Toggle-all handlers, called from the delegated body click handlers (the
+    // controls live inside the section bodies, which refreshFilterPanel rebuilds).
+    function toggleAllPlaces() {
+      const cats = Object.keys(state.categoryColors);
+      const allOn = state.hiddenCategories.size === 0 && state.showVisited && state.showWant;
+      if (allOn) {
+        cats.forEach(c => state.hiddenCategories.add(c));
+        state.showVisited = false; state.showWant = false;
+      } else {
+        state.hiddenCategories.clear();
+        state.showVisited = true; state.showWant = true;
+      }
+      refreshFilterPanel();
+      applyMapFilters();
+    }
+
+    function toggleAllRoutes() {
+      const regions = state.manifest ? state.manifest.regions.map(r => r.name) : [];
+      const allOn = state.hiddenRegions.size === 0 && state.showCompleted && state.showPlanned;
+      if (allOn) {
+        regions.forEach(r => state.hiddenRegions.add(r));
+        state.showCompleted = false; state.showPlanned = false;
+      } else {
+        state.hiddenRegions.clear();
+        state.showCompleted = true; state.showPlanned = true;
+      }
+      refreshFilterPanel();
+      applyMapFilters();
     }
 
     function bindFilterPanel() {
-      // Section collapse
-      document.querySelectorAll('.panel-section-header').forEach(function(h) {
-        h.addEventListener('click', function(e) {
-          if (e.target.closest('.panel-action')) return;
-          document.getElementById(this.dataset.section).classList.toggle('collapsed');
+      // Section tabs: accordion. Clicking a collapsed tab expands it and
+      // collapses the other; clicking the open tab collapses everything.
+      document.querySelectorAll('.panel-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          const section = document.getElementById(this.dataset.section);
+          if (!section) return;
+          const wasCollapsed = section.classList.contains('collapsed');
+          document.querySelectorAll('.panel-section').forEach(s => s.classList.add('collapsed'));
+          document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('expanded'));
+          if (wasCollapsed) {
+            section.classList.remove('collapsed');
+            this.classList.add('expanded');
+          }
+          renderPanelStatus();
         });
       });
 
-      // Toggle-all (places)
-      const placesToggle = document.getElementById('places-toggle-all');
-      if (placesToggle) placesToggle.addEventListener('click', function(e) {
-        e.stopPropagation();
-        const cats = Object.keys(state.categoryColors);
-        const allOn = state.hiddenCategories.size === 0 && state.showVisited && state.showWant;
-        if (allOn) {
-          cats.forEach(c => state.hiddenCategories.add(c));
-          state.showVisited = false; state.showWant = false;
-        } else {
-          state.hiddenCategories.clear();
-          state.showVisited = true; state.showWant = true;
-        }
-        refreshFilterPanel();
-        applyMapFilters();
-      });
-
-      // Toggle-all (routes) - mirrors Places: covers regions + completed/planned.
-      const routesToggle = document.getElementById('routes-toggle-all');
-      if (routesToggle) routesToggle.addEventListener('click', function(e) {
-        e.stopPropagation();
-        const regions = state.manifest ? state.manifest.regions.map(r => r.name) : [];
-        const allOn = state.hiddenRegions.size === 0 && state.showCompleted && state.showPlanned;
-        if (allOn) {
-          regions.forEach(r => state.hiddenRegions.add(r));
-          state.showCompleted = false; state.showPlanned = false;
-        } else {
-          state.hiddenRegions.clear();
-          state.showCompleted = true; state.showPlanned = true;
-        }
-        refreshFilterPanel();
-        applyMapFilters();
-      });
-
-      // Delegated clicks on the body elements (survive innerHTML refresh)
+      // Delegated clicks on the body elements (survive innerHTML refresh). The
+      // bodies hold only the category/region lists now; status chips live in
+      // the shared footer below.
       const placesBody = document.getElementById('places-body');
       if (placesBody) placesBody.addEventListener('click', function(e) {
         const cat = e.target.closest('.legend-item[data-cat]');
-        if (cat) {
-          const c = cat.dataset.cat;
-          if (state.hiddenCategories.has(c)) { state.hiddenCategories.delete(c); cat.classList.remove('disabled'); }
-          else { state.hiddenCategories.add(c); cat.classList.add('disabled'); }
-          pulseChip(cat);
-          applyMapFilters();
-          return;
-        }
-        const chip = e.target.closest('.status-chip[data-filter]');
-        if (chip) {
-          if (chip.dataset.filter === 'visited') state.showVisited = !state.showVisited;
-          else state.showWant = !state.showWant;
-          chip.classList.toggle('active');
-          pulseChip(chip);
-          applyMapFilters();
-        }
+        if (!cat) return;
+        const c = cat.dataset.cat;
+        if (state.hiddenCategories.has(c)) { state.hiddenCategories.delete(c); cat.classList.remove('disabled'); }
+        else { state.hiddenCategories.add(c); cat.classList.add('disabled'); }
+        pulseChip(cat);
+        applyMapFilters();
       });
 
       const routesBody = document.getElementById('routes-body');
       if (routesBody) routesBody.addEventListener('click', function(e) {
-        const item = e.target.closest('.legend-item[data-route-status]');
-        if (item) {
-          const s = item.dataset.routeStatus;
-          if (s === 'completed') state.showCompleted = !state.showCompleted;
-          else state.showPlanned = !state.showPlanned;
-          item.classList.toggle('disabled');
-          pulseChip(item);
-          applyMapFilters();
+        const region = e.target.closest('.legend-item[data-region]');
+        if (!region) return;
+        const r = region.dataset.region;
+        if (state.hiddenRegions.has(r)) { state.hiddenRegions.delete(r); region.classList.remove('disabled'); }
+        else { state.hiddenRegions.add(r); region.classList.add('disabled'); }
+        pulseChip(region);
+        applyMapFilters();
+      });
+
+      // Shared status footer: chips route to the open section's filters. The
+      // footer's data attributes already match the active tab (set by
+      // renderPanelStatus), so we just read them. Status toggles flip in place
+      // (no re-render) to avoid any flash; toggle-all re-renders.
+      const panelStatus = document.getElementById('panel-status');
+      if (panelStatus) panelStatus.addEventListener('click', function(e) {
+        const chip = e.target.closest('.status-chip');
+        if (!chip) return;
+        if (chip.classList.contains('panel-toggle-all')) {
+          if (chip.dataset.toggleAll === 'places') toggleAllPlaces();
+          else toggleAllRoutes();
           return;
         }
-        const region = e.target.closest('.legend-item[data-region]');
-        if (region) {
-          const r = region.dataset.region;
-          if (state.hiddenRegions.has(r)) { state.hiddenRegions.delete(r); region.classList.remove('disabled'); }
-          else { state.hiddenRegions.add(r); region.classList.add('disabled'); }
-          pulseChip(region);
-          applyMapFilters();
-        }
+        if (chip.dataset.filter === 'visited') state.showVisited = !state.showVisited;
+        else if (chip.dataset.filter === 'want') state.showWant = !state.showWant;
+        else if (chip.dataset.routeStatus === 'completed') state.showCompleted = !state.showCompleted;
+        else if (chip.dataset.routeStatus === 'planned') state.showPlanned = !state.showPlanned;
+        chip.classList.toggle('active');
+        pulseChip(chip);
+        applyMapFilters();
       });
     }
 
