@@ -41,6 +41,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ### Fixed
 - Places and routes list filter selections no longer reset when the list re-renders (e.g. after accepting a catalog update).
 - Right-click context menu and catalog-mark click on place cards now resolve the correct entry when multiple places share a name (looked up by slug instead of name).
+- Clicking a place card in the list now opens the correct entry when multiple places share a name. The card link and the map's focus lookup both go through the slug instead of falling back to the first name match.
 - Places list now refreshes immediately after a place is deleted, edited, or saved, instead of waiting for a page reload.
 - Backup import now silently skips archiver junk entries (`__MACOSX/`, `._*`, `.DS_Store`, `Thumbs.db`, `desktop.ini`, `*.bak`, `*~`) instead of rejecting the whole zip. Zips made by macOS Finder, Windows Explorer, and editor backups now import without manual cleanup.
 - Install docs: python.md LAN-bind port corrected from 8090 to 8091.

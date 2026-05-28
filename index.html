@@ -3849,7 +3849,7 @@
               || (!p.visited && !state.showWant);
             if (!filteredOut) placeBounds.extend([p.lat, p.lon]);
           }
-          if (focus && focus.type === 'place' && focus.name === p.name) focusPlace = p;
+          if (focus && focus.type === 'place' && (focus.slug ? focus.slug === p._slug : focus.name === p.name)) focusPlace = p;
         }
       }
 
@@ -5535,7 +5535,7 @@
         html += '<div class="place-grid">';
         for (const p of items) {
           const statusClass = p.visited ? 'visited' : 'want';
-          const href = '#/?focus=place:' + encodeURIComponent(p.name);
+          const href = focusHash('place', p._slug || p.name);
           html += '<div class="place-card" data-place-name="' + escapeHtml(p.name) + '" data-place-slug="' + escapeHtml(p._slug || '') + '" onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
           html += '<span class="status-dot ' + statusClass + '"></span>';
           html += '<div class="place-text">';
@@ -6418,7 +6418,7 @@
       if (base.startsWith('#/place/')) {
         const slug = decodeURIComponent(base.slice('#/place/'.length));
         const place = (state.places || []).find(p => p._slug === slug || p.name === slug);
-        return { type: 'place', name: place ? place.name : slug };
+        return { type: 'place', name: place ? place.name : slug, slug: place ? place._slug : slug };
       }
       if (base.startsWith('#/route/')) {
         const slug = decodeURIComponent(base.slice('#/route/'.length));
