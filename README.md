@@ -68,7 +68,6 @@ Open http://localhost:8090 and register the first account. See [docker.md](docs/
 
 ### Authentication and security
 - Optional TOTP two-factor authentication.
-- Bearer-token authentication for non-browser clients.
 
 ### Native clients
 - Configurable API base URL with a server-picker screen.

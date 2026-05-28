@@ -48,6 +48,12 @@ USERNAME_MAX = 64
 RATE_LIMIT_WINDOW = 15 * 60
 RATE_LIMIT_MAX_FAILS = 10
 
+# Non-GET paths a read-only API token may still call. Empty by design: all
+# reads are GET today. If a read ever needs POST (e.g. a body-carrying search),
+# add it here, otherwise read-only tokens get 403 on it (fail closed).
+READONLY_POST_ALLOW: frozenset[str] = frozenset()
+TOKEN_SCOPES = ("full", "readonly")
+
 # Phase 2 (writes)
 GPX_MAX_BYTES = 10 * 1024 * 1024  # 10 MiB cap for GPX uploads
 IMPORT_MAX_BYTES = 50 * 1024 * 1024  # 50 MiB cap for zip imports
@@ -235,6 +241,10 @@ def db_migrate(conn: sqlite3.Connection) -> None:
     conn.execute("ALTER TABLE users ADD COLUMN published INTEGER NOT NULL DEFAULT 0")
   if "is_operator" in user_cols and "is_admin" not in user_cols:
     conn.execute("ALTER TABLE users RENAME COLUMN is_operator TO is_admin")
+  # Session tokens are now stored sha256-hashed (64 hex chars). Purge any
+  # legacy plaintext rows (token_urlsafe(32) is 43 chars) so they fail lookup
+  # cleanly instead of lingering; affected users just log in again once.
+  conn.execute("DELETE FROM sessions WHERE length(token) <> 64")
 
 
 def db_init(conn: sqlite3.Connection) -> None:
@@ -259,6 +269,15 @@ def db_init(conn: sqlite3.Connection) -> None:
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS api_tokens (
+      token_hash TEXT PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      scope TEXT NOT NULL DEFAULT 'full',
+      created_at INTEGER NOT NULL,
+      last_used_at INTEGER,
+      expires_at INTEGER
     );
     CREATE TABLE IF NOT EXISTS audit_log (
       id INTEGER PRIMARY KEY,
@@ -549,13 +568,20 @@ def migrate_legacy_data(conn: sqlite3.Connection, cfg: dict) -> None:
 
 # ---------- sessions ----------
 
+def hash_token(raw: str) -> str:
+  """sha256 hex of a bearer/session token. Tokens are stored hashed so a DB
+  read can't be replayed as a live credential; the plaintext lives only in the
+  client's cookie/header and is shown once at mint time."""
+  return hashlib.sha256((raw or "").encode("utf-8")).hexdigest()
+
+
 def session_create(conn: sqlite3.Connection, user_id: int, ip: str | None = None, user_agent: str | None = None) -> str:
   token = secrets.token_urlsafe(SESSION_BYTES)
   now = int(time.time())
   conn.execute(
     "INSERT INTO sessions(token, user_id, created_at, expires_at, last_seen_at, ip, user_agent) "
     "VALUES (?, ?, ?, ?, ?, ?, ?)",
-    (token, user_id, now, now + SESSION_DAYS * 86400, now, ip, (user_agent or "")[:300]),
+    (hash_token(token), user_id, now, now + SESSION_DAYS * 86400, now, ip, (user_agent or "")[:300]),
   )
   return token
 
@@ -563,25 +589,51 @@ def session_create(conn: sqlite3.Connection, user_id: int, ip: str | None = None
 def session_lookup(conn: sqlite3.Connection, token: str) -> sqlite3.Row | None:
   if not token:
     return None
+  th = hash_token(token)
   row = conn.execute(
     "SELECT u.id AS id, u.username AS username, u.is_admin AS is_admin, "
     "s.expires_at AS expires_at "
     "FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token=?",
-    (token,),
+    (th,),
   ).fetchone()
   if row and row["expires_at"] > int(time.time()):
     return row
   if row:
-    conn.execute("DELETE FROM sessions WHERE token=?", (token,))
+    conn.execute("DELETE FROM sessions WHERE token=?", (th,))
   return None
 
 
 def session_touch(conn: sqlite3.Connection, token: str) -> None:
-  conn.execute("UPDATE sessions SET last_seen_at=? WHERE token=?", (int(time.time()), token))
+  conn.execute("UPDATE sessions SET last_seen_at=? WHERE token=?", (int(time.time()), hash_token(token)))
 
 
 def session_delete(conn: sqlite3.Connection, token: str) -> None:
-  conn.execute("DELETE FROM sessions WHERE token=?", (token,))
+  conn.execute("DELETE FROM sessions WHERE token=?", (hash_token(token),))
+
+
+# ---------- api tokens ----------
+
+def api_token_lookup(conn: sqlite3.Connection, raw: str) -> sqlite3.Row | None:
+  """Resolve a bearer token to its owning user (+ scope). Returns None if the
+  token is unknown or expired; touches last_used_at on success. A token acts
+  as the user who minted it (inherits is_admin); the readonly scope is enforced
+  separately at the mutating-method gate."""
+  if not raw:
+    return None
+  th = hash_token(raw)
+  row = conn.execute(
+    "SELECT u.id AS id, u.username AS username, u.is_admin AS is_admin, "
+    "t.scope AS scope, t.expires_at AS expires_at "
+    "FROM api_tokens t JOIN users u ON u.id = t.user_id WHERE t.token_hash=?",
+    (th,),
+  ).fetchone()
+  if not row:
+    return None
+  if row["expires_at"] is not None and row["expires_at"] <= int(time.time()):
+    conn.execute("DELETE FROM api_tokens WHERE token_hash=?", (th,))
+    return None
+  conn.execute("UPDATE api_tokens SET last_used_at=? WHERE token_hash=?", (int(time.time()), th))
+  return row
 
 
 # ---------- rate limit ----------
@@ -639,6 +691,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
   def handle_one_request(self):
     Handler.last_request = time.monotonic()
     self._req_conn = None
+    self._user_resolved = False
+    self._user_cache = None
+    self._auth_scope = None
     try:
       return super().handle_one_request()
     finally:
@@ -699,7 +754,23 @@ class Handler(http.server.BaseHTTPRequestHandler):
     morsel = jar.get("session")
     return morsel.value if morsel else ""
 
+  def _bearer_token(self) -> str:
+    h = self.headers.get("Authorization") or ""
+    return h[7:].strip() if h.startswith("Bearer ") else ""
+
   def _current_user(self) -> sqlite3.Row | None:
+    """Resolve the request's user, cookie session first, then bearer API token.
+    Cached per request so the read-only gate and the handler share one lookup.
+    Sets self._auth_scope to 'full' or 'readonly'."""
+    if self._user_resolved:
+      return self._user_cache
+    user, scope = self._resolve_auth()
+    self._user_cache = user
+    self._auth_scope = scope
+    self._user_resolved = True
+    return user
+
+  def _resolve_auth(self) -> tuple[sqlite3.Row | None, str | None]:
     token = self._cookie_token()
     user = session_lookup(self.conn, token)
     if user:
@@ -708,7 +779,25 @@ class Handler(http.server.BaseHTTPRequestHandler):
         session_touch(self.conn, token)
       except sqlite3.Error:
         pass
-    return user
+      return user, "full"
+    raw = self._bearer_token()
+    if raw:
+      row = api_token_lookup(self.conn, raw)
+      if row:
+        return row, row["scope"]
+    return None, None
+
+  def _block_if_readonly(self) -> bool:
+    """Send 403 and return True if this mutating request is authed by a
+    read-only token. Every mutation is non-GET, so calling this at the top of
+    do_POST/do_PUT/do_DELETE covers all writes from one place. Fails closed: a
+    future read that uses POST must be added to READONLY_POST_ALLOW or it will
+    be rejected for read-only tokens (the set is empty today)."""
+    self._current_user()
+    if self._auth_scope == "readonly" and urlparse(self.path).path not in READONLY_POST_ALLOW:
+      self._error(HTTPStatus.FORBIDDEN, "read-only token")
+      return True
+    return False
 
   def _require_admin(self) -> sqlite3.Row | None:
     """Return current user if admin, else send 401/403 and return None."""
@@ -790,6 +879,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_me_category_labels_get()
     if path == "/api/me/export":
       return self._h_export_get()
+    if path == "/api/me/tokens":
+      return self._h_tokens_list()
     if path == "/api/public-maps":
       return self._h_public_maps()
     if path == "/api/catalog":
@@ -894,6 +985,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self.wfile.write(body)
 
   def do_POST(self):
+    if self._block_if_readonly():
+      return
     path = urlparse(self.path).path
     if path == "/api/register":
       return self._h_register()
@@ -925,6 +1018,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._h_publish_post()
     if path == "/api/me/import":
       return self._h_import_post()
+    if path == "/api/me/tokens":
+      return self._h_tokens_create()
+    if path == "/api/me/tokens/revoke":
+      return self._h_tokens_revoke()
     if path == "/api/sessions/revoke":
       return self._h_sessions_revoke()
     if path == "/api/sessions/revoke-others":
@@ -958,6 +1055,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._error(HTTPStatus.NOT_FOUND, "not found")
 
   def do_PUT(self):
+    if self._block_if_readonly():
+      return
     path = urlparse(self.path).path
     if path == "/api/places":
       return self._h_places_update()
@@ -970,6 +1069,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._error(HTTPStatus.NOT_FOUND, "not found")
 
   def do_DELETE(self):
+    if self._block_if_readonly():
+      return
     path = urlparse(self.path).path
     if path == "/api/places":
       return self._h_places_delete()
@@ -1178,13 +1279,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if not _valid_password(new_pw):
       return self._error(HTTPStatus.BAD_REQUEST, f"password must be {PASSWORD_MIN}-{PASSWORD_MAX} characters")
     salt, digest = hash_password(new_pw)
-    current_token = self._cookie_token()
+    current_hash = hash_token(self._cookie_token())
     with self.write_lock:
       self.conn.execute("UPDATE users SET pw_salt=?, pw_hash=? WHERE id=?", (salt, digest, user["id"]))
       # Invalidate every other session for this user; keep the current one.
       self.conn.execute(
         "DELETE FROM sessions WHERE user_id=? AND token!=?",
-        (user["id"], current_token),
+        (user["id"], current_hash),
       )
     self._send_json(HTTPStatus.OK, {"ok": True})
 
@@ -1192,7 +1293,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     user = self._current_user()
     if not user:
       return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
-    current_token = self._cookie_token()
+    current_hash = hash_token(self._cookie_token())
     rows = self.conn.execute(
       "SELECT token, created_at, expires_at, last_seen_at, ip, user_agent "
       "FROM sessions WHERE user_id=? ORDER BY last_seen_at DESC, created_at DESC",
@@ -1202,7 +1303,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     for r in rows:
       out.append({
         "id": r["token"][:12],  # short opaque handle, enough for the revoke call
-        "current": r["token"] == current_token,
+        "current": r["token"] == current_hash,
         "created_at": r["created_at"],
         "expires_at": r["expires_at"],
         "last_seen_at": r["last_seen_at"],
@@ -1221,12 +1322,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
     target = (body.get("id") or "").strip()
     if not target or len(target) != 12:
       return self._error(HTTPStatus.BAD_REQUEST, "id required (12-char prefix from /api/sessions)")
-    current_token = self._cookie_token()
+    current_hash = hash_token(self._cookie_token())
     with self.write_lock:
       # Match by token-prefix, scoped to this user, never the current session.
       self.conn.execute(
         "DELETE FROM sessions WHERE user_id=? AND substr(token, 1, 12)=? AND token!=?",
-        (user["id"], target, current_token),
+        (user["id"], target, current_hash),
       )
     self._send_json(HTTPStatus.OK, {"ok": True})
 
@@ -1234,13 +1335,84 @@ class Handler(http.server.BaseHTTPRequestHandler):
     user = self._current_user()
     if not user:
       return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
-    current_token = self._cookie_token()
+    current_hash = hash_token(self._cookie_token())
     with self.write_lock:
       cur = self.conn.execute(
         "DELETE FROM sessions WHERE user_id=? AND token!=?",
-        (user["id"], current_token),
+        (user["id"], current_hash),
       )
       removed = cur.rowcount
+    self._send_json(HTTPStatus.OK, {"ok": True, "removed": removed})
+
+  def _h_tokens_list(self):
+    user = self._require_user()
+    if user is None:
+      return
+    rows = self.conn.execute(
+      "SELECT token_hash, name, scope, created_at, last_used_at, expires_at "
+      "FROM api_tokens WHERE user_id=? ORDER BY created_at DESC",
+      (user["id"],),
+    ).fetchall()
+    out = [{
+      "id": r["token_hash"][:12],  # short opaque handle for the revoke call
+      "name": r["name"],
+      "scope": r["scope"],
+      "created_at": r["created_at"],
+      "last_used_at": r["last_used_at"],
+      "expires_at": r["expires_at"],
+    } for r in rows]
+    self._send_json(HTTPStatus.OK, {"tokens": out})
+
+  def _h_tokens_create(self):
+    user = self._require_user()
+    if user is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    name = (body.get("name") or "").strip()
+    if not name or len(name) > 100:
+      return self._error(HTTPStatus.BAD_REQUEST, "name required (1-100 chars)")
+    scope = (body.get("scope") or "full").strip()
+    if scope not in TOKEN_SCOPES:
+      return self._error(HTTPStatus.BAD_REQUEST, "scope must be full or readonly")
+    expires_at = None
+    days = body.get("expires_in_days")
+    if days is not None:
+      if not isinstance(days, int) or isinstance(days, bool) or not (1 <= days <= 3650):
+        return self._error(HTTPStatus.BAD_REQUEST, "expires_in_days must be 1-3650")
+      expires_at = int(time.time()) + days * 86400
+    raw = secrets.token_urlsafe(SESSION_BYTES)
+    now = int(time.time())
+    with self.write_lock:
+      self.conn.execute(
+        "INSERT INTO api_tokens(token_hash, user_id, name, scope, created_at, last_used_at, expires_at) "
+        "VALUES (?, ?, ?, ?, ?, NULL, ?)",
+        (hash_token(raw), user["id"], name, scope, now, expires_at),
+      )
+    log_event(self.conn, actor=user["username"], action="token.create",
+              details={"name": name, "scope": scope})
+    # Plaintext is returned once here and never stored; the row holds only its hash.
+    self._send_json(HTTPStatus.OK, {"token": raw, "name": name, "scope": scope, "expires_at": expires_at})
+
+  def _h_tokens_revoke(self):
+    user = self._require_user()
+    if user is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    target = (body.get("id") or "").strip()
+    if not target or len(target) != 12:
+      return self._error(HTTPStatus.BAD_REQUEST, "id required (12-char prefix from /api/me/tokens)")
+    with self.write_lock:
+      cur = self.conn.execute(
+        "DELETE FROM api_tokens WHERE user_id=? AND substr(token_hash, 1, 12)=?",
+        (user["id"], target),
+      )
+      removed = cur.rowcount
+    if removed:
+      log_event(self.conn, actor=user["username"], action="token.revoke", details={"id": target})
     self._send_json(HTTPStatus.OK, {"ok": True, "removed": removed})
 
   def _h_settings_registration(self):

@@ -21,7 +21,7 @@ See [configure.md](configure.md#data-files) for the full file-by-file table.
 
 - **Owner view (signed in at `/`).** Browser fetches `index.html`, `site-config.json` (static), then `/api/state`, `/api/places`, `/api/routes`. Edits go through `POST/PUT/DELETE /api/places` and `/api/gpx`; each write validates the input, takes a file lock under the user's folder, writes atomically (temp file then rename), and re-runs the manifest script for that user when GPX changes.
 - **Public view (`/u/<username>/`).** The static handler rewrites the path to `index.html`. The SPA detects the URL prefix and fetches `/api/u/<username>/{places,routes,metadata,gpx/...}` instead. The server returns 404 on any of those unless the named user has `published=1`. No write endpoints are reachable through the public path.
-- **Auth.** Cookie-based sessions (`HttpOnly`, `SameSite=Lax`). PBKDF2-SHA256 password hashing. Per-IP rate limit on login. First user to register becomes admin; further registrations require the admin to flip the site-wide registration toggle. See [SECURITY.md](../SECURITY.md) for the full account model.
+- **Auth.** Cookie-based sessions (`HttpOnly`, `SameSite=Lax`) for browsers, or bearer API tokens (`Authorization: Bearer`) for non-browser clients. Session and token values are stored SHA-256-hashed. PBKDF2-SHA256 password hashing. Per-IP rate limit on login. First user to register becomes admin; further registrations require the admin to flip the site-wide registration toggle. See [SECURITY.md](../SECURITY.md) for the full account model.
 
 ## Repository layout
 

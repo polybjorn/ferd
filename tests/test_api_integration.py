@@ -110,9 +110,9 @@ class Client:
       urllib.request.HTTPCookieProcessor(CookieJar())
     )
 
-  def request(self, method: str, path: str, body=None, *, raw_body: bytes | None = None, content_type: str | None = None):
+  def request(self, method: str, path: str, body=None, *, raw_body: bytes | None = None, content_type: str | None = None, headers: dict[str, str] | None = None):
     url = self.base_url + path
-    headers: dict[str, str] = {}
+    headers = dict(headers or {})
     data: bytes | None = None
     if raw_body is not None:
       data = raw_body
@@ -934,6 +934,87 @@ class TestSessionsRevokeOthers(unittest.TestCase):
     self.assertTrue(body["sessions"][0]["current"])
     status, _ = c2.request("GET", "/api/state")
     self.assertEqual(status, 200)
+
+
+class TestApiTokens(unittest.TestCase):
+  def _mint(self, c: Client, name: str, scope: str = "full", **extra):
+    body = {"name": name, "scope": scope, **extra}
+    return c.request("POST", "/api/me/tokens", body)
+
+  def _bearer(self, token: str) -> dict:
+    return {"Authorization": f"Bearer {token}"}
+
+  def test_mint_validation(self):
+    c = admin_client()
+    status, _ = self._mint(c, "")
+    self.assertEqual(status, 400)
+    status, _ = self._mint(c, "bad-scope", scope="write")
+    self.assertEqual(status, 400)
+    status, _ = self._mint(c, "bad-expiry", expires_in_days=0)
+    self.assertEqual(status, 400)
+    status, _ = self._mint(c, "bad-expiry2", expires_in_days=99999)
+    self.assertEqual(status, 400)
+
+  def test_full_token_authenticates_and_writes(self):
+    c = admin_client()
+    status, body = self._mint(c, "full-tok", scope="full")
+    self.assertEqual(status, 200)
+    self.assertEqual(body["scope"], "full")
+    token = body["token"]
+    # Fresh client, no cookie: proves bearer auth stands alone.
+    bc = Client(_server.base_url)
+    status, _ = bc.request("GET", "/api/sessions", headers=self._bearer(token))
+    self.assertEqual(status, 200)
+    # A mutation passes the read-only gate (auth worked, scope is full).
+    status, _ = bc.request("POST", "/api/places", {}, headers=self._bearer(token))
+    self.assertNotIn(status, (401, 403))
+
+  def test_readonly_token_blocks_mutations(self):
+    c = admin_client()
+    status, body = self._mint(c, "ro-tok", scope="readonly")
+    self.assertEqual(status, 200)
+    token = body["token"]
+    bc = Client(_server.base_url)
+    # Reads allowed.
+    status, _ = bc.request("GET", "/api/sessions", headers=self._bearer(token))
+    self.assertEqual(status, 200)
+    # Every mutation is blocked at the gate, before the handler runs.
+    status, body = bc.request("POST", "/api/places", {}, headers=self._bearer(token))
+    self.assertEqual(status, 403)
+    self.assertEqual(body["error"], "read-only token")
+
+  def test_list_never_leaks_secret(self):
+    c = admin_client()
+    self._mint(c, "list-tok", scope="readonly")
+    status, body = c.request("GET", "/api/me/tokens")
+    self.assertEqual(status, 200)
+    row = next(t for t in body["tokens"] if t["name"] == "list-tok")
+    self.assertEqual(row["scope"], "readonly")
+    self.assertNotIn("token", row)
+    self.assertNotIn("token_hash", row)
+    self.assertEqual(len(row["id"]), 12)
+
+  def test_revoke_invalidates(self):
+    c = admin_client()
+    status, body = self._mint(c, "doomed", scope="full")
+    token = body["token"]
+    bc = Client(_server.base_url)
+    status, _ = bc.request("GET", "/api/sessions", headers=self._bearer(token))
+    self.assertEqual(status, 200)
+    # Find its id and revoke.
+    _, listing = c.request("GET", "/api/me/tokens")
+    tid = next(t["id"] for t in listing["tokens"] if t["name"] == "doomed")
+    status, body = c.request("POST", "/api/me/tokens/revoke", {"id": tid})
+    self.assertEqual(status, 200)
+    self.assertEqual(body["removed"], 1)
+    # Now the bearer token no longer authenticates.
+    status, _ = bc.request("GET", "/api/sessions", headers=self._bearer(token))
+    self.assertEqual(status, 401)
+
+  def test_unknown_bearer_rejected(self):
+    bc = Client(_server.base_url)
+    status, _ = bc.request("GET", "/api/sessions", headers=self._bearer("not-a-real-token"))
+    self.assertEqual(status, 401)
 
 
 class TestImport(unittest.TestCase):

@@ -17,9 +17,17 @@ Before the first user registers, registration is open. If the site is reachable 
 ## Sessions
 
 - Cookie-based. `HttpOnly`, `SameSite=Lax`, `Secure` when `secure_cookies` is true.
-- 30-day expiry. Stored in SQLite so they survive a process restart (important for socket-activated deploys).
-- Listed under Settings, Active sessions. Each entry shows the device, IP, and last seen time. The current device is marked. Other sessions can be revoked.
+- 30-day expiry. Stored SHA-256-hashed in SQLite (a database read can't be replayed as a live cookie) and surviving a process restart (important for socket-activated deploys).
+- Listed under Settings > Security, Active sessions. Each entry shows the device, IP, and last seen time. The current device is marked. Other sessions can be revoked.
 - Changing your password invalidates every session except the one initiating the change.
+
+## API tokens
+
+- Bearer tokens for non-browser clients (scripts, integrations), sent as `Authorization: Bearer <token>`.
+- Minted under Settings > Security with a name, a scope (`full` or `readonly`), and an optional expiry (default 1 year; can be set to never).
+- Stored SHA-256-hashed; the plaintext is shown once at creation and never again. Lose it and you mint a replacement.
+- A read-only token may only make `GET` requests; any mutating request returns `403`. A full token acts as its owner, including admin rights if the owner is an admin.
+- Listed with last-used time and revocable individually under Settings > Security.
 
 ## Login hardening
 
@@ -45,7 +53,7 @@ In production, nginx serves the static content directly. The example config in `
 
 ## SQLite
 
-`tools/app.db` holds password hashes and active session tokens. Created 0600. WAL and SHM siblings created at the same permissions.
+`tools/app.db` holds password hashes plus SHA-256 hashes of active session and API tokens (no token plaintext). Created 0600. WAL and SHM siblings created at the same permissions.
 
 Backup includes this file. The whole users + sessions state lives in three files: `tools/app.db`, `tools/app.db-shm`, `tools/app.db-wal`. Use any backup tool that handles SQLite (or stop the service before snapshotting).
 
@@ -54,7 +62,7 @@ Backup includes this file. The whole users + sessions state lives in three files
 - A malicious admin. The model is "single-user, trusted admin".
 - A compromise of the box. Anything on the host can read the DB and the data files.
 - A network attacker between you and the site if you skip TLS. Always front it with HTTPS in production.
-- Cross-site request forgery on browsers older than 2020 that ignore `SameSite=Lax`. The modern major browsers respect it; we don't carry a CSRF token.
+- Cross-site request forgery on browsers older than 2020 that ignore `SameSite=Lax`. The modern major browsers respect it; we don't carry a CSRF token. Bearer-token auth is unaffected: browsers never attach the `Authorization` header automatically, so token requests aren't forgeable cross-site.
 
 ## Backups
 

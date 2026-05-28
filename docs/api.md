@@ -6,10 +6,10 @@ Every endpoint exposed by `tools/api.py`. Useful if you want to script against F
 
 - Base path is `api_base` from `site-config.json` (default `/api`). All paths below are written relative to it.
 - Request and response bodies are JSON unless noted (GPX endpoints take/return XML; export returns a zip).
-- Auth is a session cookie (`HttpOnly`, `SameSite=Lax`) set by `POST /login` and `POST /register`.
+- Auth is either a session cookie (`HttpOnly`, `SameSite=Lax`, set by `POST /login` and `POST /register`) or an API token in the `Authorization: Bearer <token>` header (see API tokens below). A read-only token may only make `GET` requests; any other method returns `403`.
 - JSON request bodies are capped at `max_body_bytes` (default 1 MiB). GPX uploads have their own cap (10 MiB). Zip imports cap at 50 MiB compressed, 200 MiB uncompressed.
 - Errors are `{"error": "<message>"}` with a non-2xx status. Validation failures are `400`; auth failures are `401`; permission failures are `403`; missing rows are `404`; conflicts (name taken, last admin, etc.) are `409`; oversize is `413`; rate-limited login is `429`.
-- "Owner" endpoints require an authenticated session. "Admin" endpoints additionally require `is_admin=1`. "Public" endpoints under `/u/<username>/` work without auth but return `404` unless the named user has `published=1`.
+- "Owner" endpoints require authentication, a session cookie or a bearer token. "Admin" endpoints additionally require `is_admin=1` (a bearer token inherits its owner's admin rights). "Public" endpoints under `/u/<username>/` work without auth but return `404` unless the named user has `published=1`.
 
 ## Auth and session
 
@@ -24,6 +24,9 @@ Every endpoint exposed by `tools/api.py`. Useful if you want to script against F
 | `GET` | `/sessions` | owner | - | Lists this user's sessions. Each has a 12-char `id` (prefix) for revoking. |
 | `POST` | `/sessions/revoke` | owner | `{id}` | Revokes one session by 12-char id. Cannot target the current session. |
 | `POST` | `/sessions/revoke-others` | owner | - | Revokes every session except the current one. |
+| `GET` | `/me/tokens` | owner | - | Lists this user's API tokens: `id` (12-char prefix), `name`, `scope`, `created_at`, `last_used_at`, `expires_at`. Never returns the secret. |
+| `POST` | `/me/tokens` | owner | `{name, scope?, expires_in_days?}` | Mints a token. `scope` is `full` (default) or `readonly`; `expires_in_days` is 1-3650 (omit for no expiry). Returns `{token, name, scope, expires_at}`; the `token` value is shown only in this response. |
+| `POST` | `/me/tokens/revoke` | owner | `{id}` | Revokes one token by 12-char id. |
 
 ## Per-user content (owner)
 

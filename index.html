@@ -2038,6 +2038,43 @@
       background: color-mix(in srgb, var(--accent) 12%, var(--surface2));
     }
     .radio-row.radio-pills input { display: none; }
+    /* Segmented variant: options butted into one connected bar (shared outer
+       border, dividers between), single-select, no wrap. Used where separate
+       pills would waste horizontal space or wrap (e.g. token scope/expiry). */
+    .radio-row.radio-segmented {
+      display: flex;
+      width: 100%;
+      flex-wrap: nowrap;
+      column-gap: 0;
+      row-gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .radio-row.radio-segmented > label {
+      flex: 1 1 0;
+      text-align: center;
+      margin: 0;
+      padding: 0.4rem 0.85rem;
+      border-radius: 0;
+      border-left: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      white-space: nowrap;
+      transition: color 0.15s, background 0.15s;
+    }
+    .radio-row.radio-segmented > label:first-child { border-left: none; }
+    .radio-row.radio-segmented > label:hover { color: var(--text); }
+    /* Selection is shown by fill alone (no per-cell outline): an accent border
+       can't follow the connected bar's shape - square inner corners at the
+       dividers and a clash with the rounded ends. The fill clips cleanly to the
+       container's radius. Stronger tint than .feature-pill since there's no
+       border to reinforce it. */
+    .radio-row.radio-segmented > label:has(input:checked) {
+      color: var(--text);
+      background: color-mix(in srgb, var(--accent) 22%, var(--surface2));
+    }
+    .radio-row.radio-segmented input { display: none; }
     /* Clickable star rating: filled stars use accent, empty are muted.
        Hovering the row previews the rating up to the cursor via .preview. */
     .star-rating {
@@ -2277,6 +2314,15 @@
       color: var(--text);
       border-color: var(--accent);
       background: color-mix(in srgb, var(--accent) 12%, var(--surface2));
+    }
+    /* Stretch pills to fill the row as equal cells, keeping the gaps (so they
+       still read as independent multi-select toggles, unlike the connected
+       segmented bar). Balances short groups like Visible features. */
+    .feature-pills > .feature-pill {
+      flex: 1 1 0;
+      justify-content: center;
+      text-align: center;
+      white-space: nowrap;
     }
     .modal .modal-error {
       margin-top: 0.75rem;
@@ -2737,8 +2783,8 @@
     }
 
     // Pill-style radio group: each option renders as a single-select pill.
-    function radioPillsHtml(name, options, selected) {
-      return '<div class="radio-row radio-pills">' +
+    function radioPillsHtml(name, options, selected, variant) {
+      return '<div class="radio-row ' + (variant || 'radio-pills') + '">' +
         options.map(([v, l]) =>
           '<label><input type="radio" name="' + name + '" value="' + v + '"' + (selected === v ? ' checked' : '') + '>' + l + '</label>'
         ).join('') + '</div>';
@@ -7073,6 +7119,7 @@
           '<button data-tab="general" class="active">General</button>' +
           '<button data-tab="appearance">Appearance</button>' +
           '<button data-tab="account">Account</button>' +
+          '<button data-tab="security">Security</button>' +
           (isAdmin ? '<button data-tab="admin">Admin</button>' : '') +
         '</div>' +
         '<div data-panel="general">' +
@@ -7089,7 +7136,7 @@
         : '') +
         (!isReadOnly() ?
           '<h3 class="settings-h">Optional fields</h3>' +
-          '<div class="modal-desc">Toggle which optional fields you use. Off hides the field in Add/Edit forms and in cards, popups, and detail pages.</div>' +
+          '<div class="modal-desc">Applies to forms, cards, popups, and detail pages.</div>' +
           '<div class="feature-pills">' +
             [['date', 'Date'], ['image', 'Image'], ['local-name', 'Local name'], ['note', 'Note'], ['rating', 'Rating']]
               .map(([key, label]) =>
@@ -7098,7 +7145,7 @@
           '</div>'
         : '') +
         '<h3 class="settings-h">Units</h3>' +
-        radioPillsHtml('units', [['imperial', 'Imperial (mi, ft)'], ['metric', 'Metric (km, m)']], getUnits()) +
+        radioPillsHtml('units', [['imperial', 'Imperial (mi, ft)'], ['metric', 'Metric (km, m)']], getUnits(), 'radio-segmented') +
         '<h3 class="settings-h">Language</h3>' +
         '<select id="s-language" disabled>' +
           '<option value="en" selected>English</option>' +
@@ -7142,10 +7189,10 @@
           '</select>' +
         '</div>' +
         '<div class="settings-inline-row"><label>Marker size</label>' +
-          radioPillsHtml('marker-size', [['small', 'Small'], ['default', 'Default'], ['large', 'Large']], markerSize) +
+          radioPillsHtml('marker-size', [['small', 'Small'], ['default', 'Default'], ['large', 'Large']], markerSize, 'radio-segmented') +
         '</div>' +
         '<div class="settings-inline-row"><label>Route line thickness</label>' +
-          radioPillsHtml('route-weight', [['thin', 'Thin'], ['default', 'Default'], ['thick', 'Thick']], routeWeight) +
+          radioPillsHtml('route-weight', [['thin', 'Thin'], ['default', 'Default'], ['thick', 'Thick']], routeWeight, 'radio-segmented') +
         '</div>' +
         (placesAvailable() ?
           '<div class="settings-inline-row"><label for="s-cluster">Cluster places</label>' +
@@ -7193,23 +7240,25 @@
             '<input type="checkbox" class="settings-toggle" id="s-publish"' + (state.auth.published ? ' checked' : '') + '>' +
             '<label for="s-publish" style="margin:0">Make my map public</label>' +
           '</div>' +
-          '<div class="modal-desc">Anyone with the link gets read-only access.</div>' +
           '<div id="s-publish-link" class="collapsible' + (state.auth.published ? ' expanded' : '') + '">' +
-            '<div class="collapsible-inner" style="display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem">' +
-              '<input type="text" id="s-publish-url" readonly value="' + escapeHtml(location.origin + '/u/' + (state.auth.username || '') + '/') + '" style="flex:1;font-size:0.75rem">' +
-              '<button type="button" class="primary" id="s-publish-copy" style="flex:0 0 auto">Copy</button>' +
+            '<div class="collapsible-inner">' +
+              '<div class="modal-desc" style="margin-top:0.5rem">Anyone with the link gets read-only access.</div>' +
+              '<div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem">' +
+                '<input type="text" id="s-publish-url" readonly value="' + escapeHtml(location.origin + '/u/' + (state.auth.username || '') + '/') + '" style="flex:1;font-size:0.75rem">' +
+                '<button type="button" class="primary" id="s-publish-copy" style="flex:0 0 auto">Copy</button>' +
+              '</div>' +
             '</div>' +
           '</div>'
         : '') +
         '<h3 class="settings-h">Export</h3>' +
         '<div style="display:flex;align-items:center;gap:1rem">' +
-          '<div class="modal-desc" style="flex:1;margin:0">Download your places, routes, and preferences as a zip.</div>' +
+          '<div class="modal-desc" style="flex:1;margin:0">Download your data as a zip.</div>' +
           '<button type="button" class="primary" id="s-export">Export</button>' +
         '</div>' +
         '<div class="modal-error" id="s-export-error"></div>' +
         '<h3 class="settings-h">Import</h3>' +
         '<div class="modal-desc" style="margin:0">Restore from a previous export.</div>' +
-        '<div class="radio-row radio-pills" style="margin-top:0.5rem">' +
+        '<div class="radio-row radio-segmented" style="margin-top:0.5rem">' +
           '<label><input type="radio" name="import-mode" value="merge" checked>Merge</label>' +
           '<label><input type="radio" name="import-mode" value="replace">Replace all</label>' +
           '<label><input type="radio" name="import-mode" value="prefs">Preferences only</label>' +
@@ -7237,8 +7286,31 @@
           '<div class="modal-error" id="s-error"></div>' +
           '<div class="modal-success" id="s-pw-success" hidden></div>' +
         '</form>' +
+        '</div>' +
+        '<div data-panel="security" hidden>' +
         '<h3 class="settings-h sessions-h">Active sessions<button type="button" class="sessions-revoke-others" id="s-revoke-others" hidden>Sign out others</button></h3>' +
         '<div id="s-sessions">Loading&hellip;</div>' +
+        '<h3 class="settings-h">API tokens</h3>' +
+        '<div class="modal-desc">Bearer tokens for scripts and non-browser clients.</div>' +
+        '<form id="s-token-form" style="margin-top:0.5rem">' +
+          '<label for="s-token-name">Name</label>' +
+          '<input type="text" id="s-token-name" maxlength="100" placeholder="e.g. backup script" required>' +
+          '<div class="settings-inline-row" style="margin-top:0.5rem;grid-template-columns:5rem 1fr">' +
+            '<label>Scope</label>' +
+            radioPillsHtml('s-token-scope', [['full', 'Full access'], ['readonly', 'Read-only']], 'full', 'radio-segmented') +
+          '</div>' +
+          '<div class="settings-inline-row" style="margin-top:0.5rem;grid-template-columns:5rem 1fr">' +
+            '<label>Expires</label>' +
+            radioPillsHtml('s-token-expiry', [['30', '30 days'], ['90', '90 days'], ['365', '1 year'], ['', 'Never']], '365', 'radio-segmented') +
+          '</div>' +
+          '<div style="display:flex;justify-content:flex-end;margin-top:0.75rem">' +
+            '<button type="submit" class="primary" id="s-token-create">Create token</button>' +
+          '</div>' +
+          '<div class="modal-error" id="s-token-error"></div>' +
+          '<div id="s-token-new" class="modal-success-box" hidden></div>' +
+        '</form>' +
+        '<h3 class="settings-h">Your tokens</h3>' +
+        '<div id="s-tokens">Loading&hellip;</div>' +
         '</div>' +
         (isAdmin ?
           '<div data-panel="admin" hidden>' +
@@ -7368,6 +7440,46 @@
             });
           }
           renderSessions();
+          renderTokens();
+          const tokenForm = document.getElementById('s-token-form');
+          if (tokenForm) {
+            tokenForm.addEventListener('submit', function(e) {
+              e.preventDefault();
+              const name = document.getElementById('s-token-name').value.trim();
+              const scopeEl = document.querySelector('input[name="s-token-scope"]:checked');
+              const scope = scopeEl ? scopeEl.value : 'full';
+              const expiryEl = document.querySelector('input[name="s-token-expiry"]:checked');
+              const expiryVal = expiryEl ? expiryEl.value : '365';
+              const btn = document.getElementById('s-token-create');
+              const errEl = document.getElementById('s-token-error');
+              const reqBody = { name: name, scope: scope };
+              if (expiryVal) reqBody.expires_in_days = parseInt(expiryVal, 10);
+              btn.disabled = true;
+              errEl.classList.remove('visible');
+              api('POST', '/me/tokens', reqBody).then(res => {
+                btn.disabled = false;
+                document.getElementById('s-token-name').value = '';
+                const box = document.getElementById('s-token-new');
+                box.innerHTML = '<div style="margin-bottom:0.4rem">Token created. Copy it now, you won\'t see it again.</div>' +
+                  '<div style="display:flex;align-items:center;gap:0.5rem">' +
+                    '<input type="text" id="s-token-value" readonly value="' + escapeHtml(res.token) + '" style="flex:1;font-size:0.75rem">' +
+                    '<button type="button" class="primary" id="s-token-copy" style="flex:0 0 auto">Copy</button>' +
+                  '</div>';
+                box.hidden = false;
+                document.getElementById('s-token-copy').addEventListener('click', function() {
+                  const input = document.getElementById('s-token-value');
+                  const original = this.textContent;
+                  const done = () => { this.textContent = 'Copied'; setTimeout(() => { this.textContent = original; }, 1500); };
+                  navigator.clipboard.writeText(input.value).then(done).catch(() => { input.select(); document.execCommand('copy'); done(); });
+                });
+                renderTokens();
+              }).catch(err => {
+                btn.disabled = false;
+                errEl.textContent = err.message;
+                errEl.classList.add('visible');
+              });
+            });
+          }
           const themeSel = document.getElementById('s-theme');
           if (themeSel) themeSel.addEventListener('change', function() {
             setPref('theme', this.value);
@@ -8193,6 +8305,53 @@
         });
       }).catch(() => {
         el.innerHTML = '<div class="hint">Could not load sessions.</div>';
+      });
+    }
+
+    function renderTokens() {
+      const el = document.getElementById('s-tokens');
+      if (!el) return;
+      api('GET', '/me/tokens').then(data => {
+        const tokens = data.tokens || [];
+        if (!tokens.length) {
+          el.innerHTML = '<div class="hint">No tokens.</div>';
+          return;
+        }
+        el.innerHTML = '<ul class="session-list">' + tokens.map(t => {
+          const name = escapeHtml(t.name);
+          const scope = t.scope === 'readonly' ? 'Read-only' : 'Full access';
+          const used = t.last_used_at ? ('used ' + escapeHtml(timeAgo(t.last_used_at))) : 'never used';
+          const exp = t.expires_at
+            ? (' &middot; expires ' + new Date(t.expires_at * 1000).toISOString().slice(0, 10))
+            : ' &middot; no expiry';
+          return '<li class="session-row">' +
+            '<div class="session-meta">' +
+              '<div class="session-device">' + name + '</div>' +
+              '<div class="session-sub">' + scope + ' &middot; ' + used + exp + '</div>' +
+            '</div>' +
+            '<button class="session-revoke" data-id="' + escapeHtml(t.id) + '">Revoke</button>' +
+          '</li>';
+        }).join('') + '</ul>';
+        el.querySelectorAll('.session-revoke').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const self = this;
+            openConfirmModal({
+              title: 'Revoke token',
+              body: 'Any client using this token stops working immediately.',
+              confirmLabel: 'Revoke',
+              danger: true,
+            }).then(ok => {
+              if (!ok) return;
+              self.disabled = true;
+              api('POST', '/me/tokens/revoke', { id: id })
+                .then(renderTokens)
+                .catch(err => { self.disabled = false; alert('Failed: ' + err.message); });
+            });
+          });
+        });
+      }).catch(() => {
+        el.innerHTML = '<div class="hint">Could not load tokens.</div>';
       });
     }
 

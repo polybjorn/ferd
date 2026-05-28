@@ -5,6 +5,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
+- Bearer-token API auth for non-browser clients. Mint named tokens under Settings > Security with a scope (full or read-only) and an expiry (30/90/365 days or never), then authenticate with `Authorization: Bearer <token>`. Read-only tokens are limited to GET requests. The list shows each token's last-used time, and tokens can be revoked individually. New endpoints: `GET`/`POST /api/me/tokens` and `POST /api/me/tokens/revoke`.
 - Place cards show an "unlinked" marker (replacing the catalog book icon) when an imported place's catalog entry has been removed from the catalog, so a dead catalog link is visually distinct from a live one. Renamed entries re-link instead of orphaning, so this only appears for genuine removals.
 - Place schema: optional `image_focus` field controls the popup image's crop anchor (`top`, `bottom`, `left`, `right`, `center`, or `"X% Y%"`). Lets portrait photos render in the landscape popup frame without the meaningful subject getting cropped out. Flows through the catalog: catalog entries can set it, the "Update from catalog" diff tracks it, and the server clears it automatically when `image` changes so it always tracks a specific photo.
 - Catalog test: optional fields cannot be present with empty values (e.g. `"image": ""`). Omit the field instead.
@@ -21,6 +22,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places list (Group by category): each section header is prefixed with a small dot in the category's palette color.
 
 ### Changed
+- Active sessions moved from Settings > Account to a new Settings > Security tab, alongside the new API tokens section.
+- Settings option pickers restyled: single-select groups (Units, Import mode, Marker size, Route line thickness, token scope/expiry) render as one connected segmented bar; multi-select groups (Visible features, Optional fields) stretch to fill the row as equal cells. Several settings descriptions tightened.
 - Manage regions modal no longer shows a per-region route count, matching Manage categories. Empty regions still read "empty" and a row being renamed reads "edited".
 - Status colors are now a fixed, balanced red/green pair across all themes (planned/want `#d23f3f`, visited/completed `#2ea043`), instead of inheriting each theme's palette red/green (which read pinkish and pastel in Nord). Applies to status dots, filter chips, route lines, and place popups; danger/error keep `--red` and success keeps `--green`.
 - Map filter panel redesigned. Places and Routes are now a single accordion tab row pinned at the panel bottom (opening one collapses the other, list expands upward with a height + fade animation, so the tab row itself never moves on click), and the collapsed panel is two rows instead of three. The status filters (Visited/Planned for places, Completed/Planned for routes) plus "Toggle all" sit in one persistent footer below the lists, as boxed chips with a green (done) or red-outlined (planned) dot; switching tabs only swaps the leading chip's label (Visited<->Completed) without the row moving. The place status filter "Want" is renamed "Planned". Categories and chips read white with a full-color dot when on, grey with a faded dot when off. The tab open/close indicator is a thin stroke chevron matching the app's other icons (was a filled triangle). Search box placeholder simplified to "Search...".
@@ -68,6 +71,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places and Routes list empty state ("No matches") now spans both columns of the index grid instead of being trapped in one column of the CSS multi-column layout, which made it look off-center.
 
 ### Security
+- Session and API tokens are stored as SHA-256 hashes rather than plaintext, so a database read can't be replayed as a live credential. Existing sessions are invalidated on upgrade (one re-login).
 - API handlers that touch the filesystem now verify the resolved path stays under the expected directory. The static handler also catches symlink escapes that the prior lexical check could not see.
 - GPX uploads reject DOCTYPE and entity declarations, blocking XML-bomb expansion (uploads remain admin-only).
 - Place and route list rows escape backslashes when building inline click handlers.
