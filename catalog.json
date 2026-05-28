@@ -115,6 +115,19 @@
     ]
   },
   {
+    "name": "Angkor National Museum",
+    "lat": 13.3666,
+    "lon": 103.8599,
+    "category": "museum",
+    "country": "Cambodia",
+    "local_name": "សារមន្ទីរជាតិអង្គរ",
+    "note": "Khmer civilization artifacts from the Angkor period",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Angkor_National_Museum_%28II%29.jpg/1280px-Angkor_National_Museum_%28II%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Angkor_National_Museum"
+    ]
+  },
+  {
     "name": "Anse Source d'Argent",
     "lat": -4.37154,
     "lon": 55.82721,
@@ -124,6 +137,32 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/La_Digue_asv2024-10_img22_Union_Estate.jpg/1280px-La_Digue_asv2024-10_img22_Union_Estate.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Anse_Source_d%27Argent"
+    ]
+  },
+  {
+    "name": "Avenue of the Baobabs",
+    "lat": -20.2509,
+    "lon": 44.4189,
+    "category": "nature",
+    "country": "Madagascar",
+    "local_name": "Allée des Baobabs",
+    "note": "Ancient baobab trees lining a dirt road",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Avenue_of_Baobabs%2C_Madagascar_%2822558139260%29.jpg/1280px-Avenue_of_Baobabs%2C_Madagascar_%2822558139260%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Avenue_of_the_Baobabs"
+    ]
+  },
+  {
+    "name": "Bagan",
+    "lat": 21.1717,
+    "lon": 94.8585,
+    "category": "religious",
+    "country": "Myanmar",
+    "local_name": "ပុဂံ",
+    "note": "Plain of 2,000+ Buddhist temples, 9th-13th century",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Bagan%2C_Burma.jpg/1280px-Bagan%2C_Burma.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Bagan"
     ]
   },
   {
@@ -140,6 +179,18 @@
     ]
   },
   {
+    "name": "Bandiagara Escarpment",
+    "lat": 14.333,
+    "lon": -3.417,
+    "category": "nature",
+    "country": "Mali",
+    "note": "Dogon cliff dwellings carved into sandstone",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Les_Falaises_de_Bandiagara.jpg/1280px-Les_Falaises_de_Bandiagara.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Bandiagara_Escarpment"
+    ]
+  },
+  {
     "name": "Berlin Cathedral",
     "lat": 52.51917,
     "lon": 13.40111,
@@ -150,6 +201,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/141227_Berliner_Dom.jpg/1280px-141227_Berliner_Dom.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Berlin_Cathedral"
+    ]
+  },
+  {
+    "name": "Blue Lagoon",
+    "lat": 63.88,
+    "lon": -22.44806,
+    "category": "nature",
+    "country": "Iceland",
+    "local_name": "Bláa lónið",
+    "note": "Geothermal spa in a lava field on the Reykjanes Peninsula",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Blue_Lagoon_with_%C3%9Eorbj%C3%B6rn%2C_Iceland%2C_20230430_1626_3692.jpg/1280px-Blue_Lagoon_with_%C3%9Eorbj%C3%B6rn%2C_Iceland%2C_20230430_1626_3692.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Blue_Lagoon_(geothermal_spa)"
     ]
   },
   {
@@ -176,6 +240,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/%D9%86%D9%85%D8%A7%DB%8C_%D8%A8%DB%8C%D8%B1%D9%88%D9%86%DB%8C_%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D9%85%D8%B4%DB%8C%D8%B1%D8%A7%D9%84%D9%85%D9%84%DA%A9_%D8%A8%D8%B1%D8%A7%D8%B2%D8%AC%D8%A7%D9%86.jpg/1280px-%D9%86%D9%85%D8%A7%DB%8C_%D8%A8%DB%8C%D8%B1%D9%88%D9%86%DB%8C_%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D9%85%D8%B4%DB%8C%D8%B1%D8%A7%D9%84%D9%85%D9%84%DA%A9_%D8%A8%D8%B1%D8%A7%D8%B2%D8%AC%D8%A7%D9%86.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Borazjan_Castle"
+    ]
+  },
+  {
+    "name": "Cape Coast Castle",
+    "lat": 5.1036,
+    "lon": -1.2414,
+    "category": "castle",
+    "country": "Ghana",
+    "note": "Slave trade fort, now a museum",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Cape_Coast_Castle%2C_Cape_Coast%2C_Ghana.JPG/1280px-Cape_Coast_Castle%2C_Cape_Coast%2C_Ghana.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Cape_Coast_Castle"
     ]
   },
   {
@@ -253,6 +329,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D8%AF%DB%8C%D8%B1_%DA%AF%DA%86%DB%8C%D9%86_%D8%A7%D8%B3%D8%AA%D8%A7%D9%86_%D9%82%D9%85_-_%D9%88%DB%8C%DA%A9%DB%8C_%D8%AF%D9%88%D8%B3%D8%AA%D8%AF%D8%A7%D8%B1_%DB%8C%D8%A7%D8%AF%D9%85%D8%A7%D9%86_2018_21.jpg/1280px-%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D8%AF%DB%8C%D8%B1_%DA%AF%DA%86%DB%8C%D9%86_%D8%A7%D8%B3%D8%AA%D8%A7%D9%86_%D9%82%D9%85_-_%D9%88%DB%8C%DA%A9%DB%8C_%D8%AF%D9%88%D8%B3%D8%AA%D8%AF%D8%A7%D8%B1_%DB%8C%D8%A7%D8%AF%D9%85%D8%A7%D9%86_2018_21.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Dayr-e_Gachin"
+    ]
+  },
+  {
+    "name": "Deadvlei",
+    "lat": -24.76,
+    "lon": 15.2929,
+    "category": "nature",
+    "country": "Namibia",
+    "local_name": "Dooie Vlei",
+    "note": "Clay pan with dead trees among red dunes",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Dead_Vlei_4.jpg/1280px-Dead_Vlei_4.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Deadvlei"
     ]
   },
   {
@@ -373,6 +462,19 @@
     ]
   },
   {
+    "name": "Fushimi Inari-taisha",
+    "lat": 34.9671,
+    "lon": 135.7727,
+    "category": "religious",
+    "country": "Japan",
+    "local_name": "伏見稲荷大社",
+    "note": "Thousands of vermillion torii gates up a mountain trail",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Torii_path_with_lantern_at_Fushimi_Inari_Taisha_Shrine%2C_Kyoto%2C_Japan.jpg/1280px-Torii_path_with_lantern_at_Fushimi_Inari_Taisha_Shrine%2C_Kyoto%2C_Japan.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Fushimi_Inari-taisha"
+    ]
+  },
+  {
     "name": "German Historical Museum",
     "lat": 52.51806,
     "lon": 13.39694,
@@ -383,6 +485,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Zeughaus_Berlin_2012.jpg/1280px-Zeughaus_Berlin_2012.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Deutsches_Historisches_Museum"
+    ]
+  },
+  {
+    "name": "Ginzan Onsen",
+    "lat": 38.56972,
+    "lon": 140.53111,
+    "category": "village",
+    "country": "Japan",
+    "local_name": "銀山温泉",
+    "note": "Gas-lit Taisho-era hot spring town in Yamagata",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Evening_twilight_in_Ginzan_Onsen_town_January_2022_B.jpg/1280px-Evening_twilight_in_Ginzan_Onsen_town_January_2022_B.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Ginzan_Onsen"
     ]
   },
   {
@@ -399,6 +514,19 @@
     ]
   },
   {
+    "name": "Goryokaku Fort",
+    "lat": 41.7964,
+    "lon": 140.757,
+    "category": "monument",
+    "country": "Japan",
+    "local_name": "五稜郭",
+    "note": "Star-shaped Western-style fort in Hakodate, Hokkaido",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Hakodate_Goryokaku_Panorama_1.JPG/1280px-Hakodate_Goryokaku_Panorama_1.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Gory%C5%8Dkaku"
+    ]
+  },
+  {
     "name": "Great Sphinx of Giza",
     "lat": 29.9753,
     "lon": 31.1376,
@@ -409,6 +537,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Sphinx_with_the_third_pyramid.jpg/1280px-Sphinx_with_the_third_pyramid.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Great_Sphinx_of_Giza"
+    ]
+  },
+  {
+    "name": "Hashima Island",
+    "lat": 32.6275,
+    "lon": 129.7383,
+    "category": "ruins",
+    "country": "Japan",
+    "local_name": "端島",
+    "note": "Abandoned concrete island, former coal mining city",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Battle-Ship_Island_Nagasaki_Japan.jpg/1280px-Battle-Ship_Island_Nagasaki_Japan.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Hashima_Island"
     ]
   },
   {
@@ -435,6 +576,32 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/RUS-2016-Aerial-SPB-Winter_Palace_%28crop%29.jpg/1280px-RUS-2016-Aerial-SPB-Winter_Palace_%28crop%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Hermitage_Museum"
+    ]
+  },
+  {
+    "name": "Himeji Castle",
+    "lat": 34.8394,
+    "lon": 134.6939,
+    "category": "castle",
+    "country": "Japan",
+    "local_name": "姫路城",
+    "note": "Japan's best-preserved castle, white heron design",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Himeji_castle_in_may_2015.jpg/1280px-Himeji_castle_in_may_2015.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Himeji_Castle"
+    ]
+  },
+  {
+    "name": "Hiroshima Peace Memorial Museum",
+    "lat": 34.39167,
+    "lon": 132.45194,
+    "category": "museum",
+    "country": "Japan",
+    "local_name": "広島平和記念資料館",
+    "note": "History of the atomic bombing of Hiroshima",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Hiroshima_Peace_Memorial_Museum_2009.jpg/1280px-Hiroshima_Peace_Memorial_Museum_2009.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Hiroshima_Peace_Memorial_Museum"
     ]
   },
   {
@@ -476,6 +643,19 @@
     ]
   },
   {
+    "name": "Itsukushima Shrine",
+    "lat": 34.2961,
+    "lon": 132.3198,
+    "category": "religious",
+    "country": "Japan",
+    "local_name": "厳島神社",
+    "note": "Floating torii gate in the sea off Miyajima island",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Itsukushima_Shrine_Torii_Gate_%2813890465459%29.jpg/1280px-Itsukushima_Shrine_Torii_Gate_%2813890465459%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Itsukushima_Shrine"
+    ]
+  },
+  {
     "name": "Jamalabad Caravanserai",
     "lat": 37.27189,
     "lon": 47.84306,
@@ -499,6 +679,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/20180301124354_IMG_4179And6more_Interior_3.jpg/1280px-20180301124354_IMG_4179And6more_Interior_3.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Jameh_Mosque_of_Isfahan"
+    ]
+  },
+  {
+    "name": "Jigokudani Monkey Park",
+    "lat": 36.7331,
+    "lon": 138.4625,
+    "category": "nature",
+    "country": "Japan",
+    "local_name": "地獄谷野猿公苑",
+    "note": "Wild snow monkeys bathing in natural hot springs in Nagano",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Two_snow_monkeys_at_Jigokudani_Monkey_Park.jpg/1280px-Two_snow_monkeys_at_Jigokudani_Monkey_Park.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Jigokudani_Monkey_Park"
     ]
   },
   {
@@ -541,6 +734,31 @@
     ]
   },
   {
+    "name": "Kenroku-en",
+    "lat": 36.5625,
+    "lon": 136.6628,
+    "category": "garden",
+    "country": "Japan",
+    "local_name": "兼六園",
+    "note": "One of Japan's top three gardens, in Kanazawa",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Stone_lantern_Kenrokuen.jpg/1280px-Stone_lantern_Kenrokuen.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Kenroku-en"
+    ]
+  },
+  {
+    "name": "Larnach Castle",
+    "lat": -45.86166,
+    "lon": 170.62721,
+    "category": "castle",
+    "country": "New Zealand",
+    "note": "New Zealand's only castle, on the Otago Peninsula",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Larnach_Castle_and_fountain.jpg/1280px-Larnach_Castle_and_fountain.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Larnach_Castle"
+    ]
+  },
+  {
     "name": "Lenin's Mausoleum",
     "lat": 55.75361,
     "lon": 37.61972,
@@ -551,6 +769,57 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Mauzoleumlenina_%28cropped%29.jpeg/1280px-Mauzoleumlenina_%28cropped%29.jpeg",
     "sources": [
       "https://en.wikipedia.org/wiki/Lenin%27s_Mausoleum"
+    ]
+  },
+  {
+    "name": "Matsumoto Castle",
+    "lat": 36.2388,
+    "lon": 137.9688,
+    "category": "castle",
+    "country": "Japan",
+    "local_name": "松本城",
+    "note": "One of Japan's original castles with striking black exterior",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Matsumoto_Castle_Keep_Tower.jpg/1280px-Matsumoto_Castle_Keep_Tower.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Matsumoto_Castle"
+    ]
+  },
+  {
+    "name": "Maya Bay",
+    "lat": 7.6783,
+    "lon": 98.7648,
+    "category": "beach",
+    "country": "Thailand",
+    "note": "Bay made famous by the film The Beach",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Maya_Bay%2C_Thailand_by_Mike_Clegg_Photography.jpg/1280px-Maya_Bay%2C_Thailand_by_Mike_Clegg_Photography.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Maya_Bay"
+    ]
+  },
+  {
+    "name": "Meiji Shrine",
+    "lat": 35.6764,
+    "lon": 139.6993,
+    "category": "religious",
+    "country": "Japan",
+    "local_name": "明治神宮",
+    "note": "Forested Shinto shrine in central Tokyo",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Meiji_Jingu_2023-3.jpg/1280px-Meiji_Jingu_2023-3.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Meiji_Shrine"
+    ]
+  },
+  {
+    "name": "Nara Park",
+    "lat": 34.6851,
+    "lon": 135.843,
+    "category": "nature",
+    "country": "Japan",
+    "local_name": "奈良公園",
+    "note": "Free-roaming deer among temple grounds and gardens",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/003_Nara_deer_in_Japan_-_deer_of_Nara_Park_under_autumn_leaves.jpg/1280px-003_Nara_deer_in_Japan_-_deer_of_Nara_Park_under_autumn_leaves.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Nara_Park"
     ]
   },
   {
@@ -576,6 +845,45 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Schloss_Neuschwanstein_2013.jpg/1280px-Schloss_Neuschwanstein_2013.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Neuschwanstein_Castle"
+    ]
+  },
+  {
+    "name": "Nezu Shrine",
+    "lat": 35.72028,
+    "lon": 139.76083,
+    "category": "religious",
+    "country": "Japan",
+    "local_name": "根津神社",
+    "note": "Quiet shrine with a tunnel of torii gates and azalea garden",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Nezu_Shrine_2010.jpg/1280px-Nezu_Shrine_2010.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Nezu_Shrine"
+    ]
+  },
+  {
+    "name": "Osaka Aquarium Kaiyukan",
+    "lat": 34.6545,
+    "lon": 135.429,
+    "category": "museum",
+    "country": "Japan",
+    "local_name": "海遊館",
+    "note": "Aquarium built around a central whale-shark tank",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Kaiy%C5%ABkan.jpg/1280px-Kaiy%C5%ABkan.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Osaka_Aquarium_Kaiyukan"
+    ]
+  },
+  {
+    "name": "Osaka Castle",
+    "lat": 34.6873,
+    "lon": 135.5262,
+    "category": "castle",
+    "country": "Japan",
+    "local_name": "大阪城",
+    "note": "Landmark fortress in a large park in central Osaka",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Osaka_Castle_03bs3200.jpg/1280px-Osaka_Castle_03bs3200.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Osaka_Castle"
     ]
   },
   {
@@ -682,6 +990,31 @@
     ]
   },
   {
+    "name": "Railay Beach",
+    "lat": 8.0103,
+    "lon": 98.8378,
+    "category": "beach",
+    "country": "Thailand",
+    "local_name": "ไร่เลย์",
+    "note": "Only reachable by boat, surrounded by limestone karst cliffs",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Railay_Beach_5.jpg/1280px-Railay_Beach_5.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Railay_Beach"
+    ]
+  },
+  {
+    "name": "Reynisfjara",
+    "lat": 63.4035,
+    "lon": -19.0474,
+    "category": "beach",
+    "country": "Iceland",
+    "note": "Black volcanic sand and basalt columns",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Reynisfjara_Beach_Looking_West_Towards_Dyrh%C3%B3laey.jpg/1280px-Reynisfjara_Beach_Looking_West_Towards_Dyrh%C3%B3laey.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Reynisfjara"
+    ]
+  },
+  {
     "name": "Rialto Bridge",
     "lat": 45.4381,
     "lon": 12.3358,
@@ -772,6 +1105,19 @@
     ]
   },
   {
+    "name": "Senso-ji",
+    "lat": 35.7148,
+    "lon": 139.7967,
+    "category": "religious",
+    "country": "Japan",
+    "local_name": "浅草寺",
+    "note": "Tokyo's oldest temple with the Kaminarimon gate",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Sensoji_2023.jpg/1280px-Sensoji_2023.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Sens%C5%8D-ji"
+    ]
+  },
+  {
     "name": "Sforza Castle",
     "lat": 45.47,
     "lon": 9.17861,
@@ -795,6 +1141,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/%D8%A8%D8%A7%D8%BA_%D8%B4%D8%A7%D9%87%D8%B2%D8%A7%D8%AF%D9%87-%D9%85%D8%A7%D9%87%D8%A7%D9%86-%DA%A9%D8%B1%D9%85%D8%A7%D9%86.jpg/1280px-%D8%A8%D8%A7%D8%BA_%D8%B4%D8%A7%D9%87%D8%B2%D8%A7%D8%AF%D9%87-%D9%85%D8%A7%D9%87%D8%A7%D9%86-%DA%A9%D8%B1%D9%85%D8%A7%D9%86.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Shazdeh_Garden"
+    ]
+  },
+  {
+    "name": "Shirakawa-go",
+    "lat": 36.2576,
+    "lon": 136.9066,
+    "category": "village",
+    "country": "Japan",
+    "local_name": "白川郷",
+    "note": "Traditional steep-roofed farmhouses in a mountain village",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Ogi_Shirakawa-g%C5%8D%2C_Gifu%2C_Japan.jpg/1280px-Ogi_Shirakawa-g%C5%8D%2C_Gifu%2C_Japan.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Shirakawa-g%C5%8D"
     ]
   },
   {
@@ -1005,6 +1364,45 @@
     ]
   },
   {
+    "name": "Timgad",
+    "lat": 35.4849,
+    "lon": 6.4683,
+    "category": "ruins",
+    "country": "Algeria",
+    "local_name": "تيمقاد",
+    "note": "Well-preserved Roman town built on a grid plan",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Timgad_%2815685889550%29.jpg/1280px-Timgad_%2815685889550%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Timgad"
+    ]
+  },
+  {
+    "name": "Tokyo National Museum",
+    "lat": 35.7189,
+    "lon": 139.7766,
+    "category": "museum",
+    "country": "Japan",
+    "local_name": "東京国立博物館",
+    "note": "Japan's oldest and largest museum, in Ueno Park",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Tokyo_National_Museum%2C_Honkan_2010.jpg/1280px-Tokyo_National_Museum%2C_Honkan_2010.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Tokyo_National_Museum"
+    ]
+  },
+  {
+    "name": "Tokyo Tower",
+    "lat": 35.6586,
+    "lon": 139.7454,
+    "category": "monument",
+    "country": "Japan",
+    "local_name": "東京タワー",
+    "note": "1958 red-and-white lattice tower, classic city symbol",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Tokyo_Tower%2C_Minato_City.jpg/1280px-Tokyo_Tower%2C_Minato_City.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Tokyo_Tower"
+    ]
+  },
+  {
     "name": "Tomb of Cyrus the Great",
     "lat": 30.19389,
     "lon": 53.16722,
@@ -1054,6 +1452,43 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Arena-XE3F2406a.jpg/1280px-Arena-XE3F2406a.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Verona_Arena"
+    ]
+  },
+  {
+    "name": "Wave Rock",
+    "lat": -32.44389,
+    "lon": 118.89828,
+    "category": "nature",
+    "country": "Australia",
+    "note": "15m granite cliff shaped like a breaking wave",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Wave_rock_%282005%29.jpg/1280px-Wave_rock_%282005%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Wave_Rock"
+    ]
+  },
+  {
+    "name": "Whitehaven Beach",
+    "lat": -20.27861,
+    "lon": 149.03639,
+    "category": "beach",
+    "country": "Australia",
+    "note": "Pure silica sand with swirling tidal patterns",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Hill_Inlet_at_the_end_of_Whitehaven_Beach_in_the_Whitsundays.JPG/1280px-Hill_Inlet_at_the_end_of_Whitehaven_Beach_in_the_Whitsundays.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Whitehaven_Beach"
+    ]
+  },
+  {
+    "name": "Zao Fox Village",
+    "lat": 38.0408,
+    "lon": 140.5303,
+    "category": "nature",
+    "country": "Japan",
+    "local_name": "宮城蔵王キツネ村",
+    "note": "Over 100 free-roaming foxes in the Miyagi mountains",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Zao_foxes_%2851901324658%29.jpg/1280px-Zao_foxes_%2851901324658%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Miyagi_Zao_Fox_Village"
     ]
   }
 ]
