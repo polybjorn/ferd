@@ -505,6 +505,10 @@
       columns: 2;
       column-gap: 1.5rem;
     }
+    /* Empty-state message must span both columns; otherwise it sits in one
+       column with the other empty, which looks like off-center alignment. */
+    .category-grid > .loading,
+    .region-grid > .loading { column-span: all; }
 
     .category-group,
     .region-group {
