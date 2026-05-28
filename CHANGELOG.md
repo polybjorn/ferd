@@ -21,6 +21,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Changed
 - "Native name" relabeled to "Local name" everywhere in the UI (edit and add modals, settings field-toggle, popups) to match the underlying `local_name` field. The per-browser "show local name" toggle key migrates from `show-native-name` to `show-local-name` on first load; the old key is removed.
+- Settings > Optional fields toggles now apply to display, not just Add/Edit forms. Turning off Image, Local name, Note, Date, or Rating hides that field in place cards, map popups, and the route detail page as well. The toggle takes effect immediately; map and list views refresh in place without a page reload.
 - Places list groups (by category, country, or letter) now list items alphabetically within each group instead of in insertion order. The chosen grouping is persisted across page reloads.
 - Routes list now lists routes alphabetically within each region (or letter). The chosen grouping is persisted across page reloads.
 - Routes list re-renders on filter changes instead of hiding cards with CSS. Empty groups disappear from the list rather than collapsing to zero height.

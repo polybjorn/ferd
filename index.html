@@ -3484,14 +3484,15 @@
       if (sourceUrl) {
         html += '<a class="popup-source-link" href="' + escapeHtml(sourceUrl) + '" target="_blank" rel="noopener noreferrer" title="Go to source" aria-label="Go to source">' + EXTERNAL_ICON_SVG + '</a>';
       }
-      html += '<div class="popup-name">' + escapeHtml(p.name) + (p.local_name ? ' <span class="popup-local cat-text" style="' + catStyle + '">' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
-      if (p.image) {
+      const showLocal = getShowField('local-name');
+      html += '<div class="popup-name">' + escapeHtml(p.name) + (showLocal && p.local_name ? ' <span class="popup-local cat-text" style="' + catStyle + '">' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
+      if (p.image && getShowField('image')) {
         // Hide broken/blocked images instead of showing the empty alt frame.
         const focus = typeof p.image_focus === 'string' && /^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$/.test(p.image_focus.trim()) ? p.image_focus.trim() : '';
         const focusAttr = focus ? ' style="object-position: ' + focus + '"' : '';
         html += '<img class="popup-image" src="' + escapeHtml(p.image) + '" alt=""' + focusAttr + ' loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
       }
-      if (p.note) html += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
+      if (p.note && getShowField('note')) html += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
       html += '<div class="popup-meta">' +
         '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(displayCategory(p.category)) + '</span>' +
         '<span style="grid-column:3;color:' + (p.visited ? 'var(--green)' : 'var(--red)') + '">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
@@ -3569,12 +3570,13 @@
       if (route.source) {
         html += '<a class="popup-source-link" href="' + escapeHtml(route.source) + '" target="_blank" rel="noopener noreferrer" title="Go to source" aria-label="Go to source">' + EXTERNAL_ICON_SVG + '</a>';
       }
-      html += '<a class="popup-name popup-name-link" href="#/routes/route/' + encodeURIComponent(route.key) + '">' + escapeHtml(route.name) + (route.local_name ? ' <span class="popup-local">' + escapeHtml(route.local_name) + '</span>' : '') + '</a>';
+      const showLocal = getShowField('local-name');
+      html += '<a class="popup-name popup-name-link" href="#/routes/route/' + encodeURIComponent(route.key) + '">' + escapeHtml(route.name) + (showLocal && route.local_name ? ' <span class="popup-local">' + escapeHtml(route.local_name) + '</span>' : '') + '</a>';
       // First meta line: difficulty / rating / date arranged left / center / right.
       // Render each slot even if empty so the columns hold their position.
       const diffSlot = route.difficulty ? escapeHtml(DIFFICULTY_LABELS[route.difficulty] || route.difficulty) : '';
-      const rateSlot = route.rating ? '<span title="' + route.rating + '/5">' + ratingStarsText(route.rating) + '</span>' : '';
-      const dateSlot = route.date_completed ? escapeHtml(route.date_completed) : '';
+      const rateSlot = (route.rating && getShowField('rating')) ? '<span title="' + route.rating + '/5">' + ratingStarsText(route.rating) + '</span>' : '';
+      const dateSlot = (route.date_completed && getShowField('date')) ? escapeHtml(route.date_completed) : '';
       if (diffSlot || rateSlot || dateSlot) {
         html += '<div class="popup-summary">' +
           '<span>' + diffSlot + '</span>' +
@@ -3585,7 +3587,7 @@
       if (route.tags && route.tags.length) {
         html += '<div class="popup-tags">' + route.tags.map(t => '#' + escapeHtml(t)).join(' ') + '</div>';
       }
-      if (route.notes) html += '<div class="popup-note">' + escapeHtml(route.notes) + '</div>';
+      if (route.notes && getShowField('note')) html += '<div class="popup-note">' + escapeHtml(route.notes) + '</div>';
       html += '<div class="popup-meta">' +
         '<span style="color:' + color + '">' + (route.completed ? 'Completed' : 'Planned') + '</span>' +
         '<span>' + escapeHtml(displayRegion(regionName)) + '</span>' +
@@ -5534,7 +5536,7 @@
           html += '<span class="status-dot ' + statusClass + '"></span>';
           html += '<div class="place-text">';
           html += '<div class="name">' + escapeHtml(p.name) + '</div>';
-          if (p.note) html += '<div class="note">' + escapeHtml(p.note) + '</div>';
+          if (p.note && getShowField('note')) html += '<div class="note">' + escapeHtml(p.note) + '</div>';
           html += '</div>';
           if (p.from_catalog) {
             const upd = findCatalogUpdate(p);
@@ -6036,12 +6038,12 @@
       facts.push('<span class="fact"><span class="dot" style="background:' + (route.completed ? 'var(--completed)' : 'var(--planned)') + '"></span>' + statusLabel + '</span>');
       facts.push('<span class="fact">' + escapeHtml(displayRegion(regionName)) + '</span>');
       if (route.difficulty) facts.push('<span class="fact">' + escapeHtml(DIFFICULTY_LABELS[route.difficulty] || route.difficulty) + '</span>');
-      if (route.rating) facts.push('<span class="fact" title="' + route.rating + '/5">' + ratingStarsText(route.rating) + '</span>');
-      if (route.date_completed) facts.push('<span class="fact">' + escapeHtml(route.date_completed) + '</span>');
+      if (route.rating && getShowField('rating')) facts.push('<span class="fact" title="' + route.rating + '/5">' + ratingStarsText(route.rating) + '</span>');
+      if (route.date_completed && getShowField('date')) facts.push('<span class="fact">' + escapeHtml(route.date_completed) + '</span>');
 
       const showActions = state.auth.authenticated && !isReadOnly();
       const hasTags = route.tags && route.tags.length;
-      const hasNotes = !!route.notes;
+      const hasNotes = !!route.notes && getShowField('note');
       let metaHtml = '';
       if (facts.length || hasTags || hasNotes) {
         metaHtml = '<div class="route-meta-panel">';
@@ -6733,6 +6735,7 @@
         : '') +
         (!isReadOnly() ?
           '<h3 class="settings-h">Optional fields</h3>' +
+          '<div class="modal-desc">Toggle which optional fields you use. Off hides the field in Add/Edit forms and in cards, popups, and detail pages.</div>' +
           '<div class="feature-pills">' +
             [['date', 'Date'], ['image', 'Image'], ['local-name', 'Local name'], ['note', 'Note'], ['rating', 'Rating']]
               .map(([key, label]) =>
@@ -7114,6 +7117,17 @@
               setPref('show-' + this.dataset.field, this.checked ? 'true' : 'false');
               const pill = this.closest('.feature-pill');
               if (pill) pill.classList.toggle('active', this.checked);
+              // The toggle affects displayed cards (place + route lists), map
+              // popups, and the route detail page. Refresh the view under the
+              // settings modal so the change is visible immediately. Skip the
+              // home-map case: rebuilding the map for a popup-only effect is
+              // wasted work, and refreshOpenPlacePopup catches any open one.
+              const hash = location.hash || '#/';
+              if (hash.startsWith('#/places') || hash.startsWith('#/routes')) {
+                if (typeof wrappedRouter === 'function') wrappedRouter();
+              } else {
+                if (typeof refreshOpenPlacePopup === 'function') refreshOpenPlacePopup();
+              }
             });
           });
           const exportBtn = document.getElementById('s-export');
