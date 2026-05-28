@@ -1933,7 +1933,7 @@
     @media (prefers-reduced-motion: reduce) {
       .cat-row { transition: none !important; }
     }
-    .row-tag.in-input:empty { display: none; }
+    .row-tag:empty { display: none; }
     /* The base .row-tag.dirty animation uses translateX(6px) which would wipe
        the translateY(-50%) that vertical-centers the in-input badge, causing
        it to flash from the lower-right corner. Use a paired-axis keyframe. */
@@ -8064,7 +8064,7 @@
               const empty = r.count === 0;
               const tag = dirty ? '<span class="row-tag dirty">edited</span>'
                         : empty ? '<span class="row-tag">empty</span>'
-                        : '<span class="row-tag">' + r.count + ' route' + (r.count === 1 ? '' : 's') + '</span>';
+                        : '<span class="row-tag"></span>';
               const xTitle = empty ? 'Remove empty region' : 'Remove region (routes will move to No region)';
               return '<div style="display:flex;gap:0.6rem;align-items:center;margin-top:0.5rem">' +
                 '<input type="text" data-i="' + i + '" class="rgn-name' + (dirty ? ' dirty' : '') + '" value="' + escapeHtml(r.name) + '" style="flex:1;min-width:0">' +
@@ -8086,7 +8086,7 @@
                   tagEl.classList.add('dirty');
                 } else {
                   tagEl.classList.remove('dirty');
-                  tagEl.textContent = r.count === 0 ? 'empty' : (r.count + ' route' + (r.count === 1 ? '' : 's'));
+                  tagEl.textContent = r.count === 0 ? 'empty' : '';
                 }
                 refreshSaveBtn();
               });
