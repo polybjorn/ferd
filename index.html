@@ -4454,12 +4454,13 @@
             const prevColors = Object.assign({}, state.categoryColors);
             const slug = place._slug || '';
             const wasVisited = !!place.visited;
-            const anim = animatePlaceCardOut(slug);
+            let failed = false;
+            const anim = animatePlaceCardOut(slug).then(function() { if (!failed) removePlaceCardFromList(slug, wasVisited); });
             api('DELETE', '/places', { id: place.id })
               .then(() => refreshPlaces())
               .then(() => anim)
-              .then(() => { closeModal(); syncPlacesOnMap(prevColors); removePlaceCardFromList(slug, wasVisited); })
-              .catch(err => { this.disabled = false; if (document.getElementById('place-list')) renderPlaceList(); showModalError(err.message); });
+              .then(() => { closeModal(); syncPlacesOnMap(prevColors); })
+              .catch(err => { failed = true; this.disabled = false; if (document.getElementById('place-list')) renderPlaceList(); showModalError(err.message); });
           });
           document.getElementById('edit-place-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -5824,12 +5825,17 @@
                 const prevColors = Object.assign({}, state.categoryColors);
                 const slug = place._slug || '';
                 const wasVisited = !!place.visited;
-                const anim = animatePlaceCardOut(slug);
+                // Drop the card the moment the collapse finishes, not after the
+                // network round-trip, so there's no pause between the animation
+                // ending and the row closing. `failed` guards the optimistic
+                // removal against a delete that errors and re-renders the list.
+                let failed = false;
+                const anim = animatePlaceCardOut(slug).then(function() { if (!failed) removePlaceCardFromList(slug, wasVisited); });
                 api('DELETE', '/places', { id: place.id })
                   .then(() => refreshPlaces())
                   .then(() => anim)
-                  .then(() => { syncPlacesOnMap(prevColors); removePlaceCardFromList(slug, wasVisited); })
-                  .catch(err => { if (document.getElementById('place-list')) renderPlaceList(); alert('Delete failed: ' + err.message); });
+                  .then(() => { syncPlacesOnMap(prevColors); })
+                  .catch(err => { failed = true; if (document.getElementById('place-list')) renderPlaceList(); alert('Delete failed: ' + err.message); });
               });
             }});
           }
