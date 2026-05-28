@@ -2898,6 +2898,36 @@
         '</div>';
     }
 
+    // Full inner markup of the filter panel. Used both when the control is
+    // first added and when a feature is toggled (which adds/removes a tab).
+    function panelInnerHtml() {
+      return '<div class="panel-search" id="map-search">' +
+        '<input type="text" id="map-search-input" placeholder="Search...">' +
+        '<div class="map-search-results" id="map-search-results"></div>' +
+        '</div>' +
+        (placesEnabled() ? panelBodyHtml('places') : '') +
+        (routesEnabled() ? panelBodyHtml('routes') : '') +
+        '<div class="legend-status panel-status" id="panel-status"></div>' +
+        panelTabsHtml();
+    }
+
+    // Rebuild the filter panel DOM in place after a feature is toggled, so the
+    // tab row reflects which features are enabled. Falls back to a full map
+    // re-render if the panel isn't present yet (e.g. enabling from none).
+    function rebuildMapFilterPanel() {
+      const div = document.getElementById('map-panel');
+      if (!div) {
+        if (state.currentMap && (placesEnabled() || routesEnabled())) wrappedRouter();
+        return;
+      }
+      if (!(placesEnabled() || routesEnabled())) { div.style.display = 'none'; return; }
+      div.style.display = '';
+      div.innerHTML = panelInnerHtml();
+      bindFilterPanel();
+      refreshFilterPanel();
+      if (state.currentMap) initUnifiedSearch(state.currentMap);
+    }
+
     const DEFAULT_CONFIG = {
       brand: 'Ferd',
       features: { places: true, routes: true },
@@ -4150,15 +4180,7 @@
         onAdd: function() {
           const div = L.DomUtil.create('div', 'map-panel');
           div.id = 'map-panel';
-          div.innerHTML =
-            '<div class="panel-search" id="map-search">' +
-            '<input type="text" id="map-search-input" placeholder="Search...">' +
-            '<div class="map-search-results" id="map-search-results"></div>' +
-            '</div>' +
-            (placesEnabled() ? panelBodyHtml('places') : '') +
-            (routesEnabled() ? panelBodyHtml('routes') : '') +
-            '<div class="legend-status panel-status" id="panel-status"></div>' +
-            panelTabsHtml();
+          div.innerHTML = panelInnerHtml();
           L.DomEvent.disableClickPropagation(div);
           L.DomEvent.disableScrollPropagation(div);
           return div;
@@ -5148,9 +5170,15 @@
         results.innerHTML = '';
       });
 
-      document.addEventListener('click', function(e) {
-        if (!e.target.closest('#map-search')) results.classList.remove('visible');
-      });
+      // Bind the outside-click dismiss once; it looks up the current results
+      // element by id so it survives panel rebuilds (feature toggles).
+      if (!state._searchDocClickBound) {
+        state._searchDocClickBound = true;
+        document.addEventListener('click', function(e) {
+          const r = document.getElementById('map-search-results');
+          if (r && !e.target.closest('#map-search')) r.classList.remove('visible');
+        });
+      }
     }
 
     // ----- Places browse list -----
@@ -7195,7 +7223,9 @@
               refreshTabVisibility();
               // Layer groups are pre-built; apply visibility in place to avoid
               // tearing down the map (which would blink while Settings is open).
-              if (state.currentMap) applyMapFilters();
+              // Also rebuild the filter panel so its tab row drops/adds the
+              // feature.
+              if (state.currentMap) { applyMapFilters(); rebuildMapFilterPanel(); }
               else wrappedRouter();
             });
           });
