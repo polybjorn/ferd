@@ -1,5 +1,18 @@
 [
   {
+    "name": "Abu Simbel",
+    "lat": 22.3369,
+    "lon": 31.6256,
+    "category": "monument",
+    "country": "Egypt",
+    "local_name": "أبو سمبل",
+    "note": "Ramesses II rock-cut temples, relocated above Lake Nasser",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Ramsis%2C_Aswan_Governorate%2C_Egypt_-_panoramio.jpg/1280px-Ramsis%2C_Aswan_Governorate%2C_Egypt_-_panoramio.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Abu_Simbel_temples"
+    ]
+  },
+  {
     "name": "Acropolis of Lindos",
     "lat": 36.09154,
     "lon": 28.08854,
@@ -24,6 +37,19 @@
     "image_focus": "bottom",
     "sources": [
       "https://en.wikipedia.org/wiki/Akbarieh_Garden"
+    ]
+  },
+  {
+    "name": "Al Wahbah Crater",
+    "lat": 22.9069,
+    "lon": 41.1375,
+    "category": "nature",
+    "country": "Saudi Arabia",
+    "local_name": "فَوْهَة ٱلْوَعْبَة",
+    "note": "Volcanic crater with white salt floor",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Wahbah_Crater.jpg/1280px-Wahbah_Crater.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Al_Wahbah"
     ]
   },
   {
@@ -86,6 +112,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Santorini_ancient_thera_1.jpg/1280px-Santorini_ancient_thera_1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Ancient_Thera"
+    ]
+  },
+  {
+    "name": "Anse Source d'Argent",
+    "lat": -4.37154,
+    "lon": 55.82721,
+    "category": "beach",
+    "country": "Seychelles",
+    "note": "Granite-boulder beach with shallow water, La Digue island",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/La_Digue_asv2024-10_img22_Union_Estate.jpg/1280px-La_Digue_asv2024-10_img22_Union_Estate.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Anse_Source_d%27Argent"
     ]
   },
   {
@@ -283,6 +321,19 @@
     ]
   },
   {
+    "name": "Erbil Citadel",
+    "lat": 36.1912,
+    "lon": 44.0094,
+    "category": "monument",
+    "country": "Iraq",
+    "local_name": "قەڵای هەولێر",
+    "note": "Possibly the oldest continuously inhabited place on Earth",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Hawler_Castle.jpg/1280px-Hawler_Castle.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Citadel_of_Erbil"
+    ]
+  },
+  {
     "name": "Fes el-Bali",
     "lat": 34.0625,
     "lon": -4.9725,
@@ -348,6 +399,19 @@
     ]
   },
   {
+    "name": "Great Sphinx of Giza",
+    "lat": 29.9753,
+    "lon": 31.1376,
+    "category": "monument",
+    "country": "Egypt",
+    "local_name": "أبو الهول",
+    "note": "Limestone sphinx on the Giza plateau, c. 2500 BCE",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Sphinx_with_the_third_pyramid.jpg/1280px-Sphinx_with_the_third_pyramid.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Great_Sphinx_of_Giza"
+    ]
+  },
+  {
     "name": "Heidelberg Castle",
     "lat": 49.4104,
     "lon": 8.7153,
@@ -371,6 +435,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/RUS-2016-Aerial-SPB-Winter_Palace_%28crop%29.jpg/1280px-RUS-2016-Aerial-SPB-Winter_Palace_%28crop%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Hermitage_Museum"
+    ]
+  },
+  {
+    "name": "Horizontal Falls",
+    "lat": -16.38325,
+    "lon": 123.95797,
+    "category": "nature",
+    "country": "Australia",
+    "local_name": "Garaanngaddim",
+    "note": "Tidal surge through narrow gorges of the Kimberley coast",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Horizontal_Falls.jpg/1280px-Horizontal_Falls.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Horizontal_Falls"
     ]
   },
   {
@@ -425,6 +502,19 @@
     ]
   },
   {
+    "name": "Jvari Monastery",
+    "lat": 41.8381,
+    "lon": 44.7339,
+    "category": "religious",
+    "country": "Georgia",
+    "local_name": "ჯვრის მონასტერი",
+    "note": "6th-century hilltop church above the confluence at Mtskheta",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Georgia_Jvari_monastery_IMG_9345_2070.jpg/1280px-Georgia_Jvari_monastery_IMG_9345_2070.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Jvari_monastery"
+    ]
+  },
+  {
     "name": "Kaputas Beach",
     "lat": 36.22892,
     "lon": 29.44912,
@@ -435,6 +525,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg/1280px-Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Kaputas_Beach"
+    ]
+  },
+  {
+    "name": "Karnak Temple",
+    "lat": 25.7188,
+    "lon": 32.6573,
+    "category": "ruins",
+    "country": "Egypt",
+    "local_name": "الكرنك",
+    "note": "Egyptian temple complex, 134-column Hypostyle Hall",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Temple_de_Louxor_68.jpg/1280px-Temple_de_Louxor_68.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Karnak"
     ]
   },
   {
@@ -708,6 +811,19 @@
     ]
   },
   {
+    "name": "Shuri Castle",
+    "lat": 26.217,
+    "lon": 127.7195,
+    "category": "castle",
+    "country": "Japan",
+    "local_name": "首里城",
+    "note": "Ryukyuan royal palace in Okinawa",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Naha_Okinawa_Japan_Shuri-Castle-01.jpg/1280px-Naha_Okinawa_Japan_Shuri-Castle-01.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Shuri_Castle"
+    ]
+  },
+  {
     "name": "Shushtar Historical Hydraulic System",
     "lat": 32.0441,
     "lon": 48.8585,
@@ -734,6 +850,19 @@
     ]
   },
   {
+    "name": "Son Doong Cave",
+    "lat": 17.45694,
+    "lon": 106.2875,
+    "category": "cave",
+    "country": "Vietnam",
+    "local_name": "Hang Sơn Đoòng",
+    "note": "World's largest cave by volume",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Son_Doong_Cave_DB_%281%29.jpg/1280px-Son_Doong_Cave_DB_%281%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Hang_Sơn_Đoòng"
+    ]
+  },
+  {
     "name": "State Historical Museum",
     "lat": 55.755,
     "lon": 37.6181,
@@ -744,6 +873,70 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Museo_Estatal_de_Historia%2C_Mosc%C3%BA%2C_Rusia%2C_2016-10-03%2C_DD_49.jpg/1280px-Museo_Estatal_de_Historia%2C_Mosc%C3%BA%2C_Rusia%2C_2016-10-03%2C_DD_49.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/State_Historical_Museum"
+    ]
+  },
+  {
+    "name": "Sultan Qaboos Grand Mosque",
+    "lat": 23.58389,
+    "lon": 58.38917,
+    "category": "religious",
+    "country": "Oman",
+    "local_name": "جامع السلطان قابوس الأكبر",
+    "note": "Oman's largest mosque, striking white marble",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sultan_Qaboos_Grand_Mosque_%281%29.jpg/1280px-Sultan_Qaboos_Grand_Mosque_%281%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Sultan_Qaboos_Grand_Mosque"
+    ]
+  },
+  {
+    "name": "Sydney Opera House",
+    "lat": -33.8568,
+    "lon": 151.2153,
+    "category": "landmark",
+    "country": "Australia",
+    "note": "Shell-roofed performing arts centre on Sydney Harbour",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Sydney_Australia._%2821339175489%29.jpg/1280px-Sydney_Australia._%2821339175489%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Sydney_Opera_House"
+    ]
+  },
+  {
+    "name": "Sümela Monastery",
+    "lat": 40.69,
+    "lon": 39.65833,
+    "category": "religious",
+    "country": "Turkey",
+    "local_name": "Sümela Manastırı",
+    "note": "4th-century cliffside monastery in the Pontic Mountains",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Sumela_From_Across_Valley.JPG/1280px-Sumela_From_Across_Valley.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Sümela_Monastery"
+    ]
+  },
+  {
+    "name": "Taj Mahal",
+    "lat": 27.1739,
+    "lon": 78.0421,
+    "category": "monument",
+    "country": "India",
+    "local_name": "ताजमहल",
+    "note": "White marble mausoleum on the Yamuna River in Agra",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/1280px-Taj_Mahal_%28Edited%29.jpeg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Taj_Mahal"
+    ]
+  },
+  {
+    "name": "Tatev Monastery",
+    "lat": 39.3797,
+    "lon": 46.2478,
+    "category": "religious",
+    "country": "Armenia",
+    "local_name": "Տաթևի վանք",
+    "note": "9th-century gorge-edge monastery, reached by aerial tramway",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Monasterio_de_Tatev%2C_Armenia%2C_2016-10-01%2C_DD_77-79_HDR.jpg/1280px-Monasterio_de_Tatev%2C_Armenia%2C_2016-10-01%2C_DD_77-79_HDR.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Tatev_Monastery"
     ]
   },
   {
@@ -835,6 +1028,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Tomb_of_Darius_I_front.jpg/1280px-Tomb_of_Darius_I_front.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Tomb_of_Darius_the_Great"
+    ]
+  },
+  {
+    "name": "Vardzia",
+    "lat": 41.38092,
+    "lon": 43.28376,
+    "category": "ruins",
+    "country": "Georgia",
+    "local_name": "ვარძია",
+    "note": "12th-century cave monastery city carved into a cliff face",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Vardzia_Cave_Monastery_05.jpg/1280px-Vardzia_Cave_Monastery_05.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Vardzia"
     ]
   },
   {

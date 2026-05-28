@@ -8,7 +8,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Place schema: optional `image_focus` field controls the popup image's crop anchor (`top`, `bottom`, `left`, `right`, `center`, or `"X% Y%"`). Lets portrait photos render in the landscape popup frame without the meaningful subject getting cropped out. Flows through the catalog: catalog entries can set it, the "Update from catalog" diff tracks it, and the server clears it automatically when `image` changes so it always tracks a specific photo.
 - Catalog test: optional fields cannot be present with empty values (e.g. `"image": ""`). Omit the field instead.
 - Shipped catalog: `local_name` reverted to native script across 40 entries (Iran, Russia, Greece, Morocco). Romanizations like `Takht-e Jamshid` provided no signal to readers who don't know the language while obscuring the actual name for those who do; native script (`تخت جمشید`) is more useful to both audiences. Latin-script languages (German, Italian, French, Spanish, Turkish) were already native and are unchanged.
-- Shipped catalog: 54 new entries.
+- Shipped catalog: 70 new entries.
 - `GET /api/health` for liveness checks; returns `{status: "ok", version}`.
 - Install docs and installer output now point at the source clone as the place to re-run `install.sh` from on updates.
 - Places list: new "Group by first letter" filter option. Letter buckets follow the browser's locale collation, so each user sees their own alphabetical order; non-Latin scripts get their own buckets; digit/punctuation starts go in "#".
