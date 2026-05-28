@@ -728,6 +728,10 @@
       background: transparent; border: none; padding: 0.2rem; cursor: pointer;
     }
     .place-card .catalog-mark:hover { color: var(--text); }
+    /* Orphan: the linked catalog entry was removed. Non-actionable, so it
+       reads as a muted "unlinked" marker rather than a clickable book. */
+    .place-card .catalog-mark.orphan { color: var(--muted); opacity: 0.7; cursor: default; }
+    .place-card .catalog-mark.orphan:hover { color: var(--muted); }
     .place-card .catalog-mark svg { width: 0.95rem; height: 0.95rem; display: block; }
     .place-card .catalog-mark.update-available::after {
       content: '';
@@ -5191,10 +5195,46 @@
     // catalog entry for a place's from_catalog has diverged from the local
     // copy, else null. Catalog source is the client-side cache populated on
     // boot; if it isn't loaded yet, returns null (no false-positive indicator).
+    // Resolve the catalog entry an imported place is linked to. Primary key is
+    // the stored name (from_catalog); falls back to matching the catalog
+    // entry's primary source against the place's own sources, so a catalog
+    // rename doesn't break the link (the source URL is stable across renames).
+    function catalogEntryFor(place) {
+      if (!place || !place.from_catalog || !Array.isArray(state._catalogCache)) return null;
+      let entry = state._catalogCache.find(e => e && e.name === place.from_catalog);
+      if (entry) return entry;
+      const psources = Array.isArray(place.sources) ? place.sources : [];
+      if (!psources.length) return null;
+      return state._catalogCache.find(e =>
+        e && Array.isArray(e.sources) && e.sources[0] && psources.includes(e.sources[0])
+      ) || null;
+    }
+
+    // An imported place whose catalog entry no longer exists (removed from the
+    // catalog) - distinct from a rename, which re-links via catalogEntryFor.
+    // Only meaningful once the catalog cache has loaded.
+    function isCatalogOrphan(place) {
+      return !!(place && place.from_catalog && Array.isArray(state._catalogCache) && !catalogEntryFor(place));
+    }
+
+    // Refetch the catalog into the cache and refresh the places list if it's
+    // the current view, so catalog edits (add/remove/hide/baseline) update the
+    // import badges and orphan markers live, without a page reload. Admin
+    // mutation handlers null the cache for their own modal refetch; this
+    // repopulates it and re-renders the list behind the modal.
+    function reloadCatalogCache() {
+      return api('GET', '/catalog').then(entries => {
+        state._catalogCache = Array.isArray(entries) ? entries : [];
+        // Re-render the current view so badges/orphan markers reflect the fresh
+        // cache (mirrors the boot-time catalog warm-up refresh).
+        if ((location.hash || '#/').startsWith('#/places')) wrappedRouter();
+      }).catch(() => {});
+    }
+
     function findCatalogUpdate(place) {
       if (!place || !place.from_catalog) return null;
       if (!Array.isArray(state._catalogCache)) return null;
-      const entry = state._catalogCache.find(e => e && e.name === place.from_catalog);
+      const entry = catalogEntryFor(place);
       if (!entry) return null;
       const norm = v => {
         if (v === undefined || v === null) return null;
@@ -5712,13 +5752,19 @@
           if (p.note && getShowField('note')) html += '<div class="note">' + escapeHtml(p.note) + '</div>';
           html += '</div>';
           if (p.from_catalog) {
-            const upd = findCatalogUpdate(p);
-            const cls = 'catalog-mark' + (upd ? ' update-available' : '');
-            const title = upd
-              ? 'Catalog updated this entry (' + upd.changes.length + ' field' + (upd.changes.length === 1 ? '' : 's') + '). Click to review.'
-              : 'Imported from the site catalog';
+            const orphan = isCatalogOrphan(p);
+            const upd = orphan ? null : findCatalogUpdate(p);
+            const cls = 'catalog-mark' + (orphan ? ' orphan' : (upd ? ' update-available' : ''));
+            const title = orphan
+              ? 'No longer in the site catalog (the linked entry was removed)'
+              : (upd
+                ? 'Catalog updated this entry (' + upd.changes.length + ' field' + (upd.changes.length === 1 ? '' : 's') + '). Click to review.'
+                : 'Imported from the site catalog');
+            const icon = orphan
+              ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71"/><path d="m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71"/><line x1="8" x2="8" y1="2" y2="5"/><line x1="2" x2="5" y1="8" y2="8"/><line x1="16" x2="16" y1="19" y2="22"/><line x1="19" x2="22" y1="16" y2="16"/></svg>'
+              : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>';
             html += '<button type="button" class="' + cls + '" data-place-slug="' + escapeHtml(p._slug || '') + '" title="' + escapeHtml(title) + '">' +
-              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>' +
+              icon +
               '</button>';
           }
           html += '</div>';
@@ -7155,7 +7201,7 @@
               baseline.addEventListener('change', function() {
                 const wanted = this.checked;
                 api('POST', '/admin/settings/catalog-baseline', { mode: wanted ? 'open' : 'closed' })
-                  .then(() => { state.auth.catalog_baseline_open = wanted; state._catalogCache = null; renderAdminCatalog(); })
+                  .then(() => { state.auth.catalog_baseline_open = wanted; state._catalogCache = null; renderAdminCatalog(); reloadCatalogCache(); })
                   .catch(err => { alert('Failed: ' + err.message); this.checked = !wanted; });
               });
             }
@@ -8297,7 +8343,7 @@
                     if (!ok) return;
                     this.disabled = true;
                     api('POST', '/admin/catalog/delete', { names: [name] })
-                      .then(() => { state._catalogCache = null; render(); renderAdminCatalog(); })
+                      .then(() => { state._catalogCache = null; render(); renderAdminCatalog(); reloadCatalogCache(); })
                       .catch(err => { this.disabled = false; alert('Failed: ' + err.message); });
                   });
                 });
@@ -8308,7 +8354,7 @@
                   const wantHidden = this.dataset.hidden !== '1';
                   this.disabled = true;
                   api('POST', '/admin/catalog/hide', { name, hidden: wantHidden })
-                    .then(() => { state._catalogCache = null; render(); renderAdminCatalog(); })
+                    .then(() => { state._catalogCache = null; render(); renderAdminCatalog(); reloadCatalogCache(); })
                     .catch(err => { this.disabled = false; alert('Failed: ' + err.message); });
                 });
               });
@@ -8343,7 +8389,7 @@
                 if (!ok) return;
                 clearBtn.disabled = true;
                 api('POST', '/admin/catalog/clear')
-                  .then(() => { state._catalogCache = null; render(); renderAdminCatalog(); })
+                  .then(() => { state._catalogCache = null; render(); renderAdminCatalog(); reloadCatalogCache(); })
                   .catch(err => alert('Failed: ' + err.message))
                   .then(() => { clearBtn.disabled = false; });
               });
@@ -8447,6 +8493,7 @@
                 state._catalogCache = null;
                 closeModal();
                 renderAdminCatalog();
+                reloadCatalogCache();
                 if (r.skipped) {
                   // Surface skip count so the admin knows dedup happened.
                   alert('Added ' + r.added + ', skipped ' + r.skipped + ' (already in catalog).');
@@ -9314,10 +9361,25 @@
           .catch(err => { body.innerHTML = '<div class="modal-error" style="display:block">' + escapeHtml(err.message) + '</div>'; });
 
         function renderBrowse(rawEntries) {
-          // Hide entries the user has already imported (tracked via the
-          // `from_catalog` field set on import). Re-imports skip silently.
-          const imported = new Set((state.places || []).map(p => p && p.from_catalog).filter(Boolean));
-          const entries = (rawEntries || []).filter(e => !imported.has(e && e.name));
+          // Hide entries the user has already imported. Tracked by from_catalog
+          // name and by primary source URL, so a catalog entry that was renamed
+          // since import (name changed, source stable) isn't offered again as a
+          // duplicate.
+          const importedNames = new Set();
+          const importedSources = new Set();
+          (state.places || []).forEach(p => {
+            if (!p || !p.from_catalog) return;
+            importedNames.add(p.from_catalog);
+            (Array.isArray(p.sources) ? p.sources : []).forEach(s => {
+              if (typeof s === 'string' && s.trim()) importedSources.add(s);
+            });
+          });
+          const entries = (rawEntries || []).filter(e => {
+            if (!e) return false;
+            if (importedNames.has(e.name)) return false;
+            const primary = Array.isArray(e.sources) && e.sources[0];
+            return !(primary && importedSources.has(primary));
+          });
           if (!entries.length) {
             const allHidden = (rawEntries || []).length > 0;
             body.innerHTML = '<div style="font-size:0.78rem;color:var(--muted);padding:0.5rem 0">' +

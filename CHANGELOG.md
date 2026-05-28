@@ -5,6 +5,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
+- Place cards show an "unlinked" marker (replacing the catalog book icon) when an imported place's catalog entry has been removed from the catalog, so a dead catalog link is visually distinct from a live one. Renamed entries re-link instead of orphaning, so this only appears for genuine removals.
 - Place schema: optional `image_focus` field controls the popup image's crop anchor (`top`, `bottom`, `left`, `right`, `center`, or `"X% Y%"`). Lets portrait photos render in the landscape popup frame without the meaningful subject getting cropped out. Flows through the catalog: catalog entries can set it, the "Update from catalog" diff tracks it, and the server clears it automatically when `image` changes so it always tracks a specific photo.
 - Catalog test: optional fields cannot be present with empty values (e.g. `"image": ""`). Omit the field instead.
 - Shipped catalog: `local_name` reverted to native script across 40 entries (Iran, Russia, Greece, Morocco). Romanizations like `Takht-e Jamshid` provided no signal to readers who don't know the language while obscuring the actual name for those who do; native script (`تخت جمشید`) is more useful to both audiences. Latin-script languages (German, Italian, French, Spanish, Turkish) were already native and are unchanged.
@@ -41,6 +42,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Manage categories and Manage regions modals now cap at viewport height; the row list scrolls internally and the scrollbar anchors to the modal's right edge.
 
 ### Fixed
+- Admin catalog edits (add/remove/hide an entry, toggle the shipped baseline) now refresh the places list's catalog badges and orphan markers live, instead of leaving them stale until a page reload.
+- Catalog imports stay linked when a catalog entry is renamed. The link now falls back from the stored name to matching the catalog entry's primary source URL (which is stable across renames), so a rename surfaces as an applicable "name changed" update instead of orphaning the import and offering the renamed entry as a duplicate. Sourceless entries keep name-only matching.
 - Toggling a visible feature (Places/Routes) off in Settings now also drops its tab from the map filter panel, instead of leaving a dead tab behind; re-enabling adds it back.
 - Backup replace-import no longer fails with "Cannot call rmtree on a symbolic link" when the user's GPX directory is a symlink; the link is replaced rather than its target deleted.
 - Places and routes list filter selections no longer reset when the list re-renders (e.g. after accepting a catalog update).
