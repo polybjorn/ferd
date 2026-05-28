@@ -2675,7 +2675,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
           if p.exists():
             p.unlink()
         gpx_root = udir / "gpx"
-        if gpx_root.exists():
+        if gpx_root.is_symlink():
+          # Replace-mode wipes the GPX tree. If it's a symlink, drop the
+          # link itself rather than rmtree-ing the target (which could be
+          # a user-managed external directory).
+          gpx_root.unlink()
+        elif gpx_root.exists():
           shutil.rmtree(gpx_root)
         for arcname in IMPORT_TOP_FILES:
           if arcname in staged:

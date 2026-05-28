@@ -41,6 +41,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Manage categories and Manage regions modals now cap at viewport height; the row list scrolls internally and the scrollbar anchors to the modal's right edge.
 
 ### Fixed
+- Backup replace-import no longer fails with "Cannot call rmtree on a symbolic link" when the user's GPX directory is a symlink; the link is replaced rather than its target deleted.
 - Places and routes list filter selections no longer reset when the list re-renders (e.g. after accepting a catalog update).
 - Right-click context menu and catalog-mark click on place cards now resolve the correct entry when multiple places share a name (looked up by slug instead of name).
 - Clicking a place card in the list now opens the correct entry when multiple places share a name. The card link and the map's focus lookup both go through the slug instead of falling back to the first name match.
