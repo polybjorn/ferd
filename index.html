@@ -4501,7 +4501,17 @@
             const prevColors = Object.assign({}, state.categoryColors);
             api('PUT', '/places', { id: place.id, place: r.payload })
               .then(() => refreshPlaces())
-              .then(() => { closeModal(); syncPlacesOnMap(prevColors); if (document.getElementById('place-list')) renderPlaceList(); })
+              .then(() => {
+                closeModal();
+                syncPlacesOnMap(prevColors);
+                // Patch the card in place when the edit doesn't move/reorder it
+                // (e.g. toggling visited), so the list doesn't flash; otherwise
+                // fall back to a full re-render.
+                if (document.getElementById('place-list')) {
+                  const fresh = (state.places || []).find(p => p.id === place.id);
+                  if (!(fresh && updatePlaceCardAfterEdit(place, fresh))) renderPlaceList();
+                }
+              })
               .catch(err => { submit.disabled = false; showModalError(err.message); });
           });
         }
@@ -5413,6 +5423,59 @@
           }
         }, 220);
       }
+    }
+
+    // Update a single rendered place card in place after an edit, avoiding a
+    // full list re-render (which flashes). Returns false when the edit changes
+    // the card's group, sort position, or filter membership - the caller then
+    // falls back to renderPlaceList. The common case (toggling visited, tweaking
+    // the note) is patched in place with no flash.
+    function updatePlaceCardAfterEdit(oldPlace, newPlace) {
+      if (!newPlace) return false;
+      const listEl = document.getElementById('place-list');
+      if (!listEl) return false;
+      // Changes that move the card or reorder it need a real re-render.
+      if (oldPlace.name !== newPlace.name) return false;
+      if ((oldPlace.category || '') !== (newPlace.category || '')) return false;
+      if (state.groupBy === 'country' && (oldPlace.country || '') !== (newPlace.country || '')) return false;
+      const statusEl = document.getElementById('filter-status');
+      const wantStatus = statusEl ? statusEl.value : 'all';
+      const visitedChanged = !!oldPlace.visited !== !!newPlace.visited;
+      if (visitedChanged && wantStatus !== 'all') return false;
+      const catalogEl = document.getElementById('filter-catalog');
+      if (catalogEl && catalogEl.value === 'updates-available' && !findCatalogUpdate(newPlace)) return false;
+      const card = listEl.querySelector('.place-card[data-place-slug="' + (newPlace._slug || '') + '"]');
+      if (!card) return false;
+      const dot = card.querySelector('.status-dot');
+      if (dot) dot.className = 'status-dot ' + (newPlace.visited ? 'visited' : 'want');
+      const placeText = card.querySelector('.place-text');
+      if (placeText) {
+        let noteEl = placeText.querySelector('.note');
+        if (newPlace.note && getShowField('note')) {
+          if (!noteEl) { noteEl = document.createElement('div'); noteEl.className = 'note'; placeText.appendChild(noteEl); }
+          noteEl.textContent = newPlace.note;
+        } else if (noteEl) { noteEl.remove(); }
+      }
+      const badge = card.querySelector('.catalog-mark');
+      if (badge && !badge.classList.contains('orphan')) {
+        const upd = findCatalogUpdate(newPlace);
+        badge.classList.toggle('update-available', !!upd);
+        badge.title = upd
+          ? 'Catalog updated this entry (' + upd.changes.length + ' field' + (upd.changes.length === 1 ? '' : 's') + '). Click to review.'
+          : 'Imported from the site catalog';
+      }
+      if (visitedChanged) {
+        const group = card.closest('.category-group');
+        const countEl = group ? group.querySelector('.place-count') : null;
+        if (countEl) {
+          const m = /\((\d+)\/(\d+)\)/.exec(countEl.textContent);
+          if (m) {
+            const v = Math.max(0, parseInt(m[1], 10) + (newPlace.visited ? 1 : -1));
+            countEl.textContent = '(' + v + '/' + m[2] + ')';
+          }
+        }
+      }
+      return true;
     }
 
     // Build the refreshed place object. `applyFields` (set of field names) is
