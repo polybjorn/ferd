@@ -3817,6 +3817,15 @@
             const needsMove = targetRegion !== currentRegion || newName !== route.name;
             const newCompleted = tmCompletedCb ? tmCompletedCb.checked : !!route.completed;
             const needsCompletedFlip = newCompleted !== !!route.completed;
+            // Optional fields hidden via Settings > Optional fields aren't
+            // rendered in the form, so the reads above come back empty. Carry
+            // over the stored values so a hidden field isn't wiped on save.
+            if (!getShowField('local-name') && route.local_name) metadata.local_name = route.local_name;
+            if (!getShowField('note') && route.notes) metadata.notes = route.notes;
+            if (newCompleted) {
+              if (!getShowField('date') && route.date_completed) metadata.date_completed = route.date_completed;
+              if (!getShowField('rating') && route.rating) metadata.rating = route.rating;
+            }
             const submit = document.getElementById('tm-submit');
             submit.disabled = true;
             let chain = Promise.resolve(key);
@@ -4459,7 +4468,10 @@
             api('DELETE', '/places', { id: place.id })
               .then(() => refreshPlaces())
               .then(() => anim)
-              .then(() => { closeModal(); syncPlacesOnMap(prevColors); })
+              // Resync any survivor whose slug shifted (deleting one of several
+              // same-named places renumbers the rest), so its context menu /
+              // edit keep working without re-rendering the list.
+              .then(() => { closeModal(); syncPlacesOnMap(prevColors); resyncPlaceCardSlugs(); })
               .catch(err => { failed = true; this.disabled = false; if (document.getElementById('place-list')) renderPlaceList(); showModalError(err.message); });
           });
           document.getElementById('edit-place-form').addEventListener('submit', function(e) {
@@ -4469,6 +4481,21 @@
             // Preserve the catalog lineage tag across edits; the form has no
             // input for it, but it shouldn't disappear on a rename/note change.
             if (place.from_catalog) r.payload.from_catalog = place.from_catalog;
+            // Optional fields hidden via Settings > Optional fields aren't
+            // rendered in the form, so readPlaceFormFields reads them as empty.
+            // Carry over the stored value so a hidden field isn't silently
+            // wiped on save (which, for catalog-linked places, also resurfaces
+            // a bogus "Update from catalog" to restore what the edit erased).
+            if (!getShowField('local-name') && place.local_name) r.payload.local_name = place.local_name;
+            if (!getShowField('note') && place.note) r.payload.note = place.note;
+            if (!getShowField('image') && place.image) r.payload.image = place.image;
+            // image_focus has no form input at all, so keep it whenever the
+            // image is unchanged; the server clears it on a genuine image swap.
+            if (place.image_focus && r.payload.image === place.image) r.payload.image_focus = place.image_focus;
+            if (r.payload.visited) {
+              if (!getShowField('date') && place.date_visited) r.payload.date_visited = place.date_visited;
+              if (!getShowField('rating') && place.rating) r.payload.rating = place.rating;
+            }
             const submit = document.getElementById('e-submit');
             submit.disabled = true;
             const prevColors = Object.assign({}, state.categoryColors);
@@ -4580,6 +4607,31 @@
       if (listEl && !listEl.querySelector('.place-card')) {
         listEl.innerHTML = '<div class="loading">No matches</div>';
       }
+    }
+
+    // After a delete, deleting one of several same-named places renumbers the
+    // survivors' slugs (slug disambiguation is positional). The surgical card
+    // removal leaves those survivors' DOM slugs stale, which silently breaks
+    // their context menu / edit. Patch the stale slug attributes in place,
+    // keyed by the stable place id, instead of re-rendering the whole list
+    // (which flashes). Cards whose slug is unchanged are skipped, so the
+    // common unique-name delete does nothing here.
+    function resyncPlaceCardSlugs() {
+      const listEl = document.getElementById('place-list');
+      if (!listEl) return;
+      const byId = {};
+      for (const p of (state.places || [])) if (p.id) byId[p.id] = p;
+      listEl.querySelectorAll('.place-card[data-place-id]').forEach(function(card) {
+        const p = byId[card.dataset.placeId];
+        if (!p) return;
+        const slug = p._slug || '';
+        if (card.dataset.placeSlug === slug) return;
+        card.dataset.placeSlug = slug;
+        const href = focusHash('place', slug || p.name);
+        card.setAttribute('onclick', "location.hash='" + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'");
+        const mark = card.querySelector('.catalog-mark');
+        if (mark) mark.dataset.placeSlug = slug;
+      });
     }
 
     function pulseChip(el) {
@@ -5754,7 +5806,7 @@
         for (const p of items) {
           const statusClass = p.visited ? 'visited' : 'want';
           const href = focusHash('place', p._slug || p.name);
-          html += '<div class="place-card" data-place-name="' + escapeHtml(p.name) + '" data-place-slug="' + escapeHtml(p._slug || '') + '" onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
+          html += '<div class="place-card" data-place-id="' + escapeHtml(p.id || '') + '" data-place-name="' + escapeHtml(p.name) + '" data-place-slug="' + escapeHtml(p._slug || '') + '" onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
           html += '<span class="status-dot ' + statusClass + '"></span>';
           html += '<div class="place-text">';
           html += '<div class="name">' + escapeHtml(p.name) + '</div>';
@@ -5834,7 +5886,9 @@
                 api('DELETE', '/places', { id: place.id })
                   .then(() => refreshPlaces())
                   .then(() => anim)
-                  .then(() => { syncPlacesOnMap(prevColors); })
+                  // Resync any survivor whose slug shifted (see the edit-modal
+                  // delete handler) instead of re-rendering the whole list.
+                  .then(() => { syncPlacesOnMap(prevColors); resyncPlaceCardSlugs(); })
                   .catch(err => { failed = true; if (document.getElementById('place-list')) renderPlaceList(); alert('Delete failed: ' + err.message); });
               });
             }});
