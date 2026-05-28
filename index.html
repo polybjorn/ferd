@@ -4160,7 +4160,10 @@
         // storedView) instead of forcing a zoom-in to the place. Opening the
         // popup is enough acknowledgement; zooming would push every other
         // marker out of the viewport, which reads as "the overlays vanished".
-        const restoredView = !!(prevView || storedView);
+        // But an explicit in-app navigation (clicking a place in the list or
+        // search) is a "take me there" intent, so center on the pin even when a
+        // view is remembered.
+        const restoredView = !state._navByHash && !!(prevView || storedView);
         setTimeout(function() {
           if (restoredView) {
             L.popup({ closeButton: false })
@@ -5508,11 +5511,16 @@
               .then(() => refreshPlaces())
               .then(() => {
                 closeModal();
-                // Surgical card update - no full list re-render, no blink.
-                // We only touched one place's tracked fields and badge state;
-                // every other card stays exactly as it is.
                 const fresh = (state.places || []).find(p => p.id === place.id) || place;
-                updatePlaceCardAfterCatalogChange(fresh);
+                // A name change reassigns the place's slug, so the rendered
+                // card's data-place-slug key is now stale and a surgical lookup
+                // would miss. Re-render the list in that (rare) case; otherwise
+                // do the in-place card update (no blink) for the common case.
+                if (fresh.name !== place.name) {
+                  if (document.getElementById('place-list')) renderPlaceList();
+                } else {
+                  updatePlaceCardAfterCatalogChange(fresh);
+                }
                 if (state._placeClusterGroup) state._placeClusterGroup.redraw();
                 refreshOpenPlacePopup();
               })
@@ -9578,7 +9586,13 @@
       maybeMountFab();
     }
     window.removeEventListener('hashchange', router);
-    window.addEventListener('hashchange', wrappedRouter);
+    // Flag in-app hash navigations (clicks) vs the initial load (reload), so a
+    // place focus from a click centers the map on the pin, while a reload at a
+    // place URL keeps the user's prior/remembered view.
+    window.addEventListener('hashchange', function() {
+      state._navByHash = true;
+      try { wrappedRouter(); } finally { state._navByHash = false; }
+    });
 
     // Spacebar: toggle map chrome (FAB, filter panel, leaflet controls).
     document.addEventListener('keydown', function(e) {
