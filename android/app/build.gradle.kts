@@ -3,6 +3,17 @@ plugins {
   id("org.jetbrains.kotlin.android")
 }
 
+// Derive a unique, monotonic version from git so every build is identifiable
+// (visible in Android app info and in-app via window.FerdAndroid.appVersion).
+// CI must check out full history (fetch-depth: 0) for the commit count.
+fun gitOutput(vararg args: String): String = try {
+  providers.exec { it.commandLine("git", *args) }.standardOutput.asText.get().trim()
+} catch (e: Exception) {
+  ""
+}
+val commitCount = gitOutput("rev-list", "--count", "HEAD").toIntOrNull() ?: 1
+val shortSha = gitOutput("rev-parse", "--short", "HEAD").ifEmpty { "dev" }
+
 android {
   namespace = "io.github.polybjorn.ferd"
   compileSdk = 34
@@ -11,8 +22,12 @@ android {
     applicationId = "io.github.polybjorn.ferd"
     minSdk = 26
     targetSdk = 34
-    versionCode = 1
-    versionName = "0.1.0"
+    versionCode = commitCount
+    versionName = "0.1.0+$commitCount.g$shortSha"
+  }
+
+  buildFeatures {
+    buildConfig = true
   }
 
   buildTypes {

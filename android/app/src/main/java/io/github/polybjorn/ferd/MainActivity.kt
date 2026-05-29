@@ -287,5 +287,9 @@ private class FerdBridge(private val activity: MainActivity) {
   fun exportFile(filename: String, mimeType: String, base64Data: String) {
     activity.runOnUiThread { activity.beginExport(filename, base64Data) }
   }
+
+  /** Build version (e.g. "0.1.0+18.gb822621"), shown in the app's About box. */
+  @JavascriptInterface
+  fun appVersion(): String = BuildConfig.VERSION_NAME
 }
 

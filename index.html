@@ -7173,13 +7173,21 @@
 
     function openAboutModal() {
       const version = state.auth.version || 'unknown';
+      // In the Android shell, append the APK build version so the running build
+      // is identifiable at a glance.
+      let appVersion = '';
+      try {
+        if (window.FerdAndroid && typeof window.FerdAndroid.appVersion === 'function') {
+          appVersion = window.FerdAndroid.appVersion();
+        }
+      } catch (e) {}
       const brand = (state.config && state.config.brand) || 'Ferd';
       openModal(
         '<h2>About<button class="modal-close">&times;</button></h2>' +
         '<div class="about-body">' +
           '<img class="about-logo" src="/icons/favicon.svg" alt="">' +
           '<div class="about-brand">' + escapeHtml(brand) + '</div>' +
-          '<div class="about-version">' + escapeHtml(version) + '</div>' +
+          '<div class="about-version">' + escapeHtml(version) + (appVersion ? ' &middot; app ' + escapeHtml(appVersion) : '') + '</div>' +
           '<div class="about-tagline">Your own map of where you&rsquo;ve been, where you want to go, and the journeys between them.</div>' +
           '<div class="about-links">' +
             '<a href="https://github.com/polybjorn/ferd" target="_blank" rel="noopener">Source</a>' +
