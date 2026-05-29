@@ -1397,6 +1397,14 @@
       white-space: nowrap;
     }
     .modal .modal-actions .signin-change-server { margin-right: auto; }
+    /* Plain-http caution in the server picker. Non-blocking: Connect stays
+       enabled; this just informs that the token travels unencrypted. */
+    .modal .srv-warn {
+      margin: 0.5rem 0 0;
+      font-size: 0.78rem;
+      line-height: 1.35;
+      color: var(--red);
+    }
     .signin-public-chevron { transition: transform 0.2s ease; font-size: 0.55rem; }
     .signin-public-toggle.expanded .signin-public-chevron { transform: rotate(180deg); }
     #signin-public-collapsible.expanded .collapsible-inner { padding-top: 0.5rem; max-height: 40vh; overflow-y: auto; }
@@ -9343,18 +9351,16 @@
     }
 
     // Normalize a user-entered server address into an origin (+ optional path)
-    // base with no trailing slash, or null if it isn't a usable address.
-    // Requires https except for loopback, so a misconfigured plain-http remote
-    // can't silently downgrade the session token in transit.
+    // base with no trailing slash, or null if it isn't a usable address. https
+    // is assumed when no scheme is typed; plain http is allowed (common for LAN
+    // self-hosting) but the picker warns that the session token then travels
+    // unencrypted. Only http(s) schemes are accepted.
     function normalizeServerUrl(raw) {
       let s = (raw || '').trim();
       if (!s) return null;
       if (!/^https?:\/\//i.test(s)) s = 'https://' + s;
       let u;
       try { u = new URL(s); } catch { return null; }
-      const host = u.hostname;
-      const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
-      if (u.protocol === 'http:' && !isLocal) return null;
       if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
       return (u.origin + u.pathname).replace(/\/+$/, '');
     }
@@ -9377,6 +9383,7 @@
             '<div class="modal-error' + (opts.error ? ' visible' : '') + '" id="srv-error">' + escapeHtml(opts.error || '') + '</div>' +
             '<label for="srv-url">Server address</label>' +
             '<input type="url" id="srv-url" inputmode="url" autocomplete="url" placeholder="https://ferd.example.com" value="' + escapeHtml(current) + '">' +
+            '<div class="srv-warn" id="srv-warn" hidden>Unencrypted connection (http). Your sign-in token will be sent in clear text. Only connect over a network you trust.</div>' +
             '<div class="modal-actions">' +
               '<button type="button" class="primary" id="srv-connect">Connect</button>' +
             '</div>' +
@@ -9384,6 +9391,7 @@
         '</div>';
       const input = document.getElementById('srv-url');
       const errBox = document.getElementById('srv-error');
+      const warn = document.getElementById('srv-warn');
       const btn = document.getElementById('srv-connect');
       function fail(msg) {
         errBox.textContent = msg;
@@ -9391,9 +9399,13 @@
         btn.disabled = false;
         btn.textContent = 'Connect';
       }
+      function syncWarn() {
+        const base = normalizeServerUrl(input.value);
+        warn.hidden = !(base && base.slice(0, 7) === 'http://');
+      }
       function connect() {
         const base = normalizeServerUrl(input.value);
-        if (!base) return fail('Enter a valid https:// address.');
+        if (!base) return fail('Enter a valid server address.');
         btn.disabled = true;
         btn.textContent = 'Connecting…';
         errBox.classList.remove('visible');
@@ -9408,6 +9420,8 @@
       }
       btn.addEventListener('click', connect);
       input.addEventListener('keydown', function(e) { if (e.key === 'Enter') connect(); });
+      input.addEventListener('input', syncWarn);
+      syncWarn();
       input.focus();
     }
 
