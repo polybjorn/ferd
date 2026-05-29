@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Placeholder map-pin glyph. Swap for the real brand icon via Android Studio's
+     Image Asset Studio (generated from the Ferd favicon) before any release. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+  <path
+      android:fillColor="#FFFFFF"
+      android:fillType="evenOdd"
+      android:pathData="M54,30 C44.6,30 37,37.6 37,47 C37,60.7 54,80 54,80 C54,80 71,60.7 71,47 C71,37.6 63.4,30 54,30 Z M54,53 C50.7,53 48,50.3 48,47 C48,43.7 50.7,41 54,41 C57.3,41 60,43.7 60,47 C60,50.3 57.3,53 54,53 Z" />
+</vector>
