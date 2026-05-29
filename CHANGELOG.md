@@ -5,80 +5,80 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
-- Configurable server target for clients that bundle the frontend (native/WebView shells) instead of being served by the API. When the frontend can't reach a same-origin API it shows a server-picker screen to enter the Ferd server address; the choice is stored and re-editable from the sign-in screen. Cross-origin clients authenticate with a bearer token (cookies don't cross origins): login/register accept `{"token": true}` to return the session token in the response body instead of setting a cookie, and that token works as `Authorization: Bearer <token>` and appears in Active sessions like any login. The browser/PWA path is unchanged and keeps the HttpOnly session cookie.
-- CORS support for the API, controlled by the new `cors_origins` config key (default `"*"`, can be set to a list of exact origins or `[]` to disable). Cross-origin requests use bearer tokens with no cookies, so credentials are never allowed and the origin carries no ambient authority.
-- Bearer-token API auth for non-browser clients. Mint named tokens under Settings > Security with a scope (full or read-only) and an expiry (30/90/365 days or never), then authenticate with `Authorization: Bearer <token>`. Read-only tokens are limited to GET requests. The list shows each token's last-used time, and tokens can be revoked individually. New endpoints: `GET`/`POST /api/me/tokens` and `POST /api/me/tokens/revoke`.
-- Place cards show an "unlinked" marker (replacing the catalog book icon) when an imported place's catalog entry has been removed from the catalog, so a dead catalog link is visually distinct from a live one. Renamed entries re-link instead of orphaning, so this only appears for genuine removals.
-- Place schema: optional `image_focus` field controls the popup image's crop anchor (`top`, `bottom`, `left`, `right`, `center`, or `"X% Y%"`). Lets portrait photos render in the landscape popup frame without the meaningful subject getting cropped out. Flows through the catalog: catalog entries can set it, the "Update from catalog" diff tracks it, and the server clears it automatically when `image` changes so it always tracks a specific photo.
-- Catalog test: optional fields cannot be present with empty values (e.g. `"image": ""`). Omit the field instead.
+- Configurable server target: clients that bundle the frontend (native/WebView) show a server-picker to enter the Ferd address and authenticate with a bearer token (`{"token": true}` on login returns the token in the body instead of a cookie). Browser/PWA cookie auth is unchanged.
+- CORS support via the new `cors_origins` config key (default `"*"`); cross-origin clients use bearer tokens, never cookies.
+- Bearer-token API auth: mint named tokens (full or read-only, with an expiry) under Settings > Security and use `Authorization: Bearer <token>`. New endpoints `GET`/`POST /api/me/tokens` and `POST /api/me/tokens/revoke`.
+- Place cards show an "unlinked" marker when an imported place's catalog entry was removed (renames re-link instead of orphaning).
+- Place schema: optional `image_focus` field sets the popup image's crop anchor so portrait photos aren't badly cropped; flows through the catalog and clears when `image` changes.
+- Catalog test: optional fields can't be present with empty values; omit them instead.
 - Shipped catalog: 104 new entries.
-- `GET /api/health` for liveness checks; returns `{status: "ok", version}`.
-- Install docs and installer output now point at the source clone as the place to re-run `install.sh` from on updates.
-- Places list: new "Group by first letter" filter option. Letter buckets follow the browser's locale collation, so each user sees their own alphabetical order; non-Latin scripts get their own buckets; digit/punctuation starts go in "#".
-- Routes list: new "Group by first letter" filter option, alongside the existing region grouping. Same locale-aware ordering as places.
-- Right-click (or long-press on touch) a place or route card to open a context menu with Open on map, Edit, Open source (when present), Apply catalog update (places only, when applicable), and Delete.
-- Catalog update modal: pick per-field which catalog values to apply (Apply), or dismiss the diff so the entry stops showing as Update available (Keep all). Skipped fields reappear only if the catalog later moves to a new value.
-- Right-click (or long-press on touch) a place pin or route on the home map opens a context menu with Open, Go to source, Edit, Apply catalog update (places, when applicable), Copy link, and Delete. Mirrors the list-view right-click menu.
-- Manage categories: drag rows up or down to reorder; the order persists. "Reset colors" now assigns palette indices in the displayed order, so reordering lets you pick which category gets which color.
-- Places list (Group by category): each section header is prefixed with a small dot in the category's palette color.
+- `GET /api/health` liveness endpoint; returns `{status, version}`.
+- Install docs and installer point at the source clone for re-running `install.sh` on updates.
+- Places list: "Group by first letter" option, with locale-aware bucketing.
+- Routes list: "Group by first letter" option alongside region grouping.
+- Right-click (or long-press) a place or route card for a context menu: Open on map, Edit, Open source, Apply catalog update, Delete.
+- Catalog update modal: choose per-field which values to apply, or dismiss the diff so it stops showing as Update available.
+- Right-click (or long-press) a place pin or route on the map for the same context menu as the list.
+- Manage categories: drag to reorder (persisted); "Reset colors" assigns palette colors in display order.
+- Places list (Group by category): section headers show a dot in the category color.
 
 ### Changed
-- All user-facing settings now sync per-user across browsers and devices, not just theme/appearance. Map display toggles (clustering, on-map controls), default tile layer, units, local-name display, and list grouping follow you to a new browser or app install after sign-in, instead of resetting to defaults. Per-device state (last map view, per-browser feature hiding) stays local.
-- Active sessions moved from Settings > Account to a new Settings > Security tab, alongside the new API tokens section.
-- Settings option pickers restyled: single-select groups (Units, Import mode, Marker size, Route line thickness, token scope/expiry) render as one connected segmented bar; multi-select groups (Visible features, Optional fields) stretch to fill the row as equal cells. Several settings descriptions tightened.
-- Manage regions modal no longer shows a per-region route count, matching Manage categories. Empty regions still read "empty" and a row being renamed reads "edited".
-- Status colors are now a fixed, balanced red/green pair across all themes (planned/want `#d23f3f`, visited/completed `#2ea043`), instead of inheriting each theme's palette red/green (which read pinkish and pastel in Nord). Applies to status dots, filter chips, route lines, and place popups; danger/error keep `--red` and success keeps `--green`.
-- Map filter panel redesigned. Places and Routes are now a single accordion tab row pinned at the panel bottom (opening one collapses the other, list expands upward with a height + fade animation, so the tab row itself never moves on click), and the collapsed panel is two rows instead of three. The status filters (Visited/Planned for places, Completed/Planned for routes) plus "Toggle all" sit in one persistent footer below the lists, as boxed chips with a green (done) or red-outlined (planned) dot; switching tabs only swaps the leading chip's label (Visited<->Completed) without the row moving. The place status filter "Want" is renamed "Planned". Categories and chips read white with a full-color dot when on, grey with a faded dot when off. The tab open/close indicator is a thin stroke chevron matching the app's other icons (was a filled triangle). Search box placeholder simplified to "Search...".
-- "Native name" relabeled to "Local name" everywhere in the UI (edit and add modals, settings field-toggle, popups) to match the underlying `local_name` field. The per-browser "show local name" toggle key migrates from `show-native-name` to `show-local-name` on first load; the old key is removed.
-- Settings > Optional fields toggles now apply to display, not just Add/Edit forms. Turning off Image, Local name, Note, Date, or Rating hides that field in place cards, map popups, and the route detail page as well. The toggle takes effect immediately; map and list views refresh in place without a page reload.
-- Places list groups (by category, country, or letter) now list items alphabetically within each group instead of in insertion order. The chosen grouping is persisted across page reloads.
-- Routes list now lists routes alphabetically within each region (or letter). The chosen grouping is persisted across page reloads.
-- Routes list re-renders on filter changes instead of hiding cards with CSS. Empty groups disappear from the list rather than collapsing to zero height.
+- All user-facing settings now sync per-user across devices, not just theme: map toggles, tile layer, units, local-name display, and grouping follow you to a new browser or install. Per-device state (last view, feature hiding) stays local.
+- Active sessions moved to a new Settings > Security tab, alongside API tokens.
+- Settings pickers restyled: single-select groups render as a segmented bar, multi-select as equal-width cells.
+- Manage regions modal drops the per-region route count, matching Manage categories.
+- Status colors are now a fixed red/green pair across all themes (was each theme's palette red/green), for status dots, filter chips, route lines, and popups.
+- Map filter panel redesigned: Places/Routes as a bottom accordion (two rows collapsed), status filters in a persistent footer, "Want" renamed "Planned", and a stroke chevron indicator.
+- "Native name" relabeled "Local name" throughout to match the `local_name` field; the `show-native-name` toggle key migrates to `show-local-name`.
+- Settings > Optional fields toggles now also hide fields in cards, popups, and route detail (not just the Add/Edit forms), applied without a reload.
+- Places list groups sort items alphabetically within each group; grouping persists across reloads.
+- Routes list sorts alphabetically within each region/letter; grouping persists across reloads.
+- Routes list re-renders on filter changes (empty groups disappear) instead of CSS-hiding cards.
 - Shipped catalog: two entries renamed to English (Arg-e Bam -> Bam Citadel, Gonbad-e Qabus -> Qabus Tower).
-- Catalog mark on place cards: open-book icon (was bookmark), with an accent dot in the corner to mark "update available" (replacing the previous color-swap behavior).
-- Accepting a catalog update no longer triggers a full list re-render; only the affected card updates in place.
-- "Add place" / "Add route" relabeled to "Add" so the button doesn't change width when switching tabs.
-- Filter popover "Clear filters" restyled as an accent-colored outline button.
-- Map popups for places and routes: removed the inline "Edit" link and the top-right copy-link icon (both now reachable via right-click). Top-right is now a "go to source" arrow that opens the entry's first source URL. The separate source line in the popup body is gone.
-- Local name in popups aligns to the right of the title on a single line and wraps to a separate left-aligned line when it doesn't fit. Middot separator removed.
-- Right-click context menus rendered with a tighter minimum width.
-- Catalog update modal: strikethrough on a diff row now appears only when the field is checked (about to be replaced). Unchecked rows show both values without strikethrough, with the catalog value dimmed. The previous behavior struck whichever value "wouldn't survive" the action, which inverted the visual when toggling.
-- Category color palette: boosted saturation for higher contrast against dark surfaces. Hues are preserved, so existing per-category color assignments look the same as before, just denser.
-- Manage categories rows: removed the always-on "N places" tag. The "edited" indicator is now a small chip inside the name input and hides while you're typing.
-- Manage categories and Manage regions modals now cap at viewport height; the row list scrolls internally and the scrollbar anchors to the modal's right edge.
+- Catalog mark on place cards is now an open-book icon with an accent dot for "update available".
+- Accepting a catalog update updates only the affected card, not the whole list.
+- "Add place" / "Add route" relabeled "Add" so the button width is stable across tabs.
+- Filter popover "Clear filters" restyled as an accent outline button.
+- Map popups: removed the inline Edit link and copy-link icon (now via right-click); the top-right is a "go to source" arrow.
+- Local name in popups aligns right of the title and wraps to its own line when it doesn't fit.
+- Right-click context menus use a tighter minimum width.
+- Catalog update modal: a diff row is struck through only when checked (about to be replaced); unchecked rows show both values with the catalog value dimmed.
+- Category color palette: higher saturation for contrast on dark surfaces; hues unchanged, so existing assignments look the same.
+- Manage categories rows drop the "N places" tag; the "edited" indicator is a chip inside the name input.
+- Manage categories and Manage regions modals cap at viewport height with the row list scrolling internally.
 
 ### Fixed
-- The map no longer opens zoomed out far enough to show empty bands above and below the world on tall screens. Its minimum zoom is raised to the level that fills the viewport (recomputed on resize/rotation), so the initial view and fit-to-data always cover the screen.
-- Editing a place from the list (e.g. toggling visited) no longer flashes the whole list. The affected card is patched in place (status dot, note, catalog badge, group count); a full re-render happens only when the edit moves the card between groups or in/out of an active filter (name/category/country change, or a status filter).
-- Editing a place or route while one of its optional fields is hidden (Settings > Optional fields) no longer wipes that field's stored value on save. The hidden field has no form input, so the read came back empty and overwrote the stored value; the stored value is now carried over. For catalog-linked places this also stops a phantom "Update from catalog" offering to restore the value the edit had just erased. `image_focus` (which has no form input at all) is likewise preserved across edits unless the image itself changes.
-- Deleting one of several places that share a name no longer leaves the other card unresponsive (its right-click menu, Edit, and Delete silently doing nothing) until a page reload. The deletion renumbers the survivors' slugs, and the surgical card removal left their DOM slugs stale; the stale slugs are now patched in place (keyed by place id), so the card stays responsive without re-rendering the list.
-- Clicking a place in the list (or a search result) now centers the map on that pin, even when "remember last view" is on. Previously a remembered view suppressed the centering, leaving the pin off-screen; the preserve-view behavior now applies only to page reloads, not in-app navigation.
-- Admin catalog edits (add/remove/hide an entry, toggle the shipped baseline) now refresh the places list's catalog badges and orphan markers live, instead of leaving them stale until a page reload.
-- Adding places to the local catalog now skips duplicates by primary source URL as well as by name, matching how imports are linked, so the same place can't be added twice under different names.
-- Applying a catalog update that changes the place's name now refreshes the list (name and update badge), instead of leaving the old card untouched because the surgical in-place update keyed on a slug the rename had already changed.
-- Catalog imports stay linked when a catalog entry is renamed. The link now falls back from the stored name to matching the catalog entry's primary source URL (which is stable across renames), so a rename surfaces as an applicable "name changed" update instead of orphaning the import and offering the renamed entry as a duplicate. Sourceless entries keep name-only matching.
-- Toggling a visible feature (Places/Routes) off in Settings now also drops its tab from the map filter panel, instead of leaving a dead tab behind; re-enabling adds it back.
-- Backup replace-import no longer fails with "Cannot call rmtree on a symbolic link" when the user's GPX directory is a symlink; the link is replaced rather than its target deleted.
-- Places and routes list filter selections no longer reset when the list re-renders (e.g. after accepting a catalog update).
-- Right-click context menu and catalog-mark click on place cards now resolve the correct entry when multiple places share a name (looked up by slug instead of name).
-- Clicking a place card in the list now opens the correct entry when multiple places share a name. The card link and the map's focus lookup both go through the slug instead of falling back to the first name match.
-- Places list now refreshes immediately after a place is deleted, edited, or saved, instead of waiting for a page reload.
-- Deleting a place from the list animates the card collapsing to zero height; remaining cards flow up smoothly instead of the whole list flashing as it re-renders.
-- Backup import now silently skips archiver junk entries (`__MACOSX/`, `._*`, `.DS_Store`, `Thumbs.db`, `desktop.ini`, `*.bak`, `*~`) instead of rejecting the whole zip. Zips made by macOS Finder, Windows Explorer, and editor backups now import without manual cleanup.
+- Map no longer opens zoomed out with empty bands above/below the world on tall screens; minimum zoom now fills the viewport (recomputed on resize).
+- Editing a place from the list no longer flashes the whole list; the card is patched in place unless the edit moves it between groups or filters.
+- Editing a place or route with a hidden optional field no longer wipes that field's value on save (and stops a phantom catalog "update"); `image_focus` is likewise preserved unless the image changes.
+- Deleting one of several same-named places no longer leaves the others' menu/Edit/Delete dead until reload (stale slugs are patched in place).
+- Clicking a place in the list or search now centers the map on its pin even with "remember last view" on (preserve-view now applies only to reloads).
+- Admin catalog edits now refresh the list's catalog badges and orphan markers live, not on next reload.
+- Adding to the local catalog skips duplicates by source URL as well as name.
+- Applying a catalog update that renames the place now refreshes the list instead of leaving the old card.
+- Catalog imports stay linked when a catalog entry is renamed (matched by source URL), surfacing a "name changed" update instead of orphaning.
+- Toggling a feature (Places/Routes) off now also drops its tab from the map filter panel.
+- Backup replace-import no longer fails when the GPX directory is a symlink.
+- List filter selections no longer reset when the list re-renders.
+- Right-click menu and catalog-mark click on cards resolve the correct entry when places share a name (by slug).
+- Clicking a card opens the correct entry when places share a name (by slug).
+- Places list refreshes immediately after a place is deleted, edited, or saved.
+- Deleting a place animates the card collapsing; remaining cards flow up instead of the list flashing.
+- Backup import skips archiver junk (`__MACOSX/`, `.DS_Store`, etc.) instead of rejecting the whole zip.
 - Install docs: python.md LAN-bind port corrected from 8090 to 8091.
-- PWA "Reload" button is no longer a no-op when the waiting service worker reference goes stale. The handler re-resolves the worker at click time and falls back to a plain page reload after 2 seconds if the worker never takes over.
-- Places and Routes list "Clear filters" no longer re-renders the list when no filters are active. The button is now a no-op in that state instead of causing a visible blink. It also clears the search input now, not just the filter dropdowns.
-- Places list: applying the last catalog update inside a group now fades the empty group header out alongside the card. Previously the header (with its `(0/N)` count) stayed visible until the next full re-render.
-- Map popup now refreshes in place after editing a place or applying a catalog update. Previously the popup kept showing the old image / note / fields until manually closed and reopened.
-- `image_focus` was silently dropped by `validate_place` (left out of the normalized output it builds). PUT /places looked successful but the field never landed on disk, so catalog updates that only touched `image_focus` kept showing "Update available" forever. Now preserved; whitespace-only / empty values are stripped as a no-op instead of erroring.
-- Places and Routes list empty state ("No matches") now spans both columns of the index grid instead of being trapped in one column of the CSS multi-column layout, which made it look off-center.
+- PWA "Reload" button no longer no-ops on a stale waiting-worker reference; it re-resolves the worker and falls back to a plain reload.
+- "Clear filters" is a no-op when no filters are active (no blink) and now also clears the search input.
+- Applying the last catalog update in a group fades the empty group header out with the card.
+- Map popup refreshes in place after an edit or catalog update instead of showing stale content until reopened.
+- `image_focus` is no longer dropped by `validate_place`, so catalog updates touching only it persist instead of showing "Update available" forever.
+- List empty state ("No matches") spans the full width instead of being trapped in one column.
 
 ### Security
-- Session and API tokens are stored as SHA-256 hashes rather than plaintext, so a database read can't be replayed as a live credential. Existing sessions are invalidated on upgrade (one re-login).
-- API handlers that touch the filesystem now verify the resolved path stays under the expected directory. The static handler also catches symlink escapes that the prior lexical check could not see.
-- GPX uploads reject DOCTYPE and entity declarations, blocking XML-bomb expansion (uploads remain admin-only).
-- Place and route list rows escape backslashes when building inline click handlers.
-- The tests workflow runs with explicit read-only token permissions.
+- Session and API tokens are stored as SHA-256 hashes, not plaintext, so a database read can't be replayed as a credential. Existing sessions are invalidated on upgrade (one re-login).
+- Filesystem handlers verify the resolved path stays under the expected directory, catching symlink escapes the prior lexical check missed.
+- GPX uploads reject DOCTYPE and entity declarations, blocking XML-bomb expansion.
+- Place and route list rows escape backslashes in inline click handlers.
+- The tests workflow runs with read-only token permissions.
 
 ## [1.0.0] - 2026-05-25
 
