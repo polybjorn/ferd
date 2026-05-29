@@ -102,6 +102,13 @@ DEFAULT_CONFIG = {
   # at startup and printed to stderr). Closes the "open registration during the
   # window between deploy and first registration" risk for public deploys.
   "require_setup_token": False,
+  # CORS for cross-origin clients (native/WebView apps that bundle the frontend
+  # and point at a remote server). Cross-origin requests use bearer tokens with
+  # no cookies, so the origin carries no ambient authority and "*" exposes
+  # nothing an unauthenticated HTTP client couldn't already reach. Set to a list
+  # of exact origins (e.g. ["https://app.example.com"]) to restrict, or [] to
+  # disable CORS entirely. We never send Access-Control-Allow-Credentials.
+  "cors_origins": "*",
 }
 
 # sw.js source carries this placeholder; the static handler swaps it for a
@@ -611,6 +618,10 @@ def session_delete(conn: sqlite3.Connection, token: str) -> None:
   conn.execute("DELETE FROM sessions WHERE token=?", (hash_token(token),))
 
 
+def session_delete_hash(conn: sqlite3.Connection, token_hash: str) -> None:
+  conn.execute("DELETE FROM sessions WHERE token=?", (token_hash,))
+
+
 # ---------- api tokens ----------
 
 def api_token_lookup(conn: sqlite3.Connection, raw: str) -> sqlite3.Row | None:
@@ -694,6 +705,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._user_resolved = False
     self._user_cache = None
     self._auth_scope = None
+    # Hash of the session token that authenticated this request (cookie or
+    # bearer-as-session), or None when auth came from an API token / anon.
+    # Used so logout, "current session" marking, and password-change session
+    # pruning work identically for cookie and bearer logins.
+    self._auth_session_hash = None
     try:
       return super().handle_one_request()
     finally:
@@ -779,9 +795,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
         session_touch(self.conn, token)
       except sqlite3.Error:
         pass
+      self._auth_session_hash = hash_token(token)
       return user, "full"
     raw = self._bearer_token()
     if raw:
+      # A bearer token can be a login session (cross-origin/native clients
+      # that can't use cookies) or a long-lived API token (scripts). Try the
+      # session table first so a mobile login behaves exactly like a cookie
+      # session: full scope, listed in Active sessions, revocable there.
+      suser = session_lookup(self.conn, raw)
+      if suser:
+        try:
+          session_touch(self.conn, raw)
+        except sqlite3.Error:
+          pass
+        self._auth_session_hash = hash_token(raw)
+        return suser, "full"
       row = api_token_lookup(self.conn, raw)
       if row:
         return row, row["scope"]
@@ -856,6 +885,56 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if max_age is not None:
       parts.append(f"Max-Age={max_age}")
     return ("Set-Cookie", "; ".join(parts))
+
+  def _login_response_headers(self, token: str, body: dict, payload: dict) -> list[tuple[str, str]]:
+    """Decide how a fresh session token is handed back on login/register.
+
+    Default (browser): set an HttpOnly session cookie so JS can never read the
+    token (XSS defense). When the client opts in with `{"token": true}` it gets
+    the token in the JSON body instead and no cookie is set; cross-origin /
+    native clients that can't use cookies present it as `Authorization: Bearer`.
+    Exposing the token in the body is gated on this explicit opt-in precisely so
+    the cookie path keeps its HttpOnly guarantee."""
+    if body.get("token"):
+      payload["session_token"] = token
+      payload["token_type"] = "Bearer"
+      return []
+    return [self._set_session_cookie(token, SESSION_DAYS * 86400)]
+
+  # ---- CORS ----
+
+  def _cors_origin(self) -> str | None:
+    """Resolve the Access-Control-Allow-Origin value for this request, or None
+    to omit CORS. "*" (the default) is safe here because cross-origin clients
+    authenticate with bearer tokens and no cookies, so the origin carries no
+    ambient authority; we never emit Access-Control-Allow-Credentials."""
+    allowed = self.cfg.get("cors_origins", "*")
+    if isinstance(allowed, str):
+      allowed = [allowed] if allowed else []
+    if not allowed:
+      return None
+    if "*" in allowed:
+      return "*"
+    origin = self.headers.get("Origin")
+    return origin if (origin and origin in allowed) else None
+
+  def end_headers(self):
+    origin = self._cors_origin()
+    if origin:
+      self.send_header("Access-Control-Allow-Origin", origin)
+      if origin != "*":
+        self.send_header("Vary", "Origin")
+    super().end_headers()
+
+  def do_OPTIONS(self):
+    # CORS preflight. end_headers() injects Access-Control-Allow-Origin.
+    self.send_response(HTTPStatus.NO_CONTENT)
+    if self._cors_origin():
+      self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+      self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type")
+      self.send_header("Access-Control-Max-Age", "86400")
+    self.send_header("Content-Length", "0")
+    self.end_headers()
 
   # ---- routing ----
 
@@ -1225,8 +1304,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
     log_event(self.conn, actor=username, action="auth.register",
               details={"first_user": first_user, "ip": self._client_ip()})
     ensure_user_dir(self.cfg, username)
-    cookie = self._set_session_cookie(token, SESSION_DAYS * 86400)
-    self._send_json(HTTPStatus.CREATED, {"username": username, "is_admin": first_user}, [cookie])
+    payload = {"username": username, "is_admin": first_user}
+    headers = self._login_response_headers(token, body, payload)
+    self._send_json(HTTPStatus.CREATED, payload, headers)
 
   def _h_login(self):
     ip = self._client_ip()
@@ -1254,13 +1334,15 @@ class Handler(http.server.BaseHTTPRequestHandler):
     token = session_create(self.conn, user["id"], ip=ip, user_agent=self.headers.get("User-Agent"))
     log_event(self.conn, actor=user["username"], action="auth.login_success",
               details={"ip": ip})
-    cookie = self._set_session_cookie(token, SESSION_DAYS * 86400)
-    self._send_json(HTTPStatus.OK, {"username": user["username"], "is_admin": bool(user["is_admin"])}, [cookie])
+    payload = {"username": user["username"], "is_admin": bool(user["is_admin"])}
+    headers = self._login_response_headers(token, body, payload)
+    self._send_json(HTTPStatus.OK, payload, headers)
 
   def _h_logout(self):
-    token = self._cookie_token()
-    if token:
-      session_delete(self.conn, token)
+    # Resolve auth so a bearer-session logout deletes the right row.
+    self._current_user()
+    if self._auth_session_hash:
+      session_delete_hash(self.conn, self._auth_session_hash)
     cookie = self._set_session_cookie("", 0)
     self._send_json(HTTPStatus.OK, {"ok": True}, [cookie])
 
@@ -1279,7 +1361,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if not _valid_password(new_pw):
       return self._error(HTTPStatus.BAD_REQUEST, f"password must be {PASSWORD_MIN}-{PASSWORD_MAX} characters")
     salt, digest = hash_password(new_pw)
-    current_hash = hash_token(self._cookie_token())
+    current_hash = self._auth_session_hash or ""
     with self.write_lock:
       self.conn.execute("UPDATE users SET pw_salt=?, pw_hash=? WHERE id=?", (salt, digest, user["id"]))
       # Invalidate every other session for this user; keep the current one.
@@ -1293,7 +1375,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     user = self._current_user()
     if not user:
       return self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
-    current_hash = hash_token(self._cookie_token())
+    current_hash = self._auth_session_hash
     rows = self.conn.execute(
       "SELECT token, created_at, expires_at, last_seen_at, ip, user_agent "
       "FROM sessions WHERE user_id=? ORDER BY last_seen_at DESC, created_at DESC",

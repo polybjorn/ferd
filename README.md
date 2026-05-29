@@ -70,7 +70,6 @@ Open http://localhost:8090 and register the first account. See [docker.md](docs/
 - Optional TOTP two-factor authentication.
 
 ### Native clients
-- Configurable API base URL with a server-picker screen.
 - Android application via Trusted Web Activity.
 
 ### Branding

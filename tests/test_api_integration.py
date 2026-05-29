@@ -1382,5 +1382,93 @@ class TestStaticPWAHeaders(unittest.TestCase):
     self.assertEqual(headers.get("Cache-Control"), "no-cache")
 
 
+class TestCrossOrigin(unittest.TestCase):
+  """Bearer-token auth and CORS for cross-origin / native clients."""
+
+  def _raw(self, method, path, body=None, headers=None):
+    """Cookie-free request; returns (status, headers dict, parsed body)."""
+    url = _server.base_url + path  # type: ignore[union-attr]
+    data = None
+    h = dict(headers or {})
+    if body is not None:
+      data = json.dumps(body).encode("utf-8")
+      h["Content-Type"] = "application/json"
+    req = urllib.request.Request(url, data=data, method=method, headers=h)
+    try:
+      with urllib.request.urlopen(req) as r:
+        payload = r.read()
+        return r.status, dict(r.headers), (json.loads(payload) if payload else None)
+    except urllib.error.HTTPError as e:
+      payload = e.read()
+      try:
+        parsed = json.loads(payload) if payload else None
+      except json.JSONDecodeError:
+        parsed = payload.decode("utf-8", "replace")
+      return e.code, dict(e.headers), parsed
+
+  def _bearer_login(self):
+    status, headers, body = self._raw(
+      "POST", "/api/login", {"username": SEED_USER, "password": SEED_PW, "token": True})
+    self.assertEqual(status, 200)
+    return headers, body
+
+  def test_login_token_returns_bearer_and_no_cookie(self):
+    headers, body = self._bearer_login()
+    self.assertIn("session_token", body)
+    self.assertEqual(body["token_type"], "Bearer")
+    # Opting into a body token must not also set the HttpOnly cookie.
+    self.assertIsNone(headers.get("Set-Cookie"))
+
+  def test_normal_login_keeps_cookie_only(self):
+    # Without the opt-in, the token never appears in the body (HttpOnly path).
+    status, headers, body = self._raw(
+      "POST", "/api/login", {"username": SEED_USER, "password": SEED_PW})
+    self.assertEqual(status, 200)
+    self.assertNotIn("session_token", body)
+    self.assertIn("session", headers.get("Set-Cookie", ""))
+
+  def test_bearer_token_authenticates(self):
+    _, body = self._bearer_login()
+    tok = body["session_token"]
+    status, _, state = self._raw("GET", "/api/state",
+                                 headers={"Authorization": "Bearer " + tok})
+    self.assertEqual(status, 200)
+    self.assertTrue(state["authenticated"])
+    self.assertEqual(state["username"], SEED_USER)
+
+  def test_bearer_session_appears_in_sessions_list(self):
+    _, body = self._bearer_login()
+    tok = body["session_token"]
+    status, _, data = self._raw("GET", "/api/sessions",
+                                headers={"Authorization": "Bearer " + tok})
+    self.assertEqual(status, 200)
+    self.assertTrue(any(s["current"] for s in data["sessions"]))
+
+  def test_bearer_logout_revokes_session(self):
+    _, body = self._bearer_login()
+    tok = body["session_token"]
+    auth = {"Authorization": "Bearer " + tok}
+    self.assertEqual(self._raw("POST", "/api/logout", headers=auth)[0], 200)
+    # Token is dead after logout.
+    _, _, state = self._raw("GET", "/api/state", headers=auth)
+    self.assertFalse(state["authenticated"])
+
+  def test_cors_preflight(self):
+    status, headers, _ = self._raw(
+      "OPTIONS", "/api/state",
+      headers={"Origin": "https://app.example.com",
+               "Access-Control-Request-Method": "GET",
+               "Access-Control-Request-Headers": "authorization"})
+    self.assertEqual(status, 204)
+    self.assertEqual(headers.get("Access-Control-Allow-Origin"), "*")
+    self.assertIn("Authorization", headers.get("Access-Control-Allow-Headers", ""))
+
+  def test_cors_header_on_response(self):
+    _, headers, _ = self._raw("GET", "/api/health")
+    self.assertEqual(headers.get("Access-Control-Allow-Origin"), "*")
+    # Bearer-only cross-origin: never advertise credential support.
+    self.assertIsNone(headers.get("Access-Control-Allow-Credentials"))
+
+
 if __name__ == "__main__":
   unittest.main()

@@ -6,7 +6,8 @@ Every endpoint exposed by `tools/api.py`. Useful if you want to script against F
 
 - Base path is `api_base` from `site-config.json` (default `/api`). All paths below are written relative to it.
 - Request and response bodies are JSON unless noted (GPX endpoints take/return XML; export returns a zip).
-- Auth is either a session cookie (`HttpOnly`, `SameSite=Lax`, set by `POST /login` and `POST /register`) or an API token in the `Authorization: Bearer <token>` header (see API tokens below). A read-only token may only make `GET` requests; any other method returns `403`.
+- Auth is either a session cookie (`HttpOnly`, `SameSite=Lax`, set by `POST /login` and `POST /register`) or a bearer token in the `Authorization: Bearer <token>` header. A bearer token is either a login session (request one with `{"token": true}` on login/register; behaves like a cookie session, listed in `/sessions`, full scope) or an API token minted under `/me/tokens` (see API tokens below). A read-only API token may only make `GET` requests; any other method returns `403`.
+- CORS: cross-origin requests are allowed per the server's `cors_origins` config (default `*`). Credentials are never allowed, so cross-origin clients must authenticate with a bearer token, not the cookie. A bundled/native client gets its token via `{"token": true}` login.
 - JSON request bodies are capped at `max_body_bytes` (default 1 MiB). GPX uploads have their own cap (10 MiB). Zip imports cap at 50 MiB compressed, 200 MiB uncompressed.
 - Errors are `{"error": "<message>"}` with a non-2xx status. Validation failures are `400`; auth failures are `401`; permission failures are `403`; missing rows are `404`; conflicts (name taken, last admin, etc.) are `409`; oversize is `413`; rate-limited login is `429`.
 - "Owner" endpoints require authentication, a session cookie or a bearer token. "Admin" endpoints additionally require `is_admin=1` (a bearer token inherits its owner's admin rights). "Public" endpoints under `/u/<username>/` work without auth but return `404` unless the named user has `published=1`.
@@ -17,9 +18,9 @@ Every endpoint exposed by `tools/api.py`. Useful if you want to script against F
 |---|---|---|---|---|
 | `GET` | `/health` | none | - | Returns `{status: "ok", version}`. Cheap liveness probe for monitoring and reverse-proxy health checks. |
 | `GET` | `/state` | none | - | Returns `{authenticated, username, is_admin, published, registration_open, publishing_open, has_users, requires_setup_token}`. Drives the SPA's boot decisions. |
-| `POST` | `/register` | none | `{username, password, setup_token?}` | First-run only by default (creates admin); requires `setup_token` if `require_setup_token=true` and no users exist. After that, requires the admin to flip the registration gate open. Sets a session cookie. |
-| `POST` | `/login` | none | `{username, password}` | Per-IP rate-limited (10 fails / 15 min). Sets a session cookie. |
-| `POST` | `/logout` | owner | - | Deletes the current session row and clears the cookie. |
+| `POST` | `/register` | none | `{username, password, setup_token?, token?}` | First-run only by default (creates admin); requires `setup_token` if `require_setup_token=true` and no users exist. After that, requires the admin to flip the registration gate open. Sets a session cookie, or with `token: true` returns `{session_token, token_type: "Bearer", ...}` in the body and no cookie. |
+| `POST` | `/login` | none | `{username, password, token?}` | Per-IP rate-limited (10 fails / 15 min). Sets a session cookie, or with `token: true` returns `{session_token, token_type: "Bearer", ...}` in the body and no cookie (for cross-origin/native clients). |
+| `POST` | `/logout` | owner | - | Deletes the session that authenticated the request (cookie or bearer) and clears the cookie. |
 | `POST` | `/change-password` | owner | `{current_password, new_password}` | Invalidates every other session for this user. |
 | `GET` | `/sessions` | owner | - | Lists this user's sessions. Each has a 12-char `id` (prefix) for revoking. |
 | `POST` | `/sessions/revoke` | owner | `{id}` | Revokes one session by 12-char id. Cannot target the current session. |

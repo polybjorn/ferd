@@ -30,6 +30,7 @@ Every key in `tools/config.json` can also be set via an `FERD_<UPPER>` environme
 | `static_dir` | `FERD_STATIC_DIR` | `null` | If set, the API also serves static files from this directory for any non-`/api/*` GET. Use this only for development; in production let nginx serve static. |
 | `idle_exit_seconds` | `FERD_IDLE_EXIT_SECONDS` | `0` | If > 0, the process exits after this many seconds with no requests. Pair with systemd socket activation for zero-idle RAM. |
 | `require_setup_token` | `FERD_REQUIRE_SETUP_TOKEN` | `false` | If true and no users exist, generate a one-time token printed to stderr; the first registration must supply it. See [SECURITY](../SECURITY.md). |
+| `cors_origins` | `FERD_CORS_ORIGINS` | `"*"` | Allowed origins for cross-origin clients (native/WebView shells that bundle the frontend and point at this server). `"*"` allows any origin; set to a JSON list of exact origins (`["https://app.example.com"]`) to restrict, or `[]` to disable CORS. The env var sets a single origin or `"*"`; use the file for a list. Cross-origin requests authenticate with bearer tokens and no cookies, so credentials are never allowed and `"*"` exposes nothing an unauthenticated HTTP client couldn't already reach. |
 | `initial_user` | `FERD_INITIAL_USER` | `null` | If set with `initial_password`, the admin account is created on first start. Both fields are ignored on later starts once any user exists. |
 | `initial_password` | `FERD_INITIAL_PASSWORD` | `null` | See `initial_user`. Must be at least 12 characters. |
 

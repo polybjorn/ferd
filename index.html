@@ -1379,6 +1379,24 @@
       cursor: pointer;
     }
     .signin-public-toggle:hover { color: var(--text); border-color: var(--border-hover); }
+    /* Cross-origin server target. The host sits on its own centered row below
+       the buttons (so a long domain wraps cleanly rather than crowding the
+       row), and "Change server" is pushed to the left of the actions row via
+       margin-right:auto, leaving the filled Sign in at the right. The button
+       keeps the default outlined modal-button style. */
+    .signin-server-host {
+      margin-top: 0.75rem;
+      text-align: center;
+      max-width: 100%;
+      font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 0.72rem;
+      color: var(--muted);
+      opacity: 0.8;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .modal .modal-actions .signin-change-server { margin-right: auto; }
     .signin-public-chevron { transition: transform 0.2s ease; font-size: 0.55rem; }
     .signin-public-toggle.expanded .signin-public-chevron { transform: rotate(180deg); }
     #signin-public-collapsible.expanded .collapsible-inner { padding-top: 0.5rem; max-height: 40vh; overflow-y: auto; }
@@ -2733,6 +2751,69 @@
     const GPX_NS = 'http://www.topografix.com/GPX/1/1';
     const DATA_FILES = { siteConfig: 'site-config.json' };
 
+    // ----- Server target (cross-origin / native clients) -----
+    // When the frontend is bundled in a native/WebView shell it has no
+    // same-origin API, so it stores which Ferd server to talk to. Empty means
+    // same-origin (the normal web/PWA deploy): every URL stays relative and
+    // auth keeps using the HttpOnly session cookie. A configured cross-origin
+    // base switches the client to bearer-token auth (cookies don't cross
+    // origins), with the token kept in localStorage and cleared on logout or
+    // server switch.
+    const SERVER_KEY = 'ferd-server';
+    const TOKEN_KEY = 'ferd-token';
+
+    function serverBase() {
+      try { return (localStorage.getItem(SERVER_KEY) || '').replace(/\/+$/, ''); }
+      catch { return ''; }
+    }
+    function setServerBase(base) {
+      try {
+        if (base) localStorage.setItem(SERVER_KEY, base.replace(/\/+$/, ''));
+        else localStorage.removeItem(SERVER_KEY);
+      } catch {}
+    }
+    function bearerToken() {
+      try { return localStorage.getItem(TOKEN_KEY) || ''; }
+      catch { return ''; }
+    }
+    function setBearerToken(tok) {
+      try {
+        if (tok) localStorage.setItem(TOKEN_KEY, tok);
+        else localStorage.removeItem(TOKEN_KEY);
+      } catch {}
+    }
+    // True when API calls target a different origin than the page (a bundled
+    // shell on file:// always counts). Drives bearer-vs-cookie auth.
+    function isCrossOrigin() {
+      const b = serverBase();
+      if (!b) return false;
+      try { return new URL(b).origin !== location.origin; }
+      catch { return false; }
+    }
+    // Absolute URL for a static file on the configured server (site-config.json
+    // lives next to the API root, not under api_base).
+    function serverFileUrl(file) {
+      const b = serverBase();
+      return b ? b + '/' + file : file;
+    }
+
+    // Apply the request's auth mode to a fetch init. Same-origin keeps the
+    // HttpOnly cookie; cross-origin omits cookies (they don't cross origins)
+    // and presents the stored session token as a bearer. Mutates and returns
+    // the init so call sites can keep their own method/body/headers.
+    function applyAuth(init) {
+      init = init || {};
+      init.headers = Object.assign({}, init.headers);
+      if (isCrossOrigin()) {
+        init.credentials = 'omit';
+        const t = bearerToken();
+        if (t) init.headers['Authorization'] = 'Bearer ' + t;
+      } else {
+        init.credentials = 'same-origin';
+      }
+      return init;
+    }
+
     // viewer mode: 'public' when the URL is /u/<username>/..., else 'owner'
     // (read+write against /api/places etc. for the signed-in user).
     function detectViewer() {
@@ -2779,7 +2860,7 @@
     }
 
     function fetchJson(url, fallback) {
-      return fetch(url).then(r => r.ok ? r.json() : fallback).catch(() => fallback);
+      return fetch(url, applyAuth({})).then(r => r.ok ? r.json() : fallback).catch(() => fallback);
     }
 
     // Pill-style radio group: each option renders as a single-select pill.
@@ -3027,17 +3108,16 @@
       try { localStorage.setItem(key, val); } catch {}
       if (SYNCED_PREF_KEYS.has(key) && state.auth && state.auth.authenticated) {
         state.serverPrefs[key] = val;
-        fetch(apiUrl('/me/prefs'), {
+        fetch(apiUrl('/me/prefs'), applyAuth({
           method: 'PUT',
-          credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(state.serverPrefs),
-        }).catch(() => {});
+        })).catch(() => {});
       }
     }
     function loadSyncedPrefs() {
       if (!state.auth || !state.auth.authenticated) return Promise.resolve();
-      return fetch(apiUrl('/me/prefs'), { credentials: 'same-origin' })
+      return fetch(apiUrl('/me/prefs'), applyAuth({}))
         .then(r => r.ok ? r.json() : null)
         .then(prefs => {
           if (!prefs || typeof prefs !== 'object') return;
@@ -3528,7 +3608,7 @@
     function fetchGpxText(url) {
       return new Promise(function(resolve, reject) {
         _gpxQueue.push(function() {
-          return fetch(url).then(function(r) {
+          return fetch(url, applyAuth({})).then(function(r) {
             if (!r.ok) throw new Error('HTTP ' + r.status);
             return r.text();
           }).then(resolve, reject);
@@ -6620,15 +6700,17 @@
       map.addControl(new ExpandControl());
 
       if (route.plannedFile && route.completed) {
-        const plannedLayer = new L.GPX(gpxUrlFor(route.plannedFile), {
-          async: true,
-          polyline_options: { color: ROUTE_COLOR, opacity: 0.35, weight: 4 * getTrailWeightFactor(), dashArray: '8 6' },
-          markers: { startIcon: null, endIcon: null, wptIcons: { '': WAYPOINT_PLACEHOLDER_ICON } },
-        });
-        attachWaypointHandlers(plannedLayer);
-        plannedLayer.on('loaded', function(e) {
-          applyNonScalingStroke(e.target);
-        }).addTo(map);
+        fetchGpxText(gpxUrlFor(route.plannedFile)).then(function(plannedText) {
+          const plannedLayer = new L.GPX(plannedText, {
+            async: true,
+            polyline_options: { color: ROUTE_COLOR, opacity: 0.35, weight: 4 * getTrailWeightFactor(), dashArray: '8 6' },
+            markers: { startIcon: null, endIcon: null, wptIcons: { '': WAYPOINT_PLACEHOLDER_ICON } },
+          });
+          attachWaypointHandlers(plannedLayer);
+          plannedLayer.on('loaded', function(e) {
+            applyNonScalingStroke(e.target);
+          }).addTo(map);
+        }).catch(function() {});
       }
 
       if (isMultiTrack) renderMultiTrack(map, route);
@@ -6652,8 +6734,11 @@
         state.currentElevation = elevationControl;
       }
 
-      const gpxUrl = gpxUrlFor(route.file);
-      const singleGpx = new L.GPX(gpxUrl, {
+      // Pre-fetch the GPX text (auth-aware, SW-cached) rather than handing
+      // L.GPX a URL: its internal XHR can't carry the bearer token a
+      // cross-origin client needs.
+      fetchGpxText(gpxUrlFor(route.file)).then(function(gpxText) {
+      const singleGpx = new L.GPX(gpxText, {
         async: true,
         polyline_options: { color: color, opacity: 0.9, weight: 5 * getTrailWeightFactor() },
         markers: { startIcon: null, endIcon: null, wptIcons: { '': WAYPOINT_PLACEHOLDER_ICON } },
@@ -6708,11 +6793,11 @@
       }).on('addline', function(e) {
         if (elevationControl) elevationControl.addData(e.line);
       }).addTo(map);
+      }).catch(function(err) { console.warn('[ferd] gpx load failed', err); });
     }
 
     function renderMultiTrack(map, route) {
-      fetch(gpxUrlFor(route.file))
-        .then(r => r.text())
+      fetchGpxText(gpxUrlFor(route.file))
         .then(function(xmlText) {
           const tracks = parseGpxTracks(xmlText);
           if (tracks.length === 0) return;
@@ -6945,12 +7030,12 @@
 
     // ----- Auth + API client -----
     function apiUrl(path) {
-      const base = (state.config.api_base || '/api').replace(/\/$/, '');
-      return base + path;
+      const apiBase = (state.config.api_base || '/api').replace(/\/$/, '');
+      return serverBase() + apiBase + path;
     }
 
     function api(method, path, body) {
-      const opts = { method, credentials: 'same-origin', headers: {} };
+      const opts = applyAuth({ method });
       if (body !== undefined && !(body instanceof Blob)) {
         opts.headers['Content-Type'] = 'application/json';
         opts.body = JSON.stringify(body);
@@ -6976,7 +7061,7 @@
     }
 
     function refreshAuthState() {
-      return fetch(apiUrl('/state'), { credentials: 'same-origin' })
+      return fetch(apiUrl('/state'), applyAuth({}))
         .then(r => r.ok ? r.json() : null)
         .then(s => { if (s) state.auth = s; renderAuthWidget(); })
         .catch(() => { renderAuthWidget(); });
@@ -7043,7 +7128,8 @@
         danger: true,
       }).then(ok => {
         if (!ok) return;
-        api('POST', '/logout').then(function() { location.reload(); });
+        const done = function() { setBearerToken(''); location.reload(); };
+        api('POST', '/logout').then(done, done);
       });
     }
 
@@ -7605,7 +7691,7 @@
             const originalLabel = exportBtn.textContent;
             exportBtn.disabled = true;
             exportBtn.textContent = 'Exporting…';
-            fetch(apiUrl('/me/export'), { credentials: 'same-origin' }).then(async r => {
+            fetch(apiUrl('/me/export'), applyAuth({})).then(async r => {
               if (!r.ok) {
                 let msg = 'HTTP ' + r.status;
                 try { const j = await r.json(); if (j && j.error) msg = j.error; } catch {}
@@ -7674,12 +7760,11 @@
             importBtn.disabled = true;
             const originalLabel = importBtn.textContent;
             importBtn.textContent = 'Importing…';
-            fetch(apiUrl('/me/import?mode=' + mode), {
+            fetch(apiUrl('/me/import?mode=' + mode), applyAuth({
               method: 'POST',
-              credentials: 'same-origin',
               headers: { 'Content-Type': 'application/zip' },
               body: file,
-            }).then(async r => {
+            })).then(async r => {
               const data = await r.json().catch(() => null);
               if (!r.ok) throw new Error((data && data.error) || ('HTTP ' + r.status));
               return data;
@@ -9237,9 +9322,13 @@
         if (mode === 'register' && state.auth.requires_setup_token) {
           payload.setup_token = document.getElementById('auth-setup-token').value.trim();
         }
+        // Cross-origin clients can't use the session cookie, so ask for the
+        // session token in the response body and store it for bearer auth.
+        if (isCrossOrigin()) payload.token = true;
         const submitBtn = document.getElementById('auth-submit');
         submitBtn.disabled = true;
         api('POST', '/' + mode, payload)
+          .then(res => { if (res && res.session_token) setBearerToken(res.session_token); })
           .then(() => refreshAuthState())
           .then(() => loadSyncedPrefs())
           .then(() => { if (opts.onSuccess) return opts.onSuccess(); })
@@ -9251,6 +9340,75 @@
       openModal(signInFormHtml(true), function() {
         bindSignInForm({ onSuccess: () => { closeModal(); return loadDataAndRender(); } });
       });
+    }
+
+    // Normalize a user-entered server address into an origin (+ optional path)
+    // base with no trailing slash, or null if it isn't a usable address.
+    // Requires https except for loopback, so a misconfigured plain-http remote
+    // can't silently downgrade the session token in transit.
+    function normalizeServerUrl(raw) {
+      let s = (raw || '').trim();
+      if (!s) return null;
+      if (!/^https?:\/\//i.test(s)) s = 'https://' + s;
+      let u;
+      try { u = new URL(s); } catch { return null; }
+      const host = u.hostname;
+      const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+      if (u.protocol === 'http:' && !isLocal) return null;
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+      return (u.origin + u.pathname).replace(/\/+$/, '');
+    }
+
+    // First-run / reconnect screen for picking which Ferd server to talk to.
+    // Shown when there's no same-origin API (bundled/native shell) or the
+    // configured server is unreachable. opts.error preseeds an error message.
+    function renderServerPicker(opts) {
+      opts = opts || {};
+      const app = document.getElementById('app');
+      document.body.classList.add('signin-only');
+      const current = serverBase();
+      app.innerHTML =
+        '<div class="signin-page">' +
+          '<img class="signin-logo" src="/icons/favicon.svg" alt="">' +
+          '<div class="signin-brand">Ferd</div>' +
+          '<div class="modal">' +
+            '<h2>Connect to a server</h2>' +
+            '<div class="modal-desc">Enter the address of your Ferd server, e.g. https://ferd.example.com.</div>' +
+            '<div class="modal-error' + (opts.error ? ' visible' : '') + '" id="srv-error">' + escapeHtml(opts.error || '') + '</div>' +
+            '<label for="srv-url">Server address</label>' +
+            '<input type="url" id="srv-url" inputmode="url" autocomplete="url" placeholder="https://ferd.example.com" value="' + escapeHtml(current) + '">' +
+            '<div class="modal-actions">' +
+              '<button type="button" class="primary" id="srv-connect">Connect</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      const input = document.getElementById('srv-url');
+      const errBox = document.getElementById('srv-error');
+      const btn = document.getElementById('srv-connect');
+      function fail(msg) {
+        errBox.textContent = msg;
+        errBox.classList.add('visible');
+        btn.disabled = false;
+        btn.textContent = 'Connect';
+      }
+      function connect() {
+        const base = normalizeServerUrl(input.value);
+        if (!base) return fail('Enter a valid https:// address.');
+        btn.disabled = true;
+        btn.textContent = 'Connecting…';
+        errBox.classList.remove('visible');
+        probeServer(base, 8000).then(function(ok) {
+          if (!ok) return fail("Couldn't reach a Ferd server at that address.");
+          // A new target invalidates any token minted by the old one.
+          if (base !== current) setBearerToken('');
+          setServerBase(base);
+          document.body.classList.remove('signin-only');
+          bootApp();
+        });
+      }
+      btn.addEventListener('click', connect);
+      input.addEventListener('keydown', function(e) { if (e.key === 'Enter') connect(); });
+      input.focus();
     }
 
     function renderSignInPage() {
@@ -9266,6 +9424,31 @@
             '<div id="signin-public-maps" hidden></div>' +
           '</div>' +
         '</div>';
+      // In cross-origin mode (native/bundled shell) let the user retarget the
+      // server from the sign-in screen. Tucked into the Sign in button row so
+      // it reads as a status footnote, not a competing action.
+      if (isCrossOrigin()) {
+        const actions = app.querySelector('#auth-form .modal-actions');
+        if (actions) {
+          // Host on its own centered row below the buttons.
+          const host = document.createElement('div');
+          host.className = 'signin-server-host';
+          host.title = serverBase();
+          host.textContent = serverBase().replace(/^https?:\/\//, '');
+          actions.parentNode.insertBefore(host, actions.nextSibling);
+          // Change server pushed left of the actions row; Sign in stays right.
+          const changeBtn = document.createElement('button');
+          changeBtn.type = 'button';
+          changeBtn.id = 'signin-change-server';
+          changeBtn.className = 'signin-change-server';
+          changeBtn.textContent = 'Change server';
+          changeBtn.addEventListener('click', function() {
+            document.body.classList.remove('signin-only');
+            renderServerPicker({});
+          });
+          actions.insertBefore(changeBtn, actions.firstChild);
+        }
+      }
       bindSignInForm({ onSuccess: () => {
         document.body.classList.remove('signin-only');
         return loadDataAndRender();
@@ -9608,12 +9791,11 @@
           submitBtn.disabled = true;
           let qs = (region ? '?region=' + encodeURIComponent(region) + '&' : '?') + 'name=' + encodeURIComponent(storedName);
           if (stripPii) qs += '&strip_pii=true';
-          fetch(apiUrl('/gpx') + qs, {
+          fetch(apiUrl('/gpx') + qs, applyAuth({
             method: 'POST',
-            credentials: 'same-origin',
             headers: { 'Content-Type': 'application/gpx+xml' },
             body: file,
-          }).then(async r => {
+          })).then(async r => {
             const data = await r.json().catch(() => null);
             if (!r.ok) throw new Error((data && data.error) || 'HTTP ' + r.status);
             return data;
@@ -10016,22 +10198,56 @@
       });
     }
 
-    fetchJson(DATA_FILES.siteConfig, null)
-      .then(function(cfg) {
-        applyConfig(cfg);
-        return fetch(apiUrl('/state'), { credentials: 'same-origin' })
-          .then(r => r.ok ? r.json() : null).catch(() => null);
-      })
-      .then(function(authState) {
-        if (authState) state.auth = authState;
-        renderAuthWidget();
-        const v = state.viewer;
-        if (v.mode === 'owner' && !state.auth.authenticated) {
-          renderSignInPage();
-          return;
-        }
-        return loadSyncedPrefs().then(() => loadDataAndRender());
+    function bootApp() {
+      return fetchJson(serverFileUrl(DATA_FILES.siteConfig), null)
+        .then(function(cfg) {
+          applyConfig(cfg);
+          return fetch(apiUrl('/state'), applyAuth({}))
+            .then(r => r.ok ? r.json() : null).catch(() => null);
+        })
+        .then(function(authState) {
+          if (authState) state.auth = authState;
+          renderAuthWidget();
+          const v = state.viewer;
+          if (v.mode === 'owner' && !state.auth.authenticated) {
+            renderSignInPage();
+            return;
+          }
+          return loadSyncedPrefs().then(() => loadDataAndRender());
+        });
+    }
+
+    // Confirm a base actually hosts a Ferd API before we commit to it. Empty
+    // base = probe same-origin. Short timeout so a dead address fails fast.
+    function probeServer(base, timeoutMs) {
+      const root = (base || '').replace(/\/+$/, '');
+      const ctrl = new AbortController();
+      const t = setTimeout(function() { ctrl.abort(); }, timeoutMs || 4000);
+      return fetch(root + '/api/health', { credentials: 'omit', signal: ctrl.signal })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(j) { return !!(j && j.status === 'ok'); })
+        .catch(function() { return false; })
+        .finally(function() { clearTimeout(t); });
+    }
+
+    // Boot trigger. A stored server is probed and used (re-prompts on failure).
+    // With no stored server we probe same-origin: an API there means a normal
+    // web/PWA deploy (boot silently, picker never seen); none means a bundled
+    // shell with no local API, so ask which server to connect to.
+    function startup() {
+      const base = serverBase();
+      if (base) {
+        return probeServer(base, 6000).then(function(ok) {
+          if (ok) return bootApp();
+          return renderServerPicker({ error: "Can't reach " + base + ". Check the address or your connection." });
+        });
+      }
+      return probeServer('', 3500).then(function(ok) {
+        return ok ? bootApp() : renderServerPicker({});
       });
+    }
+
+    startup();
 
     // PWA: offline indicator + service worker registration + update toast.
     (function() {
