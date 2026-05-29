@@ -2882,6 +2882,52 @@
       return fetch(url, applyAuth({})).then(r => r.ok ? r.json() : fallback).catch(() => fallback);
     }
 
+    // Single dispatch seam between the UI and the backend for app *content*
+    // (places, routes/GPX, metadata, regions, category labels). Every method
+    // currently forwards 1:1 to the server. Later phases swap implementations
+    // here (IndexedDB store, offline mutation queue, local-only mode) without
+    // touching call sites. Reads honor the viewer (owner vs public) via
+    // dataUrl/categoryLabelsUrl. Writes are owner-only and reuse api().
+    const dataLayer = {
+      // -- reads --
+      fetchPlaces(fallback)         { return fetchJson(dataUrl('places'), fallback); },
+      fetchRoutes(fallback)         { return fetchJson(dataUrl('routes'), fallback); },
+      fetchCategoryLabels(fallback) { return fetchJson(categoryLabelsUrl(), fallback); },
+
+      // -- place writes --
+      createPlace(payload)   { return api('POST', '/places', payload); },
+      updatePlace(body)      { return api('PUT', '/places', body); },          // { id, place }
+      deletePlace(body)      { return api('DELETE', '/places', body); },       // { id }
+      clearCategory(body)    { return api('POST', '/places/clear-category', body); }, // { category }
+
+      // -- route / GPX writes --
+      uploadGpx({ region, name, stripPii, file }) {
+        let qs = (region ? '?region=' + encodeURIComponent(region) + '&' : '?') + 'name=' + encodeURIComponent(name);
+        if (stripPii) qs += '&strip_pii=true';
+        return fetch(apiUrl('/gpx') + qs, applyAuth({
+          method: 'POST',
+          headers: { 'Content-Type': 'application/gpx+xml' },
+          body: file,
+        })).then(async r => {
+          const data = await r.json().catch(() => null);
+          if (!r.ok) throw new Error((data && data.error) || 'HTTP ' + r.status);
+          return data;
+        });
+      },
+      deleteGpx(body)        { return api('DELETE', '/gpx', body); },          // { region, name }
+      setGpxCompleted(body)  { return api('POST', '/gpx/set-completed', body); }, // { key, completed }
+      moveGpx(body)          { return api('POST', '/gpx/move', body); },       // { key, new_region, new_name? }
+      putMetadata(body)      { return api('PUT', '/metadata', body); },        // { key, metadata }
+
+      // -- region writes --
+      renameRegion(body)     { return api('POST', '/regions/rename', body); }, // { from, to }
+      deleteRegion(body)     { return api('POST', '/regions/delete', body); }, // { name }
+      clearRegion(body)      { return api('POST', '/regions/clear', body); },  // { name }
+
+      // -- category labels --
+      putCategoryLabels(body) { return api('PUT', '/me/category-labels', body); }, // { category_labels }
+    };
+
     // Raise the map's minimum zoom to the smallest level whose Web Mercator
     // world (a 256*2^z px square) still covers the larger viewport dimension,
     // so the map can never zoom out into the empty background (the dark bands
@@ -3419,7 +3465,7 @@
         labels[slug] = merged;
         payload[slug] = { ...merged };
       }
-      api('PUT', '/me/category-labels', { category_labels: payload }).catch(function() {
+      dataLayer.putCategoryLabels({ category_labels: payload }).catch(function() {
         // Best-effort: if the write fails, the same indices will be re-assigned
         // (deterministically) the next time assignCategoryColors runs.
       });
@@ -3853,7 +3899,7 @@
 
     function deleteTrail(route, regionName) {
       if (!confirm('Delete route "' + route.name + '" (' + displayRegion(regionName) + ')? This removes the GPX file.')) return Promise.resolve(false);
-      return api('DELETE', '/gpx', { region: regionName, name: route.name })
+      return dataLayer.deleteGpx({ region: regionName, name: route.name })
         .then(() => refreshRoutes())
         .then(() => true)
         .catch(err => { alert('Failed: ' + err.message); return false; });
@@ -3999,13 +4045,13 @@
             submit.disabled = true;
             let chain = Promise.resolve(key);
             if (needsCompletedFlip) {
-              chain = chain.then(k => api('POST', '/gpx/set-completed', { key: k, completed: newCompleted }).then(() => k));
+              chain = chain.then(k => dataLayer.setGpxCompleted({ key: k, completed: newCompleted }).then(() => k));
             }
             if (needsMove) {
-              chain = chain.then(k => api('POST', '/gpx/move', { key: k, new_region: targetRegion, new_name: newName }).then(r => r.new_key));
+              chain = chain.then(k => dataLayer.moveGpx({ key: k, new_region: targetRegion, new_name: newName }).then(r => r.new_key));
             }
             chain
-              .then(finalKey => api('PUT', '/metadata', { key: finalKey, metadata: metadata }))
+              .then(finalKey => dataLayer.putMetadata({ key: finalKey, metadata: metadata }))
               .then(() => refreshRoutes())
               .then(() => { closeModal(); wrappedRouter(); })
               .catch(err => { submit.disabled = false; showModalError(err.message); });
@@ -4636,7 +4682,7 @@
             const wasVisited = !!place.visited;
             let failed = false;
             const anim = animatePlaceCardOut(slug).then(function() { if (!failed) removePlaceCardFromList(slug, wasVisited); });
-            api('DELETE', '/places', { id: place.id })
+            dataLayer.deletePlace({ id: place.id })
               .then(() => refreshPlaces())
               .then(() => anim)
               // Resync any survivor whose slug shifted (deleting one of several
@@ -4670,7 +4716,7 @@
             const submit = document.getElementById('e-submit');
             submit.disabled = true;
             const prevColors = Object.assign({}, state.categoryColors);
-            api('PUT', '/places', { id: place.id, place: r.payload })
+            dataLayer.updatePlace({ id: place.id, place: r.payload })
               .then(() => refreshPlaces())
               .then(() => {
                 closeModal();
@@ -5746,7 +5792,7 @@
               const result = findCatalogUpdate(place);
               status.textContent = 'Refreshing ' + (i + 1) + ' of ' + pending.length + '…';
               if (!result) { i++; return next(); }
-              api('PUT', '/places', { id: place.id, place: buildCatalogRefreshPayload(place, result.entry, result.changes) })
+              dataLayer.updatePlace({ id: place.id, place: buildCatalogRefreshPayload(place, result.entry, result.changes) })
                 .catch(err => errors.push((place.name) + ': ' + err.message))
                 .then(() => { i++; next(); });
             })();
@@ -5794,7 +5840,7 @@
           backdrop.querySelectorAll('.catalog-diff-check').forEach(cb => cb.addEventListener('change', syncButtons));
           function submit(applyFields, btn) {
             btn.disabled = true;
-            api('PUT', '/places', { id: place.id, place: buildCatalogRefreshPayload(place, entry, changes, applyFields) })
+            dataLayer.updatePlace({ id: place.id, place: buildCatalogRefreshPayload(place, entry, changes, applyFields) })
               .then(() => refreshPlaces())
               .then(() => {
                 closeModal();
@@ -6117,7 +6163,7 @@
                 // removal against a delete that errors and re-renders the list.
                 let failed = false;
                 const anim = animatePlaceCardOut(slug).then(function() { if (!failed) removePlaceCardFromList(slug, wasVisited); });
-                api('DELETE', '/places', { id: place.id })
+                dataLayer.deletePlace({ id: place.id })
                   .then(() => refreshPlaces())
                   .then(() => anim)
                   // Resync any survivor whose slug shifted (see the edit-modal
@@ -6331,7 +6377,7 @@
                   danger: true,
                 }).then(function(ok) {
                   if (!ok) return;
-                  api('DELETE', '/gpx', { region: regionName, name: route.name })
+                  dataLayer.deleteGpx({ region: regionName, name: route.name })
                     .then(() => refreshRoutes())
                     .then(() => renderTrailsList())
                     .catch(err => alert('Delete failed: ' + err.message));
@@ -8252,10 +8298,10 @@
             // Clear failures abort the save so the label map and place data
             // don't get out of sync.
             const clears = [...pendingClears].map(slug =>
-              api('POST', '/places/clear-category', { category: slug })
+              dataLayer.clearCategory({ category: slug })
             );
             Promise.all(clears)
-              .then(() => api('PUT', '/me/category-labels', { category_labels: payload }))
+              .then(() => dataLayer.putCategoryLabels({ category_labels: payload }))
               .then(res => {
                 state.config.category_labels = res.category_labels || payload;
                 if (pendingClears.size && state.places) {
@@ -8412,13 +8458,13 @@
 
             // Run clears + deletes first so a rename can reuse a freed name.
             const clears = [...pendingClears].map(name =>
-              api('POST', '/regions/clear', { name })
+              dataLayer.clearRegion({ name })
             );
             const deletes = [...pendingDeletes].map(name =>
-              api('POST', '/regions/delete', { name })
+              dataLayer.deleteRegion({ name })
             );
             Promise.all([...clears, ...deletes])
-              .then(() => Promise.all(renames.map(r => api('POST', '/regions/rename', r))))
+              .then(() => Promise.all(renames.map(r => dataLayer.renameRegion(r))))
               .then(() => refreshRoutes())
               .then(() => { wrappedRouter(); closeTopModal(); })
               .catch(e => {
@@ -9092,7 +9138,7 @@
           }).then(function(ok) {
             if (!ok) return;
             const prevColors = Object.assign({}, state.categoryColors);
-            api('DELETE', '/places', { id: place.id })
+            dataLayer.deletePlace({ id: place.id })
               .then(() => refreshPlaces())
               .then(() => { syncPlacesOnMap(prevColors); })
               .catch(err => alert('Delete failed: ' + err.message));
@@ -9124,7 +9170,7 @@
             danger: true,
           }).then(function(ok) {
             if (!ok) return;
-            api('DELETE', '/gpx', { region: region.name, name: route.name })
+            dataLayer.deleteGpx({ region: region.name, name: route.name })
               .then(() => refreshRoutes())
               .then(() => { if (typeof wrappedRouter === 'function') wrappedRouter(); })
               .catch(err => alert('Delete failed: ' + err.message));
@@ -9262,7 +9308,7 @@
     }
 
     function refreshPlaces() {
-      return fetchJson(dataUrl('places'), []).then(data => {
+      return dataLayer.fetchPlaces([]).then(data => {
         state.places = Array.isArray(data) ? data : [];
         assignPlaceSlugs(state.places);
         const cc = assignCategoryColors(state.places);
@@ -9272,7 +9318,7 @@
     }
 
     function refreshRoutes() {
-      return fetchJson(dataUrl('routes'), null).then(data => {
+      return dataLayer.fetchRoutes(null).then(data => {
         if (!data || !Array.isArray(data.regions)) return;
         data.regions.sort((a, b) => a.name.localeCompare(b.name));
         for (const region of data.regions) region.routes.sort((a, b) => a.name.localeCompare(b.name));
@@ -9806,7 +9852,7 @@
           const submitBtn = document.getElementById('place-submit');
           submitBtn.disabled = true;
           const prevColors = Object.assign({}, state.categoryColors);
-          api('POST', '/places', r.payload)
+          dataLayer.createPlace(r.payload)
             .then(() => refreshPlaces())
             .then(() => { closeModal(); syncPlacesOnMap(prevColors); })
             .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
@@ -9873,20 +9919,10 @@
 
           const submitBtn = document.getElementById('gpx-submit');
           submitBtn.disabled = true;
-          let qs = (region ? '?region=' + encodeURIComponent(region) + '&' : '?') + 'name=' + encodeURIComponent(storedName);
-          if (stripPii) qs += '&strip_pii=true';
-          fetch(apiUrl('/gpx') + qs, applyAuth({
-            method: 'POST',
-            headers: { 'Content-Type': 'application/gpx+xml' },
-            body: file,
-          })).then(async r => {
-            const data = await r.json().catch(() => null);
-            if (!r.ok) throw new Error((data && data.error) || 'HTTP ' + r.status);
-            return data;
-          })
+          dataLayer.uploadGpx({ region, name: storedName, stripPii, file })
           .then(() => {
             if (Object.keys(metadata).length === 0) return null;
-            return api('PUT', '/metadata', { key: metaKey, metadata: metadata });
+            return dataLayer.putMetadata({ key: metaKey, metadata: metadata });
           })
           .then(() => refreshRoutes())
           .then(() => { closeModal(); router(); })
@@ -10051,7 +10087,7 @@
                 return;
               }
               addBtn.textContent = 'Adding ' + (done + 1) + ' of ' + picked.length + '…';
-              api('POST', '/places', picked[done])
+              dataLayer.createPlace(picked[done])
                 .catch(err => errors.push((picked[done].name || '?') + ': ' + err.message))
                 .then(() => { done++; next(); });
             })();
@@ -10229,13 +10265,13 @@
     function loadDataAndRender() {
       const v = state.viewer;
       const placesP = placesAvailable()
-        ? fetchJson(dataUrl('places'), null).catch(() => null)
+        ? dataLayer.fetchPlaces(null).catch(() => null)
         : Promise.resolve(null);
       const routesP = routesAvailable()
-        ? fetchJson(dataUrl('routes'), null).catch(() => null)
+        ? dataLayer.fetchRoutes(null).catch(() => null)
         : Promise.resolve(null);
       const labelsP = placesAvailable()
-        ? fetchJson(categoryLabelsUrl(), null).catch(() => null)
+        ? dataLayer.fetchCategoryLabels(null).catch(() => null)
         : Promise.resolve(null);
       return Promise.all([placesP, routesP, labelsP]).then(function([places, routes, labels]) {
         if (labels && labels.category_labels) {
