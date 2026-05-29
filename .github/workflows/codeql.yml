@@ -27,19 +27,36 @@ jobs:
             build-mode: none
           - language: python
             build-mode: none
-          # Android shell: source-only analysis, so no Gradle/Android SDK build
-          # is needed in CI (the autobuild path is what default setup choked on).
+          # Kotlin can't be analyzed in build-mode: none (that mode extracts
+          # Java source only). The shell must be compiled under CodeQL's tracer,
+          # so this language builds the Android app with JDK + the Android SDK.
           - language: java-kotlin
-            build-mode: none
+            build-mode: manual
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        if: matrix.language == 'java-kotlin'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        if: matrix.language == 'java-kotlin'
+        uses: android-actions/setup-android@v3
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
+
+      - name: Build Android app (manual build for CodeQL tracing)
+        if: matrix.language == 'java-kotlin'
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
