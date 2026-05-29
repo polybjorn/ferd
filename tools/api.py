@@ -916,7 +916,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if "*" in allowed:
       return "*"
     origin = self.headers.get("Origin")
-    return origin if (origin and origin in allowed) else None
+    if not origin:
+      return None
+    # Return the matched allowlist entry (a trusted config value), not the raw
+    # request header, so no user-controlled data is reflected into the response.
+    for allowed_origin in allowed:
+      if allowed_origin == origin:
+        return allowed_origin
+    return None
 
   def end_headers(self):
     origin = self._cors_origin()
