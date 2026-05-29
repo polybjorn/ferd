@@ -12,7 +12,13 @@ fun gitOutput(vararg args: String): String = try {
   ""
 }
 val commitCount = gitOutput("rev-list", "--count", "HEAD").toIntOrNull() ?: 1
-val shortSha = gitOutput("rev-parse", "--short", "HEAD").ifEmpty { "dev" }
+// Track Ferd's own version (the app bundles its frontend); the commit count is
+// the build identifier. Yields e.g. "1.0.1-dev+177", later "1.1.0+N".
+val ferdVersion = try {
+  rootProject.projectDir.parentFile.resolve("VERSION").readText().trim()
+} catch (e: Exception) {
+  "0.0.0"
+}
 
 android {
   namespace = "io.github.polybjorn.ferd"
@@ -23,7 +29,7 @@ android {
     minSdk = 26
     targetSdk = 34
     versionCode = commitCount
-    versionName = "0.1.0+$commitCount.g$shortSha"
+    versionName = "$ferdVersion+$commitCount"
   }
 
   buildFeatures {

@@ -1707,6 +1707,14 @@
       letter-spacing: 0.05em;
       margin-bottom: 1rem;
     }
+    .about-version:has(+ .about-build) { margin-bottom: 0.1rem; }
+    .about-build {
+      font-size: 0.68rem;
+      color: var(--muted);
+      opacity: 0.65;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
     .about-tagline {
       font-size: 0.8rem;
       color: var(--text);
@@ -7173,21 +7181,29 @@
 
     function openAboutModal() {
       const version = state.auth.version || 'unknown';
-      // In the Android shell, append the APK build version so the running build
-      // is identifiable at a glance.
+      // In the Android shell the bundled build version (e.g. "1.0.1-dev+177")
+      // is the relevant one; split it into a clean version + a muted build line.
       let appVersion = '';
       try {
         if (window.FerdAndroid && typeof window.FerdAndroid.appVersion === 'function') {
           appVersion = window.FerdAndroid.appVersion();
         }
       } catch (e) {}
+      let displayVersion = version;
+      let buildLabel = '';
+      if (appVersion) {
+        const plus = appVersion.indexOf('+');
+        displayVersion = plus >= 0 ? appVersion.slice(0, plus) : appVersion;
+        if (plus >= 0) buildLabel = 'build ' + appVersion.slice(plus + 1);
+      }
       const brand = (state.config && state.config.brand) || 'Ferd';
       openModal(
         '<h2>About<button class="modal-close">&times;</button></h2>' +
         '<div class="about-body">' +
           '<img class="about-logo" src="/icons/favicon.svg" alt="">' +
           '<div class="about-brand">' + escapeHtml(brand) + '</div>' +
-          '<div class="about-version">' + escapeHtml(version) + (appVersion ? ' &middot; app ' + escapeHtml(appVersion) : '') + '</div>' +
+          '<div class="about-version">' + escapeHtml(displayVersion) + '</div>' +
+          (buildLabel ? '<div class="about-build">' + escapeHtml(buildLabel) + '</div>' : '') +
           '<div class="about-tagline">Your own map of where you&rsquo;ve been, where you want to go, and the journeys between them.</div>' +
           '<div class="about-links">' +
             '<a href="https://github.com/polybjorn/ferd" target="_blank" rel="noopener">Source</a>' +
