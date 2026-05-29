@@ -7,7 +7,7 @@ plugins {
 // (visible in Android app info and in-app via window.FerdAndroid.appVersion).
 // CI must check out full history (fetch-depth: 0) for the commit count.
 fun gitOutput(vararg args: String): String = try {
-  providers.exec { it.commandLine("git", *args) }.standardOutput.asText.get().trim()
+  providers.exec { commandLine("git", *args) }.standardOutput.asText.get().trim()
 } catch (e: Exception) {
   ""
 }
