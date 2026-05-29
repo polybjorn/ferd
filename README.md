@@ -82,4 +82,5 @@ Android client for a Ferd server. Install the APK from the [latest release](http
 ### Branding
 - Distinctive logo.
 - Custom iOS launch splash (PWA).
+- Custom Android launcher icon.
 - Custom social preview image for the GitHub repository.
