@@ -1326,7 +1326,10 @@
     }
     body.signin-only nav,
     body.signin-only #pwa-offline-banner,
-    body.signin-only #pwa-update-banner { display: none; }
+    body.signin-only #pwa-update-banner,
+    body.app-booting nav,
+    body.app-booting #pwa-offline-banner,
+    body.app-booting #pwa-update-banner { display: none; }
     body.signin-only #app {
       height: 100vh;
       overflow: hidden;
@@ -2714,7 +2717,7 @@
     .pwa-update-toast button:hover { opacity: 0.85; }
   </style>
 </head>
-<body>
+<body class="app-booting">
   <nav>
     <span class="nav-brand">
       <a href="#/" id="nav-home"><span id="nav-back" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span id="nav-brand-text">Ferd</span></a><span id="nav-crumb"></span>
@@ -3111,7 +3114,15 @@
       try { const v = localStorage.getItem(key); return v === null ? def : v; }
       catch { return def; }
     }
-    const SYNCED_PREF_KEYS = new Set(['theme', 'mode', 'pin-style', 'marker-size', 'route-weight', 'tile-filter']);
+    // Every user-facing setting syncs per-user (server prefs.json), so a fresh
+    // browser or a new install inherits them after sign-in instead of starting
+    // at defaults. Per-device state (last-view, hidden-features) stays local.
+    const SYNCED_PREF_KEYS = new Set([
+      'theme', 'mode', 'pin-style', 'marker-size', 'route-weight', 'tile-filter',
+      'tile-layer', 'units', 'show-local-name',
+      'cluster-places', 'tile-picker', 'map-add-button', 'map-filter', 'map-zoom', 'remember-view',
+      'places-group-by', 'trails-group-by',
+    ]);
     function setPref(key, val) {
       try { localStorage.setItem(key, val); } catch {}
       if (SYNCED_PREF_KEYS.has(key) && state.auth && state.auth.authenticated) {
@@ -3135,7 +3146,9 @@
               try { localStorage.setItem(key, prefs[key]); } catch {}
             }
           }
-          try { applyTheme(getStoredTheme(), getStoredMode()); } catch {}
+          // Theme is applied at app render (loadDataAndRender), not here, so the
+          // synced theme appears with the map rather than recoloring the
+          // sign-in screen first.
         })
         .catch(() => {});
     }
@@ -7419,7 +7432,6 @@
             '<input type="checkbox" class="settings-toggle" id="s-publishing"' + (state.auth.publishing_open ? ' checked' : '') + '>' +
             '<label for="s-publishing">Allow users to publish public maps</label>' +
           '</div>' +
-          '<div class="modal-desc">Turning this off forces any currently public maps back to private and prevents new ones.</div>' +
           '<h3 class="settings-h">Catalog</h3>' +
           '<div class="settings-inline-row">' +
             '<input type="checkbox" class="settings-toggle" id="s-catalog-baseline"' + (state.auth.catalog_baseline_open ? ' checked' : '') + '>' +
@@ -9379,7 +9391,7 @@
           '<div class="signin-brand">Ferd</div>' +
           '<div class="modal">' +
             '<h2>Connect to a server</h2>' +
-            '<div class="modal-desc">Enter the address of your Ferd server, e.g. https://ferd.example.com.</div>' +
+            '<div class="modal-desc">Enter the address of your Ferd server.</div>' +
             '<div class="modal-error' + (opts.error ? ' visible' : '') + '" id="srv-error">' + escapeHtml(opts.error || '') + '</div>' +
             '<label for="srv-url">Server address</label>' +
             '<input type="url" id="srv-url" inputmode="url" autocomplete="url" placeholder="https://ferd.example.com" value="' + escapeHtml(current) + '">' +
@@ -10190,6 +10202,7 @@
         }
         refreshTabVisibility();
         if ((placesAvailable() && !state.places) && (routesAvailable() && !state.manifest)) {
+          document.body.classList.remove('app-booting', 'signin-only');
           if (v.mode === 'public') {
             document.getElementById('app').innerHTML = '<div class="loading">Map not found, or owner has not published it.</div>';
             return;
@@ -10197,6 +10210,11 @@
           document.getElementById('app').innerHTML = '<div class="loading">Failed to load data</div>';
           return;
         }
+        // Apply the (now-synced) theme and reveal the app chrome in the same
+        // synchronous tick as the first render, so neither the theme nor the
+        // nav visibly changes on the sign-in screen beforehand.
+        try { applyTheme(getStoredTheme(), getStoredMode()); } catch {}
+        document.body.classList.remove('app-booting', 'signin-only');
         wrappedRouter();
         // Warm the catalog cache in the background so the Browse tab in the
         // Add modal renders instantly the first time it's opened, instead of

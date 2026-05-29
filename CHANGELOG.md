@@ -24,6 +24,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places list (Group by category): each section header is prefixed with a small dot in the category's palette color.
 
 ### Changed
+- All user-facing settings now sync per-user across browsers and devices, not just theme/appearance. Map display toggles (clustering, on-map controls), default tile layer, units, local-name display, and list grouping follow you to a new browser or app install after sign-in, instead of resetting to defaults. Per-device state (last map view, per-browser feature hiding) stays local.
 - Active sessions moved from Settings > Account to a new Settings > Security tab, alongside the new API tokens section.
 - Settings option pickers restyled: single-select groups (Units, Import mode, Marker size, Route line thickness, token scope/expiry) render as one connected segmented bar; multi-select groups (Visible features, Optional fields) stretch to fill the row as equal cells. Several settings descriptions tightened.
 - Manage regions modal no longer shows a per-region route count, matching Manage categories. Empty regions still read "empty" and a row being renamed reads "edited".
