@@ -44,8 +44,3 @@ export blob to native, which saves it through the system document picker
 
 - **Launcher icon** is a placeholder map pin. Replace it via Android Studio's
   Image Asset Studio (generated from the Ferd favicon) before any public release.
-
-## License
-
-GPL-3.0-or-later, same as Ferd. The APK bundles and distributes the GPL-licensed
-Ferd frontend, so the whole app is GPL.
