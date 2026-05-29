@@ -4,6 +4,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-05-29
+
 ### Added
 - Configurable server target: clients that bundle the frontend (native/WebView) show a server-picker to enter the Ferd address and authenticate with a bearer token (`{"token": true}` on login returns the token in the body instead of a cookie). Browser/PWA cookie auth is unchanged.
 - CORS support via the new `cors_origins` config key (default `"*"`); cross-origin clients use bearer tokens, never cookies.
