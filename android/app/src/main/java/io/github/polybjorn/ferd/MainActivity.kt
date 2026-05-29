@@ -7,7 +7,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import android.webkit.GeolocationPermissions
+import android.webkit.JavascriptInterface
 import android.webkit.SslErrorHandler
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -48,6 +50,10 @@ class MainActivity : AppCompatActivity() {
 
   private lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
   private lateinit var locationPermissionLauncher: ActivityResultLauncher<String>
+  private lateinit var createDocumentLauncher: ActivityResultLauncher<String>
+
+  // Bytes awaiting a destination chosen via the system "Save to..." dialog.
+  private var pendingExportBytes: ByteArray? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -73,9 +79,34 @@ class MainActivity : AppCompatActivity() {
       if (origin != null && cb != null) cb.invoke(origin, granted, false)
     }
 
+    createDocumentLauncher = registerForActivityResult(
+      ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+      val bytes = pendingExportBytes
+      pendingExportBytes = null
+      if (uri == null || bytes == null) return@registerForActivityResult
+      // Write off the UI thread; an export can be a few MB.
+      Thread {
+        val ok = try {
+          contentResolver.openOutputStream(uri)?.use { it.write(bytes) }
+          true
+        } catch (e: Exception) {
+          false
+        }
+        runOnUiThread {
+          Toast.makeText(
+            this,
+            if (ok) R.string.export_saved else R.string.export_failed,
+            Toast.LENGTH_SHORT,
+          ).show()
+        }
+      }.start()
+    }
+
     webView = WebView(this)
     setContentView(webView)
     configureWebView()
+    webView.addJavascriptInterface(FerdBridge(this), "FerdAndroid")
 
     if (savedInstanceState == null) {
       webView.loadUrl("https://" + WebViewAssetLoader.DEFAULT_DOMAIN + "/index.html")
@@ -220,6 +251,20 @@ class MainActivity : AppCompatActivity() {
       .show()
   }
 
+  /** Decode the base64 export and open the system "Save to..." dialog. */
+  fun beginExport(filename: String, base64Data: String) {
+    pendingExportBytes = try {
+      Base64.decode(base64Data, Base64.DEFAULT)
+    } catch (e: IllegalArgumentException) {
+      null
+    }
+    if (pendingExportBytes == null) {
+      Toast.makeText(this, R.string.export_failed, Toast.LENGTH_LONG).show()
+      return
+    }
+    createDocumentLauncher.launch(filename.ifBlank { "ferd-export.zip" })
+  }
+
   private fun hasLocationPermission(): Boolean =
     ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
       PackageManager.PERMISSION_GRANTED
@@ -229,3 +274,18 @@ class MainActivity : AppCompatActivity() {
     webView.saveState(outState)
   }
 }
+
+/**
+ * JS bridge exposed to the bundled frontend as `window.FerdAndroid`. WebView
+ * silently drops blob downloads, so the export flow hands the file here and
+ * native saves it via the system document picker. Only the bundled frontend
+ * runs in this WebView (external links open in the system browser), so the
+ * surface stays trusted.
+ */
+private class FerdBridge(private val activity: MainActivity) {
+  @JavascriptInterface
+  fun exportFile(filename: String, mimeType: String, base64Data: String) {
+    activity.runOnUiThread { activity.beginExport(filename, base64Data) }
+  }
+}
+

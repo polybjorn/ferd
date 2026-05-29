@@ -2874,6 +2874,20 @@
       return fetch(url, applyAuth({})).then(r => r.ok ? r.json() : fallback).catch(() => fallback);
     }
 
+    // Raise the map's minimum zoom to the smallest level whose Web Mercator
+    // world (a 256*2^z px square) still covers the larger viewport dimension,
+    // so the map can never zoom out into the empty background (the dark bands
+    // above/below the world on tall screens). Re-run on resize/rotation.
+    function applyCoverMinZoom(map) {
+      const size = map.getSize();
+      const px = Math.max(size.x, size.y);
+      if (!px) return;
+      const cover = Math.max(0, Math.ceil(Math.log2(px / 256)));
+      if (map.getMinZoom() !== cover) {
+        map.setMinZoom(cover); // clamps the current zoom up if it was below.
+      }
+    }
+
     // Pill-style radio group: each option renders as a single-select pill.
     function radioPillsHtml(name, options, selected, variant) {
       return '<div class="radio-row ' + (variant || 'radio-pills') + '">' +
@@ -4038,6 +4052,8 @@
       }).setView(dv.center, dv.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
+      applyCoverMinZoom(map);
+      map.on('resize', function() { applyCoverMinZoom(map); });
       // Counter-scale route stroke widths during zoom. 'zoom' covers
       // mobile pinch (fires per frame); zoomanim kicks off a brief rAF
       // loop to cover the desktop 250ms CSS animation where 'zoom'
@@ -6626,6 +6642,7 @@
       }
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
+      applyCoverMinZoom(map);
       // Map container shrinks asynchronously as the elevation chart and
       // other detail-view widgets settle. Sync Leaflet's known size and
       // force a polyline repaint so the route stays drawn, but leave the
@@ -7721,6 +7738,23 @@
               const m = /filename="([^"]+)"/.exec(disp);
               const fname = m ? m[1] : 'ferd-export.zip';
               const blob = await r.blob();
+              // In the Android shell, hand the bytes to native (which opens the
+              // system "Save to..." picker); WebView silently drops blob/anchor
+              // downloads. The bridge is absent in browsers/PWA, which keep the
+              // anchor-download path below.
+              if (window.FerdAndroid && typeof window.FerdAndroid.exportFile === 'function') {
+                await new Promise((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onerror = () => reject(new Error('Could not read export'));
+                  reader.onloadend = () => {
+                    const b64 = String(reader.result).split(',')[1] || '';
+                    window.FerdAndroid.exportFile(fname, blob.type || 'application/zip', b64);
+                    resolve();
+                  };
+                  reader.readAsDataURL(blob);
+                });
+                return;
+              }
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;

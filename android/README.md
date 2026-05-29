@@ -36,10 +36,12 @@ The debug APK lands at `app/build/outputs/apk/debug/app-debug.apk`. Or open the
 The bundled frontend is copied from the repo root by the `copyWebAssets` Gradle
 task on every build, so the app never drifts from the web source.
 
+Export uses a small JS bridge (`window.FerdAndroid`): the frontend hands the
+export blob to native, which saves it through the system document picker
+(WebView drops blob downloads on its own).
+
 ## Known limitations (v1)
 
-- **In-app export**: the data-export download (a blob) isn't captured yet; export
-  from a browser for now.
 - **Launcher icon** is a placeholder map pin. Replace it via Android Studio's
   Image Asset Studio (generated from the Ferd favicon) before any public release.
 

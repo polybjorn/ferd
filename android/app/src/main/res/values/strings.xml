@@ -5,5 +5,7 @@
   <string name="cert_message">This server\'s certificate isn\'t issued by a recognized authority. Only continue if this is your own server.\n\nSHA-256:\n%1$s</string>
   <string name="cert_trust">Trust</string>
   <string name="cert_cancel">Cancel</string>
-  <string name="download_unsupported">In-app download isn\'t supported yet. Use a browser to export.</string>
+  <string name="download_unsupported">Couldn\'t download this file.</string>
+  <string name="export_saved">Export saved.</string>
+  <string name="export_failed">Export failed.</string>
 </resources>
