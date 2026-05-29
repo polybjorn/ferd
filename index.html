@@ -2882,6 +2882,79 @@
       return fetch(url, applyAuth({})).then(r => r.ok ? r.json() : fallback).catch(() => fallback);
     }
 
+    // ----- On-device cache (IndexedDB) -----
+    // Mirror of the last successful server reads so the app stays browsable
+    // when the server is unreachable. A single key/value 'cache' store is
+    // enough for hydrate-on-read; per-record stores arrive with offline
+    // writes and local-only mode. All helpers are best-effort: if IndexedDB
+    // is missing or errors, get() yields null and set() is a no-op, so the
+    // app degrades to the previous online-only behavior.
+    const IDB_NAME = 'ferd';
+    const IDB_VERSION = 1;
+    let _idbPromise = null;
+    function idbOpen() {
+      if (_idbPromise) return _idbPromise;
+      _idbPromise = new Promise((resolve, reject) => {
+        let req;
+        try { req = indexedDB.open(IDB_NAME, IDB_VERSION); }
+        catch (e) { return reject(e); }
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains('cache')) db.createObjectStore('cache');
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      return _idbPromise;
+    }
+    function idbGet(store, key) {
+      return idbOpen().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(store, 'readonly');
+        const r = tx.objectStore(store).get(key);
+        r.onsuccess = () => resolve(r.result);
+        r.onerror = () => reject(r.error);
+      })).catch(() => null);
+    }
+    function idbSet(store, key, val) {
+      return idbOpen().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(store, 'readwrite');
+        tx.objectStore(store).put(val, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      })).catch(() => {});
+    }
+
+    // Cache keys are namespaced by server origin and viewer identity so a
+    // user who holds several maps (own account, a public map, a different
+    // server) never reads one map's cache into another's view.
+    function _serverBase() {
+      return (localStorage.getItem('ferd-server') || location.origin).replace(/\/+$/, '');
+    }
+    function authCacheKey() { return 'auth::' + _serverBase(); }
+    function dataCacheKey(kind) {
+      const v = state.viewer;
+      const who = (v && v.mode === 'public') ? 'pub:' + v.username : 'own:' + ((state.auth && state.auth.username) || '?');
+      return 'data::' + _serverBase() + '::' + who + '::' + kind;
+    }
+
+    // Read a JSON payload, mirroring it to the cache on success and serving
+    // the last cached copy when the network is unreachable. A definitive
+    // server response (404/401/...) returns the fallback exactly as the old
+    // fetchJson did, so an unpublished or signed-out map never resurrects
+    // stale data; only an outright network failure hydrates from cache.
+    function cachedRead(kind, url, fallback) {
+      return fetch(url, applyAuth({})).then(
+        r => {
+          if (!r.ok) return fallback;
+          return r.json().then(data => {
+            idbSet('cache', dataCacheKey(kind), { data, ts: Date.now() });
+            return data;
+          }, () => fallback);
+        },
+        () => idbGet('cache', dataCacheKey(kind)).then(rec => rec ? rec.data : fallback)
+      );
+    }
+
     // Single dispatch seam between the UI and the backend for app *content*
     // (places, routes/GPX, metadata, regions, category labels). Every method
     // currently forwards 1:1 to the server. Later phases swap implementations
@@ -2889,10 +2962,10 @@
     // touching call sites. Reads honor the viewer (owner vs public) via
     // dataUrl/categoryLabelsUrl. Writes are owner-only and reuse api().
     const dataLayer = {
-      // -- reads --
-      fetchPlaces(fallback)         { return fetchJson(dataUrl('places'), fallback); },
-      fetchRoutes(fallback)         { return fetchJson(dataUrl('routes'), fallback); },
-      fetchCategoryLabels(fallback) { return fetchJson(categoryLabelsUrl(), fallback); },
+      // -- reads (cached on-device; served from cache when offline) --
+      fetchPlaces(fallback)         { return cachedRead('places', dataUrl('places'), fallback); },
+      fetchRoutes(fallback)         { return cachedRead('routes', dataUrl('routes'), fallback); },
+      fetchCategoryLabels(fallback) { return cachedRead('category-labels', categoryLabelsUrl(), fallback); },
 
       // -- place writes --
       createPlace(payload)   { return api('POST', '/places', payload); },
@@ -10325,11 +10398,25 @@
     }
 
     function bootApp() {
+      // Ask the browser to keep the on-device cache from being evicted under
+      // storage pressure. Silent (heuristic) in most browsers; best-effort.
+      if (navigator.storage && navigator.storage.persist) {
+        try { navigator.storage.persist(); } catch {}
+      }
       return fetchJson(serverFileUrl(DATA_FILES.siteConfig), null)
         .then(function(cfg) {
           applyConfig(cfg);
-          return fetch(apiUrl('/state'), applyAuth({}))
-            .then(r => r.ok ? r.json() : null).catch(() => null);
+          // Cache the auth state on success; on a network failure (offline
+          // cold boot) restore the last-known session so the PWA opens into
+          // the map instead of bouncing to the sign-in screen. A definitive
+          // non-ok response (e.g. expired session) still yields null.
+          return fetch(apiUrl('/state'), applyAuth({})).then(
+            r => {
+              if (!r.ok) return null;
+              return r.json().then(s => { idbSet('cache', authCacheKey(), { data: s, ts: Date.now() }); return s; }, () => null);
+            },
+            () => idbGet('cache', authCacheKey()).then(rec => rec ? rec.data : null)
+          );
         })
         .then(function(authState) {
           if (authState) state.auth = authState;
@@ -10356,20 +10443,36 @@
         .finally(function() { clearTimeout(t); });
     }
 
+    // True when this server has an on-device cache from a prior successful
+    // load, so a failed probe (offline, flaky link, server down) can boot
+    // into the last-known map read-only instead of dead-ending at the picker.
+    function hasOfflineCache() {
+      return idbGet('cache', authCacheKey()).then(rec => !!(rec && rec.data));
+    }
+
     // Boot trigger. A stored server is probed and used (re-prompts on failure).
     // With no stored server we probe same-origin: an API there means a normal
     // web/PWA deploy (boot silently, picker never seen); none means a bundled
-    // shell with no local API, so ask which server to connect to.
+    // shell with no local API, so ask which server to connect to. When the
+    // probe fails but we hold a cache for this server, boot anyway; bootApp
+    // restores the session and data from IndexedDB and the offline banner
+    // signals read-only mode.
     function startup() {
       const base = serverBase();
       if (base) {
         return probeServer(base, 6000).then(function(ok) {
           if (ok) return bootApp();
-          return renderServerPicker({ error: "Can't reach " + base + ". Check the address or your connection." });
+          return hasOfflineCache().then(function(cached) {
+            if (cached) return bootApp();
+            return renderServerPicker({ error: "Can't reach " + base + ". Check the address or your connection." });
+          });
         });
       }
       return probeServer('', 3500).then(function(ok) {
-        return ok ? bootApp() : renderServerPicker({});
+        if (ok) return bootApp();
+        return hasOfflineCache().then(function(cached) {
+          return cached ? bootApp() : renderServerPicker({});
+        });
       });
     }
 

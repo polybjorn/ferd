@@ -4,6 +4,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+### Added
+- Offline read access: places, routes, and category data are cached on-device (IndexedDB) on each successful load and served when the server is unreachable, so an installed PWA opens into the last-known map (read-only) instead of dead-ending at the sign-in or server-picker screen. The offline banner signals read-only mode; the cache is namespaced per server and account.
+
 ## [1.1.0] - 2026-05-29
 
 ### Added
