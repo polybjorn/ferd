@@ -36,6 +36,23 @@ android {
     buildConfig = true
   }
 
+  // Release signing reads a keystore from the environment (CI secrets). When
+  // it's absent (local/dev builds), no release signing config is created and
+  // assembleRelease produces an unsigned APK; only CI with the secrets emits a
+  // distributable, consistently-signed build for Obtainium.
+  val keystorePath = System.getenv("FERD_KEYSTORE_FILE")
+  val hasKeystore = keystorePath != null && file(keystorePath).exists()
+  signingConfigs {
+    if (hasKeystore) {
+      create("release") {
+        storeFile = file(keystorePath!!)
+        storePassword = System.getenv("FERD_KEYSTORE_PASSWORD")
+        keyAlias = System.getenv("FERD_KEY_ALIAS")
+        keyPassword = System.getenv("FERD_KEY_PASSWORD")
+      }
+    }
+  }
+
   buildTypes {
     release {
       isMinifyEnabled = false
@@ -43,6 +60,7 @@ android {
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro",
       )
+      signingConfig = signingConfigs.findByName("release")
     }
   }
 

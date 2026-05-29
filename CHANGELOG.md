@@ -11,7 +11,6 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Place cards show an "unlinked" marker (replacing the catalog book icon) when an imported place's catalog entry has been removed from the catalog, so a dead catalog link is visually distinct from a live one. Renamed entries re-link instead of orphaning, so this only appears for genuine removals.
 - Place schema: optional `image_focus` field controls the popup image's crop anchor (`top`, `bottom`, `left`, `right`, `center`, or `"X% Y%"`). Lets portrait photos render in the landscape popup frame without the meaningful subject getting cropped out. Flows through the catalog: catalog entries can set it, the "Update from catalog" diff tracks it, and the server clears it automatically when `image` changes so it always tracks a specific photo.
 - Catalog test: optional fields cannot be present with empty values (e.g. `"image": ""`). Omit the field instead.
-- Shipped catalog: `local_name` reverted to native script across 40 entries (Iran, Russia, Greece, Morocco). Romanizations like `Takht-e Jamshid` provided no signal to readers who don't know the language while obscuring the actual name for those who do; native script (`تخت جمشید`) is more useful to both audiences. Latin-script languages (German, Italian, French, Spanish, Turkish) were already native and are unchanged.
 - Shipped catalog: 104 new entries.
 - `GET /api/health` for liveness checks; returns `{status: "ok", version}`.
 - Install docs and installer output now point at the source clone as the place to re-run `install.sh` from on updates.
@@ -35,7 +34,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places list groups (by category, country, or letter) now list items alphabetically within each group instead of in insertion order. The chosen grouping is persisted across page reloads.
 - Routes list now lists routes alphabetically within each region (or letter). The chosen grouping is persisted across page reloads.
 - Routes list re-renders on filter changes instead of hiding cards with CSS. Empty groups disappear from the list rather than collapsing to zero height.
-- Shipped catalog: non-Latin `local_name` values switched from native script to Latin transliteration (Iran, Russia, Greece) so labels are readable to Latin-alphabet users. Two Iran entries renamed to English: Arg-e Bam -> Bam Citadel, Gonbad-e Qabus -> Qabus Tower. The seven entries whose romanization equaled `name` (Ali Qapu, Chefchaouen, Chogha Zanbil, Fes el-Bali, Fira, Ribat-i Sharaf, Skaros) now have `local_name` omitted entirely instead of keeping the native script.
+- Shipped catalog: two entries renamed to English (Arg-e Bam -> Bam Citadel, Gonbad-e Qabus -> Qabus Tower).
 - Catalog mark on place cards: open-book icon (was bookmark), with an accent dot in the corner to mark "update available" (replacing the previous color-swap behavior).
 - Accepting a catalog update no longer triggers a full list re-render; only the affected card updates in place.
 - "Add place" / "Add route" relabeled to "Add" so the button doesn't change width when switching tabs.
