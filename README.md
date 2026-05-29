@@ -30,7 +30,7 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 
 **Requirements:** Python 3.9+ (or Docker), a modern browser. No build step, no Node, no database server (SQLite file).
 
-**Footprint:** ~2 MB of code and assets. Python uses about 28 MB of memory at idle; the Docker image is 43 MiB compressed (211 MB on disk) and runs at roughly the same memory plus a small container overhead.
+**Footprint:** ~1.7 MB of code and assets. Python uses about 32 MB of memory at idle; the Docker image is 43 MiB compressed (211 MB on disk) and runs at roughly the same memory plus a small container overhead.
 
 Full documentation in [docs/](docs/).
 
@@ -60,17 +60,24 @@ docker compose up -d
 
 Open http://localhost:8090 and register the first account. See [docker.md](docs/docker.md) for tag tracks, FERD_* env vars, and data folder permissions.
 
+### Android
+
+Android client for a Ferd server. Install the APK from the [latest release](https://github.com/polybjorn/ferd/releases/latest), or use an APK manager like [Obtainium](https://github.com/ImranR98/Obtainium) to install and auto-update it from the repo's releases. On first launch, enter your server's address to sign in. Build it yourself: [android/](android/README.md).
+
 ## Roadmap
 
 ### Features
 - Print and PDF stylesheet for route and place details.
 - Uploaded image attachments on places and routes.
+- Chronological history page of visited places and completed routes, with an image and notes per entry.
+- Expanded list view for places and routes, with a large image and more room per entry than the compact cards.
 
 ### Authentication and security
 - Optional TOTP two-factor authentication.
 
-### Native clients
-- Android application via Trusted Web Activity.
+### Data and offline
+- Offline support when the server is unreachable, with edits synced on reconnect.
+- Local-only mode with no server and on-device data (single-device, no sharing).
 
 ### Branding
 - Distinctive logo.
