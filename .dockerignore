@@ -16,6 +16,7 @@ data/
 # Dev artifacts.
 tests/
 docs/
+android/
 *.md
 !LICENSE
 .DS_Store
