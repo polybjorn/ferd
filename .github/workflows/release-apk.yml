@@ -55,8 +55,16 @@ jobs:
           APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
           "$APKSIGNER" verify --verbose "$APK"
 
+      - name: Name the APK for the release
+        id: apk
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          out="ferd-${version}.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "$out"
+          echo "path=$out" >> "$GITHUB_OUTPUT"
+
       - name: Attach APK to the release
         uses: softprops/action-gh-release@v2
         with:
-          files: android/app/build/outputs/apk/release/app-release.apk
+          files: ${{ steps.apk.outputs.path }}
           fail_on_unmatched_files: true
