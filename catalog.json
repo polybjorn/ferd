@@ -165,6 +165,19 @@
     ]
   },
   {
+    "name": "Arch of Galerius",
+    "lat": 40.63224,
+    "lon": 22.95174,
+    "category": "monument",
+    "country": "Greece",
+    "local_name": "Καμάρα",
+    "note": "Roman triumphal arch for Galerius's win over Persia, 303 AD",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Arch_of_Galerius-Kamara.jpg/1280px-Arch_of_Galerius-Kamara.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Arch_of_Galerius_and_Rotunda"
+    ]
+  },
+  {
     "name": "Atomic Bomb Dome",
     "lat": 34.3955,
     "lon": 132.4536,
@@ -254,6 +267,19 @@
     ]
   },
   {
+    "name": "Basilica of San Vitale",
+    "lat": 44.4206,
+    "lon": 12.1964,
+    "category": "religious",
+    "country": "Italy",
+    "local_name": "Basilica di San Vitale",
+    "note": "6th-century church with major Byzantine mosaics",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Basilica_of_San_Vitale.jpg/1280px-Basilica_of_San_Vitale.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Basilica_of_San_Vitale"
+    ]
+  },
+  {
     "name": "Baths of Caracalla",
     "lat": 41.87944,
     "lon": 12.49306,
@@ -264,6 +290,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Baths_of_Caracalla%2C_facing_Caldarium.jpg/1280px-Baths_of_Caracalla%2C_facing_Caldarium.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Baths_of_Caracalla"
+    ]
+  },
+  {
+    "name": "Baths of Trajan",
+    "lat": 41.89187,
+    "lon": 12.49628,
+    "category": "ruins",
+    "country": "Italy",
+    "local_name": "Terme di Traiano",
+    "note": "Vast Roman bathing complex dedicated under Trajan, 109 AD",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Trajansthermen.jpg/1280px-Trajansthermen.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Baths_of_Trajan"
     ]
   },
   {
@@ -290,6 +329,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Bent_Pyramid_%E6%9B%B2%E6%8A%98%E9%87%91%E5%AD%97%E5%A1%94_-_panoramio.jpg/1280px-Bent_Pyramid_%E6%9B%B2%E6%8A%98%E9%87%91%E5%AD%97%E5%A1%94_-_panoramio.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Bent_Pyramid"
+    ]
+  },
+  {
+    "name": "Berat",
+    "lat": 40.70222,
+    "lon": 19.95833,
+    "category": "city",
+    "country": "Albania",
+    "local_name": "Berati",
+    "note": "Ottoman hillside town known for its tiered windows",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Berat_57.jpg/1280px-Berat_57.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Berat"
     ]
   },
   {
@@ -358,6 +410,18 @@
     ]
   },
   {
+    "name": "British Museum",
+    "lat": 51.5194,
+    "lon": -0.1269,
+    "category": "museum",
+    "country": "United Kingdom",
+    "note": "Vast collection of world history and culture, founded 1753",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/British_Museum_%28aerial%29.jpg/1280px-British_Museum_%28aerial%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/British_Museum"
+    ]
+  },
+  {
     "name": "Bryggen",
     "lat": 60.39722,
     "lon": 5.32306,
@@ -367,6 +431,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Bryggen%2C_Bergen%2C_Noruega%2C_2019-09-08%2C_DD_115-117_PAN.jpg/1280px-Bryggen%2C_Bergen%2C_Noruega%2C_2019-09-08%2C_DD_115-117_PAN.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Bryggen"
+    ]
+  },
+  {
+    "name": "Butrint",
+    "lat": 39.74556,
+    "lon": 20.02056,
+    "category": "ruins",
+    "country": "Albania",
+    "local_name": "Butrinti",
+    "note": "Ruined Greek and Roman city, now a national park",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Amphitheatre_of_Butrint_2009.jpg/1280px-Amphitheatre_of_Butrint_2009.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Butrint"
     ]
   },
   {
@@ -405,6 +482,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Moscow_July_2011-7a.jpg/1280px-Moscow_July_2011-7a.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Cathedral_of_Christ_the_Saviour"
+    ]
+  },
+  {
+    "name": "Centre Pompidou",
+    "lat": 48.86064,
+    "lon": 2.35225,
+    "category": "museum",
+    "country": "France",
+    "note": "Modern art museum with its structure turned inside out",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Centre_Pompidou_%40_Beaubourg_%40_Paris_%2815448205062%29.jpg/1280px-Centre_Pompidou_%40_Beaubourg_%40_Paris_%2815448205062%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Centre_Pompidou"
     ]
   },
   {
@@ -498,6 +587,19 @@
     ]
   },
   {
+    "name": "Church of Saint George, Sofia",
+    "lat": 42.69694,
+    "lon": 23.32278,
+    "category": "religious",
+    "country": "Bulgaria",
+    "local_name": "Ротонда „Свети Георги\"",
+    "note": "Oldest building in Sofia, a 4th-century Roman rotunda",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/StGeorgeRotundaSofia.JPG/1280px-StGeorgeRotundaSofia.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Church_of_Saint_George,_Sofia"
+    ]
+  },
+  {
     "name": "Copacabana Beach",
     "lat": -22.9711,
     "lon": -43.1822,
@@ -573,6 +675,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/At-Turaif_District_of_Diriyah%2C_Saudi_Arabia.jpg/1280px-At-Turaif_District_of_Diriyah%2C_Saudi_Arabia.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Diriyah"
+    ]
+  },
+  {
+    "name": "Djémila",
+    "lat": 36.31667,
+    "lon": 5.73333,
+    "category": "ruins",
+    "country": "Algeria",
+    "local_name": "جميلة",
+    "note": "Roman ruins of ancient Cuicul, adapted to mountain terrain",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Roman_Ruins_of_Djemila_in_S%C3%A9tif%2C_Algeria.jpg/1280px-Roman_Ruins_of_Djemila_in_S%C3%A9tif%2C_Algeria.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Djémila"
     ]
   },
   {
@@ -742,6 +857,32 @@
     ]
   },
   {
+    "name": "Garni Temple",
+    "lat": 40.11242,
+    "lon": 44.73028,
+    "category": "monument",
+    "country": "Armenia",
+    "local_name": "Գառնիի տաճար",
+    "note": "Only standing Greco-Roman colonnaded temple in the region",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Garni_temple_2021_drone.jpg/1280px-Garni_temple_2021_drone.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Temple_of_Garni"
+    ]
+  },
+  {
+    "name": "Geghard Monastery",
+    "lat": 40.14043,
+    "lon": 44.81851,
+    "category": "religious",
+    "country": "Armenia",
+    "local_name": "Գեղարդ",
+    "note": "Medieval monastery partly carved into the cliffside",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Monasterio_de_Geghard%2C_Armenia%2C_2016-10-02%2C_DD_63.jpg/1280px-Monasterio_de_Geghard%2C_Armenia%2C_2016-10-02%2C_DD_63.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Geghard"
+    ]
+  },
+  {
     "name": "Genghis Khan Equestrian Statue",
     "lat": 47.80806,
     "lon": 107.52975,
@@ -817,6 +958,31 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Hakodate_Goryokaku_Panorama_1.JPG/1280px-Hakodate_Goryokaku_Panorama_1.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Gory%C5%8Dkaku"
+    ]
+  },
+  {
+    "name": "Great Pyramid of Cholula",
+    "lat": 19.0575,
+    "lon": -98.30194,
+    "category": "monument",
+    "country": "Mexico",
+    "local_name": "Tlachihualtepetl",
+    "note": "Largest pyramid by volume in the world",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Gran_Pir%C3%A1mide_de_Cholula%2C_Puebla%2C_M%C3%A9xico%2C_2013-10-12%2C_DD_10.JPG/1280px-Gran_Pir%C3%A1mide_de_Cholula%2C_Puebla%2C_M%C3%A9xico%2C_2013-10-12%2C_DD_10.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Great_Pyramid_of_Cholula"
+    ]
+  },
+  {
+    "name": "Great Pyramid of Giza",
+    "lat": 29.97917,
+    "lon": 31.13417,
+    "category": "monument",
+    "country": "Egypt",
+    "note": "Oldest of the Seven Wonders and only one still standing",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Great_Pyramid_of_Giza_-_Pyramid_of_Khufu.jpg/1280px-Great_Pyramid_of_Giza_-_Pyramid_of_Khufu.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Great_Pyramid_of_Giza"
     ]
   },
   {
@@ -1181,6 +1347,32 @@
     ]
   },
   {
+    "name": "Louvre",
+    "lat": 48.8611,
+    "lon": 2.3358,
+    "category": "museum",
+    "country": "France",
+    "local_name": "Musée du Louvre",
+    "note": "World's most-visited museum, home of the Mona Lisa",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Louvre_Museum_Wikimedia_Commons.jpg/1280px-Louvre_Museum_Wikimedia_Commons.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Louvre"
+    ]
+  },
+  {
+    "name": "M+",
+    "lat": 22.30096,
+    "lon": 114.15964,
+    "category": "museum",
+    "country": "Hong Kong",
+    "local_name": "M+ 博物館",
+    "note": "Museum of modern visual culture in West Kowloon",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/WKCD_M%2B%2C_2021.11.jpg/1280px-WKCD_M%2B%2C_2021.11.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/M%2B"
+    ]
+  },
+  {
     "name": "Machu Picchu",
     "lat": -13.16333,
     "lon": -72.54556,
@@ -1204,6 +1396,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Matsumoto_Castle_Keep_Tower.jpg/1280px-Matsumoto_Castle_Keep_Tower.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Matsumoto_Castle"
+    ]
+  },
+  {
+    "name": "Mausoleum of Constantina",
+    "lat": 41.92261,
+    "lon": 12.51738,
+    "category": "religious",
+    "country": "Italy",
+    "local_name": "Santa Costanza",
+    "note": "4th-century domed tomb with original Roman ceiling mosaics",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Mausoleo_di_Santa_Costanza_-_esterno.jpg/1280px-Mausoleo_di_Santa_Costanza_-_esterno.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Mausoleum_of_Constantina"
     ]
   },
   {
@@ -1258,6 +1463,18 @@
     ]
   },
   {
+    "name": "Metropolitan Museum of Art",
+    "lat": 40.7794,
+    "lon": -73.9631,
+    "category": "museum",
+    "country": "United States",
+    "note": "Largest art museum in the Americas, on Fifth Avenue",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Metropolitan_Museum_of_Art_%28The_Met%29_-_Central_Park%2C_NYC.jpg/1280px-Metropolitan_Museum_of_Art_%28The_Met%29_-_Central_Park%2C_NYC.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Metropolitan_Museum_of_Art"
+    ]
+  },
+  {
     "name": "Mor Gabriel Monastery",
     "lat": 37.32178,
     "lon": 41.5385,
@@ -1296,6 +1513,42 @@
     ]
   },
   {
+    "name": "Museo del Prado",
+    "lat": 40.4139,
+    "lon": -3.6922,
+    "category": "museum",
+    "country": "Spain",
+    "note": "Spain's national museum of European art in Madrid",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Museo_del_Prado_2016_%2825185969599%29.jpg/1280px-Museo_del_Prado_2016_%2825185969599%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Museo_del_Prado"
+    ]
+  },
+  {
+    "name": "Museum of Modern Art",
+    "lat": 40.7617,
+    "lon": -73.9775,
+    "category": "museum",
+    "country": "United States",
+    "note": "MoMA, influential modern and contemporary art in Manhattan",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/The_Museum_of_Modern_Art%2C_MoMA%2C_New_York_%2850415922541%29.jpg/1280px-The_Museum_of_Modern_Art%2C_MoMA%2C_New_York_%2850415922541%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Museum_of_Modern_Art"
+    ]
+  },
+  {
+    "name": "Musée d'Orsay",
+    "lat": 48.85997,
+    "lon": 2.32653,
+    "category": "museum",
+    "country": "France",
+    "note": "Impressionist art in a former Beaux-Arts railway station",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Mus%C3%A9e_d%27Orsay_%2849570190661%29.jpg/1280px-Mus%C3%A9e_d%27Orsay_%2849570190661%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Mus%C3%A9e_d%27Orsay"
+    ]
+  },
+  {
     "name": "Naoshima",
     "lat": 34.45833,
     "lon": 133.98333,
@@ -1319,6 +1572,56 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/003_Nara_deer_in_Japan_-_deer_of_Nara_Park_under_autumn_leaves.jpg/1280px-003_Nara_deer_in_Japan_-_deer_of_Nara_Park_under_autumn_leaves.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Nara_Park"
+    ]
+  },
+  {
+    "name": "National Gallery",
+    "lat": 51.5089,
+    "lon": -0.1283,
+    "category": "museum",
+    "country": "United Kingdom",
+    "note": "Western European paintings on Trafalgar Square, London",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Galer%C3%ADa_Nacional%2C_Londres%2C_Inglaterra%2C_2014-08-07%2C_DD_036.JPG/1280px-Galer%C3%ADa_Nacional%2C_Londres%2C_Inglaterra%2C_2014-08-07%2C_DD_036.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/National_Gallery"
+    ]
+  },
+  {
+    "name": "National Gallery of Art",
+    "lat": 38.8914,
+    "lon": -77.02,
+    "category": "museum",
+    "country": "United States",
+    "note": "US national art museum on the Washington Mall",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/National_Gallery_of_Art_-_2026_%2855255088792%29.jpg/1280px-National_Gallery_of_Art_-_2026_%2855255088792%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/National_Gallery_of_Art"
+    ]
+  },
+  {
+    "name": "National Museum of Anthropology",
+    "lat": 19.4261,
+    "lon": -99.1861,
+    "category": "museum",
+    "country": "Mexico",
+    "local_name": "Museo Nacional de Antropología",
+    "note": "Mexico's largest museum, home of the Aztec Sun Stone",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Frontis_del_edificio_del_Museo_Nacional_de_Antropolog%C3%ADa.JPG/1280px-Frontis_del_edificio_del_Museo_Nacional_de_Antropolog%C3%ADa.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/National_Museum_of_Anthropology_(Mexico)"
+    ]
+  },
+  {
+    "name": "National Museum of Korea",
+    "lat": 37.5239,
+    "lon": 126.9803,
+    "category": "museum",
+    "country": "South Korea",
+    "local_name": "국립중앙박물관",
+    "note": "Flagship museum of Korean history and art in Seoul",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/National_Museum_of_Korea%2C_Seoul_%282%29_%2840236586235%29.jpg/1280px-National_Museum_of_Korea%2C_Seoul_%282%29_%2840236586235%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/National_Museum_of_Korea"
     ]
   },
   {
@@ -1564,6 +1867,30 @@
     ]
   },
   {
+    "name": "Pyramid of Khafre",
+    "lat": 29.97611,
+    "lon": 31.13083,
+    "category": "monument",
+    "country": "Egypt",
+    "note": "Second-tallest Giza pyramid, still capped with casing stone",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Pyramid_of_Khafre_and_Sphinx%2C_Giza%2C_Greater_Cairo%2C_Egypt.jpg/1280px-Pyramid_of_Khafre_and_Sphinx%2C_Giza%2C_Greater_Cairo%2C_Egypt.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Pyramid_of_Khafre"
+    ]
+  },
+  {
+    "name": "Pyramid of Menkaure",
+    "lat": 29.9725,
+    "lon": 31.12833,
+    "category": "monument",
+    "country": "Egypt",
+    "note": "Smallest of the three main Giza pyramids",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Cairo%2C_Gizeh%2C_Pyramid_of_Menkaure%2C_Egypt%2C_Oct_2005.jpg/1280px-Cairo%2C_Gizeh%2C_Pyramid_of_Menkaure%2C_Egypt%2C_Oct_2005.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Pyramid_of_Menkaure"
+    ]
+  },
+  {
     "name": "Pyramid of the Moon",
     "lat": 19.6996,
     "lon": -98.844,
@@ -1629,6 +1956,31 @@
     ]
   },
   {
+    "name": "Red Basilica",
+    "lat": 39.1219,
+    "lon": 27.1833,
+    "category": "ruins",
+    "country": "Turkey",
+    "local_name": "Kızıl Avlu",
+    "note": "Monumental Roman temple to Egyptian gods at Pergamon",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Red_basilica_west_view.jpg/1280px-Red_basilica_west_view.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Red_Basilica"
+    ]
+  },
+  {
+    "name": "Red Pyramid",
+    "lat": 29.80833,
+    "lon": 31.20583,
+    "category": "monument",
+    "country": "Egypt",
+    "note": "Egypt's first true smooth-sided pyramid",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Rote_Pyramide_%28Dahschur%29_04.jpg/1280px-Rote_Pyramide_%28Dahschur%29_04.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Red_Pyramid"
+    ]
+  },
+  {
     "name": "Revash",
     "lat": -6.5407,
     "lon": -77.8562,
@@ -1691,6 +2043,18 @@
     ]
   },
   {
+    "name": "Rijksmuseum",
+    "lat": 52.36,
+    "lon": 4.8853,
+    "category": "museum",
+    "country": "Netherlands",
+    "note": "Dutch national museum, home of Rembrandt's Night Watch",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/South_facade_of_the_Rijksmuseum_Amsterdam_%28DSCF0528%29.jpg/1280px-South_facade_of_the_Rijksmuseum_Amsterdam_%28DSCF0528%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Rijksmuseum"
+    ]
+  },
+  {
     "name": "Rock Sculpture of Decebalus",
     "lat": 44.64118,
     "lon": 22.29125,
@@ -1714,6 +2078,32 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Lalibela%2C_san_giorgio%2C_esterno_24.jpg/1280px-Lalibela%2C_san_giorgio%2C_esterno_24.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Church_of_Saint_George,_Lalibela"
+    ]
+  },
+  {
+    "name": "Rotunda of Galerius",
+    "lat": 40.6333,
+    "lon": 22.95285,
+    "category": "religious",
+    "country": "Greece",
+    "local_name": "Ροτόντα",
+    "note": "4th-century domed mausoleum, later church and mosque",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Rotunda_of_Galerius435.jpg/1280px-Rotunda_of_Galerius435.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Arch_of_Galerius_and_Rotunda"
+    ]
+  },
+  {
+    "name": "Russian Museum",
+    "lat": 59.93859,
+    "lon": 30.33222,
+    "category": "museum",
+    "country": "Russia",
+    "local_name": "Государственный Русский музей",
+    "note": "World's largest collection of Russian art, St Petersburg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%D0%B4%D0%B2%D0%BE%D1%80%D0%B5%D1%86%2C_%D0%B4%D0%B2%D0%BE%D1%8003.jpg/1280px-%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%D0%B4%D0%B2%D0%BE%D1%80%D0%B5%D1%86%2C_%D0%B4%D0%B2%D0%BE%D1%8003.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Russian_Museum"
     ]
   },
   {
@@ -1766,6 +2156,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Schloss_Sanssouci_2014.jpg/1280px-Schloss_Sanssouci_2014.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sanssouci"
+    ]
+  },
+  {
+    "name": "Santi Cosma e Damiano",
+    "lat": 41.89206,
+    "lon": 12.48743,
+    "category": "religious",
+    "country": "Italy",
+    "local_name": "Basilica dei Santi Cosma e Damiano",
+    "note": "6th-century church in the Forum with Byzantine apse mosaic",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Palatine_view_of_temple_of_romulus.jpg/1280px-Palatine_view_of_temple_of_romulus.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Santi_Cosma_e_Damiano,_Rome"
     ]
   },
   {
@@ -1840,6 +2243,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Castello_Sforzesco_da_alto.jpg/1280px-Castello_Sforzesco_da_alto.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sforza_Castle"
+    ]
+  },
+  {
+    "name": "Shanghai Science and Technology Museum",
+    "lat": 31.22028,
+    "lon": 121.53778,
+    "category": "museum",
+    "country": "China",
+    "local_name": "上海科技馆",
+    "note": "Major science museum in Pudong, Shanghai",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Shanghai_Science_and_Technology_Museum_20260418_%282%29.jpg/1280px-Shanghai_Science_and_Technology_Museum_20260418_%282%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Shanghai_Science_and_Technology_Museum"
     ]
   },
   {
@@ -1947,6 +2363,18 @@
     ]
   },
   {
+    "name": "Somerset House",
+    "lat": 51.5111,
+    "lon": -0.1178,
+    "category": "landmark",
+    "country": "United Kingdom",
+    "note": "Neoclassical arts centre with a fountain courtyard, London",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Somerset_House_courtyard_%2801%29.JPG/1280px-Somerset_House_courtyard_%2801%29.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Somerset_House"
+    ]
+  },
+  {
     "name": "Son Doong Cave",
     "lat": 17.45694,
     "lon": 106.2875,
@@ -1970,6 +2398,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Spring_Temple_Buddha_05.jpg/1280px-Spring_Temple_Buddha_05.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Spring_Temple_Buddha"
+    ]
+  },
+  {
+    "name": "St. Gereon's Basilica",
+    "lat": 50.94333,
+    "lon": 6.94583,
+    "category": "religious",
+    "country": "Germany",
+    "local_name": "Basilika Sankt Gereon",
+    "note": "Romanesque church with Europe's largest dome of its era",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Frontal_view_-_St._Gereon_-_Cologne_-_Germany_2017_%282%29.jpg/1280px-Frontal_view_-_St._Gereon_-_Cologne_-_Germany_2017_%282%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/St._Gereon%27s_Basilica,_Cologne"
     ]
   },
   {
@@ -2023,6 +2464,18 @@
     ]
   },
   {
+    "name": "Stonehenge",
+    "lat": 51.17889,
+    "lon": -1.82611,
+    "category": "monument",
+    "country": "United Kingdom",
+    "note": "Prehistoric standing stone circle on Salisbury Plain",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Stonehenge2007_07_30.jpg/1280px-Stonehenge2007_07_30.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Stonehenge"
+    ]
+  },
+  {
     "name": "Sultan Qaboos Grand Mosque",
     "lat": 23.58389,
     "lon": 58.38917,
@@ -2071,6 +2524,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/1280px-Taj_Mahal_%28Edited%29.jpeg",
     "sources": [
       "https://en.wikipedia.org/wiki/Taj_Mahal"
+    ]
+  },
+  {
+    "name": "Tate Modern",
+    "lat": 51.5078,
+    "lon": -0.0994,
+    "category": "museum",
+    "country": "United Kingdom",
+    "note": "Modern art museum in a former Bankside power station",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Tate_Modern_-_Bankside_Power_Station.jpg/1280px-Tate_Modern_-_Bankside_Power_Station.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Tate_Modern"
     ]
   },
   {
@@ -2174,6 +2639,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Takht-e-soleiman-1.jpg/1280px-Takht-e-soleiman-1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Takht-e_Soleym%C4%81n"
+    ]
+  },
+  {
+    "name": "Timbuktu",
+    "lat": 16.77348,
+    "lon": -3.00742,
+    "category": "city",
+    "country": "Mali",
+    "local_name": "تنبكت",
+    "note": "Medieval center of Islamic learning and Saharan trade",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Djenguereber_Mosque%2C_Timbuktu%2C_Mali.jpg/1280px-Djenguereber_Mosque%2C_Timbuktu%2C_Mali.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Timbuktu"
     ]
   },
   {
@@ -2281,6 +2759,32 @@
     ]
   },
   {
+    "name": "Tretyakov Gallery",
+    "lat": 55.74139,
+    "lon": 37.62086,
+    "category": "museum",
+    "country": "Russia",
+    "local_name": "Государственная Третьяковская галерея",
+    "note": "Foremost collection of Russian fine art, Moscow",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Moscow_05-2012_TretyakovGallery.jpg/1280px-Moscow_05-2012_TretyakovGallery.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Tretyakov_Gallery"
+    ]
+  },
+  {
+    "name": "Uffizi Gallery",
+    "lat": 43.7683,
+    "lon": 11.2553,
+    "category": "museum",
+    "country": "Italy",
+    "local_name": "Galleria degli Uffizi",
+    "note": "Renaissance art collection of the Medici in Florence",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Florence%2C_Italy_-_panoramio_%28125%29.jpg/1280px-Florence%2C_Italy_-_panoramio_%28125%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Uffizi"
+    ]
+  },
+  {
     "name": "Urnes Stave Church",
     "lat": 61.29811,
     "lon": 7.32259,
@@ -2320,6 +2824,19 @@
     ]
   },
   {
+    "name": "Vatican Museums",
+    "lat": 41.9064,
+    "lon": 12.4544,
+    "category": "museum",
+    "country": "Vatican City",
+    "local_name": "Musei Vaticani",
+    "note": "Papal art collections and the Sistine Chapel",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Circular_staircase_of_the_Vatican_Museums.jpg/1280px-Circular_staircase_of_the_Vatican_Museums.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Vatican_Museums"
+    ]
+  },
+  {
     "name": "Verona Arena",
     "lat": 45.43889,
     "lon": 10.99444,
@@ -2330,6 +2847,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Arena-XE3F2406a.jpg/1280px-Arena-XE3F2406a.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Verona_Arena"
+    ]
+  },
+  {
+    "name": "Victoria and Albert Museum",
+    "lat": 51.49667,
+    "lon": -0.17194,
+    "category": "museum",
+    "country": "United Kingdom",
+    "note": "World's largest museum of applied and decorative arts",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Victoria_and_Albert_Museum_London.jpg/1280px-Victoria_and_Albert_Museum_London.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Victoria_and_Albert_Museum"
     ]
   },
   {
