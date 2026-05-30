@@ -9,6 +9,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Shipped catalog: 117 new entries.
 - Offline read access: places, routes, and category data are cached on-device (IndexedDB) on each successful load and served when the server is unreachable, so an installed PWA opens into the last-known map (read-only) instead of dead-ending at the sign-in or server-picker screen. The offline banner signals read-only mode; the cache is namespaced per server and account.
 - Local-only mode: a "Use on this device only" option on the sign-in screen and server picker runs the app with no server and no account, storing places and routes entirely on-device (IndexedDB). GPX tracks are parsed and the route manifest built client-side. Back up or move a local map with the Export/Import zip in Settings (same format as the server, so a local map transfers to a server and back). Leave with "Connect to a server" in the menu; local and server data stay separate and switching never destroys either.
+- Local mode activity log: Menu > Logs records on-device edits (adding, editing, deleting, completing, and moving places and routes; region changes; imports), newest first, and can be cleared. The local analogue of the server audit log.
 
 ### Fixed
 - Adding a place: clicking "Pick on map" no longer clears the name, category, and other entered fields. The form now keeps its contents across the map pick.

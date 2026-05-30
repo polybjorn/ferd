@@ -3013,7 +3013,7 @@
     // is missing or errors, get() yields null and set() is a no-op, so the
     // app degrades to the previous online-only behavior.
     const IDB_NAME = 'ferd';
-    const IDB_VERSION = 2;
+    const IDB_VERSION = 3;
     let _idbPromise = null;
     function idbOpen() {
       if (_idbPromise) return _idbPromise;
@@ -3026,10 +3026,12 @@
           // v1: server-read cache (key/value). v2 adds the local-only stores:
           // 'places' (keyed by id), 'gpx' (keyed by file path), and a 'kv'
           // bag for singletons (metadata, category labels, local config).
+          // v3 adds 'log': the local-mode activity log (auto-increment id).
           if (!db.objectStoreNames.contains('cache')) db.createObjectStore('cache');
           if (!db.objectStoreNames.contains('places')) db.createObjectStore('places', { keyPath: 'id' });
           if (!db.objectStoreNames.contains('gpx')) db.createObjectStore('gpx', { keyPath: 'file' });
           if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+          if (!db.objectStoreNames.contains('log')) db.createObjectStore('log', { keyPath: 'id', autoIncrement: true });
         };
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
@@ -3086,6 +3088,48 @@
         tx.onerror = () => reject(tx.error);
       }));
     }
+
+    // Local-mode activity log: a single-device record of the actions the user
+    // takes on their on-device map (the local analogue of the server audit
+    // log). Best-effort - logging never blocks or fails a write. Capped to the
+    // most recent LOCAL_LOG_CAP entries so it can't grow unbounded.
+    const LOCAL_LOG_CAP = 1000;
+    function localLog(action, target, details) {
+      try {
+        const entry = { ts: Math.floor(Date.now() / 1000), action: action, target: target || '', details: details || {} };
+        idbOpen().then(db => {
+          const store = db.transaction('log', 'readwrite').objectStore('log');
+          store.add(entry);
+          const cnt = store.count();
+          cnt.onsuccess = () => {
+            const over = cnt.result - LOCAL_LOG_CAP;
+            if (over <= 0) return;
+            let removed = 0;
+            store.openCursor().onsuccess = e => {
+              const c = e.target.result;
+              if (c && removed < over) { c.delete(); removed++; c.continue(); }
+            };
+          };
+        }).catch(() => {});
+      } catch (_) {}
+    }
+    // Returns a then-able that logs after a successful local write and passes
+    // the write's result through unchanged: localStore.x(...).then(logLocal(...)).
+    function logLocal(action, target, details) {
+      return res => { localLog(action, target, details); return res; };
+    }
+    // One page of the local log, newest first, in the same shape renderAdminLogs
+    // expects from the server (/admin/logs).
+    function localLogPage(beforeId) {
+      return idbGetAll('log').then(rows => {
+        rows = (rows || []).slice().sort((a, b) => b.id - a.id);
+        if (beforeId != null) rows = rows.filter(r => r.id < beforeId);
+        const page = rows.slice(0, 100);
+        const next = rows.length > 100 ? page[page.length - 1].id : null;
+        return { logs: page, next_before_id: next };
+      }).catch(() => ({ logs: [], next_before_id: null }));
+    }
+    function localLogClear() { return idbClear('log'); }
 
     // Cache keys are namespaced by server origin and viewer identity so a
     // user who holds several maps (own account, a public map, a different
@@ -3477,6 +3521,7 @@
             const cur = (await idbGet('kv', 'local:category-labels')) || {};
             await idbSet('kv', 'local:category-labels', mode === 'merge' ? Object.assign({}, cur, labels) : labels);
           }
+          localLog('local.import', '', { places: nPlaces, gpx: nRoutes, mode: mode });
           return { ok: true, places: nPlaces, routes: nRoutes };
         });
       },
@@ -3495,14 +3540,21 @@
       fetchCategoryLabels(fallback) { return isLocalMode() ? localStore.getCategoryLabels() : cachedRead('category-labels', categoryLabelsUrl(), fallback); },
 
       // -- place writes --
-      createPlace(payload)   { return isLocalMode() ? localStore.createPlace(payload) : api('POST', '/places', payload); },
-      updatePlace(body)      { return isLocalMode() ? localStore.updatePlace(body) : api('PUT', '/places', body); },          // { id, place }
-      deletePlace(body)      { return isLocalMode() ? localStore.deletePlace(body) : api('DELETE', '/places', body); },       // { id }
-      clearCategory(body)    { return isLocalMode() ? localStore.clearCategory(body) : api('POST', '/places/clear-category', body); }, // { category }
+      createPlace(payload)   { return isLocalMode() ? localStore.createPlace(payload).then(logLocal('place.create', payload.name)) : api('POST', '/places', payload); },
+      updatePlace(body)      { return isLocalMode() ? localStore.updatePlace(body).then(logLocal('place.update', body.place && body.place.name)) : api('PUT', '/places', body); },          // { id, place }
+      deletePlace(body)      {
+        if (!isLocalMode()) return api('DELETE', '/places', body);                                                            // { id }
+        const p = (state.places || []).find(x => x.id === body.id);
+        return localStore.deletePlace(body).then(logLocal('place.delete', p ? p.name : ''));
+      },
+      clearCategory(body)    { return isLocalMode() ? localStore.clearCategory(body).then(logLocal('place.clear_category', body.category)) : api('POST', '/places/clear-category', body); }, // { category }
 
       // -- route / GPX writes --
       uploadGpx(opts) {
-        if (isLocalMode()) return localStore.uploadGpx(opts);
+        if (isLocalMode()) {
+          const stem = opts.name.endsWith('.planned') ? opts.name.slice(0, -'.planned'.length) : opts.name;
+          return localStore.uploadGpx(opts).then(logLocal('route.create', stem, { region: opts.region || '' }));
+        }
         const { region, name, stripPii, file } = opts;
         let qs = (region ? '?region=' + encodeURIComponent(region) + '&' : '?') + 'name=' + encodeURIComponent(name);
         if (stripPii) qs += '&strip_pii=true';
@@ -3516,15 +3568,15 @@
           return data;
         });
       },
-      deleteGpx(body)        { return isLocalMode() ? localStore.deleteGpx(body) : api('DELETE', '/gpx', body); },          // { region, name }
-      setGpxCompleted(body)  { return isLocalMode() ? localStore.setGpxCompleted(body) : api('POST', '/gpx/set-completed', body); }, // { key, completed }
-      moveGpx(body)          { return isLocalMode() ? localStore.moveGpx(body) : api('POST', '/gpx/move', body); },       // { key, new_region, new_name? }
-      putMetadata(body)      { return isLocalMode() ? localStore.putMetadata(body) : api('PUT', '/metadata', body); },        // { key, metadata }
+      deleteGpx(body)        { return isLocalMode() ? localStore.deleteGpx(body).then(logLocal('route.delete', body.name)) : api('DELETE', '/gpx', body); },          // { region, name }
+      setGpxCompleted(body)  { return isLocalMode() ? localStore.setGpxCompleted(body).then(logLocal(body.completed ? 'route.complete' : 'route.plan', _splitKey(body.key).name)) : api('POST', '/gpx/set-completed', body); }, // { key, completed }
+      moveGpx(body)          { return isLocalMode() ? localStore.moveGpx(body).then(r => { localLog('route.move', r.new_key ? _splitKey(r.new_key).name : '', { from: body.key }); return r; }) : api('POST', '/gpx/move', body); },       // { key, new_region, new_name? }
+      putMetadata(body)      { return isLocalMode() ? localStore.putMetadata(body).then(logLocal('route.update', _splitKey(body.key).name)) : api('PUT', '/metadata', body); },        // { key, metadata }
 
       // -- region writes --
-      renameRegion(body)     { return isLocalMode() ? localStore.renameRegion(body) : api('POST', '/regions/rename', body); }, // { from, to }
+      renameRegion(body)     { return isLocalMode() ? localStore.renameRegion(body).then(logLocal('region.rename', body.to, { from: body.from })) : api('POST', '/regions/rename', body); }, // { from, to }
       deleteRegion(body)     { return isLocalMode() ? localStore.deleteRegion(body) : api('POST', '/regions/delete', body); }, // { name }
-      clearRegion(body)      { return isLocalMode() ? localStore.clearRegion(body) : api('POST', '/regions/clear', body); },  // { name }
+      clearRegion(body)      { return isLocalMode() ? localStore.clearRegion(body).then(logLocal('region.clear', body.name)) : api('POST', '/regions/clear', body); },  // { name }
 
       // -- category labels --
       putCategoryLabels(body) { return isLocalMode() ? localStore.putCategoryLabels(body) : api('PUT', '/me/category-labels', body); }, // { category_labels }
@@ -8101,7 +8153,7 @@
             : '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>') +
           ((placesEnabled() || routesEnabled()) ? '<button data-action="history">History</button>' : '') +
           '<button data-action="settings">Settings</button>' +
-          (isAdmin ? '<button data-action="logs">Logs</button>' : '') +
+          ((isAdmin || local) ? '<button data-action="logs">Logs</button>' : '') +
           '<button data-action="about">About</button>' +
           (local
             ? '<button class="auth-menu-foot" data-action="connect">Connect to server</button>'
@@ -8985,8 +9037,10 @@
     }
 
     function openLogsModal() {
+      const local = isLocalMode();
+      const title = local ? 'Activity log' : 'Audit log';
       openModal(
-        '<h2>Audit log<button class="modal-close">&times;</button></h2>' +
+        '<h2>' + title + '<button class="modal-close">&times;</button></h2>' +
         '<div id="s-admin-logs"><div class="hint">Loading&hellip;</div></div>' +
         '<div class="log-toolbar"><button type="button" id="s-logs-clear" class="danger-btn">Clear all</button></div>',
         function() {
@@ -8995,14 +9049,14 @@
           if (clearBtn) {
             clearBtn.addEventListener('click', function() {
               openConfirmModal({
-                title: 'Clear audit log',
+                title: 'Clear ' + title.toLowerCase(),
                 body: 'This permanently deletes all logged events. Continue?',
                 confirmLabel: 'Clear all',
                 danger: true,
               }).then(ok => {
                 if (!ok) return;
                 clearBtn.disabled = true;
-                api('DELETE', '/admin/logs')
+                (local ? localLogClear() : api('DELETE', '/admin/logs'))
                   .then(() => renderAdminLogs())
                   .catch(err => alert('Failed: ' + err.message))
                   .then(() => { clearBtn.disabled = false; });
@@ -9757,6 +9811,20 @@
         case 'admin.logs_clear':
           msg = actor + ' cleared the audit log';
           break;
+        // Local-mode activity log (single device, no actor).
+        case 'place.create': msg = 'Added place ' + target; break;
+        case 'place.update': msg = 'Edited place ' + target; break;
+        case 'place.delete': msg = 'Deleted place ' + target; break;
+        case 'place.clear_category': msg = 'Cleared category ' + target; break;
+        case 'route.create': msg = 'Added route ' + target; detail = d.region ? 'in ' + d.region : ''; break;
+        case 'route.update': msg = 'Edited route ' + target; break;
+        case 'route.delete': msg = 'Deleted route ' + target; break;
+        case 'route.complete': msg = 'Marked ' + target + ' completed'; break;
+        case 'route.plan': msg = 'Marked ' + target + ' planned'; break;
+        case 'route.move': msg = 'Moved route ' + target; detail = d.from ? 'from ' + d.from : ''; break;
+        case 'region.rename': msg = 'Renamed region ' + (d.from ? '<span class="log-name">' + escapeHtml(d.from) + '</span> to ' : '') + target; break;
+        case 'region.clear': msg = 'Cleared region ' + target; break;
+        case 'local.import': msg = 'Imported ' + (d.places || 0) + ' places, ' + (d.gpx || 0) + ' routes'; detail = d.mode ? d.mode + ' mode' : ''; break;
         default:
           msg = escapeHtml(r.action) + (r.actor ? ' by ' + actor : '');
           try { detail = JSON.stringify(d); } catch (_) {}
@@ -9769,7 +9837,8 @@
       if (!el) return;
       const append = beforeId != null;
       const qs = '?limit=100' + (beforeId != null ? '&before_id=' + beforeId : '');
-      api('GET', '/admin/logs' + qs).then(data => {
+      const source = isLocalMode() ? localLogPage(beforeId) : api('GET', '/admin/logs' + qs);
+      source.then(data => {
         const logs = data.logs || [];
         if (!append && !logs.length) {
           el.innerHTML = '<div class="hint">No events recorded yet.</div>';
