@@ -53,6 +53,18 @@
     ]
   },
   {
+    "name": "Al-Ula Old Town",
+    "lat": 26.6083,
+    "lon": 37.92271,
+    "category": "ruins",
+    "country": "Saudi Arabia",
+    "note": "Labyrinth of abandoned mud-brick houses",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Al-Ula_Old_Town_2021.jpg/1280px-Al-Ula_Old_Town_2021.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Al-Ula"
+    ]
+  },
+  {
     "name": "Ali Qapu",
     "lat": 32.65722,
     "lon": 51.67667,
@@ -128,6 +140,19 @@
     ]
   },
   {
+    "name": "Angkor Wat",
+    "lat": 13.4125,
+    "lon": 103.8667,
+    "category": "religious",
+    "country": "Cambodia",
+    "local_name": "អង្គរវត្ត",
+    "note": "World's largest religious monument, 12th-century Khmer",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Buddhist_monks_in_front_of_the_Angkor_Wat.jpg/1280px-Buddhist_monks_in_front_of_the_Angkor_Wat.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Angkor_Wat"
+    ]
+  },
+  {
     "name": "Anse Source d'Argent",
     "lat": -4.37154,
     "lon": 55.82721,
@@ -137,6 +162,32 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/La_Digue_asv2024-10_img22_Union_Estate.jpg/1280px-La_Digue_asv2024-10_img22_Union_Estate.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Anse_Source_d%27Argent"
+    ]
+  },
+  {
+    "name": "Atomic Bomb Dome",
+    "lat": 34.3955,
+    "lon": 132.4536,
+    "category": "monument",
+    "country": "Japan",
+    "local_name": "原爆ドーム",
+    "note": "Ruin left standing nearest the atomic bomb hypocenter",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Genbaku_Dome04-r.JPG/1280px-Genbaku_Dome04-r.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Hiroshima_Peace_Memorial"
+    ]
+  },
+  {
+    "name": "Auschwitz-Birkenau Memorial",
+    "lat": 50.03583,
+    "lon": 19.17833,
+    "category": "museum",
+    "country": "Poland",
+    "local_name": "Państwowe Muzeum Auschwitz-Birkenau",
+    "note": "Nazi death camp where 1.1 million were murdered",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Auschwitz_I_%2822_May_2010%29_b.jpg/1280px-Auschwitz_I_%2822_May_2010%29_b.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Auschwitz-Birkenau_State_Museum"
     ]
   },
   {
@@ -185,9 +236,60 @@
     "category": "nature",
     "country": "Mali",
     "note": "Dogon cliff dwellings carved into sandstone",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Les_Falaises_de_Bandiagara.jpg/1280px-Les_Falaises_de_Bandiagara.jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Mali_-_Pays_Dogon_%28falaise_de_Biandagara%29_%2813667559705%29.jpg/1280px-Mali_-_Pays_Dogon_%28falaise_de_Biandagara%29_%2813667559705%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Bandiagara_Escarpment"
+    ]
+  },
+  {
+    "name": "Basilica of San Lorenzo, Milan",
+    "lat": 45.45833,
+    "lon": 9.18194,
+    "category": "religious",
+    "country": "Italy",
+    "note": "Early Christian basilica with a Roman colonnade",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Milano_Colonne_di_San_Lorenzo_1.jpg/1280px-Milano_Colonne_di_San_Lorenzo_1.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Basilica_of_San_Lorenzo,_Milan"
+    ]
+  },
+  {
+    "name": "Baths of Caracalla",
+    "lat": 41.87944,
+    "lon": 12.49306,
+    "category": "ruins",
+    "country": "Italy",
+    "local_name": "Terme di Caracalla",
+    "note": "Towering ruins of a vast Roman bath complex",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Baths_of_Caracalla%2C_facing_Caldarium.jpg/1280px-Baths_of_Caracalla%2C_facing_Caldarium.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Baths_of_Caracalla"
+    ]
+  },
+  {
+    "name": "Bayon",
+    "lat": 13.44111,
+    "lon": 103.85861,
+    "category": "religious",
+    "country": "Cambodia",
+    "local_name": "ប្រាសាទបាយ័ន",
+    "note": "Smiling stone-face towers at the heart of Angkor Thom",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Stone_faces_in_Bayon%2C_Angkor_%283%29.JPG/1280px-Stone_faces_in_Bayon%2C_Angkor_%283%29.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Bayon"
+    ]
+  },
+  {
+    "name": "Bent Pyramid",
+    "lat": 29.79028,
+    "lon": 31.20917,
+    "category": "monument",
+    "country": "Egypt",
+    "local_name": "هرم سنفرو المائل",
+    "note": "One of the few pyramids keeping its smooth casing",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Bent_Pyramid_%E6%9B%B2%E6%8A%98%E9%87%91%E5%AD%97%E5%A1%94_-_panoramio.jpg/1280px-Bent_Pyramid_%E6%9B%B2%E6%8A%98%E9%87%91%E5%AD%97%E5%A1%94_-_panoramio.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Bent_Pyramid"
     ]
   },
   {
@@ -201,6 +303,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/141227_Berliner_Dom.jpg/1280px-141227_Berliner_Dom.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Berlin_Cathedral"
+    ]
+  },
+  {
+    "name": "Bingling Temple",
+    "lat": 35.81056,
+    "lon": 103.04833,
+    "category": "religious",
+    "country": "China",
+    "local_name": "炳灵寺",
+    "note": "Cliffside Buddhist grottoes with a 27 m Buddha",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Bingling_Temple_Grottoes_51.jpg/1280px-Bingling_Temple_Grottoes_51.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Bingling_Temple"
     ]
   },
   {
@@ -243,6 +358,18 @@
     ]
   },
   {
+    "name": "Bryggen",
+    "lat": 60.39722,
+    "lon": 5.32306,
+    "category": "landmark",
+    "country": "Norway",
+    "note": "Colorful Hanseatic wharf of old wooden buildings",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Bryggen%2C_Bergen%2C_Noruega%2C_2019-09-08%2C_DD_115-117_PAN.jpg/1280px-Bryggen%2C_Bergen%2C_Noruega%2C_2019-09-08%2C_DD_115-117_PAN.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Bryggen"
+    ]
+  },
+  {
     "name": "Cape Coast Castle",
     "lat": 5.1036,
     "lon": -1.2414,
@@ -252,6 +379,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Cape_Coast_Castle%2C_Cape_Coast%2C_Ghana.JPG/1280px-Cape_Coast_Castle%2C_Cape_Coast%2C_Ghana.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Cape_Coast_Castle"
+    ]
+  },
+  {
+    "name": "Cappadocia",
+    "lat": 38.6437,
+    "lon": 34.8353,
+    "category": "nature",
+    "country": "Turkey",
+    "local_name": "Kapadokya",
+    "note": "Fairy chimneys and ancient rock-cut cave dwellings",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/CAPPADOCIA_G%C3%B6reme_National_Park_and_the_Rock_Sites._World_Heritage_List._Turkey._Hot_Air_Ballooning_Cappadocia.jpg/1280px-CAPPADOCIA_G%C3%B6reme_National_Park_and_the_Rock_Sites._World_Heritage_List._Turkey._Hot_Air_Ballooning_Cappadocia.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Cappadocia"
     ]
   },
   {
@@ -265,6 +405,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Moscow_July_2011-7a.jpg/1280px-Moscow_July_2011-7a.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Cathedral_of_Christ_the_Saviour"
+    ]
+  },
+  {
+    "name": "Charles Bridge",
+    "lat": 50.08639,
+    "lon": 14.41194,
+    "category": "bridge",
+    "country": "Czech Republic",
+    "local_name": "Karlův most",
+    "note": "14th-century stone bridge lined with baroque statues",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Prague_07-2016_view_from_Lesser_Town_Tower_of_Charles_Bridge_img3.jpg/1280px-Prague_07-2016_view_from_Lesser_Town_Tower_of_Charles_Bridge_img3.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Charles_Bridge"
     ]
   },
   {
@@ -294,6 +447,19 @@
     ]
   },
   {
+    "name": "Chichen Itza",
+    "lat": 20.6829,
+    "lon": -88.5686,
+    "category": "ruins",
+    "country": "Mexico",
+    "local_name": "Chichʼen Itzaʼ",
+    "note": "Maya city with the Kukulcán step-pyramid",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Chichen_Itza_3.jpg/1280px-Chichen_Itza_3.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Chichen_Itza"
+    ]
+  },
+  {
     "name": "Chillon Castle",
     "lat": 46.4142,
     "lon": 6.9273,
@@ -316,6 +482,32 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/%D8%B2%DB%8C%DA%AF%D9%88%D8%B1%D8%A7%D8%AA_%DA%86%D8%BA%D8%A7_%D8%B2%D9%86%D8%A8%DB%8C%D9%84.jpg/1280px-%D8%B2%DB%8C%DA%AF%D9%88%D8%B1%D8%A7%D8%AA_%DA%86%D8%BA%D8%A7_%D8%B2%D9%86%D8%A8%DB%8C%D9%84.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Chogha_Zanbil"
+    ]
+  },
+  {
+    "name": "Christ the Redeemer",
+    "lat": -22.95194,
+    "lon": -43.21056,
+    "category": "monument",
+    "country": "Brazil",
+    "local_name": "Cristo Redentor",
+    "note": "Art Deco Christ atop Corcovado, overlooking Rio",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Christ_on_Corcovado_mountain.JPG/1280px-Christ_on_Corcovado_mountain.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Christ_the_Redeemer_(statue)"
+    ]
+  },
+  {
+    "name": "Copacabana Beach",
+    "lat": -22.9711,
+    "lon": -43.1822,
+    "category": "beach",
+    "country": "Brazil",
+    "local_name": "Praia de Copacabana",
+    "note": "4 km beach with its black-and-white wave promenade",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Copacabana_in_Rio_de_Janeiro_4_%2822126347021%29.jpg/1280px-Copacabana_in_Rio_de_Janeiro_4_%2822126347021%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Copacabana,_Rio_de_Janeiro"
     ]
   },
   {
@@ -342,6 +534,45 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Dead_Vlei_4.jpg/1280px-Dead_Vlei_4.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Deadvlei"
+    ]
+  },
+  {
+    "name": "Devil's Heads",
+    "lat": 50.42038,
+    "lon": 14.4646,
+    "category": "monument",
+    "country": "Czech Republic",
+    "local_name": "Čertovy hlavy",
+    "note": "Two 9 m devil heads carved into a sandstone cliff",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Certovy_hlavy_Zelizy.jpg/1280px-Certovy_hlavy_Zelizy.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/%C4%8Certovy_hlavy"
+    ]
+  },
+  {
+    "name": "Diocletian's Palace",
+    "lat": 43.50833,
+    "lon": 16.44,
+    "category": "palace",
+    "country": "Croatia",
+    "local_name": "Dioklecijanova palača",
+    "note": "Roman emperor's palace, now Split's old town",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Aerial_view_of_Diocletian%27s_Palace_in_Split%2C_Croatia_%2848608247353%29.jpg/1280px-Aerial_view_of_Diocletian%27s_Palace_in_Split%2C_Croatia_%2848608247353%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Diocletian%27s_Palace"
+    ]
+  },
+  {
+    "name": "Diriyah",
+    "lat": 24.73333,
+    "lon": 46.57556,
+    "category": "ruins",
+    "country": "Saudi Arabia",
+    "local_name": "الدرعية",
+    "note": "Mud-brick birthplace of the first Saudi state",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/At-Turaif_District_of_Diriyah%2C_Saudi_Arabia.jpg/1280px-At-Turaif_District_of_Diriyah%2C_Saudi_Arabia.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Diriyah"
     ]
   },
   {
@@ -384,6 +615,18 @@
     ]
   },
   {
+    "name": "Edge of the World",
+    "lat": 24.8422,
+    "lon": 46.1708,
+    "category": "nature",
+    "country": "Saudi Arabia",
+    "note": "Tuwaiq escarpment cliff overlooking endless desert",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Edge_of_the_world_%286524157755%29.jpg/1280px-Edge_of_the_world_%286524157755%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Tuwaiq"
+    ]
+  },
+  {
     "name": "Egyptian Museum",
     "lat": 45.0686,
     "lon": 7.6842,
@@ -423,6 +666,18 @@
     ]
   },
   {
+    "name": "Eyjafjallajökull",
+    "lat": 63.62,
+    "lon": -19.61333,
+    "category": "nature",
+    "country": "Iceland",
+    "note": "Ice cap covering a 1,651 m active volcano",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Eyjafjallaj%C3%B6kull_major_eruption_20100510.jpg/1280px-Eyjafjallaj%C3%B6kull_major_eruption_20100510.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Eyjafjallaj%C3%B6kull"
+    ]
+  },
+  {
     "name": "Fes el-Bali",
     "lat": 34.0625,
     "lon": -4.9725,
@@ -446,6 +701,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Jard%C3%ADn_de_Fin%2C_Kashan%2C_Ir%C3%A1n%2C_2016-09-19%2C_DD_22.jpg/1280px-Jard%C3%ADn_de_Fin%2C_Kashan%2C_Ir%C3%A1n%2C_2016-09-19%2C_DD_22.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Fin_Garden"
+    ]
+  },
+  {
+    "name": "Fingal's Cave",
+    "lat": 56.43389,
+    "lon": -6.33611,
+    "category": "cave",
+    "country": "Scotland",
+    "note": "Basalt-column sea cave that inspired Mendelssohn",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Fingal%27s_Cave%2C_Staffa_Island_02.jpg/1280px-Fingal%27s_Cave%2C_Staffa_Island_02.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Fingal%27s_Cave"
     ]
   },
   {
@@ -475,6 +742,19 @@
     ]
   },
   {
+    "name": "Genghis Khan Equestrian Statue",
+    "lat": 47.80806,
+    "lon": 107.52975,
+    "category": "monument",
+    "country": "Mongolia",
+    "local_name": "Чингис хааны морьт хөшөө",
+    "note": "40 m stainless-steel Genghis Khan on horseback",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Genghis_Khan_Equestrian_Statue%2C_photo_by_Vaiz_Ha.jpg/1280px-Genghis_Khan_Equestrian_Statue%2C_photo_by_Vaiz_Ha.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Equestrian_statue_of_Genghis_Khan"
+    ]
+  },
+  {
     "name": "German Historical Museum",
     "lat": 52.51806,
     "lon": 13.39694,
@@ -485,6 +765,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Zeughaus_Berlin_2012.jpg/1280px-Zeughaus_Berlin_2012.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Deutsches_Historisches_Museum"
+    ]
+  },
+  {
+    "name": "Ghibli Museum",
+    "lat": 35.6962,
+    "lon": 139.5704,
+    "category": "museum",
+    "country": "Japan",
+    "local_name": "三鷹の森ジブリ美術館",
+    "note": "Miyazaki's animated world brought to life",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Ghibli_Museum_2024.JPG/1280px-Ghibli_Museum_2024.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Ghibli_Museum"
     ]
   },
   {
@@ -540,6 +833,19 @@
     ]
   },
   {
+    "name": "Hadrian's Villa",
+    "lat": 41.946,
+    "lon": 12.77252,
+    "category": "ruins",
+    "country": "Italy",
+    "local_name": "Villa Adriana",
+    "note": "Vast Roman villa recreating sites from the empire",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Villa_Hadriana_%28Villa_Adriana_Tivoli%29_1000_20.jpg/1280px-Villa_Hadriana_%28Villa_Adriana_Tivoli%29_1000_20.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Hadrian%27s_Villa"
+    ]
+  },
+  {
     "name": "Hashima Island",
     "lat": 32.6275,
     "lon": 129.7383,
@@ -550,6 +856,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Battle-Ship_Island_Nagasaki_Japan.jpg/1280px-Battle-Ship_Island_Nagasaki_Japan.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Hashima_Island"
+    ]
+  },
+  {
+    "name": "Hegra",
+    "lat": 26.79167,
+    "lon": 37.95278,
+    "category": "ruins",
+    "country": "Saudi Arabia",
+    "local_name": "مدائن صالح",
+    "note": "Over 100 Nabataean rock-cut tombs in the desert",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Hegra%2C_Al-Ula%2C_Saudi_Arabia.png/1280px-Hegra%2C_Al-Ula%2C_Saudi_Arabia.png",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Hegra"
     ]
   },
   {
@@ -627,6 +946,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Berlin-BerlinerSchloss-6-Asio.JPG/1280px-Berlin-BerlinerSchloss-6-Asio.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Humboldt_Forum"
+    ]
+  },
+  {
+    "name": "Hungarian Parliament Building",
+    "lat": 47.5071,
+    "lon": 19.0458,
+    "category": "landmark",
+    "country": "Hungary",
+    "local_name": "Országház",
+    "note": "Largest building in Hungary",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Hungarian_Parliament_Building_from_across_the_Danube%2C_2025-01-11.jpg/1280px-Hungarian_Parliament_Building_from_across_the_Danube%2C_2025-01-11.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Hungarian_Parliament_Building"
     ]
   },
   {
@@ -708,6 +1040,19 @@
     ]
   },
   {
+    "name": "Kailasa Temple",
+    "lat": 20.02389,
+    "lon": 75.17917,
+    "category": "religious",
+    "country": "India",
+    "local_name": "कैलाश मन्दिर",
+    "note": "Hindu temple carved top-down from a single rock",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Kailasa_Temple_at_Ellora_%28Cave_16%29.jpg/1280px-Kailasa_Temple_at_Ellora_%28Cave_16%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Kailasa_Temple,_Ellora"
+    ]
+  },
+  {
     "name": "Kaputas Beach",
     "lat": 36.22892,
     "lon": 29.44912,
@@ -734,6 +1079,18 @@
     ]
   },
   {
+    "name": "Kaunos",
+    "lat": 36.82639,
+    "lon": 28.62139,
+    "category": "ruins",
+    "country": "Turkey",
+    "note": "Carian city with temple-fronted rock-cut tombs",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Kaunos_Kaya_Mezarlar%C4%B1.jpg/1280px-Kaunos_Kaya_Mezarlar%C4%B1.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Kaunos"
+    ]
+  },
+  {
     "name": "Kenroku-en",
     "lat": 36.5625,
     "lon": 136.6628,
@@ -744,6 +1101,32 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Stone_lantern_Kenrokuen.jpg/1280px-Stone_lantern_Kenrokuen.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Kenroku-en"
+    ]
+  },
+  {
+    "name": "Kiyomizu-dera",
+    "lat": 34.995,
+    "lon": 135.785,
+    "category": "religious",
+    "country": "Japan",
+    "local_name": "清水寺",
+    "note": "Hillside temple with a nail-free wooden stage",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Kiyomizu.jpg/1280px-Kiyomizu.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Kiyomizu-dera"
+    ]
+  },
+  {
+    "name": "Kolossi Castle",
+    "lat": 34.66527,
+    "lon": 32.93396,
+    "category": "castle",
+    "country": "Cyprus",
+    "local_name": "Κάστρο του Κολοσσιού",
+    "note": "15th-century Crusader castle of the Knights Hospitaller",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Kolossi_Castle_01.JPG/1280px-Kolossi_Castle_01.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Kolossi_Castle"
     ]
   },
   {
@@ -772,6 +1155,45 @@
     ]
   },
   {
+    "name": "Leshan Giant Buddha",
+    "lat": 29.54472,
+    "lon": 103.77333,
+    "category": "religious",
+    "country": "China",
+    "local_name": "乐山大佛",
+    "note": "World's largest stone Buddha, carved into a cliff",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/36275-Leshan_%2849067653383%29.jpg/1280px-36275-Leshan_%2849067653383%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Leshan_Giant_Buddha"
+    ]
+  },
+  {
+    "name": "Lion Monument",
+    "lat": 47.05833,
+    "lon": 8.31056,
+    "category": "monument",
+    "country": "Switzerland",
+    "local_name": "Löwendenkmal",
+    "note": "Dying lion carved in rock for fallen Swiss Guards",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Lion_Monument.jpg/1280px-Lion_Monument.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Lion_Monument"
+    ]
+  },
+  {
+    "name": "Machu Picchu",
+    "lat": -13.16333,
+    "lon": -72.54556,
+    "category": "ruins",
+    "country": "Peru",
+    "local_name": "Machu Pikchu",
+    "note": "15th-century Inca citadel at 2,430 m in the Andes",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Machu_Picchu_Panorama_2025.jpg/1280px-Machu_Picchu_Panorama_2025.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Machu_Picchu"
+    ]
+  },
+  {
     "name": "Matsumoto Castle",
     "lat": 36.2388,
     "lon": 137.9688,
@@ -785,6 +1207,19 @@
     ]
   },
   {
+    "name": "Mausoleum of Qin Shi Huang",
+    "lat": 34.38167,
+    "lon": 109.25389,
+    "category": "monument",
+    "country": "China",
+    "local_name": "秦始皇陵",
+    "note": "First emperor's tomb, guarded by the Terracotta Army",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Terra-cotta_Warriors_%2811523319873%29.jpg/1280px-Terra-cotta_Warriors_%2811523319873%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Mausoleum_of_Qin_Shi_Huang"
+    ]
+  },
+  {
     "name": "Maya Bay",
     "lat": 7.6783,
     "lon": 98.7648,
@@ -794,6 +1229,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Maya_Bay%2C_Thailand_by_Mike_Clegg_Photography.jpg/1280px-Maya_Bay%2C_Thailand_by_Mike_Clegg_Photography.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Maya_Bay"
+    ]
+  },
+  {
+    "name": "Meidum Pyramid",
+    "lat": 29.38806,
+    "lon": 31.15694,
+    "category": "monument",
+    "country": "Egypt",
+    "local_name": "ميدوم",
+    "note": "Egypt's first straight-sided pyramid, collapsed",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Meidoum03.jpg/1280px-Meidoum03.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Meidum"
     ]
   },
   {
@@ -810,6 +1258,57 @@
     ]
   },
   {
+    "name": "Mor Gabriel Monastery",
+    "lat": 37.32178,
+    "lon": 41.5385,
+    "category": "religious",
+    "country": "Turkey",
+    "local_name": "ܕܝܪܐ ܕܡܪܝ ܓܒܪܐܝܠ",
+    "note": "Syriac Orthodox monastery founded in 397 AD",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/MorGabrielMonastery1.jpg/1280px-MorGabrielMonastery1.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Mor_Gabriel_Monastery"
+    ]
+  },
+  {
+    "name": "Mount Rushmore",
+    "lat": 43.87889,
+    "lon": -103.45917,
+    "category": "monument",
+    "country": "United States",
+    "note": "Four U.S. presidents carved into a granite mountain",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Mount_Rushmore_detail_view_%28100MP%29.jpg/1280px-Mount_Rushmore_detail_view_%28100MP%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Mount_Rushmore"
+    ]
+  },
+  {
+    "name": "Munch Museum",
+    "lat": 59.9055,
+    "lon": 10.7536,
+    "category": "museum",
+    "country": "Norway",
+    "local_name": "Munch-museet",
+    "note": "World's largest Munch collection, holds The Scream",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/MUNCH_Museum_front_%282020%29.jpg/1280px-MUNCH_Museum_front_%282020%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Munch_Museum"
+    ]
+  },
+  {
+    "name": "Naoshima",
+    "lat": 34.45833,
+    "lon": 133.98333,
+    "category": "island",
+    "country": "Japan",
+    "local_name": "直島",
+    "note": "Art island of Ando museums and outdoor installations",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Yellow_Pumpkin_Monument.jpg/1280px-Yellow_Pumpkin_Monument.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Naoshima"
+    ]
+  },
+  {
     "name": "Nara Park",
     "lat": 34.6851,
     "lon": 135.843,
@@ -820,6 +1319,31 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/003_Nara_deer_in_Japan_-_deer_of_Nara_Park_under_autumn_leaves.jpg/1280px-003_Nara_deer_in_Japan_-_deer_of_Nara_Park_under_autumn_leaves.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Nara_Park"
+    ]
+  },
+  {
+    "name": "Neak Pean",
+    "lat": 13.46306,
+    "lon": 103.89444,
+    "category": "religious",
+    "country": "Cambodia",
+    "local_name": "ប្រាសាទនាគព័ន្ធ",
+    "note": "Island temple in a circular healing pool",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Neak_Pean_%2840335935051%29.jpg/1280px-Neak_Pean_%2840335935051%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Neak_Pean"
+    ]
+  },
+  {
+    "name": "Necropolis of Pantalica",
+    "lat": 37.14167,
+    "lon": 15.02833,
+    "category": "ruins",
+    "country": "Italy",
+    "note": "Some 4,000 rock-cut tombs in limestone cliffs",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Nekropolis_von_Pantalica.jpg/1280px-Nekropolis_von_Pantalica.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Necropolis_of_Pantalica"
     ]
   },
   {
@@ -858,6 +1382,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Nezu_Shrine_2010.jpg/1280px-Nezu_Shrine_2010.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Nezu_Shrine"
+    ]
+  },
+  {
+    "name": "Nidaros Cathedral",
+    "lat": 63.4269,
+    "lon": 10.3969,
+    "category": "religious",
+    "country": "Norway",
+    "local_name": "Nidarosdomen",
+    "note": "Northernmost medieval cathedral, over St. Olav's grave",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Die_Nidaros_Kathedrale_in_Trondheim._03.jpg/1280px-Die_Nidaros_Kathedrale_in_Trondheim._03.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Nidaros_Cathedral"
     ]
   },
   {
@@ -900,6 +1437,18 @@
     ]
   },
   {
+    "name": "Paphos Archaeological Park",
+    "lat": 34.75567,
+    "lon": 32.40417,
+    "category": "ruins",
+    "country": "Cyprus",
+    "note": "Roman villas with elaborate floor mosaics",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Casa_de_Teseo%2C_parque_arqueol%C3%B3gico_de_Pafos%2C_Chipre%2C_2021-12-10%2C_DD_28.jpg/1280px-Casa_de_Teseo%2C_parque_arqueol%C3%B3gico_de_Pafos%2C_Chipre%2C_2021-12-10%2C_DD_28.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Paphos_Archaeological_Park"
+    ]
+  },
+  {
     "name": "Park Güell",
     "lat": 41.4145,
     "lon": 2.1527,
@@ -939,6 +1488,19 @@
     ]
   },
   {
+    "name": "Petra",
+    "lat": 30.32861,
+    "lon": 35.44194,
+    "category": "ruins",
+    "country": "Jordan",
+    "local_name": "البتراء",
+    "note": "Nabataean city carved into rose-red cliffs",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Nabatean_Treasury_in_Petra%2C_Jordan_%284053066453%29.jpg/1280px-Nabatean_Treasury_in_Petra%2C_Jordan_%284053066453%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Petra"
+    ]
+  },
+  {
     "name": "Pont du Gard",
     "lat": 43.9472,
     "lon": 4.5354,
@@ -948,6 +1510,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Pont_du_Gard_BLS.jpg/1280px-Pont_du_Gard_BLS.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pont_du_Gard"
+    ]
+  },
+  {
+    "name": "Preah Khan",
+    "lat": 13.46196,
+    "lon": 103.87159,
+    "category": "religious",
+    "country": "Cambodia",
+    "local_name": "ប្រាសាទព្រះខ័ន",
+    "note": "Jungle temple that housed a Buddhist university",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Preah_Khan%2C_Angkor%2C_Camboya%2C_2013-08-17%2C_DD_26.JPG/1280px-Preah_Khan%2C_Angkor%2C_Camboya%2C_2013-08-17%2C_DD_26.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Preah_Khan"
     ]
   },
   {
@@ -961,6 +1536,57 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Gmii.jpg/1280px-Gmii.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pushkin_Museum"
+    ]
+  },
+  {
+    "name": "Pyramid of Cestius",
+    "lat": 41.87639,
+    "lon": 12.48083,
+    "category": "monument",
+    "country": "Italy",
+    "local_name": "Piramide Cestia",
+    "note": "Egyptian-style pyramid tomb in Rome, c. 12 BC",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Piramide_Cestia.jpg/1280px-Piramide_Cestia.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Pyramid_of_Cestius"
+    ]
+  },
+  {
+    "name": "Pyramid of Djoser",
+    "lat": 29.8711,
+    "lon": 31.2167,
+    "category": "monument",
+    "country": "Egypt",
+    "note": "Egypt's oldest pyramid, a six-tier step pyramid",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Saqqara_pyramid_ver_2.jpg/1280px-Saqqara_pyramid_ver_2.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Pyramid_of_Djoser"
+    ]
+  },
+  {
+    "name": "Pyramid of the Moon",
+    "lat": 19.6996,
+    "lon": -98.844,
+    "category": "monument",
+    "country": "Mexico",
+    "local_name": "Pirámide de la Luna",
+    "note": "Closes the Avenue of the Dead, echoing Cerro Gordo",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Piramide_de_la_Luna_072006.jpg/1280px-Piramide_de_la_Luna_072006.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Pyramid_of_the_Moon"
+    ]
+  },
+  {
+    "name": "Pyramid of the Sun",
+    "lat": 19.693,
+    "lon": -98.844,
+    "category": "monument",
+    "country": "Mexico",
+    "local_name": "Pirámide del Sol",
+    "note": "Largest Teotihuacan pyramid, over a sacred cave",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/2020-02-11_Teotihuacan_la_Avenida_de_los_Muertos_y_la_Pir%C3%A1mide_del_Sol.jpg/1280px-2020-02-11_Teotihuacan_la_Avenida_de_los_Muertos_y_la_Pir%C3%A1mide_del_Sol.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Pyramid_of_the_Sun"
     ]
   },
   {
@@ -1000,6 +1626,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Railay_Beach_5.jpg/1280px-Railay_Beach_5.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Railay_Beach"
+    ]
+  },
+  {
+    "name": "Revash",
+    "lat": -6.5407,
+    "lon": -77.8562,
+    "category": "ruins",
+    "country": "Peru",
+    "note": "Chachapoya cliff tombs shaped like tiny houses",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Mausoleos_de_Revash-nX-11.jpg/1280px-Mausoleos_de_Revash-nX-11.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Revash"
     ]
   },
   {
@@ -1050,6 +1688,32 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/%D9%86%D9%85%D8%A7%DB%8C_%D8%B3%D9%87_%D8%B1%D8%AE_%D8%B1%D8%A8%D8%A7%D8%B7_%D8%B4%D8%B1%D9%81.jpg/1280px-%D9%86%D9%85%D8%A7%DB%8C_%D8%B3%D9%87_%D8%B1%D8%AE_%D8%B1%D8%A8%D8%A7%D8%B7_%D8%B4%D8%B1%D9%81.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Ribat-i_Sharaf"
+    ]
+  },
+  {
+    "name": "Rock Sculpture of Decebalus",
+    "lat": 44.64118,
+    "lon": 22.29125,
+    "category": "monument",
+    "country": "Romania",
+    "local_name": "Chipul lui Decebal",
+    "note": "55 m face of King Decebalus carved in a cliff",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Statuia_Chipul_lui_Decebal_-_Cazanele_Dun%C4%83rii%2C_Rom%C3%A2nia.jpg/1280px-Statuia_Chipul_lui_Decebal_-_Cazanele_Dun%C4%83rii%2C_Rom%C3%A2nia.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Rock_sculpture_of_Decebalus"
+    ]
+  },
+  {
+    "name": "Rock-Hewn Church of St. George",
+    "lat": 12.03174,
+    "lon": 39.04113,
+    "category": "religious",
+    "country": "Ethiopia",
+    "local_name": "ቤተ ጊዮርጊስ",
+    "note": "Cross-shaped church carved from solid rock",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Lalibela%2C_san_giorgio%2C_esterno_24.jpg/1280px-Lalibela%2C_san_giorgio%2C_esterno_24.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Church_of_Saint_George,_Lalibela"
     ]
   },
   {
@@ -1105,6 +1769,54 @@
     ]
   },
   {
+    "name": "Santoni",
+    "lat": 37.05794,
+    "lon": 14.89506,
+    "category": "religious",
+    "country": "Italy",
+    "note": "Twelve rock-cut reliefs of the goddess Cybele",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Santoni"
+    ]
+  },
+  {
+    "name": "Sassi di Matera",
+    "lat": 40.6667,
+    "lon": 16.6083,
+    "category": "cave",
+    "country": "Italy",
+    "note": "Ancient cave dwellings inhabited for millennia",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Matera_boenisch_nov_2005.jpg/1280px-Matera_boenisch_nov_2005.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Sassi_di_Matera"
+    ]
+  },
+  {
+    "name": "Sedlec Ossuary",
+    "lat": 49.9614,
+    "lon": 15.2883,
+    "category": "religious",
+    "country": "Czech Republic",
+    "local_name": "Kostnice v Sedlci",
+    "note": "Chapel decorated with bones of 40,000 people",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Bone_Chandelabra.jpg/1280px-Bone_Chandelabra.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Sedlec_Ossuary"
+    ]
+  },
+  {
+    "name": "Seljalandsfoss",
+    "lat": 63.61583,
+    "lon": -19.99278,
+    "category": "waterfall",
+    "country": "Iceland",
+    "note": "60 m waterfall you can walk behind",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Idyllic_landscape_with_a_waterfall_%28Unsplash%29.jpg/1280px-Idyllic_landscape_with_a_waterfall_%28Unsplash%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Seljalandsfoss"
+    ]
+  },
+  {
     "name": "Senso-ji",
     "lat": 35.7148,
     "lon": 139.7967,
@@ -1141,6 +1853,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/%D8%A8%D8%A7%D8%BA_%D8%B4%D8%A7%D9%87%D8%B2%D8%A7%D8%AF%D9%87-%D9%85%D8%A7%D9%87%D8%A7%D9%86-%DA%A9%D8%B1%D9%85%D8%A7%D9%86.jpg/1280px-%D8%A8%D8%A7%D8%BA_%D8%B4%D8%A7%D9%87%D8%B2%D8%A7%D8%AF%D9%87-%D9%85%D8%A7%D9%87%D8%A7%D9%86-%DA%A9%D8%B1%D9%85%D8%A7%D9%86.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Shazdeh_Garden"
+    ]
+  },
+  {
+    "name": "Shinjuku Gyoen",
+    "lat": 35.6852,
+    "lon": 139.71,
+    "category": "garden",
+    "country": "Japan",
+    "local_name": "新宿御苑",
+    "note": "Garden blending Japanese, English and French styles",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Shinjuku_Gyoen_National_Garden_-_sakura_3.JPG/1280px-Shinjuku_Gyoen_National_Garden_-_sakura_3.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Shinjuku_Gyoen"
     ]
   },
   {
@@ -1196,6 +1921,19 @@
     ]
   },
   {
+    "name": "Sigiriya",
+    "lat": 7.95694,
+    "lon": 80.75972,
+    "category": "ruins",
+    "country": "Sri Lanka",
+    "local_name": "සීගිරිය",
+    "note": "5th-century palace atop a 180 m rock column",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Sigiriya_%28141688197%29.jpeg/1280px-Sigiriya_%28141688197%29.jpeg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Sigiriya"
+    ]
+  },
+  {
     "name": "Skaros",
     "lat": 36.43246,
     "lon": 25.41818,
@@ -1222,6 +1960,32 @@
     ]
   },
   {
+    "name": "Spring Temple Buddha",
+    "lat": 33.77508,
+    "lon": 112.45093,
+    "category": "monument",
+    "country": "China",
+    "local_name": "中原大佛",
+    "note": "128 m gilded statue of Vairocana Buddha",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Spring_Temple_Buddha_05.jpg/1280px-Spring_Temple_Buddha_05.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Spring_Temple_Buddha"
+    ]
+  },
+  {
+    "name": "St. Hilarion Castle",
+    "lat": 35.3123,
+    "lon": 33.2808,
+    "category": "castle",
+    "country": "Cyprus",
+    "local_name": "Κάστρο του Αγίου Ιλαρίωνα",
+    "note": "Mountain-top Crusader castle in the Kyrenia range",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Saint_Hilarion_Castle%2C_Northern_Cyprus_-_panoramio_%286%29.jpg/1280px-Saint_Hilarion_Castle%2C_Northern_Cyprus_-_panoramio_%286%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/St._Hilarion_Castle"
+    ]
+  },
+  {
     "name": "State Historical Museum",
     "lat": 55.755,
     "lon": 37.6181,
@@ -1232,6 +1996,30 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Museo_Estatal_de_Historia%2C_Mosc%C3%BA%2C_Rusia%2C_2016-10-03%2C_DD_49.jpg/1280px-Museo_Estatal_de_Historia%2C_Mosc%C3%BA%2C_Rusia%2C_2016-10-03%2C_DD_49.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/State_Historical_Museum"
+    ]
+  },
+  {
+    "name": "Statue of Liberty",
+    "lat": 40.68917,
+    "lon": -74.04444,
+    "category": "monument",
+    "country": "United States",
+    "note": "France's 1886 gift, icon of freedom and welcome",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/The_Statue_of_Liberty_%2810197568643%29.jpg/1280px-The_Statue_of_Liberty_%2810197568643%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Statue_of_Liberty"
+    ]
+  },
+  {
+    "name": "Statue of Unity",
+    "lat": 21.838,
+    "lon": 73.7191,
+    "category": "monument",
+    "country": "India",
+    "note": "World's tallest statue, 182 m, of Sardar Patel",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Statue_of_Unity_2.jpg/1280px-Statue_of_Unity_2.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Statue_of_Unity"
     ]
   },
   {
@@ -1325,6 +2113,18 @@
     ]
   },
   {
+    "name": "Temple of Seti I",
+    "lat": 26.185,
+    "lon": 31.91889,
+    "category": "religious",
+    "country": "Egypt",
+    "note": "Pharaonic temple holding the Abydos King List",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Temple_of_Seti_I_at_Abydos_-_panoramio_%283%29.jpg/1280px-Temple_of_Seti_I_at_Abydos_-_panoramio_%283%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Temple_of_Seti_I_(Abydos)"
+    ]
+  },
+  {
     "name": "Temple of the Inscriptions",
     "lat": 17.4836,
     "lon": -92.0468,
@@ -1351,6 +2151,19 @@
     ]
   },
   {
+    "name": "The Motherland Calls",
+    "lat": 48.7425,
+    "lon": 44.53694,
+    "category": "monument",
+    "country": "Russia",
+    "local_name": "Родина-мать зовёт!",
+    "note": "Sword-raising memorial to the Battle of Stalingrad",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Mamayev_Kurgan_Volgograd.jpg/1280px-Mamayev_Kurgan_Volgograd.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/The_Motherland_Calls"
+    ]
+  },
+  {
     "name": "Throne of Solomon",
     "lat": 36.60317,
     "lon": 47.23595,
@@ -1374,6 +2187,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Timgad_%2815685889550%29.jpg/1280px-Timgad_%2815685889550%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Timgad"
+    ]
+  },
+  {
+    "name": "Todai-ji",
+    "lat": 34.68917,
+    "lon": 135.83972,
+    "category": "religious",
+    "country": "Japan",
+    "local_name": "東大寺",
+    "note": "World's largest bronze Buddha in a vast wooden hall",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/T%C5%8Ddai-ji_Kon-d%C5%8D.jpg/1280px-T%C5%8Ddai-ji_Kon-d%C5%8D.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/T%C5%8Ddai-ji"
     ]
   },
   {
@@ -1429,6 +2255,45 @@
     ]
   },
   {
+    "name": "Tombs of the Kings of Pontus",
+    "lat": 40.65333,
+    "lon": 35.83028,
+    "category": "ruins",
+    "country": "Turkey",
+    "local_name": "Kral Kaya Mezarları",
+    "note": "Pontic royal tombs cut into a sheer cliff face",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Amasya-Pontisches_Grab-02.JPG/1280px-Amasya-Pontisches_Grab-02.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Tombs_of_the_kings_of_Pontus"
+    ]
+  },
+  {
+    "name": "Topography of Terror",
+    "lat": 52.50694,
+    "lon": 13.38278,
+    "category": "museum",
+    "country": "Germany",
+    "local_name": "Topographie des Terrors",
+    "note": "On the site of the former Gestapo and SS headquarters",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/%D7%9E%D7%95%D7%96%D7%99%D7%90%D7%95%D7%9F_%D7%98%D7%95%D7%A4%D7%95%D7%92%D7%A8%D7%A4%D7%99%D7%94_%D7%A9%D7%9C_%D7%94%D7%98%D7%A8%D7%95%D7%A8_%D7%91%D7%91%D7%A8%D7%9C%D7%99%D7%9F%2C_%D7%9E%D7%91%D7%A0%D7%94_%D7%95%D7%97%D7%A6%D7%A8_04.jpg/1280px-%D7%9E%D7%95%D7%96%D7%99%D7%90%D7%95%D7%9F_%D7%98%D7%95%D7%A4%D7%95%D7%92%D7%A8%D7%A4%D7%99%D7%94_%D7%A9%D7%9C_%D7%94%D7%98%D7%A8%D7%95%D7%A8_%D7%91%D7%91%D7%A8%D7%9C%D7%99%D7%9F%2C_%D7%9E%D7%91%D7%A0%D7%94_%D7%95%D7%97%D7%A6%D7%A8_04.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Topography_of_Terror"
+    ]
+  },
+  {
+    "name": "Urnes Stave Church",
+    "lat": 61.29811,
+    "lon": 7.32259,
+    "category": "religious",
+    "country": "Norway",
+    "local_name": "Urnes stavkyrkje",
+    "note": "Oldest surviving stave church, built around 1130",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/2023-07-04-Stabkirche_Urnes-6799.jpg/1280px-2023-07-04-Stabkirche_Urnes-6799.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Urnes_Stave_Church"
+    ]
+  },
+  {
     "name": "Vardzia",
     "lat": 41.38092,
     "lon": 43.28376,
@@ -1439,6 +2304,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Vardzia_Cave_Monastery_05.jpg/1280px-Vardzia_Cave_Monastery_05.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Vardzia"
+    ]
+  },
+  {
+    "name": "Vasa Museum",
+    "lat": 59.32794,
+    "lon": 18.09139,
+    "category": "museum",
+    "country": "Sweden",
+    "local_name": "Vasamuseet",
+    "note": "17th-century warship that sank on its maiden voyage",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Vasa_ship_by_Hanay_%2857%29.jpg/1280px-Vasa_ship_by_Hanay_%2857%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Vasa_Museum"
     ]
   },
   {
@@ -1455,6 +2333,58 @@
     ]
   },
   {
+    "name": "Vigeland Park",
+    "lat": 59.92667,
+    "lon": 10.70139,
+    "category": "landmark",
+    "country": "Norway",
+    "local_name": "Vigelandsparken",
+    "note": "Largest sculpture park by a single artist, Gustav Vigeland",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Vigeland_Sculpture_Park_-_Panoramic_view_towards_the_Monolith%2C_Oslo%2C_Norway.jpg/1280px-Vigeland_Sculpture_Park_-_Panoramic_view_towards_the_Monolith%2C_Oslo%2C_Norway.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Vigeland_Park"
+    ]
+  },
+  {
+    "name": "Vijayanagara",
+    "lat": 15.33333,
+    "lon": 76.46,
+    "category": "ruins",
+    "country": "India",
+    "local_name": "ವಿಜಯನಗರ",
+    "note": "Vast ruined imperial capital, now Hampi",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/View_of_the_Virupaksha_temple_complex_from_Hemakuta_hill.JPG/1280px-View_of_the_Virupaksha_temple_complex_from_Hemakuta_hill.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Vijayanagara"
+    ]
+  },
+  {
+    "name": "Viking Ship Museum",
+    "lat": 59.9048,
+    "lon": 10.6845,
+    "category": "museum",
+    "country": "Norway",
+    "local_name": "Vikingskipshuset",
+    "note": "Best-preserved Viking ships, incl. the Oseberg ship",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Oseberg_Ship_-_Viking_Ship_Museum_%28Oslo%29.jpg/1280px-Oseberg_Ship_-_Viking_Ship_Museum_%28Oslo%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Viking_Ship_Museum_(Oslo)"
+    ]
+  },
+  {
+    "name": "Villa of the Mysteries",
+    "lat": 40.75369,
+    "lon": 14.47744,
+    "category": "ruins",
+    "country": "Italy",
+    "local_name": "Villa dei Misteri",
+    "note": "Pompeii villa with vivid mystery-cult frescoes",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Pompeii_Ruins_Scenes_of_a_Dionysiac_Mystery_Cult%2C_Villa_of_the_Mysteries_Fresco%2C_c._50_BC_%2848445603162%29.jpg/1280px-Pompeii_Ruins_Scenes_of_a_Dionysiac_Mystery_Cult%2C_Villa_of_the_Mysteries_Fresco%2C_c._50_BC_%2848445603162%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Villa_of_the_Mysteries"
+    ]
+  },
+  {
     "name": "Wave Rock",
     "lat": -32.44389,
     "lon": 118.89828,
@@ -1467,6 +2397,19 @@
     ]
   },
   {
+    "name": "Wawel Castle",
+    "lat": 50.05389,
+    "lon": 19.93472,
+    "category": "castle",
+    "country": "Poland",
+    "local_name": "Zamek Królewski na Wawelu",
+    "note": "Royal residence and coronation site of Polish kings",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Wawel_%284%29.jpg/1280px-Wawel_%284%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Wawel_Castle"
+    ]
+  },
+  {
     "name": "Whitehaven Beach",
     "lat": -20.27861,
     "lon": 149.03639,
@@ -1476,6 +2419,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Hill_Inlet_at_the_end_of_Whitehaven_Beach_in_the_Whitsundays.JPG/1280px-Hill_Inlet_at_the_end_of_Whitehaven_Beach_in_the_Whitsundays.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Whitehaven_Beach"
+    ]
+  },
+  {
+    "name": "Wieliczka Salt Mine",
+    "lat": 49.97917,
+    "lon": 20.06389,
+    "category": "landmark",
+    "country": "Poland",
+    "local_name": "Kopalnia soli Wieliczka",
+    "note": "Chapels and chandeliers carved from rock salt",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/%CE%91%CE%BB%CE%B1%CF%84%CF%89%CF%81%CF%85%CF%87%CE%B5%CE%AF%CE%B1_%CE%92%CE%B9%CE%B5%CE%BB%CE%AF%CF%84%CF%83%CE%BA%CE%B1_5021.jpg/1280px-%CE%91%CE%BB%CE%B1%CF%84%CF%89%CF%81%CF%85%CF%87%CE%B5%CE%AF%CE%B1_%CE%92%CE%B9%CE%B5%CE%BB%CE%AF%CF%84%CF%83%CE%BA%CE%B1_5021.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Wieliczka_Salt_Mine"
     ]
   },
   {
