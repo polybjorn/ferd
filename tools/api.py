@@ -116,6 +116,9 @@ DEFAULT_CONFIG = {
 # hand. Hash covers sw.js itself + every file listed in its SHELL_ASSETS,
 # so any shell change (frontend, vendor, manifest) yields a new version.
 SW_VERSION_PLACEHOLDER = "__FERD_CACHE_VERSION__"
+# Substituted into index.html on serve so the frontend knows its own version
+# without /api/state (e.g. in local-only mode); see APP_VERSION below.
+APP_VERSION_PLACEHOLDER = "__FERD_APP_VERSION__"
 _SW_VERSION_CACHE: dict = {"version": None, "computed_at": 0.0}
 _SW_VERSION_TTL_SEC = 5
 
@@ -1056,6 +1059,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
       version = get_sw_version(base)
       data = data.replace(SW_VERSION_PLACEHOLDER.encode(),
                           version.encode())
+    elif rel == "index.html" and APP_VERSION_PLACEHOLDER.encode() in data:
+      data = data.replace(APP_VERSION_PLACEHOLDER.encode(),
+                          APP_VERSION.encode())
     self.send_response(HTTPStatus.OK)
     self.send_header("Content-Type", ctype)
     self.send_header("Content-Length", str(len(data)))

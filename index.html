@@ -2820,6 +2820,12 @@
   <script src="/vendor/leaflet-gpx/gpx.js"></script>
   <script src="/vendor/leaflet-elevation/leaflet-elevation.js"></script>
   <script>
+    // App version baked in by the static handler at serve time (mirrors the
+    // sw.js CACHE_VERSION substitution), so the frontend can report its own
+    // version without /api/state - e.g. in local-only mode. Left as the literal
+    // placeholder when served without the API; the Android shell uses its own
+    // FerdAndroid.appVersion() instead.
+    const FERD_BAKED_VERSION = '__FERD_APP_VERSION__';
     // ----- Shared -----
     // Tableau 20 categorical palette, reordered: indices 0-9 are the saturated
     // hues in hue-spread order (blue, orange, green, red, teal, purple, gold,
@@ -7873,7 +7879,8 @@
     }
 
     function openAboutModal() {
-      const version = state.auth.version || 'unknown';
+      const baked = FERD_BAKED_VERSION.indexOf('__FERD') === 0 ? '' : FERD_BAKED_VERSION;
+      const version = state.auth.version || baked || 'unknown';
       // In the Android shell the bundled build version (e.g. "1.0.1-dev+177")
       // is the relevant one; split it into a clean version + a muted build line.
       let appVersion = '';
