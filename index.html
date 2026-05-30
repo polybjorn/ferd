@@ -675,6 +675,33 @@
     .context-menu button:hover { background: var(--surface2); }
     .context-menu button.danger { color: var(--red); }
     .context-menu .ctx-divider { height: 1px; background: var(--border); margin: 0.2rem 0; }
+    /* Themed replacement for the native <select> popup (which the OS renders and
+       CSS can't reach). The closed control stays the real <select>; this floats
+       over it while open. */
+    .select-popover {
+      position: fixed;
+      z-index: 5000;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.3rem;
+      box-shadow: 0 8px 24px var(--shadow);
+      max-height: 16rem;
+      overflow-y: auto;
+      font-size: 0.8rem;
+    }
+    .select-popover .select-option {
+      padding: 0.45rem 0.6rem;
+      border-radius: calc(var(--radius) - 2px);
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .select-popover .select-option.active { background: var(--surface2); }
+    .select-popover .select-option[aria-selected="true"] { color: var(--accent); font-weight: 500; }
+    .select-popover .select-option.disabled { opacity: 0.5; cursor: default; }
 
     .group-toggle {
       display: flex;
@@ -2324,6 +2351,22 @@
       font-family: inherit;
       outline: none;
       transition: border-color 0.15s;
+    }
+    /* Take the select off native rendering so its fill is exactly var(--surface2);
+       the native widget paints a lighter control background that doesn't match the
+       themed text inputs. Draw the chevron from two gradients so its colour follows
+       var(--muted) across every theme. */
+    .modal select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      padding-right: 2rem;
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+        linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+      background-position: right 1.05rem center, right 0.75rem center;
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
     }
     .modal input:focus, .modal textarea:focus, .modal select:focus { border-color: var(--accent); }
     /* Suppress the browser-native spinner on number inputs (Lat/Long) — the
@@ -9866,6 +9909,158 @@
       }, true);
     }
 
+    // ----- Themed <select> dropdown -----
+    // The native option list is OS-rendered and can't take the app's theme, so
+    // on fine-pointer (desktop) devices we keep the real <select> as the trigger
+    // and render our own listbox over it. Touch devices keep the native picker,
+    // which is a conventional full-screen control there. The <select> stays the
+    // source of truth: choosing an option writes its value and fires `change`, so
+    // every existing reader (selectOrNew, settings, filters) is unaffected.
+    const _selectCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+    let _selPopover = null;
+    let _selPopoverTeardown = null;
+
+    function closeSelectPopover() {
+      if (_selPopover && _selPopover.parentElement) _selPopover.parentElement.removeChild(_selPopover);
+      _selPopover = null;
+      if (_selPopoverTeardown) { _selPopoverTeardown(); _selPopoverTeardown = null; }
+    }
+
+    function enhanceSelect(sel) {
+      if (_selectCoarsePointer || sel.dataset.enhanced === '1' || sel.disabled) return;
+      sel.dataset.enhanced = '1';
+      sel.addEventListener('mousedown', e => {
+        e.preventDefault();
+        if (_selPopover) { closeSelectPopover(); return; }
+        sel.focus();
+        openSelectList(sel);
+      });
+      sel.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ' || (e.altKey && e.key === 'ArrowDown')) {
+          e.preventDefault();
+          if (!_selPopover) openSelectList(sel);
+        }
+      });
+    }
+
+    function enhanceSelectsIn(container) {
+      if (!container) return;
+      container.querySelectorAll('select').forEach(enhanceSelect);
+    }
+
+    function openSelectList(sel) {
+      closeSelectPopover();
+      if (sel.disabled) return;
+      const options = Array.from(sel.options).filter(o => !o.hidden);
+      if (!options.length) return;
+      const pop = document.createElement('div');
+      pop.className = 'select-popover';
+      pop.setAttribute('role', 'listbox');
+      const optEls = [];
+      let activeIdx = options.findIndex(o => o.value === sel.value);
+      if (activeIdx < 0) activeIdx = options.findIndex(o => !o.disabled);
+      if (activeIdx < 0) activeIdx = 0;
+
+      const setActive = i => {
+        if (i < 0 || i >= optEls.length) return;
+        if (optEls[activeIdx]) optEls[activeIdx].classList.remove('active');
+        activeIdx = i;
+        optEls[activeIdx].classList.add('active');
+        optEls[activeIdx].scrollIntoView({ block: 'nearest' });
+      };
+      const moveActive = dir => {
+        let i = activeIdx;
+        for (let n = 0; n < optEls.length; n++) {
+          i = (i + dir + optEls.length) % optEls.length;
+          if (!options[i].disabled) { setActive(i); return; }
+        }
+      };
+      const choose = i => {
+        const o = options[i];
+        if (!o || o.disabled) return;
+        if (sel.value !== o.value) {
+          sel.value = o.value;
+          sel.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        closeSelectPopover();
+        sel.focus();
+      };
+
+      options.forEach((o, i) => {
+        const el = document.createElement('div');
+        el.className = 'select-option';
+        el.setAttribute('role', 'option');
+        el.textContent = o.textContent;
+        if (o.disabled) el.classList.add('disabled');
+        if (o.value === sel.value) el.setAttribute('aria-selected', 'true');
+        el.addEventListener('mousemove', () => { if (activeIdx !== i) setActive(i); });
+        el.addEventListener('click', () => choose(i));
+        pop.appendChild(el);
+        optEls.push(el);
+      });
+
+      document.body.appendChild(pop);
+      // Anchor under the control, flip above when there's no room below.
+      const r = sel.getBoundingClientRect();
+      const vw = window.innerWidth, vh = window.innerHeight;
+      pop.style.minWidth = r.width + 'px';
+      const ph = pop.getBoundingClientRect().height;
+      let top = r.bottom + 4;
+      if (top + ph > vh - 8 && r.top - ph - 4 >= 8) top = r.top - ph - 4;
+      pop.style.top = Math.max(8, Math.min(top, vh - ph - 8)) + 'px';
+      const pw = pop.getBoundingClientRect().width;
+      pop.style.left = Math.max(8, Math.min(r.left, vw - pw - 8)) + 'px';
+
+      optEls[activeIdx].classList.add('active');
+      optEls[activeIdx].scrollIntoView({ block: 'nearest' });
+
+      let typeBuf = '', typeTimer = null;
+      const onKey = e => {
+        // Capture-phase: own the keyboard while open and stop propagation so the
+        // handled key never reaches the select's own keydown (which would reopen).
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeSelectPopover(); sel.focus(); }
+        else if (e.key === 'ArrowDown') { e.preventDefault(); e.stopPropagation(); moveActive(1); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); e.stopPropagation(); moveActive(-1); }
+        else if (e.key === 'Home') { e.preventDefault(); e.stopPropagation(); setActive(0); if (options[activeIdx].disabled) moveActive(1); }
+        else if (e.key === 'End') { e.preventDefault(); e.stopPropagation(); setActive(optEls.length - 1); if (options[activeIdx].disabled) moveActive(-1); }
+        else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); choose(activeIdx); }
+        else if (e.key === 'Tab') { e.stopPropagation(); closeSelectPopover(); }
+        else if (e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey) {
+          e.stopPropagation();
+          typeBuf += e.key.toLowerCase();
+          clearTimeout(typeTimer);
+          typeTimer = setTimeout(() => { typeBuf = ''; }, 600);
+          for (let n = 1; n <= optEls.length; n++) {
+            const i = (activeIdx + n) % optEls.length;
+            if (!options[i].disabled && options[i].textContent.toLowerCase().startsWith(typeBuf)) { setActive(i); break; }
+          }
+        }
+      };
+      const onOutside = e => {
+        if (_selPopover && !_selPopover.contains(e.target) && e.target !== sel) closeSelectPopover();
+      };
+      const onScroll = e => {
+        if (_selPopover && _selPopover.contains(e.target)) return;
+        closeSelectPopover();
+      };
+
+      _selPopover = pop;
+      setTimeout(() => {
+        document.addEventListener('keydown', onKey, true);
+        document.addEventListener('mousedown', onOutside, true);
+        window.addEventListener('scroll', onScroll, true);
+        window.addEventListener('resize', closeSelectPopover);
+        window.addEventListener('blur', closeSelectPopover);
+      }, 0);
+      _selPopoverTeardown = () => {
+        document.removeEventListener('keydown', onKey, true);
+        document.removeEventListener('mousedown', onOutside, true);
+        window.removeEventListener('scroll', onScroll, true);
+        window.removeEventListener('resize', closeSelectPopover);
+        window.removeEventListener('blur', closeSelectPopover);
+      };
+    }
+
     function openConfirmModal({ title, body, confirmLabel, danger }) {
       return new Promise(resolve => {
         let settled = false;
@@ -9950,10 +10145,12 @@
       backdrop.querySelectorAll('.modal-close').forEach(el => el.addEventListener('click', () => entry.onClose()));
       if (modalStack.length === 1) document.addEventListener('keydown', escClose);
       if (onMount) onMount(backdrop);
+      enhanceSelectsIn(backdrop);
       return backdrop;
     }
 
     function closeTopModal() {
+      closeSelectPopover();
       const entry = modalStack.pop();
       if (!entry) return;
       entry.backdrop.classList.add('closing');
