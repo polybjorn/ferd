@@ -824,8 +824,12 @@
     }
     .history-list.gallery .history-image { width: 100%; aspect-ratio: 16 / 9; }
     .history-list.gallery .history-body { padding: 0.85rem 1rem; }
+    /* Compact: reserve the thumbnail's width for media-less entries so text
+       aligns; gallery stacks media on top, so no spacer there. */
+    .history-image-spacer { flex: 0 0 auto; width: 120px; }
+    .history-list.gallery .history-image-spacer { display: none; }
     @media (max-width: 600px) {
-      .history-image { width: 88px; }
+      .history-image, .history-image-spacer { width: 88px; }
     }
 
     .catalog-updates-notice {
@@ -1773,7 +1777,10 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-      min-width: 180px;
+      /* Hug the widest item (e.g. "Connect to server") so padding is even on
+         both sides, capped so a long username can't blow it out. */
+      width: max-content;
+      max-width: 16rem;
       z-index: 1500;
       padding: 0.25rem;
     }
@@ -1809,6 +1816,7 @@
       border-radius: 4px;
       cursor: pointer;
       justify-content: flex-start;
+      white-space: nowrap;
     }
     .auth-menu button:hover {
       background: var(--surface2);
@@ -2753,10 +2761,10 @@
       margin-top: 1.25rem;
     }
     /* Inline warning that sits to the left of the action buttons. */
-    .modal .modal-actions .action-warning {
-      flex: 1;
+    .modal .action-warning {
       min-width: 0;
       font-size: 0.78rem;
+      font-weight: 400;
       color: var(--red);
       margin: 0;
     }
@@ -7119,6 +7127,13 @@
           const focus = typeof e.image_focus === 'string' && FOCUS_RE.test(e.image_focus.trim()) ? e.image_focus.trim() : '';
           const styleAttr = focus ? ' style="object-position:' + focus + '"' : '';
           inner += '<img class="history-image" src="' + escapeHtml(e.image) + '" alt=""' + styleAttr + ' loading="lazy" decoding="async" fetchpriority="low" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
+        } else if (e.kind === 'route' && e.route) {
+          // Routes have no photo; draw the GPX track silhouette, like the Routes list.
+          inner += '<canvas class="history-image route-thumb" data-route-key="' + escapeHtml(e.route.key) + '"></canvas>';
+        } else {
+          // No media: reserve the thumbnail's width (compact only) so the body
+          // text lines up with entries that do have one.
+          inner += '<div class="history-image-spacer"></div>';
         }
         inner += '<div class="history-body">';
         inner += '<div class="history-head">' +
@@ -7237,6 +7252,10 @@
         }
         html += '</div>';
         mount.innerHTML = html;
+        mount.querySelectorAll('canvas.route-thumb').forEach(function(canvas) {
+          const found = findRouteByKey(canvas.dataset.routeKey);
+          if (found) drawRouteSilhouette(canvas, found.route);
+        });
         mount.querySelectorAll('.history-card').forEach(function(card) {
           attachContextMenu(card, function() {
             const e = flat[+card.dataset.idx];
@@ -9479,11 +9498,11 @@
         '</div>' +
         '<div class="hint" id="cat-new-slug-preview" hidden></div>' +
         '<div class="modal-error" id="cat-error"></div>' +
-        '<h3 class="settings-h" style="margin-top:1.25rem">Categories</h3>' +
+        '<h3 class="settings-h" style="margin-top:1.25rem;display:flex;align-items:baseline;gap:0.6rem">Categories' +
+          '<span id="cat-clear-warning" class="action-warning" style="margin-left:auto;text-align:right" hidden></span></h3>' +
         '<div id="cat-rows"></div>' +
         '<div class="modal-actions" style="margin-top:1rem;display:flex;align-items:center;gap:0.6rem">' +
           '<button type="button" class="row-notes-toggle" id="cat-reset-colors" style="margin-right:auto">Reset colors</button>' +
-          '<div id="cat-clear-warning" class="action-warning" style="flex:1;margin:0" hidden></div>' +
           '<button type="button" class="primary" id="cat-save" hidden>Save</button>' +
         '</div>',
         function() {
@@ -9822,12 +9841,12 @@
 
       openModal(
         '<h2>Manage regions<button class="modal-close">&times;</button></h2>' +
-        '<h3 class="settings-h" style="margin-top:0.75rem">Regions</h3>' +
+        '<h3 class="settings-h" style="margin-top:0.75rem;display:flex;align-items:baseline;gap:0.6rem">Regions' +
+          '<span id="rgn-clear-warning" class="action-warning" style="margin-left:auto;text-align:right" hidden></span></h3>' +
         '<div id="rgn-rows"></div>' +
         '<div id="rgn-empty" class="hint" hidden>No regions yet. Upload a route with a region to create one.</div>' +
         '<div class="modal-error" id="rgn-error"></div>' +
         '<div class="modal-actions" style="margin-top:1rem">' +
-          '<div id="rgn-clear-warning" class="action-warning" hidden></div>' +
           '<button type="button" class="primary" id="rgn-save" hidden>Save</button>' +
         '</div>',
         function() {
@@ -9849,7 +9868,7 @@
               const region = regions.find(x => x.name === name);
               return n + (region ? region.routes.length : 0);
             }, 0);
-            banner.textContent = total + ' route' + (total === 1 ? '' : 's') + ' will move to No region';
+            banner.textContent = total + ' route' + (total === 1 ? '' : 's') + ' will lose ' + (total === 1 ? 'its' : 'their') + ' region';
             banner.hidden = false;
           }
           function rerender() {
