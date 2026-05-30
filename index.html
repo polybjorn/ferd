@@ -558,12 +558,6 @@
 
     @media (max-width: 600px) {
       .category-grid, .region-grid { columns: 1; }
-      /* On a narrow modal the flex `flex: 1 1 0` cells wrap and a lone last
-         pill grows to span the whole row. Switch to a 2-column grid so each
-         pill fills only its own cell (the odd one out sits in the left cell at
-         half width) while short groups like Visible features still fill the
-         row. */
-      .modal .feature-pills { display: grid; grid-template-columns: repeat(2, 1fr); }
     }
 
     /* Places index */
@@ -2446,6 +2440,16 @@
     .modal .checkbox-row input { width: auto; }
     .modal .checkbox-row label { margin: 0; text-transform: none; letter-spacing: 0; font-size: 0.8rem; color: var(--text); }
     .feature-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    /* The pills default to a flexible row (content-sized, growing to fill).
+       When the modal itself gets narrow enough that the row would wrap and a
+       lone pill stretch full-width, drop to a fixed 2-column grid. Keyed to the
+       Settings panel's own width (container query), not the viewport, so the
+       switch happens when the modal is actually narrow rather than at an
+       arbitrary window width. */
+    [data-panel="general"] { container-type: inline-size; }
+    @container (max-width: 24rem) {
+      [data-panel="general"] .feature-pills { display: grid; grid-template-columns: repeat(2, 1fr); }
+    }
     .feature-pill {
       display: inline-flex;
       align-items: center;
