@@ -558,6 +558,12 @@
 
     @media (max-width: 600px) {
       .category-grid, .region-grid { columns: 1; }
+      /* On a narrow modal the flex `flex: 1 1 0` cells wrap and a lone last
+         pill grows to span the whole row. Switch to a 2-column grid so each
+         pill fills only its own cell (the odd one out sits in the left cell at
+         half width) while short groups like Visible features still fill the
+         row. */
+      .modal .feature-pills { display: grid; grid-template-columns: repeat(2, 1fr); }
     }
 
     /* Places index */

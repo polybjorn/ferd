@@ -11,6 +11,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ### Fixed
 - Adding a place: clicking "Pick on map" no longer clears the name, category, and other entered fields. The form now keeps its contents across the map pick.
 - Modal dropdowns (category, region, settings) are now fully themed. The closed control matches the surrounding inputs instead of the browser's lighter native fill, and on desktop the open option list renders in the active theme rather than the OS-native popup (which CSS can't restyle). Keyboard navigation and type-ahead are preserved; touch devices keep the native full-screen picker.
+- Settings pill groups (Optional fields, Visible features) no longer leave a lone pill stretched across the full width when they wrap on narrow screens; they lay out in an even two-column grid.
 
 ## [1.1.0] - 2026-05-29
 
