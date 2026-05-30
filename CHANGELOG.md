@@ -22,11 +22,15 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The "Ferd" brand no longer shows a back arrow on the route detail page, so it sits in the same position on every page (it still links home).
 - Places and Routes lists: the Add button moved from the search row into the top nav, just left of the Menu button, leaving the search row to the filter input and Filters popover.
 - Places and Routes lists: the item count moved from the nav tab into the search box, where it updates live to the matching count as you type or apply filters.
+- Add to catalog: the "Add all" button is now a "Select all" / "Deselect all" toggle that ticks the visible entries, so you confirm with "Add selected" rather than adding everything in one click.
+- Destructive and bulk actions now use the in-app confirm dialog with action-specific wording instead of a native browser prompt (or, where there was none, a new prompt): server import "Replace all", "Sign out others", saving the category manager when a removed category is still in use, and bulk-adding entries to the catalog or to your map.
+- Tightened the category/region managers and the admin Catalog setting: the in-use warning text is shorter, "Reset colors" sits at the left of the manager footer, and the shipped-catalog toggle label dropped "baseline".
 
 ### Removed
 - Settings > Appearance > On-map controls: the "Add button" show/hide toggle. The map's Add action now lives in the top nav, always available to editors.
 
 ### Fixed
+- The remove (×) button on category and region rows draws its X with CSS instead of a font character, so it centers consistently across operating systems (it sat off-center in some mobile system fonts).
 - The Filters dropdowns on the Places, Routes, and History lists now use the themed option list (matching Settings) instead of the browser's native popup on desktop, and the dimension's default option shows as "All" in the open list rather than repeating the dimension name.
 - The account menu and the list/History filter (and View) popovers are now mutually exclusive: opening one closes any other that was open, instead of leaving two overlapping.
 - Opening a place from the list now lands the map directly on the pin instead of briefly showing the previous location and then panning to the new one.

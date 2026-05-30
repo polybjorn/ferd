@@ -2051,6 +2051,16 @@
     }
     .btn-x:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
     .btn-x:disabled { opacity: 0.4; cursor: not-allowed; }
+    /* X drawn with two rotated bars (not a font character or SVG) so it centers
+       identically on every OS - the unicode × sits off-center in some system
+       fonts. Button content is empty; `.x-icon` paints the glyph. */
+    .btn-x.x-icon { position: relative; }
+    .btn-x.x-icon::before, .btn-x.x-icon::after {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      width: 0.85rem; height: 2px; background: currentColor; border-radius: 1px;
+    }
+    .btn-x.x-icon::before { transform: translate(-50%, -50%) rotate(45deg); }
+    .btn-x.x-icon::after  { transform: translate(-50%, -50%) rotate(-45deg); }
     .catalog-eye-btn {
       background: transparent; border: 1px solid var(--border);
       color: var(--muted); width: 1.9rem; height: 1.9rem;
@@ -8947,7 +8957,7 @@
           '<h3 class="settings-h">Catalog</h3>' +
           '<div class="settings-inline-row">' +
             '<input type="checkbox" class="settings-toggle" id="s-catalog-baseline"' + (state.auth.catalog_baseline_open ? ' checked' : '') + '>' +
-            '<label for="s-catalog-baseline">Include shipped baseline catalog</label>' +
+            '<label for="s-catalog-baseline">Include shipped catalog</label>' +
           '</div>' +
           '<div id="s-admin-catalog"><div class="hint">Loading&hellip;</div></div>' +
           '<h3 class="settings-h">Users</h3>' +
@@ -9282,12 +9292,20 @@
           });
           const revokeOthersBtn = document.getElementById('s-revoke-others');
           if (revokeOthersBtn) revokeOthersBtn.addEventListener('click', function() {
-            if (!confirm('Sign out all other sessions for this account?')) return;
-            this.disabled = true;
-            api('POST', '/sessions/revoke-others')
-              .then(renderSessions)
-              .catch(err => { alert('Failed: ' + err.message); })
-              .finally(() => { this.disabled = false; });
+            const btn = this;
+            openConfirmModal({
+              title: 'Sign out other sessions?',
+              body: 'This signs out every other browser and device signed in to this account. Your current session stays active, and any API tokens are unaffected.',
+              confirmLabel: 'Sign out others',
+              danger: true,
+            }).then(ok => {
+              if (!ok) return;
+              btn.disabled = true;
+              api('POST', '/sessions/revoke-others')
+                .then(renderSessions)
+                .catch(err => { alert('Failed: ' + err.message); })
+                .finally(() => { btn.disabled = false; });
+            });
           });
           const pickBtn = document.getElementById('s-import-pick');
           const fileInputEl = document.getElementById('s-import-file');
@@ -9317,11 +9335,9 @@
               return;
             }
             const mode = document.querySelector('input[name="import-mode"]:checked').value;
-            if (mode === 'replace' && !confirm('Replace all current places, routes, and preferences with the contents of this zip?')) {
-              return;
-            }
-            importBtn.disabled = true;
+            const runImport = function() {
             const originalLabel = importBtn.textContent;
+            importBtn.disabled = true;
             importBtn.textContent = 'Importing…';
             fetch(apiUrl('/me/import?mode=' + mode), applyAuth({
               method: 'POST',
@@ -9353,6 +9369,16 @@
               errBox.textContent = err.message;
               errBox.classList.add('visible');
             });
+            };
+            if (mode === 'replace') {
+              openConfirmModal({
+                title: 'Replace all?',
+                body: 'This replaces all of your current places, routes, and preferences with the contents of the zip. It cannot be undone.',
+                confirmLabel: 'Replace', danger: true,
+              }).then(ok => { if (ok) runImport(); });
+            } else {
+              runImport();
+            }
           });
           document.querySelectorAll('#settings-tabs button[data-tab]').forEach(b => {
             b.addEventListener('click', function() {
@@ -9456,7 +9482,7 @@
         '<h3 class="settings-h" style="margin-top:1.25rem">Categories</h3>' +
         '<div id="cat-rows"></div>' +
         '<div class="modal-actions" style="margin-top:1rem;display:flex;align-items:center;gap:0.6rem">' +
-          '<button type="button" class="row-notes-toggle" id="cat-reset-colors">Reset colors</button>' +
+          '<button type="button" class="row-notes-toggle" id="cat-reset-colors" style="margin-right:auto">Reset colors</button>' +
           '<div id="cat-clear-warning" class="action-warning" style="flex:1;margin:0" hidden></div>' +
           '<button type="button" class="primary" id="cat-save" hidden>Save</button>' +
         '</div>',
@@ -9488,8 +9514,7 @@
             if (!pendingClears.size) { banner.hidden = true; return; }
             const slugs = [...pendingClears];
             const total = state.places.filter(p => slugs.includes(p.category)).length;
-            const slugList = slugs.map(s => '"' + s + '"').join(', ');
-            banner.textContent = 'On Save: ' + total + ' place' + (total === 1 ? '' : 's') + ' will lose their category (' + slugList + ').';
+            banner.textContent = total + ' place' + (total === 1 ? '' : 's') + ' will lose ' + (total === 1 ? 'its' : 'their') + ' category';
             banner.hidden = false;
           }
           function rerender() {
@@ -9519,7 +9544,7 @@
                     '<input type="text" data-i="' + i + '" class="cat-display' + (labelDirty ? ' dirty' : '') + '" value="' + escapeHtml(r.display) + '" placeholder="(falls back to title case)" title="' + escapeHtml('slug: ' + r.slug) + '" style="width:100%">' +
                     innerTag +
                   '</span>' +
-                  '<button type="button" data-i="' + i + '" class="cat-remove btn-x" aria-label="Remove" title="Remove" style="flex:0 0 auto">&times;</button>' +
+                  '<button type="button" data-i="' + i + '" class="cat-remove btn-x x-icon" aria-label="Remove" title="Remove" style="flex:0 0 auto"></button>' +
                 '</div>' +
                 swatchGrid +
               '</div>';
@@ -9728,6 +9753,7 @@
 
           document.getElementById('cat-save').addEventListener('click', function() {
             const submit = this;
+            const doSave = function() {
             submit.disabled = true;
             const payload = {};
             rows.forEach((r, i) => {
@@ -9761,6 +9787,22 @@
                 e.textContent = err.message;
                 e.classList.add('visible');
               });
+            };
+            // Removing a category that places still use clears it from them on
+            // save - confirm before that destructive bulk edit.
+            if (pendingClears.size) {
+              const slugs = [...pendingClears];
+              const total = state.places.filter(p => slugs.includes(p.category)).length;
+              const many = slugs.length > 1;
+              openConfirmModal({
+                title: 'Remove ' + (many ? 'categories' : 'category') + ' in use?',
+                body: total + ' place' + (total === 1 ? '' : 's') + ' will lose ' + (total === 1 ? 'its' : 'their') + ' category (' + slugs.map(s => '"' + s + '"').join(', ') + ') when you save. This cannot be undone.',
+                confirmLabel: 'Save',
+                danger: true,
+              }).then(ok => { if (ok) doSave(); });
+            } else {
+              doSave();
+            }
           });
         }
       );
@@ -9807,9 +9849,7 @@
               const region = regions.find(x => x.name === name);
               return n + (region ? region.routes.length : 0);
             }, 0);
-            const slugList = slugs.map(s => '"' + s + '"').join(', ');
-            banner.textContent = 'On Save: ' + total + ' route' + (total === 1 ? '' : 's') +
-              ' will move to No region (' + slugList + ').';
+            banner.textContent = total + ' route' + (total === 1 ? '' : 's') + ' will move to No region';
             banner.hidden = false;
           }
           function rerender() {
@@ -9831,7 +9871,7 @@
               return '<div style="display:flex;gap:0.6rem;align-items:center;margin-top:0.5rem">' +
                 '<input type="text" data-i="' + i + '" class="rgn-name' + (dirty ? ' dirty' : '') + '" value="' + escapeHtml(r.name) + '" style="flex:1;min-width:0">' +
                 tag +
-                '<button type="button" data-i="' + i + '" class="rgn-remove btn-x" aria-label="Remove" title="' + xTitle + '" style="flex:0 0 auto">&times;</button>' +
+                '<button type="button" data-i="' + i + '" class="rgn-remove btn-x x-icon" aria-label="Remove" title="' + xTitle + '" style="flex:0 0 auto"></button>' +
               '</div>';
             }).join('');
             container.querySelectorAll('.rgn-name').forEach(inp => {
@@ -10396,14 +10436,14 @@
         '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
           '<button type="button" class="row-notes-toggle" id="cat-notes-toggle">Show notes</button>' +
           '<span id="cat-status" style="font-size:0.75rem;color:var(--muted);flex:1"></span>' +
-          '<button type="button" id="cat-add-all">Add all</button>' +
+          '<button type="button" id="cat-select-all">Select all</button>' +
           '<button type="button" class="primary" id="cat-submit" disabled>Add selected</button>' +
         '</div>',
         function() {
           const filter = document.getElementById('cat-filter');
           const list = document.getElementById('cat-list');
           const submit = document.getElementById('cat-submit');
-          const addAll = document.getElementById('cat-add-all');
+          const selectAll = document.getElementById('cat-select-all');
           const status = document.getElementById('cat-status');
           // state.places carries runtime annotations (`_slug`, normalized empty
           // `category`) that aren't part of the server-side place schema; only
@@ -10424,9 +10464,10 @@
             const checked = list.querySelectorAll('.cat-pick:checked').length;
             submit.disabled = checked === 0;
             submit.textContent = checked ? 'Add ' + checked + ' selected' : 'Add selected';
-            const v = visibleRows().length;
-            addAll.disabled = v === 0;
-            addAll.textContent = 'Add all' + (v && v < places.length ? ' (' + v + ')' : '');
+            const vis = visibleRows();
+            const visChecked = vis.filter(r => { const cb = r.querySelector('.cat-pick'); return cb && cb.checked; }).length;
+            selectAll.disabled = vis.length === 0;
+            selectAll.textContent = (vis.length > 0 && visChecked === vis.length) ? 'Deselect all' : 'Select all';
           }
           list.addEventListener('change', updateBtns);
           filter.addEventListener('input', function() {
@@ -10438,8 +10479,15 @@
           });
           function submitPicks(picks) {
             if (!picks.length) return;
+            openConfirmModal({
+              title: 'Add to catalog?',
+              body: 'Add ' + picks.length + ' place' + (picks.length === 1 ? '' : 's') + ' to the shared catalog? They become available for everyone to browse and import.',
+              confirmLabel: 'Add ' + picks.length,
+            }).then(ok => { if (ok) doSubmit(picks); });
+          }
+          function doSubmit(picks) {
             submit.disabled = true;
-            addAll.disabled = true;
+            selectAll.disabled = true;
             status.textContent = 'Adding…';
             const errEl = document.getElementById('add-error');
             if (errEl) errEl.classList.remove('visible');
@@ -10469,12 +10517,11 @@
               .map(cleanPlace);
             submitPicks(picks);
           });
-          addAll.addEventListener('click', function() {
-            const picks = visibleRows()
-              .map(r => places[parseInt(r.dataset.idx, 10)])
-              .filter(Boolean)
-              .map(cleanPlace);
-            submitPicks(picks);
+          selectAll.addEventListener('click', function() {
+            const vis = visibleRows();
+            const allChecked = vis.length > 0 && vis.every(r => { const cb = r.querySelector('.cat-pick'); return cb && cb.checked; });
+            vis.forEach(r => { const cb = r.querySelector('.cat-pick'); if (cb) cb.checked = !allChecked; });
+            updateBtns();
           });
           const notesToggle = document.getElementById('cat-notes-toggle');
           notesToggle.addEventListener('click', function() {
@@ -11723,28 +11770,35 @@
               // the lineage.
               .map(e => { const { _source, ...rest } = e; return Object.assign({}, rest, { from_catalog: e.name }); });
             if (!picked.length) return;
-            addBtn.disabled = true;
-            const prevColors = Object.assign({}, state.categoryColors);
-            let done = 0;
-            const errors = [];
-            (function next() {
-              if (done >= picked.length) {
-                refreshPlaces().then(() => {
-                  syncPlacesOnMap(prevColors);
-                  if (errors.length) {
-                    updateBtn();
-                    showModalError(errors.length + ' of ' + picked.length + ' failed: ' + errors.join('; '));
-                  } else {
-                    closeModal();
-                  }
-                }).catch(err => { updateBtn(); showModalError(err.message); });
-                return;
-              }
-              addBtn.textContent = 'Adding ' + (done + 1) + ' of ' + picked.length + '…';
-              dataLayer.createPlace(picked[done])
-                .catch(err => errors.push((picked[done].name || '?') + ': ' + err.message))
-                .then(() => { done++; next(); });
-            })();
+            openConfirmModal({
+              title: 'Add to your map?',
+              body: 'Import ' + picked.length + ' place' + (picked.length === 1 ? '' : 's') + ' from the catalog into your map?',
+              confirmLabel: 'Add ' + picked.length,
+            }).then(ok => {
+              if (!ok) return;
+              addBtn.disabled = true;
+              const prevColors = Object.assign({}, state.categoryColors);
+              let done = 0;
+              const errors = [];
+              (function next() {
+                if (done >= picked.length) {
+                  refreshPlaces().then(() => {
+                    syncPlacesOnMap(prevColors);
+                    if (errors.length) {
+                      updateBtn();
+                      showModalError(errors.length + ' of ' + picked.length + ' failed: ' + errors.join('; '));
+                    } else {
+                      closeModal();
+                    }
+                  }).catch(err => { updateBtn(); showModalError(err.message); });
+                  return;
+                }
+                addBtn.textContent = 'Adding ' + (done + 1) + ' of ' + picked.length + '…';
+                dataLayer.createPlace(picked[done])
+                  .catch(err => errors.push((picked[done].name || '?') + ': ' + err.message))
+                  .then(() => { done++; next(); });
+              })();
+            });
           });
         }
       }
