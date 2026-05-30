@@ -1780,14 +1780,14 @@
       color: var(--text);
       border-color: transparent;
     }
-    .auth-menu button.auth-menu-signout {
+    .auth-menu button.auth-menu-foot {
       margin-top: 0.25rem;
       padding-top: 0.55rem;
       border-top: 1px solid var(--border);
       color: var(--muted);
       border-radius: 0 0 4px 4px;
     }
-    .auth-menu button.auth-menu-signout:hover { color: var(--text); }
+    .auth-menu button.auth-menu-foot:hover { color: var(--text); }
     .about-body { text-align: center; padding: 0.5rem 0 0.25rem; }
     .about-logo {
       width: 64px;
@@ -8097,15 +8097,15 @@
         '<button id="auth-menu-btn" title="Account menu">Menu</button>' +
         '<div class="auth-menu" id="auth-menu" hidden>' +
           (local
-            ? '<div class="auth-menu-header">Local map<strong>On this device</strong></div>'
+            ? '<div class="auth-menu-header">Local map<strong>No account</strong></div>'
             : '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>') +
           ((placesEnabled() || routesEnabled()) ? '<button data-action="history">History</button>' : '') +
           '<button data-action="settings">Settings</button>' +
           (isAdmin ? '<button data-action="logs">Logs</button>' : '') +
           '<button data-action="about">About</button>' +
           (local
-            ? '<button data-action="connect">Connect to a server</button>'
-            : '<button class="auth-menu-signout" data-action="signout">Sign out</button>') +
+            ? '<button class="auth-menu-foot" data-action="connect">Connect to server</button>'
+            : '<button class="auth-menu-foot" data-action="signout">Sign out</button>') +
         '</div>';
       const btn = document.getElementById('auth-menu-btn');
       const menu = document.getElementById('auth-menu');
