@@ -84,7 +84,7 @@ val copyWebAssets by tasks.registering(Copy::class) {
   val repoRoot = rootProject.projectDir.parentFile
   into(layout.buildDirectory.dir("generated/web_assets"))
   from(repoRoot) {
-    include("index.html", "sw.js")
+    include("index.html", "sw.js", "catalog.json")
   }
   from(repoRoot.resolve("vendor")) { into("vendor") }
   from(repoRoot.resolve("icons")) { into("icons") }

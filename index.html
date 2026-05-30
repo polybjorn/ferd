@@ -3817,6 +3817,28 @@
     function placesEnabled() { return placesAvailable() && !getHiddenFeatures().has('places'); }
     function routesEnabled() { return routesAvailable() && !getHiddenFeatures().has('routes'); }
 
+    // Secondary surfaces toggled under Settings > Visible features. They reuse
+    // the same `hidden-features` set, but Logs defaults to hidden where the
+    // others default to shown. To express both with one set, a key listed in
+    // FEATURE_DEFAULT_HIDDEN reads inverted: present-in-set means SHOWN.
+    const FEATURE_DEFAULT_HIDDEN = new Set(['logs']);
+    function featureVisible(key) {
+      const inSet = getHiddenFeatures().has(key);
+      return FEATURE_DEFAULT_HIDDEN.has(key) ? inSet : !inSet;
+    }
+    function setFeatureVisible(key, visible) {
+      // setFeatureHidden's flag is "present in the set"; that's `visible` for a
+      // default-hidden key and `!visible` for a default-shown one.
+      setFeatureHidden(key, FEATURE_DEFAULT_HIDDEN.has(key) ? visible : !visible);
+    }
+    // History reads places+routes, Catalog imports places, Logs needs a place
+    // to log to (admin audit on a server, or local mode). Each surface is shown
+    // only when reachable AND not toggled off.
+    function historyEnabled() { return (placesEnabled() || routesEnabled()) && featureVisible('history'); }
+    function catalogEnabled() { return placesEnabled() && featureVisible('catalog'); }
+    function logsAvailable() { return isLocalMode() || !!(state.auth && state.auth.is_admin); }
+    function logsEnabled() { return logsAvailable() && featureVisible('logs'); }
+
     // One-shot rename of the per-browser "show local name field" toggle, which
     // used the legacy `show-native-name` key before 1.1.0. Copy the old value
     // over to the new key and drop the stale entry. Safe to leave indefinitely
@@ -6167,10 +6189,25 @@
     // Refetch the catalog into the cache and refresh the places list if it's
     // the current view, so catalog edits (add/remove/hide/baseline) update the
     // import badges and orphan markers live, without a page reload. Admin
+    // Catalog source facade. Server mode reads the merged catalog from
+    // /catalog (shipped baseline + per-instance admin-curated entries). Local
+    // mode has no server, so it reads the shipped baseline straight from the
+    // bundled static catalog.json, tagging each entry _source:'shipped' to
+    // match the server's shape. Admin curation has no local analogue, so the
+    // catalog-management UI stays hidden in local mode; browse + import +
+    // update-detection all work against the static file.
+    function fetchCatalog() {
+      if (isLocalMode()) {
+        return fetchJson('catalog.json', []).then(arr =>
+          Array.isArray(arr) ? arr.map(e => Object.assign({ _source: 'shipped' }, e)) : []);
+      }
+      return api('GET', '/catalog');
+    }
+
     // mutation handlers null the cache for their own modal refetch; this
     // repopulates it and re-renders the list behind the modal.
     function reloadCatalogCache() {
-      return api('GET', '/catalog').then(entries => {
+      return fetchCatalog().then(entries => {
         state._catalogCache = Array.isArray(entries) ? entries : [];
         // Re-render the current view so badges/orphan markers reflect the fresh
         // cache (mirrors the boot-time catalog warm-up refresh).
@@ -8010,7 +8047,7 @@
         return renderTrailDetail(key);
       }
       if (base === '#/history') {
-        if (!placesEnabled() && !routesEnabled()) { location.hash = '#/'; return; }
+        if (!historyEnabled()) { location.hash = '#/'; return; }
         return renderHistoryIndex();
       }
       renderUnifiedMap(null);
@@ -8143,7 +8180,6 @@
         document.getElementById('auth-signin').addEventListener('click', openSignInModal);
         return;
       }
-      const isAdmin = !!state.auth.is_admin;
       const local = isLocalMode();
       el.innerHTML =
         '<button id="auth-menu-btn" title="Account menu">Menu</button>' +
@@ -8151,9 +8187,9 @@
           (local
             ? '<div class="auth-menu-header">Local map<strong>No account</strong></div>'
             : '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>') +
-          ((placesEnabled() || routesEnabled()) ? '<button data-action="history">History</button>' : '') +
+          (historyEnabled() ? '<button data-action="history">History</button>' : '') +
           '<button data-action="settings">Settings</button>' +
-          ((isAdmin || local) ? '<button data-action="logs">Logs</button>' : '') +
+          (logsEnabled() ? '<button data-action="logs">Logs</button>' : '') +
           '<button data-action="about">About</button>' +
           (local
             ? '<button class="auth-menu-foot" data-action="connect">Connect to server</button>'
@@ -8403,7 +8439,21 @@
             (routesAvailable() ?
               '<label class="feature-pill' + (routesEnabled() ? ' active' : '') + '"><input type="checkbox" id="s-feat-routes"' + (routesEnabled() ? ' checked' : '') + '>Routes</label>'
               : '') +
-          '</div>'
+          '</div>' +
+          // Secondary surfaces on their own forced second row.
+          ((placesEnabled() || routesEnabled() || logsAvailable()) ?
+            '<div class="feature-pills">' +
+              ((placesEnabled() || routesEnabled()) ?
+                '<label class="feature-pill' + (featureVisible('history') ? ' active' : '') + '"><input type="checkbox" id="s-feat-history"' + (featureVisible('history') ? ' checked' : '') + '>History</label>'
+                : '') +
+              (placesEnabled() ?
+                '<label class="feature-pill' + (featureVisible('catalog') ? ' active' : '') + '"><input type="checkbox" id="s-feat-catalog"' + (featureVisible('catalog') ? ' checked' : '') + '>Catalog</label>'
+                : '') +
+              (logsAvailable() ?
+                '<label class="feature-pill' + (featureVisible('logs') ? ' active' : '') + '"><input type="checkbox" id="s-feat-logs"' + (featureVisible('logs') ? ' checked' : '') + '>Logs</label>'
+                : '') +
+            '</div>'
+          : '')
         : '') +
         (!isReadOnly() ?
           '<h3 class="settings-h">Optional fields</h3>' +
@@ -8812,6 +8862,23 @@
               // feature.
               if (state.currentMap) { applyMapFilters(); rebuildMapFilterPanel(); }
               else wrappedRouter();
+            });
+          });
+          // Secondary surfaces (menu items + the Add modal's Browse tab). These
+          // don't touch the map, so just persist, refresh the menu so History/
+          // Logs appear/disappear, and bail out of History if it's being hidden
+          // while open.
+          ['history', 'catalog', 'logs'].forEach(function(feat) {
+            const cb = document.getElementById('s-feat-' + feat);
+            if (!cb) return;
+            cb.addEventListener('change', function() {
+              setFeatureVisible(feat, this.checked);
+              const pill = this.closest('.feature-pill');
+              if (pill) pill.classList.toggle('active', this.checked);
+              renderAuthWidget();
+              if (feat === 'history' && !this.checked && (location.hash || '').startsWith('#/history')) {
+                location.hash = '#/';
+              }
             });
           });
           const tileSel = document.getElementById('s-tile');
@@ -10905,8 +10972,10 @@
       //   'place' (Places list Add)  -> [Place, Browse]
       //   'route' (Routes list Add)  -> just the GPX form, no tabs
       //   null    (map FAB)          -> [Place, Route, Browse], filtered by enabled features
-      // Browse pulls from the server catalog, which doesn't exist in local mode.
-      const showBrowse = !isLocalMode();
+      // Browse reads the merged catalog in server mode and the bundled shipped
+      // catalog.json in local mode (see fetchCatalog); hidden when the Catalog
+      // feature is toggled off.
+      const showBrowse = catalogEnabled();
       let tabs;
       if (initialTab === 'route') {
         tabs = ['route'];
@@ -11251,7 +11320,7 @@
           renderBrowse(state._catalogCache);
           return;
         }
-        api('GET', '/catalog')
+        fetchCatalog()
           .then(entries => {
             state._catalogCache = Array.isArray(entries) ? entries : [];
             renderBrowse(state._catalogCache);
@@ -11619,8 +11688,8 @@
         // Warm the catalog cache in the background so the Browse tab in the
         // Add modal renders instantly the first time it's opened, instead of
         // flashing the Loading placeholder. Authed users only.
-        if (state.auth && state.auth.authenticated && !isReadOnly() && !isLocalMode() && state._catalogCache == null) {
-          api('GET', '/catalog').then(entries => {
+        if (state.auth && state.auth.authenticated && !isReadOnly() && catalogEnabled() && state._catalogCache == null) {
+          fetchCatalog().then(entries => {
             state._catalogCache = Array.isArray(entries) ? entries : [];
             // If the user is sitting on the Places list when this lands,
             // re-render so the "update available" badges reflect the cache.
