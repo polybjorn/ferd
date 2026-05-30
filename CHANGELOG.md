@@ -13,6 +13,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Local mode catalog: the Add modal's Browse tab now works in local mode, sourced from the bundled shipped catalog (catalog.json, precached for offline use). Browse and import catalog places into an on-device map, with the same "update available" detection when a new app version ships a changed catalog. Catalog curation stays server-only.
 - Visible features: Settings > General gained per-device toggles to show or hide History, Catalog (the Add modal's Browse tab), and Logs. Each appears only when reachable (History needs Places or Routes; Catalog needs Places; Logs needs admin or local mode). Logs defaults to hidden.
 
+### Changed
+- Places and Routes lists: the item count moved from the nav tab into the search box, where it updates live to the matching count as you type or apply filters.
+
 ### Fixed
 - Adding a place: clicking "Pick on map" no longer clears the name, category, and other entered fields. The form now keeps its contents across the map pick.
 - Modal dropdowns (category, region, settings) are now fully themed. The closed control matches the surrounding inputs instead of the browser's lighter native fill, and on desktop the open option list renders in the active theme rather than the OS-native popup (which CSS can't restyle). Keyboard navigation and type-ahead are preserved; touch devices keep the native full-screen picker.

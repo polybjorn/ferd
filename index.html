@@ -590,6 +590,15 @@
     }
     .index-controls input[type="text"]::placeholder { color: var(--muted); }
     .index-controls input[type="text"]:focus { border-color: var(--accent); }
+    /* Live result count pinned inside the search box: total when unfiltered,
+       the matching count once a search/filter narrows the list. */
+    .index-controls .search-wrap { position: relative; flex: 1; min-width: 0; display: flex; }
+    .index-controls .search-wrap input[type="text"] { padding-right: 3rem; }
+    .index-controls .result-count {
+      position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%);
+      font-size: 0.72rem; color: var(--muted); pointer-events: none;
+      font-variant-numeric: tabular-nums;
+    }
     .index-controls select {
       flex-shrink: 0;
       padding: 0.55rem 0.7rem;
@@ -3936,18 +3945,16 @@
     function refreshTabVisibility() {
       const tabPlaces = document.getElementById('tab-places');
       const tabTrails = document.getElementById('tab-routes');
-      if (tabPlaces) {
-        tabPlaces.style.display = placesEnabled() ? '' : 'none';
-        const n = Array.isArray(state.places) ? state.places.length : null;
-        tabPlaces.textContent = n == null ? 'Places' : 'Places (' + n + ')';
-      }
-      if (tabTrails) {
-        tabTrails.style.display = routesEnabled() ? '' : 'none';
-        const n = state.manifest
-          ? state.manifest.regions.reduce(function (s, r) { return s + r.routes.length; }, 0)
-          : null;
-        tabTrails.textContent = n == null ? 'Routes' : 'Routes (' + n + ')';
-      }
+      // The count moved to the list-page search box (see setResultCount); tabs
+      // are just the plain labels now.
+      if (tabPlaces) { tabPlaces.style.display = placesEnabled() ? '' : 'none'; tabPlaces.textContent = 'Places'; }
+      if (tabTrails) { tabTrails.style.display = routesEnabled() ? '' : 'none'; tabTrails.textContent = 'Routes'; }
+    }
+
+    // Set the live count pinned inside a list page's search box.
+    function setResultCount(n) {
+      const el = document.getElementById('result-count');
+      if (el) el.textContent = n;
     }
 
     // Skip tile loads during zoom animations. Default true is wasteful:
@@ -6589,7 +6596,7 @@
       const countries = [...new Set(places.map(p => p.country).filter(Boolean))].sort((a, b) => a.localeCompare(b));
       app.innerHTML =
         '<div class="index-controls">' +
-        '<input type="text" id="search-input" placeholder="Filter places..." value="' + escapeHtml(state.placeFilters.search) + '">' +
+        '<div class="search-wrap"><input type="text" id="search-input" placeholder="Filter places..." value="' + escapeHtml(state.placeFilters.search) + '"><span class="result-count" id="result-count"></span></div>' +
         '<div class="filter-dropdown">' +
           '<button type="button" class="filter-btn" id="filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
           '<div class="filter-popover" id="filter-popover" hidden>' +
@@ -6749,6 +6756,7 @@
         if (wantCatalog === 'updates-available' && !findCatalogUpdate(p)) return false;
         return true;
       });
+      setResultCount(filtered.length);
       const grouped = {};
       for (const p of filtered) {
         const key = byCategory ? p.category
@@ -7229,7 +7237,7 @@
       }
       const allTags = [...tagSet].sort((a, b) => a.localeCompare(b));
       let html = '<div class="index-controls">' +
-        '<input type="text" id="search-input" placeholder="Filter routes..." value="' + escapeHtml(state.trailFilters.search) + '">' +
+        '<div class="search-wrap"><input type="text" id="search-input" placeholder="Filter routes..." value="' + escapeHtml(state.trailFilters.search) + '"><span class="result-count" id="result-count"></span></div>' +
         '<div class="filter-dropdown">' +
           '<button type="button" class="filter-btn" id="filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
           '<div class="filter-popover" id="filter-popover" hidden>' +
@@ -7318,6 +7326,7 @@
         const wantRating = ratingSel ? ratingSel.value : 'all';
         const wantTag = tagSel ? tagSel.value : 'all';
         const filtered = flatRoutes.filter(e => routeMatches(e, q, wantStatus, wantRegion, wantDiff, wantRating, wantTag));
+        setResultCount(filtered.length);
         const byLetter = state.trailsGroupBy === 'letter';
         const grouped = {};
         for (const entry of filtered) {
