@@ -69,7 +69,6 @@ Android client for a Ferd server. Install the APK from the [latest release](http
 ### Features
 - Print and PDF stylesheet for route and place details.
 - Uploaded image attachments on places and routes.
-- Chronological history page of visited places and completed routes, with an image and notes per entry.
 - Expanded list view for places and routes, with a large image and more room per entry than the compact cards.
 
 ### Authentication and security

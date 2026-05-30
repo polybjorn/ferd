@@ -635,6 +635,10 @@
     }
     .filter-popover[hidden] { display: none; }
     .filter-popover label { display: block; font-size: 0.7rem; color: var(--muted); margin-bottom: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    #hist-view-popover { min-width: 8rem; gap: 0.15rem; padding: 0.4rem; }
+    .filter-popover .view-option { display: block; width: 100%; text-align: left; background: transparent; border: none; border-radius: var(--radius); color: var(--text); font-family: inherit; font-size: 0.85rem; padding: 0.45rem 0.6rem; cursor: pointer; }
+    .filter-popover .view-option:hover { background: var(--surface2); }
+    .filter-popover .view-option.active { color: var(--accent); font-weight: 600; }
     .filter-popover select { width: 100%; padding: 0.45rem 0.6rem; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 0.85rem; font-family: inherit; cursor: pointer; outline: none; }
     .filter-popover select:focus { border-color: var(--accent); }
     .filter-popover .filter-clear {
@@ -777,6 +781,52 @@
       background: var(--accent);
       box-shadow: 0 0 0 2px var(--surface);
     }
+    /* History timeline (chronological journal of visited places + completed routes) */
+    .history-list { max-width: 720px; margin: 0 auto; }
+    .history-group { margin-bottom: 2rem; }
+    .history-group:last-child { margin-bottom: 0; }
+    .history-year {
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--text);
+      padding-bottom: 0.5rem; margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .history-card {
+      display: flex; gap: 1rem; align-items: flex-start;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 0.85rem 1rem;
+      margin-bottom: 0.75rem; cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .history-card:hover { border-color: var(--border-hover); }
+    .history-image {
+      flex: 0 0 auto; width: 120px; aspect-ratio: 16 / 10;
+      object-fit: cover; border-radius: var(--radius);
+      background: var(--surface2);
+    }
+    .history-body { min-width: 0; flex: 1; }
+    .history-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .history-name { font-size: 0.9rem; font-weight: 400; color: var(--text); }
+    .history-kind {
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); border: 1px solid var(--border); border-radius: 999px;
+      padding: 0.05rem 0.45rem; flex: 0 0 auto; margin-left: auto;
+    }
+    .history-meta { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .history-stars { color: var(--accent); }
+    .history-note { font-size: 0.72rem; color: var(--muted); margin-top: 0.35rem; }
+    /* Gallery view: single column, image on top and larger. */
+    .history-list.gallery .history-cards { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+    .history-list.gallery .history-card {
+      flex-direction: column; align-items: stretch;
+      gap: 0; padding: 0; margin-bottom: 0; overflow: hidden;
+    }
+    .history-list.gallery .history-image { width: 100%; aspect-ratio: 16 / 9; }
+    .history-list.gallery .history-body { padding: 0.85rem 1rem; }
+    @media (max-width: 600px) {
+      .history-image { width: 88px; }
+    }
+
     .catalog-updates-notice {
       display: flex; align-items: center; gap: 0.75rem;
       margin: 0 0 1rem; padding: 0.5rem 0.8rem;
@@ -3741,7 +3791,7 @@
       'theme', 'mode', 'pin-style', 'marker-size', 'route-weight', 'tile-filter',
       'tile-layer', 'units', 'show-local-name',
       'cluster-places', 'tile-picker', 'map-add-button', 'map-filter', 'map-zoom', 'remember-view',
-      'places-group-by', 'trails-group-by',
+      'places-group-by', 'trails-group-by', 'history-view',
     ]);
     function setPref(key, val) {
       try { localStorage.setItem(key, val); } catch {}
@@ -3859,6 +3909,7 @@
       // (catalog refresh, CRUD writes) but reset on a full page reload.
       placeFilters: { search: '', status: 'all', category: 'all', country: 'all', catalog: 'all' },
       trailFilters: { search: '', status: 'all', region: 'all', difficulty: 'all', rating: 'all', tag: 'all' },
+      historyFilters: { search: '', kind: 'all', year: 'all', rating: 'all' },
       // unified-map filter state
       hiddenCategories: new Set(),
       hiddenRegions: new Set(),
@@ -6753,6 +6804,314 @@
       });
     }
 
+    // ----- History (chronological journal) -----
+    function renderHistoryIndex() {
+      setActiveTab('history');
+      setCrumb('History', false);
+      cleanupMap();
+      const app = document.getElementById('app');
+      const wantPlaces = placesEnabled();
+      const wantRoutes = routesEnabled();
+      if ((wantPlaces && !state.places) || (wantRoutes && !state.manifest)) {
+        app.innerHTML = '<div class="loading">Loading history...</div>';
+        return;
+      }
+
+      const all = [];
+      if (wantPlaces) {
+        for (const p of (state.places || [])) {
+          if (!p.visited) continue;
+          all.push({
+            kind: 'place',
+            date: p.date_visited || '',
+            name: p.name,
+            image: p.image || '',
+            image_focus: p.image_focus,
+            note: p.note || '',
+            rating: p.rating,
+            href: focusHash('place', p._slug || p.name),
+            place: p,
+          });
+        }
+      }
+      if (wantRoutes && state.manifest) {
+        for (const region of state.manifest.regions) {
+          for (const r of region.routes) {
+            if (!r.completed) continue;
+            all.push({
+              kind: 'route',
+              date: r.date_completed || '',
+              name: r.name,
+              image: '',
+              note: r.notes || '',
+              rating: r.rating,
+              href: '#/routes/route/' + encodeURIComponent(r.key),
+              route: r,
+              region: region.name,
+            });
+          }
+        }
+      }
+
+      if (!all.length) {
+        app.innerHTML = '<div class="history-list"><div class="loading">No visited places or completed routes yet.</div></div>';
+        return;
+      }
+
+      const years = [...new Set(all.filter(e => e.date).map(e => e.date.slice(0, 4)))].sort((a, b) => b.localeCompare(a));
+      const hasUndated = all.some(e => !e.date);
+      const hf = state.historyFilters;
+
+      app.innerHTML =
+        '<div class="index-controls">' +
+        '<input type="text" id="hist-search" placeholder="Filter history..." value="' + escapeHtml(hf.search) + '">' +
+        '<div class="filter-dropdown">' +
+          '<button type="button" class="filter-btn" id="hist-filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
+          '<div class="filter-popover" id="hist-filter-popover" hidden>' +
+            ((wantPlaces && wantRoutes) ?
+              '<select id="hist-filter-kind">' +
+                '<option value="all">Kind</option>' +
+                '<option value="place"' + (hf.kind === 'place' ? ' selected' : '') + '>Places</option>' +
+                '<option value="route"' + (hf.kind === 'route' ? ' selected' : '') + '>Routes</option>' +
+              '</select>'
+              : '') +
+            '<select id="hist-filter-year">' +
+              '<option value="all">Year</option>' +
+              years.map(y => '<option value="' + y + '"' + (hf.year === y ? ' selected' : '') + '>' + y + '</option>').join('') +
+              (hasUndated ? '<option value="none"' + (hf.year === 'none' ? ' selected' : '') + '>No date</option>' : '') +
+            '</select>' +
+            '<select id="hist-filter-rating">' +
+              '<option value="all">Rating</option>' +
+              ['unrated','1','2','3','4','5'].map(v => '<option value="' + v + '"' + (hf.rating === v ? ' selected' : '') + '>' + (v === 'unrated' ? 'Unrated' : (v + ' star' + (v === '1' ? '' : 's'))) + '</option>').join('') +
+            '</select>' +
+            '<button type="button" class="filter-clear" id="hist-filter-clear">Clear filters</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="filter-dropdown">' +
+          '<button type="button" class="filter-btn" id="hist-view-btn" aria-haspopup="true" aria-expanded="false">View</button>' +
+          '<div class="filter-popover" id="hist-view-popover" hidden>' +
+            ['compact', 'gallery'].map(v =>
+              '<button type="button" class="view-option' + (getHistoryView() === v ? ' active' : '') + '" data-view="' + v + '">' +
+                (v === 'compact' ? 'Compact' : 'Gallery') +
+              '</button>'
+            ).join('') +
+          '</div>' +
+        '</div>' +
+        '</div>' +
+        '<div id="history-mount"></div>';
+
+      const showImage = getShowField('image');
+      const showNote = getShowField('note');
+      const showRating = getShowField('rating');
+      const showDate = getShowField('date');
+      const FOCUS_RE = /^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$/;
+      const canEdit = !isReadOnly() && state.auth && state.auth.authenticated;
+
+      function entryHtml(e) {
+        let inner = '';
+        if (e.kind === 'place' && e.image && showImage) {
+          const focus = typeof e.image_focus === 'string' && FOCUS_RE.test(e.image_focus.trim()) ? e.image_focus.trim() : '';
+          const styleAttr = focus ? ' style="object-position:' + focus + '"' : '';
+          inner += '<img class="history-image" src="' + escapeHtml(e.image) + '" alt=""' + styleAttr + ' loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
+        }
+        inner += '<div class="history-body">';
+        inner += '<div class="history-head">' +
+          '<span class="history-name">' + escapeHtml(e.name) + '</span>' +
+          '<span class="history-kind">' + (e.kind === 'place' ? 'Place' : 'Route') + '</span>' +
+          '</div>';
+        const metaBits = [];
+        if (e.date && showDate) metaBits.push('<span>' + escapeHtml(e.date) + '</span>');
+        if (e.rating && showRating) metaBits.push('<span class="history-stars" title="' + e.rating + '/5">' + ratingStarsText(e.rating) + '</span>');
+        if (metaBits.length) inner += '<div class="history-meta">' + metaBits.join('') + '</div>';
+        if (e.note && showNote) inner += '<div class="history-note">' + escapeHtml(e.note) + '</div>';
+        inner += '</div>';
+        const href = e.href.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        return '<div class="history-card" data-idx="' + e._idx + '" onclick="location.hash=\'' + href + '\'">' + inner + '</div>';
+      }
+
+      // Builds the right-click / long-press menu for one entry, mirroring the
+      // Places and Routes list cards. Delete refreshes state, then repaints.
+      function menuFor(e) {
+        const items = [];
+        if (e.kind === 'place') {
+          const place = e.place;
+          items.push({ label: 'Open on map', onClick: function() { location.hash = '#/?focus=place:' + encodeURIComponent(place.name); } });
+          if (Array.isArray(place.sources) && place.sources.length) {
+            items.push({ label: 'Open source', onClick: function() { window.open(place.sources[0], '_blank', 'noopener'); } });
+          }
+          if (canEdit) items.push({ label: 'Edit', onClick: function() { openEditPlaceModal(place); } });
+          if (place.from_catalog && findCatalogUpdate(place)) {
+            items.push({ label: 'Apply catalog update', onClick: function() { openCatalogUpdateModal(place); } });
+          }
+          if (canEdit) {
+            items.push(null);
+            items.push({ label: 'Delete', danger: true, onClick: function() {
+              openConfirmModal({
+                title: 'Delete place',
+                body: 'Delete "' + place.name + '"? This cannot be undone.',
+                confirmLabel: 'Delete',
+                danger: true,
+              }).then(function(ok) {
+                if (!ok) return;
+                dataLayer.deletePlace({ id: place.id })
+                  .then(() => refreshPlaces())
+                  .then(() => renderHistoryIndex())
+                  .catch(err => alert('Delete failed: ' + err.message));
+              });
+            }});
+          }
+        } else {
+          const route = e.route;
+          const regionName = e.region;
+          items.push({ label: 'Open on map', onClick: function() { location.hash = '#/?focus=route:' + encodeURIComponent(route.key); } });
+          items.push({ label: 'Open detail', onClick: function() { location.hash = '#/routes/route/' + encodeURIComponent(route.key); } });
+          if (route.source) {
+            items.push({ label: 'Open source', onClick: function() { window.open(route.source, '_blank', 'noopener'); } });
+          }
+          if (canEdit) items.push({ label: 'Edit', onClick: function() { openEditTrailMetadataModal(route, regionName); } });
+          if (canEdit) {
+            items.push(null);
+            items.push({ label: 'Delete', danger: true, onClick: function() {
+              openConfirmModal({
+                title: 'Delete route',
+                body: 'Delete "' + route.name + '" (' + displayRegion(regionName) + ')? This removes the GPX file.',
+                confirmLabel: 'Delete',
+                danger: true,
+              }).then(function(ok) {
+                if (!ok) return;
+                dataLayer.deleteGpx({ region: regionName, name: route.name })
+                  .then(() => refreshRoutes())
+                  .then(() => renderHistoryIndex())
+                  .catch(err => alert('Delete failed: ' + err.message));
+              });
+            }});
+          }
+        }
+        return items;
+      }
+
+      const mount = document.getElementById('history-mount');
+      function paint() {
+        const q = hf.search.trim().toLowerCase();
+        const filtered = all.filter(e => {
+          if (q && !e.name.toLowerCase().includes(q) && !(e.note && e.note.toLowerCase().includes(q))) return false;
+          if (hf.kind !== 'all' && e.kind !== hf.kind) return false;
+          if (hf.year === 'none' && e.date) return false;
+          if (hf.year !== 'all' && hf.year !== 'none' && e.date.slice(0, 4) !== hf.year) return false;
+          if (hf.rating === 'unrated' && e.rating) return false;
+          if (hf.rating !== 'all' && hf.rating !== 'unrated' && String(e.rating || '') !== hf.rating) return false;
+          return true;
+        });
+        const dated = filtered.filter(e => e.date).sort((a, b) => b.date.localeCompare(a.date));
+        const undated = filtered.filter(e => !e.date).sort((a, b) => NAME_COLLATOR.compare(a.name, b.name));
+        const groups = [];
+        let curYear = null;
+        for (const e of dated) {
+          const year = e.date.slice(0, 4);
+          if (year !== curYear) { groups.push({ label: year, items: [] }); curYear = year; }
+          groups[groups.length - 1].items.push(e);
+        }
+        if (undated.length) groups.push({ label: 'No date', items: undated });
+        // Flatten in render order so context-menu handlers find their entry by
+        // the card's data-idx.
+        const flat = groups.flatMap(g => g.items);
+        flat.forEach((e, i) => { e._idx = i; });
+
+        if (!groups.length) {
+          mount.innerHTML = '<div class="history-list"><div class="loading">No matching history.</div></div>';
+          return;
+        }
+        let html = '<div class="history-list ' + getHistoryView() + '">';
+        for (const g of groups) {
+          html += '<div class="history-group fade-in">' +
+            '<div class="history-year">' + escapeHtml(g.label) + '</div>' +
+            '<div class="history-cards">' + g.items.map(entryHtml).join('') + '</div>' +
+            '</div>';
+        }
+        html += '</div>';
+        mount.innerHTML = html;
+        mount.querySelectorAll('.history-card').forEach(function(card) {
+          attachContextMenu(card, function() {
+            const e = flat[+card.dataset.idx];
+            return e ? menuFor(e) : [];
+          });
+        });
+      }
+
+      const searchInput = document.getElementById('hist-search');
+      const kindSel = document.getElementById('hist-filter-kind');
+      const yearSel = document.getElementById('hist-filter-year');
+      const ratingSel = document.getElementById('hist-filter-rating');
+      const filterBtn = document.getElementById('hist-filter-btn');
+      const filterPop = document.getElementById('hist-filter-popover');
+      const filterClear = document.getElementById('hist-filter-clear');
+      const viewBtn = document.getElementById('hist-view-btn');
+      const viewPop = document.getElementById('hist-view-popover');
+      const filterSels = [kindSel, yearSel, ratingSel].filter(Boolean);
+      function updateFilterBtnLabel() {
+        const n = filterSels.reduce((acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
+        filterBtn.textContent = n > 0 ? 'Filters (' + n + ')' : 'Filters';
+        filterBtn.classList.toggle('has-active', n > 0);
+      }
+      // Toggle a popover open/closed; close on outside click. Clicks inside the
+      // popover are swallowed so selecting a control doesn't dismiss it.
+      function wirePopover(btn, pop) {
+        if (!btn || !pop) return;
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const open = pop.hidden;
+          pop.hidden = !open;
+          btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        document.addEventListener('click', function(e) {
+          if (!pop.hidden && !pop.contains(e.target) && e.target !== btn) {
+            pop.hidden = true;
+            btn.setAttribute('aria-expanded', 'false');
+          }
+        });
+        pop.addEventListener('click', function(e) { e.stopPropagation(); });
+      }
+      wirePopover(filterBtn, filterPop);
+      wirePopover(viewBtn, viewPop);
+      viewPop.querySelectorAll('.view-option').forEach(opt => opt.addEventListener('click', function() {
+        const v = this.dataset.view;
+        setPref('history-view', v);
+        viewPop.querySelectorAll('.view-option').forEach(o => o.classList.toggle('active', o === this));
+        viewPop.hidden = true;
+        viewBtn.setAttribute('aria-expanded', 'false');
+        paint();
+      }));
+
+      if (searchInput) searchInput.addEventListener('input', function() { hf.search = this.value; paint(); });
+      const filterKeyById = { 'hist-filter-kind': 'kind', 'hist-filter-year': 'year', 'hist-filter-rating': 'rating' };
+      filterSels.forEach(s => s.addEventListener('change', function() {
+        const k = filterKeyById[s.id];
+        if (k) hf[k] = s.value;
+        updateFilterBtnLabel();
+        paint();
+      }));
+      if (filterClear) filterClear.addEventListener('click', function() {
+        const hasSearch = searchInput && searchInput.value !== '';
+        const hasFilter = filterSels.some(s => s.value !== 'all');
+        if (!hasSearch && !hasFilter) return;
+        filterSels.forEach(s => { s.value = 'all'; });
+        hf.kind = 'all'; hf.year = 'all'; hf.rating = 'all';
+        if (searchInput) searchInput.value = '';
+        hf.search = '';
+        updateFilterBtnLabel();
+        paint();
+      });
+      const viewSel = document.getElementById('hist-view-select');
+      if (viewSel) viewSel.addEventListener('change', function() { setPref('history-view', this.value); paint(); });
+
+      updateFilterBtnLabel();
+      paint();
+    }
+
+    function getHistoryView() {
+      return getPref('history-view', 'compact') === 'gallery' ? 'gallery' : 'compact';
+    }
+
     // ----- Routes browse list -----
     function renderTrailsIndex() {
       setActiveTab('routes');
@@ -7598,6 +7957,10 @@
         const key = decodeURIComponent(base.replace('#/routes/route/', ''));
         return renderTrailDetail(key);
       }
+      if (base === '#/history') {
+        if (!placesEnabled() && !routesEnabled()) { location.hash = '#/'; return; }
+        return renderHistoryIndex();
+      }
       renderUnifiedMap(null);
     }
     window.addEventListener('hashchange', router);
@@ -7736,6 +8099,7 @@
           (local
             ? '<div class="auth-menu-header">Local map<strong>On this device</strong></div>'
             : '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>') +
+          ((placesEnabled() || routesEnabled()) ? '<button data-action="history">History</button>' : '') +
           '<button data-action="settings">Settings</button>' +
           (isAdmin ? '<button data-action="logs">Logs</button>' : '') +
           '<button data-action="about">About</button>' +
@@ -7770,6 +8134,7 @@
         if (!action) return;
         closeMenu();
         switch (action.dataset.action) {
+          case 'history':  location.hash = '#/history'; break;
           case 'settings': openSettingsModal(); break;
           case 'logs':     openLogsModal(); break;
           case 'about':    openAboutModal(); break;
