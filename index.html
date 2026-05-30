@@ -754,6 +754,15 @@
       gap: 0.5rem;
     }
     .place-card:hover, .route-card:hover { border-color: var(--border-hover); }
+    /* Touch: long-press opens the context menu, so suppress the text-selection
+       and iOS callout it would otherwise trigger on these cards. */
+    @media (pointer: coarse) {
+      .place-card, .route-card, .history-card {
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+      }
+    }
     .place-card { align-items: flex-start; }
     .place-card .status-dot { margin-top: 0.35rem; }
     .place-card .place-text { min-width: 0; flex: 1; }
@@ -813,7 +822,7 @@
       color: var(--muted); border: 1px solid var(--border); border-radius: 999px;
       padding: 0.05rem 0.45rem; flex: 0 0 auto; margin-left: auto;
     }
-    .history-meta { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .history-meta { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
     .history-stars { color: var(--accent); }
     .history-note { font-size: 0.72rem; color: var(--muted); margin-top: 0.35rem; }
     /* Gallery view: single column, image on top and larger. */
