@@ -6,7 +6,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Added
 - Places and Routes lists: a View popover (next to Filters) switches between Grid (the multi-column cards, default), Compact (single column with a small left thumbnail), and Gallery (single column with large media on top). Compact and Gallery cap their width and center like the History page. Places show the place image; routes draw the GPX track-shape silhouette. The choice is saved per list and syncs across devices.
-- History page: a chronological journal of visited places and completed routes, reachable from the Menu. Entries are merged into one stream, newest first, grouped by year, showing the date, rating, note, and (for places) image. Filter by text, kind, year, and rating; switch between a compact layout and a gallery layout with larger images on top. Click an entry to open the place on the map or the route's detail, or right-click (long-press on touch) for the same context menu as the list cards.
+- History page: a chronological journal of visited places and completed routes, reachable from the History tab in the top nav (or the Menu on narrow screens). Entries are merged into one stream, newest first, grouped by year, showing the date, rating, note, and (for places) image. Filter by text, type, year, and rating; switch between a compact layout and a gallery layout with larger images on top. Click an entry to open the place on the map or the route's detail, or right-click (long-press on touch) for the same context menu as the list cards.
 - Shipped catalog: 117 new entries.
 - Offline read access: places, routes, and category data are cached on-device (IndexedDB) on each successful load and served when the server is unreachable, so an installed PWA opens into the last-known map (read-only) instead of dead-ending at the sign-in or server-picker screen. The offline banner signals read-only mode; the cache is namespaced per server and account.
 - Local-only mode: a "Continue without signing in" option on the sign-in screen and server picker runs the app with no server and no account, storing places and routes entirely on-device (IndexedDB). GPX tracks are parsed and the route manifest built client-side. Back up or move a local map with the Export/Import zip in Settings (same format as the server, so a local map transfers to a server and back). Leave with "Connect to a server" in the menu; local and server data stay separate and switching never destroys either.
@@ -15,10 +15,19 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Visible features: Settings > General gained per-device toggles to show or hide History, Catalog (the Add modal's Browse tab), and Logs. Each appears only when reachable (History needs Places or Routes; Catalog needs Places; Logs needs admin or local mode). Logs defaults to hidden.
 
 ### Changed
+- History is now a top-nav tab alongside Places and Routes (it was a Menu item).
+- Narrow screens: the Places/Routes/History nav tabs move into the Menu as their own section (just below the account header), freeing space in the top bar.
+- History: the search box now shows a live count of matching entries, matching the Places and Routes lists.
+- The index map's Add button moved from a floating button on the map into the top nav, just left of the Menu button.
+- The "Ferd" brand no longer shows a back arrow on the route detail page, so it sits in the same position on every page (it still links home).
 - Places and Routes lists: the Add button moved from the search row into the top nav, just left of the Menu button, leaving the search row to the filter input and Filters popover.
 - Places and Routes lists: the item count moved from the nav tab into the search box, where it updates live to the matching count as you type or apply filters.
 
+### Removed
+- Settings > Appearance > On-map controls: the "Add button" show/hide toggle. The map's Add action now lives in the top nav, always available to editors.
+
 ### Fixed
+- The Filters dropdowns on the Places, Routes, and History lists now use the themed option list (matching Settings) instead of the browser's native popup on desktop.
 - The account menu and the list/History filter (and View) popovers are now mutually exclusive: opening one closes any other that was open, instead of leaving two overlapping.
 - Opening a place from the list now lands the map directly on the pin instead of briefly showing the previous location and then panning to the new one.
 - Settings > General feature pills no longer snap to a rigid 2-column grid at an arbitrary window width. The layout now responds to the modal's own width (container query), keeping the flexible row until the modal itself is narrow, then dropping to two columns - matching how it already looked on mobile.

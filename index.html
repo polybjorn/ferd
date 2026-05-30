@@ -420,8 +420,6 @@
     }
     .nav-brand a { color: var(--text); text-decoration: none; }
     #nav-home { white-space: nowrap; }
-    #nav-back { display: none; opacity: 0.5; vertical-align: middle; margin-right: 0.3rem; }
-    #nav-back svg { width: 1.1em; height: 1.1em; vertical-align: middle; }
     #nav-crumb { color: var(--muted); white-space: nowrap; }
 
 
@@ -638,7 +636,7 @@
     }
     .filter-popover[hidden] { display: none; }
     .filter-popover label { display: block; font-size: 0.7rem; color: var(--muted); margin-bottom: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
-    #hist-view-popover { min-width: 8rem; gap: 0.15rem; padding: 0.4rem; }
+    #hist-view-popover, #view-popover { min-width: 8rem; gap: 0.15rem; padding: 0.4rem; }
     .filter-popover .view-option { display: block; width: 100%; text-align: left; background: transparent; border: none; border-radius: var(--radius); color: var(--text); font-family: inherit; font-size: 0.85rem; padding: 0.45rem 0.6rem; cursor: pointer; }
     .filter-popover .view-option:hover { background: var(--surface2); }
     .filter-popover .view-option.active { color: var(--accent); font-weight: 600; }
@@ -1825,6 +1823,22 @@
       border-radius: 0 0 4px 4px;
     }
     .auth-menu button.auth-menu-foot:hover { color: var(--text); }
+    /* Places/Routes section in the menu, shown only on narrow screens where the
+       nav tabs are hidden (see the matching media query). */
+    .auth-menu-nav { display: none; }
+    @media (max-width: 600px) {
+      nav .view-tabs { display: none; }
+      /* With the tabs gone, drop the empty middle column so the brand stays
+         left and the actions stay hard right (otherwise nav-right auto-places
+         into the vacated center column). */
+      nav { grid-template-columns: minmax(0, 1fr) auto; }
+      .auth-menu-nav {
+        display: block;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 0.25rem;
+        padding-bottom: 0.25rem;
+      }
+    }
     .about-body { text-align: center; padding: 0.5rem 0 0.25rem; }
     .about-logo {
       width: 64px;
@@ -1863,41 +1877,6 @@
     .about-links a:hover { text-decoration: underline; }
     .about-sep { margin: 0 0.4rem; }
 
-    /* Floating add button */
-    .fab-add {
-      position: absolute;
-      bottom: 2rem;
-      right: 0.75rem;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: transparent;
-      border: none;
-      font-size: 0;
-      cursor: pointer;
-      box-shadow: 0 4px 14px var(--shadow);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transform-origin: center;
-      transition: transform 0.18s ease-out, opacity 0.18s ease-out;
-    }
-    .fab-add::before,
-    .fab-add::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      background: var(--fab-text);
-      border-radius: 1px;
-    }
-    .fab-add::before { width: 14px; height: 2px; transform: translate(-50%, -50%); }
-    .fab-add::after  { width: 2px; height: 14px; transform: translate(-50%, -50%); }
-    .fab-add.fab-enter { transform: scale(0.4); opacity: 0; }
-    .fab-add.fab-leave { transform: scale(0.4); opacity: 0; pointer-events: none; }
-
     /* Tile-picker (Leaflet layers control) enter/leave animation */
     .leaflet-control-layers {
       transform-origin: top right;
@@ -1908,13 +1887,11 @@
       transform: scale(0.5);
       opacity: 0;
     }
-    .fab-add:hover { transform: scale(1.05); }
 
     /* Spacebar / long-press hides map UI but leaves the tile attribution
        visible - Esri / OSM / OpenTopoMap terms require attribution to
        remain on screen while their tiles are. */
     body.map-chrome-hidden .leaflet-control-container .leaflet-control:not(.leaflet-control-attribution),
-    body.map-chrome-hidden .fab-add,
     body.map-chrome-hidden .map-panel { display: none !important; }
     /* Per-control persistent toggles (Settings > Appearance > On-map controls).
        Animate opacity/transform rather than display:none so the toggle is
@@ -2305,8 +2282,7 @@
     @media (prefers-reduced-motion: reduce) {
       .modal-backdrop, .modal-backdrop > .modal,
       .modal-backdrop.closing, .modal-backdrop.closing > .modal,
-      .modal [data-panel]:not([hidden]),
-      .fab-add { animation: none !important; transition: none !important; }
+      .modal [data-panel]:not([hidden]) { animation: none !important; transition: none !important; }
     }
     .modal {
       position: relative;
@@ -2899,11 +2875,12 @@
 <body class="app-booting">
   <nav>
     <span class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-back" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span id="nav-brand-text">Ferd</span></a><span id="nav-crumb"></span>
+      <a href="#/" id="nav-home"><span id="nav-brand-text">Ferd</span></a><span id="nav-crumb"></span>
     </span>
     <div class="view-tabs">
       <a href="#/places" data-view="places" id="tab-places">Places</a>
       <a href="#/routes" data-view="routes" id="tab-routes">Routes</a>
+      <a href="#/history" data-view="history" id="tab-history">History</a>
     </div>
     <div class="nav-right">
       <div class="nav-actions" id="nav-actions"></div>
@@ -3919,7 +3896,7 @@
     const SYNCED_PREF_KEYS = new Set([
       'theme', 'mode', 'pin-style', 'marker-size', 'route-weight', 'tile-filter',
       'tile-layer', 'units', 'show-local-name',
-      'cluster-places', 'tile-picker', 'map-add-button', 'map-filter', 'map-zoom', 'remember-view',
+      'cluster-places', 'tile-picker', 'map-filter', 'map-zoom', 'remember-view',
       'places-group-by', 'trails-group-by', 'history-view',
       'places-view', 'routes-view',
     ]);
@@ -3964,7 +3941,6 @@
     }
     function getDefaultTileLayer() { return getPref('tile-layer', 'Satellite'); }
     function getShowTilePicker() { return getPref('tile-picker', 'true') !== 'false'; }
-    function getShowMapAddButton() { return getPref('map-add-button', 'true') !== 'false'; }
     function getShowFilterPanel() { return getPref('map-filter', 'true') !== 'false'; }
     function getShowZoomControls() { return getPref('map-zoom', 'true') !== 'false'; }
     function applyControlVisibility() {
@@ -3996,6 +3972,8 @@
       // are just the plain labels now.
       if (tabPlaces) { tabPlaces.style.display = placesEnabled() ? '' : 'none'; tabPlaces.textContent = 'Places'; }
       if (tabTrails) { tabTrails.style.display = routesEnabled() ? '' : 'none'; tabTrails.textContent = 'Routes'; }
+      const tabHistory = document.getElementById('tab-history');
+      if (tabHistory) tabHistory.style.display = historyEnabled() ? '' : 'none';
     }
 
     // Set the live count pinned inside a list page's search box.
@@ -4277,34 +4255,33 @@
     }
 
     function setActiveTab(view) {
-      ['places', 'routes'].forEach(v => {
-        document.getElementById('tab-' + v).classList.toggle('active', v === view);
+      ['places', 'routes', 'history'].forEach(v => {
+        const el = document.getElementById('tab-' + v);
+        if (el) el.classList.toggle('active', v === view);
       });
     }
 
-    let _crumbState = { text: '', showBack: false };
-    function setCrumb(text, showBack) {
-      _crumbState = { text: text || '', showBack: !!showBack };
+    let _crumbText = '';
+    function setCrumb(text) {
+      _crumbText = text || '';
       const crumbEl = document.getElementById('nav-crumb');
-      const backEl = document.getElementById('nav-back');
       const brandEl = document.querySelector('.nav-brand');
       const tabsEl = document.querySelector('.view-tabs');
-      backEl.style.display = _crumbState.showBack ? 'inline-flex' : 'none';
-      if (!_crumbState.text) { crumbEl.textContent = ''; return; }
-      crumbEl.textContent = ' / ' + _crumbState.text;
+      if (!_crumbText) { crumbEl.textContent = ''; return; }
+      crumbEl.textContent = ' / ' + _crumbText;
       if (!brandEl || !tabsEl) return;
       // Truncate the crumb char-by-char until the brand's right edge no
       // longer collides with the tabs. Cheaper than it looks: the loop
       // stops as soon as it fits, and getBoundingClientRect is fast.
       const gap = 8; // breathing room before the tabs start
-      let len = _crumbState.text.length;
+      let len = _crumbText.length;
       while (len > 0 && brandEl.getBoundingClientRect().right > tabsEl.getBoundingClientRect().left - gap) {
         len--;
-        crumbEl.textContent = ' / ' + _crumbState.text.slice(0, len).trimEnd() + '…';
+        crumbEl.textContent = ' / ' + _crumbText.slice(0, len).trimEnd() + '…';
       }
     }
     window.addEventListener('resize', function() {
-      if (_crumbState.text) setCrumb(_crumbState.text, _crumbState.showBack);
+      if (_crumbText) setCrumb(_crumbText);
     });
 
     function createMarkerIcon(color, visited) {
@@ -4810,7 +4787,7 @@
     // ----- Unified map -----
     function renderUnifiedMap(focus) {
       setActiveTab('map');
-      setCrumb('', false);
+      setCrumb('');
       const prevView = state.currentMap
         ? { center: state.currentMap.getCenter(), zoom: state.currentMap.getZoom() }
         : null;
@@ -5177,6 +5154,16 @@
         bindFilterPanel();
         refreshFilterPanel();
         initUnifiedSearch(map);
+      }
+
+      // Add action lives in the nav (left of Menu), like the list pages.
+      const navActionsEl = document.getElementById('nav-actions');
+      if (navActionsEl && state.auth.authenticated && !isReadOnly() && (placesEnabled() || routesEnabled())) {
+        const title = placesEnabled() && routesEnabled()
+          ? 'Add place or route'
+          : (placesEnabled() ? 'Add place' : 'Add route');
+        navActionsEl.innerHTML = '<button type="button" id="map-add-btn" class="nav-action-btn" title="' + title + '">Add</button>';
+        document.getElementById('map-add-btn').addEventListener('click', function() { openAddModal(null); });
       }
     }
 
@@ -6656,7 +6643,7 @@
 
     function renderPlacesIndex() {
       setActiveTab('places');
-      setCrumb('', false);
+      setCrumb('');
       cleanupMap();
       const app = document.getElementById('app');
       if (!state.places) { app.innerHTML = '<div class="loading">Loading places...</div>'; return; }
@@ -6711,6 +6698,7 @@
         '<div class="category-grid" id="place-list"></div>';
       renderPlaceList('');
       wireListViewPopover('places', function() { renderPlaceList(); });
+      enhanceSelectsIn(document.querySelector('.index-controls'));
 
       const navActionsEl = document.getElementById('nav-actions');
       if (navActionsEl && canAdd) {
@@ -7004,7 +6992,7 @@
     // ----- History (chronological journal) -----
     function renderHistoryIndex() {
       setActiveTab('history');
-      setCrumb('History', false);
+      setCrumb('History');
       cleanupMap();
       const app = document.getElementById('app');
       const wantPlaces = placesEnabled();
@@ -7061,13 +7049,13 @@
 
       app.innerHTML =
         '<div class="index-controls">' +
-        '<input type="text" id="hist-search" placeholder="Filter history..." value="' + escapeHtml(hf.search) + '">' +
+        '<div class="search-wrap"><input type="text" id="hist-search" placeholder="Filter history..." value="' + escapeHtml(hf.search) + '"><span class="result-count" id="result-count"></span></div>' +
         '<div class="filter-dropdown">' +
           '<button type="button" class="filter-btn" id="hist-filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
           '<div class="filter-popover" id="hist-filter-popover" hidden>' +
             ((wantPlaces && wantRoutes) ?
               '<select id="hist-filter-kind">' +
-                '<option value="all">Kind</option>' +
+                '<option value="all">Type</option>' +
                 '<option value="place"' + (hf.kind === 'place' ? ' selected' : '') + '>Places</option>' +
                 '<option value="route"' + (hf.kind === 'route' ? ' selected' : '') + '>Routes</option>' +
               '</select>'
@@ -7096,6 +7084,17 @@
         '</div>' +
         '</div>' +
         '<div id="history-mount"></div>';
+      enhanceSelectsIn(document.querySelector('.index-controls'));
+
+      // Add action in the nav (left of Menu), matching the other pages.
+      const navActionsEl = document.getElementById('nav-actions');
+      if (navActionsEl && state.auth.authenticated && !isReadOnly() && (placesEnabled() || routesEnabled())) {
+        const title = placesEnabled() && routesEnabled()
+          ? 'Add place or route'
+          : (placesEnabled() ? 'Add place' : 'Add route');
+        navActionsEl.innerHTML = '<button type="button" id="hist-add-btn" class="nav-action-btn" title="' + title + '">Add</button>';
+        document.getElementById('hist-add-btn').addEventListener('click', function() { openAddModal(null); });
+      }
 
       const showImage = getShowField('image');
       const showNote = getShowField('note');
@@ -7213,6 +7212,7 @@
         // the card's data-idx.
         const flat = groups.flatMap(g => g.items);
         flat.forEach((e, i) => { e._idx = i; });
+        setResultCount(flat.length);
 
         if (!groups.length) {
           mount.innerHTML = '<div class="history-list"><div class="loading">No matching history.</div></div>';
@@ -7446,7 +7446,7 @@
     // ----- Routes browse list -----
     function renderTrailsIndex() {
       setActiveTab('routes');
-      setCrumb('', false);
+      setCrumb('');
       cleanupMap();
       const app = document.getElementById('app');
       if (!state.manifest) { app.innerHTML = '<div class="loading">Loading routes...</div>'; return; }
@@ -7510,6 +7510,7 @@
         '</div>';
       html += '<div class="region-grid" id="trails-list-mount"></div>';
       app.innerHTML = html;
+      enhanceSelectsIn(document.querySelector('.index-controls'));
       const navActionsEl = document.getElementById('nav-actions');
       if (navActionsEl && canAddTrail) {
         navActionsEl.innerHTML = '<button type="button" id="add-route-btn" class="nav-action-btn">Add</button>';
@@ -7860,9 +7861,9 @@
         }
         if (route) break;
       }
-      if (!route) { setCrumb('Not found', true); app.innerHTML = '<div class="loading">Route not found</div>'; return; }
+      if (!route) { setCrumb('Not found'); app.innerHTML = '<div class="loading">Route not found</div>'; return; }
 
-      setCrumb(route.name, true);
+      setCrumb(route.name);
 
       const color = ROUTE_COLOR;
       const statusLabel = route.completed ? 'Completed' : 'Planned';
@@ -8450,7 +8451,14 @@
           (local
             ? '<div class="auth-menu-header">Local map<strong>No account</strong></div>'
             : '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>') +
-          (historyEnabled() ? '<button data-action="history">History</button>' : '') +
+          // Narrow screens hide the nav's Places/Routes/History tabs; surface
+          // them here as their own section (shown only on mobile via CSS).
+          ((placesEnabled() || routesEnabled()) ?
+            '<div class="auth-menu-nav">' +
+              (placesEnabled() ? '<button data-action="nav-places">Places</button>' : '') +
+              (routesEnabled() ? '<button data-action="nav-routes">Routes</button>' : '') +
+              (historyEnabled() ? '<button data-action="history">History</button>' : '') +
+            '</div>' : '') +
           '<button data-action="settings">Settings</button>' +
           (logsEnabled() ? '<button data-action="logs">Logs</button>' : '') +
           '<button data-action="about">About</button>' +
@@ -8487,6 +8495,8 @@
         if (!action) return;
         closeMenu();
         switch (action.dataset.action) {
+          case 'nav-places': location.hash = '#/places'; break;
+          case 'nav-routes': location.hash = '#/routes'; break;
           case 'history':  location.hash = '#/history'; break;
           case 'settings': openSettingsModal(); break;
           case 'logs':     openLogsModal(); break;
@@ -8831,9 +8841,6 @@
         '</div>' +
         '<h3 class="settings-h">On-map controls</h3>' +
         '<div class="toggle-grid">' +
-          '<div class="settings-inline-row"><label for="s-map-add">Add button</label>' +
-            '<input type="checkbox" class="settings-toggle" id="s-map-add"' + (getShowMapAddButton() ? ' checked' : '') + '>' +
-          '</div>' +
           '<div class="settings-inline-row"><label for="s-tile-picker">Tile-layer picker</label>' +
             '<input type="checkbox" class="settings-toggle" id="s-tile-picker"' + (getShowTilePicker() ? ' checked' : '') + '>' +
           '</div>' +
@@ -9121,6 +9128,8 @@
               const pill = this.closest('.feature-pill');
               if (pill) pill.classList.toggle('active', this.checked);
               refreshTabVisibility();
+              // Keep the menu's mobile Places/Routes section in sync.
+              renderAuthWidget();
               // Layer groups are pre-built; apply visibility in place to avoid
               // tearing down the map (which would blink while Settings is open).
               // Also rebuild the filter panel so its tab row drops/adds the
@@ -9141,6 +9150,7 @@
               const pill = this.closest('.feature-pill');
               if (pill) pill.classList.toggle('active', this.checked);
               renderAuthWidget();
+              if (feat === 'history') refreshTabVisibility();
               if (feat === 'history' && !this.checked && (location.hash || '').startsWith('#/history')) {
                 location.hash = '#/';
               }
@@ -9151,7 +9161,7 @@
             setPref('tile-layer', this.value);
             wrappedRouter();
           });
-          [['s-cluster', 'cluster-places'], ['s-remember-view', 'remember-view'], ['s-tile-picker', 'tile-picker'], ['s-map-add', 'map-add-button'], ['s-map-filter', 'map-filter'], ['s-map-zoom', 'map-zoom']].forEach(function([id, key]) {
+          [['s-cluster', 'cluster-places'], ['s-remember-view', 'remember-view'], ['s-tile-picker', 'tile-picker'], ['s-map-filter', 'map-filter'], ['s-map-zoom', 'map-zoom']].forEach(function([id, key]) {
             const cb = document.getElementById(id);
             if (!cb) return;
             cb.addEventListener('change', function() {
@@ -9184,12 +9194,6 @@
                     playLeave(ctrl.getContainer(), 'tile-pick-leave', () => state.currentMap.removeControl(ctrl));
                   }
                 }
-                return;
-              }
-              // Map add-button is a single DOM node; mount/unmount in place
-              // instead of re-running the router (which would blink the map).
-              if (key === 'map-add-button') {
-                maybeMountFab();
                 return;
               }
               // Filter panel + zoom controls hide via body classes; no map work.
@@ -10760,6 +10764,13 @@
 
     function enhanceSelectsIn(container) {
       if (!container) return;
+      // Filter popovers use the dimension noun as the first ("all") option,
+      // which doubles as the closed-state label. In the open list show it as
+      // "All" so the dimension name isn't repeated as a selectable option.
+      container.querySelectorAll('.filter-popover select').forEach(function(s) {
+        const first = s.options[0];
+        if (first && first.value === 'all' && !first.dataset.listLabel) first.dataset.listLabel = 'All';
+      });
       container.querySelectorAll('select').forEach(enhanceSelect);
     }
 
@@ -10805,11 +10816,13 @@
         const el = document.createElement('div');
         el.className = 'select-option';
         el.setAttribute('role', 'option');
-        el.textContent = o.textContent;
+        el.textContent = o.dataset.listLabel || o.textContent;
         if (o.disabled) el.classList.add('disabled');
         if (o.value === sel.value) el.setAttribute('aria-selected', 'true');
         el.addEventListener('mousemove', () => { if (activeIdx !== i) setActive(i); });
-        el.addEventListener('click', () => choose(i));
+        // Stop the click from bubbling to document, where an enclosing popover's
+        // outside-click closer (e.g. the Filters popover) would otherwise close.
+        el.addEventListener('click', (ev) => { ev.stopPropagation(); choose(i); });
         pop.appendChild(el);
         optEls.push(el);
       });
@@ -10847,7 +10860,8 @@
           typeTimer = setTimeout(() => { typeBuf = ''; }, 600);
           for (let n = 1; n <= optEls.length; n++) {
             const i = (activeIdx + n) % optEls.length;
-            if (!options[i].disabled && options[i].textContent.toLowerCase().startsWith(typeBuf)) { setActive(i); break; }
+            const lbl = (options[i].dataset.listLabel || options[i].textContent).toLowerCase();
+            if (!options[i].disabled && lbl.startsWith(typeBuf)) { setActive(i); break; }
           }
         }
       };
@@ -11236,7 +11250,7 @@
       // Entry-point determines which tabs the modal exposes:
       //   'place' (Places list Add)  -> [Place, Browse]
       //   'route' (Routes list Add)  -> just the GPX form, no tabs
-      //   null    (map FAB)          -> [Place, Route, Browse], filtered by enabled features
+      //   null    (map Add button)   -> [Place, Route, Browse], filtered by enabled features
       // Browse reads the merged catalog in server mode and the bundled shipped
       // catalog.json in local mode (see fetchCatalog); hidden when the Catalog
       // feature is toggled off.
@@ -11770,44 +11784,12 @@
       map.once('click', onClick);
     }
 
-    // Floating "+" button on the unified map view, when authed.
-    function maybeMountFab() {
-      const app = document.getElementById('app');
-      const existing = app.querySelector('.fab-add:not(.fab-leave)');
-      const base = (location.hash || '#/').split('?')[0];
-      const onMapView = base === '#/' || base === '#' || base === '#/map'
-        || base.startsWith('#/place/') || base.startsWith('#/route/');
-      const shouldShow = state.auth.authenticated
-        && !isReadOnly()
-        && getShowMapAddButton()
-        && onMapView
-        && (placesEnabled() || routesEnabled());
-      const fabTitle = placesEnabled() && routesEnabled()
-        ? 'Add place or route'
-        : (placesEnabled() ? 'Add place' : 'Add route');
-      if (shouldShow && existing) {
-        existing.title = fabTitle;
-        return;
-      }
-      if (!shouldShow && existing) {
-        playLeave(existing, 'fab-leave', () => existing.remove());
-        return;
-      }
-      if (!shouldShow) return;
-      const fab = document.createElement('button');
-      fab.className = 'fab-add';
-      fab.title = fabTitle;
-      fab.setAttribute('aria-label', fabTitle);
-      fab.addEventListener('click', function() { openAddModal(null); });
-      app.appendChild(fab);
-      playEnter(fab, 'fab-enter');
-    }
-
-    // Hook into router so the FAB re-mounts on each view change.
+    // Kept as a thin wrapper: callers use wrappedRouter() to re-render the
+    // current view. The map's Add action now lives in the nav (renderUnifiedMap
+    // populates #nav-actions), so there's no floating button to re-mount.
     const _origRouter = typeof router !== 'undefined' ? router : null;
     function wrappedRouter() {
       if (_origRouter) _origRouter(); else router();
-      maybeMountFab();
     }
     window.removeEventListener('hashchange', router);
     // Flag in-app hash navigations (clicks) vs the initial load (reload), so a
@@ -11818,7 +11800,7 @@
       try { wrappedRouter(); } finally { state._navByHash = false; }
     });
 
-    // Spacebar: toggle map chrome (FAB, filter panel, leaflet controls).
+    // Spacebar: toggle map chrome (filter panel, leaflet controls).
     document.addEventListener('keydown', function(e) {
       if (e.key !== ' ' && e.code !== 'Space') return;
       if (!state.currentMap) return;
