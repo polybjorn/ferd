@@ -10831,11 +10831,15 @@
     function enhanceSelectsIn(container) {
       if (!container) return;
       // Filter popovers use the dimension noun as the first ("all") option,
-      // which doubles as the closed-state label. In the open list show it as
-      // "All" so the dimension name isn't repeated as a selectable option.
+      // which doubles as the closed-state label. Hide it from the open list so
+      // it isn't offered as a pickable value (reset a filter via "Clear
+      // filters"); keep it selected so it still shows as the closed label.
       container.querySelectorAll('.filter-popover select').forEach(function(s) {
         const first = s.options[0];
-        if (first && first.value === 'all' && !first.dataset.listLabel) first.dataset.listLabel = 'All';
+        if (first && first.value === 'all') {
+          first.hidden = true;
+          if (s.value === 'all') first.selected = true;
+        }
       });
       container.querySelectorAll('select').forEach(enhanceSelect);
     }

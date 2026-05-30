@@ -31,7 +31,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Fixed
 - The remove (×) button on category and region rows draws its X with CSS instead of a font character, so it centers consistently across operating systems (it sat off-center in some mobile system fonts).
-- The Filters dropdowns on the Places, Routes, and History lists now use the themed option list (matching Settings) instead of the browser's native popup on desktop, and the dimension's default option shows as "All" in the open list rather than repeating the dimension name.
+- The Filters dropdowns on the Places, Routes, and History lists now use the themed option list (matching Settings) instead of the browser's native popup on desktop. The dimension's default option (which labels the closed dropdown, e.g. "Type") is hidden from the open list so only real values are offered; reset a single filter via "Clear filters".
 - The account menu and the list/History filter (and View) popovers are now mutually exclusive: opening one closes any other that was open, instead of leaving two overlapping.
 - Opening a place from the list now lands the map directly on the pin instead of briefly showing the previous location and then panning to the new one.
 - Settings > General feature pills no longer snap to a rigid 2-column grid at an arbitrary window width. The layout now responds to the modal's own width (container query), keeping the flexible row until the modal itself is narrow, then dropping to two columns - matching how it already looked on mobile.
