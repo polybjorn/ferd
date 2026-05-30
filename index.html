@@ -7780,12 +7780,15 @@
       });
     }
 
-    // Wire the local-mode Backup section (Settings > General). Export builds a
-    // zip Blob and triggers a download; import restores from one and reloads.
+    // Wire the local-mode Backup tab (Settings > Backup). Mirrors the server
+    // Export/Import sections: Export downloads a zip; Import restores with a
+    // Merge/Replace mode chosen via the segmented control, then reloads.
     function wireLocalBackup() {
       const exp = document.getElementById('s-local-export');
+      const expErr = document.getElementById('s-local-export-error');
       if (exp) exp.addEventListener('click', function() {
         const orig = exp.textContent;
+        if (expErr) expErr.classList.remove('visible');
         exp.disabled = true; exp.textContent = 'Exporting…';
         localBackup.exportZip().then(function(blob) {
           const url = URL.createObjectURL(blob);
@@ -7794,38 +7797,54 @@
           document.body.appendChild(a); a.click(); a.remove();
           setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
         }).catch(function(e) {
-          const eb = document.getElementById('local-import-error');
-          if (eb) { eb.textContent = 'Export failed: ' + e.message; eb.classList.add('visible'); }
+          if (expErr) { expErr.textContent = 'Export failed: ' + e.message; expErr.classList.add('visible'); }
         }).finally(function() { exp.disabled = false; exp.textContent = orig; });
       });
-      const impBtn = document.getElementById('s-local-import-btn');
-      const impInput = document.getElementById('s-local-import');
+
+      const pickBtn = document.getElementById('s-local-import-pick');
+      const impInput = document.getElementById('s-local-import-file');
       const nameEl = document.getElementById('s-local-import-name');
-      const errEl = document.getElementById('local-import-error');
-      const okEl = document.getElementById('local-import-success');
-      if (impBtn && impInput) {
-        impBtn.addEventListener('click', function() { impInput.click(); });
-        impInput.addEventListener('change', function() {
-          const f = impInput.files && impInput.files[0];
-          if (!f) return;
-          if (nameEl) nameEl.textContent = f.name;
-          if (errEl) errEl.classList.remove('visible');
-          if (okEl) okEl.hidden = true;
+      const impBtn = document.getElementById('s-local-import-btn');
+      const errEl = document.getElementById('s-local-import-error');
+      const okEl = document.getElementById('s-local-import-success');
+      if (pickBtn && impInput) pickBtn.addEventListener('click', function() { impInput.click(); });
+      if (impInput) impInput.addEventListener('change', function() {
+        const f = impInput.files && impInput.files[0];
+        if (nameEl) {
+          nameEl.textContent = f ? f.name : 'No file selected';
+          nameEl.classList.toggle('has-file', !!f);
+        }
+        if (okEl) okEl.hidden = true;
+      });
+      if (impBtn) impBtn.addEventListener('click', function() {
+        const f = impInput && impInput.files && impInput.files[0];
+        if (errEl) errEl.classList.remove('visible');
+        if (!f) {
+          if (errEl) { errEl.textContent = 'Choose a zip file first.'; errEl.classList.add('visible'); }
+          return;
+        }
+        const mode = document.querySelector('input[name="local-import-mode"]:checked').value;
+        const run = function() {
+          impBtn.disabled = true;
+          const orig = impBtn.textContent; impBtn.textContent = 'Importing…';
+          localBackup.importZip(f, mode).then(function(res) {
+            if (okEl) { okEl.hidden = false; okEl.textContent = 'Imported ' + res.places + ' places and ' + res.routes + ' routes. Reloading…'; }
+            setTimeout(function() { location.reload(); }, 900);
+          }).catch(function(e) {
+            impBtn.disabled = false; impBtn.textContent = orig;
+            if (errEl) { errEl.textContent = 'Import failed: ' + e.message; errEl.classList.add('visible'); }
+          });
+        };
+        if (mode === 'replace') {
           openConfirmModal({
-            title: 'Restore from zip?',
+            title: 'Replace all?',
             body: 'This replaces your current on-device map (places and routes) with the contents of the zip.',
             confirmLabel: 'Replace', danger: true,
-          }).then(function(ok) {
-            if (!ok) { impInput.value = ''; if (nameEl) nameEl.textContent = ''; return; }
-            localBackup.importZip(f, 'replace').then(function(res) {
-              if (okEl) { okEl.hidden = false; okEl.textContent = 'Imported ' + res.places + ' places and ' + res.routes + ' routes. Reloading…'; }
-              setTimeout(function() { location.reload(); }, 900);
-            }).catch(function(e) {
-              if (errEl) { errEl.textContent = 'Import failed: ' + e.message; errEl.classList.add('visible'); }
-            });
-          });
-        });
-      }
+          }).then(function(ok) { if (ok) run(); });
+        } else {
+          run();
+        }
+      });
     }
 
     function enterLocalMode() {
@@ -7935,6 +7954,9 @@
         '<div class="modal-tabs" id="settings-tabs">' +
           '<button data-tab="general" class="active">General</button>' +
           '<button data-tab="appearance">Appearance</button>' +
+          // Backup lives on its own tab in local-only mode (no server to publish
+          // to, so the map's only durable copy is the export zip).
+          (local ? '<button data-tab="backup">Backup</button>' : '') +
           // Account (publish/sharing) and Security (sessions/tokens) require a
           // server account; hidden in local-only mode.
           (local ? '' : '<button data-tab="account">Account</button>') +
@@ -7985,16 +8007,30 @@
         : '') +
         '</div>' +
         (local ?
-          '<h3 class="settings-h">Backup</h3>' +
-          '<div class="modal-desc">Your map lives only on this device. Download a zip to back it up or move it to a server, or restore from one.</div>' +
-          '<div class="backup-row">' +
-            '<button class="backup-btn" id="s-local-export">Export</button>' +
-            '<button class="backup-btn" id="s-local-import-btn">Import</button>' +
-            '<input type="file" id="s-local-import" class="file-input-hidden" accept=".zip,application/zip">' +
-            '<span class="file-name" id="s-local-import-name"></span>' +
+          '<div data-panel="backup" hidden>' +
+          '<h3 class="settings-h">Export</h3>' +
+          '<div style="display:flex;align-items:center;gap:1rem">' +
+            '<div class="modal-desc" style="flex:1;margin:0">Download your data as a zip.</div>' +
+            '<button type="button" class="primary" id="s-local-export">Export</button>' +
           '</div>' +
-          '<div class="modal-error" id="local-import-error"></div>' +
-          '<div class="modal-success-box" id="local-import-success" hidden></div>'
+          '<div class="modal-error" id="s-local-export-error"></div>' +
+          '<h3 class="settings-h">Import</h3>' +
+          '<div class="modal-desc" style="margin:0">Restore from a previous export.</div>' +
+          '<div class="radio-row radio-segmented" style="margin-top:0.5rem">' +
+            '<label><input type="radio" name="local-import-mode" value="merge" checked>Merge</label>' +
+            '<label><input type="radio" name="local-import-mode" value="replace">Replace all</label>' +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:1rem;margin-top:0.75rem">' +
+            '<div class="file-picker" style="flex:1;margin:0">' +
+              '<input type="file" id="s-local-import-file" accept=".zip,application/zip" class="file-input-hidden">' +
+              '<button type="button" class="primary" id="s-local-import-pick">Choose file</button>' +
+              '<span class="file-name" id="s-local-import-name">No file selected</span>' +
+            '</div>' +
+            '<button type="button" class="primary" id="s-local-import-btn">Import</button>' +
+          '</div>' +
+          '<div class="modal-error" id="s-local-import-error"></div>' +
+          '<div class="modal-success-box" id="s-local-import-success" hidden></div>' +
+          '</div>'
           : '') +
         '<div data-panel="appearance" hidden>' +
         '<div class="settings-grid-2">' +
