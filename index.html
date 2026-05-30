@@ -421,6 +421,9 @@
     .nav-brand a { color: var(--text); text-decoration: none; }
     #nav-home { white-space: nowrap; }
     #nav-crumb { color: var(--muted); white-space: nowrap; }
+    /* List-page crumbs only show where the nav tabs are hidden (mobile). */
+    #nav-crumb.crumb-mobile-only { display: none; }
+    @media (max-width: 600px) { #nav-crumb.crumb-mobile-only { display: inline; } }
 
 
     .nav-group {
@@ -4289,26 +4292,35 @@
     }
 
     let _crumbText = '';
-    function setCrumb(text) {
+    let _crumbAlways = false;
+    function setCrumb(text, alwaysShow) {
       _crumbText = text || '';
+      _crumbAlways = !!alwaysShow;
       const crumbEl = document.getElementById('nav-crumb');
       const brandEl = document.querySelector('.nav-brand');
-      const tabsEl = document.querySelector('.view-tabs');
+      if (!crumbEl) return;
+      // List pages (Places/Routes/History) show the crumb only on mobile, where
+      // the nav tabs are hidden; route detail (no tab) shows it everywhere.
+      crumbEl.classList.toggle('crumb-mobile-only', !_crumbAlways);
       if (!_crumbText) { crumbEl.textContent = ''; return; }
       crumbEl.textContent = ' / ' + _crumbText;
-      if (!brandEl || !tabsEl) return;
-      // Truncate the crumb char-by-char until the brand's right edge no
-      // longer collides with the tabs. Cheaper than it looks: the loop
-      // stops as soon as it fits, and getBoundingClientRect is fast.
-      const gap = 8; // breathing room before the tabs start
+      if (!brandEl) return;
+      // Truncate the crumb char-by-char until the brand stops colliding with the
+      // nav's center tabs (desktop) or, when those are hidden, the right-side
+      // controls (mobile). Cheaper than it looks: stops as soon as it fits.
+      const tabsEl = document.querySelector('.view-tabs');
+      const rightEl = document.querySelector('.nav-right');
+      const boundary = (tabsEl && tabsEl.getBoundingClientRect().width > 0) ? tabsEl : rightEl;
+      if (!boundary) return;
+      const gap = 8; // breathing room before the boundary
       let len = _crumbText.length;
-      while (len > 0 && brandEl.getBoundingClientRect().right > tabsEl.getBoundingClientRect().left - gap) {
+      while (len > 0 && brandEl.getBoundingClientRect().right > boundary.getBoundingClientRect().left - gap) {
         len--;
         crumbEl.textContent = ' / ' + _crumbText.slice(0, len).trimEnd() + '…';
       }
     }
     window.addEventListener('resize', function() {
-      if (_crumbText) setCrumb(_crumbText);
+      if (_crumbText) setCrumb(_crumbText, _crumbAlways);
     });
 
     function createMarkerIcon(color, visited) {
@@ -6670,7 +6682,7 @@
 
     function renderPlacesIndex() {
       setActiveTab('places');
-      setCrumb('');
+      setCrumb('Places');
       cleanupMap();
       const app = document.getElementById('app');
       if (!state.places) { app.innerHTML = '<div class="loading">Loading places...</div>'; return; }
@@ -7484,7 +7496,7 @@
     // ----- Routes browse list -----
     function renderTrailsIndex() {
       setActiveTab('routes');
-      setCrumb('');
+      setCrumb('Routes');
       cleanupMap();
       const app = document.getElementById('app');
       if (!state.manifest) { app.innerHTML = '<div class="loading">Loading routes...</div>'; return; }
@@ -7899,9 +7911,9 @@
         }
         if (route) break;
       }
-      if (!route) { setCrumb('Not found'); app.innerHTML = '<div class="loading">Route not found</div>'; return; }
+      if (!route) { setCrumb('Not found', true); app.innerHTML = '<div class="loading">Route not found</div>'; return; }
 
-      setCrumb(route.name);
+      setCrumb(route.name, true);
 
       const color = ROUTE_COLOR;
       const statusLabel = route.completed ? 'Completed' : 'Planned';

@@ -30,6 +30,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Settings > Appearance > On-map controls: the "Add button" show/hide toggle. The map's Add action now lives in the top nav, always available to editors.
 
 ### Fixed
+- Mobile nav breadcrumb: shows the current page name (Places, Routes, History, or the route name on detail) instead of collapsing to "Ferd / ..", truncating with an ellipsis only when it would reach the Add button. On desktop the list-page crumb is dropped (the active tab already indicates the page); route detail still shows the route name.
 - Long-pressing a place, route, or History card on a touch device no longer selects/highlights the card text before the context menu opens.
 - History cards: the date and rating on the meta line now align on the same baseline (the stars no longer sit lower than the date in some mobile fonts).
 - The remove (×) button on category and region rows draws its X with CSS instead of a font character, so it centers consistently across operating systems (it sat off-center in some mobile system fonts).
