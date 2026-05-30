@@ -1400,6 +1400,23 @@
       white-space: nowrap;
     }
     .modal .modal-actions .signin-change-server { margin-right: auto; }
+    /* "Use on this device only" entry on the sign-in / server-picker cards. */
+    .signin-alt {
+      margin-top: 0.85rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    .signin-alt button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      padding: 0.25rem;
+      text-decoration: underline;
+    }
+    .signin-alt button:hover { color: var(--text); }
     /* Plain-http caution in the server picker. Non-blocking: Connect stays
        enabled; this just informs that the token travels unencrypted. */
     .modal .srv-warn {
@@ -2855,6 +2872,7 @@
     }
 
     function gpxUrlFor(file) {
+      if (isLocalMode()) return 'local:' + file;
       const v = state.viewer;
       if (v && v.mode === 'public') return apiUrl('/u/' + encodeURIComponent(v.username) + '/gpx/' + file);
       return apiUrl('/gpx/' + file);
@@ -2890,7 +2908,7 @@
     // is missing or errors, get() yields null and set() is a no-op, so the
     // app degrades to the previous online-only behavior.
     const IDB_NAME = 'ferd';
-    const IDB_VERSION = 1;
+    const IDB_VERSION = 2;
     let _idbPromise = null;
     function idbOpen() {
       if (_idbPromise) return _idbPromise;
@@ -2900,7 +2918,13 @@
         catch (e) { return reject(e); }
         req.onupgradeneeded = () => {
           const db = req.result;
+          // v1: server-read cache (key/value). v2 adds the local-only stores:
+          // 'places' (keyed by id), 'gpx' (keyed by file path), and a 'kv'
+          // bag for singletons (metadata, category labels, local config).
           if (!db.objectStoreNames.contains('cache')) db.createObjectStore('cache');
+          if (!db.objectStoreNames.contains('places')) db.createObjectStore('places', { keyPath: 'id' });
+          if (!db.objectStoreNames.contains('gpx')) db.createObjectStore('gpx', { keyPath: 'file' });
+          if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
         };
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
@@ -2922,6 +2946,40 @@
         tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error);
       })).catch(() => {});
+    }
+    // Collection helpers for the keyPath stores (places, gpx). put() uses the
+    // in-line key; get/delete take the key value. Rejections surface so the
+    // local backend can fail a mutation rather than silently dropping it.
+    function idbGetAll(store) {
+      return idbOpen().then(db => new Promise((resolve, reject) => {
+        const r = db.transaction(store, 'readonly').objectStore(store).getAll();
+        r.onsuccess = () => resolve(r.result || []);
+        r.onerror = () => reject(r.error);
+      }));
+    }
+    function idbPut(store, val) {
+      return idbOpen().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(store, 'readwrite');
+        tx.objectStore(store).put(val);
+        tx.oncomplete = () => resolve(val);
+        tx.onerror = () => reject(tx.error);
+      }));
+    }
+    function idbDeleteKey(store, key) {
+      return idbOpen().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(store, 'readwrite');
+        tx.objectStore(store).delete(key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      }));
+    }
+    function idbClear(store) {
+      return idbOpen().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(store, 'readwrite');
+        tx.objectStore(store).clear();
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      }));
     }
 
     // Cache keys are namespaced by server origin and viewer identity so a
@@ -2955,6 +3013,370 @@
       );
     }
 
+    // ----- Local-only mode -----
+    // When 'ferd-mode' is 'local', the app runs with no server: dataLayer
+    // routes every read/write to `localStore` (IndexedDB) instead of the API,
+    // and the server UI (auth, publish, sessions, tokens, admin, catalog) is
+    // hidden. Local and server data are separate maps; switching modes never
+    // touches the other's data.
+    function isLocalMode() {
+      try { return localStorage.getItem('ferd-mode') === 'local'; } catch { return false; }
+    }
+    function setLocalMode(on) {
+      try { on ? localStorage.setItem('ferd-mode', 'local') : localStorage.removeItem('ferd-mode'); } catch {}
+    }
+
+    function _round6(n) { return Math.round(n * 1e6) / 1e6; }
+    function _genId() {
+      const b = new Uint8Array(4);
+      (crypto || window.crypto).getRandomValues(b);
+      return Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Parse a GPX string for the manifest fields the server computes server-side
+    // (see scripts/gpx-manifest.sh): bbox [minLat,minLon,maxLat,maxLon] over all
+    // track/route/waypoints, whether any <ele> is present, and track count/names.
+    function parseGpxText(text) {
+      const out = { bbox: null, hasElevation: false, trackCount: 0, trackNames: [] };
+      let doc;
+      try { doc = new DOMParser().parseFromString(text, 'application/xml'); }
+      catch { return out; }
+      if (!doc || doc.getElementsByTagName('parsererror').length) return out;
+      let mnLat = Infinity, mnLon = Infinity, mxLat = -Infinity, mxLon = -Infinity, found = false;
+      for (const tag of ['trkpt', 'rtept', 'wpt']) {
+        const els = doc.getElementsByTagNameNS('*', tag);
+        for (let i = 0; i < els.length; i++) {
+          const lat = parseFloat(els[i].getAttribute('lat')), lon = parseFloat(els[i].getAttribute('lon'));
+          if (isNaN(lat) || isNaN(lon)) continue;
+          if (lat < mnLat) mnLat = lat; if (lon < mnLon) mnLon = lon;
+          if (lat > mxLat) mxLat = lat; if (lon > mxLon) mxLon = lon;
+          found = true;
+        }
+      }
+      if (found) out.bbox = [_round6(mnLat), _round6(mnLon), _round6(mxLat), _round6(mxLon)];
+      out.hasElevation = doc.getElementsByTagNameNS('*', 'ele').length > 0;
+      const trks = doc.getElementsByTagNameNS('*', 'trk');
+      out.trackCount = trks.length;
+      for (let i = 0; i < trks.length; i++) {
+        const n = trks[i].getElementsByTagNameNS('*', 'name')[0];
+        out.trackNames.push(n && n.textContent ? n.textContent : 'Track ' + (i + 1));
+      }
+      return out;
+    }
+
+    // Mirror the server's strip_gpx_pii: drop <time>/<author> elements and the
+    // root creator= attribute. Used on upload/import when the user opts in.
+    function stripGpxPiiText(text) {
+      let doc;
+      try { doc = new DOMParser().parseFromString(text, 'application/xml'); }
+      catch { return text; }
+      if (doc.getElementsByTagName('parsererror').length) return text;
+      const root = doc.documentElement;
+      if (root && root.hasAttribute('creator')) root.removeAttribute('creator');
+      for (const tag of ['time', 'author']) {
+        const els = doc.getElementsByTagNameNS('*', tag);
+        for (let i = els.length - 1; i >= 0; i--) {
+          const e = els[i];
+          if (e.parentNode) e.parentNode.removeChild(e);
+        }
+      }
+      try { return new XMLSerializer().serializeToString(doc); }
+      catch { return text; }
+    }
+
+    // Build the routes manifest from local GPX records + metadata, replicating
+    // scripts/gpx-manifest.sh: group a walked (.gpx) and planned (.planned.gpx)
+    // sibling under one route key, mark completed when the walked file exists,
+    // and merge the metadata sidecar fields.
+    const ROUTE_META_FIELDS = ['source', 'date_completed', 'rating', 'notes', 'tags', 'difficulty', 'local_name'];
+    function buildLocalManifest(recs, metadata) {
+      const routes = {};
+      for (const rec of recs) {
+        const region = rec.region || '';
+        const base = region ? region + '/' + rec.name : rec.name;
+        if (!routes[base]) routes[base] = { key: base, region, name: rec.name, walked: null, planned: null };
+        if (rec.planned) routes[base].planned = rec; else routes[base].walked = rec;
+      }
+      const regions = {};
+      for (const base in routes) {
+        const r = routes[base];
+        const primary = r.walked || r.planned;
+        const entry = {
+          key: r.key, file: primary.file, name: r.name,
+          hasElevation: !!primary.hasElevation, completed: !!r.walked,
+        };
+        if (primary.bbox) entry.bbox = primary.bbox;
+        if (r.planned) entry.plannedFile = r.planned.file;
+        if (primary.trackCount && primary.trackCount > 1) {
+          entry.trackCount = primary.trackCount;
+          entry.trackNames = primary.trackNames;
+        }
+        const meta = (metadata && metadata[r.key]) || {};
+        for (const f of ROUTE_META_FIELDS) if (f in meta) entry[f] = meta[f];
+        if (!regions[r.region]) regions[r.region] = { name: r.region, routes: [] };
+        regions[r.region].routes.push(entry);
+      }
+      // No-region bucket ('') sorts last, matching the server.
+      const out = { regions: Object.values(regions).sort((a, b) => (a.name === '' ? 1 : 0) - (b.name === '' ? 1 : 0) || a.name.localeCompare(b.name)) };
+      for (const reg of out.regions) reg.routes.sort((a, b) => a.name.localeCompare(b.name));
+      return out;
+    }
+
+    // On-device backend. Each method returns the same shape the matching API
+    // endpoint does, so dataLayer call sites don't care which mode they're in.
+    const localStore = {
+      _metadata() { return idbGet('kv', 'local:metadata').then(v => v || {}); },
+      _setMetadata(m) { return idbSet('kv', 'local:metadata', m); },
+
+      getPlaces(fallback) { return idbGetAll('places').then(a => Array.isArray(a) ? a : (fallback || [])).catch(() => fallback || []); },
+      createPlace(payload) {
+        const place = Object.assign({}, payload, { id: _genId() });
+        return idbPut('places', place).then(() => idbGetAll('places')).then(a => ({ ok: true, place, total_places: a.length }));
+      },
+      updatePlace(body) {
+        const next = Object.assign({}, body.place, { id: body.id });
+        return idbPut('places', next).then(() => ({ ok: true, place: next }));
+      },
+      deletePlace(body) {
+        return idbDeleteKey('places', body.id).then(() => idbGetAll('places')).then(a => ({ ok: true, total_places: a.length }));
+      },
+      clearCategory(body) {
+        const target = (body.category || '').trim();
+        return idbGetAll('places').then(list => {
+          let cleared = 0; const puts = [];
+          for (const p of list) {
+            if (p && p.category === target) { delete p.category; cleared++; puts.push(idbPut('places', p)); }
+          }
+          return Promise.all(puts).then(() => ({ ok: true, cleared }));
+        });
+      },
+
+      getRoutes() { return Promise.all([idbGetAll('gpx'), this._metadata()]).then(([recs, meta]) => buildLocalManifest(recs || [], meta || {})); },
+      uploadGpx({ region, name, stripPii, file }) {
+        return file.text().then(raw => {
+          const text = stripPii ? stripGpxPiiText(raw) : raw;
+          const planned = name.endsWith('.planned');
+          const stem = planned ? name.slice(0, -'.planned'.length) : name;
+          const f = (region ? region + '/' : '') + name + '.gpx';
+          const m = parseGpxText(text);
+          const rec = { file: f, region: region || '', name: stem, planned, text, bbox: m.bbox, hasElevation: m.hasElevation, trackCount: m.trackCount, trackNames: m.trackNames };
+          return idbPut('gpx', rec).then(() => this.getRoutes()).then(manifest => ({ ok: true, manifest }));
+        });
+      },
+      deleteGpx(body) {
+        const region = body.region || '';
+        let name = body.name || '';
+        if (name.toLowerCase().endsWith('.gpx')) name = name.slice(0, -4);
+        const pre = region ? region + '/' : '';
+        return Promise.all([idbDeleteKey('gpx', pre + name + '.gpx'), idbDeleteKey('gpx', pre + name + '.planned.gpx')]).then(() => ({ ok: true }));
+      },
+      setGpxCompleted(body) {
+        const { region, name } = _splitKey(body.key);
+        const pre = region ? region + '/' : '';
+        const walkedF = pre + name + '.gpx', plannedF = pre + name + '.planned.gpx';
+        return Promise.all([idbGet('gpx', walkedF), idbGet('gpx', plannedF)]).then(([w, p]) => {
+          if (body.completed) {
+            if (w || !p) return { ok: true };
+            return idbDeleteKey('gpx', plannedF).then(() => idbPut('gpx', Object.assign({}, p, { file: walkedF, planned: false }))).then(() => ({ ok: true }));
+          }
+          if (p || !w) return { ok: true };
+          return idbDeleteKey('gpx', walkedF).then(() => idbPut('gpx', Object.assign({}, w, { file: plannedF, planned: true }))).then(() => ({ ok: true }));
+        });
+      },
+      moveGpx(body) {
+        const { region, name } = _splitKey(body.key);
+        const newRegion = body.new_region || '';
+        const finalName = ((body.new_name || name) + '').trim();
+        const newKey = (newRegion ? newRegion + '/' : '') + finalName;
+        if (region === newRegion && name === finalName) return Promise.resolve({ ok: true, old_key: body.key, new_key: body.key, moved: 0 });
+        const pre = region ? region + '/' : '', npre = newRegion ? newRegion + '/' : '';
+        return Promise.all([idbGet('gpx', pre + name + '.gpx'), idbGet('gpx', pre + name + '.planned.gpx')]).then(([w, p]) => {
+          const ops = [];
+          if (w) ops.push(idbDeleteKey('gpx', w.file).then(() => idbPut('gpx', Object.assign({}, w, { file: npre + finalName + '.gpx', region: newRegion, name: finalName }))));
+          if (p) ops.push(idbDeleteKey('gpx', p.file).then(() => idbPut('gpx', Object.assign({}, p, { file: npre + finalName + '.planned.gpx', region: newRegion, name: finalName }))));
+          ops.push(this._metadata().then(meta => {
+            if (meta && (body.key in meta)) { meta[newKey] = meta[body.key]; delete meta[body.key]; return this._setMetadata(meta); }
+          }));
+          return Promise.all(ops).then(() => ({ ok: true, old_key: body.key, new_key: newKey, moved: 1 }));
+        });
+      },
+      putMetadata(body) {
+        return this._metadata().then(meta => {
+          const next = Object.assign({}, meta);
+          if (body.metadata && Object.keys(body.metadata).length) next[body.key] = body.metadata;
+          else delete next[body.key];
+          return this._setMetadata(next).then(() => ({ ok: true }));
+        });
+      },
+      renameRegion(body) {
+        const from = body.from || '', to = body.to || '';
+        if (from === to) return Promise.resolve({ ok: true, renamed: 0 });
+        return Promise.all([idbGetAll('gpx'), this._metadata()]).then(([recs, meta]) => {
+          const ops = [];
+          for (const rec of recs) {
+            if ((rec.region || '') !== from) continue;
+            ops.push(idbDeleteKey('gpx', rec.file).then(() => idbPut('gpx', Object.assign({}, rec, { region: to, file: (to ? to + '/' : '') + rec.name + (rec.planned ? '.planned' : '') + '.gpx' }))));
+          }
+          const nextMeta = {};
+          for (const k in meta) {
+            const { region, name } = _splitKey(k);
+            nextMeta[region === from ? (to ? to + '/' : '') + name : k] = meta[k];
+          }
+          ops.push(this._setMetadata(nextMeta));
+          return Promise.all(ops).then(() => ({ ok: true, renamed: 1 }));
+        });
+      },
+      deleteRegion() { return Promise.resolve({ ok: true }); }, // regions are derived from files; an empty region needs no deletion
+      clearRegion(body) {
+        const name = body.name || '';
+        return Promise.all([idbGetAll('gpx'), this._metadata()]).then(([recs, meta]) => {
+          const ops = recs.filter(r => (r.region || '') === name).map(r => idbDeleteKey('gpx', r.file));
+          const nextMeta = {};
+          for (const k in meta) { if (_splitKey(k).region !== name) nextMeta[k] = meta[k]; }
+          ops.push(this._setMetadata(nextMeta));
+          return Promise.all(ops).then(() => ({ ok: true }));
+        });
+      },
+
+      getCategoryLabels() { return idbGet('kv', 'local:category-labels').then(v => ({ category_labels: v || {} })); },
+      putCategoryLabels(body) {
+        return idbGet('kv', 'local:category-labels').then(cur => {
+          const next = Object.assign({}, cur || {});
+          const incoming = body.category_labels || {};
+          // Preserve existing color/order when the caller omits them, like the server.
+          for (const slug in incoming) next[slug] = Object.assign({}, next[slug], incoming[slug]);
+          return idbSet('kv', 'local:category-labels', next).then(() => ({ ok: true }));
+        });
+      },
+
+      gpxText(file) { return idbGet('gpx', file).then(rec => rec ? rec.text : null); },
+    };
+    function _splitKey(key) {
+      const parts = (key || '').split('/');
+      return parts.length === 2 ? { region: parts[0], name: parts[1] } : { region: '', name: parts[0] };
+    }
+
+    // ----- Local backup (zip) -----
+    // Export/import a local map as a zip with the same layout the server uses
+    // (places.json, routes.json, metadata.json, category-labels.json, gpx/...),
+    // so a local map can be moved to a server (and back) with no conversion.
+    // Written uncompressed (store); reads handle both store and deflate so a
+    // server's deflated export imports cleanly.
+    const _crcTable = (() => {
+      const t = new Uint32Array(256);
+      for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; }
+      return t;
+    })();
+    function _crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = _crcTable[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+    function _concatBytes(arrs) {
+      let len = 0; for (const a of arrs) len += a.length;
+      const out = new Uint8Array(len); let o = 0;
+      for (const a of arrs) { out.set(a, o); o += a.length; }
+      return out;
+    }
+    function _zipStore(files) {
+      const enc = new TextEncoder();
+      const u16 = n => { const b = new Uint8Array(2); new DataView(b.buffer).setUint16(0, n & 0xFFFF, true); return b; };
+      const u32 = n => { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0, n >>> 0, true); return b; };
+      const locals = [], central = []; let offset = 0;
+      for (const f of files) {
+        const name = enc.encode(f.name), data = f.data, crc = _crc32(data);
+        const lh = _concatBytes([u32(0x04034b50), u16(20), u16(0), u16(0), u16(0), u16(0), u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0), name, data]);
+        locals.push(lh);
+        central.push(_concatBytes([u32(0x02014b50), u16(20), u16(20), u16(0), u16(0), u16(0), u16(0), u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset), name]));
+        offset += lh.length;
+      }
+      const cd = _concatBytes(central);
+      const eocd = _concatBytes([u32(0x06054b50), u16(0), u16(0), u16(files.length), u16(files.length), u32(cd.length), u32(offset), u16(0)]);
+      return new Blob([_concatBytes(locals), cd, eocd], { type: 'application/zip' });
+    }
+    function _inflateRaw(bytes) {
+      const ds = new DecompressionStream('deflate-raw');
+      return new Response(new Blob([bytes]).stream().pipeThrough(ds)).arrayBuffer().then(b => new Uint8Array(b));
+    }
+    async function _zipRead(buf) {
+      const dv = new DataView(buf), bytes = new Uint8Array(buf);
+      let p = buf.byteLength - 22;
+      while (p >= 0 && dv.getUint32(p, true) !== 0x06054b50) p--;
+      if (p < 0) throw new Error('not a zip file');
+      const count = dv.getUint16(p + 10, true);
+      let cd = dv.getUint32(p + 16, true);
+      const out = [];
+      for (let i = 0; i < count; i++) {
+        if (dv.getUint32(cd, true) !== 0x02014b50) break;
+        const method = dv.getUint16(cd + 10, true);
+        const compSize = dv.getUint32(cd + 20, true);
+        const nameLen = dv.getUint16(cd + 28, true), extraLen = dv.getUint16(cd + 30, true), commentLen = dv.getUint16(cd + 32, true);
+        const lho = dv.getUint32(cd + 42, true);
+        const name = new TextDecoder().decode(bytes.subarray(cd + 46, cd + 46 + nameLen));
+        const dataStart = lho + 30 + dv.getUint16(lho + 26, true) + dv.getUint16(lho + 28, true);
+        const comp = bytes.subarray(dataStart, dataStart + compSize);
+        let data;
+        if (method === 0) data = comp;
+        else if (method === 8) data = await _inflateRaw(comp);
+        else throw new Error('unsupported zip compression');
+        out.push({ name, data });
+        cd += 46 + nameLen + extraLen + commentLen;
+      }
+      return out;
+    }
+    function _gpxPathParts(rel) {
+      const slash = rel.lastIndexOf('/');
+      const region = slash >= 0 ? rel.slice(0, slash) : '';
+      const base = slash >= 0 ? rel.slice(slash + 1) : rel;
+      const planned = base.endsWith('.planned.gpx');
+      const stem = planned ? base.slice(0, -'.planned.gpx'.length) : base.slice(0, -'.gpx'.length);
+      return { region, name: stem, planned };
+    }
+    const localBackup = {
+      exportZip() {
+        return Promise.all([idbGetAll('places'), idbGetAll('gpx'), localStore._metadata(), idbGet('kv', 'local:category-labels'), localStore.getRoutes()])
+          .then(([places, gpx, metadata, labels, manifest]) => {
+            const enc = new TextEncoder();
+            const j = o => enc.encode(JSON.stringify(o, null, 2));
+            const files = [
+              { name: 'places.json', data: j(places || []) },
+              { name: 'routes.json', data: j(manifest) },
+              { name: 'metadata.json', data: j(metadata || {}) },
+              { name: 'category-labels.json', data: j(labels || {}) },
+            ];
+            for (const rec of gpx) files.push({ name: 'gpx/' + rec.file, data: enc.encode(rec.text) });
+            return _zipStore(files);
+          });
+      },
+      importZip(file, mode) {
+        return file.arrayBuffer().then(_zipRead).then(async entries => {
+          const dec = new TextDecoder();
+          const byName = {};
+          for (const e of entries) byName[e.name] = e.data;
+          const parse = n => { if (!byName[n]) return null; try { return JSON.parse(dec.decode(byName[n])); } catch { return null; } };
+          const places = parse('places.json'), metadata = parse('metadata.json'), labels = parse('category-labels.json');
+          if (mode === 'replace') { await idbClear('places'); await idbClear('gpx'); }
+          let nPlaces = 0;
+          if (Array.isArray(places)) {
+            for (const p of places) { if (p && typeof p === 'object') { if (!p.id) p.id = _genId(); await idbPut('places', p); nPlaces++; } }
+          }
+          let nRoutes = 0;
+          for (const name in byName) {
+            if (!name.startsWith('gpx/') || !name.endsWith('.gpx')) continue;
+            const rel = name.slice(4), text = dec.decode(byName[name]);
+            const pp = _gpxPathParts(rel), m = parseGpxText(text);
+            await idbPut('gpx', { file: rel, region: pp.region, name: pp.name, planned: pp.planned, text, bbox: m.bbox, hasElevation: m.hasElevation, trackCount: m.trackCount, trackNames: m.trackNames });
+            nRoutes++;
+          }
+          if (metadata && typeof metadata === 'object') {
+            const next = mode === 'merge' ? Object.assign({}, await localStore._metadata(), metadata) : metadata;
+            await idbSet('kv', 'local:metadata', next);
+          }
+          if (labels && typeof labels === 'object') {
+            const cur = (await idbGet('kv', 'local:category-labels')) || {};
+            await idbSet('kv', 'local:category-labels', mode === 'merge' ? Object.assign({}, cur, labels) : labels);
+          }
+          return { ok: true, places: nPlaces, routes: nRoutes };
+        });
+      },
+    };
+
     // Single dispatch seam between the UI and the backend for app *content*
     // (places, routes/GPX, metadata, regions, category labels). Every method
     // currently forwards 1:1 to the server. Later phases swap implementations
@@ -2962,19 +3384,21 @@
     // touching call sites. Reads honor the viewer (owner vs public) via
     // dataUrl/categoryLabelsUrl. Writes are owner-only and reuse api().
     const dataLayer = {
-      // -- reads (cached on-device; served from cache when offline) --
-      fetchPlaces(fallback)         { return cachedRead('places', dataUrl('places'), fallback); },
-      fetchRoutes(fallback)         { return cachedRead('routes', dataUrl('routes'), fallback); },
-      fetchCategoryLabels(fallback) { return cachedRead('category-labels', categoryLabelsUrl(), fallback); },
+      // -- reads (local store, or cached-on-device server reads) --
+      fetchPlaces(fallback)         { return isLocalMode() ? localStore.getPlaces(fallback) : cachedRead('places', dataUrl('places'), fallback); },
+      fetchRoutes(fallback)         { return isLocalMode() ? localStore.getRoutes() : cachedRead('routes', dataUrl('routes'), fallback); },
+      fetchCategoryLabels(fallback) { return isLocalMode() ? localStore.getCategoryLabels() : cachedRead('category-labels', categoryLabelsUrl(), fallback); },
 
       // -- place writes --
-      createPlace(payload)   { return api('POST', '/places', payload); },
-      updatePlace(body)      { return api('PUT', '/places', body); },          // { id, place }
-      deletePlace(body)      { return api('DELETE', '/places', body); },       // { id }
-      clearCategory(body)    { return api('POST', '/places/clear-category', body); }, // { category }
+      createPlace(payload)   { return isLocalMode() ? localStore.createPlace(payload) : api('POST', '/places', payload); },
+      updatePlace(body)      { return isLocalMode() ? localStore.updatePlace(body) : api('PUT', '/places', body); },          // { id, place }
+      deletePlace(body)      { return isLocalMode() ? localStore.deletePlace(body) : api('DELETE', '/places', body); },       // { id }
+      clearCategory(body)    { return isLocalMode() ? localStore.clearCategory(body) : api('POST', '/places/clear-category', body); }, // { category }
 
       // -- route / GPX writes --
-      uploadGpx({ region, name, stripPii, file }) {
+      uploadGpx(opts) {
+        if (isLocalMode()) return localStore.uploadGpx(opts);
+        const { region, name, stripPii, file } = opts;
         let qs = (region ? '?region=' + encodeURIComponent(region) + '&' : '?') + 'name=' + encodeURIComponent(name);
         if (stripPii) qs += '&strip_pii=true';
         return fetch(apiUrl('/gpx') + qs, applyAuth({
@@ -2987,18 +3411,18 @@
           return data;
         });
       },
-      deleteGpx(body)        { return api('DELETE', '/gpx', body); },          // { region, name }
-      setGpxCompleted(body)  { return api('POST', '/gpx/set-completed', body); }, // { key, completed }
-      moveGpx(body)          { return api('POST', '/gpx/move', body); },       // { key, new_region, new_name? }
-      putMetadata(body)      { return api('PUT', '/metadata', body); },        // { key, metadata }
+      deleteGpx(body)        { return isLocalMode() ? localStore.deleteGpx(body) : api('DELETE', '/gpx', body); },          // { region, name }
+      setGpxCompleted(body)  { return isLocalMode() ? localStore.setGpxCompleted(body) : api('POST', '/gpx/set-completed', body); }, // { key, completed }
+      moveGpx(body)          { return isLocalMode() ? localStore.moveGpx(body) : api('POST', '/gpx/move', body); },       // { key, new_region, new_name? }
+      putMetadata(body)      { return isLocalMode() ? localStore.putMetadata(body) : api('PUT', '/metadata', body); },        // { key, metadata }
 
       // -- region writes --
-      renameRegion(body)     { return api('POST', '/regions/rename', body); }, // { from, to }
-      deleteRegion(body)     { return api('POST', '/regions/delete', body); }, // { name }
-      clearRegion(body)      { return api('POST', '/regions/clear', body); },  // { name }
+      renameRegion(body)     { return isLocalMode() ? localStore.renameRegion(body) : api('POST', '/regions/rename', body); }, // { from, to }
+      deleteRegion(body)     { return isLocalMode() ? localStore.deleteRegion(body) : api('POST', '/regions/delete', body); }, // { name }
+      clearRegion(body)      { return isLocalMode() ? localStore.clearRegion(body) : api('POST', '/regions/clear', body); },  // { name }
 
       // -- category labels --
-      putCategoryLabels(body) { return api('PUT', '/me/category-labels', body); }, // { category_labels }
+      putCategoryLabels(body) { return isLocalMode() ? localStore.putCategoryLabels(body) : api('PUT', '/me/category-labels', body); }, // { category_labels }
     };
 
     // Raise the map's minimum zoom to the smallest level whose Web Mercator
@@ -3276,6 +3700,7 @@
       }
     }
     function loadSyncedPrefs() {
+      if (isLocalMode()) return Promise.resolve();
       if (!state.auth || !state.auth.authenticated) return Promise.resolve();
       return fetch(apiUrl('/me/prefs'), applyAuth({}))
         .then(r => r.ok ? r.json() : null)
@@ -3768,6 +4193,14 @@
       }
     }
     function fetchGpxText(url) {
+      // Local mode: `local:<file>` resolves to the GPX text held in IndexedDB,
+      // no network and no concurrency queue needed.
+      if (url && url.indexOf('local:') === 0) {
+        return localStore.gpxText(url.slice(6)).then(function(text) {
+          if (text == null) throw new Error('not found: ' + url);
+          return text;
+        });
+      }
       return new Promise(function(resolve, reject) {
         _gpxQueue.push(function() {
           return fetch(url, applyAuth({})).then(function(r) {
@@ -7241,14 +7674,19 @@
         return;
       }
       const isAdmin = !!state.auth.is_admin;
+      const local = isLocalMode();
       el.innerHTML =
         '<button id="auth-menu-btn" title="Account menu">Menu</button>' +
         '<div class="auth-menu" id="auth-menu" hidden>' +
-          '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>' +
+          (local
+            ? '<div class="auth-menu-header">Local map<strong>On this device</strong></div>'
+            : '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>') +
           '<button data-action="settings">Settings</button>' +
           (isAdmin ? '<button data-action="logs">Logs</button>' : '') +
           '<button data-action="about">About</button>' +
-          '<button class="auth-menu-signout" data-action="signout">Sign out</button>' +
+          (local
+            ? '<button data-action="connect">Connect to a server</button>'
+            : '<button class="auth-menu-signout" data-action="signout">Sign out</button>') +
         '</div>';
       const btn = document.getElementById('auth-menu-btn');
       const menu = document.getElementById('auth-menu');
@@ -7281,6 +7719,7 @@
           case 'logs':     openLogsModal(); break;
           case 'about':    openAboutModal(); break;
           case 'signout':  confirmSignOut(); break;
+          case 'connect':  confirmLeaveLocal(); break;
         }
       });
     }
@@ -7295,6 +7734,73 @@
         if (!ok) return;
         const done = function() { setBearerToken(''); location.reload(); };
         api('POST', '/logout').then(done, done);
+      });
+    }
+
+    // Wire the local-mode Backup section (Settings > General). Export builds a
+    // zip Blob and triggers a download; import restores from one and reloads.
+    function wireLocalBackup() {
+      const exp = document.getElementById('s-local-export');
+      if (exp) exp.addEventListener('click', function() {
+        const orig = exp.textContent;
+        exp.disabled = true; exp.textContent = 'Exporting…';
+        localBackup.exportZip().then(function(blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url; a.download = 'ferd-local-export.zip';
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+        }).catch(function(e) {
+          const eb = document.getElementById('local-import-error');
+          if (eb) { eb.textContent = 'Export failed: ' + e.message; eb.classList.add('visible'); }
+        }).finally(function() { exp.disabled = false; exp.textContent = orig; });
+      });
+      const impBtn = document.getElementById('s-local-import-btn');
+      const impInput = document.getElementById('s-local-import');
+      const nameEl = document.getElementById('s-local-import-name');
+      const errEl = document.getElementById('local-import-error');
+      const okEl = document.getElementById('local-import-success');
+      if (impBtn && impInput) {
+        impBtn.addEventListener('click', function() { impInput.click(); });
+        impInput.addEventListener('change', function() {
+          const f = impInput.files && impInput.files[0];
+          if (!f) return;
+          if (nameEl) nameEl.textContent = f.name;
+          if (errEl) errEl.classList.remove('visible');
+          if (okEl) okEl.hidden = true;
+          openConfirmModal({
+            title: 'Restore from zip?',
+            body: 'This replaces your current on-device map (places and routes) with the contents of the zip.',
+            confirmLabel: 'Replace', danger: true,
+          }).then(function(ok) {
+            if (!ok) { impInput.value = ''; if (nameEl) nameEl.textContent = ''; return; }
+            localBackup.importZip(f, 'replace').then(function(res) {
+              if (okEl) { okEl.hidden = false; okEl.textContent = 'Imported ' + res.places + ' places and ' + res.routes + ' routes. Reloading…'; }
+              setTimeout(function() { location.reload(); }, 900);
+            }).catch(function(e) {
+              if (errEl) { errEl.textContent = 'Import failed: ' + e.message; errEl.classList.add('visible'); }
+            });
+          });
+        });
+      }
+    }
+
+    function enterLocalMode() {
+      setLocalMode(true);
+      // A fresh load takes the local-only branch in startup()/bootApp().
+      document.body.classList.remove('signin-only');
+      location.reload();
+    }
+
+    function confirmLeaveLocal() {
+      return openConfirmModal({
+        title: 'Connect to a server?',
+        body: 'This leaves local-only mode and returns to the sign-in screen. Your on-device map stays saved and is restored if you switch back to local mode.',
+        confirmLabel: 'Connect to a server',
+      }).then(ok => {
+        if (!ok) return;
+        setLocalMode(false);
+        location.reload();
       });
     }
 
@@ -7364,6 +7870,7 @@
 
     function openSettingsModal(initialTab) {
       const isAdmin = state.auth.is_admin;
+      const local = isLocalMode();
       const regOpen = state.auth.registration_open;
       const theme = getStoredTheme();
       const mode = getStoredMode();
@@ -7385,8 +7892,10 @@
         '<div class="modal-tabs" id="settings-tabs">' +
           '<button data-tab="general" class="active">General</button>' +
           '<button data-tab="appearance">Appearance</button>' +
-          '<button data-tab="account">Account</button>' +
-          '<button data-tab="security">Security</button>' +
+          // Account (publish/sharing) and Security (sessions/tokens) require a
+          // server account; hidden in local-only mode.
+          (local ? '' : '<button data-tab="account">Account</button>') +
+          (local ? '' : '<button data-tab="security">Security</button>') +
           (isAdmin ? '<button data-tab="admin">Admin</button>' : '') +
         '</div>' +
         '<div data-panel="general">' +
@@ -7432,6 +7941,18 @@
           '</div>'
         : '') +
         '</div>' +
+        (local ?
+          '<h3 class="settings-h">Backup</h3>' +
+          '<div class="modal-desc">Your map lives only on this device. Download a zip to back it up or move it to a server, or restore from one.</div>' +
+          '<div class="backup-row">' +
+            '<button class="backup-btn" id="s-local-export">Export</button>' +
+            '<button class="backup-btn" id="s-local-import-btn">Import</button>' +
+            '<input type="file" id="s-local-import" class="file-input-hidden" accept=".zip,application/zip">' +
+            '<span class="file-name" id="s-local-import-name"></span>' +
+          '</div>' +
+          '<div class="modal-error" id="local-import-error"></div>' +
+          '<div class="modal-success-box" id="local-import-success" hidden></div>'
+          : '') +
         '<div data-panel="appearance" hidden>' +
         '<div class="settings-grid-2">' +
           '<label for="s-theme">Theme</label>' +
@@ -7705,8 +8226,8 @@
               });
             });
           }
-          renderSessions();
-          renderTokens();
+          if (!isLocalMode()) { renderSessions(); renderTokens(); }
+          if (isLocalMode()) wireLocalBackup();
           const tokenForm = document.getElementById('s-token-form');
           if (tokenForm) {
             tokenForm.addEventListener('submit', function(e) {
@@ -9576,8 +10097,11 @@
             '<div class="modal-actions">' +
               '<button type="button" class="primary" id="srv-connect">Connect</button>' +
             '</div>' +
+            '<div class="signin-alt"><button type="button" id="srv-local">Use on this device only</button></div>' +
           '</div>' +
         '</div>';
+      const localBtn = document.getElementById('srv-local');
+      if (localBtn) localBtn.addEventListener('click', enterLocalMode);
       const input = document.getElementById('srv-url');
       const errBox = document.getElementById('srv-error');
       const warn = document.getElementById('srv-warn');
@@ -9625,8 +10149,11 @@
           '<div class="modal">' +
             signInFormHtml(false) +
             '<div id="signin-public-maps" hidden></div>' +
+            '<div class="signin-alt"><button type="button" id="signin-local">Use on this device only</button></div>' +
           '</div>' +
         '</div>';
+      const signinLocalBtn = document.getElementById('signin-local');
+      if (signinLocalBtn) signinLocalBtn.addEventListener('click', enterLocalMode);
       // In cross-origin mode (native/bundled shell) let the user retarget the
       // server from the sign-in screen. Tucked into the Sign in button row so
       // it reads as a status footnote, not a competing action.
@@ -9698,16 +10225,18 @@
       //   'place' (Places list Add)  -> [Place, Browse]
       //   'route' (Routes list Add)  -> just the GPX form, no tabs
       //   null    (map FAB)          -> [Place, Route, Browse], filtered by enabled features
+      // Browse pulls from the server catalog, which doesn't exist in local mode.
+      const showBrowse = !isLocalMode();
       let tabs;
       if (initialTab === 'route') {
         tabs = ['route'];
       } else if (initialTab === 'place') {
-        tabs = showPlaces ? ['place', 'browse'] : ['route'];
+        tabs = showPlaces ? (showBrowse ? ['place', 'browse'] : ['place']) : ['route'];
       } else {
         tabs = [];
         if (showPlaces) tabs.push('place');
         if (showTrails) tabs.push('route');
-        if (showPlaces) tabs.push('browse');
+        if (showPlaces && showBrowse) tabs.push('browse');
       }
       let tab = tabs[0];
       const tabLabels = { place: 'Place', route: 'Route', browse: 'Browse' };
@@ -10386,7 +10915,7 @@
         // Warm the catalog cache in the background so the Browse tab in the
         // Add modal renders instantly the first time it's opened, instead of
         // flashing the Loading placeholder. Authed users only.
-        if (state.auth && state.auth.authenticated && !isReadOnly() && state._catalogCache == null) {
+        if (state.auth && state.auth.authenticated && !isReadOnly() && !isLocalMode() && state._catalogCache == null) {
           api('GET', '/catalog').then(entries => {
             state._catalogCache = Array.isArray(entries) ? entries : [];
             // If the user is sitting on the Places list when this lands,
@@ -10402,6 +10931,14 @@
       // storage pressure. Silent (heuristic) in most browsers; best-effort.
       if (navigator.storage && navigator.storage.persist) {
         try { navigator.storage.persist(); } catch {}
+      }
+      // Local-only mode: no server, no auth. Run as a read-write owner whose
+      // data lives entirely in IndexedDB. Config falls back to defaults.
+      if (isLocalMode()) {
+        applyConfig(null);
+        state.auth = { authenticated: true, username: null, is_admin: false, local: true };
+        renderAuthWidget();
+        return loadDataAndRender();
       }
       return fetchJson(serverFileUrl(DATA_FILES.siteConfig), null)
         .then(function(cfg) {
@@ -10458,6 +10995,8 @@
     // restores the session and data from IndexedDB and the offline banner
     // signals read-only mode.
     function startup() {
+      // Local-only mode skips the server probe entirely.
+      if (isLocalMode()) return bootApp();
       const base = serverBase();
       if (base) {
         return probeServer(base, 6000).then(function(ok) {
