@@ -10927,11 +10927,6 @@
     }
 
     function bootApp() {
-      // Ask the browser to keep the on-device cache from being evicted under
-      // storage pressure. Silent (heuristic) in most browsers; best-effort.
-      if (navigator.storage && navigator.storage.persist) {
-        try { navigator.storage.persist(); } catch {}
-      }
       // Local-only mode: no server, no auth. Run as a read-write owner whose
       // data lives entirely in IndexedDB. Config falls back to defaults.
       if (isLocalMode()) {
