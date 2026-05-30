@@ -10217,7 +10217,7 @@
     }
 
     // ----- Add place / GPX modal -----
-    function openAddModal(prefillCoords, initialTab) {
+    function openAddModal(prefillCoords, initialTab, draft) {
       const showPlaces = placesEnabled();
       const showTrails = routesEnabled();
       if (!showPlaces && !showTrails) return;
@@ -10300,12 +10300,16 @@
         // default state of the empty placeholder option.
         const cats = sortedCategorySlugs(Object.keys(state.categoryColors).filter(c => c !== ''));
         const c = prefillCoords;
+        // A draft carries field values across the close+reopen that wraps a
+        // "Pick on map" click, so the user's input survives picking coordinates.
+        const d = draft || {};
+        const sourcesText = (d.sources || []).join('\n');
         return '<form id="place-form">' +
           '<label for="p-name">Name</label>' +
-          '<input type="text" id="p-name" required placeholder="e.g. Acropolis">' +
+          '<input type="text" id="p-name" required placeholder="e.g. Acropolis" value="' + escapeHtml(d.name || '') + '">' +
           (getShowField('local-name') ?
             '<label for="p-local-name">Local name (optional)</label>' +
-            '<input type="text" id="p-local-name" placeholder="e.g. Ακρόπολη">'
+            '<input type="text" id="p-local-name" placeholder="e.g. Ακρόπολη" value="' + escapeHtml(d.local_name || '') + '">'
           : '') +
           '<label>Coordinates</label>' +
           '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem">' +
@@ -10323,33 +10327,33 @@
             '</div>' +
           '</div>' +
           '<label for="p-category">Category</label>' +
-          selectOrNewHtml('p-category', cats, null, displayCategory, '', 'New category name') +
+          selectOrNewHtml('p-category', cats, d.category || null, displayCategory, '', 'New category name') +
           '<label for="p-country">Country (optional)</label>' +
-          '<input type="text" id="p-country">' +
+          '<input type="text" id="p-country" value="' + escapeHtml(d.country || '') + '">' +
           (getShowField('note') ?
             '<label for="p-note">Note (optional)</label>' +
-            '<textarea id="p-note" style="min-height:40px"></textarea>'
+            '<textarea id="p-note" style="min-height:40px">' + escapeHtml(d.note || '') + '</textarea>'
           : '') +
           (getShowField('image') ?
             '<label for="p-image">Image URL (optional)</label>' +
-            '<input type="url" id="p-image" placeholder="https://example.com/photo.jpg">'
+            '<input type="url" id="p-image" placeholder="https://example.com/photo.jpg" value="' + escapeHtml(d.image || '') + '">'
           : '') +
           '<label for="p-sources">Sources (optional, one URL per line)</label>' +
-          '<textarea id="p-sources" style="min-height:40px" placeholder="https://example.com/source"></textarea>' +
+          '<textarea id="p-sources" style="min-height:40px" placeholder="https://example.com/source">' + escapeHtml(sourcesText) + '</textarea>' +
           '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
-            '<input type="checkbox" class="settings-toggle" id="p-visited">' +
+            '<input type="checkbox" class="settings-toggle" id="p-visited"' + (d.visited ? ' checked' : '') + '>' +
             '<label for="p-visited" style="margin:0">I&rsquo;ve visited this place</label>' +
           '</div>' +
           ((getShowField('date') || getShowField('rating')) ?
-            '<div class="collapsible" id="p-visited-extras">' +
+            '<div class="collapsible' + (d.visited ? ' expanded' : '') + '" id="p-visited-extras">' +
               '<div class="collapsible-inner">' +
                 (getShowField('date') ?
                   '<label for="p-date-visited">Date visited</label>' +
-                  '<input type="date" id="p-date-visited">'
+                  '<input type="date" id="p-date-visited" value="' + escapeHtml(d.date_visited || '') + '">'
                 : '') +
                 (getShowField('rating') ?
                   '<label for="p-rating">Rating</label>' +
-                  starRatingHtml('p-rating', '')
+                  starRatingHtml('p-rating', d.rating || '')
                 : '') +
               '</div>' +
             '</div>'
@@ -10429,8 +10433,28 @@
           });
         }
         document.getElementById('pick-on-map').addEventListener('click', function() {
+          // Snapshot current form values so they survive the close+reopen around
+          // the map click. Coordinates aren't set yet (that's why the user is
+          // picking), so this can't reuse readPlaceFormFields, which requires them.
+          const $ = id => document.getElementById('p-' + id);
+          const val = id => { const el = $(id); return el ? el.value : ''; };
+          const sourcesRaw = val('sources').trim();
+          const snapshot = {
+            name: val('name').trim(),
+            local_name: val('local-name').trim(),
+            category: readSelectOrNew('p-category'),
+            country: val('country').trim(),
+            note: val('note').trim(),
+            image: val('image').trim(),
+            sources: sourcesRaw ? sourcesRaw.split('\n').map(s => s.trim()).filter(Boolean) : [],
+            visited: $('visited') ? $('visited').checked : false,
+            date_visited: val('date-visited').trim(),
+            rating: readStarRating('p-rating'),
+          };
           closeModal();
-          enterPickCoordsMode();
+          enterPickCoordsMode(function(latlng) {
+            openAddModal({ lat: latlng.lat, lng: latlng.lng }, 'place', snapshot);
+          });
         });
         // "or enter manually" reveals the lat/lon inputs with the same
         // collapsible animation used elsewhere.
