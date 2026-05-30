@@ -5,22 +5,26 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
+- Places and Routes lists: a View popover (next to Filters) switches between Grid (the multi-column cards, default), Compact (single column with a small left thumbnail), and Gallery (single column with large media on top). Compact and Gallery cap their width and center like the History page. Places show the place image; routes draw the GPX track-shape silhouette. The choice is saved per list and syncs across devices.
 - History page: a chronological journal of visited places and completed routes, reachable from the Menu. Entries are merged into one stream, newest first, grouped by year, showing the date, rating, note, and (for places) image. Filter by text, kind, year, and rating; switch between a compact layout and a gallery layout with larger images on top. Click an entry to open the place on the map or the route's detail, or right-click (long-press on touch) for the same context menu as the list cards.
 - Shipped catalog: 117 new entries.
 - Offline read access: places, routes, and category data are cached on-device (IndexedDB) on each successful load and served when the server is unreachable, so an installed PWA opens into the last-known map (read-only) instead of dead-ending at the sign-in or server-picker screen. The offline banner signals read-only mode; the cache is namespaced per server and account.
-- Local-only mode: a "Use on this device only" option on the sign-in screen and server picker runs the app with no server and no account, storing places and routes entirely on-device (IndexedDB). GPX tracks are parsed and the route manifest built client-side. Back up or move a local map with the Export/Import zip in Settings (same format as the server, so a local map transfers to a server and back). Leave with "Connect to a server" in the menu; local and server data stay separate and switching never destroys either.
+- Local-only mode: a "Continue without signing in" option on the sign-in screen and server picker runs the app with no server and no account, storing places and routes entirely on-device (IndexedDB). GPX tracks are parsed and the route manifest built client-side. Back up or move a local map with the Export/Import zip in Settings (same format as the server, so a local map transfers to a server and back). Leave with "Connect to a server" in the menu; local and server data stay separate and switching never destroys either.
 - Local mode activity log: Menu > Logs records on-device edits (adding, editing, deleting, completing, and moving places and routes; region changes; imports), newest first, and can be cleared. The local analogue of the server audit log.
 - Local mode catalog: the Add modal's Browse tab now works in local mode, sourced from the bundled shipped catalog (catalog.json, precached for offline use). Browse and import catalog places into an on-device map, with the same "update available" detection when a new app version ships a changed catalog. Catalog curation stays server-only.
 - Visible features: Settings > General gained per-device toggles to show or hide History, Catalog (the Add modal's Browse tab), and Logs. Each appears only when reachable (History needs Places or Routes; Catalog needs Places; Logs needs admin or local mode). Logs defaults to hidden.
 
 ### Changed
+- Places and Routes lists: the Add button moved from the search row into the top nav, just left of the Menu button, leaving the search row to the filter input and Filters popover.
 - Places and Routes lists: the item count moved from the nav tab into the search box, where it updates live to the matching count as you type or apply filters.
 
 ### Fixed
+- The account menu and the list/History filter (and View) popovers are now mutually exclusive: opening one closes any other that was open, instead of leaving two overlapping.
+- Opening a place from the list now lands the map directly on the pin instead of briefly showing the previous location and then panning to the new one.
 - Settings > General feature pills no longer snap to a rigid 2-column grid at an arbitrary window width. The layout now responds to the modal's own width (container query), keeping the flexible row until the modal itself is narrow, then dropping to two columns - matching how it already looked on mobile.
 - Adding a place: clicking "Pick on map" no longer clears the name, category, and other entered fields. The form now keeps its contents across the map pick.
 - Modal dropdowns (category, region, settings) are now fully themed. The closed control matches the surrounding inputs instead of the browser's lighter native fill, and on desktop the open option list renders in the active theme rather than the OS-native popup (which CSS can't restyle). Keyboard navigation and type-ahead are preserved; touch devices keep the native full-screen picker.
-- Settings pill groups (Optional fields, Visible features) no longer leave a lone pill stretched across the full width when they wrap on narrow screens; they lay out in an even two-column grid.
+- Settings pill groups no longer leave a lone pill stretched across the full width when they wrap on narrow screens. Visible features lays out in an even two-column grid; the five Optional fields pills fit on one row at the modal's width and fall to a filled 3/2 (not a 4/1 wrap) when narrow.
 - About: shows the app version in local-only mode instead of "unknown". The version is baked into the served page, so it no longer depends on a server `/api/state` response.
 
 ## [1.1.0] - 2026-05-29

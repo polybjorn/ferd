@@ -926,6 +926,40 @@
       white-space: nowrap;
     }
 
+    /* List view modes. The default ("grid") uses the multi-column styling
+       above; these single-column variants are opted in per list via a class
+       on the grid container. */
+    .category-grid.view-compact, .category-grid.view-gallery,
+    .region-grid.view-compact, .region-grid.view-gallery { columns: 1; max-width: 720px; margin: 0 auto; }
+    .view-compact .place-grid, .view-gallery .place-grid,
+    .view-compact .route-grid, .view-gallery .route-grid { grid-template-columns: 1fr; }
+    /* Compact: small media thumbnail on the left, body beside it (like History). */
+    .view-compact .place-card, .view-compact .route-card { gap: 1rem; }
+    .view-compact .card-media {
+      flex: 0 0 auto; width: 120px; aspect-ratio: 16 / 10; display: block;
+      object-fit: cover; border-radius: var(--radius); background: var(--surface2);
+    }
+    .view-compact .card-body { display: flex; gap: 0.5rem; flex: 1; min-width: 0; align-items: flex-start; }
+    .view-compact .route-card .card-body { align-items: center; }
+    .view-compact .card-media-spacer { flex: 0 0 auto; width: 120px; }
+    @media (max-width: 600px) {
+      .view-compact .card-media { width: 88px; }
+      .view-compact .card-media-spacer { width: 88px; }
+    }
+    /* Gallery: media (image / route silhouette) on top, body below. */
+    .view-gallery .place-grid, .view-gallery .route-grid { gap: 1rem; }
+    .view-gallery .place-card, .view-gallery .route-card {
+      flex-direction: column; align-items: stretch; gap: 0; padding: 0; overflow: hidden;
+    }
+    .view-gallery .card-media {
+      width: 100%; aspect-ratio: 16 / 9; display: block;
+      object-fit: cover; background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+    .view-gallery .card-body { display: flex; gap: 0.5rem; align-items: flex-start; padding: 0.75rem 1rem; }
+    .view-gallery .route-card .card-body { align-items: center; }
+    .view-gallery .route-card .name { white-space: normal; }
+
     /* Map view */
     #map {
       width: 100%;
@@ -1486,7 +1520,7 @@
       white-space: nowrap;
     }
     .modal .modal-actions .signin-change-server { margin-right: auto; }
-    /* "Use on this device only" entry on the sign-in / server-picker cards. */
+    /* "Continue without signing in" entry on the sign-in / server-picker cards. */
     .signin-alt {
       margin-top: 0.85rem;
       padding-top: 0.85rem;
@@ -1684,7 +1718,7 @@
       .detail-layout { padding: 0; }
       nav { padding: 0.5rem 0.75rem; gap: 0.5rem; }
       nav .view-tabs a { font-size: 0.8rem; padding: 0.55rem 0.85rem; }
-      nav .auth-widget button, nav .auth-widget a { font-size: 0.8rem; padding: 0.55rem 0.85rem; }
+      nav .auth-widget button, nav .auth-widget a, nav .nav-action-btn { font-size: 0.8rem; padding: 0.55rem 0.85rem; }
       .nav-group { gap: 0.4rem; }
       .nav-group + .nav-group { padding-left: 0.4rem; }
       .nav-stat .label { font-size: 0.5rem; }
@@ -2448,8 +2482,16 @@
        arbitrary window width. */
     [data-panel="general"] { container-type: inline-size; }
     @container (max-width: 24rem) {
-      [data-panel="general"] .feature-pills { display: grid; grid-template-columns: repeat(2, 1fr); }
+      [data-panel="general"] .feature-pills:not(.optional-fields) { display: grid; grid-template-columns: repeat(2, 1fr); }
+      /* The 5-item Optional fields group can't fit five across once narrow.
+         Drop it to a filled 3/2 (both rows grow to the full width) rather than
+         the lone full-width pill a plain flex wrap would leave. */
+      [data-panel="general"] .feature-pills.optional-fields > .feature-pill { flex: 1 1 30%; }
     }
+    /* Tighter than the other pill groups so all five fit one row at the modal's
+       width even in fonts wider than the Mac system one (e.g. Android Roboto). */
+    .feature-pills.optional-fields { gap: 0.4rem; }
+    .feature-pills.optional-fields > .feature-pill { padding-left: 0.6rem; padding-right: 0.6rem; }
     .feature-pill {
       display: inline-flex;
       align-items: center;
@@ -3879,6 +3921,7 @@
       'tile-layer', 'units', 'show-local-name',
       'cluster-places', 'tile-picker', 'map-add-button', 'map-filter', 'map-zoom', 'remember-view',
       'places-group-by', 'trails-group-by', 'history-view',
+      'places-view', 'routes-view',
     ]);
     function setPref(key, val) {
       try { localStorage.setItem(key, val); } catch {}
@@ -4784,7 +4827,20 @@
       const app = document.getElementById('app');
       app.innerHTML = '<div id="map"></div>';
 
-      const dv = prevView || storedView || ((!placesEnabled() && routesEnabled())
+      // An in-app place click is a "take me there" intent: initialize the map
+      // already centered on the pin so it doesn't first paint the previous view
+      // (e.g. Norway) and then visibly jump to the target (e.g. Japan).
+      let focusInitialView = null;
+      if (state._navByHash && focus && focus.type === 'place' && state.places) {
+        const fp = state.places.find(p =>
+          focus.slug ? focus.slug === p._slug : focus.name === p.name);
+        if (fp) {
+          const baseZoom = (prevView || storedView || {}).zoom;
+          focusInitialView = { center: [fp.lat, fp.lon], zoom: Math.max(baseZoom || 0, 12) };
+        }
+      }
+
+      const dv = focusInitialView || prevView || storedView || ((!placesEnabled() && routesEnabled())
         ? (state.config.default_view_routes || DEFAULT_CONFIG.default_view_routes)
         : (state.config.default_view || DEFAULT_CONFIG.default_view));
       const map = L.map('map', {
@@ -5445,6 +5501,22 @@
           .setLatLng([place.lat, place.lon])
           .setContent(placePopupHtml(place))
           .openOn(map);
+      }
+    }
+
+    // Close transient floating overlays (the account menu and any filter/view
+    // popover) so only one is open at a time. Pass the element being opened to
+    // keep it open.
+    function closeTransientOverlays(keepEl) {
+      document.querySelectorAll('.filter-popover').forEach(function(p) {
+        if (p === keepEl || p.hidden) return;
+        p.hidden = true;
+        const b = p.parentElement && p.parentElement.querySelector('.filter-btn');
+        if (b) b.setAttribute('aria-expanded', 'false');
+      });
+      const menu = document.getElementById('auth-menu');
+      if (menu && menu !== keepEl && !menu.hidden && typeof menu._close === 'function') {
+        menu._close();
       }
     }
 
@@ -6634,11 +6706,16 @@
             '<button type="button" class="filter-clear" id="filter-clear">Clear filters</button>' +
           '</div>' +
         '</div>' +
-        (canAdd ? '<button type="button" class="primary" id="add-place-btn">Add</button>' : '') +
+        listViewPopoverHtml('places') +
         '</div>' +
         '<div class="category-grid" id="place-list"></div>';
       renderPlaceList('');
+      wireListViewPopover('places', function() { renderPlaceList(); });
 
+      const navActionsEl = document.getElementById('nav-actions');
+      if (navActionsEl && canAdd) {
+        navActionsEl.innerHTML = '<button type="button" id="add-place-btn" class="nav-action-btn">Add</button>';
+      }
       const addBtn = document.getElementById('add-place-btn');
       if (addBtn) addBtn.addEventListener('click', function() { openAddModal(null, 'place'); });
       const placesSearchInput = document.getElementById('search-input');
@@ -6681,6 +6758,7 @@
         filterBtn.addEventListener('click', function(e) {
           e.stopPropagation();
           const open = filterPop.hidden;
+          if (open) closeTransientOverlays(filterPop);
           filterPop.hidden = !open;
           filterBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
         });
@@ -6733,6 +6811,9 @@
         query = si ? si.value : '';
       }
       const q = query.toLowerCase().trim();
+      const view = listView('places');
+      const showImage = getShowField('image');
+      const FOCUS_RE = /^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$/;
       const groupMode = state.groupBy;
       const byCategory = groupMode === 'category';
       const byLetter = groupMode === 'letter';
@@ -6799,12 +6880,11 @@
         for (const p of items) {
           const statusClass = p.visited ? 'visited' : 'want';
           const href = focusHash('place', p._slug || p.name);
-          html += '<div class="place-card" data-place-id="' + escapeHtml(p.id || '') + '" data-place-name="' + escapeHtml(p.name) + '" data-place-slug="' + escapeHtml(p._slug || '') + '" onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
-          html += '<span class="status-dot ' + statusClass + '"></span>';
-          html += '<div class="place-text">';
-          html += '<div class="name">' + escapeHtml(p.name) + '</div>';
-          if (p.note && getShowField('note')) html += '<div class="note">' + escapeHtml(p.note) + '</div>';
-          html += '</div>';
+          let rowInner = '<span class="status-dot ' + statusClass + '"></span>';
+          rowInner += '<div class="place-text">';
+          rowInner += '<div class="name">' + escapeHtml(p.name) + '</div>';
+          if (p.note && getShowField('note')) rowInner += '<div class="note">' + escapeHtml(p.note) + '</div>';
+          rowInner += '</div>';
           if (p.from_catalog) {
             const orphan = isCatalogOrphan(p);
             const upd = orphan ? null : findCatalogUpdate(p);
@@ -6817,9 +6897,24 @@
             const icon = orphan
               ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71"/><path d="m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71"/><line x1="8" x2="8" y1="2" y2="5"/><line x1="2" x2="5" y1="8" y2="8"/><line x1="16" x2="16" y1="19" y2="22"/><line x1="19" x2="22" y1="16" y2="16"/></svg>'
               : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>';
-            html += '<button type="button" class="' + cls + '" data-place-slug="' + escapeHtml(p._slug || '') + '" title="' + escapeHtml(title) + '">' +
+            rowInner += '<button type="button" class="' + cls + '" data-place-slug="' + escapeHtml(p._slug || '') + '" title="' + escapeHtml(title) + '">' +
               icon +
               '</button>';
+          }
+          html += '<div class="place-card" data-place-id="' + escapeHtml(p.id || '') + '" data-place-name="' + escapeHtml(p.name) + '" data-place-slug="' + escapeHtml(p._slug || '') + '" onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
+          if (view !== 'grid') {
+            if (p.image && showImage) {
+              const focus = typeof p.image_focus === 'string' && FOCUS_RE.test(p.image_focus.trim()) ? p.image_focus.trim() : '';
+              const styleAttr = focus ? ' style="object-position:' + focus + '"' : '';
+              html += '<img class="card-media" src="' + escapeHtml(p.image) + '" alt=""' + styleAttr + ' loading="lazy" decoding="async" fetchpriority="low" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
+            } else if (view === 'compact') {
+              // Reserve the thumbnail's width (not height) so text in image-less
+              // rows starts at the same x as rows with an image.
+              html += '<div class="card-media-spacer"></div>';
+            }
+            html += '<div class="card-body">' + rowInner + '</div>';
+          } else {
+            html += rowInner;
           }
           html += '</div>';
         }
@@ -6827,6 +6922,7 @@
       }
       if (!html) html = '<div class="loading">No matches</div>';
       const listEl = document.getElementById('place-list');
+      listEl.className = 'category-grid' + (view !== 'grid' ? ' view-' + view : '');
       listEl.innerHTML = html;
       // Catalog badge clicks stay on the place-card (which navigates to the
       // map via inline onclick); stop propagation and open the update modal
@@ -7161,6 +7257,8 @@
         btn.addEventListener('click', function(e) {
           e.stopPropagation();
           const open = pop.hidden;
+          // Only one transient overlay open at a time (other popover + menu).
+          if (open) closeTransientOverlays(pop);
           pop.hidden = !open;
           btn.setAttribute('aria-expanded', open ? 'true' : 'false');
         });
@@ -7211,6 +7309,138 @@
 
     function getHistoryView() {
       return getPref('history-view', 'compact') === 'gallery' ? 'gallery' : 'compact';
+    }
+
+    // Layout for the Places/Routes lists: 'grid' (multi-column cards, default),
+    // 'compact' (single-column cards), or 'gallery' (single column, media on
+    // top). kind is 'places' or 'routes'.
+    function listView(kind) {
+      const v = getPref(kind + '-view', 'grid');
+      return (v === 'compact' || v === 'gallery') ? v : 'grid';
+    }
+    const LIST_VIEW_OPTIONS = [['grid', 'Grid'], ['compact', 'Compact'], ['gallery', 'Gallery']];
+    function listViewPopoverHtml(kind) {
+      const cur = listView(kind);
+      return '<div class="filter-dropdown">' +
+        '<button type="button" class="filter-btn" id="view-btn" aria-haspopup="true" aria-expanded="false">View</button>' +
+        '<div class="filter-popover" id="view-popover" hidden>' +
+          LIST_VIEW_OPTIONS.map(o =>
+            '<button type="button" class="view-option' + (cur === o[0] ? ' active' : '') + '" data-view="' + o[0] + '">' + o[1] + '</button>'
+          ).join('') +
+        '</div>' +
+      '</div>';
+    }
+    // Wire the View popover: toggle open/close (mutually exclusive with other
+    // overlays) and apply a chosen view. onApply repaints the list.
+    function wireListViewPopover(kind, onApply) {
+      const btn = document.getElementById('view-btn');
+      const pop = document.getElementById('view-popover');
+      if (!btn || !pop) return;
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const open = pop.hidden;
+        if (open) closeTransientOverlays(pop);
+        pop.hidden = !open;
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      document.addEventListener('click', function(e) {
+        if (!pop.hidden && !pop.contains(e.target) && e.target !== btn) {
+          pop.hidden = true;
+          btn.setAttribute('aria-expanded', 'false');
+        }
+      });
+      pop.addEventListener('click', function(e) { e.stopPropagation(); });
+      pop.querySelectorAll('.view-option').forEach(opt => opt.addEventListener('click', function() {
+        const v = this.dataset.view;
+        setPref(kind + '-view', v);
+        pop.querySelectorAll('.view-option').forEach(o => o.classList.toggle('active', o === this));
+        pop.hidden = true;
+        btn.setAttribute('aria-expanded', 'false');
+        onApply();
+      }));
+    }
+
+    // Split a GPX into separate point arrays, one per track segment (and per
+    // track when a track has no <trkseg>). Keeping segments apart stops the
+    // silhouette from drawing a straight line between disjoint paths.
+    function gpxSegments(text) {
+      const doc = new DOMParser().parseFromString(text, 'text/xml');
+      const tags = function(parent, name) {
+        let els = parent.getElementsByTagNameNS(GPX_NS, name);
+        if (!els.length) els = parent.getElementsByTagName(name);
+        return els;
+      };
+      const readPts = function(parent) {
+        const arr = [];
+        const pts = tags(parent, 'trkpt');
+        for (let i = 0; i < pts.length; i++) {
+          const lat = parseFloat(pts[i].getAttribute('lat'));
+          const lon = parseFloat(pts[i].getAttribute('lon'));
+          if (isFinite(lat) && isFinite(lon)) arr.push({ lat, lon });
+        }
+        return arr;
+      };
+      const segments = [];
+      const trks = tags(doc, 'trk');
+      for (let i = 0; i < trks.length; i++) {
+        const segs = tags(trks[i], 'trkseg');
+        if (segs.length) {
+          for (let j = 0; j < segs.length; j++) {
+            const arr = readPts(segs[j]);
+            if (arr.length) segments.push(arr);
+          }
+        } else {
+          const arr = readPts(trks[i]);
+          if (arr.length) segments.push(arr);
+        }
+      }
+      return segments;
+    }
+
+    // Shared silhouette renderer: draw a route's GPX track shape onto a canvas,
+    // normalized to fill the box with padding. Each segment is its own subpath.
+    function drawRouteSilhouette(canvas, route) {
+      if (!canvas || !route || !route.file) return;
+      fetchGpxText(gpxUrlFor(route.file)).then(function(text) {
+        const segments = gpxSegments(text);
+        const allPts = segments.flat();
+        if (allPts.length < 2) return;
+        const cs = getComputedStyle(document.documentElement);
+        const accent = cs.getPropertyValue('--accent').trim() || '#88c0d0';
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const w = canvas.clientWidth || 240, h = canvas.clientHeight || 135;
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+        let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
+        for (const p of allPts) {
+          if (p.lat < minLat) minLat = p.lat;
+          if (p.lat > maxLat) maxLat = p.lat;
+          if (p.lon < minLon) minLon = p.lon;
+          if (p.lon > maxLon) maxLon = p.lon;
+        }
+        const lonScale = Math.cos((minLat + maxLat) / 2 * Math.PI / 180);
+        // Correct for longitude convergence so the shape isn't stretched E-W.
+        const latSpan = Math.max(maxLat - minLat, 1e-6);
+        const lonSpan = Math.max((maxLon - minLon) * lonScale, 1e-6);
+        const pad = 10;
+        const scale = Math.min((w - 2 * pad) / lonSpan, (h - 2 * pad) / latSpan);
+        const offX = (w - lonSpan * scale) / 2, offY = (h - latSpan * scale) / 2;
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 2;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        for (const seg of segments) {
+          seg.forEach(function(p, i) {
+            const x = offX + (p.lon - minLon) * lonScale * scale;
+            const y = offY + (maxLat - p.lat) * scale;
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          });
+        }
+        ctx.stroke();
+      }).catch(function() { /* leave the empty box */ });
     }
 
     // ----- Routes browse list -----
@@ -7276,10 +7506,14 @@
             '<button type="button" class="filter-clear" id="filter-clear">Clear filters</button>' +
           '</div>' +
         '</div>' +
-        (canAddTrail ? '<button type="button" class="primary" id="add-route-btn">Add</button>' : '') +
+        listViewPopoverHtml('routes') +
         '</div>';
       html += '<div class="region-grid" id="trails-list-mount"></div>';
       app.innerHTML = html;
+      const navActionsEl = document.getElementById('nav-actions');
+      if (navActionsEl && canAddTrail) {
+        navActionsEl.innerHTML = '<button type="button" id="add-route-btn" class="nav-action-btn">Add</button>';
+      }
       const addTrailBtn = document.getElementById('add-route-btn');
       if (addTrailBtn) addTrailBtn.addEventListener('click', function() { openAddModal(null, 'route'); });
       const searchInput = document.getElementById('search-input');
@@ -7323,6 +7557,7 @@
         return true;
       }
       function renderTrailsList() {
+        const view = listView('routes');
         const q = (searchInput && searchInput.value.trim().toLowerCase()) || '';
         const wantStatus = statusSel ? statusSel.value : 'all';
         const wantRegion = regionSel ? regionSel.value : 'all';
@@ -7365,14 +7600,27 @@
             const route = entry.route;
             const href = '#/routes/route/' + encodeURIComponent(route.key);
             const statusClass = route.completed ? 'completed' : 'planned';
+            const rowInner = '<span class="status-dot ' + statusClass + '"></span>' +
+              '<span class="name">' + escapeHtml(route.name) + '</span>';
             inner += '<div class="route-card" data-route-key="' + escapeHtml(route.key) + '" onclick="location.hash=\'' + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'">';
-            inner += '<span class="status-dot ' + statusClass + '"></span>';
-            inner += '<span class="name">' + escapeHtml(route.name) + '</span>';
+            if (view !== 'grid') {
+              inner += '<canvas class="card-media route-thumb" data-route-key="' + escapeHtml(route.key) + '"></canvas>';
+              inner += '<div class="card-body">' + rowInner + '</div>';
+            } else {
+              inner += rowInner;
+            }
             inner += '</div>';
           }
           inner += '</div></div>';
         }
+        mountEl.className = 'region-grid' + (view !== 'grid' ? ' view-' + view : '');
         mountEl.innerHTML = inner;
+        if (view !== 'grid') {
+          mountEl.querySelectorAll('canvas.route-thumb').forEach(function(canvas) {
+            const found = findRouteByKey(canvas.dataset.routeKey);
+            if (found) drawRouteSilhouette(canvas, found.route);
+          });
+        }
         mountEl.querySelectorAll('.route-card').forEach(function(card) {
           attachContextMenu(card, function() {
             const key = card.dataset.routeKey;
@@ -7444,6 +7692,7 @@
         filterBtn.addEventListener('click', function(e) {
           e.stopPropagation();
           const open = filterPop.hidden;
+          if (open) closeTransientOverlays(filterPop);
           filterPop.hidden = !open;
           filterBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
         });
@@ -7470,6 +7719,7 @@
         renderTrailsList();
       });
       renderTrailsList();
+      wireListViewPopover('routes', renderTrailsList);
 
       // Warm the SW cache so clicking a route from the list gets an
       // already-cached GPX response and renders the polyline immediately.
@@ -8221,7 +8471,9 @@
         document.removeEventListener('mousedown', outsideCloser, true);
         document.removeEventListener('touchstart', outsideCloser, true);
       }
+      menu._close = closeMenu;
       function openMenu() {
+        closeTransientOverlays(menu);
         menu.hidden = false;
         document.addEventListener('mousedown', outsideCloser, true);
         document.addEventListener('touchstart', outsideCloser, true);
@@ -8471,7 +8723,7 @@
         (!isReadOnly() ?
           '<h3 class="settings-h">Optional fields</h3>' +
           '<div class="modal-desc">Applies to forms, cards, popups, and detail pages.</div>' +
-          '<div class="feature-pills">' +
+          '<div class="feature-pills optional-fields">' +
             [['date', 'Date'], ['image', 'Image'], ['local-name', 'Local name'], ['note', 'Note'], ['rating', 'Rating']]
               .map(([key, label]) =>
                 '<label class="feature-pill' + (getShowField(key) ? ' active' : '') + '"><input type="checkbox" data-field="' + key + '"' + (getShowField(key) ? ' checked' : '') + '>' + label + '</label>'
@@ -10857,7 +11109,7 @@
             '<div class="modal-actions">' +
               '<button type="button" class="primary" id="srv-connect">Connect</button>' +
             '</div>' +
-            '<div class="signin-alt"><button type="button" id="srv-local">Use on this device only</button></div>' +
+            '<div class="signin-alt"><button type="button" id="srv-local">Continue without signing in</button></div>' +
           '</div>' +
         '</div>';
       const localBtn = document.getElementById('srv-local');
@@ -10909,7 +11161,7 @@
           '<div class="modal">' +
             signInFormHtml(false) +
             '<div id="signin-public-maps" hidden></div>' +
-            '<div class="signin-alt"><button type="button" id="signin-local">Use on this device only</button></div>' +
+            '<div class="signin-alt"><button type="button" id="signin-local">Continue without signing in</button></div>' +
           '</div>' +
         '</div>';
       const signinLocalBtn = document.getElementById('signin-local');
