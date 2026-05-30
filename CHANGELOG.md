@@ -5,9 +5,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
+- Shipped catalog: 117 new entries.
 - Places and Routes lists: a View popover (next to Filters) switches between Grid (the multi-column cards, default), Compact (single column with a small left thumbnail), and Gallery (single column with large media on top). Compact and Gallery cap their width and center like the History page. Places show the place image; routes draw the GPX track-shape silhouette. The choice is saved per list and syncs across devices.
 - History page: a chronological journal of visited places and completed routes, reachable from the History tab in the top nav (or the Menu on narrow screens). Entries are merged into one stream, newest first, grouped by year, showing the date, rating, note, and (for places) image. Filter by text, type, year, and rating; switch between a compact layout and a gallery layout with larger images on top. Click an entry to open the place on the map or the route's detail, or right-click (long-press on touch) for the same context menu as the list cards.
-- Shipped catalog: 117 new entries.
 - Offline read access: places, routes, and category data are cached on-device (IndexedDB) on each successful load and served when the server is unreachable, so an installed PWA opens into the last-known map (read-only) instead of dead-ending at the sign-in or server-picker screen. The offline banner signals read-only mode; the cache is namespaced per server and account.
 - Local-only mode: a "Continue without signing in" option on the sign-in screen and server picker runs the app with no server and no account, storing places and routes entirely on-device (IndexedDB). GPX tracks are parsed and the route manifest built client-side. Back up or move a local map with the Export/Import zip in Settings (same format as the server, so a local map transfers to a server and back). Leave with "Connect to a server" in the menu; local and server data stay separate and switching never destroys either.
 - Local mode activity log: Menu > Logs records on-device edits (adding, editing, deleting, completing, and moving places and routes; region changes; imports), newest first, and can be cleared. The local analogue of the server audit log.
@@ -27,7 +27,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Settings > Appearance > On-map controls: the "Add button" show/hide toggle. The map's Add action now lives in the top nav, always available to editors.
 
 ### Fixed
-- The Filters dropdowns on the Places, Routes, and History lists now use the themed option list (matching Settings) instead of the browser's native popup on desktop.
+- The Filters dropdowns on the Places, Routes, and History lists now use the themed option list (matching Settings) instead of the browser's native popup on desktop, and the dimension's default option shows as "All" in the open list rather than repeating the dimension name.
 - The account menu and the list/History filter (and View) popovers are now mutually exclusive: opening one closes any other that was open, instead of leaving two overlapping.
 - Opening a place from the list now lands the map directly on the pin instead of briefly showing the previous location and then panning to the new one.
 - Settings > General feature pills no longer snap to a rigid 2-column grid at an arbitrary window width. The layout now responds to the modal's own width (container query), keeping the flexible row until the modal itself is narrow, then dropping to two columns - matching how it already looked on mobile.
@@ -39,13 +39,13 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ## [1.1.0] - 2026-05-29
 
 ### Added
+- Shipped catalog: 104 new entries.
 - Configurable server target: clients that bundle the frontend (native/WebView) show a server-picker to enter the Ferd address and authenticate with a bearer token (`{"token": true}` on login returns the token in the body instead of a cookie). Browser/PWA cookie auth is unchanged.
 - CORS support via the new `cors_origins` config key (default `"*"`); cross-origin clients use bearer tokens, never cookies.
 - Bearer-token API auth: mint named tokens (full or read-only, with an expiry) under Settings > Security and use `Authorization: Bearer <token>`. New endpoints `GET`/`POST /api/me/tokens` and `POST /api/me/tokens/revoke`.
 - Place cards show an "unlinked" marker when an imported place's catalog entry was removed (renames re-link instead of orphaning).
 - Place schema: optional `image_focus` field sets the popup image's crop anchor so portrait photos aren't badly cropped; flows through the catalog and clears when `image` changes.
 - Catalog test: optional fields can't be present with empty values; omit them instead.
-- Shipped catalog: 104 new entries.
 - `GET /api/health` liveness endpoint; returns `{status, version}`.
 - Install docs and installer point at the source clone for re-running `install.sh` on updates.
 - Places list: "Group by first letter" option, with locale-aware bucketing.
