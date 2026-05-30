@@ -6912,7 +6912,7 @@
         if (e.kind === 'place' && e.image && showImage) {
           const focus = typeof e.image_focus === 'string' && FOCUS_RE.test(e.image_focus.trim()) ? e.image_focus.trim() : '';
           const styleAttr = focus ? ' style="object-position:' + focus + '"' : '';
-          inner += '<img class="history-image" src="' + escapeHtml(e.image) + '" alt=""' + styleAttr + ' loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
+          inner += '<img class="history-image" src="' + escapeHtml(e.image) + '" alt=""' + styleAttr + ' loading="lazy" decoding="async" fetchpriority="low" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
         }
         inner += '<div class="history-body">';
         inner += '<div class="history-head">' +
