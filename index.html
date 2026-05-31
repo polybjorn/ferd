@@ -10998,7 +10998,7 @@
         };
         const html =
           '<h2>' + escapeHtml(title) + '<button class="modal-close">&times;</button></h2>' +
-          '<div class="modal-desc" style="font-size:0.85rem">' + escapeHtml(body) + '</div>' +
+          (body ? '<div class="modal-desc" style="font-size:0.85rem">' + escapeHtml(body) + '</div>' : '') +
           '<div class="modal-actions">' +
             '<button type="button" data-role="cancel">Cancel</button>' +
             '<button type="button" class="' + (danger ? 'danger-btn' : 'primary') + '" data-role="ok">' + escapeHtml(confirmLabel || 'Confirm') + '</button>' +
@@ -11818,12 +11818,7 @@
               // the lineage.
               .map(e => { const { _source, ...rest } = e; return Object.assign({}, rest, { from_catalog: e.name }); });
             if (!picked.length) return;
-            openConfirmModal({
-              title: 'Add to your map?',
-              body: 'Import ' + picked.length + ' place' + (picked.length === 1 ? '' : 's') + ' from the catalog into your map?',
-              confirmLabel: 'Add ' + picked.length,
-            }).then(ok => {
-              if (!ok) return;
+            function runImport() {
               addBtn.disabled = true;
               const prevColors = Object.assign({}, state.categoryColors);
               let done = 0;
@@ -11846,7 +11841,13 @@
                   .catch(err => errors.push((picked[done].name || '?') + ': ' + err.message))
                   .then(() => { done++; next(); });
               })();
-            });
+            }
+            // Small selections import straight away; only guard large batches.
+            if (picked.length < 10) { runImport(); return; }
+            openConfirmModal({
+              title: 'Add ' + picked.length + ' places to your map?',
+              confirmLabel: 'Add',
+            }).then(ok => { if (ok) runImport(); });
           });
         }
       }

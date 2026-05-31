@@ -7,6 +7,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ### Added
 - 25 new shipped catalog entries.
 
+### Changed
+- Importing places from the catalog confirms only when adding 10 or more at once; smaller selections import without a prompt.
+
 ## [1.2.0] - 2026-05-31
 
 ### Added
