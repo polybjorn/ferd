@@ -4,45 +4,46 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-05-31
+
 ### Added
-- Shipped catalog: 117 new entries.
-- Places and Routes lists: a View popover (next to Filters) switches between Grid (the multi-column cards, default), Compact (single column with a small left thumbnail), and Gallery (single column with large media on top). Compact and Gallery cap their width and center like the History page. Places show the place image; routes draw the GPX track-shape silhouette. The choice is saved per list and syncs across devices.
-- History page: a chronological journal of visited places and completed routes, reachable from the History tab in the top nav (or the Menu on narrow screens). Entries are merged into one stream, newest first, grouped by year, showing the date, rating, note, and a thumbnail (the place photo, or a silhouette of the route's GPX track). Filter by text, type, year, and rating; switch between a compact layout and a gallery layout with larger images on top. Click an entry to open the place on the map or the route's detail, or right-click (long-press on touch) for the same context menu as the list cards.
-- Offline read access: places, routes, and category data are cached on-device (IndexedDB) on each successful load and served when the server is unreachable, so an installed PWA opens into the last-known map (read-only) instead of dead-ending at the sign-in or server-picker screen. The offline banner signals read-only mode; the cache is namespaced per server and account.
-- Local-only mode: a "Continue without signing in" option on the sign-in screen and server picker runs the app with no server and no account, storing places and routes entirely on-device (IndexedDB). GPX tracks are parsed and the route manifest built client-side. Back up or move a local map with the Export/Import zip in Settings (same format as the server, so a local map transfers to a server and back). Leave with "Connect to a server" in the menu; local and server data stay separate and switching never destroys either.
-- Local mode activity log: Menu > Logs records on-device edits (adding, editing, deleting, completing, and moving places and routes; region changes; imports), newest first, and can be cleared. The local analogue of the server audit log.
-- Local mode catalog: the Add modal's Browse tab now works in local mode, sourced from the bundled shipped catalog (catalog.json, precached for offline use). Browse and import catalog places into an on-device map, with the same "update available" detection when a new app version ships a changed catalog. Catalog curation stays server-only.
-- Visible features: Settings > General gained per-device toggles to show or hide History, Catalog (the Add modal's Browse tab), and Logs. Each appears only when reachable (History needs Places or Routes; Catalog needs Places; Logs needs admin or local mode). Logs defaults to hidden.
+- 117 new shipped catalog entries.
+- Grid, Compact, and Gallery views for the Places and Routes lists, saved per list. Route thumbnails draw the GPX track shape.
+- A History page (own tab) of visited places and completed routes by year, filterable, with compact and gallery layouts.
+- Installed PWAs open into the last-known map, read-only, when the server is unreachable instead of dead-ending at sign-in.
+- Local-only mode runs with no server or account, all on-device. Back up or move a map as a zip from Settings.
+- An on-device activity log for local mode (Menu > Logs).
+- The Add modal's Browse tab works offline from the bundled catalog in local mode; curating stays server-only.
+- Per-device toggles in Settings > General to show or hide History, Catalog, and Logs.
 
 ### Changed
-- History is now a top-nav tab alongside Places and Routes (it was a Menu item).
-- Narrow screens: the Places/Routes/History nav tabs move into the Menu as their own section (just below the account header), freeing space in the top bar.
-- History: the search box now shows a live count of matching entries, matching the Places and Routes lists.
-- The index map's Add button moved from a floating button on the map into the top nav, just left of the Menu button.
-- The "Ferd" brand no longer shows a back arrow on the route detail page, so it sits in the same position on every page (it still links home).
-- Places and Routes lists: the Add button moved from the search row into the top nav, just left of the Menu button, leaving the search row to the filter input and Filters popover.
-- Places and Routes lists: the item count moved from the nav tab into the search box, where it updates live to the matching count as you type or apply filters.
-- Add to catalog: the "Add all" button is now a "Select all" / "Deselect all" toggle that ticks the visible entries, so you confirm with "Add selected" rather than adding everything in one click.
-- Destructive and bulk actions now use the in-app confirm dialog with action-specific wording instead of a native browser prompt (or, where there was none, a new prompt): server import "Replace all", "Sign out others", saving the category manager when a removed category is still in use, and bulk-adding entries to the catalog or to your map.
-- Tightened the category/region managers and the admin Catalog setting: the in-use warning text is shorter, "Reset colors" sits at the left of the manager footer, and the shipped-catalog toggle label dropped "baseline".
+- History moved from the Menu to a top-nav tab beside Places and Routes.
+- On narrow screens the Places, Routes, and History tabs collapse into the Menu.
+- The Add button moved off the map and out of the list search rows into the top nav.
+- The Places and Routes item count moved into the search box and updates live.
+- The History search box shows the same live match count as the lists.
+- The "Ferd" wordmark dropped its route-detail back arrow, so it stays put on every page.
+- "Add all" when adding to the catalog is now a Select all / Deselect all toggle.
+- Destructive and bulk actions confirm with the in-app dialog instead of a browser prompt.
+- Tidied the category/region managers and admin Catalog setting with shorter warnings and simpler labels.
 
 ### Removed
-- Settings > Appearance > On-map controls: the "Add button" show/hide toggle. The map's Add action now lives in the top nav, always available to editors.
+- The "Add button" show/hide toggle in Settings > Appearance, now that Add lives in the nav.
 
 ### Fixed
-- Nav controls (Menu, Add, Edit) and the page tabs now sit vertically centered in the top bar instead of slightly low.
-- Mobile nav breadcrumb: shows the current page name (Places, Routes, History, or the route name on detail) instead of collapsing to "Ferd / ..", truncating with an ellipsis only when it would reach the Add button. On desktop the list-page crumb is dropped (the active tab already indicates the page); route detail still shows the route name.
-- Long-pressing a place, route, or History card on a touch device no longer selects/highlights the card text before the context menu opens.
-- History cards: the date and rating on the meta line now align on the same baseline (the stars no longer sit lower than the date in some mobile fonts).
-- The remove (×) button on category and region rows draws its X with CSS instead of a font character, so it centers consistently across operating systems (it sat off-center in some mobile system fonts).
-- The Filters dropdowns on the Places, Routes, and History lists now use the themed option list (matching Settings) instead of the browser's native popup on desktop. The dimension's default option (which labels the closed dropdown, e.g. "Type") is hidden from the open list so only real values are offered; reset a single filter via "Clear filters".
-- The account menu and the list/History filter (and View) popovers are now mutually exclusive: opening one closes any other that was open, instead of leaving two overlapping.
-- Opening a place from the list now lands the map directly on the pin instead of briefly showing the previous location and then panning to the new one.
-- Settings > General feature pills no longer snap to a rigid 2-column grid at an arbitrary window width. The layout now responds to the modal's own width (container query), keeping the flexible row until the modal itself is narrow, then dropping to two columns - matching how it already looked on mobile.
-- Adding a place: clicking "Pick on map" no longer clears the name, category, and other entered fields. The form now keeps its contents across the map pick.
-- Modal dropdowns (category, region, settings) are now fully themed. The closed control matches the surrounding inputs instead of the browser's lighter native fill, and on desktop the open option list renders in the active theme rather than the OS-native popup (which CSS can't restyle). Keyboard navigation and type-ahead are preserved; touch devices keep the native full-screen picker.
-- Settings pill groups no longer leave a lone pill stretched across the full width when they wrap on narrow screens. Visible features lays out in an even two-column grid; the five Optional fields pills fit on one row at the modal's width and fall to a filled 3/2 (not a 4/1 wrap) when narrow.
-- About: shows the app version in local-only mode instead of "unknown". The version is baked into the served page, so it no longer depends on a server `/api/state` response.
+- Top-bar controls and tabs now sit vertically centered.
+- On mobile the breadcrumb shows the page name instead of collapsing to "Ferd / ..".
+- Long-pressing a card on touch no longer selects its text.
+- A History card's date and rating share a baseline, so the stars no longer sit low.
+- The remove (×) button on category and region rows is drawn in CSS, centering the same on every OS.
+- Filters dropdowns use the themed list on desktop, with the dimension-name default hidden (reset with "Clear filters").
+- The account menu and the filter/View popovers no longer stay open at once.
+- Opening a place from the list lands the map on the pin without flashing the previous location.
+- Settings feature pills respond to the modal width, not a fixed window width.
+- "Pick on map" no longer clears the other place fields.
+- Modal dropdowns (category, region, settings) are fully themed, including the open list on desktop.
+- Settings pill groups no longer leave a lone full-width pill when they wrap.
+- About shows the app version in local-only mode instead of "unknown".
 
 ## [1.1.0] - 2026-05-29
 

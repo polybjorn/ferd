@@ -11,8 +11,9 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 **Map and data**
 - World map with clustered place pins and GPX route polylines.
 - Filter by category, visit status, and route completion.
-- Browse places by category or country, routes by region.
+- Browse places by category or country, routes by region, in Grid, Compact, or Gallery layouts.
 - Route detail with elevation profile and route stats.
+- History page: a journal of visited places and completed routes.
 - Site catalog: browse and import community-curated places, or extend with your own.
 - Multiple built-in UI themes.
 - Pick a map tile layer independent of the theme, with adjustable filters.
@@ -25,6 +26,7 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 **Installable and offline**
 - Add to your device for launch in its own window.
 - Reads work offline (app shell, last loaded data, downloaded GPX, previously viewed tiles). Edits and uploads need network.
+- Local-only mode: run entirely on-device with no server or account.
 
 ## Install
 
@@ -62,21 +64,19 @@ Open http://localhost:8090 and register the first account. See [docker.md](docs/
 
 ### Android
 
-Android client for a Ferd server. Install the APK from the [latest release](https://github.com/polybjorn/ferd/releases/latest), or use an APK manager like [Obtainium](https://github.com/ImranR98/Obtainium) to install and auto-update it from the repo's releases. On first launch, enter your server's address to sign in. Build it yourself: [android/](android/README.md).
+Android client for Ferd. Connect it to your server (enter the address on first launch) or run it fully on-device in local-only mode. Install the APK from the [latest release](https://github.com/polybjorn/ferd/releases/latest), or use an APK manager like [Obtainium](https://github.com/ImranR98/Obtainium) to install and auto-update it from the repo's releases. Build it yourself: [android/](android/README.md).
 
 ## Roadmap
 
 ### Features
 - Print and PDF stylesheet for route and place details.
 - Uploaded image attachments on places and routes.
-- Expanded list view for places and routes, with a large image and more room per entry than the compact cards.
 
 ### Authentication and security
 - Optional TOTP two-factor authentication.
 
 ### Data and offline
-- Offline support when the server is unreachable, with edits synced on reconnect.
-- Local-only mode with no server and on-device data (single-device, no sharing).
+- Offline editing, queued and synced when the connection returns (reads already work offline).
 
 ### Branding
 - Distinctive logo.
