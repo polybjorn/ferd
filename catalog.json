@@ -165,6 +165,18 @@
     ]
   },
   {
+    "name": "AQWA",
+    "lat": -31.82668,
+    "lon": 115.73812,
+    "category": "museum",
+    "country": "Australia",
+    "note": "Largest aquarium in the southern hemisphere, in Perth",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/AQWA_Main_Entrance.jpg/1280px-AQWA_Main_Entrance.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/AQWA"
+    ]
+  },
+  {
     "name": "Arch of Galerius",
     "lat": 40.63224,
     "lon": 22.95174,
@@ -447,6 +459,18 @@
     ]
   },
   {
+    "name": "Cable Beach",
+    "lat": -17.95223,
+    "lon": 122.20558,
+    "category": "beach",
+    "country": "Australia",
+    "note": "22 km white sand beach in Broome with camel rides at sunset",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Cable_Beach%2C_Broome.jpg/1280px-Cable_Beach%2C_Broome.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Cable_Beach,_Western_Australia"
+    ]
+  },
+  {
     "name": "Cape Coast Castle",
     "lat": 5.1036,
     "lon": -1.2414,
@@ -469,6 +493,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/CAPPADOCIA_G%C3%B6reme_National_Park_and_the_Rock_Sites._World_Heritage_List._Turkey._Hot_Air_Ballooning_Cappadocia.jpg/1280px-CAPPADOCIA_G%C3%B6reme_National_Park_and_the_Rock_Sites._World_Heritage_List._Turkey._Hot_Air_Ballooning_Cappadocia.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Cappadocia"
+    ]
+  },
+  {
+    "name": "Carcassonne",
+    "lat": 43.2065,
+    "lon": 2.3634,
+    "category": "castle",
+    "country": "France",
+    "note": "Double-walled medieval citadel in southern France",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Carcassonne_-_Pont_Neuf_-_View_SSE_on_Old_Bridge_%26_Citadel_-_Porte_d%27Aude.jpg/1280px-Carcassonne_-_Pont_Neuf_-_View_SSE_on_Old_Bridge_%26_Citadel_-_Porte_d%27Aude.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Cité_de_Carcassonne"
     ]
   },
   {
@@ -507,6 +543,45 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Prague_07-2016_view_from_Lesser_Town_Tower_of_Charles_Bridge_img3.jpg/1280px-Prague_07-2016_view_from_Lesser_Town_Tower_of_Charles_Bridge_img3.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Charles_Bridge"
+    ]
+  },
+  {
+    "name": "Chartres Cathedral",
+    "lat": 48.4477,
+    "lon": 1.4879,
+    "category": "religious",
+    "country": "France",
+    "local_name": "Cathédrale Notre-Dame de Chartres",
+    "note": "Gothic cathedral with intact medieval stained glass",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Chartres_03.jpg/1280px-Chartres_03.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Chartres_Cathedral"
+    ]
+  },
+  {
+    "name": "Chateau de Chambord",
+    "lat": 47.61611,
+    "lon": 1.51722,
+    "category": "castle",
+    "country": "France",
+    "local_name": "Château de Chambord",
+    "note": "Largest château in the Loire Valley, built for Francis I",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Aerial_image_of_Ch%C3%A2teau_de_Chambord_%28view_from_the_southeast%29.jpg/1280px-Aerial_image_of_Ch%C3%A2teau_de_Chambord_%28view_from_the_southeast%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Château_de_Chambord"
+    ]
+  },
+  {
+    "name": "Chateau de Chenonceau",
+    "lat": 47.3249,
+    "lon": 1.0705,
+    "category": "castle",
+    "country": "France",
+    "local_name": "Château de Chenonceau",
+    "note": "Renaissance château spanning the River Cher",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Chateau_de_Chenonceau_2008E_%28adjusted2%29.jpg/1280px-Chateau_de_Chenonceau_2008E_%28adjusted2%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Château_de_Chenonceau"
     ]
   },
   {
@@ -730,6 +805,19 @@
     ]
   },
   {
+    "name": "Dubrovnik Old Town",
+    "lat": 42.6407,
+    "lon": 18.1083,
+    "category": "city",
+    "country": "Croatia",
+    "local_name": "Stari Grad Dubrovnik",
+    "note": "Medieval walled city on the Adriatic coast",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/The_walls_of_the_fortress_and_View_of_the_old_city._panorama.jpg/1280px-The_walls_of_the_fortress_and_View_of_the_old_city._panorama.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Dubrovnik"
+    ]
+  },
+  {
     "name": "Edge of the World",
     "lat": 24.8422,
     "lon": 46.1708,
@@ -752,6 +840,31 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Museo_Egizio_e_Galleria_sabauda%2C_Torino.jpg/1280px-Museo_Egizio_e_Galleria_sabauda%2C_Torino.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Museo_Egizio"
+    ]
+  },
+  {
+    "name": "Eiffel Tower",
+    "lat": 48.8584,
+    "lon": 2.2945,
+    "category": "monument",
+    "country": "France",
+    "local_name": "Tour Eiffel",
+    "note": "1889 wrought-iron tower and symbol of Paris",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Paris_-_Jardins_du_Trocad%C3%A9ro_%26_Tour_Eiffel_%2826804140054%29.jpg/1280px-Paris_-_Jardins_du_Trocad%C3%A9ro_%26_Tour_Eiffel_%2826804140054%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Eiffel_Tower"
+    ]
+  },
+  {
+    "name": "Ennedi Plateau",
+    "lat": 17.04167,
+    "lon": 21.86278,
+    "category": "nature",
+    "country": "Chad",
+    "note": "Sandstone arches and ancient rock art in the Sahara",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Ourini_Arch_at_sunset%2C_Ennedi%2C_Chad_%2840598172781%29.jpg/1280px-Ourini_Arch_at_sunset%2C_Ennedi%2C_Chad_%2840598172781%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Ennedi_Plateau"
     ]
   },
   {
@@ -958,6 +1071,44 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Hakodate_Goryokaku_Panorama_1.JPG/1280px-Hakodate_Goryokaku_Panorama_1.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Gory%C5%8Dkaku"
+    ]
+  },
+  {
+    "name": "Grand Egyptian Museum",
+    "lat": 29.995,
+    "lon": 31.1193,
+    "category": "museum",
+    "country": "Egypt",
+    "local_name": "المتحف المصري الكبير",
+    "note": "World's largest archaeological museum, opened 2025",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Grand_Egyptian_Museum_2025_%2857645%29.jpg/1280px-Grand_Egyptian_Museum_2025_%2857645%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Grand_Egyptian_Museum"
+    ]
+  },
+  {
+    "name": "Grand Place",
+    "lat": 50.8467,
+    "lon": 4.3525,
+    "category": "landmark",
+    "country": "Belgium",
+    "local_name": "Grote Markt",
+    "note": "Ornate guildhall square in Brussels",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Grand-Place%2C_Brussels_-_panorama%2C_June_2018.jpg/1280px-Grand-Place%2C_Brussels_-_panorama%2C_June_2018.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Grand-Place"
+    ]
+  },
+  {
+    "name": "Gravensteen",
+    "lat": 51.0575,
+    "lon": 3.7208,
+    "category": "castle",
+    "country": "Belgium",
+    "note": "Moated medieval castle of the Counts of Flanders, Ghent",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Gent_Gravensteen_R01.jpg/1280px-Gent_Gravensteen_R01.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Gravensteen"
     ]
   },
   {
@@ -1296,6 +1447,18 @@
     ]
   },
   {
+    "name": "Kunsthistorisches Museum",
+    "lat": 48.2035,
+    "lon": 16.3615,
+    "category": "museum",
+    "country": "Austria",
+    "note": "Habsburg art museum with the largest Bruegel collection",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Maria-Theresien-Platz_Kunsthistorisches_Museum_Wien_2010.jpg/1280px-Maria-Theresien-Platz_Kunsthistorisches_Museum_Wien_2010.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Kunsthistorisches_Museum"
+    ]
+  },
+  {
     "name": "Larnach Castle",
     "lat": -45.86166,
     "lon": 170.62721,
@@ -1357,6 +1520,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Louvre_Museum_Wikimedia_Commons.jpg/1280px-Louvre_Museum_Wikimedia_Commons.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Louvre"
+    ]
+  },
+  {
+    "name": "Luxor Temple",
+    "lat": 25.7,
+    "lon": 32.63917,
+    "category": "ruins",
+    "country": "Egypt",
+    "local_name": "معبد الأقصر",
+    "note": "Ancient Egyptian temple complex on the east bank of the Nile",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Templo_de_Luxor%2C_Luxor%2C_Egipto%2C_2022-04-01%2C_DD_01.jpg/1280px-Templo_de_Luxor%2C_Luxor%2C_Egipto%2C_2022-04-01%2C_DD_01.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Luxor_Temple"
     ]
   },
   {
@@ -1472,6 +1648,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Metropolitan_Museum_of_Art_%28The_Met%29_-_Central_Park%2C_NYC.jpg/1280px-Metropolitan_Museum_of_Art_%28The_Met%29_-_Central_Park%2C_NYC.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Metropolitan_Museum_of_Art"
+    ]
+  },
+  {
+    "name": "Mont Saint-Michel",
+    "lat": 48.636,
+    "lon": -1.5114,
+    "category": "religious",
+    "country": "France",
+    "note": "Medieval abbey on a tidal island in Normandy",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Mont-Saint-Michel_vu_du_ciel.jpg/1280px-Mont-Saint-Michel_vu_du_ciel.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Mont-Saint-Michel"
     ]
   },
   {
@@ -1625,6 +1813,18 @@
     ]
   },
   {
+    "name": "Natural History Museum",
+    "lat": 51.4967,
+    "lon": -0.1764,
+    "category": "museum",
+    "country": "England",
+    "note": "Dinosaur and blue whale galleries in a grand London hall",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Museo_de_Historia_Natural%2C_Londres%2C_Inglaterra%2C_2022-11-25%2C_DD_37.jpg/1280px-Museo_de_Historia_Natural%2C_Londres%2C_Inglaterra%2C_2022-11-25%2C_DD_37.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Natural_History_Museum,_London"
+    ]
+  },
+  {
     "name": "Neak Pean",
     "lat": 13.46306,
     "lon": 103.89444,
@@ -1740,6 +1940,19 @@
     ]
   },
   {
+    "name": "Palace of Versailles",
+    "lat": 48.8049,
+    "lon": 2.1204,
+    "category": "palace",
+    "country": "France",
+    "local_name": "Château de Versailles",
+    "note": "Louis XIV's palace and gardens with the Hall of Mirrors",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Versailles-Chateau-Jardins02.jpg/1280px-Versailles-Chateau-Jardins02.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Palace_of_Versailles"
+    ]
+  },
+  {
     "name": "Paphos Archaeological Park",
     "lat": 34.75567,
     "lon": 32.40417,
@@ -1804,6 +2017,19 @@
     ]
   },
   {
+    "name": "Plovdiv Roman Theatre",
+    "lat": 42.1472,
+    "lon": 24.7511,
+    "category": "monument",
+    "country": "Bulgaria",
+    "local_name": "Пловдивски античен театър",
+    "note": "Well-preserved 2nd-century Roman theatre above Plovdiv",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Roman_Theatre_Plovdiv_3.jpg/1280px-Roman_Theatre_Plovdiv_3.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Plovdiv_Roman_theatre"
+    ]
+  },
+  {
     "name": "Pont du Gard",
     "lat": 43.9472,
     "lon": 4.5354,
@@ -1813,6 +2039,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Pont_du_Gard_BLS.jpg/1280px-Pont_du_Gard_BLS.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pont_du_Gard"
+    ]
+  },
+  {
+    "name": "Prague Castle",
+    "lat": 50.0911,
+    "lon": 14.4003,
+    "category": "castle",
+    "country": "Czech Republic",
+    "local_name": "Pražský hrad",
+    "note": "Largest ancient castle complex in the world",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Prague_Castle_from_Alsovo_nabrezi.jpg/1280px-Prague_Castle_from_Alsovo_nabrezi.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Prague_Castle"
     ]
   },
   {
@@ -1826,6 +2065,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Preah_Khan%2C_Angkor%2C_Camboya%2C_2013-08-17%2C_DD_26.JPG/1280px-Preah_Khan%2C_Angkor%2C_Camboya%2C_2013-08-17%2C_DD_26.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Preah_Khan"
+    ]
+  },
+  {
+    "name": "Pula Arena",
+    "lat": 44.8733,
+    "lon": 13.8503,
+    "category": "monument",
+    "country": "Croatia",
+    "local_name": "Arena Pula",
+    "note": "1st-century Roman amphitheatre, among the best preserved",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Pula_Arena_%282024-10-10_1%29.jpg/1280px-Pula_Arena_%282024-10-10_1%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Pula_Arena"
     ]
   },
   {
@@ -2055,6 +2307,19 @@
     ]
   },
   {
+    "name": "Rila Monastery",
+    "lat": 42.1336,
+    "lon": 23.3403,
+    "category": "religious",
+    "country": "Bulgaria",
+    "local_name": "Рилски манастир",
+    "note": "Largest Eastern Orthodox monastery in Bulgaria",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Rila_Monastery%2C_August_2013.jpg/1280px-Rila_Monastery%2C_August_2013.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Rila_Monastery"
+    ]
+  },
+  {
     "name": "Rock Sculpture of Decebalus",
     "lat": 44.64118,
     "lon": 22.29125,
@@ -2091,6 +2356,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Rotunda_of_Galerius435.jpg/1280px-Rotunda_of_Galerius435.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Arch_of_Galerius_and_Rotunda"
+    ]
+  },
+  {
+    "name": "Royal Exhibition Building",
+    "lat": -37.8047,
+    "lon": 144.9717,
+    "category": "monument",
+    "country": "Australia",
+    "note": "1880 Melbourne hall, site of Australia's first parliament",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Royal_exhibition_building_tulips_straight.jpg/1280px-Royal_exhibition_building_tulips_straight.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Royal_Exhibition_Building"
     ]
   },
   {
@@ -2192,6 +2469,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Matera_boenisch_nov_2005.jpg/1280px-Matera_boenisch_nov_2005.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sassi_di_Matera"
+    ]
+  },
+  {
+    "name": "Schönbrunn Palace",
+    "lat": 48.1845,
+    "lon": 16.3122,
+    "category": "palace",
+    "country": "Austria",
+    "local_name": "Schloss Schönbrunn",
+    "note": "Habsburg summer residence",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Wien_-_Schloss_Sch%C3%B6nbrunn.JPG/1280px-Wien_-_Schloss_Sch%C3%B6nbrunn.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Schönbrunn_Palace"
     ]
   },
   {
@@ -2629,6 +2919,18 @@
     ]
   },
   {
+    "name": "The Pinnacles",
+    "lat": -30.60583,
+    "lon": 115.1575,
+    "category": "nature",
+    "country": "Australia",
+    "note": "Thousands of limestone pillars in Nambung's desert sand",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Pinnacles_of_Nambung_National_Park_in_the_evening_sun%2C_September_2023_01.jpg/1280px-Pinnacles_of_Nambung_National_Park_in_the_evening_sun%2C_September_2023_01.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/The_Pinnacles_(Western_Australia)"
+    ]
+  },
+  {
     "name": "Throne of Solomon",
     "lat": 36.60317,
     "lon": 47.23595,
@@ -2795,6 +3097,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/2023-07-04-Stabkirche_Urnes-6799.jpg/1280px-2023-07-04-Stabkirche_Urnes-6799.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Urnes_Stave_Church"
+    ]
+  },
+  {
+    "name": "Valley of the Kings",
+    "lat": 25.7402,
+    "lon": 32.6014,
+    "category": "ruins",
+    "country": "Egypt",
+    "local_name": "وادي الملوك",
+    "note": "Royal tombs including Tutankhamun's",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Valles_de_las_Reinas_y_de_los_Reyes%2C_Luxor%2C_Egipto%2C_2022-04-03%2C_DD_21.jpg/1280px-Valles_de_las_Reinas_y_de_los_Reyes%2C_Luxor%2C_Egipto%2C_2022-04-03%2C_DD_21.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Valley_of_the_Kings"
     ]
   },
   {

@@ -4,6 +4,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+### Added
+- 25 new shipped catalog entries.
+
 ## [1.2.0] - 2026-05-31
 
 ### Added
