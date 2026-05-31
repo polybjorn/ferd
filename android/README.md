@@ -39,8 +39,3 @@ task on every build, so the app never drifts from the web source.
 Export uses a small JS bridge (`window.FerdAndroid`): the frontend hands the
 export blob to native, which saves it through the system document picker
 (WebView drops blob downloads on its own).
-
-## Known limitations (v1)
-
-- **Launcher icon** is a placeholder map pin. Replace it via Android Studio's
-  Image Asset Studio (generated from the Ferd favicon) before any public release.
