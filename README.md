@@ -73,6 +73,7 @@ Android client for Ferd, server-connected or fully on-device. Use an APK manager
 ### Features
 - Print and PDF stylesheet for route and place details.
 - Uploaded image attachments on places and routes.
+- Per-category default-hide toggle in Manage categories: hidden categories start filtered out on the map until re-enabled in the filter menu.
 
 ### Authentication and security
 - Optional TOTP two-factor authentication.
