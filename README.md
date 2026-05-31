@@ -64,7 +64,7 @@ Open http://localhost:8090 and register the first account. See [docker.md](docs/
 
 ### Android
 
-Android client for Ferd. Connect it to your server (enter the address on first launch) or run it fully on-device in local-only mode. Install the APK from the [latest release](https://github.com/polybjorn/ferd/releases/latest), or use an APK manager like [Obtainium](https://github.com/ImranR98/Obtainium) to install and auto-update it from the repo's releases. Build it yourself: [android/](android/README.md).
+Android client for Ferd. Connect it to your server or run it fully on-device in local-only mode. Install the APK from the [latest release](https://github.com/polybjorn/ferd/releases/latest), or use an APK manager like [Obtainium](https://github.com/ImranR98/Obtainium) to install and auto-update it from the repo's releases. Build it yourself: [android/](android/README.md).
 
 ## Roadmap
 
