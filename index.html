@@ -465,6 +465,7 @@
       text-decoration: none;
       font-size: 0.7rem;
       font-weight: 400;
+      line-height: 1;
       letter-spacing: 0.03em;
       padding: 0.4rem 0.7rem;
       transition: background 0.15s, color 0.15s;
@@ -478,12 +479,15 @@
     .nav-action-btn {
       font: inherit;
       font-size: 0.7rem;
+      line-height: 1;
       padding: 0.4rem 0.8rem;
       background: var(--accent);
       color: var(--bg);
       border: none;
       border-radius: var(--radius);
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
     }
     .nav-action-btn:hover { filter: brightness(1.1); }
 
@@ -1730,7 +1734,7 @@
       #app { padding: 1rem 1rem 3rem; }
       .place-grid, .route-grid { grid-template-columns: 1fr; }
       .detail-layout { padding: 0; }
-      nav { padding: 0.5rem 0.75rem; gap: 0.5rem; }
+      nav { padding: 0 0.75rem; gap: 0.5rem; }
       nav .view-tabs a { font-size: 0.8rem; padding: 0.55rem 0.85rem; }
       nav .auth-widget button, nav .auth-widget a, nav .nav-action-btn { font-size: 0.8rem; padding: 0.55rem 0.85rem; }
       .nav-group { gap: 0.4rem; }
@@ -1764,7 +1768,7 @@
       font-family: inherit;
       font-size: 0.7rem;
       font-weight: 400;
-      line-height: inherit;
+      line-height: 1;
       letter-spacing: 0.03em;
       padding: 0.4rem 0.7rem;
       border-radius: var(--radius);
