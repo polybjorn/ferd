@@ -11,7 +11,7 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 **Map and data**
 - World map with clustered place pins and GPX route polylines.
 - Filter by category, visit status, and route completion.
-- Browse places by category or country, routes by region, in Grid, Compact, or Gallery layouts.
+- Browse places by category or country, routes by region.
 - Route detail with elevation profile and route stats.
 - History page: a journal of visited places and completed routes.
 - Site catalog: browse and import community-curated places, or extend with your own.
