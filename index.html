@@ -4840,7 +4840,7 @@
         '<option value="__new__">(Add new region&hellip;)</option>',
       ].join('');
       openModal(
-        '<h2>Edit route<button class="modal-close">&times;</button></h2>' +
+        modalHeaderHtml('Edit route') +
         '<form id="route-meta-form">' +
           '<label for="tm-name">Name</label>' +
           '<input type="text" id="tm-name" required maxlength="64" value="' + escapeHtml(route.name) + '">' +
@@ -4879,7 +4879,7 @@
               '</div>' +
             '</div>'
           : '') +
-          '<div class="modal-error" id="tm-error"></div>' +
+          modalErrorHtml('tm-error') +
           '<div class="modal-actions">' +
             '<button type="button" class="session-revoke" id="tm-delete">Delete</button>' +
             '<span style="flex:1"></span>' +
@@ -5522,7 +5522,7 @@
       const cats = sortedCategorySlugs(Object.keys(state.categoryColors).filter(c => c !== ''));
       const sourcesText = (place.sources || []).join('\n');
       openModal(
-        '<h2>Edit place<button class="modal-close">&times;</button></h2>' +
+        modalHeaderHtml('Edit place') +
         '<form id="edit-place-form">' +
           '<label for="e-name">Name</label>' +
           '<input type="text" id="e-name" required value="' + escapeHtml(place.name) + '">' +
@@ -5569,7 +5569,7 @@
               '</div>' +
             '</div>'
           : '') +
-          '<div class="modal-error" id="edit-error"></div>' +
+          modalErrorHtml('edit-error') +
           '<div class="modal-actions">' +
             '<button type="button" class="session-revoke" id="e-delete">Delete</button>' +
             '<span style="flex:1"></span>' +
@@ -6719,10 +6719,10 @@
       }).join('');
       const more = pending.length > 8 ? '<li style="color:var(--muted)">+ ' + (pending.length - 8) + ' more</li>' : '';
       openModal(
-        '<h2>Refresh from catalog<button class="modal-close">&times;</button></h2>' +
+        modalHeaderHtml('Refresh from catalog') +
         '<div class="modal-desc">' + pending.length + ' place' + (pending.length === 1 ? '' : 's') + ' will be refreshed. Visit status, date, and rating are preserved.</div>' +
         '<ul style="font-size:0.78rem;margin:0.6rem 0 0.4rem;padding-left:1.2rem">' + head + more + '</ul>' +
-        '<div class="modal-error" id="catalog-bulk-error"></div>' +
+        modalErrorHtml('catalog-bulk-error') +
         '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
           '<span id="catalog-bulk-status" style="font-size:0.75rem;color:var(--muted);flex:1"></span>' +
           '<button type="button" data-role="cancel">Cancel</button>' +
@@ -6768,7 +6768,7 @@
       }
       const { entry, changes } = result;
       openModal(
-        '<h2>Update from catalog<button class="modal-close">&times;</button></h2>' +
+        modalHeaderHtml('Update from catalog') +
         renderCatalogDiff(changes, { selectable: true, place, entry }) +
         '<div class="modal-actions">' +
           '<button type="button" class="primary" id="catalog-update-skip" style="margin-right:auto">Keep all</button>' +
@@ -8705,7 +8705,7 @@
       }
       const brand = (state.config && state.config.brand) || 'Ferd';
       openModal(
-        '<h2>About<button class="modal-close">&times;</button></h2>' +
+        modalHeaderHtml('About') +
         '<div class="about-body">' +
           '<img class="about-logo" src="/icons/favicon.svg" alt="">' +
           '<div class="about-brand">' + escapeHtml(brand) + '</div>' +
@@ -8770,7 +8770,7 @@
         dracula: 'Dracula'
       };
       openModal(
-        '<h2>Settings<button class="modal-close">&times;</button></h2>' +
+        modalHeaderHtml('Settings') +
         '<div class="modal-tabs" id="settings-tabs">' +
           '<button data-tab="general" class="active">General</button>' +
           '<button data-tab="appearance">Appearance</button>' +
@@ -8847,7 +8847,7 @@
             '<div class="modal-desc" style="flex:1;margin:0">Download your data as a zip.</div>' +
             '<button type="button" class="primary" id="s-local-export">Export</button>' +
           '</div>' +
-          '<div class="modal-error" id="s-local-export-error"></div>' +
+          modalErrorHtml('s-local-export-error') +
           '<h3 class="settings-h">Import</h3>' +
           '<div class="modal-desc" style="margin:0">Restore from a previous export.</div>' +
           '<div class="radio-row radio-segmented" style="margin-top:0.5rem">' +
@@ -8862,7 +8862,7 @@
             '</div>' +
             '<button type="button" class="primary" id="s-local-import-btn">Import</button>' +
           '</div>' +
-          '<div class="modal-error" id="s-local-import-error"></div>' +
+          modalErrorHtml('s-local-import-error') +
           '<div class="modal-success-box" id="s-local-import-success" hidden></div>' +
           '</div>'
           : '') +
@@ -8953,7 +8953,7 @@
           '<div class="modal-desc" style="flex:1;margin:0">Download your data as a zip.</div>' +
           '<button type="button" class="primary" id="s-export">Export</button>' +
         '</div>' +
-        '<div class="modal-error" id="s-export-error"></div>' +
+        modalErrorHtml('s-export-error') +
         '<h3 class="settings-h">Import</h3>' +
         '<div class="modal-desc" style="margin:0">Restore from a previous export.</div>' +
         '<div class="radio-row radio-segmented" style="margin-top:0.5rem">' +
@@ -8969,7 +8969,7 @@
           '</div>' +
           '<button type="button" class="primary" id="s-import">Import</button>' +
         '</div>' +
-        '<div class="modal-error" id="s-import-error"></div>' +
+        modalErrorHtml('s-import-error') +
         '<div id="s-import-success" class="modal-success-box" hidden></div>' +
         '<h3 class="settings-h">Password</h3>' +
         '<form id="settings-pw-form">' +
@@ -8981,7 +8981,7 @@
             '<div class="modal-desc" style="flex:1;margin:0">At least 12 characters.</div>' +
             '<button type="submit" class="primary" id="s-submit">Change password</button>' +
           '</div>' +
-          '<div class="modal-error" id="s-error"></div>' +
+          modalErrorHtml('s-error') +
           '<div class="modal-success" id="s-pw-success" hidden></div>' +
         '</form>' +
         '</div>' +
@@ -9004,7 +9004,7 @@
           '<div style="display:flex;justify-content:flex-end;margin-top:0.75rem">' +
             '<button type="submit" class="primary" id="s-token-create">Create token</button>' +
           '</div>' +
-          '<div class="modal-error" id="s-token-error"></div>' +
+          modalErrorHtml('s-token-error') +
           '<div id="s-token-new" class="modal-success-box" hidden></div>' +
         '</form>' +
         '<h3 class="settings-h">Your tokens</h3>' +
@@ -9471,7 +9471,7 @@
       const local = isLocalMode();
       const title = local ? 'Activity log' : 'Audit log';
       openModal(
-        '<h2>' + title + '<button class="modal-close">&times;</button></h2>' +
+        modalHeaderHtml(title) +
         '<div id="s-admin-logs"><div class="hint">Loading&hellip;</div></div>' +
         '<div class="log-toolbar"><button type="button" id="s-logs-clear" class="danger-btn">Clear all</button></div>',
         function() {
@@ -9540,14 +9540,14 @@
       });
 
       openModal(
-        '<h2>Manage categories<button class="modal-close">&times;</button></h2>' +
+        modalHeaderHtml('Manage categories') +
         '<h3 class="settings-h" style="margin-top:0.75rem">Add</h3>' +
         '<div class="row" style="margin-top:0.25rem">' +
           '<input type="text" id="cat-new-display" placeholder="e.g. Waterfalls">' +
           '<button type="button" class="primary" id="cat-add" style="flex:0 0 auto">Add</button>' +
         '</div>' +
         '<div class="hint" id="cat-new-slug-preview" hidden></div>' +
-        '<div class="modal-error" id="cat-error"></div>' +
+        modalErrorHtml('cat-error') +
         '<h3 class="settings-h" style="margin-top:1.25rem;display:flex;align-items:baseline;gap:0.6rem">Categories' +
           '<span id="cat-clear-warning" class="action-warning" style="margin-left:auto;text-align:right" hidden></span></h3>' +
         '<div id="cat-rows"></div>' +
@@ -9890,12 +9890,12 @@
       const pendingClears = new Set();    // non-empty regions removed by X
 
       openModal(
-        '<h2>Manage regions<button class="modal-close">&times;</button></h2>' +
+        modalHeaderHtml('Manage regions') +
         '<h3 class="settings-h" style="margin-top:0.75rem;display:flex;align-items:baseline;gap:0.6rem">Regions' +
           '<span id="rgn-clear-warning" class="action-warning" style="margin-left:auto;text-align:right" hidden></span></h3>' +
         '<div id="rgn-rows"></div>' +
         '<div id="rgn-empty" class="hint" hidden>No regions yet. Upload a route with a region to create one.</div>' +
-        '<div class="modal-error" id="rgn-error"></div>' +
+        modalErrorHtml('rgn-error') +
         '<div class="modal-actions" style="margin-top:1rem">' +
           '<button type="button" class="primary" id="rgn-save" hidden>Save</button>' +
         '</div>',
@@ -10347,7 +10347,7 @@
 
     function openCatalogManager() {
       openModal(
-        '<button class="modal-close modal-close-floating" aria-label="Close">&times;</button>' +
+        modalHeaderHtml(null, {floating:true}) +
         '<h2><span>Manage catalog<span id="cat-mgr-count" style="color:var(--muted);font-weight:400;margin-left:0.4rem"></span></span></h2>' +
         '<input type="text" id="cat-mgr-filter" placeholder="Filter…" style="margin-bottom:0.5rem">' +
         '<div id="cat-mgr-list" style="overflow-y:auto"></div>' +
@@ -10497,11 +10497,11 @@
         '</label>';
       }).join('');
       openModal(
-        '<button class="modal-close modal-close-floating" aria-label="Close">&times;</button>' +
+        modalHeaderHtml(null, {floating:true}) +
         '<h2>Add to catalog</h2>' +
         '<input type="text" id="cat-filter" placeholder="Filter…" style="margin-bottom:0.5rem">' +
         '<div id="cat-list" style="overflow-y:auto">' + rows + '</div>' +
-        '<div class="modal-error" id="add-error"></div>' +
+        modalErrorHtml('add-error') +
         '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
           '<button type="button" class="row-notes-toggle" id="cat-notes-toggle">Show notes</button>' +
           '<span id="cat-status" style="font-size:0.75rem;color:var(--muted);flex:1"></span>' +
@@ -11010,6 +11010,19 @@
       };
     }
 
+    // Standard modal title row: <h2>Title + close X</h2>. With {floating:true}
+    // returns just the corner close button used by modals whose tabs sit at the
+    // top (Add, catalog manager/picker). Title is escaped (all callers pass
+    // literals today; this keeps it safe if a dynamic one appears).
+    function modalHeaderHtml(title, opts) {
+      if (opts && opts.floating) return '<button class="modal-close modal-close-floating" aria-label="Close">&times;</button>';
+      return '<h2>' + escapeHtml(title) + '<button class="modal-close">&times;</button></h2>';
+    }
+    // The empty error box every form modal toggles via `.visible`.
+    function modalErrorHtml(id) {
+      return '<div class="modal-error" id="' + id + '"></div>';
+    }
+
     function openConfirmModal({ title, body, confirmLabel, danger }) {
       return new Promise(resolve => {
         let settled = false;
@@ -11022,7 +11035,7 @@
           resolve(ok);
         };
         const html =
-          '<h2>' + escapeHtml(title) + '<button class="modal-close">&times;</button></h2>' +
+          modalHeaderHtml(title) +
           (body ? '<div class="modal-desc" style="font-size:0.85rem">' + escapeHtml(body) + '</div>' : '') +
           '<div class="modal-actions">' +
             '<button type="button" data-role="cancel">Cancel</button>' +
@@ -11145,7 +11158,7 @@
             '<div class="hint">Required for first registration. Check the API server logs.</div>' +
           '</div>' +
           '<div class="hint" id="auth-hint"></div>' +
-          '<div class="modal-error" id="auth-error"></div>' +
+          modalErrorHtml('auth-error') +
           '<div class="modal-actions">' +
             '<button type="submit" class="primary" id="auth-submit">Sign in</button>' +
           '</div>' +
@@ -11389,7 +11402,7 @@
       let tab = tabs[0];
       const tabLabels = { place: 'Place', route: 'Route', browse: 'Browse' };
       openModal(
-        '<button class="modal-close modal-close-floating" aria-label="Close">&times;</button>' +
+        modalHeaderHtml(null, {floating:true}) +
         (tabs.length > 1 ?
           '<div class="modal-tabs" id="add-tabs">' +
             tabs.map(t => '<button data-tab="' + t + '"' + (t === tab ? ' class="active"' : '') + '>' + tabLabels[t] + '</button>').join('') +
@@ -11506,7 +11519,7 @@
               '</div>' +
             '</div>'
           : '') +
-          '<div class="modal-error" id="add-error"></div>' +
+          modalErrorHtml('add-error') +
           '<div class="modal-actions">' +
             '<button type="submit" class="primary" id="place-submit">Add place</button>' +
           '</div>' +
@@ -11563,7 +11576,7 @@
               '</div>' +
             '</div>'
           : '') +
-          '<div class="modal-error" id="add-error"></div>' +
+          modalErrorHtml('add-error') +
           '<div class="modal-actions">' +
             '<button type="submit" class="primary" id="gpx-submit">Upload route</button>' +
           '</div>' +
@@ -11768,7 +11781,7 @@
           body.innerHTML =
             '<input type="text" id="browse-filter" placeholder="Filter&hellip;" style="margin-bottom:0.5rem">' +
             '<div id="browse-list" style="max-height:50vh;overflow-y:auto">' + rows + '</div>' +
-            '<div class="modal-error" id="add-error"></div>' +
+            modalErrorHtml('add-error') +
             '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
               '<button type="button" class="row-notes-toggle" id="browse-notes-toggle">Show notes</button>' +
               '<button type="button" class="row-notes-toggle" id="browse-select-all">Select all</button>' +
