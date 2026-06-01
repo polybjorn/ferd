@@ -254,6 +254,18 @@
     ]
   },
   {
+    "name": "Art Gallery of New South Wales",
+    "lat": -33.8686,
+    "lon": 151.2172,
+    "category": "museum",
+    "country": "Australia",
+    "note": "New South Wales' state art gallery, in The Domain",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Art_Gallery_of_New_South_Wales%2C_2022%2C_09.jpg/1280px-Art_Gallery_of_New_South_Wales%2C_2022%2C_09.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Art_Gallery_of_New_South_Wales"
+    ]
+  },
+  {
     "name": "Atomic Bomb Dome",
     "lat": 34.3955,
     "lon": 132.4536,
@@ -1548,6 +1560,19 @@
     ]
   },
   {
+    "name": "Hong Kong Museum of Art",
+    "lat": 22.29355,
+    "lon": 114.17203,
+    "category": "museum",
+    "country": "Hong Kong",
+    "local_name": "香港藝術館",
+    "note": "Hong Kong's flagship art museum by Victoria Harbour",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Hong_Kong_Museum_of_Art_20250716.jpg/1280px-Hong_Kong_Museum_of_Art_20250716.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Hong_Kong_Museum_of_Art"
+    ]
+  },
+  {
     "name": "Horizontal Falls",
     "lat": -16.38325,
     "lon": 123.95797,
@@ -2136,6 +2161,31 @@
     ]
   },
   {
+    "name": "Museo Reina Sofía",
+    "lat": 40.4086,
+    "lon": -3.6943,
+    "category": "museum",
+    "country": "Spain",
+    "local_name": "Museo Nacional Centro de Arte Reina Sofía",
+    "note": "Modern art, home of Guernica",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/MNCARS_05.jpg/1280px-MNCARS_05.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Museo_Nacional_Centro_de_Arte_Reina_Sof%C3%ADa"
+    ]
+  },
+  {
+    "name": "Museo Soumaya",
+    "lat": 19.4407,
+    "lon": -99.2046,
+    "category": "museum",
+    "country": "Mexico",
+    "note": "Silver hexagon-tiled museum of Carlos Slim's art",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Museo_Soumaya%2C_Ciudad_de_M%C3%A9xico%2C_M%C3%A9xico%2C_2015-07-18%2C_DD_12.JPG/1280px-Museo_Soumaya%2C_Ciudad_de_M%C3%A9xico%2C_M%C3%A9xico%2C_2015-07-18%2C_DD_12.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Museo_Soumaya"
+    ]
+  },
+  {
     "name": "Museum of Modern Art",
     "lat": 40.7617,
     "lon": -73.9775,
@@ -2225,6 +2275,19 @@
     ]
   },
   {
+    "name": "National Art Center, Tokyo",
+    "lat": 35.66528,
+    "lon": 139.72634,
+    "category": "museum",
+    "country": "Japan",
+    "local_name": "国立新美術館",
+    "note": "Wavy-glass hall, Japan's largest exhibition space",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/The_National_Art_Center_%2C_Tokyo_-_panoramio_%281%29.jpg/1280px-The_National_Art_Center_%2C_Tokyo_-_panoramio_%281%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/The_National_Art_Center,_Tokyo"
+    ]
+  },
+  {
     "name": "National Gallery",
     "lat": 51.5089,
     "lon": -0.1283,
@@ -2246,6 +2309,68 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/National_Gallery_of_Art_-_2026_%2855255088792%29.jpg/1280px-National_Gallery_of_Art_-_2026_%2855255088792%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Gallery_of_Art"
+    ]
+  },
+  {
+    "name": "National Gallery of Victoria",
+    "lat": -37.8225,
+    "lon": 144.96889,
+    "category": "museum",
+    "country": "Australia",
+    "note": "Australia's oldest and most-visited art museum",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/National_Gallery_of_Victoria_from_Eurkea_Tower.jpg/1280px-National_Gallery_of_Victoria_from_Eurkea_Tower.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/National_Gallery_of_Victoria"
+    ]
+  },
+  {
+    "name": "National Gallery Singapore",
+    "lat": 1.29049,
+    "lon": 103.85186,
+    "category": "museum",
+    "country": "Singapore",
+    "note": "Southeast Asian art in the former Supreme Court",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/National_Gallery_Singapore_-_Joy_of_Museums_-_External.jpg/1280px-National_Gallery_Singapore_-_Joy_of_Museums_-_External.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/National_Gallery_Singapore"
+    ]
+  },
+  {
+    "name": "National Museum in Kraków",
+    "lat": 50.0603,
+    "lon": 19.9239,
+    "category": "museum",
+    "country": "Poland",
+    "local_name": "Muzeum Narodowe w Krakowie",
+    "note": "Poland's first national museum, founded 1879",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/GmachG%C5%82%C3%B3wnyMuzeumNarodowego-Aleja3Maja1-Krowodrza-POL%2C_Krak%C3%B3w.jpg/1280px-GmachG%C5%82%C3%B3wnyMuzeumNarodowego-Aleja3Maja1-Krowodrza-POL%2C_Krak%C3%B3w.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/National_Museum,_Krak%C3%B3w"
+    ]
+  },
+  {
+    "name": "National Museum in Warsaw",
+    "lat": 52.2317,
+    "lon": 21.0247,
+    "category": "museum",
+    "country": "Poland",
+    "local_name": "Muzeum Narodowe w Warszawie",
+    "note": "Poland's largest art collection, founded 1862",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Muzeum_Narodowe_w_Warszawie_2019.jpg/1280px-Muzeum_Narodowe_w_Warszawie_2019.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/National_Museum,_Warsaw"
+    ]
+  },
+  {
+    "name": "National Museum of African American History and Culture",
+    "lat": 38.89111,
+    "lon": -77.03278,
+    "category": "museum",
+    "country": "United States",
+    "note": "Smithsonian museum of African American history",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/National_Museum_of_African_American_History_and_Culture_in_February_2020.jpg/1280px-National_Museum_of_African_American_History_and_Culture_in_February_2020.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/National_Museum_of_African_American_History_and_Culture"
     ]
   },
   {
@@ -2284,6 +2409,43 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/National_Museum_of_Korea%2C_Seoul_%282%29_%2840236586235%29.jpg/1280px-National_Museum_of_Korea%2C_Seoul_%282%29_%2840236586235%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Museum_of_Korea"
+    ]
+  },
+  {
+    "name": "National Museum of Scotland",
+    "lat": 55.94694,
+    "lon": -3.19,
+    "category": "museum",
+    "country": "Scotland",
+    "note": "Scotland's national museum of art, science, and history",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Museum_of_Scotland.jpg/1280px-Museum_of_Scotland.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/National_Museum_of_Scotland"
+    ]
+  },
+  {
+    "name": "National Palace Museum",
+    "lat": 25.1022,
+    "lon": 121.5486,
+    "category": "museum",
+    "country": "Taiwan",
+    "local_name": "國立故宮博物院",
+    "note": "Chinese imperial art collection from the Forbidden City",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/NationalPalace_MuseumFrontView.jpg/1280px-NationalPalace_MuseumFrontView.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/National_Palace_Museum"
+    ]
+  },
+  {
+    "name": "National Portrait Gallery",
+    "lat": 51.5094,
+    "lon": -0.1281,
+    "category": "museum",
+    "country": "England",
+    "note": "Portraits of notable Britons, near Trafalgar Square",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/National_Portrait_Gallery%2C_London%2C_June_2023_34.jpg/1280px-National_Portrait_Gallery%2C_London%2C_June_2023_34.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/National_Portrait_Gallery,_London"
     ]
   },
   {
@@ -2884,6 +3046,19 @@
     ]
   },
   {
+    "name": "Royal Castle, Warsaw",
+    "lat": 52.2478,
+    "lon": 21.0142,
+    "category": "castle",
+    "country": "Poland",
+    "local_name": "Zamek Królewski w Warszawie",
+    "note": "Royal residence rebuilt after WWII destruction",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Royal_Castle_in_Warsaw%2C_Poland%2C_2022%2C_03.jpg/1280px-Royal_Castle_in_Warsaw%2C_Poland%2C_2022%2C_03.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Royal_Castle,_Warsaw"
+    ]
+  },
+  {
     "name": "Royal Exhibition Building",
     "lat": -37.8047,
     "lon": 144.9717,
@@ -3035,6 +3210,18 @@
     ]
   },
   {
+    "name": "Scottish National Gallery",
+    "lat": 55.95083,
+    "lon": -3.19556,
+    "category": "museum",
+    "country": "Scotland",
+    "note": "Scotland's national art collection, on The Mound",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Scottish_National_Gallery_-_aerial_-_2025-04-19_01.jpg/1280px-Scottish_National_Gallery_-_aerial_-_2025-04-19_01.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Scottish_National_Gallery"
+    ]
+  },
+  {
     "name": "Sedlec Ossuary",
     "lat": 49.9614,
     "lon": 15.2883,
@@ -3083,6 +3270,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Castello_Sforzesco_da_alto.jpg/1280px-Castello_Sforzesco_da_alto.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sforza_Castle"
+    ]
+  },
+  {
+    "name": "Shanghai Museum",
+    "lat": 31.23028,
+    "lon": 121.47056,
+    "category": "museum",
+    "country": "China",
+    "local_name": "上海博物馆",
+    "note": "Ancient Chinese art in a bronze-ding-shaped building",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/201003_Shanghai_Museum.jpg/1280px-201003_Shanghai_Museum.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Shanghai_Museum"
     ]
   },
   {
@@ -3659,6 +3859,19 @@
     ]
   },
   {
+    "name": "Tokyo Metropolitan Art Museum",
+    "lat": 35.71719,
+    "lon": 139.77278,
+    "category": "museum",
+    "country": "Japan",
+    "local_name": "東京都美術館",
+    "note": "Brick exhibition halls in Ueno Park",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/20240116_Tokyo_Metropolitan_Art_Museum_11.11.33.jpg/1280px-20240116_Tokyo_Metropolitan_Art_Museum_11.11.33.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Tokyo_Metropolitan_Art_Museum"
+    ]
+  },
+  {
     "name": "Tokyo National Museum",
     "lat": 35.7189,
     "lon": 139.7766,
@@ -3802,6 +4015,19 @@
     ]
   },
   {
+    "name": "Upper Belvedere",
+    "lat": 48.19417,
+    "lon": 16.38028,
+    "category": "palace",
+    "country": "Austria",
+    "local_name": "Oberes Belvedere",
+    "note": "Baroque palace, home of Klimt's The Kiss",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Palacio_Belvedere%2C_Viena%2C_Austria%2C_2020-02-01%2C_DD_93-95_HDR.jpg/1280px-Palacio_Belvedere%2C_Viena%2C_Austria%2C_2020-02-01%2C_DD_93-95_HDR.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Belvedere,_Vienna"
+    ]
+  },
+  {
     "name": "Urnes Stave Church",
     "lat": 61.29811,
     "lon": 7.32259,
@@ -3838,6 +4064,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Concordiatempel_Tempio_della_Temple_of_Concordia_de_la_Concorde_Tal_der_Tempel_Valle_dei_Templi_Agrigento_Sizilien_Foto_Wolfgang_Pehlemann_DSC07490.jpg/1280px-Concordiatempel_Tempio_della_Temple_of_Concordia_de_la_Concorde_Tal_der_Tempel_Valle_dei_Templi_Agrigento_Sizilien_Foto_Wolfgang_Pehlemann_DSC07490.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Valley_of_the_Temples_(Sicily)"
+    ]
+  },
+  {
+    "name": "Van Gogh Museum",
+    "lat": 52.3584,
+    "lon": 4.8811,
+    "category": "museum",
+    "country": "Netherlands",
+    "note": "Largest collection of Van Gogh works",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Van_Gogh_Museum%2C_Kurokawa_wing.jpg/1280px-Van_Gogh_Museum%2C_Kurokawa_wing.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Van_Gogh_Museum"
     ]
   },
   {
