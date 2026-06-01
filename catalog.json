@@ -13,6 +13,32 @@
     ]
   },
   {
+    "name": "Acropolis Museum",
+    "lat": 37.96911,
+    "lon": 23.7283,
+    "category": "museum",
+    "country": "Greece",
+    "local_name": "Μουσείο Ακρόπολης",
+    "note": "Artifacts from the Athenian Acropolis",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/New_Acropolis_Museum_building_in_Athens%2C_Greece.jpg/1280px-New_Acropolis_Museum_building_in_Athens%2C_Greece.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Acropolis_Museum"
+    ]
+  },
+  {
+    "name": "Acropolis of Athens",
+    "lat": 37.97167,
+    "lon": 23.72611,
+    "category": "ruins",
+    "country": "Greece",
+    "local_name": "Ακρόπολη Αθηνών",
+    "note": "Ancient hilltop citadel crowned by the Parthenon",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/1029_Acropolis_of_Athens_in_Greece_at_night_Photo_by_Giles_Laurent.jpg/1280px-1029_Acropolis_of_Athens_in_Greece_at_night_Photo_by_Giles_Laurent.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Acropolis_of_Athens"
+    ]
+  },
+  {
     "name": "Acropolis of Lindos",
     "lat": 36.09154,
     "lon": 28.08854,
@@ -102,6 +128,18 @@
     ]
   },
   {
+    "name": "Alte Pinakothek",
+    "lat": 48.1483,
+    "lon": 11.57,
+    "category": "museum",
+    "country": "Germany",
+    "note": "One of the world's oldest art galleries",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Alte_Pinakothek_2009.jpg/1280px-Alte_Pinakothek_2009.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Alte_Pinakothek"
+    ]
+  },
+  {
     "name": "Altes Museum",
     "lat": 52.51944,
     "lon": 13.39833,
@@ -111,6 +149,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Altes_Museum_%28Berlin%29_%286339770591%29.jpg/1280px-Altes_Museum_%28Berlin%29_%286339770591%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Altes_Museum"
+    ]
+  },
+  {
+    "name": "Ancient Olympia",
+    "lat": 37.6388,
+    "lon": 21.6299,
+    "category": "ruins",
+    "country": "Greece",
+    "local_name": "Αρχαία Ολυμπία",
+    "note": "Birthplace of the ancient Olympic Games",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Restored_ruins_of_the_Temple_of_Hera%2C_ancient_Doric_Greek_temple_at_Olympia%2C_Greece_%2816189637837%29.jpg/1280px-Restored_ruins_of_the_Temple_of_Hera%2C_ancient_Doric_Greek_temple_at_Olympia%2C_Greece_%2816189637837%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Olympia,_Greece"
     ]
   },
   {
@@ -292,6 +343,19 @@
     ]
   },
   {
+    "name": "Bastei Bridge",
+    "lat": 50.9615,
+    "lon": 14.0727,
+    "category": "bridge",
+    "country": "Germany",
+    "local_name": "Basteibrücke",
+    "note": "Sandstone bridge over a gorge in Saxon Switzerland",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Rathen_und_Elbsandsteingebirge_asv2022-08_img04.jpg/1280px-Rathen_und_Elbsandsteingebirge_asv2022-08_img04.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Bastei"
+    ]
+  },
+  {
     "name": "Baths of Caracalla",
     "lat": 41.87944,
     "lon": 12.49306,
@@ -419,6 +483,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/%D9%86%D9%85%D8%A7%DB%8C_%D8%A8%DB%8C%D8%B1%D9%88%D9%86%DB%8C_%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D9%85%D8%B4%DB%8C%D8%B1%D8%A7%D9%84%D9%85%D9%84%DA%A9_%D8%A8%D8%B1%D8%A7%D8%B2%D8%AC%D8%A7%D9%86.jpg/1280px-%D9%86%D9%85%D8%A7%DB%8C_%D8%A8%DB%8C%D8%B1%D9%88%D9%86%DB%8C_%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D9%85%D8%B4%DB%8C%D8%B1%D8%A7%D9%84%D9%85%D9%84%DA%A9_%D8%A8%D8%B1%D8%A7%D8%B2%D8%AC%D8%A7%D9%86.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Borazjan_Castle"
+    ]
+  },
+  {
+    "name": "Brandenburg Gate",
+    "lat": 52.5163,
+    "lon": 13.3777,
+    "category": "monument",
+    "country": "Germany",
+    "local_name": "Brandenburger Tor",
+    "note": "Symbol of German reunification",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Brandenburger_Tor_abends.jpg/1280px-Brandenburger_Tor_abends.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Brandenburg_Gate"
     ]
   },
   {
@@ -675,6 +752,19 @@
     ]
   },
   {
+    "name": "Cologne Cathedral",
+    "lat": 50.9413,
+    "lon": 6.9583,
+    "category": "religious",
+    "country": "Germany",
+    "local_name": "Kölner Dom",
+    "note": "Gothic cathedral, took 600 years to complete",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Cologne_Dome%2C_dramatic_style_%2816652836665%29.jpg/1280px-Cologne_Dome%2C_dramatic_style_%2816652836665%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Cologne_Cathedral"
+    ]
+  },
+  {
     "name": "Copacabana Beach",
     "lat": -22.9711,
     "lon": -43.1822,
@@ -685,6 +775,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Copacabana_in_Rio_de_Janeiro_4_%2822126347021%29.jpg/1280px-Copacabana_in_Rio_de_Janeiro_4_%2822126347021%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Copacabana,_Rio_de_Janeiro"
+    ]
+  },
+  {
+    "name": "Corfu",
+    "lat": 39.6243,
+    "lon": 19.9217,
+    "category": "city",
+    "country": "Greece",
+    "local_name": "Κέρκυρα",
+    "note": "Venetian-era old town, UNESCO World Heritage site",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/The_Old_Fortress_and_the_Old_Town_of_Corfu_-_September_2017.jpg/1280px-The_Old_Fortress_and_the_Old_Town_of_Corfu_-_September_2017.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Corfu_(city)"
     ]
   },
   {
@@ -711,6 +814,44 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Dead_Vlei_4.jpg/1280px-Dead_Vlei_4.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Deadvlei"
+    ]
+  },
+  {
+    "name": "Delos",
+    "lat": 37.39333,
+    "lon": 25.27111,
+    "category": "ruins",
+    "country": "Greece",
+    "local_name": "Δήλος",
+    "note": "Sacred island, mythical birthplace of Apollo",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Terrace_of_the_Lions_-_51681905195.jpg/1280px-Terrace_of_the_Lions_-_51681905195.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Delos"
+    ]
+  },
+  {
+    "name": "Delphi",
+    "lat": 38.4824,
+    "lon": 22.5011,
+    "category": "ruins",
+    "country": "Greece",
+    "local_name": "Δελφοί",
+    "note": "Sanctuary of Apollo, seat of the ancient Oracle",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Delphi%2C_Greece_-_panoramio.jpg/1280px-Delphi%2C_Greece_-_panoramio.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Delphi"
+    ]
+  },
+  {
+    "name": "Deutsches Museum",
+    "lat": 48.1298,
+    "lon": 11.5832,
+    "category": "museum",
+    "country": "Germany",
+    "note": "World's largest science and technology museum",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Deutsches_Museum_Portrait_4.jpg/1280px-Deutsches_Museum_Portrait_4.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Deutsches_Museum"
     ]
   },
   {
@@ -805,6 +946,18 @@
     ]
   },
   {
+    "name": "Dresden Frauenkirche",
+    "lat": 51.0519,
+    "lon": 13.7413,
+    "category": "religious",
+    "country": "Germany",
+    "note": "Baroque church rebuilt from its WWII ruins",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Dresden%2C_Frauenkirche_--_2023_--_9387.jpg/1280px-Dresden%2C_Frauenkirche_--_2023_--_9387.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Dresden_Frauenkirche"
+    ]
+  },
+  {
     "name": "Dubrovnik Old Town",
     "lat": 42.6407,
     "lon": 18.1083,
@@ -853,6 +1006,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Paris_-_Jardins_du_Trocad%C3%A9ro_%26_Tour_Eiffel_%2826804140054%29.jpg/1280px-Paris_-_Jardins_du_Trocad%C3%A9ro_%26_Tour_Eiffel_%2826804140054%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Eiffel_Tower"
+    ]
+  },
+  {
+    "name": "Elafonisi Beach",
+    "lat": 35.27134,
+    "lon": 23.54175,
+    "category": "beach",
+    "country": "Greece",
+    "local_name": "Ελαφονήσι",
+    "note": "Pink-sand beach and lagoon on western Crete",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/%CE%95%CE%BB%CE%B1%CF%86%CE%BF%CE%BD%CE%AE%CF%83%CE%B9_1287.jpg/1280px-%CE%95%CE%BB%CE%B1%CF%86%CE%BF%CE%BD%CE%AE%CF%83%CE%B9_1287.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Elafonisi"
     ]
   },
   {
@@ -1434,6 +1600,19 @@
     ]
   },
   {
+    "name": "Knossos",
+    "lat": 35.2979,
+    "lon": 25.1631,
+    "category": "ruins",
+    "country": "Greece",
+    "local_name": "Κνωσός",
+    "note": "Largest Bronze Age Minoan palace on Crete",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/North_Entrance_of_the_Palace_of_Knossos%2C_Crete._%2853809932111%29.jpg/1280px-North_Entrance_of_the_Palace_of_Knossos%2C_Crete._%2853809932111%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Knossos"
+    ]
+  },
+  {
     "name": "Kolossi Castle",
     "lat": 34.66527,
     "lon": 32.93396,
@@ -1562,6 +1741,18 @@
     ]
   },
   {
+    "name": "Matira Beach",
+    "lat": -16.5394,
+    "lon": -151.746,
+    "category": "beach",
+    "country": "French Polynesia",
+    "note": "Bora Bora's main public beach",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Matira_Beach%2C_Bora_Bora%2C_French_Polynesia.jpg/1280px-Matira_Beach%2C_Bora_Bora%2C_French_Polynesia.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Bora_Bora"
+    ]
+  },
+  {
     "name": "Matsumoto Castle",
     "lat": 36.2388,
     "lon": 137.9688,
@@ -1651,6 +1842,32 @@
     ]
   },
   {
+    "name": "Monastery of Great Meteoron",
+    "lat": 39.72389,
+    "lon": 21.62444,
+    "category": "religious",
+    "country": "Greece",
+    "local_name": "Μονή Μεγάλου Μετεώρου",
+    "note": "Largest of the cliff-top Meteora monasteries",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Megalo_Meteoro_panorama.jpg/1280px-Megalo_Meteoro_panorama.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Great_Meteoron"
+    ]
+  },
+  {
+    "name": "Monemvasia",
+    "lat": 36.68778,
+    "lon": 23.05556,
+    "category": "castle",
+    "country": "Greece",
+    "local_name": "Μονεμβασιά",
+    "note": "Medieval rock fortress town on the Peloponnese coast",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/%CE%9A%CE%B1%CF%83%CF%84%CF%81%CE%BF%CF%80%CE%BF%CE%BB%CE%B9%CF%84%CE%B5%CE%B9%CE%B1_%CE%BC%CE%BF%CE%BD%CE%B5%CE%BC%CE%B2%CE%B1%CF%83%CE%B9%CE%B1%CF%82.jpg/1280px-%CE%9A%CE%B1%CF%83%CF%84%CF%81%CE%BF%CF%80%CE%BF%CE%BB%CE%B9%CF%84%CE%B5%CE%B9%CE%B1_%CE%BC%CE%BF%CE%BD%CE%B5%CE%BC%CE%B2%CE%B1%CF%83%CE%B9%CE%B1%CF%82.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Monemvasia"
+    ]
+  },
+  {
     "name": "Mont Saint-Michel",
     "lat": 48.636,
     "lon": -1.5114,
@@ -1734,6 +1951,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Mus%C3%A9e_d%27Orsay_%2849570190661%29.jpg/1280px-Mus%C3%A9e_d%27Orsay_%2849570190661%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Mus%C3%A9e_d%27Orsay"
+    ]
+  },
+  {
+    "name": "Mystras",
+    "lat": 37.0769,
+    "lon": 22.3656,
+    "category": "ruins",
+    "country": "Greece",
+    "local_name": "Μυστράς",
+    "note": "Byzantine ghost town with frescoed churches near Sparta",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Palace_at_Mystras_by_Joy_of_Museums.jpg/1280px-Palace_at_Mystras_by_Joy_of_Museums.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Mystras"
     ]
   },
   {
@@ -1822,6 +2052,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Museo_de_Historia_Natural%2C_Londres%2C_Inglaterra%2C_2022-11-25%2C_DD_37.jpg/1280px-Museo_de_Historia_Natural%2C_Londres%2C_Inglaterra%2C_2022-11-25%2C_DD_37.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Natural_History_Museum,_London"
+    ]
+  },
+  {
+    "name": "Navagio Beach",
+    "lat": 37.85984,
+    "lon": 20.62395,
+    "category": "beach",
+    "country": "Greece",
+    "local_name": "Παραλία Ναυάγιο",
+    "note": "Shipwreck beach on Zakynthos",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Navagio%2C_Zante_01.jpg/1280px-Navagio%2C_Zante_01.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Navagio"
     ]
   },
   {
@@ -2423,6 +2666,19 @@
     ]
   },
   {
+    "name": "Samaria Gorge",
+    "lat": 35.3148,
+    "lon": 23.9627,
+    "category": "nature",
+    "country": "Greece",
+    "local_name": "Φαράγγι Σαμαριάς",
+    "note": "16 km gorge in Crete, one of the longest in Europe",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Walkers_in_the_Samari%C3%A1_Gorge_-_2022-07-25.jpg/1280px-Walkers_in_the_Samari%C3%A1_Gorge_-_2022-07-25.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Samaria_Gorge"
+    ]
+  },
+  {
     "name": "Sanssouci Palace",
     "lat": 52.40326,
     "lon": 13.03863,
@@ -2865,6 +3121,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/%D9%85%D8%B9%D8%A8%D8%AF_%D8%A2%D9%86%D8%A7%D9%87%DB%8C%D8%AA%D8%A7_%DA%A9%D9%86%DA%AF%D8%A7%D9%88%D8%B1_3_soheilchehri.jpg/1280px-%D9%85%D8%B9%D8%A8%D8%AF_%D8%A2%D9%86%D8%A7%D9%87%DB%8C%D8%AA%D8%A7_%DA%A9%D9%86%DA%AF%D8%A7%D9%88%D8%B1_3_soheilchehri.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_Anahita,_Kangavar"
+    ]
+  },
+  {
+    "name": "Temple of Poseidon, Sounion",
+    "lat": 37.6503,
+    "lon": 24.0246,
+    "category": "ruins",
+    "country": "Greece",
+    "local_name": "Ναός του Ποσειδώνα",
+    "note": "Clifftop marble temple over the Aegean, c.440 BC",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Greece_Cape_Sounion_BW_2017-10-09_10-12-43.jpg/1280px-Greece_Cape_Sounion_BW_2017-10-09_10-12-43.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Temple_of_Poseidon,_Sounion"
     ]
   },
   {
