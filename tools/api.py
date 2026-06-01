@@ -882,6 +882,23 @@ class Handler(http.server.BaseHTTPRequestHandler):
     """Get + ensure the per-user data dir."""
     return ensure_user_dir(self.cfg, username)
 
+  def _locked_write(self, user, filename: str, fn):
+    """Run fn() under the per-user write lock for `filename`, mapping storage
+    errors to HTTP responses (NotFoundError -> 404, ValidationError -> 409,
+    OSError -> 500). fn does its own load/mutate/write and returns whatever the
+    caller needs for its response. Returns (True, result) on success, or
+    (False, None) after an error response has already been sent."""
+    lock_path = self._user_dir(user["username"]) / ("." + filename[:-len(".json")] + ".lock")
+    try:
+      return True, with_file_lock(lock_path, fn)
+    except NotFoundError as e:
+      self._error(HTTPStatus.NOT_FOUND, str(e))
+    except ValidationError as e:
+      self._error(HTTPStatus.CONFLICT, str(e))
+    except OSError as e:
+      self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write {filename}: {e}")
+    return False, None
+
   def _client_ip(self) -> str:
     return self.client_address[0] if self.client_address else "?"
 
@@ -1965,9 +1982,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    udir = self._user_dir(user["username"])
-    labels_path = udir / "category-labels.json"
-    lock_path = udir / ".category-labels.lock"
+    labels_path = self._user_dir(user["username"]) / "category-labels.json"
     merged: dict[str, dict] = {}
 
     def do_update():
@@ -1983,11 +1998,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
         merged[slug] = entry
       write_json_file(labels_path, merged)
 
-    try:
-      with_file_lock(lock_path, do_update)
-    except OSError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write category-labels.json: {e}")
-
+    ok, _ = self._locked_write(user, "category-labels.json", do_update)
+    if not ok:
+      return
     self._send_json(HTTPStatus.OK, {"ok": True, "category_labels": merged})
 
   def _clean_category_labels(self, labels):
@@ -2059,9 +2072,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    udir = self._user_dir(user["username"])
-    places_path = udir / "places.json"
-    lock_path = udir / ".places.lock"
+    places_path = self._user_dir(user["username"]) / "places.json"
 
     def do_append():
       existing = load_json_file(places_path, expected_type=list, required=False, label="places.json")
@@ -2074,13 +2085,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
       write_json_file(places_path, existing)
       return len(existing)
 
-    try:
-      total = with_file_lock(lock_path, do_append)
-    except ValidationError as e:
-      return self._error(HTTPStatus.CONFLICT, str(e))
-    except OSError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write places.json: {e}")
-
+    ok, total = self._locked_write(user, "places.json", do_append)
+    if not ok:
+      return
     self._send_json(HTTPStatus.CREATED, {"ok": True, "total_places": total, "place": place})
 
   def _h_places_update(self):
@@ -2106,9 +2113,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    udir = self._user_dir(user["username"])
-    places_path = udir / "places.json"
-    lock_path = udir / ".places.lock"
+    places_path = self._user_dir(user["username"]) / "places.json"
 
     def do_update():
       existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
@@ -2123,14 +2128,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
       existing[idx] = validated
       write_json_file(places_path, existing)
 
-    try:
-      with_file_lock(lock_path, do_update)
-    except NotFoundError as e:
-      return self._error(HTTPStatus.NOT_FOUND, str(e))
-    except ValidationError as e:
-      return self._error(HTTPStatus.CONFLICT, str(e))
-    except OSError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write places.json: {e}")
+    ok, _ = self._locked_write(user, "places.json", do_update)
+    if not ok:
+      return
     self._send_json(HTTPStatus.OK, {"ok": True, "place": validated})
 
   def _h_places_clear_category(self):
@@ -2148,9 +2148,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.BAD_REQUEST, "category required")
     target = target.strip()
 
-    udir = self._user_dir(user["username"])
-    places_path = udir / "places.json"
-    lock_path = udir / ".places.lock"
+    places_path = self._user_dir(user["username"]) / "places.json"
 
     def do_clear():
       existing = load_json_file(places_path, expected_type=list, required=False, label="places.json")
@@ -2163,10 +2161,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
         write_json_file(places_path, existing)
       return cleared
 
-    try:
-      cleared = with_file_lock(lock_path, do_clear)
-    except OSError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write places.json: {e}")
+    ok, cleared = self._locked_write(user, "places.json", do_clear)
+    if not ok:
+      return
     self._send_json(HTTPStatus.OK, {"ok": True, "cleared": cleared})
 
   def _h_places_delete(self):
@@ -2180,9 +2177,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if not target_id or not PLACE_ID_RE.match(target_id):
       return self._error(HTTPStatus.BAD_REQUEST, "id required (8-char hex)")
 
-    udir = self._user_dir(user["username"])
-    places_path = udir / "places.json"
-    lock_path = udir / ".places.lock"
+    places_path = self._user_dir(user["username"]) / "places.json"
 
     def do_delete():
       existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
@@ -2193,14 +2188,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
       write_json_file(places_path, existing)
       return len(existing)
 
-    try:
-      total = with_file_lock(lock_path, do_delete)
-    except NotFoundError as e:
-      return self._error(HTTPStatus.NOT_FOUND, str(e))
-    except ValidationError as e:
-      return self._error(HTTPStatus.CONFLICT, str(e))
-    except OSError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write places.json: {e}")
+    ok, total = self._locked_write(user, "places.json", do_delete)
+    if not ok:
+      return
     self._send_json(HTTPStatus.OK, {"ok": True, "total_places": total})
 
   def _h_gpx_delete(self):
@@ -2757,7 +2747,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     udir = self._user_dir(user["username"])
     meta_path = udir / "metadata.json"
-    lock_path = udir / ".metadata.lock"
 
     def do_write():
       existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
@@ -2768,10 +2757,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
       write_json_file(meta_path, existing)
       return existing
 
-    try:
-      with_file_lock(lock_path, do_write)
-    except OSError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write metadata.json: {e}")
+    ok, _ = self._locked_write(user, "metadata.json", do_write)
+    if not ok:
+      return
     manifest_status = self._regenerate_manifest(udir)
     self._send_json(HTTPStatus.OK, {"ok": True, "key": key, "metadata": entry, "manifest": manifest_status})
 
