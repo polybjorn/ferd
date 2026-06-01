@@ -1,38 +1,35 @@
 # Ferd
 
-Your own map of where you've been, where you want to go, and the journeys between them.
+Your own map of where you've been, where you want to go, and the journeys between them. Self-hosted or fully on-device, with no tracking.
 
-![Unified map view](docs/screenshots/map.png)
+![Ferd map view](docs/screenshots/map.png)
 
 *Ferd is Norwegian for "journey".*
 
 ## Features
 
-**Map and data**
+**See where you've been and where you're going**
 - World map with clustered place pins and GPX route polylines.
-- Filter by category, visit status, and route completion.
-- Browse places by category or country, routes by region.
 - Route detail with elevation profile and route stats.
-- History page: a journal of visited places and completed routes.
-- Site catalog: browse and import community-curated places, or extend with your own.
-- Multiple built-in UI themes.
-- Pick a map tile layer independent of the theme, with adjustable filters.
+- History page that journals your visited places and completed routes.
+- Browse and import community-curated places from the site catalog, or extend it with your own.
+- Powerful filtering and browsing by category, country, visit status, region, and route completion.
 
-**Multi-user**
+**Share on your terms**
 - Per-user data isolation - each account is its own map.
-- Optional read-only public sharing at `/u/<username>/`.
-- Admin tools: user management, site stats, registration and publishing toggles.
+- Optionally publish your map as a read-only public page anyone can view by link.
+- Admin tools for user management, site stats, and registration and publishing toggles.
 
-**Installable and offline**
-- Add to your device for launch in its own window.
+**Use it anywhere**
+- Install to your device and launch it in its own window.
 - Reads work offline (app shell, last loaded data, downloaded GPX, previously viewed tiles). Edits and uploads need network.
-- Local-only mode: run entirely on-device with no server or account.
+- Local-only mode that runs entirely on-device with no server or account.
 
 ## Install
 
 **Requirements:** Python 3.9+ (or Docker), a modern browser. No build step, no Node, no database server (SQLite file).
 
-**Footprint:** ~1.7 MB of code and assets. Python uses about 32 MB of memory at idle; the Docker image is 43 MiB compressed (211 MB on disk) and runs at roughly the same memory plus a small container overhead.
+**Footprint:** ~1.7 MB of code and assets. Python uses about 32 MB of memory at idle; the Docker image is ~45 MB compressed (211 MB on disk) and runs at roughly the same memory plus a small container overhead.
 
 Full documentation in [docs/](docs/).
 
@@ -64,21 +61,18 @@ Open http://localhost:8090 and register the first account. See [docker.md](docs/
 
 ### Android
 
-Android client for Ferd, server-connected or fully on-device. Use an APK manager to auto-update, or download the [latest release](https://github.com/polybjorn/ferd/releases/latest) APK directly.
+Android client, server-connected or fully on-device. Use an APK manager to auto-update, or download the [latest release](https://github.com/polybjorn/ferd/releases/latest) APK directly.
 
 [<img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/polybjorn/ferd)
 
 ## Roadmap
 
-### Features
+### Content
 - Print and PDF stylesheet for route and place details.
 - Uploaded image attachments on places and routes.
-- Per-category default-hide toggle in Manage categories: hidden categories start filtered out on the map until re-enabled in the filter menu.
+- Per-category default-hide toggle so chosen categories start filtered out on the map.
 
-### Authentication and security
-- Optional TOTP two-factor authentication.
-
-### Data and offline
+### Offline
 - Offline editing, queued and synced when the connection returns (reads already work offline).
 
 ### Branding
