@@ -6945,6 +6945,25 @@
       return NAME_COLLATOR.compare(a, b);
     }
 
+    // Bucket items by keyFn, sort each bucket's items by nameFn (locale-aware),
+    // and return the bucket keys sorted. byLetter sorts keys with compareLetterKeys
+    // (the "#" bucket lands last); otherwise sortKeyFn if given, else default order.
+    // Shared by the Places and Routes list groupers.
+    function groupAndSort(items, keyFn, nameFn, byLetter, sortKeyFn) {
+      const grouped = {};
+      for (const item of items) {
+        const key = keyFn(item);
+        (grouped[key] = grouped[key] || []).push(item);
+      }
+      for (const key in grouped) {
+        grouped[key].sort((a, b) => NAME_COLLATOR.compare(nameFn(a), nameFn(b)));
+      }
+      const keys = byLetter
+        ? Object.keys(grouped).sort(compareLetterKeys)
+        : Object.keys(grouped).sort(sortKeyFn || undefined);
+      return { grouped, keys };
+    }
+
     function renderPlaceList(query) {
       if (query === undefined) {
         const si = document.getElementById('search-input');
@@ -6986,21 +7005,13 @@
         return true;
       });
       setResultCount(filtered.length);
-      const grouped = {};
-      for (const p of filtered) {
-        const key = byCategory ? p.category
-                  : byLetter   ? letterBucket(p.name)
-                  :              (p.country || 'Other');
-        if (!grouped[key]) grouped[key] = [];
-        grouped[key].push(p);
-      }
       // Alphabetical within each bucket (Norwegian locale: Æ/Ø/Å after Z).
-      for (const key in grouped) {
-        grouped[key].sort((a, b) => NAME_COLLATOR.compare(a.name, b.name));
-      }
-      const keys = byLetter
-        ? Object.keys(grouped).sort(compareLetterKeys)
-        : Object.keys(grouped).sort();
+      const { grouped, keys } = groupAndSort(
+        filtered,
+        p => byCategory ? p.category : byLetter ? letterBucket(p.name) : (p.country || 'Other'),
+        p => p.name,
+        byLetter
+      );
       let html = '';
       for (const key of keys) {
         const items = grouped[key];
@@ -7677,21 +7688,17 @@
         const filtered = flatRoutes.filter(e => routeMatches(e, q, wantStatus, wantRegion, wantDiff, wantRating, wantTag));
         setResultCount(filtered.length);
         const byLetter = state.trailsGroupBy === 'letter';
-        const grouped = {};
-        for (const entry of filtered) {
-          const key = byLetter ? letterBucket(entry.route.name) : entry.region;
-          (grouped[key] = grouped[key] || []).push(entry);
-        }
-        for (const key in grouped) {
-          grouped[key].sort((a, b) => NAME_COLLATOR.compare(a.route.name || a.route.key || '', b.route.name || b.route.key || ''));
-        }
-        const keys = byLetter
-          ? Object.keys(grouped).sort(compareLetterKeys)
-          : Object.keys(grouped).sort((a, b) => {
-              if (a === '') return 1;
-              if (b === '') return -1;
-              return a.localeCompare(b);
-            });
+        const { grouped, keys } = groupAndSort(
+          filtered,
+          e => byLetter ? letterBucket(e.route.name) : e.region,
+          e => e.route.name || e.route.key || '',
+          byLetter,
+          (a, b) => {
+            if (a === '') return 1;
+            if (b === '') return -1;
+            return a.localeCompare(b);
+          }
+        );
         let inner = '';
         for (const key of keys) {
           const items = grouped[key];
