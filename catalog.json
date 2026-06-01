@@ -13,6 +13,19 @@
     ]
   },
   {
+    "name": "Accademia Gallery",
+    "lat": 43.7768,
+    "lon": 11.2588,
+    "category": "museum",
+    "country": "Italy",
+    "local_name": "Galleria dell'Accademia",
+    "note": "Home of Michelangelo's David",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Firenze%2C_galleria_dell%27accademia%2C_sala_del_colosso%2C_01%2C0.jpg/1280px-Firenze%2C_galleria_dell%27accademia%2C_sala_del_colosso%2C_01%2C0.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Galleria_dell%27Accademia"
+    ]
+  },
+  {
     "name": "Acropolis Museum",
     "lat": 37.96911,
     "lon": 23.7283,
@@ -447,6 +460,19 @@
     ]
   },
   {
+    "name": "Blue Grotto",
+    "lat": 40.5614,
+    "lon": 14.2054,
+    "category": "nature",
+    "country": "Italy",
+    "local_name": "Grotta Azzurra",
+    "note": "Sea cave with electric blue water on Capri",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Blue_Grotto.jpg/1280px-Blue_Grotto.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Blue_Grotto_(Capri)"
+    ]
+  },
+  {
     "name": "Blue Lagoon",
     "lat": 63.88,
     "lon": -22.44806,
@@ -582,6 +608,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Carcassonne_-_Pont_Neuf_-_View_SSE_on_Old_Bridge_%26_Citadel_-_Porte_d%27Aude.jpg/1280px-Carcassonne_-_Pont_Neuf_-_View_SSE_on_Old_Bridge_%26_Citadel_-_Porte_d%27Aude.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Cité_de_Carcassonne"
+    ]
+  },
+  {
+    "name": "Castle of the Holy Angel",
+    "lat": 41.9031,
+    "lon": 12.4663,
+    "category": "castle",
+    "country": "Italy",
+    "local_name": "Castel Sant'Angelo",
+    "note": "Cylindrical Tiber fortress, once Hadrian's mausoleum",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Engelsburg_und_Engelsbr%C3%BCcke_abends.jpg/1280px-Engelsburg_und_Engelsbr%C3%BCcke_abends.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Castel_Sant%27Angelo"
     ]
   },
   {
@@ -752,6 +791,18 @@
     ]
   },
   {
+    "name": "Church of the Holy Sepulchre",
+    "lat": 31.7785,
+    "lon": 35.2296,
+    "category": "religious",
+    "country": "Israel",
+    "note": "Traditional site of Jesus's crucifixion and burial",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Church_of_the_Holy_Sepulchre_by_Gerd_Eichmann_%28cropped%29.jpg/1280px-Church_of_the_Holy_Sepulchre_by_Gerd_Eichmann_%28cropped%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Church_of_the_Holy_Sepulchre"
+    ]
+  },
+  {
     "name": "Cologne Cathedral",
     "lat": 50.9413,
     "lon": 6.9583,
@@ -762,6 +813,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Cologne_Dome%2C_dramatic_style_%2816652836665%29.jpg/1280px-Cologne_Dome%2C_dramatic_style_%2816652836665%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Cologne_Cathedral"
+    ]
+  },
+  {
+    "name": "Colosseum",
+    "lat": 41.8902,
+    "lon": 12.4922,
+    "category": "ruins",
+    "country": "Italy",
+    "local_name": "Colosseo",
+    "note": "Ancient amphitheatre in central Rome",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/1280px-Colosseo_2020.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Colosseum"
     ]
   },
   {
@@ -907,6 +971,19 @@
     ]
   },
   {
+    "name": "Doge's Palace",
+    "lat": 45.4337,
+    "lon": 12.3401,
+    "category": "palace",
+    "country": "Italy",
+    "local_name": "Palazzo Ducale",
+    "note": "Gothic palace on St. Mark's Square in Venice",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/%28Venice%29_Doge%27s_Palace_and_campanile_of_St._Mark%27s_Basilica_facing_the_sea.jpg/1280px-%28Venice%29_Doge%27s_Palace_and_campanile_of_St._Mark%27s_Basilica_facing_the_sea.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Doge%27s_Palace"
+    ]
+  },
+  {
     "name": "Dome of Soltaniyeh",
     "lat": 36.43397,
     "lon": 48.79603,
@@ -917,6 +994,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Gonbad_Soltaniye.jpg/1280px-Gonbad_Soltaniye.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Dome_of_Soltaniyeh"
+    ]
+  },
+  {
+    "name": "Dome of the Rock",
+    "lat": 31.7781,
+    "lon": 35.2354,
+    "category": "religious",
+    "country": "Israel",
+    "local_name": "قبة الصخرة",
+    "note": "Gold-domed Islamic shrine on the Temple Mount",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Jerusalem-2013%282%29-Temple_Mount-Dome_of_the_Rock_%28SE_exposure%29.jpg/1280px-Jerusalem-2013%282%29-Temple_Mount-Dome_of_the_Rock_%28SE_exposure%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Dome_of_the_Rock"
     ]
   },
   {
@@ -1034,6 +1124,19 @@
     ]
   },
   {
+    "name": "Epidaurus",
+    "lat": 37.5961,
+    "lon": 23.0792,
+    "category": "ruins",
+    "country": "Greece",
+    "local_name": "Επίδαυρος",
+    "note": "Best-preserved ancient Greek theatre, famed acoustics",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Theatre_of_Epidaurus_2.jpg/1280px-Theatre_of_Epidaurus_2.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Epidaurus"
+    ]
+  },
+  {
     "name": "Eram Garden",
     "lat": 29.63583,
     "lon": 52.52528,
@@ -1120,6 +1223,32 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Santorini_Fira3_tango7174.jpg/1280px-Santorini_Fira3_tango7174.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Fira"
+    ]
+  },
+  {
+    "name": "Fisherman's Bastion",
+    "lat": 47.5019,
+    "lon": 19.0348,
+    "category": "monument",
+    "country": "Hungary",
+    "local_name": "Halászbástya",
+    "note": "Neo-Gothic terrace with panoramic views of Budapest",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Fishermans_bastion_Budapest_IMG_1429.JPG/1280px-Fishermans_bastion_Budapest_IMG_1429.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Fisherman%27s_Bastion"
+    ]
+  },
+  {
+    "name": "Florence Cathedral",
+    "lat": 43.7733,
+    "lon": 11.2555,
+    "category": "religious",
+    "country": "Italy",
+    "local_name": "Basilica di Santa Maria del Fiore",
+    "note": "Duomo crowned by Brunelleschi's vast brick dome",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Cattedrale_di_Santa_Maria_del_Fiore_%E2%80%93_Il_Duomo_di_Firenze.jpg/1280px-Cattedrale_di_Santa_Maria_del_Fiore_%E2%80%93_Il_Duomo_di_Firenze.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Florence_Cathedral"
     ]
   },
   {
@@ -1313,6 +1442,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Sphinx_with_the_third_pyramid.jpg/1280px-Sphinx_with_the_third_pyramid.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Great_Sphinx_of_Giza"
+    ]
+  },
+  {
+    "name": "Great Zimbabwe",
+    "lat": -20.2674,
+    "lon": 30.9338,
+    "category": "ruins",
+    "country": "Zimbabwe",
+    "note": "Medieval stone city, gave the country its name",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Great-zim-aerial-looking-West.JPG/1280px-Great-zim-aerial-looking-West.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Great_Zimbabwe"
     ]
   },
   {
@@ -1587,6 +1728,19 @@
     ]
   },
   {
+    "name": "Kilauea",
+    "lat": 19.4211,
+    "lon": -155.28676,
+    "category": "nature",
+    "country": "United States",
+    "local_name": "Kīlauea",
+    "note": "One of the most active volcanoes on Earth",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Episode_4_of_Kilauea%27s_December_2024_eruption_2025-01-16.jpg/1280px-Episode_4_of_Kilauea%27s_December_2024_eruption_2025-01-16.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/K%C4%ABlauea"
+    ]
+  },
+  {
     "name": "Kiyomizu-dera",
     "lat": 34.995,
     "lon": 135.785,
@@ -1647,6 +1801,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Larnach_Castle_and_fountain.jpg/1280px-Larnach_Castle_and_fountain.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Larnach_Castle"
+    ]
+  },
+  {
+    "name": "Leaning Tower of Pisa",
+    "lat": 43.72306,
+    "lon": 10.39639,
+    "category": "monument",
+    "country": "Italy",
+    "local_name": "Torre pendente di Pisa",
+    "note": "Freestanding bell tower famous for its unintended tilt",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Leaning_Tower_of_Pisa%2C_Italy%2C_15_Sep._2023%2C_Landscape.jpg/1280px-Leaning_Tower_of_Pisa%2C_Italy%2C_15_Sep._2023%2C_Landscape.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Leaning_Tower_of_Pisa"
     ]
   },
   {
@@ -1738,6 +1905,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Machu_Picchu_Panorama_2025.jpg/1280px-Machu_Picchu_Panorama_2025.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Machu_Picchu"
+    ]
+  },
+  {
+    "name": "Masada",
+    "lat": 31.3156,
+    "lon": 35.3536,
+    "category": "ruins",
+    "country": "Israel",
+    "local_name": "מצדה",
+    "note": "Hilltop fortress overlooking the Dead Sea",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Aerial_view_of_Masada_%28Israel%29_02.jpg/1280px-Aerial_view_of_Masada_%28Israel%29_02.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Masada"
     ]
   },
   {
@@ -1893,6 +2073,19 @@
     ]
   },
   {
+    "name": "Mount Etna",
+    "lat": 37.755,
+    "lon": 14.995,
+    "category": "nature",
+    "country": "Italy",
+    "local_name": "Etna",
+    "note": "Europe's most active volcano",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Mt_Etna_and_Catania1.jpg/1280px-Mt_Etna_and_Catania1.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Mount_Etna"
+    ]
+  },
+  {
     "name": "Mount Rushmore",
     "lat": 43.87889,
     "lon": -103.45917,
@@ -1902,6 +2095,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Mount_Rushmore_detail_view_%28100MP%29.jpg/1280px-Mount_Rushmore_detail_view_%28100MP%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Mount_Rushmore"
+    ]
+  },
+  {
+    "name": "Mount Vesuvius",
+    "lat": 40.82139,
+    "lon": 14.42611,
+    "category": "nature",
+    "country": "Italy",
+    "local_name": "Monte Vesuvio",
+    "note": "Destroyed Pompeii, walkable crater",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Il_cratere_del_Vulcano_-_panoramio.jpg/1280px-Il_cratere_del_Vulcano_-_panoramio.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Mount_Vesuvius"
     ]
   },
   {
@@ -1980,6 +2186,19 @@
     ]
   },
   {
+    "name": "Naqsh-e Jahan Square",
+    "lat": 32.6567,
+    "lon": 51.6776,
+    "category": "monument",
+    "country": "Iran",
+    "local_name": "میدان نقش جهان",
+    "note": "One of the largest public squares in the world",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Shah_%28_Emam_%29_Square_5.jpg/1280px-Shah_%28_Emam_%29_Square_5.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Naqsh-e_Jahan_Square"
+    ]
+  },
+  {
     "name": "Nara Park",
     "lat": 34.6851,
     "lon": 135.843,
@@ -1990,6 +2209,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/003_Nara_deer_in_Japan_-_deer_of_Nara_Park_under_autumn_leaves.jpg/1280px-003_Nara_deer_in_Japan_-_deer_of_Nara_Park_under_autumn_leaves.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Nara_Park"
+    ]
+  },
+  {
+    "name": "Nasir al-Mulk Mosque",
+    "lat": 29.60861,
+    "lon": 52.54833,
+    "category": "religious",
+    "country": "Iran",
+    "local_name": "مسجد نصیرالملک",
+    "note": "The Pink Mosque, famous for stained glass light",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Nasir_ol_Molk_Mosque_%2831233739431%29.jpg/1280px-Nasir_ol_Molk_Mosque_%2831233739431%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Nasir-ol-Molk_Mosque"
     ]
   },
   {
@@ -2027,6 +2259,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Frontis_del_edificio_del_Museo_Nacional_de_Antropolog%C3%ADa.JPG/1280px-Frontis_del_edificio_del_Museo_Nacional_de_Antropolog%C3%ADa.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Museum_of_Anthropology_(Mexico)"
+    ]
+  },
+  {
+    "name": "National Museum of India",
+    "lat": 28.6117,
+    "lon": 77.2194,
+    "category": "museum",
+    "country": "India",
+    "note": "Indian art and archaeology, prehistory to modern",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/India_national_museum_01.jpg/1280px-India_national_museum_01.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/National_Museum,_New_Delhi"
     ]
   },
   {
@@ -2196,6 +2440,18 @@
     ]
   },
   {
+    "name": "Pantheon",
+    "lat": 41.8986,
+    "lon": 12.4769,
+    "category": "monument",
+    "country": "Italy",
+    "note": "Best-preserved Roman temple, vast unreinforced dome",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Fa%C3%A7ade_of_the_Pantheon%2C_Rome%2C_Italy.jpg/1280px-Fa%C3%A7ade_of_the_Pantheon%2C_Rome%2C_Italy.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Pantheon,_Rome"
+    ]
+  },
+  {
     "name": "Paphos Archaeological Park",
     "lat": 34.75567,
     "lon": 32.40417,
@@ -2270,6 +2526,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Roman_Theatre_Plovdiv_3.jpg/1280px-Roman_Theatre_Plovdiv_3.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Plovdiv_Roman_theatre"
+    ]
+  },
+  {
+    "name": "Pompeii",
+    "lat": 40.75,
+    "lon": 14.48611,
+    "category": "ruins",
+    "country": "Italy",
+    "local_name": "Pompei",
+    "note": "Roman city buried by Vesuvius's ash in AD 79",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Old_house_pompei_site.jpeg/1280px-Old_house_pompei_site.jpeg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Pompeii"
     ]
   },
   {
@@ -2589,6 +2858,19 @@
     ]
   },
   {
+    "name": "Roman Forum",
+    "lat": 41.8925,
+    "lon": 12.4853,
+    "category": "ruins",
+    "country": "Italy",
+    "local_name": "Foro Romano",
+    "note": "Ruins of the political center of ancient Rome",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Forum_Romanum_Rom.jpg/1280px-Forum_Romanum_Rom.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Roman_Forum"
+    ]
+  },
+  {
     "name": "Rotunda of Galerius",
     "lat": 40.6333,
     "lon": 22.95285,
@@ -2637,6 +2919,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/%D8%B3%D8%B1%D8%A7%DB%8C_%D8%B3%D8%B9%D8%AF%D8%A7%D9%84%D8%B3%D9%84%D8%B7%D9%86%D9%87_%D9%82%D8%B2%D9%88%DB%8C%D9%86.jpg/1280px-%D8%B3%D8%B1%D8%A7%DB%8C_%D8%B3%D8%B9%D8%AF%D8%A7%D9%84%D8%B3%D9%84%D8%B7%D9%86%D9%87_%D9%82%D8%B2%D9%88%DB%8C%D9%86.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sa%27d_al-Saltaneh_Caravanserai"
+    ]
+  },
+  {
+    "name": "Sagalassos",
+    "lat": 37.67806,
+    "lon": 30.51944,
+    "category": "ruins",
+    "country": "Turkey",
+    "note": "Pisidian mountain city at 1500m, restored fountain",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Sagalassos_Antik_Kenti_03.jpg/1280px-Sagalassos_Antik_Kenti_03.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Sagalassos"
     ]
   },
   {
@@ -2883,6 +3177,18 @@
     ]
   },
   {
+    "name": "Side",
+    "lat": 36.7667,
+    "lon": 31.3889,
+    "category": "ruins",
+    "country": "Turkey",
+    "note": "Coastal ruins with a seaside Temple of Apollo",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Temple_Apollo_Side_Wide.jpg/1280px-Temple_Apollo_Side_Wide.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Side,_Turkey"
+    ]
+  },
+  {
     "name": "Sigiriya",
     "lat": 7.95694,
     "lon": 80.75972,
@@ -2893,6 +3199,32 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Sigiriya_%28141688197%29.jpeg/1280px-Sigiriya_%28141688197%29.jpeg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sigiriya"
+    ]
+  },
+  {
+    "name": "Simena",
+    "lat": 36.19016,
+    "lon": 29.85979,
+    "category": "ruins",
+    "country": "Turkey",
+    "note": "Lycian castle village over Kekova, reached by boat",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Sunken_City_Simena.JPG/1280px-Sunken_City_Simena.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Simena"
+    ]
+  },
+  {
+    "name": "Sistine Chapel",
+    "lat": 41.9029,
+    "lon": 12.4545,
+    "category": "religious",
+    "country": "Italy",
+    "local_name": "Cappella Sistina",
+    "note": "Chapel in the Vatican with Michelangelo's ceiling frescoes",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Veduta_della_cappella_sistina_dai_giardini_vaticani%2C_03.jpg/1280px-Veduta_della_cappella_sistina_dai_giardini_vaticani%2C_03.jpg",
+    "image_focus": "top",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Sistine_Chapel"
     ]
   },
   {
@@ -2973,6 +3305,45 @@
     ]
   },
   {
+    "name": "St. Mark's Basilica",
+    "lat": 45.4345,
+    "lon": 12.3396,
+    "category": "religious",
+    "country": "Italy",
+    "local_name": "Basilica di San Marco",
+    "note": "Byzantine cathedral with gold mosaics in Venice",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Venezia_Basilica_di_San_Marco_Fassade_2.jpg/1280px-Venezia_Basilica_di_San_Marco_Fassade_2.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/St_Mark%27s_Basilica"
+    ]
+  },
+  {
+    "name": "St. Nicholas Church",
+    "lat": 36.24467,
+    "lon": 29.98543,
+    "category": "religious",
+    "country": "Turkey",
+    "local_name": "Noel Baba Kilisesi",
+    "note": "Burial church of St. Nicholas, the original Santa",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Noel_Baba_Kilisesi..._-_panoramio.jpg/1280px-Noel_Baba_Kilisesi..._-_panoramio.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/St._Nicholas_Church,_Demre"
+    ]
+  },
+  {
+    "name": "St. Peter's Basilica",
+    "lat": 41.9022,
+    "lon": 12.4539,
+    "category": "religious",
+    "country": "Italy",
+    "local_name": "Basilica di San Pietro",
+    "note": "Renaissance church in Vatican City, largest in the world",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Basilica_di_San_Pietro_in_Vaticano_September_2015-1a.jpg/1280px-Basilica_di_San_Pietro_in_Vaticano_September_2015-1a.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/St._Peter%27s_Basilica"
+    ]
+  },
+  {
     "name": "State Historical Museum",
     "lat": 55.755,
     "lon": 37.6181,
@@ -3022,6 +3393,18 @@
     ]
   },
   {
+    "name": "Stromboli",
+    "lat": 38.79389,
+    "lon": 15.21111,
+    "category": "nature",
+    "country": "Italy",
+    "note": "Constant eruptions visible at night",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Aerial_image_of_Stromboli_%28view_from_the_northeast%29.jpg/1280px-Aerial_image_of_Stromboli_%28view_from_the_northeast%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Stromboli"
+    ]
+  },
+  {
     "name": "Sultan Qaboos Grand Mosque",
     "lat": 23.58389,
     "lon": 58.38917,
@@ -3044,6 +3427,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Sydney_Australia._%2821339175489%29.jpg/1280px-Sydney_Australia._%2821339175489%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sydney_Opera_House"
+    ]
+  },
+  {
+    "name": "Syedra",
+    "lat": 36.44111,
+    "lon": 32.1525,
+    "category": "ruins",
+    "country": "Turkey",
+    "note": "Ancient port city ruins on a hilltop 20 km east of Alanya",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Syedra_-_panoramio_-_matzi01.jpg/1280px-Syedra_-_panoramio_-_matzi01.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Syedra"
     ]
   },
   {
@@ -3159,6 +3554,18 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Tumba_de_pakal%2C_Chiapas.JPG/1280px-Tumba_de_pakal%2C_Chiapas.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_the_Inscriptions"
+    ]
+  },
+  {
+    "name": "Termessos",
+    "lat": 36.9825,
+    "lon": 30.46472,
+    "category": "ruins",
+    "country": "Turkey",
+    "note": "Hilltop city Alexander the Great failed to take",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Termessos_-_Theater.jpg/1280px-Termessos_-_Theater.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Termessos"
     ]
   },
   {
@@ -3317,6 +3724,19 @@
     ]
   },
   {
+    "name": "Topkapı Palace",
+    "lat": 41.0115,
+    "lon": 28.9833,
+    "category": "palace",
+    "country": "Turkey",
+    "local_name": "Topkapı Sarayı",
+    "note": "Ottoman sultans' palace overlooking the Bosphorus",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Topkapi_Palace_Seen_From_Harem.JPG/1280px-Topkapi_Palace_Seen_From_Harem.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Topkap%C4%B1_Palace"
+    ]
+  },
+  {
     "name": "Topography of Terror",
     "lat": 52.50694,
     "lon": 13.38278,
@@ -3340,6 +3760,32 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Moscow_05-2012_TretyakovGallery.jpg/1280px-Moscow_05-2012_TretyakovGallery.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Tretyakov_Gallery"
+    ]
+  },
+  {
+    "name": "Trevi Fountain",
+    "lat": 41.9009,
+    "lon": 12.4833,
+    "category": "monument",
+    "country": "Italy",
+    "local_name": "Fontana di Trevi",
+    "note": "Baroque fountain, the largest in Rome",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Trevi_Fountain_-_Roma.jpg/1280px-Trevi_Fountain_-_Roma.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Trevi_Fountain"
+    ]
+  },
+  {
+    "name": "Troy",
+    "lat": 39.9574,
+    "lon": 26.2389,
+    "category": "ruins",
+    "country": "Turkey",
+    "local_name": "Truva",
+    "note": "Legendary Bronze Age city of the Iliad, nine layers",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Walls_of_Troy_%282%29.jpg/1280px-Walls_of_Troy_%282%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Troy"
     ]
   },
   {
@@ -3379,6 +3825,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Valles_de_las_Reinas_y_de_los_Reyes%2C_Luxor%2C_Egipto%2C_2022-04-03%2C_DD_21.jpg/1280px-Valles_de_las_Reinas_y_de_los_Reyes%2C_Luxor%2C_Egipto%2C_2022-04-03%2C_DD_21.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Valley_of_the_Kings"
+    ]
+  },
+  {
+    "name": "Valley of the Temples",
+    "lat": 37.28972,
+    "lon": 13.59333,
+    "category": "ruins",
+    "country": "Italy",
+    "local_name": "Valle dei Templi",
+    "note": "Ancient Greek temple ruins in Agrigento, Sicily",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Concordiatempel_Tempio_della_Temple_of_Concordia_de_la_Concorde_Tal_der_Tempel_Valle_dei_Templi_Agrigento_Sizilien_Foto_Wolfgang_Pehlemann_DSC07490.jpg/1280px-Concordiatempel_Tempio_della_Temple_of_Concordia_de_la_Concorde_Tal_der_Tempel_Valle_dei_Templi_Agrigento_Sizilien_Foto_Wolfgang_Pehlemann_DSC07490.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Valley_of_the_Temples_(Sicily)"
     ]
   },
   {
@@ -3443,6 +3902,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Victoria_and_Albert_Museum_London.jpg/1280px-Victoria_and_Albert_Museum_London.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Victoria_and_Albert_Museum"
+    ]
+  },
+  {
+    "name": "Victoria Falls",
+    "lat": -17.9244,
+    "lon": 25.8567,
+    "category": "nature",
+    "country": "Zimbabwe",
+    "local_name": "Mosi-oa-Tunya",
+    "note": "One of the largest waterfalls on Earth",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Cataratas_Victoria%2C_Zambia-Zimbabue%2C_2018-07-27%2C_DD_05.jpg/1280px-Cataratas_Victoria%2C_Zambia-Zimbabue%2C_2018-07-27%2C_DD_05.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Victoria_Falls"
     ]
   },
   {
@@ -3523,6 +3995,19 @@
     ]
   },
   {
+    "name": "Western Wall",
+    "lat": 31.7767,
+    "lon": 35.2345,
+    "category": "religious",
+    "country": "Israel",
+    "local_name": "הכותל המערבי",
+    "note": "Holiest site where Jews can pray",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/16-03-30-Klagemauer_Jerusalem_RalfR-DSCF7673.jpg/1280px-16-03-30-Klagemauer_Jerusalem_RalfR-DSCF7673.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Western_Wall"
+    ]
+  },
+  {
     "name": "Whitehaven Beach",
     "lat": -20.27861,
     "lon": 149.03639,
@@ -3545,6 +4030,31 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/%CE%91%CE%BB%CE%B1%CF%84%CF%89%CF%81%CF%85%CF%87%CE%B5%CE%AF%CE%B1_%CE%92%CE%B9%CE%B5%CE%BB%CE%AF%CF%84%CF%83%CE%BA%CE%B1_5021.jpg/1280px-%CE%91%CE%BB%CE%B1%CF%84%CF%89%CF%81%CF%85%CF%87%CE%B5%CE%AF%CE%B1_%CE%92%CE%B9%CE%B5%CE%BB%CE%AF%CF%84%CF%83%CE%BA%CE%B1_5021.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Wieliczka_Salt_Mine"
+    ]
+  },
+  {
+    "name": "Xanthos",
+    "lat": 36.3565,
+    "lon": 29.3182,
+    "category": "ruins",
+    "country": "Turkey",
+    "note": "Ancient Lycian capital with monumental tombs",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Xanthos_Roman_Theatre_2019.jpg/1280px-Xanthos_Roman_Theatre_2019.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Xanthos"
+    ]
+  },
+  {
+    "name": "Yanartas",
+    "lat": 36.4316,
+    "lon": 30.4558,
+    "category": "nature",
+    "country": "Turkey",
+    "local_name": "Yanartaş",
+    "note": "Eternal flames from natural gas vents near Olympos",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/The_eternal_fires_of_Chimera_in_Lycia_where_the_myth_of_the_Chimera_takes_place%2C_Mount_Chimaera%2C_Yanarta%C5%9F%2C_Turkey_%2812834951845%29.jpg/1280px-The_eternal_fires_of_Chimera_in_Lycia_where_the_myth_of_the_Chimera_takes_place%2C_Mount_Chimaera%2C_Yanarta%C5%9F%2C_Turkey_%2812834951845%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Yanarta%C5%9F"
     ]
   },
   {
