@@ -148,6 +148,30 @@ class TestValidatePlace(unittest.TestCase):
       out = api.validate_place(self.minimal(image_focus=empty))
       self.assertNotIn("image_focus", out)
 
+  def test_tags_normalized(self):
+    # Case preserved (first-seen casing wins), trimmed, deduped case-insensitively,
+    # blanks dropped. "unesco" collapses into the earlier "UNESCO".
+    out = api.validate_place(self.minimal(tags=["UNESCO", " free-entry ", "unesco", ""]))
+    self.assertEqual(out["tags"], ["UNESCO", "free-entry"])
+
+  def test_tags_empty_stripped(self):
+    for empty in ([], None):
+      out = api.validate_place(self.minimal(tags=empty))
+      self.assertNotIn("tags", out)
+
+  def test_tags_invalid_rejected(self):
+    for bad in ("Has Space", "-leading", "x" * 33, "ümlaut", "under_score"):
+      with self.assertRaises(api.ValidationError):
+        api.validate_place(self.minimal(tags=[bad]))
+
+  def test_tags_too_many_rejected(self):
+    with self.assertRaises(api.ValidationError):
+      api.validate_place(self.minimal(tags=[f"t{i}" for i in range(11)]))
+
+  def test_tags_non_list_rejected(self):
+    with self.assertRaises(api.ValidationError):
+      api.validate_place(self.minimal(tags="unesco"))
+
   def test_non_dict_rejected(self):
     with self.assertRaises(api.ValidationError):
       api.validate_place("not a dict")

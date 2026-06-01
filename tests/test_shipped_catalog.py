@@ -60,7 +60,7 @@ NOTE_MAX = 60
 CANONICAL_ORDER = [
   "name", "lat", "lon",
   "category", "country", "local_name",
-  "note", "image", "image_focus", "sources",
+  "note", "image", "image_focus", "sources", "tags",
 ]
 
 IMAGE_FOCUS_RE = re.compile(r"^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$")

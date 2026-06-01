@@ -5,9 +5,11 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
+- Places can carry free-form tags (e.g. `UNESCO`), editable in the place form, shown on the map popup and list cards, and filterable and searchable in the Places list. Tags keep their casing and dedupe case-insensitively; catalog entries can ship tags too.
 - 105 new shipped catalog entries.
 
 ### Changed
+- Route tags now keep the casing you type (e.g. `UNESCO`) instead of being forced to lowercase; matching and dedup stay case-insensitive.
 - Importing places from the catalog confirms only when adding 10 or more at once; smaller selections import without a prompt.
 
 ### Fixed

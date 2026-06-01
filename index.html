@@ -1349,12 +1349,13 @@
       color: var(--border);
       user-select: none;
     }
-    .route-meta-tags {
+    .route-meta-tags, .place-tags {
       display: flex;
       flex-wrap: wrap;
       gap: 0.25rem 0.5rem;
     }
-    .route-meta-tags .tag {
+    .place-tags { margin-top: 0.25rem; }
+    .route-meta-tags .tag, .place-tags .tag {
       font-size: 0.7rem;
       color: var(--muted);
       background: var(--bg);
@@ -3772,12 +3773,46 @@
       return sel.value;
     }
 
+    // ----- Tags (shared by places + routes) -----
+    // Parse a comma-separated input into a trimmed, de-blanked array, or null if empty.
+    function parseTagInput(str) {
+      const t = (str || '').split(',').map(s => s.trim()).filter(Boolean);
+      return t.length ? t : null;
+    }
+    // Inline "#a #b" line for map popups.
+    function tagPopupHtml(tags) {
+      return (Array.isArray(tags) && tags.length)
+        ? '<div class="popup-tags">' + tags.map(t => '#' + escapeHtml(t)).join(' ') + '</div>' : '';
+    }
+    // Pill badges for list cards; cls is the wrapper class (place-tags / route-meta-tags).
+    function tagPillsHtml(tags, cls) {
+      return (Array.isArray(tags) && tags.length)
+        ? '<div class="' + cls + '">' + tags.map(t => '<span class="tag">#' + escapeHtml(t) + '</span>').join('') + '</div>' : '';
+    }
+    // Unique tags across items (case-insensitive, first-seen casing kept), sorted.
+    function collectTags(items) {
+      const m = new Map();
+      for (const it of (items || [])) if (Array.isArray(it.tags)) for (const t of it.tags) {
+        if (!t) continue;
+        const k = t.toLowerCase();
+        if (!m.has(k)) m.set(k, t);
+      }
+      return [...m.values()].sort((a, b) => a.localeCompare(b));
+    }
+    // Case-insensitive membership test for a filter value ('all' always matches).
+    function tagsInclude(tags, want) {
+      if (want === 'all') return true;
+      const w = String(want).toLowerCase();
+      return Array.isArray(tags) && tags.some(t => t.toLowerCase() === w);
+    }
+
     function readPlaceFormFields(prefix) {
       const $ = id => document.getElementById(prefix + '-' + id);
       const val = id => { const el = $(id); return el ? el.value : ''; };
       const category = readSelectOrNew(prefix + '-category');
       const sourcesRaw = val('sources').trim();
       const sources = sourcesRaw ? sourcesRaw.split('\n').map(s => s.trim()).filter(Boolean) : null;
+      const tags = parseTagInput(val('tags'));
       const rawLat = parseFloat(val('lat'));
       const rawLon = parseFloat(val('lon'));
       if (Number.isNaN(rawLat) || Number.isNaN(rawLon)) {
@@ -3805,6 +3840,7 @@
       if (localName) payload.local_name = localName;
       if (image) payload.image = image;
       if (sources && sources.length) payload.sources = sources;
+      if (tags) payload.tags = tags;
       // Visit-only metadata: ignore if the visited toggle is off.
       if (payload.visited) {
         if (dateVisited) payload.date_visited = dateVisited;
@@ -4047,7 +4083,7 @@
       trailsGroupBy: (function(){ try { return localStorage.getItem('trails-group-by') || 'region'; } catch { return 'region'; } })(),
       // Filter values are kept in memory only — they survive in-page re-renders
       // (catalog refresh, CRUD writes) but reset on a full page reload.
-      placeFilters: { search: '', status: 'all', category: 'all', country: 'all', catalog: 'all' },
+      placeFilters: { search: '', status: 'all', category: 'all', country: 'all', tag: 'all', catalog: 'all' },
       trailFilters: { search: '', status: 'all', region: 'all', difficulty: 'all', rating: 'all', tag: 'all' },
       historyFilters: { search: '', kind: 'all', year: 'all', rating: 'all' },
       // unified-map filter state
@@ -4555,6 +4591,7 @@
         html += '<img class="popup-image" src="' + escapeHtml(p.image) + '" alt=""' + focusAttr + ' loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">';
       }
       if (p.note && getShowField('note')) html += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
+      html += tagPopupHtml(p.tags);
       html += '<div class="popup-meta">' +
         '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(displayCategory(p.category)) + '</span>' +
         '<span style="grid-column:3;color:' + (p.visited ? 'var(--completed)' : 'var(--planned)') + '">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
@@ -4646,9 +4683,7 @@
           '<span>' + dateSlot + '</span>' +
         '</div>';
       }
-      if (route.tags && route.tags.length) {
-        html += '<div class="popup-tags">' + route.tags.map(t => '#' + escapeHtml(t)).join(' ') + '</div>';
-      }
+      html += tagPopupHtml(route.tags);
       if (route.notes && getShowField('note')) html += '<div class="popup-note">' + escapeHtml(route.notes) + '</div>';
       html += '<div class="popup-meta">' +
         '<span style="color:' + color + '">' + (route.completed ? 'Completed' : 'Planned') + '</span>' +
@@ -4701,7 +4736,7 @@
           '<input type="text" id="tm-region-new" placeholder="New region name" maxlength="64" hidden>' +
           '<label for="tm-difficulty">Difficulty</label>' +
           radioPillsHtml('tm-difficulty', [['', 'None'], ['easy', 'Easy'], ['moderate', 'Moderate'], ['hard', 'Hard'], ['expert', 'Expert']], route.difficulty || '') +
-          '<label for="tm-tags">Tags (comma-separated, lowercase)</label>' +
+          '<label for="tm-tags">Tags (comma-separated)</label>' +
           '<input type="text" id="tm-tags" value="' + escapeHtml((route.tags || []).join(', ')) + '" placeholder="summit, panorama, via-ferrata">' +
           (getShowField('note') ?
             '<label for="tm-notes">Notes</label>' +
@@ -4764,8 +4799,7 @@
             const dateVal = get('tm-date').trim();
             const ratingRaw = readStarRating('tm-rating');
             const difficulty = (document.querySelector('input[name="tm-difficulty"]:checked') || {}).value || '';
-            const tagsRaw = get('tm-tags');
-            const tags = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
+            const tags = parseTagInput(get('tm-tags'));
             const source = get('tm-source').trim();
             const notes = get('tm-notes');
             const localName = get('tm-local-name').trim();
@@ -4773,7 +4807,7 @@
             if (dateVal) metadata.date_completed = dateVal;
             if (ratingRaw) metadata.rating = parseInt(ratingRaw, 10);
             if (difficulty) metadata.difficulty = difficulty;
-            if (tags.length) metadata.tags = tags;
+            if (tags) metadata.tags = tags;
             if (source) metadata.source = source;
             if (notes.trim()) metadata.notes = notes;
             if (localName) metadata.local_name = localName;
@@ -5398,6 +5432,8 @@
           selectOrNewHtml('e-category', cats, place.category, displayCategory, '', 'New category name') +
           '<label for="e-country">Country (optional)</label>' +
           '<input type="text" id="e-country" value="' + escapeHtml(place.country || '') + '">' +
+          '<label for="e-tags">Tags (comma-separated)</label>' +
+          '<input type="text" id="e-tags" value="' + escapeHtml((place.tags || []).join(', ')) + '" placeholder="UNESCO, free-entry">' +
           (getShowField('note') ?
             '<label for="e-note">Note (optional)</label>' +
             '<textarea id="e-note" style="min-height:40px">' + escapeHtml(place.note || '') + '</textarea>'
@@ -6270,8 +6306,8 @@
     // ----- Places browse list -----
     // Fields the catalog "owns" - personal status (visited / date_visited /
     // rating / from_catalog / runtime annotations) is preserved on refresh.
-    const CATALOG_TRACKED_FIELDS = ['name', 'lat', 'lon', 'category', 'country', 'local_name', 'note', 'image', 'image_focus', 'sources'];
-    const CATALOG_FIELD_LABELS = { name: 'Name', lat: 'Latitude', lon: 'Longitude', category: 'Category', country: 'Country', local_name: 'Local name', note: 'Note', image: 'Image', image_focus: 'Image focus', sources: 'Sources' };
+    const CATALOG_TRACKED_FIELDS = ['name', 'lat', 'lon', 'category', 'country', 'local_name', 'note', 'image', 'image_focus', 'sources', 'tags'];
+    const CATALOG_FIELD_LABELS = { name: 'Name', lat: 'Latitude', lon: 'Longitude', category: 'Category', country: 'Country', local_name: 'Local name', note: 'Note', image: 'Image', image_focus: 'Image focus', sources: 'Sources', tags: 'Tags' };
 
     // Returns { entry, changes: [{field, before, after}] } when the upstream
     // catalog entry for a place's from_catalog has diverged from the local
@@ -6700,6 +6736,7 @@
 
       const canAdd = state.auth.authenticated && !isReadOnly();
       const countries = [...new Set(places.map(p => p.country).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+      const placeTags = collectTags(places);
       app.innerHTML =
         '<div class="index-controls">' +
         '<div class="search-wrap"><input type="text" id="search-input" placeholder="Filter places..." value="' + escapeHtml(state.placeFilters.search) + '"><span class="result-count" id="result-count"></span></div>' +
@@ -6719,6 +6756,12 @@
               '<select id="filter-country">' +
                 '<option value="all">Country</option>' +
                 countries.map(c => '<option value="' + escapeHtml(c) + '"' + (state.placeFilters.country === c ? ' selected' : '') + '>' + escapeHtml(c) + '</option>').join('') +
+              '</select>'
+              : '') +
+            (placeTags.length ?
+              '<select id="filter-tag">' +
+                '<option value="all">Tag</option>' +
+                placeTags.map(t => '<option value="' + escapeHtml(t) + '"' + (state.placeFilters.tag === t ? ' selected' : '') + '>#' + escapeHtml(t) + '</option>').join('') +
               '</select>'
               : '') +
             '<select id="filter-catalog">' +
@@ -6753,11 +6796,12 @@
       const statusSel = document.getElementById('filter-status');
       const catSel = document.getElementById('filter-category');
       const countrySel = document.getElementById('filter-country');
+      const tagSel = document.getElementById('filter-tag');
       const catalogSel = document.getElementById('filter-catalog');
       const filterBtn = document.getElementById('filter-btn');
       const filterPop = document.getElementById('filter-popover');
       const filterClear = document.getElementById('filter-clear');
-      const filterSels = [statusSel, catSel, countrySel, catalogSel].filter(Boolean);
+      const filterSels = [statusSel, catSel, countrySel, tagSel, catalogSel].filter(Boolean);
       function updateFilterBtnLabel() {
         const n = filterSels.reduce((acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
         if (filterBtn) {
@@ -6773,7 +6817,7 @@
         state.placeFilters.search = this.value;
         rerender();
       });
-      const filterKeyById = { 'filter-status': 'status', 'filter-category': 'category', 'filter-country': 'country', 'filter-catalog': 'catalog' };
+      const filterKeyById = { 'filter-status': 'status', 'filter-category': 'category', 'filter-country': 'country', 'filter-tag': 'tag', 'filter-catalog': 'catalog' };
       filterSels.forEach(s => s.addEventListener('change', function() {
         const k = filterKeyById[s.id];
         if (k) state.placeFilters[k] = s.value;
@@ -6809,6 +6853,7 @@
         state.placeFilters.status = 'all';
         state.placeFilters.category = 'all';
         state.placeFilters.country = 'all';
+        state.placeFilters.tag = 'all';
         state.placeFilters.catalog = 'all';
         if (placesSearchInput) placesSearchInput.value = '';
         state.placeFilters.search = '';
@@ -6854,6 +6899,8 @@
       const wantStatus = statusEl ? statusEl.value : 'all';
       const wantCat = catEl ? catEl.value : 'all';
       const wantCountry = countryEl ? countryEl.value : 'all';
+      const tagEl = document.getElementById('filter-tag');
+      const wantTag = tagEl ? tagEl.value : 'all';
       const catalogEl = document.getElementById('filter-catalog');
       const wantCatalog = catalogEl ? catalogEl.value : 'all';
       const filtered = state.places.filter(p => {
@@ -6861,12 +6908,14 @@
           p.name.toLowerCase().includes(q) ||
           (p.note && p.note.toLowerCase().includes(q)) ||
           p.category.toLowerCase().includes(q) ||
-          (p.country && p.country.toLowerCase().includes(q))
+          (p.country && p.country.toLowerCase().includes(q)) ||
+          (Array.isArray(p.tags) && p.tags.some(t => t.toLowerCase().includes(q)))
         )) return false;
         if (wantStatus === 'visited' && !p.visited) return false;
         if (wantStatus === 'want' && p.visited) return false;
         if (wantCat !== 'all' && p.category !== wantCat) return false;
         if (wantCountry !== 'all' && p.country !== wantCountry) return false;
+        if (!tagsInclude(p.tags, wantTag)) return false;
         if (wantCatalog === 'from-catalog' && !p.from_catalog) return false;
         if (wantCatalog === 'not-from-catalog' && p.from_catalog) return false;
         if (wantCatalog === 'updates-available' && !findCatalogUpdate(p)) return false;
@@ -6915,6 +6964,7 @@
           rowInner += '<div class="place-text">';
           rowInner += '<div class="name">' + escapeHtml(p.name) + '</div>';
           if (p.note && getShowField('note')) rowInner += '<div class="note">' + escapeHtml(p.note) + '</div>';
+          rowInner += tagPillsHtml(p.tags, 'place-tags');
           rowInner += '</div>';
           if (p.from_catalog) {
             const orphan = isCatalogOrphan(p);
@@ -7517,13 +7567,7 @@
         if (b === '') return -1;
         return a.localeCompare(b);
       });
-      const tagSet = new Set();
-      for (const region of regions) {
-        for (const route of region.routes) {
-          if (Array.isArray(route.tags)) for (const t of route.tags) if (t) tagSet.add(String(t).toLowerCase());
-        }
-      }
-      const allTags = [...tagSet].sort((a, b) => a.localeCompare(b));
+      const allTags = collectTags(regions.flatMap(r => r.routes));
       let html = '<div class="index-controls">' +
         '<div class="search-wrap"><input type="text" id="search-input" placeholder="Filter routes..." value="' + escapeHtml(state.trailFilters.search) + '"><span class="result-count" id="result-count"></span></div>' +
         '<div class="filter-dropdown">' +
@@ -7605,10 +7649,7 @@
         if (wantDiff !== 'all' && route.difficulty !== wantDiff) return false;
         if (wantRating === 'unrated' && route.rating) return false;
         if (wantRating !== 'all' && wantRating !== 'unrated' && String(route.rating || '') !== wantRating) return false;
-        if (wantTag !== 'all') {
-          const tags = Array.isArray(route.tags) ? route.tags.map(t => String(t).toLowerCase()) : [];
-          if (!tags.includes(wantTag)) return false;
-        }
+        if (!tagsInclude(route.tags, wantTag)) return false;
         return true;
       }
       function renderTrailsList() {
@@ -7947,9 +7988,7 @@
         metaHtml = '<div class="route-meta-panel">';
         metaHtml += '<div class="route-meta-header">';
         metaHtml += '<div class="route-meta-line">' + facts.join('<span class="sep">&middot;</span>') + '</div>';
-        if (hasTags) {
-          metaHtml += '<div class="route-meta-tags">' + route.tags.map(t => '<span class="tag">#' + escapeHtml(t) + '</span>').join('') + '</div>';
-        }
+        metaHtml += tagPillsHtml(route.tags, 'route-meta-tags');
         metaHtml += '</div>';
         if (hasNotes) {
           metaHtml += '<div class="route-meta-notes"><span class="route-meta-notes-label">Notes</span>' + escapeHtml(route.notes) + '</div>';
@@ -11508,7 +11547,7 @@
           selectOrNewHtml('g-region', regions, null, null, '', 'New region name') +
           '<label for="g-difficulty">Difficulty</label>' +
           radioPillsHtml('g-difficulty', [['', 'None'], ['easy', 'Easy'], ['moderate', 'Moderate'], ['hard', 'Hard'], ['expert', 'Expert']], '') +
-          '<label for="g-tags">Tags (comma-separated, lowercase)</label>' +
+          '<label for="g-tags">Tags (comma-separated)</label>' +
           '<input type="text" id="g-tags" placeholder="summit, panorama, via-ferrata">' +
           (getShowField('note') ?
             '<label for="g-notes">Notes (optional)</label>' +
@@ -11651,13 +11690,13 @@
           const notes = get('g-notes');
           const localName = get('g-local-name').trim();
           const difficulty = (document.querySelector('input[name="g-difficulty"]:checked') || {}).value || '';
-          const tags = get('g-tags').split(',').map(t => t.trim()).filter(Boolean);
+          const tags = parseTagInput(get('g-tags'));
           const metadata = {};
           if (source) metadata.source = source;
           if (notes.trim()) metadata.notes = notes;
           if (localName) metadata.local_name = localName;
           if (difficulty) metadata.difficulty = difficulty;
-          if (tags.length) metadata.tags = tags;
+          if (tags) metadata.tags = tags;
           if (completed) {
             const dateVal = get('g-date').trim();
             const ratingRaw = readStarRating('g-rating');

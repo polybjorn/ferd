@@ -105,10 +105,10 @@ The browser-facing public URL is `/u/<username>/` (no `/api` prefix); the static
 { "name": "Rome", "lat": 41.89, "lon": 12.49,
   "category": "ruins", "country": "Italy", "visited": true,
   "note": "...", "sources": ["https://..."], "image": "https://...",
-  "local_name": "Roma", "date_visited": "2024-07-15", "rating": 4 }
+  "local_name": "Roma", "tags": ["unesco"], "date_visited": "2024-07-15", "rating": 4 }
 ```
 
-Required: `name`, `lat`, `lon`. Optional: `category`, `country`, `visited`, `note`, `sources` (array of `http(s)` URLs), `image` (single `http(s)` URL, max 1000 chars), `local_name`, `date_visited` (YYYY-MM-DD), `rating` (1-5). A missing or empty `category` is stored as "uncategorized" (the field is stripped). Anything else is rejected.
+Required: `name`, `lat`, `lon`. Optional: `category`, `country`, `visited`, `note`, `sources` (array of `http(s)` URLs), `image` (single `http(s)` URL, max 1000 chars), `local_name`, `tags` (array of free-form labels, same format as route tags: `[a-zA-Z0-9][a-zA-Z0-9-]{0,31}`, max 10, deduped case-insensitively), `date_visited` (YYYY-MM-DD), `rating` (1-5). A missing or empty `category` is stored as "uncategorized" (the field is stripped). Anything else is rejected.
 
 **Route metadata entry** (one value in `metadata.json`, keyed by `Region/Route` or `Route`):
 
@@ -118,7 +118,7 @@ Required: `name`, `lat`, `lon`. Optional: `category`, `country`, `visited`, `not
   "difficulty": "moderate", "local_name": "..." }
 ```
 
-All fields optional. `tags` entries match `[a-z0-9][a-z0-9-]{0,31}`; `difficulty` is one of `easy`, `moderate`, `hard`, `expert`.
+All fields optional. `tags` entries match `[a-zA-Z0-9][a-zA-Z0-9-]{0,31}` (deduped case-insensitively, casing preserved); `difficulty` is one of `easy`, `moderate`, `hard`, `expert`.
 
 **Manifest response** for GPX writes:
 

@@ -65,18 +65,46 @@ GPX_NS = "http://www.topografix.com/GPX/1/1"
 # dot-dot whole-string rejection lives in safe_path_component itself.
 PATH_COMPONENT_RE = re.compile(r"^[^\x00-\x1f/\\]{1,255}$")
 PLACE_REQUIRED = {"name", "lat", "lon"}
-PLACE_OPTIONAL = {"id", "category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating", "image", "image_focus", "from_catalog", "catalog_skip"}
+PLACE_OPTIONAL = {"id", "category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating", "image", "image_focus", "tags", "from_catalog", "catalog_skip"}
 PLACE_ID_RE = re.compile(r"^[0-9a-f]{8}$")
 PLACE_ALL = PLACE_REQUIRED | PLACE_OPTIONAL
 
 # Route metadata fields and their constraints (used by /api/metadata).
 ROUTE_META_FIELDS = {"source", "date_completed", "rating", "notes", "tags", "difficulty", "local_name"}
 ROUTE_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-ROUTE_TAG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
+TAG_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9-]{0,31}$")
 ROUTE_DIFFICULTIES = ("easy", "moderate", "hard", "expert")
 
 # Precomputed dummy hash used to equalize timing when a username doesn't exist.
 _DUMMY_SALT = b"\x00" * SALT_BYTES
+
+
+def normalize_tags(tags: object) -> list:
+  """Validate and normalize a free-form tag list (places and routes share this).
+
+  Trims, drops blanks, dedupes case-insensitively (keeping the first-seen
+  casing, so "UNESCO" survives as written), and enforces TAG_RE + a 10-tag cap.
+  Raises ValidationError on a non-list, a non-string item, or a bad format.
+  """
+  if not isinstance(tags, list):
+    raise ValidationError("tags must be a list of strings")
+  cleaned: list = []
+  seen: set = set()  # lowercased keys, for case-insensitive dedup
+  for t in tags:
+    if not isinstance(t, str):
+      raise ValidationError("each tag must be a string")
+    tn = t.strip()
+    if not tn:
+      continue
+    if not TAG_RE.match(tn):
+      raise ValidationError(f"invalid tag: {tn!r} (alphanumerics + hyphen, 1-32 chars, starts with alphanumeric)")
+    key = tn.lower()
+    if key not in seen:
+      seen.add(key)
+      cleaned.append(tn)
+  if len(cleaned) > 10:
+    raise ValidationError("too many tags (max 10)")
+  return cleaned
 _DUMMY_HASH = pbkdf2_hmac("sha256", b"unused", _DUMMY_SALT, PBKDF2_ITERATIONS, dklen=PBKDF2_DKLEN)
 
 
@@ -3309,6 +3337,8 @@ def validate_place(p: object) -> dict:
         raise ValidationError("each source must be a string (<=500 chars)")
       if urlparse(s).scheme.lower() not in ("http", "https"):
         raise ValidationError("each source must be an http(s) URL")
+  # Free-form labels (e.g. "unesco"), same format/cap as route tags.
+  place_tags = normalize_tags(p["tags"]) if p.get("tags") else []
   if "image" in p and p["image"] is not None and p["image"] != "":
     if not isinstance(p["image"], str) or len(p["image"]) > 1000:
       raise ValidationError("image must be a string (<=1000 chars) or null")
@@ -3372,6 +3402,8 @@ def validate_place(p: object) -> dict:
     out["rating"] = p["rating"]
   if isinstance(p.get("catalog_skip"), dict) and p["catalog_skip"]:
     out["catalog_skip"] = p["catalog_skip"]
+  if place_tags:
+    out["tags"] = place_tags
   return out
 
 
@@ -3426,23 +3458,7 @@ def validate_route_metadata(m: object) -> dict:
 
   tags = m.get("tags")
   if tags:
-    if not isinstance(tags, list):
-      raise ValidationError("tags must be a list of strings")
-    cleaned: list[str] = []
-    seen: set[str] = set()
-    for t in tags:
-      if not isinstance(t, str):
-        raise ValidationError("each tag must be a string")
-      tn = t.strip().lower()
-      if not tn:
-        continue
-      if not ROUTE_TAG_RE.match(tn):
-        raise ValidationError(f"invalid tag: {tn!r} (lowercase alphanumerics + hyphen, 1-32 chars, starts with alphanumeric)")
-      if tn not in seen:
-        seen.add(tn)
-        cleaned.append(tn)
-    if len(cleaned) > 10:
-      raise ValidationError("too many tags (max 10)")
+    cleaned = normalize_tags(tags)
     if cleaned:
       out["tags"] = cleaned
 
