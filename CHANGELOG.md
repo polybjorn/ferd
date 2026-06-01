@@ -10,6 +10,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ### Changed
 - Importing places from the catalog confirms only when adding 10 or more at once; smaller selections import without a prompt.
 
+### Fixed
+- Places added from the catalog (or via the Add form) now appear in the Places list immediately instead of only after a manual reload.
+
 ## [1.2.0] - 2026-05-31
 
 ### Added

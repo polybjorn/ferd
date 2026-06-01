@@ -11603,7 +11603,7 @@
           const prevColors = Object.assign({}, state.categoryColors);
           dataLayer.createPlace(r.payload)
             .then(() => refreshPlaces())
-            .then(() => { closeModal(); syncPlacesOnMap(prevColors); })
+            .then(() => { closeModal(); syncPlacesOnMap(prevColors); refreshPlacesPresentation(); })
             .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
         });
       }
@@ -11827,6 +11827,7 @@
                 if (done >= picked.length) {
                   refreshPlaces().then(() => {
                     syncPlacesOnMap(prevColors);
+                    refreshPlacesPresentation();
                     if (errors.length) {
                       updateBtn();
                       showModalError(errors.length + ' of ' + picked.length + ' failed: ' + errors.join('; '));
