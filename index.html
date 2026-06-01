@@ -3849,6 +3849,84 @@
       return { payload };
     }
 
+    // Read the route-metadata fields shared by the route editor and GPX upload
+    // (source/notes/local_name/difficulty/tags) from a form by id prefix.
+    // date_completed/rating are caller-specific (the editor always reads them,
+    // GPX upload only when "completed"), so they stay at the call sites.
+    function readRouteMetaFields(prefix) {
+      const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+      const metadata = {};
+      const source = get(prefix + '-source').trim();
+      const notes = get(prefix + '-notes');
+      const localName = get(prefix + '-local-name').trim();
+      const difficulty = (document.querySelector('input[name="' + prefix + '-difficulty"]:checked') || {}).value || '';
+      const tags = parseTagInput(get(prefix + '-tags'));
+      if (source) metadata.source = source;
+      if (notes.trim()) metadata.notes = notes;
+      if (localName) metadata.local_name = localName;
+      if (difficulty) metadata.difficulty = difficulty;
+      if (tags) metadata.tags = tags;
+      return metadata;
+    }
+
+    // Toggle a popover open/closed; close on outside click or when another
+    // transient overlay opens. Clicks inside are swallowed so selecting a control
+    // doesn't dismiss it. Shared by the filter and list-view popovers.
+    function wirePopover(btn, pop) {
+      if (!btn || !pop) return;
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const open = pop.hidden;
+        if (open) closeTransientOverlays(pop);
+        pop.hidden = !open;
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      document.addEventListener('click', function(e) {
+        if (!pop.hidden && !pop.contains(e.target) && e.target !== btn) {
+          pop.hidden = true;
+          btn.setAttribute('aria-expanded', 'false');
+        }
+      });
+      pop.addEventListener('click', function(e) { e.stopPropagation(); });
+    }
+
+    // Wire a list-page filter popover end to end: open/close, the "Filters (N)"
+    // count on the button, per-select change handlers that write into
+    // filters[keyById[id]], the search box, and a Clear button that resets every
+    // select + the search. onApply re-renders the list after any change/clear.
+    // Shared by the Places, Routes, and History list pages.
+    function wireFilterPopover(opts) {
+      const { btn, pop, clear, sels, keyById, filters, searchInput, searchKey, onApply } = opts;
+      function updateLabel() {
+        const n = sels.reduce((acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
+        if (btn) {
+          btn.textContent = n > 0 ? 'Filters (' + n + ')' : 'Filters';
+          btn.classList.toggle('has-active', n > 0);
+        }
+      }
+      function apply() { onApply(); updateLabel(); }
+      if (searchInput && searchKey) searchInput.addEventListener('input', function() {
+        filters[searchKey] = this.value;
+        apply();
+      });
+      sels.forEach(s => s.addEventListener('change', function() {
+        const k = keyById[s.id];
+        if (k) filters[k] = s.value;
+        apply();
+      }));
+      wirePopover(btn, pop);
+      if (clear) clear.addEventListener('click', function() {
+        const hasSearch = searchInput && searchInput.value !== '';
+        const hasFilter = sels.some(s => s.value !== 'all');
+        if (!hasSearch && !hasFilter) return;
+        sels.forEach(s => { s.value = 'all'; });
+        for (const k of Object.values(keyById)) filters[k] = 'all';
+        if (searchInput && searchKey) { searchInput.value = ''; filters[searchKey] = ''; }
+        apply();
+      });
+      updateLabel();
+    }
+
     function panelTabsHtml() {
       const chevron = '<span class="section-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>';
       let h = '<div class="panel-tabs">';
@@ -4796,21 +4874,11 @@
           document.getElementById('route-meta-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+            const metadata = readRouteMetaFields('tm');
             const dateVal = get('tm-date').trim();
             const ratingRaw = readStarRating('tm-rating');
-            const difficulty = (document.querySelector('input[name="tm-difficulty"]:checked') || {}).value || '';
-            const tags = parseTagInput(get('tm-tags'));
-            const source = get('tm-source').trim();
-            const notes = get('tm-notes');
-            const localName = get('tm-local-name').trim();
-            const metadata = {};
             if (dateVal) metadata.date_completed = dateVal;
             if (ratingRaw) metadata.rating = parseInt(ratingRaw, 10);
-            if (difficulty) metadata.difficulty = difficulty;
-            if (tags) metadata.tags = tags;
-            if (source) metadata.source = source;
-            if (notes.trim()) metadata.notes = notes;
-            if (localName) metadata.local_name = localName;
             const newName = get('tm-name').trim();
             if (!newName) {
               showModalError('Name is required');
@@ -6802,64 +6870,21 @@
       const filterPop = document.getElementById('filter-popover');
       const filterClear = document.getElementById('filter-clear');
       const filterSels = [statusSel, catSel, countrySel, tagSel, catalogSel].filter(Boolean);
-      function updateFilterBtnLabel() {
-        const n = filterSels.reduce((acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
-        if (filterBtn) {
-          filterBtn.textContent = n > 0 ? 'Filters (' + n + ')' : 'Filters';
-          filterBtn.classList.toggle('has-active', n > 0);
-        }
-      }
       function rerender() {
         renderPlaceList(placesSearchInput ? placesSearchInput.value : '');
-        updateFilterBtnLabel();
       }
-      if (placesSearchInput) placesSearchInput.addEventListener('input', function() {
-        state.placeFilters.search = this.value;
-        rerender();
-      });
       const filterKeyById = { 'filter-status': 'status', 'filter-category': 'category', 'filter-country': 'country', 'filter-tag': 'tag', 'filter-catalog': 'catalog' };
-      filterSels.forEach(s => s.addEventListener('change', function() {
-        const k = filterKeyById[s.id];
-        if (k) state.placeFilters[k] = s.value;
-        rerender();
-      }));
       const groupBySel = document.getElementById('filter-group-by');
       if (groupBySel) groupBySel.addEventListener('change', function() {
         state.groupBy = this.value;
         setPref('places-group-by', this.value);
         rerender();
       });
-      if (filterBtn && filterPop) {
-        filterBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          const open = filterPop.hidden;
-          if (open) closeTransientOverlays(filterPop);
-          filterPop.hidden = !open;
-          filterBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-        });
-        document.addEventListener('click', function(e) {
-          if (!filterPop.hidden && !filterPop.contains(e.target) && e.target !== filterBtn) {
-            filterPop.hidden = true;
-            filterBtn.setAttribute('aria-expanded', 'false');
-          }
-        });
-        filterPop.addEventListener('click', function(e) { e.stopPropagation(); });
-      }
-      if (filterClear) filterClear.addEventListener('click', function() {
-        const hasSearch = placesSearchInput && placesSearchInput.value !== '';
-        const hasFilter = filterSels.some(s => s.value !== 'all');
-        if (!hasSearch && !hasFilter) return;
-        filterSels.forEach(s => { s.value = 'all'; });
-        state.placeFilters.status = 'all';
-        state.placeFilters.category = 'all';
-        state.placeFilters.country = 'all';
-        state.placeFilters.tag = 'all';
-        state.placeFilters.catalog = 'all';
-        if (placesSearchInput) placesSearchInput.value = '';
-        state.placeFilters.search = '';
-        rerender();
+      wireFilterPopover({
+        btn: filterBtn, pop: filterPop, clear: filterClear, sels: filterSels,
+        keyById: filterKeyById, filters: state.placeFilters,
+        searchInput: placesSearchInput, searchKey: 'search', onApply: rerender,
       });
-      updateFilterBtnLabel();
     }
 
     // Bucket key for "Group by letter". Keep the first character as-is for any
@@ -7349,32 +7374,6 @@
       const viewBtn = document.getElementById('hist-view-btn');
       const viewPop = document.getElementById('hist-view-popover');
       const filterSels = [kindSel, yearSel, ratingSel].filter(Boolean);
-      function updateFilterBtnLabel() {
-        const n = filterSels.reduce((acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
-        filterBtn.textContent = n > 0 ? 'Filters (' + n + ')' : 'Filters';
-        filterBtn.classList.toggle('has-active', n > 0);
-      }
-      // Toggle a popover open/closed; close on outside click. Clicks inside the
-      // popover are swallowed so selecting a control doesn't dismiss it.
-      function wirePopover(btn, pop) {
-        if (!btn || !pop) return;
-        btn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          const open = pop.hidden;
-          // Only one transient overlay open at a time (other popover + menu).
-          if (open) closeTransientOverlays(pop);
-          pop.hidden = !open;
-          btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-        });
-        document.addEventListener('click', function(e) {
-          if (!pop.hidden && !pop.contains(e.target) && e.target !== btn) {
-            pop.hidden = true;
-            btn.setAttribute('aria-expanded', 'false');
-          }
-        });
-        pop.addEventListener('click', function(e) { e.stopPropagation(); });
-      }
-      wirePopover(filterBtn, filterPop);
       wirePopover(viewBtn, viewPop);
       viewPop.querySelectorAll('.view-option').forEach(opt => opt.addEventListener('click', function() {
         const v = this.dataset.view;
@@ -7384,30 +7383,13 @@
         viewBtn.setAttribute('aria-expanded', 'false');
         paint();
       }));
-
-      if (searchInput) searchInput.addEventListener('input', function() { hf.search = this.value; paint(); });
-      const filterKeyById = { 'hist-filter-kind': 'kind', 'hist-filter-year': 'year', 'hist-filter-rating': 'rating' };
-      filterSels.forEach(s => s.addEventListener('change', function() {
-        const k = filterKeyById[s.id];
-        if (k) hf[k] = s.value;
-        updateFilterBtnLabel();
-        paint();
-      }));
-      if (filterClear) filterClear.addEventListener('click', function() {
-        const hasSearch = searchInput && searchInput.value !== '';
-        const hasFilter = filterSels.some(s => s.value !== 'all');
-        if (!hasSearch && !hasFilter) return;
-        filterSels.forEach(s => { s.value = 'all'; });
-        hf.kind = 'all'; hf.year = 'all'; hf.rating = 'all';
-        if (searchInput) searchInput.value = '';
-        hf.search = '';
-        updateFilterBtnLabel();
-        paint();
+      wireFilterPopover({
+        btn: filterBtn, pop: filterPop, clear: filterClear, sels: filterSels,
+        keyById: { 'hist-filter-kind': 'kind', 'hist-filter-year': 'year', 'hist-filter-rating': 'rating' },
+        filters: hf, searchInput: searchInput, searchKey: 'search', onApply: paint,
       });
       const viewSel = document.getElementById('hist-view-select');
       if (viewSel) viewSel.addEventListener('change', function() { setPref('history-view', this.value); paint(); });
-
-      updateFilterBtnLabel();
       paint();
     }
 
@@ -7627,13 +7609,6 @@
       const filterClear = document.getElementById('filter-clear');
       const mountEl = document.getElementById('trails-list-mount');
       const filterSels = [statusSel, regionSel, diffSel, ratingSel, tagSel].filter(Boolean);
-      function updateFilterBtnLabel() {
-        const n = filterSels.reduce((acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
-        if (filterBtn) {
-          filterBtn.textContent = n > 0 ? 'Filters (' + n + ')' : 'Filters';
-          filterBtn.classList.toggle('has-active', n > 0);
-        }
-      }
       // Flatten once: each entry pairs a route with its parent region name.
       const flatRoutes = regions.flatMap(r => r.routes.map(rt => ({route: rt, region: r.name})));
       function routeMatches(entry, q, wantStatus, wantRegion, wantDiff, wantRating, wantTag) {
@@ -7767,52 +7742,17 @@
             location.hash = '#/';
           });
         });
-        updateFilterBtnLabel();
       }
-      if (searchInput) searchInput.addEventListener('input', function() {
-        state.trailFilters.search = this.value;
-        renderTrailsList();
-      });
       const trailFilterKeyById = { 'filter-status': 'status', 'filter-region': 'region', 'filter-difficulty': 'difficulty', 'filter-rating': 'rating', 'filter-tag': 'tag' };
-      filterSels.forEach(s => s.addEventListener('change', function() {
-        const k = trailFilterKeyById[s.id];
-        if (k) state.trailFilters[k] = s.value;
-        renderTrailsList();
-      }));
       if (groupBySel) groupBySel.addEventListener('change', function() {
         state.trailsGroupBy = this.value;
         setPref('trails-group-by', this.value);
         renderTrailsList();
       });
-      if (filterBtn && filterPop) {
-        filterBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          const open = filterPop.hidden;
-          if (open) closeTransientOverlays(filterPop);
-          filterPop.hidden = !open;
-          filterBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-        });
-        document.addEventListener('click', function(e) {
-          if (!filterPop.hidden && !filterPop.contains(e.target) && e.target !== filterBtn) {
-            filterPop.hidden = true;
-            filterBtn.setAttribute('aria-expanded', 'false');
-          }
-        });
-        filterPop.addEventListener('click', function(e) { e.stopPropagation(); });
-      }
-      if (filterClear) filterClear.addEventListener('click', function() {
-        const hasSearch = searchInput && searchInput.value !== '';
-        const hasFilter = filterSels.some(s => s.value !== 'all');
-        if (!hasSearch && !hasFilter) return;
-        filterSels.forEach(s => { s.value = 'all'; });
-        state.trailFilters.status = 'all';
-        state.trailFilters.region = 'all';
-        state.trailFilters.difficulty = 'all';
-        state.trailFilters.rating = 'all';
-        state.trailFilters.tag = 'all';
-        if (searchInput) searchInput.value = '';
-        state.trailFilters.search = '';
-        renderTrailsList();
+      wireFilterPopover({
+        btn: filterBtn, pop: filterPop, clear: filterClear, sels: filterSels,
+        keyById: trailFilterKeyById, filters: state.trailFilters,
+        searchInput: searchInput, searchKey: 'search', onApply: renderTrailsList,
       });
       renderTrailsList();
       wireListViewPopover('routes', renderTrailsList);
@@ -11686,17 +11626,7 @@
           // Optional metadata. date_completed + rating only apply to completed routes.
           // Each field may be hidden by user preference; guard with optional chaining.
           const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
-          const source = get('g-source').trim();
-          const notes = get('g-notes');
-          const localName = get('g-local-name').trim();
-          const difficulty = (document.querySelector('input[name="g-difficulty"]:checked') || {}).value || '';
-          const tags = parseTagInput(get('g-tags'));
-          const metadata = {};
-          if (source) metadata.source = source;
-          if (notes.trim()) metadata.notes = notes;
-          if (localName) metadata.local_name = localName;
-          if (difficulty) metadata.difficulty = difficulty;
-          if (tags) metadata.tags = tags;
+          const metadata = readRouteMetaFields('g');
           if (completed) {
             const dateVal = get('g-date').trim();
             const ratingRaw = readStarRating('g-rating');

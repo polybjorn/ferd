@@ -3290,6 +3290,24 @@ def with_file_lock(lock_path: Path, fn):
 
 # ---------- place validation ----------
 
+def _opt_str(p: dict, key: str, max_len: int) -> None:
+  """Reject a present-but-non-null field that isn't a string within max_len."""
+  if key in p and p[key] is not None:
+    v = p[key]
+    if not isinstance(v, str) or len(v) > max_len:
+      raise ValidationError(f"{key} must be a string (<={max_len} chars) or null")
+
+
+def _check_rating(r: object) -> None:
+  if isinstance(r, bool) or not isinstance(r, int) or not 1 <= r <= 5:
+    raise ValidationError("rating must be an integer 1-5")
+
+
+def _check_date(v: object, name: str) -> None:
+  if not isinstance(v, str) or not ROUTE_DATE_RE.match(v):
+    raise ValidationError(f"{name} must be YYYY-MM-DD")
+
+
 def validate_place(p: object) -> dict:
   if not isinstance(p, dict):
     raise ValidationError("place must be an object")
@@ -3314,21 +3332,15 @@ def validate_place(p: object) -> dict:
   if category is not None and category != "":
     if not isinstance(category, str) or not category.strip() or len(category) > 64:
       raise ValidationError("category, when set, must be a non-empty string (<=64 chars)")
-  if "country" in p and p["country"] is not None and not (isinstance(p["country"], str) and len(p["country"]) <= 100):
-    raise ValidationError("country must be a string (<=100 chars) or null")
+  _opt_str(p, "country", 100)
   if "visited" in p and not isinstance(p["visited"], bool):
     raise ValidationError("visited must be boolean")
-  if "note" in p and p["note"] is not None and not (isinstance(p["note"], str) and len(p["note"]) <= 2000):
-    raise ValidationError("note must be a string (<=2000 chars) or null")
-  if "local_name" in p and p["local_name"] is not None and not (isinstance(p["local_name"], str) and len(p["local_name"]) <= 200):
-    raise ValidationError("local_name must be a string (<=200 chars) or null")
-  if "date_visited" in p and p["date_visited"] is not None and p["date_visited"] != "":
-    if not isinstance(p["date_visited"], str) or not ROUTE_DATE_RE.match(p["date_visited"]):
-      raise ValidationError("date_visited must be YYYY-MM-DD")
-  if "rating" in p and p["rating"] is not None and p["rating"] != "":
-    r = p["rating"]
-    if isinstance(r, bool) or not isinstance(r, int) or not 1 <= r <= 5:
-      raise ValidationError("rating must be an integer 1-5")
+  _opt_str(p, "note", 2000)
+  _opt_str(p, "local_name", 200)
+  if "date_visited" in p and p["date_visited"] not in (None, ""):
+    _check_date(p["date_visited"], "date_visited")
+  if "rating" in p and p["rating"] not in (None, ""):
+    _check_rating(p["rating"])
   if "sources" in p:
     if not isinstance(p["sources"], list) or len(p["sources"]) > 20:
       raise ValidationError("sources must be a list (<=20 items)")
@@ -3353,9 +3365,7 @@ def validate_place(p: object) -> dict:
   # `from_catalog` is the name of the catalog entry this place was imported
   # from; the UI uses it to hide already-imported entries in Browse and (later)
   # to offer "Update from catalog" when the upstream entry diverges.
-  if "from_catalog" in p and p["from_catalog"] is not None and p["from_catalog"] != "":
-    if not isinstance(p["from_catalog"], str) or len(p["from_catalog"]) > 200:
-      raise ValidationError("from_catalog must be a string (<=200 chars) or null")
+  _opt_str(p, "from_catalog", 200)
   # `catalog_skip` records catalog-tracked fields the user has opted out of
   # for this place, mapped to the catalog value at the time of opt-out. Used
   # to suppress "Update available" for diffs the user has already considered;
@@ -3436,14 +3446,12 @@ def validate_route_metadata(m: object) -> dict:
 
   d = m.get("date_completed")
   if d is not None and d != "":
-    if not isinstance(d, str) or not ROUTE_DATE_RE.match(d):
-      raise ValidationError("date_completed must be YYYY-MM-DD")
+    _check_date(d, "date_completed")
     out["date_completed"] = d
 
   r = m.get("rating")
   if r is not None and r != "":
-    if isinstance(r, bool) or not isinstance(r, int) or not 1 <= r <= 5:
-      raise ValidationError("rating must be an integer 1-5")
+    _check_rating(r)
     out["rating"] = r
 
   n = m.get("notes")
