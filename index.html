@@ -11038,14 +11038,12 @@
           modalHeaderHtml(title) +
           (body ? '<div class="modal-desc" style="font-size:0.85rem">' + escapeHtml(body) + '</div>' : '') +
           '<div class="modal-actions">' +
-            '<button type="button" data-role="cancel">Cancel</button>' +
             '<button type="button" class="' + (danger ? 'danger-btn' : 'primary') + '" data-role="ok">' + escapeHtml(confirmLabel || 'Confirm') + '</button>' +
           '</div>';
         openModal(html, backdrop => {
           const modal = backdrop.querySelector('.modal');
           if (modal) modal.style.maxWidth = '380px';
           backdrop.querySelector('[data-role="ok"]').addEventListener('click', () => finish(true));
-          backdrop.querySelector('[data-role="cancel"]').addEventListener('click', () => finish(false));
           // Enter to confirm: only while this confirm is the topmost modal.
           onEnter = e => {
             if (e.key !== 'Enter') return;

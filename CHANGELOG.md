@@ -9,6 +9,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - 105 new shipped catalog entries.
 
 ### Changed
+- Confirmation dialogs no longer show a Cancel button; dismiss with Esc, the X, or a click outside.
 - Route tags now keep the casing you type (e.g. `UNESCO`) instead of being forced to lowercase; matching and dedup stay case-insensitive.
 - Importing places from the catalog confirms only when adding 10 or more at once; smaller selections import without a prompt.
 
