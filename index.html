@@ -3346,12 +3346,19 @@
 
       getPlaces(fallback) { return idbGetAll('places').then(a => Array.isArray(a) ? a : (fallback || [])).catch(() => fallback || []); },
       createPlace(payload) {
-        const place = Object.assign({}, payload, { id: _genId() });
-        return idbPut('places', place).then(() => idbGetAll('places')).then(a => ({ ok: true, place, total_places: a.length }));
+        // Wrap in a promise so a tag-validation throw rejects (caught by the
+        // caller's .catch) instead of throwing synchronously, matching the
+        // server's 400-as-rejection behavior.
+        return Promise.resolve().then(() => {
+          const place = normalizePlaceTags(Object.assign({}, payload, { id: _genId() }));
+          return idbPut('places', place).then(() => idbGetAll('places')).then(a => ({ ok: true, place, total_places: a.length }));
+        });
       },
       updatePlace(body) {
-        const next = Object.assign({}, body.place, { id: body.id });
-        return idbPut('places', next).then(() => ({ ok: true, place: next }));
+        return Promise.resolve().then(() => {
+          const next = normalizePlaceTags(Object.assign({}, body.place, { id: body.id }));
+          return idbPut('places', next).then(() => ({ ok: true, place: next }));
+        });
       },
       deletePlace(body) {
         return idbDeleteKey('places', body.id).then(() => idbGetAll('places')).then(a => ({ ok: true, total_places: a.length }));
@@ -3419,7 +3426,11 @@
       putMetadata(body) {
         return this._metadata().then(meta => {
           const next = Object.assign({}, meta);
-          if (body.metadata && Object.keys(body.metadata).length) next[body.key] = body.metadata;
+          if (body.metadata && Object.keys(body.metadata).length) {
+            const md = Object.assign({}, body.metadata);
+            if ('tags' in md) { const t = normalizeTags(md.tags); if (t.length) md.tags = t; else delete md.tags; }
+            next[body.key] = md;
+          }
           else delete next[body.key];
           return this._setMetadata(next).then(() => ({ ok: true }));
         });
@@ -3778,6 +3789,34 @@
     function parseTagInput(str) {
       const t = (str || '').split(',').map(s => s.trim()).filter(Boolean);
       return t.length ? t : null;
+    }
+    const TAG_RE = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,31}$/;
+    // Mirror of the server's normalize_tags (tools/api.py): trim, drop blanks,
+    // format-check, case-insensitive dedup (first-seen casing kept), cap at 10.
+    // Throws on a non-array, non-string item, or bad format. The local-only write
+    // path has no server to validate, so it runs this to match server behavior.
+    function normalizeTags(tags) {
+      if (!Array.isArray(tags)) throw new Error('tags must be a list of strings');
+      const out = [], seen = new Set();
+      for (const t of tags) {
+        if (typeof t !== 'string') throw new Error('each tag must be a string');
+        const tn = t.trim();
+        if (!tn) continue;
+        if (!TAG_RE.test(tn)) throw new Error('invalid tag: "' + tn + '" (alphanumerics + hyphen, 1-32 chars, starts with alphanumeric)');
+        const k = tn.toLowerCase();
+        if (!seen.has(k)) { seen.add(k); out.push(tn); }
+      }
+      if (out.length > 10) throw new Error('too many tags (max 10)');
+      return out;
+    }
+    // Normalize a place object's tags in place (local-only writes). Drops the key
+    // when empty so we don't persist "tags": [].
+    function normalizePlaceTags(place) {
+      if (place && 'tags' in place) {
+        const t = normalizeTags(place.tags);
+        if (t.length) place.tags = t; else delete place.tags;
+      }
+      return place;
     }
     // Inline "#a #b" line for map popups.
     function tagPopupHtml(tags) {
