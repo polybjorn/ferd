@@ -1,5 +1,5 @@
 {
-  "_comment": "Source of truth for vendored dependency versions. Update when bumping. The check-vendor-versions.py script compares the 'version' values against the latest published version on npm.",
+  "_comment": "Source of truth for pinned versions. 'deps' are vendored frontend libs under vendor/ (checked against npm); 'tools' are dev-only CLI tools (checked against npm or pypi per 'source'). check-vendor-versions.py compares each against the latest published version and the weekly CI opens a tracking issue on drift. check-refactor.sh reads its tool versions from here.",
   "deps": [
     { "npm": "leaflet", "version": "1.9.4" },
     { "npm": "leaflet-gpx", "version": "2.2.0" },
@@ -7,5 +7,9 @@
     { "npm": "leaflet.tilelayer.nogap", "version": "0.3.0" },
     { "npm": "supercluster", "version": "8.0.1" },
     { "npm": "d3", "version": "7.9.0" }
+  ],
+  "tools": [
+    { "name": "jscpd", "source": "npm", "version": "4.2.4" },
+    { "name": "radon", "source": "pypi", "version": "6.0.1" }
   ]
 }

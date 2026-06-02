@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Check vendored deps against the latest version on npm.
+"""Check pinned versions against the latest published upstream.
 
-Reads scripts/vendor-versions.json, queries the npm registry for each
-package's `latest` dist-tag, and prints a report. Exits 1 if any vendored
-version is behind upstream, 0 if all match. Designed for CI: a non-zero
-exit triggers the workflow to open an issue with the drift report.
+Reads scripts/vendor-versions.json: 'deps' are vendored frontend libs (npm),
+'tools' are dev-only CLI tools (npm or pypi per 'source'). Queries each
+registry for the latest version and prints a report. Exits 1 if anything is
+behind upstream, 0 if all match. Designed for CI: a non-zero exit triggers the
+workflow to open an issue with the drift report.
 
 Stdlib only.
 """
@@ -18,16 +19,21 @@ REGISTRY = "https://registry.npmjs.org"
 MANIFEST = Path(__file__).parent / "vendor-versions.json"
 
 
-def fetch_latest(pkg: str) -> str:
-    url = f"{REGISTRY}/{pkg}/latest"
+def _get_json(url: str, label: str):
     try:
         with urllib.request.urlopen(url, timeout=10) as r:
-            data = json.load(r)
+            return json.load(r)
     except urllib.error.HTTPError as e:
-        raise RuntimeError(f"{pkg}: HTTP {e.code}") from e
+        raise RuntimeError(f"{label}: HTTP {e.code}") from e
     except urllib.error.URLError as e:
-        raise RuntimeError(f"{pkg}: {e.reason}") from e
-    v = data.get("version")
+        raise RuntimeError(f"{label}: {e.reason}") from e
+
+
+def fetch_latest(pkg: str, source: str = "npm") -> str:
+    if source == "pypi":
+        v = _get_json(f"https://pypi.org/pypi/{pkg}/json", pkg).get("info", {}).get("version")
+    else:
+        v = _get_json(f"{REGISTRY}/{pkg}/latest", pkg).get("version")
     if not v:
         raise RuntimeError(f"{pkg}: no version in registry response")
     return v
@@ -35,14 +41,15 @@ def fetch_latest(pkg: str) -> str:
 
 def main() -> int:
     manifest = json.loads(MANIFEST.read_text())
+    # Normalize deps (npm) and tools (npm|pypi) into one (name, source, version) list.
+    items = [(d["npm"], "npm", d["version"]) for d in manifest["deps"]]
+    items += [(t["name"], t["source"], t["version"]) for t in manifest.get("tools", [])]
     drift = []
     errors = []
     rows = []
-    for dep in manifest["deps"]:
-        name = dep["npm"]
-        current = dep["version"]
+    for name, source, current in items:
         try:
-            latest = fetch_latest(name)
+            latest = fetch_latest(name, source)
         except RuntimeError as e:
             errors.append(str(e))
             rows.append((name, current, "ERROR"))

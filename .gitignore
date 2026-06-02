@@ -2,6 +2,7 @@
 .DS_Store
 .claude/
 CLAUDE.md
+.refactor-notes.md
 
 # App data + per-deployment config
 places.json

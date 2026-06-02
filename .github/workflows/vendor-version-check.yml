@@ -1,8 +1,9 @@
 name: Vendor version check
 
-# Runs weekly to flag upstream version bumps for the libraries vendored
-# under `vendor/`. Opens (or updates) a single tracking issue when drift
-# is detected; the issue body is the full report from the check script.
+# Runs weekly to flag upstream version bumps for the vendored frontend libs
+# under `vendor/` and the pinned dev tools (jscpd, radon) in
+# scripts/vendor-versions.json. Opens (or updates) a single tracking issue when
+# drift is detected; the issue body is the full report from the check script.
 
 on:
   schedule:
@@ -40,9 +41,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPORT: ${{ steps.check.outputs.report }}
         run: |
-          TITLE="Vendor deps: upstream bumps available"
+          TITLE="Pinned versions: upstream bumps available"
           BODY=$(printf '%s\n\n```\n%s\n```\n\n_Last run: %s_' \
-            "Run \`python3 scripts/check-vendor-versions.py\` locally to reproduce. Bumping a vendored dep means re-downloading the file into \`vendor/\`, updating \`scripts/vendor-versions.json\`, and bumping \`CACHE_VERSION\` in \`sw.js\`." \
+            "Run \`python3 scripts/check-vendor-versions.py\` locally to reproduce. Vendored lib: re-download into \`vendor/\`, update \`scripts/vendor-versions.json\`, bump \`CACHE_VERSION\` in \`sw.js\`. Dev tool (jscpd/radon): just update its version in \`scripts/vendor-versions.json\`." \
             "$REPORT" \
             "$(date -u +%Y-%m-%dT%H:%M:%SZ)")
 
