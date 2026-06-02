@@ -5,10 +5,12 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
+- Map: categories, regions, and place/route statuses can be hidden by default. Set a category or region hidden via its eye toggle in Manage categories/regions, or toggle the four status defaults in Settings > Appearance; the map opens with them hidden, and the filter panel still shows them for the current session.
 - Places can carry free-form tags (e.g. `UNESCO`), editable in the place form, shown on the map popup and list cards, and filterable and searchable in the Places list. Tags keep their casing and dedupe case-insensitively; catalog entries can ship tags too.
 - 105 new shipped catalog entries.
 
 ### Changed
+- The map filter panel marks a toggled-off category or region by fading its whole row and hiding its color dot, so the off state reads more clearly.
 - Confirmation dialogs no longer show a Cancel button; dismiss with Esc, the X, or a click outside.
 - Route tags now keep the casing you type (e.g. `UNESCO`) instead of being forced to lowercase; matching and dedup stay case-insensitive.
 - Importing places from the catalog confirms only when adding 10 or more at once; smaller selections import without a prompt.

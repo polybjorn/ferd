@@ -1122,17 +1122,14 @@
       color: var(--text);
       cursor: pointer;
       user-select: none;
-      transition: color 0.15s;
+      transition: opacity 0.15s;
       padding: 0.15rem 0;
     }
-    /* On = white label + full dot; off = grey label + faded dot. */
-    .legend-item .legend-dot,
-    .legend-item .legend-line { transition: opacity 0.15s; }
-    .legend-item.disabled { color: var(--muted); }
-    .legend-item.disabled .legend-dot,
-    .legend-item.disabled .legend-line { opacity: 0.2; }
+    /* Off = the whole row fades back and the color dot disappears entirely. */
+    .legend-item.disabled { opacity: 0.5; }
+    .legend-item.disabled .legend-dot { opacity: 0; }
 
-    .legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; transition: opacity 0.15s; }
     .legend-line { width: 14px; height: 3px; border-radius: 2px; flex-shrink: 0; }
     .legend-line.completed, .result-line.completed { background: var(--completed); }
     .legend-line.planned, .result-line.planned { background: var(--planned); }
@@ -2076,6 +2073,13 @@
     }
     .btn-x:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
     .btn-x:disabled { opacity: 0.4; cursor: not-allowed; }
+    /* Default-visibility eye toggle (Manage categories/regions): shown = text,
+       hidden-by-default = muted; hover is accent, not the destructive red. */
+    .cat-hide, .rgn-hide { color: var(--text); }
+    .cat-hide.is-hidden, .rgn-hide.is-hidden { color: var(--muted); }
+    .cat-hide:hover:not(:disabled), .rgn-hide:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .cat-hide .eye-wrap, .rgn-hide .eye-wrap { display: block; line-height: 0; }
+    .cat-hide svg, .rgn-hide svg { display: block; width: 1rem; height: 1rem; }
     /* X drawn with two rotated bars (not a font character or SVG) so it centers
        identically on every OS - the unicode × sits off-center in some system
        fonts. Button content is empty; `.x-icon` paints the glyph. */
@@ -4086,6 +4090,9 @@
       'cluster-places', 'tile-picker', 'map-filter', 'map-zoom', 'remember-view',
       'places-group-by', 'trails-group-by', 'history-view',
       'places-view', 'routes-view',
+      'default-hidden-categories', 'default-hidden-regions',
+      'default-show-visited', 'default-show-want',
+      'default-show-completed', 'default-show-planned',
     ]);
     function setPref(key, val) {
       try { localStorage.setItem(key, val); } catch {}
@@ -4135,6 +4142,29 @@
       document.body.classList.toggle('hide-map-zoom', !getShowZoomControls());
     }
     function getRememberView() { return getPref('remember-view', 'true') !== 'false'; }
+    // Per-category / per-region durable "hidden by default on the map" lists, and
+    // the four status defaults. Set in Manage categories/regions and Settings; the
+    // map filter panel overrides them per-session without changing the default.
+    function getJsonListPref(key) {
+      try { const a = JSON.parse(getPref(key, '[]')); return Array.isArray(a) ? a : []; }
+      catch { return []; }
+    }
+    function isDefaultHidden(key, id) { return getJsonListPref(key).includes(id); }
+    function setDefaultHidden(key, id, hidden) {
+      const set = new Set(getJsonListPref(key));
+      if (hidden) set.add(id); else set.delete(id);
+      setPref(key, JSON.stringify([...set]));
+    }
+    function getDefaultShow(status) { return getPref('default-show-' + status, 'true') !== 'false'; }
+    // Inline eye icon; open when shown, slashed when hidden-by-default.
+    function eyeIconHtml(hidden) {
+      const svg = hidden
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.4 10.4 0 0 1 12 5c7 0 10 7 10 7a13.2 13.2 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+      // Wrap in a span so the SVG isn't a direct flex child of the btn-x button
+      // (a direct SVG flex item collapses to 0 width here).
+      return '<span class="eye-wrap">' + svg + '</span>';
+    }
     function getUnits() { return getPref('units', 'metric'); }
     function getClusterPlaces() { return getPref('cluster-places', 'true') !== 'false'; }
     // Optional form fields — let the user hide ones they never use. All default ON.
@@ -8900,6 +8930,13 @@
             '<input type="checkbox" class="settings-toggle" id="s-cluster"' + (getClusterPlaces() ? ' checked' : '') + '>' +
           '</div>'
           : '') +
+        '<h3 class="settings-h">Default map visibility</h3>' +
+        '<div class="toggle-grid">' +
+          '<div class="settings-inline-row"><label for="s-def-visited">Visited places</label><input type="checkbox" class="settings-toggle" id="s-def-visited"' + (getDefaultShow('visited') ? ' checked' : '') + '></div>' +
+          '<div class="settings-inline-row"><label for="s-def-want">Planned places</label><input type="checkbox" class="settings-toggle" id="s-def-want"' + (getDefaultShow('want') ? ' checked' : '') + '></div>' +
+          '<div class="settings-inline-row"><label for="s-def-completed">Completed routes</label><input type="checkbox" class="settings-toggle" id="s-def-completed"' + (getDefaultShow('completed') ? ' checked' : '') + '></div>' +
+          '<div class="settings-inline-row"><label for="s-def-planned">Planned routes</label><input type="checkbox" class="settings-toggle" id="s-def-planned"' + (getDefaultShow('planned') ? ' checked' : '') + '></div>' +
+        '</div>' +
         '<h3 class="settings-h">Map</h3>' +
         '<div class="settings-grid-2">' +
           '<label for="s-tile">Default tile layer</label>' +
@@ -9286,6 +9323,18 @@
           // Units only affect formatting (distance/elevation in popups + detail view).
           // No need to tear down the map — the next render naturally picks up the
           // new units. Avoiding wrappedRouter here removes the modal-open blink.
+          // Status default toggles: persist the durable default + update the
+          // in-session state so the next map navigation reflects it.
+          [['s-def-visited', 'visited', 'showVisited'], ['s-def-want', 'want', 'showWant'],
+           ['s-def-completed', 'completed', 'showCompleted'], ['s-def-planned', 'planned', 'showPlanned']
+          ].forEach(function([id, status, stateKey]) {
+            const cb = document.getElementById(id);
+            if (!cb) return;
+            cb.addEventListener('change', function() {
+              setPref('default-show-' + status, this.checked ? 'true' : 'false');
+              state[stateKey] = this.checked;
+            });
+          });
           bindRadioPref('units', 'units');
           const manageCats = document.getElementById('s-manage-cats');
           if (manageCats) manageCats.addEventListener('click', openManageCategoriesModal);
@@ -9613,6 +9662,7 @@
                     '<input type="text" data-i="' + i + '" class="cat-display' + (labelDirty ? ' dirty' : '') + '" value="' + escapeHtml(r.display) + '" placeholder="(falls back to title case)" title="' + escapeHtml('slug: ' + r.slug) + '" style="width:100%">' +
                     innerTag +
                   '</span>' +
+                  (function() { const h = isDefaultHidden('default-hidden-categories', r.slug); return '<button type="button" data-slug="' + escapeHtml(r.slug) + '" class="cat-hide btn-x' + (h ? ' is-hidden' : '') + '" aria-label="Default visibility on map" title="' + (h ? 'Hidden by default on the map' : 'Shown by default on the map') + '" style="flex:0 0 auto">' + eyeIconHtml(h) + '</button>'; })() +
                   '<button type="button" data-i="' + i + '" class="cat-remove btn-x x-icon" aria-label="Remove" title="Remove" style="flex:0 0 auto"></button>' +
                 '</div>' +
                 swatchGrid +
@@ -9683,6 +9733,20 @@
                   tagEl.textContent = r.count === 0 ? 'unused' : '';
                 }
                 refreshSaveBtn();
+              });
+            });
+            // Default-visibility eye: persists instantly (its own synced pref),
+            // independent of the label/color/order Save batch. Also updates the
+            // in-session set so the next map navigation reflects it.
+            container.querySelectorAll('.cat-hide').forEach(btn => {
+              btn.addEventListener('click', function() {
+                const slug = this.dataset.slug;
+                const nowHidden = !isDefaultHidden('default-hidden-categories', slug);
+                setDefaultHidden('default-hidden-categories', slug, nowHidden);
+                if (nowHidden) state.hiddenCategories.add(slug); else state.hiddenCategories.delete(slug);
+                this.classList.toggle('is-hidden', nowHidden);
+                this.innerHTML = eyeIconHtml(nowHidden);
+                this.title = nowHidden ? 'Hidden by default on the map' : 'Shown by default on the map';
               });
             });
             container.querySelectorAll('.cat-remove').forEach(btn => {
@@ -9940,6 +10004,7 @@
               return '<div style="display:flex;gap:0.6rem;align-items:center;margin-top:0.5rem">' +
                 '<input type="text" data-i="' + i + '" class="rgn-name' + (dirty ? ' dirty' : '') + '" value="' + escapeHtml(r.name) + '" style="flex:1;min-width:0">' +
                 tag +
+                (function() { const h = isDefaultHidden('default-hidden-regions', r.name); return '<button type="button" data-name="' + escapeHtml(r.name) + '" class="rgn-hide btn-x' + (h ? ' is-hidden' : '') + '" aria-label="Default visibility on map" title="' + (h ? 'Hidden by default on the map' : 'Shown by default on the map') + '" style="flex:0 0 auto">' + eyeIconHtml(h) + '</button>'; })() +
                 '<button type="button" data-i="' + i + '" class="rgn-remove btn-x x-icon" aria-label="Remove" title="' + xTitle + '" style="flex:0 0 auto"></button>' +
               '</div>';
             }).join('');
@@ -9960,6 +10025,19 @@
                   tagEl.textContent = r.count === 0 ? 'empty' : '';
                 }
                 refreshSaveBtn();
+              });
+            });
+            // Default-visibility eye: persists instantly, independent of the
+            // rename/remove Save batch; also updates the in-session set.
+            container.querySelectorAll('.rgn-hide').forEach(btn => {
+              btn.addEventListener('click', function() {
+                const name = this.dataset.name;
+                const nowHidden = !isDefaultHidden('default-hidden-regions', name);
+                setDefaultHidden('default-hidden-regions', name, nowHidden);
+                if (nowHidden) state.hiddenRegions.add(name); else state.hiddenRegions.delete(name);
+                this.classList.toggle('is-hidden', nowHidden);
+                this.innerHTML = eyeIconHtml(nowHidden);
+                this.title = nowHidden ? 'Hidden by default on the map' : 'Shown by default on the map';
               });
             });
             container.querySelectorAll('.rgn-remove').forEach(btn => {
@@ -12060,6 +12138,14 @@
         // synchronous tick as the first render, so neither the theme nor the
         // nav visibly changes on the sign-in screen beforehand.
         try { applyTheme(getStoredTheme(), getStoredMode()); } catch {}
+        // Seed the session's map visibility from the saved defaults. The filter
+        // panel overrides these in-session without touching the stored defaults.
+        state.hiddenCategories = new Set(getJsonListPref('default-hidden-categories'));
+        state.hiddenRegions = new Set(getJsonListPref('default-hidden-regions'));
+        state.showVisited = getDefaultShow('visited');
+        state.showWant = getDefaultShow('want');
+        state.showCompleted = getDefaultShow('completed');
+        state.showPlanned = getDefaultShow('planned');
         document.body.classList.remove('app-booting', 'signin-only');
         wrappedRouter();
         // Warm the catalog cache in the background so the Browse tab in the
