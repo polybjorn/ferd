@@ -70,7 +70,6 @@ Android client, server-connected or fully on-device. Use an APK manager to auto-
 ### Content
 - Print and PDF stylesheet for route and place details.
 - Uploaded image attachments on places and routes.
-- Per-category default-hide toggle so chosen categories start filtered out on the map.
 
 ### Offline
 - Offline editing, queued and synced when the connection returns (reads already work offline).
