@@ -4246,6 +4246,7 @@
       _placeRecords: null,
       _placeClusterGroup: null,
       _routeLayers: null,        // [{ route, layer, completed }]
+      _selectedRouteKey: null,   // index-map: highlighted route (click-to-distinguish overlaps)
       _routeGroupCompleted: null,
       _routeGroupPlanned: null,
     };
@@ -4454,6 +4455,7 @@
       state._placeRecords = null;
       state._placeClusterGroup = null;
       state._routeLayers = null;
+      state._selectedRouteKey = null;
       state._routeGroupCompleted = null;
       state._routeGroupPlanned = null;
       state._routeRenderer = null;
@@ -4744,12 +4746,32 @@
       }
     }
 
+    // Index-map route highlight. Clicking a route flags it as selected: it
+    // fattens, goes fully opaque, and jumps to the front while the rest dim
+    // back, so it stands out where several routes overlap. Style-based, so it
+    // survives zoom/pan re-projection; re-applied on weight-pref change and
+    // after each lazy route load so the selection sticks.
+    function applyRouteHighlight() {
+      if (!state._routeLayers) return;
+      const base = 4 * getTrailWeightFactor();
+      const sel = state._selectedRouteKey;
+      for (const t of state._routeLayers) {
+        const on = sel && t.route.key === sel;
+        try {
+          t.layer.setStyle({ weight: on ? base + 2 : base, opacity: on ? 1 : (sel ? 0.4 : 0.85) });
+          if (on && typeof t.layer.bringToFront === 'function') t.layer.bringToFront();
+        } catch (e) {}
+      }
+    }
+
+    function setSelectedRoute(key) {
+      state._selectedRouteKey = key || null;
+      applyRouteHighlight();
+    }
+
     function refreshTrailWeights() {
       if (!state._routeLayers) { wrappedRouter(); return; }
-      const w = 4 * getTrailWeightFactor();
-      for (const t of state._routeLayers) {
-        try { t.layer.setStyle({ weight: w }); } catch (e) {}
-      }
+      applyRouteHighlight();
     }
 
     const EXTERNAL_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
@@ -5161,6 +5183,9 @@
       const routeBounds = L.latLngBounds();
       let focusTrailKey = (focus && focus.type === 'route') ? focus.name : null;
       let focusTrailLayer = null;
+      // Arriving with a route focus (e.g. back from its detail view) highlights
+      // that route on the index map too, matching the click behavior.
+      state._selectedRouteKey = focusTrailKey;
 
       // Lazy GPX loading. Building one polyline per route up-front grows
       // linearly with the manifest; viewport-based on-demand loading keeps
@@ -5212,9 +5237,14 @@
         if (state.hiddenRegions.has(record.region)) return false;
         return record.completed ? state.showCompleted : state.showPlanned;
       }
-      function findNearTrail(containerPt) {
-        if (!state._routeLayers || !state._routeLayers.length) return null;
-        let best = null, bestDist = NEAR_TAP_PX * NEAR_TAP_PX;
+      // All visible routes whose nearest segment is within the tap zone,
+      // sorted closest-first (min distance per route). Lets click handling
+      // cycle through routes stacked under one spot instead of always
+      // re-picking the single nearest.
+      function nearTrailCandidates(containerPt) {
+        if (!state._routeLayers || !state._routeLayers.length) return [];
+        const thresh = NEAR_TAP_PX * NEAR_TAP_PX;
+        const dists = new Map();
         const visit = function(layer, record) {
           if (layer.getLatLngs && !layer.eachLayer) {
             const raw = layer.getLatLngs();
@@ -5223,7 +5253,10 @@
               const a = map.latLngToContainerPoint(flat[i]);
               const b = map.latLngToContainerPoint(flat[i + 1]);
               const d2 = pointSegDistSq(containerPt, a, b);
-              if (d2 < bestDist) { bestDist = d2; best = record; }
+              if (d2 < thresh) {
+                const prev = dists.get(record);
+                if (prev === undefined || d2 < prev) dists.set(record, d2);
+              }
             }
           }
           if (layer.eachLayer) layer.eachLayer(function(sub) { visit(sub, record); });
@@ -5232,14 +5265,27 @@
           if (!isLayerVisible(record)) continue;
           visit(record.layer, record);
         }
-        return best;
+        return Array.from(dists.entries()).sort((a, b) => a[1] - b[1]).map(e => e[0]);
+      }
+      function findNearTrail(containerPt) {
+        const c = nearTrailCandidates(containerPt);
+        return c.length ? c[0] : null;
       }
       map.on('click', function(e) {
-        const best = findNearTrail(e.containerPoint);
-        if (best) {
-          const slug = best.route._slug || best.route.key;
+        const cands = nearTrailCandidates(e.containerPoint);
+        if (cands.length) {
+          // If the current selection is one of the routes under the cursor,
+          // advance to the next so repeated clicks at one spot step through
+          // the overlapping stack; otherwise take the nearest.
+          let pick = cands[0];
+          const idx = cands.findIndex(r => r.route.key === state._selectedRouteKey);
+          if (idx !== -1 && cands.length > 1) pick = cands[(idx + 1) % cands.length];
+          const slug = pick.route._slug || pick.route.key;
           history.replaceState(null, '', focusHash('route', slug));
-          best.layer.openPopup(e.latlng);
+          setSelectedRoute(pick.route.key);
+          pick.layer.openPopup(e.latlng);
+        } else {
+          setSelectedRoute(null);
         }
       });
       // Right-click on the map: hit-test for a place pin first (canvas
@@ -5295,6 +5341,9 @@
               if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
             }
             applyNonScalingStroke(e.target);
+            // A selection may already be active (route focus, or a click
+            // before this route finished loading); dim/fatten this one to match.
+            if (state._selectedRouteKey) applyRouteHighlight();
             // Cache the renderer the first time a route loads so
             // adjustTrailStrokes can force a re-project on smooth-zoom
             // frames. All polylines on the index map share one renderer.
@@ -5316,14 +5365,17 @@
           }).bindPopup(
             routePopupHtml(desc.route, desc.region, desc.color),
             { closeButton: false }
-          ).on('click', (function(slug) {
+          ).on('click', (function(slug, key) {
             return function(ev) {
               // Stop propagation so the map-level near-tap handler
               // doesn't fire a duplicate replaceState + popup toggle.
               if (ev && ev.originalEvent) L.DomEvent.stopPropagation(ev.originalEvent);
               history.replaceState(null, '', focusHash('route', slug));
+              // Direct stroke hits skip the map handler, so set the
+              // highlight here too, otherwise it stays on the prior route.
+              setSelectedRoute(key);
             };
-          })(desc.route._slug || desc.route.key));
+          })(desc.route._slug || desc.route.key, desc.route.key));
           routeLayers.push({ route: desc.route, region: desc.region.name, layer: gpxLayer, completed: desc.route.completed });
           loadedRouteKeys.add(desc.route.key);
           pendingRouteKeys.delete(desc.route.key);
