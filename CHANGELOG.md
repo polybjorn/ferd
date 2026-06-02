@@ -10,6 +10,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - 105 new shipped catalog entries.
 
 ### Changed
+- The index map simplifies each route's geometry to the current zoom level, so long or dense GPX tracks (continental routes with 100k+ points) stay smooth to pan and zoom; detail returns as you zoom in. The route detail view still renders the full track.
 - The map filter panel marks a toggled-off category or region by fading its whole row and hiding its color dot, so the off state reads more clearly.
 - Confirmation dialogs no longer show a Cancel button; dismiss with Esc, the X, or a click outside.
 - Route tags now keep the casing you type (e.g. `UNESCO`) instead of being forced to lowercase; matching and dedup stay case-insensitive.
