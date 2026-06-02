@@ -64,7 +64,7 @@ jobs:
           echo "path=$out" >> "$GITHUB_OUTPUT"
 
       - name: Attach APK to the release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: ${{ steps.apk.outputs.path }}
           fail_on_unmatched_files: true
