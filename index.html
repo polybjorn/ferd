@@ -7393,7 +7393,7 @@
             (placeTags.length ?
               '<select id="filter-tag">' +
                 '<option value="all">Tag</option>' +
-                placeTags.map(t => '<option value="' + escapeHtml(t) + '"' + (state.placeFilters.tag === t ? ' selected' : '') + '>#' + escapeHtml(t) + '</option>').join('') +
+                placeTags.map(t => '<option value="' + escapeHtml(t) + '"' + (state.placeFilters.tag === t ? ' selected' : '') + '>' + escapeHtml(t) + '</option>').join('') +
               '</select>'
               : '') +
             '<select id="filter-catalog">' +
@@ -12533,7 +12533,7 @@
                       '</select>' : '') +
                     (fTags.length ?
                       '<select id="bf-tag"><option value="all">Tag</option>' +
-                        fTags.map(t => '<option value="' + escapeHtml(t) + '">#' + escapeHtml(t) + '</option>').join('') +
+                        fTags.map(t => '<option value="' + escapeHtml(t) + '">' + escapeHtml(t) + '</option>').join('') +
                       '</select>' : '') +
                     '<button type="button" class="filter-clear" id="browse-clear">Clear filters</button>' +
                   '</div>' +
