@@ -26,6 +26,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Route tags now keep the casing you type (e.g. `UNESCO`) instead of being forced to lowercase; matching and dedup stay case-insensitive.
 - Importing places from the catalog confirms only when adding 10 or more at once; smaller selections import without a prompt.
 - Catalog categories consolidated to 10 broad buckets (from 18): overlapping and singleton categories merged into ruins/monument/nature/city, and Park Güell/Erbil Citadel recategorized. Sub-types and feature detail moved to tags.
+- List filters no longer show an applied-count on the Filters button; instead the button and any filter dropdown holding a non-default value are accent-tinted, so active filters read at a glance.
 
 ### Fixed
 - Opening a large multi-segment route no longer flashes and re-fits the map a second or two in: the elevation area reserves its height up front instead of expanding once the GPX finishes parsing.

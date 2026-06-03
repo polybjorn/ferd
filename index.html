@@ -626,6 +626,8 @@
     }
     .filter-dropdown .filter-btn:hover { border-color: var(--border-hover); }
     .filter-dropdown .filter-btn.has-active { border-color: var(--accent); color: var(--accent); }
+    /* A filter select holding a non-default value reads as active. */
+    .filter-popover select.filter-active { border-color: var(--accent); color: var(--accent); }
     .filter-popover {
       position: absolute;
       top: calc(100% + 6px);
@@ -4324,10 +4326,10 @@
       const { btn, pop, clear, sels, keyById, filters, searchInput, searchKey, onApply } = opts;
       function updateLabel() {
         const n = sels.reduce((acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
-        if (btn) {
-          btn.textContent = n > 0 ? 'Filters (' + n + ')' : 'Filters';
-          btn.classList.toggle('has-active', n > 0);
-        }
+        if (btn) btn.classList.toggle('has-active', n > 0);
+        // Tint each select that holds a non-default value, so an applied filter
+        // reads as applied even with the popover closed.
+        sels.forEach(s => s.classList.toggle('filter-active', s.value !== 'all'));
       }
       function apply() { onApply(); updateLabel(); }
       if (searchInput && searchKey) searchInput.addEventListener('input', function() {
