@@ -7465,16 +7465,16 @@
               '<option value="visited"' + (state.placeFilters.status === 'visited' ? ' selected' : '') + '>Visited</option>' +
               '<option value="want"' + (state.placeFilters.status === 'want' ? ' selected' : '') + '>Want to visit</option>' +
             '</select>' +
-            '<select id="filter-category">' +
-              '<option value="all">Category</option>' +
-              cats.map(c => '<option value="' + escapeHtml(c) + '"' + (state.placeFilters.category === c ? ' selected' : '') + '>' + escapeHtml(displayCategory(c)) + '</option>').join('') +
-            '</select>' +
             (countries.length ?
               '<select id="filter-country">' +
                 '<option value="all">Country</option>' +
                 countries.map(c => '<option value="' + escapeHtml(c) + '"' + (state.placeFilters.country === c ? ' selected' : '') + '>' + escapeHtml(c) + '</option>').join('') +
               '</select>'
               : '') +
+            '<select id="filter-category">' +
+              '<option value="all">Category</option>' +
+              cats.map(c => '<option value="' + escapeHtml(c) + '"' + (state.placeFilters.category === c ? ' selected' : '') + '>' + escapeHtml(displayCategory(c)) + '</option>').join('') +
+            '</select>' +
             (placeTags.length ?
               '<select id="filter-tag">' +
                 '<option value="all">Tag</option>' +
@@ -8237,7 +8237,7 @@
             '</select>' +
             (allTags.length ?
               '<select id="filter-tag">' +
-                '<option value="all">Any tag</option>' +
+                '<option value="all">Tag</option>' +
                 allTags.map(t => '<option value="' + escapeHtml(t) + '"' + (state.trailFilters.tag === t ? ' selected' : '') + '>' + escapeHtml(t) + '</option>').join('') +
               '</select>'
               : '') +
