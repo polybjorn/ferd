@@ -2522,14 +2522,10 @@
     [data-panel="general"] { container-type: inline-size; }
     @container (max-width: 24rem) {
       [data-panel="general"] .feature-pills:not(.optional-fields) { display: grid; grid-template-columns: repeat(2, 1fr); }
-      /* The 5-item Optional fields group can't fit five across once narrow.
-         Drop it to a filled 3/2 (both rows grow to the full width) rather than
-         the lone full-width pill a plain flex wrap would leave. */
-      [data-panel="general"] .feature-pills.optional-fields > .feature-pill { flex: 1 1 30%; }
     }
-    /* Tighter than the other pill groups so all five fit one row at the modal's
-       width even in fonts wider than the Mac system one (e.g. Android Roboto). */
-    .feature-pills.optional-fields { gap: 0.4rem; }
+    /* Six optional fields as a fixed 3-column grid (3+3), so they never collapse
+       to one overflowing row or leave a lone trailing pill on a flex wrap. */
+    .feature-pills.optional-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
     .feature-pills.optional-fields > .feature-pill { padding-left: 0.6rem; padding-right: 0.6rem; }
     .feature-pill {
       display: inline-flex;
@@ -4210,12 +4206,12 @@
     }
     // Inline "#a #b" line for map popups.
     function tagPopupHtml(tags) {
-      return (Array.isArray(tags) && tags.length)
+      return (getShowField('tags') && Array.isArray(tags) && tags.length)
         ? '<div class="popup-tags">' + tags.map(t => '#' + escapeHtml(t)).join(' ') + '</div>' : '';
     }
     // Pill badges for list cards; cls is the wrapper class (place-tags / route-meta-tags).
     function tagPillsHtml(tags, cls) {
-      return (Array.isArray(tags) && tags.length)
+      return (getShowField('tags') && Array.isArray(tags) && tags.length)
         ? '<div class="' + cls + '">' + tags.map(t => '<span class="tag">#' + escapeHtml(t) + '</span>').join('') + '</div>' : '';
     }
     // Unique tags across items (case-insensitive, first-seen casing kept), sorted.
@@ -5346,8 +5342,10 @@
           '<input type="text" id="tm-region-new" placeholder="New region name" maxlength="64" hidden>' +
           '<label for="tm-difficulty">Difficulty</label>' +
           radioPillsHtml('tm-difficulty', [['', 'None'], ['easy', 'Easy'], ['moderate', 'Moderate'], ['hard', 'Hard'], ['expert', 'Expert']], route.difficulty || '') +
-          '<label for="tm-tags">Tags (comma-separated)</label>' +
-          '<input type="text" id="tm-tags" value="' + escapeHtml((route.tags || []).join(', ')) + '" placeholder="summit, panorama, via-ferrata">' +
+          (getShowField('tags') ?
+            '<label for="tm-tags">Tags (comma-separated)</label>' +
+            '<input type="text" id="tm-tags" value="' + escapeHtml((route.tags || []).join(', ')) + '" placeholder="summit, panorama, via-ferrata">'
+          : '') +
           (getShowField('note') ?
             '<label for="tm-notes">Notes</label>' +
             '<textarea id="tm-notes" maxlength="2000">' + escapeHtml(route.notes || '') + '</textarea>'
@@ -5431,6 +5429,7 @@
             // over the stored values so a hidden field isn't wiped on save.
             if (!getShowField('local-name') && route.local_name) metadata.local_name = route.local_name;
             if (!getShowField('note') && route.notes) metadata.notes = route.notes;
+            if (!getShowField('tags') && route.tags && route.tags.length) metadata.tags = route.tags;
             if (newCompleted) {
               if (!getShowField('date') && route.date_completed) metadata.date_completed = route.date_completed;
               if (!getShowField('rating') && route.rating) metadata.rating = route.rating;
@@ -6088,8 +6087,10 @@
           selectOrNewHtml('e-category', cats, place.category, displayCategory, '', 'New category name') +
           '<label for="e-country">Country (optional)</label>' +
           '<input type="text" id="e-country" value="' + escapeHtml(place.country || '') + '">' +
-          '<label for="e-tags">Tags (comma-separated)</label>' +
-          '<input type="text" id="e-tags" value="' + escapeHtml((place.tags || []).join(', ')) + '" placeholder="UNESCO, free-entry">' +
+          (getShowField('tags') ?
+            '<label for="e-tags">Tags (comma-separated)</label>' +
+            '<input type="text" id="e-tags" value="' + escapeHtml((place.tags || []).join(', ')) + '" placeholder="UNESCO, free-entry">'
+          : '') +
           (getShowField('note') ?
             '<label for="e-note">Note (optional)</label>' +
             '<textarea id="e-note" style="min-height:40px">' + escapeHtml(place.note || '') + '</textarea>'
@@ -6181,6 +6182,7 @@
             if (!getShowField('local-name') && place.local_name) r.payload.local_name = place.local_name;
             if (!getShowField('note') && place.note) r.payload.note = place.note;
             if (!getShowField('image') && place.image) r.payload.image = place.image;
+            if (!getShowField('tags') && place.tags && place.tags.length) r.payload.tags = place.tags;
             // image_focus has no form input at all, so keep it whenever the
             // image is unchanged; the server clears it on a genuine image swap.
             if (place.image_focus && r.payload.image === place.image) r.payload.image_focus = place.image_focus;
@@ -9596,9 +9598,8 @@
         : '') +
         (!isReadOnly() ?
           '<h3 class="settings-h">Optional fields</h3>' +
-          '<div class="modal-desc">Applies to forms, cards, popups, and detail pages.</div>' +
           '<div class="feature-pills optional-fields">' +
-            [['date', 'Date'], ['image', 'Image'], ['local-name', 'Local name'], ['note', 'Note'], ['rating', 'Rating']]
+            [['date', 'Date'], ['image', 'Image'], ['local-name', 'Local name'], ['note', 'Note'], ['rating', 'Rating'], ['tags', 'Tags']]
               .map(([key, label]) =>
                 '<label class="feature-pill' + (getShowField(key) ? ' active' : '') + '"><input type="checkbox" data-field="' + key + '"' + (getShowField(key) ? ' checked' : '') + '>' + label + '</label>'
               ).join('') +
@@ -12380,8 +12381,10 @@
           selectOrNewHtml('g-region', regions, null, null, '', 'New region name') +
           '<label for="g-difficulty">Difficulty</label>' +
           radioPillsHtml('g-difficulty', [['', 'None'], ['easy', 'Easy'], ['moderate', 'Moderate'], ['hard', 'Hard'], ['expert', 'Expert']], '') +
-          '<label for="g-tags">Tags (comma-separated)</label>' +
-          '<input type="text" id="g-tags" placeholder="summit, panorama, via-ferrata">' +
+          (getShowField('tags') ?
+            '<label for="g-tags">Tags (comma-separated)</label>' +
+            '<input type="text" id="g-tags" placeholder="summit, panorama, via-ferrata">'
+          : '') +
           (getShowField('note') ?
             '<label for="g-notes">Notes (optional)</label>' +
             '<textarea id="g-notes" style="min-height:40px" maxlength="2000"></textarea>'
