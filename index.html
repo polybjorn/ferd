@@ -2392,7 +2392,10 @@
       max-height: calc(100vh - 6rem);
       display: flex; flex-direction: column; overflow: hidden;
     }
-    #catalog-bulk-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-top: 0.5rem; padding-right: 0.6rem; }
+    /* Scrollbar flush to the modal's right edge (cancel the 1.5rem modal
+       padding, then re-add it inside) so content stays symmetric, matching the
+       Manage categories list. */
+    #catalog-bulk-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-top: 0.5rem; margin-right: -1.5rem; padding-right: 1.5rem; scrollbar-gutter: stable; }
     .catalog-bulk-place { margin-bottom: 1rem; }
     .catalog-bulk-place:last-child { margin-bottom: 0; }
 
