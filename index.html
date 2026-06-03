@@ -7277,12 +7277,12 @@
         '<div id="catalog-bulk-list">' + sections + '</div>' +
         '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
           '<button type="button" class="primary" id="catalog-bulk-toggle-all">Check all</button>' +
-          '<span id="catalog-bulk-status" style="font-size:0.75rem;color:var(--muted);flex:1"></span>' +
-          '<button type="button" class="primary" id="catalog-bulk-apply">Apply</button>' +
+          '<button type="button" class="primary" id="catalog-bulk-apply" style="margin-left:auto" disabled>Apply</button>' +
         '</div>',
         function(backdrop) {
           const list = document.getElementById('catalog-bulk-list');
           const toggleAllBtn = document.getElementById('catalog-bulk-toggle-all');
+          const applyBtn = document.getElementById('catalog-bulk-apply');
           const allChecks = () => Array.from(backdrop.querySelectorAll('.catalog-diff-check'));
           function syncPlaceToggle(sec) {
             const btn = sec.querySelector('.catalog-bulk-place-toggle');
@@ -7290,10 +7290,13 @@
             const anyOn = Array.from(sec.querySelectorAll('.catalog-diff-check')).some(c => c.checked);
             btn.textContent = anyOn ? 'Clear' : 'Select all';
           }
-          function syncCheckAll() {
+          // Check-all label reflects state; Apply enables only with a selection
+          // (matches the catalog import flow, which gates its Add button too).
+          function syncActions() {
             const checks = allChecks();
             const allOn = checks.length && checks.every(c => c.checked);
             toggleAllBtn.textContent = allOn ? 'Uncheck all' : 'Check all';
+            applyBtn.disabled = !checks.some(c => c.checked);
           }
           backdrop.querySelectorAll('.catalog-bulk-place-toggle').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -7301,7 +7304,7 @@
               const checks = sec.querySelectorAll('.catalog-diff-check');
               const anyOn = Array.from(checks).some(c => c.checked);
               checks.forEach(c => { c.checked = !anyOn; });
-              syncPlaceToggle(sec); syncCheckAll();
+              syncPlaceToggle(sec); syncActions();
             });
           });
           toggleAllBtn.addEventListener('click', function() {
@@ -7309,19 +7312,18 @@
             const allOn = checks.length && checks.every(c => c.checked);
             checks.forEach(c => { c.checked = !allOn; });
             backdrop.querySelectorAll('.catalog-bulk-place').forEach(syncPlaceToggle);
-            syncCheckAll();
+            syncActions();
           });
           list.addEventListener('change', function(e) {
             if (!e.target.classList || !e.target.classList.contains('catalog-diff-check')) return;
             const sec = e.target.closest('.catalog-bulk-place');
             if (sec) syncPlaceToggle(sec);
-            syncCheckAll();
+            syncActions();
           });
           backdrop.querySelectorAll('.catalog-bulk-place').forEach(syncPlaceToggle);
-          syncCheckAll();
-          document.getElementById('catalog-bulk-apply').addEventListener('click', function() {
+          syncActions();
+          applyBtn.addEventListener('click', function() {
             const btn = this;
-            const status = document.getElementById('catalog-bulk-status');
             // Snapshot selections so the still-open modal DOM isn't re-queried
             // per place (and ids needn't be selector-escaped).
             const selByPlace = {};
@@ -7333,8 +7335,9 @@
             const items = pending
               .map(p => ({ p, r: findCatalogUpdate(p), fields: selByPlace[String(p.id)] || new Set() }))
               .filter(x => x.r && x.fields.size > 0);
-            if (!items.length) { status.textContent = 'Nothing selected.'; return; }
+            if (!items.length) return;
             btn.disabled = true;
+            toggleAllBtn.disabled = true;
             const errors = [];
             let i = 0;
             (function next() {
@@ -7344,11 +7347,11 @@
                   closeModal();
                   if (document.getElementById('place-list')) renderPlacesIndex();
                   if (errors.length) alert('Applied with errors:\n' + errors.join('\n'));
-                }).catch(err => { btn.disabled = false; alert('Failed: ' + err.message); });
+                }).catch(err => { btn.disabled = false; toggleAllBtn.disabled = false; btn.textContent = 'Apply'; alert('Failed: ' + err.message); });
                 return;
               }
               const { p, r, fields } = items[i];
-              status.textContent = 'Applying ' + (i + 1) + ' of ' + items.length + '…';
+              btn.textContent = 'Applying ' + (i + 1) + ' of ' + items.length + '…';
               dataLayer.updatePlace({ id: p.id, place: buildCatalogRefreshPayload(p, r.entry, r.changes, fields) })
                 .catch(err => errors.push(p.name + ': ' + err.message))
                 .then(() => { i++; next(); });
