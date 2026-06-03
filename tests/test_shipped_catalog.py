@@ -28,26 +28,18 @@ CATALOG_PATH = REPO_ROOT / "catalog.json"
 # restricted; this only applies to the file we ship in git. Extend deliberately
 # (one PR adds vocab + the entries that use it).
 CATEGORY_VOCAB = {
-  "archaeological-site",
   "beach",
-  "bridge",
   "castle",
-  "cave",
   "city",
   "garden",
-  "island",
-  "landmark",
   "lighthouse",
   "monument",
-  "mountain",
   "museum",
   "nature",
   "palace",
   "religious",
   "ruins",
   "viewpoint",
-  "village",
-  "waterfall",
 }
 
 # Catalog notes are one-line identifiers, kept short on purpose. Personal

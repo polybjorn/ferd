@@ -12,6 +12,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Settings > Appearance > On-map controls can hide the route detail view's expand button.
 - Catalog Browse can be filtered by category, country, and tag, alongside the existing search.
 - 184 catalog entries are tagged UNESCO (World Heritage sites), surfaced by the new Browse tag filter.
+- Catalog entries carry descriptive tags (Volcano, Waterfall, Cave, Statue, Pyramid, Tomb, Tower, Bridge, Caravanserai), filterable in Browse alongside UNESCO.
 - 105 new shipped catalog entries.
 
 ### Changed
@@ -23,6 +24,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Confirmation dialogs no longer show a Cancel button; dismiss with Esc, the X, or a click outside.
 - Route tags now keep the casing you type (e.g. `UNESCO`) instead of being forced to lowercase; matching and dedup stay case-insensitive.
 - Importing places from the catalog confirms only when adding 10 or more at once; smaller selections import without a prompt.
+- Catalog categories consolidated to 10 broad buckets (from 18): overlapping and singleton categories merged into ruins/monument/nature/city, and Park Güell/Erbil Citadel recategorized. Sub-types and feature detail moved to tags.
 
 ### Fixed
 - Very large routes (continental routes with tens of thousands of points, whether one track or many) open and pan smoothly in the detail view instead of stalling: map geometry thins to the current zoom, elevation profiles are sampled down, and route lines hold a constant width through zoom.

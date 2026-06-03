@@ -134,13 +134,16 @@
     "name": "Ali-Sadr Cave",
     "lat": 35.30161,
     "lon": 48.30388,
-    "category": "cave",
+    "category": "nature",
     "country": "Iran",
     "local_name": "غار علی‌صدر",
     "note": "Water cave with navigable underground lakes, Hamedan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Ali_Sadr_Cave%2C_Hamadan_Province%2C_Iran%2Csiamak_sabet.jpg/1280px-Ali_Sadr_Cave%2C_Hamadan_Province%2C_Iran%2Csiamak_sabet.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Ali-Sadr_Cave"
+    ],
+    "tags": [
+      "Cave"
     ]
   },
   {
@@ -205,7 +208,7 @@
     "name": "Ancient Thera",
     "lat": 36.36464,
     "lon": 25.47798,
-    "category": "archaeological-site",
+    "category": "ruins",
     "country": "Greece",
     "local_name": "Αρχαία Θήρα",
     "note": "Ancient city ruins on Mesa Vouno, founded 9th c. BC",
@@ -419,13 +422,16 @@
     "name": "Bastei Bridge",
     "lat": 50.9615,
     "lon": 14.0727,
-    "category": "bridge",
+    "category": "monument",
     "country": "Germany",
     "local_name": "Basteibrücke",
     "note": "Sandstone bridge over a gorge in Saxon Switzerland",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Rathen_und_Elbsandsteingebirge_asv2022-08_img04.jpg/1280px-Rathen_und_Elbsandsteingebirge_asv2022-08_img04.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Bastei"
+    ],
+    "tags": [
+      "Bridge"
     ]
   },
   {
@@ -489,6 +495,7 @@
       "https://en.wikipedia.org/wiki/Bent_Pyramid"
     ],
     "tags": [
+      "Pyramid",
       "UNESCO"
     ]
   },
@@ -548,6 +555,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Blue_Grotto.jpg/1280px-Blue_Grotto.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Blue_Grotto_(Capri)"
+    ],
+    "tags": [
+      "Cave"
     ]
   },
   {
@@ -621,7 +631,7 @@
     "name": "Bryggen",
     "lat": 60.39722,
     "lon": 5.32306,
-    "category": "landmark",
+    "category": "monument",
     "country": "Norway",
     "note": "Colorful Hanseatic wharf of old wooden buildings",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Bryggen%2C_Bergen%2C_Noruega%2C_2019-09-08%2C_DD_115-117_PAN.jpg/1280px-Bryggen%2C_Bergen%2C_Noruega%2C_2019-09-08%2C_DD_115-117_PAN.jpg",
@@ -751,7 +761,7 @@
     "name": "Charles Bridge",
     "lat": 50.08639,
     "lon": 14.41194,
-    "category": "bridge",
+    "category": "monument",
     "country": "Czech Republic",
     "local_name": "Karlův most",
     "note": "14th-century stone bridge lined with baroque statues",
@@ -760,6 +770,7 @@
       "https://en.wikipedia.org/wiki/Charles_Bridge"
     ],
     "tags": [
+      "Bridge",
       "UNESCO"
     ]
   },
@@ -897,6 +908,7 @@
       "https://en.wikipedia.org/wiki/Christ_the_Redeemer_(statue)"
     ],
     "tags": [
+      "Statue",
       "UNESCO"
     ]
   },
@@ -1005,6 +1017,7 @@
       "https://en.wikipedia.org/wiki/Dayr-e_Gachin"
     ],
     "tags": [
+      "Caravanserai",
       "UNESCO"
     ]
   },
@@ -1079,6 +1092,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Certovy_hlavy_Zelizy.jpg/1280px-Certovy_hlavy_Zelizy.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/%C4%8Certovy_hlavy"
+    ],
+    "tags": [
+      "Statue"
     ]
   },
   {
@@ -1158,6 +1174,7 @@
       "https://en.wikipedia.org/wiki/Dome_of_Soltaniyeh"
     ],
     "tags": [
+      "Tomb",
       "UNESCO"
     ]
   },
@@ -1275,6 +1292,7 @@
       "https://en.wikipedia.org/wiki/Eiffel_Tower"
     ],
     "tags": [
+      "Tower",
       "UNESCO"
     ]
   },
@@ -1342,7 +1360,7 @@
     "name": "Erbil Citadel",
     "lat": 36.1912,
     "lon": 44.0094,
-    "category": "monument",
+    "category": "castle",
     "country": "Iraq",
     "local_name": "قەڵای هەولێر",
     "note": "Possibly the oldest continuously inhabited place on Earth",
@@ -1364,6 +1382,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Eyjafjallaj%C3%B6kull_major_eruption_20100510.jpg/1280px-Eyjafjallaj%C3%B6kull_major_eruption_20100510.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Eyjafjallaj%C3%B6kull"
+    ],
+    "tags": [
+      "Volcano"
     ]
   },
   {
@@ -1402,12 +1423,15 @@
     "name": "Fingal's Cave",
     "lat": 56.43389,
     "lon": -6.33611,
-    "category": "cave",
+    "category": "nature",
     "country": "Scotland",
     "note": "Basalt-column sea cave that inspired Mendelssohn",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Fingal%27s_Cave%2C_Staffa_Island_02.jpg/1280px-Fingal%27s_Cave%2C_Staffa_Island_02.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Fingal%27s_Cave"
+    ],
+    "tags": [
+      "Cave"
     ]
   },
   {
@@ -1508,6 +1532,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Genghis_Khan_Equestrian_Statue%2C_photo_by_Vaiz_Ha.jpg/1280px-Genghis_Khan_Equestrian_Statue%2C_photo_by_Vaiz_Ha.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Equestrian_statue_of_Genghis_Khan"
+    ],
+    "tags": [
+      "Statue"
     ]
   },
   {
@@ -1540,7 +1567,7 @@
     "name": "Ginzan Onsen",
     "lat": 38.56972,
     "lon": 140.53111,
-    "category": "village",
+    "category": "city",
     "country": "Japan",
     "local_name": "銀山温泉",
     "note": "Gas-lit Taisho-era hot spring town in Yamagata",
@@ -1595,7 +1622,7 @@
     "name": "Grand Place",
     "lat": 50.8467,
     "lon": 4.3525,
-    "category": "landmark",
+    "category": "monument",
     "country": "Belgium",
     "local_name": "Grote Markt",
     "note": "Ornate guildhall square in Brussels",
@@ -1630,6 +1657,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Gran_Pir%C3%A1mide_de_Cholula%2C_Puebla%2C_M%C3%A9xico%2C_2013-10-12%2C_DD_10.JPG/1280px-Gran_Pir%C3%A1mide_de_Cholula%2C_Puebla%2C_M%C3%A9xico%2C_2013-10-12%2C_DD_10.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Great_Pyramid_of_Cholula"
+    ],
+    "tags": [
+      "Pyramid"
     ]
   },
   {
@@ -1644,6 +1674,7 @@
       "https://en.wikipedia.org/wiki/Great_Pyramid_of_Giza"
     ],
     "tags": [
+      "Pyramid",
       "UNESCO"
     ]
   },
@@ -1826,7 +1857,7 @@
     "name": "Hungarian Parliament Building",
     "lat": 47.5071,
     "lon": 19.0458,
-    "category": "landmark",
+    "category": "monument",
     "country": "Hungary",
     "local_name": "Országház",
     "note": "Largest building in Hungary",
@@ -1880,6 +1911,7 @@
       "https://en.wikipedia.org/wiki/Jamalabad_Caravanserai"
     ],
     "tags": [
+      "Caravanserai",
       "UNESCO"
     ]
   },
@@ -2011,7 +2043,8 @@
       "https://en.wikipedia.org/wiki/K%C4%ABlauea"
     ],
     "tags": [
-      "UNESCO"
+      "UNESCO",
+      "Volcano"
     ]
   },
   {
@@ -2096,6 +2129,7 @@
       "https://en.wikipedia.org/wiki/Leaning_Tower_of_Pisa"
     ],
     "tags": [
+      "Tower",
       "UNESCO"
     ]
   },
@@ -2112,6 +2146,7 @@
       "https://en.wikipedia.org/wiki/Lenin%27s_Mausoleum"
     ],
     "tags": [
+      "Tomb",
       "UNESCO"
     ]
   },
@@ -2128,6 +2163,7 @@
       "https://en.wikipedia.org/wiki/Leshan_Giant_Buddha"
     ],
     "tags": [
+      "Statue",
       "UNESCO"
     ]
   },
@@ -2142,6 +2178,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Lion_Monument.jpg/1280px-Lion_Monument.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Lion_Monument"
+    ],
+    "tags": [
+      "Statue"
     ]
   },
   {
@@ -2257,6 +2296,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Mausoleo_di_Santa_Costanza_-_esterno.jpg/1280px-Mausoleo_di_Santa_Costanza_-_esterno.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Mausoleum_of_Constantina"
+    ],
+    "tags": [
+      "Tomb"
     ]
   },
   {
@@ -2272,6 +2314,7 @@
       "https://en.wikipedia.org/wiki/Mausoleum_of_Qin_Shi_Huang"
     ],
     "tags": [
+      "Tomb",
       "UNESCO"
     ]
   },
@@ -2298,6 +2341,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Meidoum03.jpg/1280px-Meidoum03.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Meidum"
+    ],
+    "tags": [
+      "Pyramid"
     ]
   },
   {
@@ -2395,7 +2441,8 @@
       "https://en.wikipedia.org/wiki/Mount_Etna"
     ],
     "tags": [
-      "UNESCO"
+      "UNESCO",
+      "Volcano"
     ]
   },
   {
@@ -2408,6 +2455,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Mount_Rushmore_detail_view_%28100MP%29.jpg/1280px-Mount_Rushmore_detail_view_%28100MP%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Mount_Rushmore"
+    ],
+    "tags": [
+      "Statue"
     ]
   },
   {
@@ -2421,6 +2471,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Il_cratere_del_Vulcano_-_panoramio.jpg/1280px-Il_cratere_del_Vulcano_-_panoramio.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Mount_Vesuvius"
+    ],
+    "tags": [
+      "Volcano"
     ]
   },
   {
@@ -2520,7 +2573,7 @@
     "name": "Naoshima",
     "lat": 34.45833,
     "lon": 133.98333,
-    "category": "island",
+    "category": "nature",
     "country": "Japan",
     "local_name": "直島",
     "note": "Art island of Ando museums and outdoor installations",
@@ -2801,6 +2854,7 @@
       "https://en.wikipedia.org/wiki/Necropolis_of_Pantalica"
     ],
     "tags": [
+      "Tomb",
       "UNESCO"
     ]
   },
@@ -2950,7 +3004,7 @@
     "name": "Park Güell",
     "lat": 41.4145,
     "lon": 2.1527,
-    "category": "monument",
+    "category": "garden",
     "country": "Spain",
     "local_name": "Parc Güell",
     "note": "Gaudí's mosaic-tiled park on Carmel Hill, Barcelona",
@@ -3051,6 +3105,7 @@
       "https://en.wikipedia.org/wiki/Pont_du_Gard"
     ],
     "tags": [
+      "Bridge",
       "UNESCO"
     ]
   },
@@ -3125,6 +3180,7 @@
       "https://en.wikipedia.org/wiki/Pyramid_of_Cestius"
     ],
     "tags": [
+      "Pyramid",
       "UNESCO"
     ]
   },
@@ -3140,6 +3196,7 @@
       "https://en.wikipedia.org/wiki/Pyramid_of_Djoser"
     ],
     "tags": [
+      "Pyramid",
       "UNESCO"
     ]
   },
@@ -3155,6 +3212,7 @@
       "https://en.wikipedia.org/wiki/Pyramid_of_Khafre"
     ],
     "tags": [
+      "Pyramid",
       "UNESCO"
     ]
   },
@@ -3170,6 +3228,7 @@
       "https://en.wikipedia.org/wiki/Pyramid_of_Menkaure"
     ],
     "tags": [
+      "Pyramid",
       "UNESCO"
     ]
   },
@@ -3186,6 +3245,7 @@
       "https://en.wikipedia.org/wiki/Pyramid_of_the_Moon"
     ],
     "tags": [
+      "Pyramid",
       "UNESCO"
     ]
   },
@@ -3202,6 +3262,7 @@
       "https://en.wikipedia.org/wiki/Pyramid_of_the_Sun"
     ],
     "tags": [
+      "Pyramid",
       "UNESCO"
     ]
   },
@@ -3218,6 +3279,8 @@
       "https://en.wikipedia.org/wiki/Gonbad-e_Qabus_(tower)"
     ],
     "tags": [
+      "Tomb",
+      "Tower",
       "UNESCO"
     ]
   },
@@ -3275,6 +3338,7 @@
       "https://en.wikipedia.org/wiki/Red_Pyramid"
     ],
     "tags": [
+      "Pyramid",
       "UNESCO"
     ]
   },
@@ -3288,6 +3352,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Mausoleos_de_Revash-nX-11.jpg/1280px-Mausoleos_de_Revash-nX-11.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Revash"
+    ],
+    "tags": [
+      "Tomb"
     ]
   },
   {
@@ -3306,7 +3373,7 @@
     "name": "Rialto Bridge",
     "lat": 45.4381,
     "lon": 12.3358,
-    "category": "bridge",
+    "category": "monument",
     "country": "Italy",
     "local_name": "Ponte di Rialto",
     "note": "16th-century stone arch over the Grand Canal",
@@ -3315,6 +3382,7 @@
       "https://en.wikipedia.org/wiki/Rialto_Bridge"
     ],
     "tags": [
+      "Bridge",
       "UNESCO"
     ]
   },
@@ -3331,6 +3399,7 @@
       "https://en.wikipedia.org/wiki/Ribat_of_Zein-o-din"
     ],
     "tags": [
+      "Caravanserai",
       "UNESCO"
     ]
   },
@@ -3346,6 +3415,7 @@
       "https://en.wikipedia.org/wiki/Ribat-i_Sharaf"
     ],
     "tags": [
+      "Caravanserai",
       "UNESCO"
     ]
   },
@@ -3388,6 +3458,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Statuia_Chipul_lui_Decebal_-_Cazanele_Dun%C4%83rii%2C_Rom%C3%A2nia.jpg/1280px-Statuia_Chipul_lui_Decebal_-_Cazanele_Dun%C4%83rii%2C_Rom%C3%A2nia.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Rock_sculpture_of_Decebalus"
+    ],
+    "tags": [
+      "Statue"
     ]
   },
   {
@@ -3498,6 +3571,7 @@
       "https://en.wikipedia.org/wiki/Sa%27d_al-Saltaneh_Caravanserai"
     ],
     "tags": [
+      "Caravanserai",
       "UNESCO"
     ]
   },
@@ -3605,7 +3679,7 @@
     "name": "Sassi di Matera",
     "lat": 40.6667,
     "lon": 16.6083,
-    "category": "cave",
+    "category": "city",
     "country": "Italy",
     "note": "Ancient cave dwellings inhabited for millennia",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Matera_boenisch_nov_2005.jpg/1280px-Matera_boenisch_nov_2005.jpg",
@@ -3667,12 +3741,15 @@
     "name": "Seljalandsfoss",
     "lat": 63.61583,
     "lon": -19.99278,
-    "category": "waterfall",
+    "category": "nature",
     "country": "Iceland",
     "note": "60 m waterfall you can walk behind",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Idyllic_landscape_with_a_waterfall_%28Unsplash%29.jpg/1280px-Idyllic_landscape_with_a_waterfall_%28Unsplash%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Seljalandsfoss"
+    ],
+    "tags": [
+      "Waterfall"
     ]
   },
   {
@@ -3760,7 +3837,7 @@
     "name": "Shirakawa-go",
     "lat": 36.2576,
     "lon": 136.9066,
-    "category": "village",
+    "category": "city",
     "country": "Japan",
     "local_name": "白川郷",
     "note": "Traditional steep-roofed farmhouses in a mountain village",
@@ -3808,7 +3885,7 @@
     "name": "Shushtar Historical Hydraulic System",
     "lat": 32.0441,
     "lon": 48.8585,
-    "category": "archaeological-site",
+    "category": "ruins",
     "country": "Iran",
     "local_name": "سازه‌های آبی شوشتر",
     "note": "Sasanian canals, dams, and watermills, southwest Iran",
@@ -3894,7 +3971,7 @@
     "name": "Somerset House",
     "lat": 51.5111,
     "lon": -0.1178,
-    "category": "landmark",
+    "category": "monument",
     "country": "England",
     "note": "Neoclassical arts centre with a fountain courtyard, London",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Somerset_House_courtyard_%2801%29.JPG/1280px-Somerset_House_courtyard_%2801%29.JPG",
@@ -3906,7 +3983,7 @@
     "name": "Son Doong Cave",
     "lat": 17.45694,
     "lon": 106.2875,
-    "category": "cave",
+    "category": "nature",
     "country": "Vietnam",
     "local_name": "Hang Sơn Đoòng",
     "note": "World's largest cave by volume",
@@ -3915,6 +3992,7 @@
       "https://en.wikipedia.org/wiki/Hang_Sơn_Đoòng"
     ],
     "tags": [
+      "Cave",
       "UNESCO"
     ]
   },
@@ -3929,6 +4007,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Spring_Temple_Buddha_05.jpg/1280px-Spring_Temple_Buddha_05.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Spring_Temple_Buddha"
+    ],
+    "tags": [
+      "Statue"
     ]
   },
   {
@@ -4030,6 +4111,7 @@
       "https://en.wikipedia.org/wiki/Statue_of_Liberty"
     ],
     "tags": [
+      "Statue",
       "UNESCO"
     ]
   },
@@ -4043,6 +4125,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Statue_of_Unity_2.jpg/1280px-Statue_of_Unity_2.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Statue_of_Unity"
+    ],
+    "tags": [
+      "Statue"
     ]
   },
   {
@@ -4072,7 +4157,8 @@
       "https://en.wikipedia.org/wiki/Stromboli"
     ],
     "tags": [
-      "UNESCO"
+      "UNESCO",
+      "Volcano"
     ]
   },
   {
@@ -4092,7 +4178,7 @@
     "name": "Sydney Opera House",
     "lat": -33.8568,
     "lon": 151.2153,
-    "category": "landmark",
+    "category": "monument",
     "country": "Australia",
     "note": "Shell-roofed performing arts centre on Sydney Harbour",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Sydney_Australia._%2821339175489%29.jpg/1280px-Sydney_Australia._%2821339175489%29.jpg",
@@ -4141,6 +4227,7 @@
       "https://en.wikipedia.org/wiki/Taj_Mahal"
     ],
     "tags": [
+      "Tomb",
       "UNESCO"
     ]
   },
@@ -4173,7 +4260,7 @@
     "name": "Teide",
     "lat": 28.2721,
     "lon": -16.642,
-    "category": "mountain",
+    "category": "nature",
     "country": "Spain",
     "local_name": "El Teide",
     "note": "Active volcano, Spain's highest peak at 3715 m",
@@ -4182,7 +4269,8 @@
       "https://en.wikipedia.org/wiki/Teide"
     ],
     "tags": [
-      "UNESCO"
+      "UNESCO",
+      "Volcano"
     ]
   },
   {
@@ -4227,7 +4315,7 @@
     "name": "Temple of the Inscriptions",
     "lat": 17.4836,
     "lon": -92.0468,
-    "category": "archaeological-site",
+    "category": "ruins",
     "country": "Mexico",
     "local_name": "Templo de las Inscripciones",
     "note": "Palenque pyramid with Pakal's tomb and Maya glyphs",
@@ -4278,6 +4366,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Mamayev_Kurgan_Volgograd.jpg/1280px-Mamayev_Kurgan_Volgograd.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/The_Motherland_Calls"
+    ],
+    "tags": [
+      "Statue"
     ]
   },
   {
@@ -4393,6 +4484,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Tokyo_Tower%2C_Minato_City.jpg/1280px-Tokyo_Tower%2C_Minato_City.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Tokyo_Tower"
+    ],
+    "tags": [
+      "Tower"
     ]
   },
   {
@@ -4408,6 +4502,7 @@
       "https://en.wikipedia.org/wiki/Tomb_of_Cyrus"
     ],
     "tags": [
+      "Tomb",
       "UNESCO"
     ]
   },
@@ -4422,6 +4517,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Tomb_of_Darius_I_front.jpg/1280px-Tomb_of_Darius_I_front.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Tomb_of_Darius_the_Great"
+    ],
+    "tags": [
+      "Tomb"
     ]
   },
   {
@@ -4435,6 +4533,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Amasya-Pontisches_Grab-02.JPG/1280px-Amasya-Pontisches_Grab-02.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Tombs_of_the_kings_of_Pontus"
+    ],
+    "tags": [
+      "Tomb"
     ]
   },
   {
@@ -4569,6 +4670,7 @@
       "https://en.wikipedia.org/wiki/Valley_of_the_Kings"
     ],
     "tags": [
+      "Tomb",
       "UNESCO"
     ]
   },
@@ -4683,14 +4785,15 @@
       "https://en.wikipedia.org/wiki/Victoria_Falls"
     ],
     "tags": [
-      "UNESCO"
+      "UNESCO",
+      "Waterfall"
     ]
   },
   {
     "name": "Vigeland Park",
     "lat": 59.92667,
     "lon": 10.70139,
-    "category": "landmark",
+    "category": "garden",
     "country": "Norway",
     "local_name": "Vigelandsparken",
     "note": "Largest sculpture park by a single artist, Gustav Vigeland",
@@ -4807,7 +4910,7 @@
     "name": "Wieliczka Salt Mine",
     "lat": 49.97917,
     "lon": 20.06389,
-    "category": "landmark",
+    "category": "monument",
     "country": "Poland",
     "local_name": "Kopalnia soli Wieliczka",
     "note": "Chapels and chandeliers carved from rock salt",
