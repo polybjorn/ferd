@@ -2377,6 +2377,7 @@
     .modal-backdrop:has(#cat-rows),
     .modal-backdrop:has(#cat-list),
     .modal-backdrop:has(#cat-mgr-list),
+    .modal-backdrop:has(#browse-list),
     .modal-backdrop:has(#rgn-rows) { align-items: flex-start; padding-top: 3rem; padding-bottom: 3rem; }
     .modal-backdrop:has(#settings-tabs) .modal { max-height: calc(100vh - 6rem); }
     .modal-backdrop:has(#cat-rows) .modal,
@@ -12505,8 +12506,39 @@
               '</span>' +
             '</label>';
           }).join('');
+          // Filter dimensions drawn from the entries actually on offer (after
+          // dedup), so the dropdowns never list a value with no matching row.
+          // Categories are slugs; label them via displayCategory. Tags are
+          // empty until catalog entries ship them, so that select self-hides.
+          const fCats = [...new Set(entries.map(e => e.category).filter(Boolean))]
+            .sort((a, b) => displayCategory(a).localeCompare(displayCategory(b)));
+          const fCountries = [...new Set(entries.map(e => e.country).filter(Boolean))]
+            .sort((a, b) => a.localeCompare(b));
+          const fTags = collectTags(entries);
+          const hasFilters = fCats.length > 1 || fCountries.length > 1 || fTags.length > 0;
           body.innerHTML =
-            '<input type="text" id="browse-filter" placeholder="Filter&hellip;" style="margin-bottom:0.5rem">' +
+            '<div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem" id="browse-controls">' +
+              '<input type="text" id="browse-filter" placeholder="Filter&hellip;" style="flex:1;margin:0">' +
+              (hasFilters ?
+                '<div class="filter-dropdown">' +
+                  '<button type="button" class="filter-btn" id="browse-filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
+                  '<div class="filter-popover" id="browse-filter-popover" hidden>' +
+                    (fCats.length > 1 ?
+                      '<select id="bf-category"><option value="all">Category</option>' +
+                        fCats.map(c => '<option value="' + escapeHtml(c) + '">' + escapeHtml(displayCategory(c)) + '</option>').join('') +
+                      '</select>' : '') +
+                    (fCountries.length > 1 ?
+                      '<select id="bf-country"><option value="all">Country</option>' +
+                        fCountries.map(c => '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>').join('') +
+                      '</select>' : '') +
+                    (fTags.length ?
+                      '<select id="bf-tag"><option value="all">Tag</option>' +
+                        fTags.map(t => '<option value="' + escapeHtml(t) + '">#' + escapeHtml(t) + '</option>').join('') +
+                      '</select>' : '') +
+                    '<button type="button" class="filter-clear" id="browse-clear">Clear filters</button>' +
+                  '</div>' +
+                '</div>' : '') +
+            '</div>' +
             '<div id="browse-list" style="max-height:50vh;overflow-y:auto">' + rows + '</div>' +
             modalErrorHtml('add-error') +
             '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
@@ -12515,7 +12547,7 @@
               '<button type="button" class="primary" id="browse-add" disabled style="margin-left:auto">Add selected</button>' +
             '</div>';
 
-          const filter = document.getElementById('browse-filter');
+          const searchInput = document.getElementById('browse-filter');
           const list = document.getElementById('browse-list');
           const addBtn = document.getElementById('browse-add');
           const selectAllBtn = document.getElementById('browse-select-all');
@@ -12542,13 +12574,40 @@
             updateBtn();
           });
 
-          filter.addEventListener('input', function() {
-            const q = this.value.trim().toLowerCase();
+          // Combined filter: free-text (matched against the row's visible text)
+          // intersected with the Category / Country / Tag dropdowns.
+          function applyFilters() {
+            const q = (searchInput.value || '').trim().toLowerCase();
+            const catSel = document.getElementById('bf-category');
+            const countrySel = document.getElementById('bf-country');
+            const tagSel = document.getElementById('bf-tag');
+            const cat = catSel ? catSel.value : 'all';
+            const country = countrySel ? countrySel.value : 'all';
+            const tag = tagSel ? tagSel.value : 'all';
             list.querySelectorAll('.browse-row').forEach(row => {
-              row.style.display = (!q || row.textContent.toLowerCase().includes(q)) ? 'flex' : 'none';
+              const e = entries[parseInt(row.dataset.idx, 10)] || {};
+              let show = !q || row.textContent.toLowerCase().includes(q);
+              if (show && cat !== 'all') show = e.category === cat;
+              if (show && country !== 'all') show = e.country === country;
+              if (show && tag !== 'all') show = tagsInclude(e.tags, tag);
+              row.style.display = show ? 'flex' : 'none';
             });
             updateBtn();
-          });
+          }
+          if (hasFilters) {
+            const controls = document.getElementById('browse-controls');
+            enhanceSelectsIn(controls);
+            wireFilterPopover({
+              btn: document.getElementById('browse-filter-btn'),
+              pop: document.getElementById('browse-filter-popover'),
+              clear: document.getElementById('browse-clear'),
+              sels: ['bf-category', 'bf-country', 'bf-tag'].map(id => document.getElementById(id)).filter(Boolean),
+              keyById: { 'bf-category': 'category', 'bf-country': 'country', 'bf-tag': 'tag' },
+              filters: {}, searchInput, searchKey: 'q', onApply: applyFilters,
+            });
+          } else {
+            searchInput.addEventListener('input', applyFilters);
+          }
 
           // Source links sit inside a <label>; without this they'd toggle the
           // row's checkbox as a side effect of the label's default behavior.

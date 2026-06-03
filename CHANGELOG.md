@@ -10,6 +10,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Map: categories, regions, and place/route statuses can be hidden by default. Set a category or region hidden via its eye toggle in Manage categories/regions, or toggle the four status defaults in Settings > Appearance; the map opens with them hidden, and the filter panel still shows them for the current session.
 - Places can carry free-form tags (e.g. `UNESCO`), editable in the place form, shown on the map popup and list cards, and filterable and searchable in the Places list. Tags keep their casing and dedupe case-insensitively; catalog entries can ship tags too.
 - Settings > Appearance > On-map controls can hide the route detail view's expand button.
+- Catalog Browse can be filtered by category, country, and tag, alongside the existing search.
 - 105 new shipped catalog entries.
 
 ### Changed
