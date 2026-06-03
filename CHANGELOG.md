@@ -9,6 +9,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Index map: clicking a route highlights it (the line thickens slightly and goes opaque while the rest dim back), so overlapping routes are easy to tell apart. Clicking the same spot again steps through routes stacked there; clicking an empty spot clears the highlight; arriving from a route's detail view highlights it automatically.
 - Map: categories, regions, and place/route statuses can be hidden by default. Set a category or region hidden via its eye toggle in Manage categories/regions, or toggle the four status defaults in Settings > Appearance; the map opens with them hidden, and the filter panel still shows them for the current session.
 - Places can carry free-form tags (e.g. `UNESCO`), editable in the place form, shown on the map popup and list cards, and filterable and searchable in the Places list. Tags keep their casing and dedupe case-insensitively; catalog entries can ship tags too.
+- Settings > Appearance > On-map controls can hide the route detail view's expand button.
 - 105 new shipped catalog entries.
 
 ### Changed

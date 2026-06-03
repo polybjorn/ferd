@@ -1219,6 +1219,7 @@
       padding-bottom: 0 !important;
       border-top-width: 0 !important;
       border-bottom-width: 0 !important;
+      overflow: hidden !important;
       pointer-events: none;
     }
     .detail-layout.map-expanded #map { flex: 1 1 auto; }
@@ -1916,8 +1917,10 @@
        visible. The spacebar (.map-chrome-hidden) above still hard-hides. */
     .map-panel { transform-origin: bottom left; transition: transform 0.18s ease-out, opacity 0.18s ease-out; }
     .leaflet-control-zoom { transform-origin: top left; transition: transform 0.18s ease-out, opacity 0.18s ease-out; }
+    .map-expand-btn { transition: transform 0.18s ease-out, opacity 0.18s ease-out; }
     body.hide-map-filter .map-panel,
-    body.hide-map-zoom .leaflet-control-zoom {
+    body.hide-map-zoom .leaflet-control-zoom,
+    body.hide-map-expand .map-expand-btn {
       opacity: 0;
       transform: scale(0.5);
       pointer-events: none;
@@ -4430,7 +4433,7 @@
     const SYNCED_PREF_KEYS = new Set([
       'theme', 'mode', 'pin-style', 'marker-size', 'route-weight', 'tile-filter',
       'tile-layer', 'units', 'show-local-name',
-      'cluster-places', 'tile-picker', 'map-filter', 'map-zoom', 'remember-view',
+      'cluster-places', 'tile-picker', 'map-filter', 'map-zoom', 'map-expand', 'remember-view',
       'places-group-by', 'trails-group-by', 'history-view',
       'places-view', 'routes-view',
       'default-hidden-categories', 'default-hidden-regions',
@@ -4480,9 +4483,11 @@
     function getShowTilePicker() { return getPref('tile-picker', 'true') !== 'false'; }
     function getShowFilterPanel() { return getPref('map-filter', 'true') !== 'false'; }
     function getShowZoomControls() { return getPref('map-zoom', 'true') !== 'false'; }
+    function getShowExpandButton() { return getPref('map-expand', 'true') !== 'false'; }
     function applyControlVisibility() {
       document.body.classList.toggle('hide-map-filter', !getShowFilterPanel());
       document.body.classList.toggle('hide-map-zoom', !getShowZoomControls());
+      document.body.classList.toggle('hide-map-expand', !getShowExpandButton());
     }
     function getRememberView() { return getPref('remember-view', 'true') !== 'false'; }
     // Per-category / per-region durable "hidden by default on the map" lists, and
@@ -9609,6 +9614,9 @@
           '<div class="settings-inline-row"><label for="s-map-zoom">Zoom buttons</label>' +
             '<input type="checkbox" class="settings-toggle" id="s-map-zoom"' + (getShowZoomControls() ? ' checked' : '') + '>' +
           '</div>' +
+          '<div class="settings-inline-row"><label for="s-map-expand">Expand button</label>' +
+            '<input type="checkbox" class="settings-toggle" id="s-map-expand"' + (getShowExpandButton() ? ' checked' : '') + '>' +
+          '</div>' +
         '</div>' +
         '</div>' +
         '<div data-panel="account" hidden>' +
@@ -9920,7 +9928,7 @@
             setPref('tile-layer', this.value);
             wrappedRouter();
           });
-          [['s-cluster', 'cluster-places'], ['s-remember-view', 'remember-view'], ['s-tile-picker', 'tile-picker'], ['s-map-filter', 'map-filter'], ['s-map-zoom', 'map-zoom']].forEach(function([id, key]) {
+          [['s-cluster', 'cluster-places'], ['s-remember-view', 'remember-view'], ['s-tile-picker', 'tile-picker'], ['s-map-filter', 'map-filter'], ['s-map-zoom', 'map-zoom'], ['s-map-expand', 'map-expand']].forEach(function([id, key]) {
             const cb = document.getElementById(id);
             if (!cb) return;
             cb.addEventListener('change', function() {
@@ -9955,8 +9963,8 @@
                 }
                 return;
               }
-              // Filter panel + zoom controls hide via body classes; no map work.
-              if (key === 'map-filter' || key === 'map-zoom') {
+              // Filter panel + zoom + expand controls hide via body classes; no map work.
+              if (key === 'map-filter' || key === 'map-zoom' || key === 'map-expand') {
                 applyControlVisibility();
                 return;
               }
