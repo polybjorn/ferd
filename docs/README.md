@@ -12,6 +12,10 @@
 - [Themes](themes.md) - bundled themes, light/dark/system mode, and how to add your own.
 - [Catalog](catalog.md) - the shared list of places users can browse and import; how the shipped baseline merges with admin additions.
 
+## Troubleshooting
+
+- [Troubleshooting](troubleshooting.md) - console messages you can safely ignore, and other things you might notice.
+
 ## Develop
 
 - [API](api.md) - reference for every `/api/*` endpoint, for scripts and integrations.
