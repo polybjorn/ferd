@@ -11,7 +11,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places can carry free-form tags (e.g. `UNESCO`), editable in the place form, shown on the map popup and list cards, and filterable and searchable in the Places list. Tags keep their casing and dedupe case-insensitively; catalog entries can ship tags too.
 - Settings > Appearance > On-map controls can hide the route detail view's expand button.
 - Catalog Browse can be filtered by category, country, and tag, alongside the existing search.
-- 183 catalog entries are tagged UNESCO (World Heritage sites), surfaced by the new Browse tag filter.
+- 184 catalog entries are tagged UNESCO (World Heritage sites), surfaced by the new Browse tag filter.
 - 105 new shipped catalog entries.
 
 ### Changed
