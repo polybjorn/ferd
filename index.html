@@ -4058,21 +4058,6 @@
     function logsAvailable() { return isLocalMode() || !!(state.auth && state.auth.is_admin); }
     function logsEnabled() { return logsAvailable() && featureVisible('logs'); }
 
-    // One-shot rename of the per-browser "show local name field" toggle, which
-    // used the legacy `show-native-name` key before 1.1.0. Copy the old value
-    // over to the new key and drop the stale entry. Safe to leave indefinitely
-    // (no-op once both keys are absent); remove after a future release once
-    // we're confident no browsers carry the old key anymore.
-    try {
-      const oldKey = 'show-native-name';
-      const newKey = 'show-local-name';
-      const oldVal = localStorage.getItem(oldKey);
-      if (oldVal !== null && localStorage.getItem(newKey) === null) {
-        localStorage.setItem(newKey, oldVal);
-      }
-      if (oldVal !== null) localStorage.removeItem(oldKey);
-    } catch {}
-
     function getPref(key, def) {
       try { const v = localStorage.getItem(key); return v === null ? def : v; }
       catch { return def; }

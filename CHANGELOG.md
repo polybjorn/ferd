@@ -25,6 +25,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Editing a route's name or region from its detail view now follows the route to its new address instead of leaving a dead link that showed "route not found".
 - Places added from the catalog (or via the Add form) now appear in the Places list immediately instead of only after a manual reload.
 
+### Removed
+- The one-shot `show-native-name` to `show-local-name` localStorage migration (from before 1.1.0); browsers have long since booted through it.
+
 ## [1.2.0] - 2026-05-31
 
 ### Added
