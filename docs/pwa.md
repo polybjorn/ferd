@@ -1,19 +1,19 @@
 # PWA: install on phone
 
-Ferd is meant to be installed on your phone as a standalone app with offline reads. The app shell, your data, and previously-viewed tiles work without network. Desktop install uses the same machinery but rarely earns its keep for a map app.
+Ferd is meant to be installed on your phone as a standalone app with offline reads and edits. The app shell, your data, and previously-viewed tiles work without network, and changes you make offline sync when you reconnect. Desktop install uses the same machinery but rarely earns its keep for a map app.
 
 ## What works offline
 
 - App shell: HTML, CSS, JS, vendored Leaflet and plugins, PWA icons.
 - Elevation chart and its deps (d3, plus leaflet-elevation's own modular handlers and components). All vendored under `vendor/` and precached on install.
 - Last loaded places, routes, GPX files, and category labels. `stale-while-revalidate` refreshes them in the background when you're back online. `/api/gpx/*.gpx` is cached the same way.
+- Editing. Adding/editing/deleting places, completing/editing/moving/deleting routes, uploading new GPX, and managing regions and category labels all work offline. Edits apply immediately and survive a reload, queue in an on-device outbox, and replay to the server when the connection returns (last-write-wins; an edit whose server copy changed first is skipped and reported). The offline banner shows how many changes are waiting; a toast reports the result after a sync.
 - Tiles you've previously viewed. Cap is ~50 MB with LRU eviction.
 - Site config, manifest, and the full icon set.
 
 ## What needs network
 
-- All edits and uploads. Mutating API calls return a clear "you're offline" error; on-disk data is untouched.
-- Sign-in if your session has expired.
+- Account and admin actions: sign-in/out (if your session expired), publishing, sessions and API tokens, admin tools, and curating the shared catalog. These return a clear "you're offline" error and are not queued.
 - Tiles for areas you haven't viewed before.
 
 ## Install on phone

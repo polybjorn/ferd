@@ -22,7 +22,7 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 
 **Use it anywhere**
 - Install to your device and launch it in its own window.
-- Reads work offline (app shell, last loaded data, downloaded GPX, previously viewed tiles). Edits and uploads need network.
+- Works offline: reads (app shell, last loaded data, downloaded GPX, previously viewed tiles) and edits, which queue on-device and sync when the connection returns. Account and admin actions still need network.
 - Local-only mode that runs entirely on-device with no server or account.
 
 ## Install
@@ -70,9 +70,6 @@ Android client, server-connected or fully on-device. Use an APK manager to auto-
 ### Content
 - Print and PDF stylesheet for route and place details.
 - Uploaded image attachments on places and routes.
-
-### Offline
-- Offline editing, queued and synced when the connection returns (reads already work offline).
 
 ### Branding
 - Distinctive logo.
