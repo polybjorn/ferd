@@ -1845,8 +1845,12 @@
     /* Places/Routes section in the menu, shown only on narrow screens where the
        nav tabs are hidden (see the matching media query). */
     .auth-menu-nav { display: none; }
+    /* Catalog-updates entry: mobile-only counterpart to the desktop Review chip,
+       and only when updates are pending (toggled via the [hidden] attribute). */
+    .auth-menu button.auth-menu-mobile { display: none; }
     @media (max-width: 600px) {
       nav .view-tabs { display: none; }
+      .auth-menu button.auth-menu-mobile:not([hidden]) { display: flex; }
       /* With the tabs gone, drop the empty middle column so the brand stays
          left and the actions stay hard right (otherwise nav-right auto-places
          into the vacated center column). */
@@ -2378,8 +2382,25 @@
     .modal-backdrop:has(#cat-list),
     .modal-backdrop:has(#cat-mgr-list),
     .modal-backdrop:has(#browse-list),
+    .modal-backdrop:has(#catalog-bulk-list),
     .modal-backdrop:has(#rgn-rows) { align-items: flex-start; padding-top: 3rem; padding-bottom: 3rem; }
     .modal-backdrop:has(#settings-tabs) .modal { max-height: calc(100vh - 6rem); }
+
+    /* Bulk catalog-update review: fills the modal like Settings, with the list
+       scrolling internally so the title and action row stay pinned. */
+    .modal-backdrop:has(#catalog-bulk-list) .modal {
+      max-height: calc(100vh - 6rem);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    #catalog-bulk-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-top: 0.5rem; padding-right: 0.6rem; }
+    .catalog-bulk-place { margin-bottom: 1rem; }
+    .catalog-bulk-place:last-child { margin-bottom: 0; }
+
+    /* Self-retiring chip in the Places controls row, accent-bordered to draw
+       the eye, shown only while catalog updates are pending. Shape from .filter-btn. */
+    .filter-dropdown .filter-btn.catalog-update-chip { border-color: var(--accent); color: var(--accent); }
+    /* Desktop-only chip; on phones the action moves into the Menu instead. */
+    @media (max-width: 600px) { .catalog-update-chip-wrap { display: none; } }
     .modal-backdrop:has(#cat-rows) .modal,
     .modal-backdrop:has(#rgn-rows) .modal { display: flex; flex-direction: column; max-height: calc(100vh - 6rem); }
     .modal-backdrop:has(#cat-rows) #cat-rows,
@@ -7234,48 +7255,102 @@
       return next;
     }
 
+    // Bulk review: every pending place's field-level diff in one modal, each
+    // field an unchecked checkbox. Additive - Apply touches only places where
+    // a field was ticked (ticked applied, unticked-in-a-touched-place kept like
+    // the per-place modal); untouched places stay pending for a later pass.
     function openCatalogBulkUpdateModal() {
       const pending = placesWithCatalogUpdates();
       if (!pending.length) { alert('No catalog updates available.'); return; }
-      const head = pending.slice(0, 8).map(p => {
+      const sections = pending.map(p => {
         const r = findCatalogUpdate(p);
-        const n = r ? r.changes.length : 0;
-        return '<li>' + escapeHtml(p.name) + ' <span style="color:var(--muted)">(' + n + ' field' + (n === 1 ? '' : 's') + ')</span></li>';
+        return '<div class="catalog-bulk-place" data-place-id="' + escapeHtml(String(p.id)) + '">' +
+          '<h3 class="settings-h" style="display:flex;align-items:baseline;gap:0.5rem">' +
+            '<span>' + escapeHtml(p.name) + '</span>' +
+            '<button type="button" class="sessions-revoke-others catalog-bulk-place-toggle" style="margin-left:auto">Select all</button>' +
+          '</h3>' +
+          renderCatalogDiff(r.changes, { selectable: true, place: p, entry: r.entry }) +
+        '</div>';
       }).join('');
-      const more = pending.length > 8 ? '<li style="color:var(--muted)">+ ' + (pending.length - 8) + ' more</li>' : '';
       openModal(
-        modalHeaderHtml('Refresh from catalog') +
-        '<div class="modal-desc">' + pending.length + ' place' + (pending.length === 1 ? '' : 's') + ' will be refreshed. Visit status, date, and rating are preserved.</div>' +
-        '<ul style="font-size:0.78rem;margin:0.6rem 0 0.4rem;padding-left:1.2rem">' + head + more + '</ul>' +
-        modalErrorHtml('catalog-bulk-error') +
+        modalHeaderHtml('Catalog updates (' + pending.length + ')') +
+        '<div id="catalog-bulk-list">' + sections + '</div>' +
         '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
+          '<button type="button" class="primary" id="catalog-bulk-toggle-all">Check all</button>' +
           '<span id="catalog-bulk-status" style="font-size:0.75rem;color:var(--muted);flex:1"></span>' +
-          '<button type="button" data-role="cancel">Cancel</button>' +
-          '<button type="button" class="primary" id="catalog-bulk-confirm">Refresh all</button>' +
+          '<button type="button" class="primary" id="catalog-bulk-apply">Apply</button>' +
         '</div>',
         function(backdrop) {
-          backdrop.querySelector('[data-role="cancel"]').addEventListener('click', () => closeModal());
-          document.getElementById('catalog-bulk-confirm').addEventListener('click', function() {
+          const list = document.getElementById('catalog-bulk-list');
+          const toggleAllBtn = document.getElementById('catalog-bulk-toggle-all');
+          const allChecks = () => Array.from(backdrop.querySelectorAll('.catalog-diff-check'));
+          function syncPlaceToggle(sec) {
+            const btn = sec.querySelector('.catalog-bulk-place-toggle');
+            if (!btn) return;
+            const anyOn = Array.from(sec.querySelectorAll('.catalog-diff-check')).some(c => c.checked);
+            btn.textContent = anyOn ? 'Clear' : 'Select all';
+          }
+          function syncCheckAll() {
+            const checks = allChecks();
+            const allOn = checks.length && checks.every(c => c.checked);
+            toggleAllBtn.textContent = allOn ? 'Uncheck all' : 'Check all';
+          }
+          backdrop.querySelectorAll('.catalog-bulk-place-toggle').forEach(btn => {
+            btn.addEventListener('click', function() {
+              const sec = this.closest('.catalog-bulk-place');
+              const checks = sec.querySelectorAll('.catalog-diff-check');
+              const anyOn = Array.from(checks).some(c => c.checked);
+              checks.forEach(c => { c.checked = !anyOn; });
+              syncPlaceToggle(sec); syncCheckAll();
+            });
+          });
+          toggleAllBtn.addEventListener('click', function() {
+            const checks = allChecks();
+            const allOn = checks.length && checks.every(c => c.checked);
+            checks.forEach(c => { c.checked = !allOn; });
+            backdrop.querySelectorAll('.catalog-bulk-place').forEach(syncPlaceToggle);
+            syncCheckAll();
+          });
+          list.addEventListener('change', function(e) {
+            if (!e.target.classList || !e.target.classList.contains('catalog-diff-check')) return;
+            const sec = e.target.closest('.catalog-bulk-place');
+            if (sec) syncPlaceToggle(sec);
+            syncCheckAll();
+          });
+          backdrop.querySelectorAll('.catalog-bulk-place').forEach(syncPlaceToggle);
+          syncCheckAll();
+          document.getElementById('catalog-bulk-apply').addEventListener('click', function() {
             const btn = this;
             const status = document.getElementById('catalog-bulk-status');
+            // Snapshot selections so the still-open modal DOM isn't re-queried
+            // per place (and ids needn't be selector-escaped).
+            const selByPlace = {};
+            backdrop.querySelectorAll('.catalog-bulk-place').forEach(sec => {
+              const set = new Set();
+              sec.querySelectorAll('.catalog-diff-check:checked').forEach(cb => set.add(cb.dataset.field));
+              selByPlace[sec.dataset.placeId] = set;
+            });
+            const items = pending
+              .map(p => ({ p, r: findCatalogUpdate(p), fields: selByPlace[String(p.id)] || new Set() }))
+              .filter(x => x.r && x.fields.size > 0);
+            if (!items.length) { status.textContent = 'Nothing selected.'; return; }
             btn.disabled = true;
             const errors = [];
             let i = 0;
             (function next() {
-              if (i >= pending.length) {
+              if (i >= items.length) {
                 refreshPlaces().then(() => {
                   refreshPlacesPresentation();
                   closeModal();
-                  if (errors.length) alert('Refresh complete with errors:\n' + errors.join('\n'));
+                  if (document.getElementById('place-list')) renderPlacesIndex();
+                  if (errors.length) alert('Applied with errors:\n' + errors.join('\n'));
                 }).catch(err => { btn.disabled = false; alert('Failed: ' + err.message); });
                 return;
               }
-              const place = pending[i];
-              const result = findCatalogUpdate(place);
-              status.textContent = 'Refreshing ' + (i + 1) + ' of ' + pending.length + '…';
-              if (!result) { i++; return next(); }
-              dataLayer.updatePlace({ id: place.id, place: buildCatalogRefreshPayload(place, result.entry, result.changes) })
-                .catch(err => errors.push((place.name) + ': ' + err.message))
+              const { p, r, fields } = items[i];
+              status.textContent = 'Applying ' + (i + 1) + ' of ' + items.length + '…';
+              dataLayer.updatePlace({ id: p.id, place: buildCatalogRefreshPayload(p, r.entry, r.changes, fields) })
+                .catch(err => errors.push(p.name + ': ' + err.message))
                 .then(() => { i++; next(); });
             })();
           });
@@ -7369,9 +7444,16 @@
       const canAdd = state.auth.authenticated && !isReadOnly();
       const countries = [...new Set(places.map(p => p.country).filter(Boolean))].sort((a, b) => a.localeCompare(b));
       const placeTags = collectTags(places);
+      // Self-retiring chip in the controls row: editors only, only while
+      // catalog updates are pending. Gone once the backlog clears.
+      const pendingUpdCount = canAdd ? placesWithCatalogUpdates().length : 0;
+      const updChip = pendingUpdCount > 0
+        ? '<div class="filter-dropdown catalog-update-chip-wrap"><button type="button" class="filter-btn catalog-update-chip" id="catalog-update-review">Review updates</button></div>'
+        : '';
       app.innerHTML =
         '<div class="index-controls">' +
         '<div class="search-wrap"><input type="text" id="search-input" placeholder="Filter places..." value="' + escapeHtml(state.placeFilters.search) + '"><span class="result-count" id="result-count"></span></div>' +
+        updChip +
         '<div class="filter-dropdown">' +
           '<button type="button" class="filter-btn" id="filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
           '<div class="filter-popover" id="filter-popover" hidden>' +
@@ -7417,6 +7499,9 @@
       renderPlaceList('');
       wireListViewPopover('places', function() { renderPlaceList(); });
       enhanceSelectsIn(document.querySelector('.index-controls'));
+
+      const updReviewBtn = document.getElementById('catalog-update-review');
+      if (updReviewBtn) updReviewBtn.addEventListener('click', function() { openCatalogBulkUpdateModal(); });
 
       const navActionsEl = document.getElementById('nav-actions');
       if (navActionsEl && canAdd) {
@@ -9217,6 +9302,7 @@
               (routesEnabled() ? '<button data-action="nav-routes">Routes</button>' : '') +
               (historyEnabled() ? '<button data-action="history">History</button>' : '') +
             '</div>' : '') +
+          '<button class="auth-menu-mobile" data-action="catalog-updates" id="menu-catalog-updates" hidden>Review updates</button>' +
           '<button data-action="settings">Settings</button>' +
           (logsEnabled() ? '<button data-action="logs">Logs</button>' : '') +
           '<button data-action="about">About</button>' +
@@ -9240,6 +9326,12 @@
       menu._close = closeMenu;
       function openMenu() {
         closeTransientOverlays(menu);
+        // Refresh the mobile catalog-updates entry from the live pending count.
+        const updItem = menu.querySelector('#menu-catalog-updates');
+        if (updItem) {
+          const hasUpd = (state.auth.authenticated && !isReadOnly()) && placesWithCatalogUpdates().length > 0;
+          updItem.hidden = !hasUpd;
+        }
         menu.hidden = false;
         document.addEventListener('mousedown', outsideCloser, true);
         document.addEventListener('touchstart', outsideCloser, true);
@@ -9256,6 +9348,7 @@
           case 'nav-places': location.hash = '#/places'; break;
           case 'nav-routes': location.hash = '#/routes'; break;
           case 'history':  location.hash = '#/history'; break;
+          case 'catalog-updates': openCatalogBulkUpdateModal(); break;
           case 'settings': openSettingsModal(); break;
           case 'logs':     openLogsModal(); break;
           case 'about':    openAboutModal(); break;
