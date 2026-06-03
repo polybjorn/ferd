@@ -1221,11 +1221,6 @@
       border-bottom-width: 0 !important;
       pointer-events: none;
     }
-    /* Elevation containers carry a min-height to reserve their final
-       size so the map doesn't reflow during lazy-load; that min-height
-       also has to collapse when the map is expanded. */
-    .detail-layout.map-expanded .elevation-wrap,
-    .detail-layout.map-expanded #multi-elevation-container { min-height: 0 !important; }
     .detail-layout.map-expanded #map { flex: 1 1 auto; }
     @media (prefers-reduced-motion: reduce) {
       .detail-layout > :not(#map) { transition: none; }
@@ -1258,42 +1253,6 @@
       .map-expand-btn svg { transition: none; }
     }
 
-    .elevation-wrap {
-      margin-top: 0.5rem;
-      border: 1px solid var(--border);
-      border-radius: 0;
-      overflow: hidden;
-      background: var(--surface);
-      flex-shrink: 0;
-      /* Reserve the chart's final height up-front so the map container
-         doesn't shrink (and re-fit) once the elevation chart populates. */
-      min-height: 200px;
-    }
-    .elevation-wrap .elevation-detached { margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; touch-action: none; }
-    .elevation-wrap .elevation-detached svg { width: 100% !important; display: block; margin-top: -8px; margin-bottom: -20px; }
-    .elevation-wrap .elevation-detached .elevation-summary { display: none !important; }
-    .elevation-wrap .elevation-detached .elevation-toggle-icon { display: none !important; }
-
-    .mobile-stats {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.4rem 0.75rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      margin-top: 0.5rem;
-      font-size: 0.7rem;
-      color: var(--muted);
-      flex-shrink: 0;
-    }
-    .mobile-stats .stats-meta { display: flex; gap: 0.5rem; align-items: center; }
-    .mobile-stats .stats-data { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
-    .mobile-stats .stat { display: flex; align-items: center; gap: 0.25rem; white-space: nowrap; }
-    .mobile-stats .stat .label { font-size: 0.55rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
-    .mobile-stats .stat .value { color: var(--text); font-weight: 300; }
-    .mobile-stats .stats-source { margin-left: auto; }
-    .mobile-stats .stats-source a { color: var(--accent); text-decoration: none; }
-    .mobile-stats .stats-source a:hover { text-decoration: underline; }
 
     .no-elevation-notice {
       font-size: 0.75rem;
@@ -1379,78 +1338,117 @@
       margin-bottom: 0.25rem;
     }
 
-    /* Multi-track */
-    #track-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      margin-top: 0.5rem;
-      padding: 0.5rem 0.75rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-    .track-legend-item {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-size: 0.7rem;
-      color: var(--muted);
-    }
-    .track-legend-color {
-      width: 16px;
-      height: 3px;
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-    .track-legend-item .track-name { color: var(--text); font-weight: 400; }
-    .track-legend-item .track-stat { font-size: 0.6rem; }
-
+    /* Multi-track elevation: graph + collapsible segment list. */
     #multi-elevation-container {
-      margin-top: 0.5rem;
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
       flex-shrink: 0;
       overflow-y: auto;
       max-height: 50vh;
-      /* Same reservation as single-track elevation-wrap. */
-      min-height: 200px;
     }
-    .elevation-track-panel {
-      border: 1px solid var(--border);
-      overflow: hidden;
-      background: var(--surface);
+    .detail-elev-graph .elevation-detached { margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; touch-action: none; }
+    .detail-elev-graph .elevation-detached svg { width: 100% !important; display: block; margin-top: -8px; margin-bottom: -20px; }
+    .detail-elev-graph .elevation-detached .elevation-summary { display: none !important; }
+    .detail-elev-graph .elevation-detached .elevation-toggle-icon { display: none !important; }
+    .detail-elev-graph .elevation-control .area { fill: var(--track-color, var(--accent)); fill-opacity: 0.35; stroke: var(--track-color, var(--accent)); }
+    /* Drop leaflet-elevation's default steel-blue plot background; it tints the
+       chart and bleeds up behind the graph title. Show the panel surface. */
+    .elevation-control .background { background-color: transparent !important; }
+    /* Many-segment routes: a fixed graph on top (whole route by default), a
+       master-collapsible segment list below that scrolls inside a fixed area
+       so 100+ rows never become a tall wall. Clicking a row swaps the graph. */
+    .detail-elev-title {
+      font-size: 0.65rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-bottom: none;
+      padding: 0.4rem 0.6rem; cursor: pointer; user-select: none;
+      display: flex; align-items: center; gap: 0.4rem;
     }
-    .elevation-track-label {
-      font-size: 0.65rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--muted);
-      padding: 0.3rem 0.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      cursor: pointer;
-      user-select: none;
+    .detail-elev-title-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* Disclosure chevron (down = open, right = collapsed). */
+    .detail-elev-title::after {
+      content: ''; flex: none; box-sizing: border-box; width: 7px; height: 7px;
+      border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
+      transform: translateY(-2px) rotate(45deg); transition: transform 0.15s;
+      margin-left: 0.6rem; margin-right: 2px;
     }
-    .elevation-track-label::after {
-      content: '';
-      margin-left: auto;
-      border: 4px solid transparent;
-      border-top: 5px solid var(--muted);
-      transition: transform 0.15s;
+    .detail-elev-title.collapsed::after { transform: translateY(0) rotate(-45deg); }
+    .detail-elev-title.collapsed { border-bottom: 1px solid var(--border); }
+    /* Stats line shown on the elevation header (single/few-track statbar) or on
+       the graph title (many-segment), replacing the old top stats bar. */
+    .detail-elev-statbar {
+      font-size: 0.65rem; color: var(--muted); background: var(--surface);
+      border: 1px solid var(--border); border-bottom: none;
+      padding: 0.4rem 0.6rem; overflow: hidden;
     }
-    .elevation-track-panel.collapsed .elevation-track-label::after { transform: rotate(-90deg); }
-    .elevation-track-panel .elevation-track-chart { transition: max-height 0.2s ease; overflow: hidden; }
-    .elevation-track-panel.collapsed .elevation-track-chart { max-height: 0 !important; }
-    .elevation-track-label .color-dot { width: 8px; height: 3px; border-radius: 2px; }
-    .elevation-track-panel .elevation-detached { margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; touch-action: none; }
-    .elevation-track-panel .elevation-detached svg { width: 100% !important; display: block; margin-top: -8px; margin-bottom: -20px; }
-    .elevation-track-panel .elevation-detached .elevation-summary { display: none !important; }
-    .elevation-track-panel .elevation-detached .elevation-toggle-icon { display: none !important; }
-    .elevation-track-panel .elevation-control .area { fill: var(--track-color, var(--accent)); fill-opacity: 0.35; stroke: var(--track-color, var(--accent)); }
+    .detail-elev-stats { font-variant-numeric: tabular-nums; white-space: nowrap; text-transform: none; letter-spacing: normal; }
+    .detail-elev-title .detail-elev-stats { color: var(--text); }
+    .fact-source { color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
+    .fact-source:hover { text-decoration: underline; }
+    .fact-source svg { width: 0.85em; height: 0.85em; }
+    /* Reserve the chart height here (not on the container) so collapsing the
+       graph to display:none leaves no blank gap. ~170px matches the rendered
+       chart so there's no extra space under it when expanded. */
+    .detail-elev-graph {
+      background: var(--surface); border: 1px solid var(--border);
+      height: 174px; overflow: hidden;
+      /* !important so this wins over the .detail-layout > :not(#map) transition
+         (which omits height) for single-track, whose graph is a direct child. */
+      transition: height 0.2s ease, max-height 0.2s ease, border-width 0.2s ease, opacity 0.2s ease !important;
+    }
+    .detail-elev-graph.collapsed { height: 0; border-width: 0; opacity: 0; }
+    @media (prefers-reduced-motion: reduce) {
+      .detail-elev-graph { transition: none !important; }
+    }
+    /* The host must not clip the absolute dropdown, and overriding the 70vh
+       cap is safe because its in-flow content is just title + graph + toggle. */
+    .detail-layout #multi-elevation-container.elev-dropdown-host { overflow: visible; max-height: none; }
+    .elev-segments { position: relative; }
+    .elev-segments-toggle {
+      width: 100%; text-align: left; cursor: pointer; font: inherit;
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-top: none;
+      padding: 0.5rem 1rem 0.5rem 0.6rem; display: flex; align-items: center; gap: 0.4rem;
+    }
+    /* Chevron on the LEFT so the totals are the rightmost element and align
+       with the rows' columns (a trailing chevron would push them left). */
+    .elev-segments-toggle::before {
+      content: ''; flex: none; box-sizing: border-box; width: 7px; height: 7px;
+      border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
+      transform: translateY(-2px) rotate(45deg); transition: transform 0.15s;
+    }
+    .elev-segments-toggle.collapsed::before { transform: translateY(0) rotate(-45deg); }
+    /* Toggle bar: label on the left, whole-route totals on the right (aligned
+       with the row columns), then the chevron. The totals click shows the
+       whole route. */
+    .elev-toggle-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .elev-toggle-stats { text-transform: none; letter-spacing: normal; cursor: pointer; }
+    .elev-toggle-stats:hover, .elev-toggle-stats.active { color: var(--text); }
+    .elev-segments-list {
+      position: absolute; top: 100%; left: 0; right: 0; z-index: 500;
+      max-height: 340px; overflow-y: auto; transition: max-height 0.2s ease;
+      background: var(--surface); border: 1px solid var(--border); border-top: none;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+    .elev-segments-list.collapsed { max-height: 0; overflow: hidden; border: none; box-shadow: none; }
+    .seg-row {
+      display: flex; align-items: center; gap: 0.4rem; cursor: pointer;
+      padding: 0.35rem 1rem 0.35rem 0.6rem; font-size: 0.65rem; letter-spacing: 0.03em;
+      color: var(--muted); border-top: 1px solid var(--border);
+    }
+    .seg-row:first-child { border-top: none; }
+    .seg-row:hover { background: var(--surface2); }
+    .seg-row.active { background: var(--surface2); color: var(--text); font-weight: 600; }
+    .seg-row .color-dot { width: 8px; height: 3px; border-radius: 2px; flex: none; }
+    /* Aligned columns across the toggle totals, every row, and the single-track
+       title's length+climb: # | name | dist | climb. */
+    .elev-segments .seg-num { width: 1.9rem; flex: none; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .elev-segments .seg-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .elev-segments .seg-stat,
+    .detail-elev-title .seg-stat { flex: none; color: var(--muted); display: flex; align-items: baseline; font-variant-numeric: tabular-nums; text-transform: none; letter-spacing: normal; }
+    .elev-segments .seg-dist, .elev-segments .seg-gain,
+    .detail-elev-title .seg-dist, .detail-elev-title .seg-gain { box-sizing: border-box; text-align: right; margin-left: 0.6rem; padding-left: 0.6rem; border-left: 1px solid var(--border); }
+    .elev-segments .seg-dist, .detail-elev-title .seg-dist { width: 5.2rem; }
+    .elev-segments .seg-gain, .detail-elev-title .seg-gain { width: 6rem; }
 
     .loading {
       display: flex;
@@ -1738,8 +1736,6 @@
       .nav-group { gap: 0.4rem; }
       .nav-group + .nav-group { padding-left: 0.4rem; }
       .nav-stat .label { font-size: 0.5rem; }
-      #track-legend { gap: 0.4rem; padding: 0.4rem 0.5rem; }
-      .track-legend-item .track-stat { display: none; }
       #multi-elevation-container { max-height: 40vh; }
       .map-panel { max-width: calc(100vw - 40px); }
     }
@@ -4459,18 +4455,24 @@
       state._routeGroupCompleted = null;
       state._routeGroupPlanned = null;
       state._routeRenderer = null;
+      state._detailPolylines = null;
+      state._detailRenderer = null;
     }
 
+    // Thousand-separated number formatting (en-US grouping: 7,340.9 / 101,424).
+    function grpNum(n, decimals) {
+      return n.toLocaleString('en-US', { minimumFractionDigits: decimals || 0, maximumFractionDigits: decimals || 0 });
+    }
     function formatDistance(m) {
       if (isImperial()) {
         const mi = m / 1609.344;
-        return mi >= 0.1 ? mi.toFixed(1) + ' mi' : Math.round(m * 3.28084) + ' ft';
+        return mi >= 0.1 ? grpNum(mi, 1) + ' mi' : grpNum(Math.round(m * 3.28084)) + ' ft';
       }
-      return m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m';
+      return m >= 1000 ? grpNum(m / 1000, 1) + ' km' : grpNum(Math.round(m)) + ' m';
     }
     function formatElevation(m) {
-      if (isImperial()) return Math.round(m * 3.28084) + ' ft';
-      return Math.round(m) + ' m';
+      if (isImperial()) return grpNum(Math.round(m * 3.28084)) + ' ft';
+      return grpNum(Math.round(m)) + ' m';
     }
 
     function setActiveTab(view) {
@@ -4694,6 +4696,17 @@
     // many vertices as the screen can resolve there. Zoomed out to a whole
     // continental route that's a few hundred points; zoomed in it restores detail.
     const SIMPLIFY_TOLERANCE = 1.3;
+    // Detail-view elevation series are strided to at most this many samples;
+    // the profile is unchanged at chart resolution.
+    const MAX_ELEV_POINTS = 3000;
+    // Uniform-stride decimation keeping the first and last sample.
+    function decimateCoords(coords, max) {
+      if (!Array.isArray(coords) || coords.length <= max) return coords;
+      const step = (coords.length - 1) / (max - 1);
+      const out = [];
+      for (let i = 0; i < max; i++) out.push(coords[Math.round(i * step)]);
+      return out;
+    }
     function simplifyRouteLatLngs(latlngs, zoom) {
       if (!Array.isArray(latlngs) || latlngs.length < 50) return latlngs;
       const crs = L.CRS.EPSG3857;
@@ -4731,7 +4744,7 @@
       // compositor while stroke-width goes through main-thread paint,
       // briefly diverging mid-gesture). Costs more CPU than CSS-only
       // but keeps strokes constant and positions sticky.
-      if (!state.currentMap || !state._routeLayers) return;
+      if (!state.currentMap) return;
       const visit = (layer) => {
         if (layer._renderer && typeof layer._project === 'function') {
           try { layer._project(); } catch (e) { /* ignore */ }
@@ -4740,9 +4753,15 @@
           layer.eachLayer(visit);
         }
       };
-      for (const t of state._routeLayers) visit(t.layer);
-      if (state._routeRenderer && state._routeRenderer._update) {
-        try { state._routeRenderer._update(); } catch (e) { /* ignore */ }
+      // Index-map overview layers and (in the route detail view) the detail
+      // polylines both need re-projecting so their strokes stay constant.
+      if (state._routeLayers) for (const t of state._routeLayers) visit(t.layer);
+      if (state._detailPolylines) for (const pl of state._detailPolylines) visit(pl);
+      const renderers = [];
+      if (state._routeRenderer) renderers.push(state._routeRenderer);
+      if (state._detailRenderer && state._detailRenderer !== state._routeRenderer) renderers.push(state._detailRenderer);
+      for (const r of renderers) {
+        if (r && r._update) { try { r._update(); } catch (e) { /* ignore */ } }
       }
     }
 
@@ -5038,10 +5057,23 @@
             if (needsMove) {
               chain = chain.then(k => dataLayer.moveGpx({ key: k, new_region: targetRegion, new_name: newName }).then(r => r.new_key));
             }
+            let movedKey = key;
             chain
-              .then(finalKey => dataLayer.putMetadata({ key: finalKey, metadata: metadata }))
+              .then(finalKey => { movedKey = finalKey; return dataLayer.putMetadata({ key: finalKey, metadata: metadata }); })
               .then(() => refreshRoutes())
-              .then(() => { closeModal(); wrappedRouter(); })
+              .then(() => {
+                closeModal();
+                // If this route's detail view is open and it moved (region or
+                // name changed), its URL key is now stale; reroute to the new
+                // key instead of leaving a dead link behind.
+                const seg = location.hash.split('/routes/route/')[1];
+                const onThisDetail = seg && decodeURIComponent(seg) === route.key;
+                if (needsMove && onThisDetail && movedKey && movedKey !== route.key) {
+                  location.hash = '#/routes/route/' + encodeURIComponent(movedKey);
+                } else {
+                  wrappedRouter();
+                }
+              })
               .catch(err => { submit.disabled = false; showModalError(err.message); });
           });
         }
@@ -8035,30 +8067,6 @@
       };
     }
 
-    function populateStats(s) {
-      const items = [{ l: 'Dist', v: formatDistance(s.dist) }];
-      if (s.tracks) items.unshift({ l: 'Tracks', v: s.tracks });
-      if (s.gain !== undefined) {
-        const hours = (s.dist / 1000) / 5 + s.gain / 600;
-        const h = Math.floor(hours), m = Math.round((hours - h) * 60);
-        items.push({ l: 'Gain', v: '+' + formatElevation(s.gain) });
-        items.push({ l: 'Loss', v: '-' + formatElevation(s.loss) });
-        items.push({ l: 'Peak', v: formatElevation(s.max) });
-        items.push({ l: 'Est.', v: h > 0 ? h + 'h ' + m + 'min' : m + 'min' });
-      }
-      const navEl = document.getElementById('nav-stats-dynamic');
-      if (navEl) navEl.innerHTML = items.map(i => '<div class="nav-stat"><span class="label">' + i.l + '</span><span class="value">' + i.v + '</span></div>').join('');
-      const mobEl = document.getElementById('mobile-stats');
-      if (mobEl) {
-        const dataHtml = items.map(i => '<div class="stat"><span class="label">' + i.l + '</span><span class="value">' + i.v + '</span></div>').join('');
-        let sourceHtml = '';
-        if (state._routeSourceHref) {
-          sourceHtml = '<div class="stats-source"><a href="' + escapeHtml(state._routeSourceHref) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(state._routeSourceDomain) + ' &#x2197;</a></div>';
-        }
-        mobEl.innerHTML = '<div class="stats-data">' + dataHtml + '</div>' + sourceHtml;
-      }
-    }
-
     function renderTrailDetail(routeKey) {
       setActiveTab('routes');
       cleanupMap();
@@ -8095,6 +8103,8 @@
       if (route.difficulty) facts.push('<span class="fact">' + escapeHtml(DIFFICULTY_LABELS[route.difficulty] || route.difficulty) + '</span>');
       if (route.rating && getShowField('rating')) facts.push('<span class="fact" title="' + route.rating + '/5">' + ratingStarsText(route.rating) + '</span>');
       if (route.date_completed && getShowField('date')) facts.push('<span class="fact">' + escapeHtml(route.date_completed) + '</span>');
+      // Source link moved here from the removed top stats bar.
+      if (routeSourceHref) facts.push('<a class="fact fact-source" href="' + escapeHtml(routeSourceHref) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(state._routeSourceDomain) + ' ' + EXTERNAL_ICON_SVG + '</a>');
 
       const showActions = state.auth.authenticated && !isReadOnly();
       const hasTags = route.tags && route.tags.length;
@@ -8118,24 +8128,27 @@
           ? '<button type="button" id="route-edit-btn" class="nav-action-btn">Edit</button>'
           : '';
       }
+      // The old top stats bar is gone; stats live on the elevation header now.
+      const navStatsEl = document.getElementById('nav-stats-dynamic');
+      if (navStatsEl) navStatsEl.innerHTML = '';
 
       const isMultiTrack = route.trackCount && route.trackCount > 1;
 
       let html = '<div class="detail-layout">';
       html += '<div id="map"></div>';
-      html += '<div class="mobile-stats" id="mobile-stats"></div>';
       if (isMultiTrack) {
-        html += '<div id="track-legend"></div>';
-        // Reserve the populated height up-front (one expanded chart plus
-        // a header per collapsed track) so the map doesn't shrink when
-        // the panels render. trackCount comes from the manifest.
-        const trackHeaderPx = 30;
-        const expandedChartPx = 200;
-        const reservedPx = expandedChartPx + Math.max(0, (route.trackCount || 1) - 1) * trackHeaderPx;
-        html += '<div id="multi-elevation-container" style="min-height:' + reservedPx + 'px"></div>';
+        // Any multi-segment route: a fixed graph on top (whole route by
+        // default) over a collapsible segment list. The graph reserves its own
+        // height, so the container needs none.
+        html += '<div id="multi-elevation-container"></div>';
+      } else if (route.hasElevation) {
+        // Single-track: same collapsible graph-title + graph as the
+        // many-segment view, so single and multi look and behave alike.
+        html += '<div class="detail-elev-title" id="single-elev-title" role="button" tabindex="0" title="Show or hide the graph"><span class="detail-elev-title-text">Elevation</span><span class="seg-stat" id="single-elev-stats"></span></div>';
+        html += '<div class="detail-elev-graph" id="elevation-container" style="--track-color:' + color + '"></div>';
       } else {
-        if (route.hasElevation) html += '<div class="elevation-wrap" id="elevation-container"></div>';
-        else html += '<div class="no-elevation-notice">No elevation data available for this route</div>';
+        html += '<div class="detail-elev-statbar"><span class="seg-stat" id="single-elev-stats"></span></div>';
+        html += '<div class="no-elevation-notice">No elevation data available for this route</div>';
       }
       html += metaHtml;
       html += '</div>';
@@ -8187,7 +8200,10 @@
       if (typeof ResizeObserver !== 'undefined') {
         const ro = new ResizeObserver(function() {
           map.invalidateSize();
-          map.eachLayer(function(l) { if (typeof l.redraw === 'function') l.redraw(); });
+          // Repaint vector layers only. Redrawing the tile layer here forces a
+          // full tile reload (a visible flash) on every resize - e.g. when the
+          // graph section is collapsed - which invalidateSize already handles.
+          map.eachLayer(function(l) { if (typeof l.redraw === 'function' && !(l instanceof L.TileLayer)) l.redraw(); });
           adjustTrailStrokes();
         });
         ro.observe(map.getContainer());
@@ -8292,6 +8308,20 @@
     }
 
     function renderSingleTrack(map, route, color) {
+      // Collapsible graph title, mirroring the multi-segment view: clicking it
+      // hides the chart and the map grows to fill the space.
+      const sTitle = document.getElementById('single-elev-title');
+      const sGraph = document.getElementById('elevation-container');
+      if (sTitle && sGraph) {
+        const toggleGraph = function() {
+          const c = sTitle.classList.toggle('collapsed');
+          sGraph.classList.toggle('collapsed', c);
+        };
+        sTitle.addEventListener('click', toggleGraph);
+        sTitle.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGraph(); }
+        });
+      }
       let elevationControl = null;
       if (route.hasElevation) {
         elevationControl = L.control.elevation(Object.assign({
@@ -8326,6 +8356,10 @@
           map.fitBounds(bounds, { padding: [40, 40] });
         }
         applyNonScalingStroke(gpx);
+        // Register the GPX polylines for per-frame re-projection so their
+        // stroke stays a constant width through zoom (see adjustTrailStrokes).
+        state._detailPolylines = [gpx];
+        gpx.eachLayer(function(l) { if (!state._detailRenderer && l._renderer) state._detailRenderer = l._renderer; });
         // Polylines may be in the SVG DOM with correct coords but unpainted
         // until the renderer next ticks. Force a redraw, then renormalize
         // stroke widths in case adjustTrailStrokes ran mid-zoom-animation
@@ -8360,10 +8394,13 @@
         const stats = { dist: dist, status: route.completed ? 'Completed' : 'Planned', completed: route.completed, region: route.key.split('/')[0] };
         if (route.hasElevation) {
           stats.gain = gpx.get_elevation_gain();
-          stats.loss = gpx.get_elevation_loss();
-          stats.max = gpx.get_elevation_max();
         }
-        populateStats(stats);
+        // Length + climb columns, matching the multi-segment header format.
+        const sStatsEl = document.getElementById('single-elev-stats');
+        if (sStatsEl) {
+          sStatsEl.innerHTML = '<span class="seg-dist">' + formatDistance(stats.dist) + '</span>'
+            + (stats.gain != null ? '<span class="seg-gain">+' + formatElevation(stats.gain) + '</span>' : '');
+        }
       }).on('addline', function(e) {
         if (elevationControl) elevationControl.addData(e.line);
       }).addTo(map);
@@ -8388,50 +8425,200 @@
           const elevControls = [];
           const allStats = [];
           const bounds = L.latLngBounds();
+          const detailPolylines = [];
 
           const container = document.getElementById('multi-elevation-container');
-          if (container) {
-            let panelsHtml = '';
-            for (let i = 0; i < tracks.length; i++) {
-              const tc = TRACK_COLORS[i % TRACK_COLORS.length];
-              const collapsed = i > 0 ? ' collapsed' : '';
-              panelsHtml += '<div class="elevation-track-panel' + collapsed + '" style="--track-color:' + tc + '">';
-              panelsHtml += '<div class="elevation-track-label" onclick="var p=this.parentElement;if(p.classList.contains(\'collapsed\')){p.parentElement.querySelectorAll(\'.elevation-track-panel:not(.collapsed)\').forEach(function(s){s.classList.add(\'collapsed\')});p.classList.remove(\'collapsed\')}else{p.classList.add(\'collapsed\')}"><span class="color-dot" style="background:' + tc + '"></span>' + escapeHtml(tracks[i].name) + '</div>';
-              panelsHtml += '<div class="elevation-track-chart" id="elevation-track-' + i + '"></div>';
-              panelsHtml += '</div>';
-            }
-            container.innerHTML = panelsHtml;
+
+          function makeElevationControl(divSel) {
+            return L.control.elevation(Object.assign({
+              theme: 'custom-theme', detached: true,
+              elevationDiv: divSel,
+              height: elevHeight,
+              imperial: isImperial(),
+              slope: false, speed: false, acceleration: false, time: false,
+              legend: false, summary: false, ruler: false, downloadLink: false,
+              almostOver: false, distanceMarkers: false, autofitBounds: false, fitBounds: false,
+              polyline: false,
+            }, ELEVATION_VENDOR_URLS)).addTo(map);
           }
 
+          // Map polylines + per-segment stats for every track.
           for (let i = 0; i < tracks.length; i++) {
             const track = tracks[i];
             const tc = TRACK_COLORS[i % TRACK_COLORS.length];
-            const stats = computeTrackStats(track.points);
-            allStats.push(stats);
+            allStats.push(computeTrackStats(track.points));
             for (const p of track.points) bounds.extend([p.lat, p.lon]);
             const latlngs = track.points.map(p => [p.lat, p.lon]);
-            L.polyline(latlngs, { color: tc, opacity: 0.9, weight: 5 * getTrailWeightFactor() }).addTo(map);
-            const hasEle = track.points.some(p => p.ele !== null);
-            if (hasEle && container) {
-              const ctrl = L.control.elevation(Object.assign({
-                theme: 'custom-theme', detached: true,
-                elevationDiv: '#elevation-track-' + i,
-                height: elevHeight,
-                imperial: isImperial(),
-                slope: false, speed: false, acceleration: false, time: false,
-                legend: false, summary: false, ruler: false, downloadLink: false,
-                almostOver: false, distanceMarkers: false, autofitBounds: false, fitBounds: false,
-                polyline: false,
-              }, ELEVATION_VENDOR_URLS)).addTo(map);
-              ctrl.addData(trackToGeoJSON(track));
-              elevControls.push(ctrl);
-            }
+            detailPolylines.push(L.polyline(latlngs, { color: tc, opacity: 0.9, weight: 5 * getTrailWeightFactor() }).addTo(map));
           }
-          state.currentElevation = elevControls;
+
+          if (container) {
+            // A fixed graph on top (default: the whole route) plus a
+            // collapsible list of segments below. Clicking a segment swaps the
+            // graph in place, marks the row active, and highlights that segment
+            // on the map; clicking it again returns to the whole-route profile.
+            const segStatHtml = function(s) {
+              return '<span class="seg-stat"><span class="seg-dist">' + formatDistance(s.distance) + '</span>'
+                + (s.gain > 0 ? '<span class="seg-gain">+' + formatElevation(s.gain) + '</span>' : '') + '</span>';
+            };
+            const totalDist = allStats.reduce(function(a, s) { return a + s.distance; }, 0);
+            const totalGain = allStats.reduce(function(a, s) { return a + (s.gain > 0 ? s.gain : 0); }, 0);
+            // GPX track names often carry their own leading number ("001: ...").
+            // Pull it into a dedicated # column and strip it from the name;
+            // fall back to the row index when a name has no number prefix.
+            const padW = String(tracks.length).length;
+            const segNumName = function(raw, idx) {
+              const m = /^\s*(\d{1,3})[:.)]\s+(.+)$/.exec(raw || '');
+              if (m) return { num: m[1], name: m[2] };
+              return { num: String(idx + 1).padStart(padW, '0'), name: raw || ('Segment ' + (idx + 1)) };
+            };
+            let rowsHtml = '';
+            for (let i = 0; i < tracks.length; i++) {
+              const tc = TRACK_COLORS[i % TRACK_COLORS.length];
+              const nn = segNumName(tracks[i].name, i);
+              rowsHtml += '<div class="seg-row" data-seg="' + i + '" style="--track-color:' + tc + '">';
+              rowsHtml += '<span class="seg-num">' + escapeHtml(nn.num) + '</span>';
+              rowsHtml += '<span class="color-dot" style="background:' + tc + '"></span>';
+              rowsHtml += '<span class="seg-name">' + escapeHtml(nn.name) + '</span>';
+              rowsHtml += segStatHtml(allStats[i]);
+              rowsHtml += '</div>';
+            }
+            // The segment list is an absolute dropdown (out of flow) so opening
+            // it never changes the container height: that would resize the
+            // flex-grow map (a visible tile reload) and overflow the 70vh cap.
+            // The whole-route totals live on the toggle bar (right side) and act
+            // as the click-to-show-whole-route control.
+            container.classList.add('elev-dropdown-host');
+            container.innerHTML =
+              '<div class="detail-elev-title" id="detail-elev-title" role="button" tabindex="0" title="Show or hide the graph"><span class="detail-elev-title-text" id="detail-elev-title-text">Whole route</span></div>'
+              + '<div class="detail-elev-graph" id="detail-elev-graph" style="--track-color:' + ROUTE_COLOR + '"></div>'
+              + '<div class="elev-segments">'
+              + '<button type="button" class="elev-segments-toggle collapsed" id="elev-seg-toggle">'
+              + '<span class="elev-toggle-label">Elevation by segment (' + tracks.length + ')</span>'
+              + '<span class="seg-stat elev-toggle-stats" id="elev-toggle-stats" title="Show whole route">'
+              + '<span class="seg-dist">' + formatDistance(totalDist) + '</span>'
+              + (totalGain > 0 ? '<span class="seg-gain">+' + formatElevation(totalGain) + '</span>' : '')
+              + '</span></button>'
+              + '<div class="elev-segments-list collapsed" id="elev-seg-list">' + rowsHtml + '</div>'
+              + '</div>';
+
+            // Whole-route and per-segment elevation features (strided).
+            const wholeCoords = [];
+            for (const tr of tracks) for (const p of tr.points) if (p.ele !== null) wholeCoords.push([p.lon, p.lat, p.ele]);
+            const wholeFeat = wholeCoords.length > 1
+              ? { type: 'Feature', geometry: { type: 'LineString', coordinates: decimateCoords(wholeCoords, MAX_ELEV_POINTS) }, properties: {} }
+              : null;
+            function segFeat(i) {
+              const f = trackToGeoJSON(tracks[i]);
+              f.geometry.coordinates = decimateCoords(f.geometry.coordinates, MAX_ELEV_POINTS);
+              return f;
+            }
+
+            const graphCtrl = makeElevationControl('#detail-elev-graph');
+            state.currentElevation = graphCtrl;
+            function setGraph(feat, color, title) {
+              const div = document.getElementById('detail-elev-graph');
+              if (div) div.style.setProperty('--track-color', color);
+              const titleEl = document.getElementById('detail-elev-title-text');
+              if (titleEl) titleEl.textContent = title;
+              try { graphCtrl.clear(); } catch (e) {}
+              if (feat) graphCtrl.addData(feat);
+            }
+            function highlightSeg(active) {
+              for (let k = 0; k < detailPolylines.length; k++) {
+                const on = k === active;
+                try {
+                  detailPolylines[k].setStyle({
+                    weight: (on ? 7 : 5) * getTrailWeightFactor(),
+                    opacity: active === null ? 0.9 : (on ? 1 : 0.4),
+                  });
+                  if (on && detailPolylines[k].bringToFront) detailPolylines[k].bringToFront();
+                } catch (e) {}
+              }
+            }
+
+            const listEl = document.getElementById('elev-seg-list');
+            const toggleStatsEl = document.getElementById('elev-toggle-stats');
+            let activeSeg = null;
+            function selectSeg(i) {
+              if (i === activeSeg) i = null;   // click the active row to clear
+              activeSeg = i;
+              if (listEl) listEl.querySelectorAll('.seg-row').forEach(function(r) {
+                r.classList.toggle('active', parseInt(r.getAttribute('data-seg'), 10) === activeSeg);
+              });
+              // Whole-route state is reflected on the toggle-bar totals.
+              if (toggleStatsEl) toggleStatsEl.classList.toggle('active', activeSeg === null);
+              if (activeSeg === null) { setGraph(wholeFeat, ROUTE_COLOR, 'Whole route'); highlightSeg(null); }
+              else {
+                setGraph(segFeat(activeSeg), TRACK_COLORS[activeSeg % TRACK_COLORS.length], tracks[activeSeg].name);
+                highlightSeg(activeSeg);
+              }
+            }
+            if (listEl) listEl.querySelectorAll('.seg-row').forEach(function(row) {
+              row.addEventListener('click', function() { selectSeg(parseInt(row.getAttribute('data-seg'), 10)); });
+            });
+            // Default: whole-route profile.
+            selectSeg(null);
+
+            const toggle = document.getElementById('elev-seg-toggle');
+            toggle.addEventListener('click', function() {
+              const opening = toggle.classList.contains('collapsed');
+              toggle.classList.toggle('collapsed', !opening);
+              if (listEl) listEl.classList.toggle('collapsed', !opening);
+            });
+            // Clicking the totals shows the whole route without toggling the list.
+            if (toggleStatsEl) toggleStatsEl.addEventListener('click', function(e) {
+              e.stopPropagation();
+              selectSeg(null);
+            });
+
+            // The title bar collapses the graph itself; the map grows to fill
+            // the reclaimed space. Instant (not animated) so the map resizes
+            // once instead of thrashing tiles through a height transition.
+            const titleBar = document.getElementById('detail-elev-title');
+            const graphDiv = document.getElementById('detail-elev-graph');
+            const expandGraph = function() {
+              if (titleBar) titleBar.classList.remove('collapsed');
+              if (graphDiv) graphDiv.classList.remove('collapsed');
+            };
+            if (titleBar && graphDiv) {
+              const toggleGraph = function() {
+                const collapsed = titleBar.classList.toggle('collapsed');
+                graphDiv.classList.toggle('collapsed', collapsed);
+              };
+              titleBar.addEventListener('click', toggleGraph);
+              titleBar.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGraph(); }
+              });
+            }
+
+            // Clicking a segment on the map selects it (same as its list row),
+            // revealing the graph if it was collapsed.
+            detailPolylines.forEach(function(pl, i) {
+              pl.on('click', function(e) {
+                if (e.originalEvent) L.DomEvent.stopPropagation(e.originalEvent);
+                expandGraph();
+                selectSeg(i);
+              });
+            });
+          }
           if (bounds.isValid() && !state._lastTrailBounds) {
             state._lastTrailBounds = bounds;
             map.fitBounds(bounds, { padding: [40, 40] });
           }
+          // Thin each segment to the screen resolution at the current zoom and
+          // re-thin on zoomend, so pan/zoom re-projects only as many vertices
+          // as are visible (mirrors the index map). The cached full geometry
+          // restores detail as you zoom in.
+          for (const pl of detailPolylines) simplifyRouteForZoom(pl, map.getZoom());
+          map.on('zoomend', function() {
+            for (const pl of detailPolylines) simplifyRouteForZoom(pl, map.getZoom());
+          });
+          // Register the polylines so adjustTrailStrokes re-projects them every
+          // zoom/pan frame, keeping the stroke a constant pixel width instead of
+          // scaling with the SVG transform mid-zoom (matches the index map).
+          state._detailPolylines = detailPolylines;
+          state._detailRenderer = detailPolylines.length ? detailPolylines[0]._renderer : null;
           map.eachLayer(function(l) { if (typeof l.redraw === 'function') l.redraw(); });
           adjustTrailStrokes();
           const firstTrack = tracks[0];
@@ -8441,27 +8628,6 @@
             const ep = lastTrack.points[lastTrack.points.length - 1];
             addStartEndMarkers(map, L.latLng(sp.lat, sp.lon), L.latLng(ep.lat, ep.lon));
           }
-          const legendEl = document.getElementById('track-legend');
-          if (legendEl) {
-            let legendHtml = '';
-            for (let i = 0; i < tracks.length; i++) {
-              const tc = TRACK_COLORS[i % TRACK_COLORS.length];
-              const s = allStats[i];
-              legendHtml += '<div class="track-legend-item">';
-              legendHtml += '<span class="track-legend-color" style="background:' + tc + '"></span>';
-              legendHtml += '<span class="track-name">' + escapeHtml(tracks[i].name) + '</span>';
-              legendHtml += '<span class="track-stat">' + formatDistance(s.distance) + '</span>';
-              if (s.gain > 0) legendHtml += '<span class="track-stat">+' + formatElevation(s.gain) + '</span>';
-              legendHtml += '</div>';
-            }
-            legendEl.innerHTML = legendHtml;
-          }
-          const totals = allStats.reduce((acc, s) => ({
-            distance: acc.distance + s.distance, gain: acc.gain + s.gain, loss: acc.loss + s.loss, maxEle: Math.max(acc.maxEle, s.maxEle)
-          }), { distance: 0, gain: 0, loss: 0, maxEle: -Infinity });
-          const ps = { dist: totals.distance, tracks: tracks.length, status: route.completed ? 'Completed' : 'Planned', completed: route.completed, region: route.key.split('/')[0] };
-          if (totals.gain > 0) { ps.gain = totals.gain; ps.loss = totals.loss; ps.max = totals.maxEle; }
-          populateStats(ps);
         });
     }
 

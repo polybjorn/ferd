@@ -11,6 +11,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - 105 new shipped catalog entries.
 
 ### Changed
+- The route detail view for multi-segment routes (GPX with several tracks) is now one whole-route elevation graph over a collapsible "Elevation by segment" list. Pick a segment from the list or by clicking its line on the map to see that segment's profile, distance, and climb; click again to return to the whole route. The graph collapses too. A 4-track hike and a 150-segment cycle route now use the same view, replacing the old per-track accordion.
+- Distances and elevations show thousand separators (e.g. `7,340.9 km`, `+101,424 m`) everywhere they appear: route detail, lists, popups, and history.
+- The route detail view's top stats bar is gone; length and climb now sit on the elevation header. The estimated-time figure (a rough guess from distance and gain) was dropped.
 - The index map simplifies each route's geometry to the current zoom level, so long or dense GPX tracks (continental routes with 100k+ points) stay smooth to pan and zoom; detail returns as you zoom in. The route detail view still renders the full track.
 - The map filter panel marks a toggled-off category or region by fading its whole row and hiding its color dot, so the off state reads more clearly.
 - Confirmation dialogs no longer show a Cancel button; dismiss with Esc, the X, or a click outside.
@@ -18,6 +21,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Importing places from the catalog confirms only when adding 10 or more at once; smaller selections import without a prompt.
 
 ### Fixed
+- Very large routes (continental routes with tens of thousands of points across 100+ segments) open and pan smoothly in the detail view instead of stalling: map geometry thins to the current zoom, elevation profiles are sampled down, and segment lines hold a constant width through zoom.
+- Editing a route's name or region from its detail view now follows the route to its new address instead of leaving a dead link that showed "route not found".
 - Places added from the catalog (or via the Add form) now appear in the Places list immediately instead of only after a manual reload.
 
 ## [1.2.0] - 2026-05-31
