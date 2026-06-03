@@ -8375,6 +8375,14 @@
           }
         }
 
+        // Thin the track to screen resolution at the current zoom and re-thin
+        // on zoomend (matches the index map and multi-segment view), so a very
+        // large single-track import stays responsive. Douglas-Peucker keeps the
+        // endpoints, and the elevation data was already captured from the full
+        // line via addline, so striding stays independent.
+        simplifyRouteForZoom(gpx, map.getZoom());
+        map.on('zoomend', function() { simplifyRouteForZoom(gpx, map.getZoom()); });
+
         const dist = gpx.get_distance();
         const stats = { dist: dist, status: route.completed ? 'Completed' : 'Planned', completed: route.completed, region: route.key.split('/')[0] };
         if (route.hasElevation) {
@@ -8387,7 +8395,19 @@
             + (stats.gain != null ? '<span class="seg-gain">+' + formatElevation(stats.gain) + '</span>' : '');
         }
       }).on('addline', function(e) {
-        if (elevationControl) elevationControl.addData(e.line);
+        if (!elevationControl) return;
+        // Normal routes feed the full line straight through (unchanged). For a
+        // very large track, stride the elevation series the same way the
+        // multi-segment view does, so the D3 chart stays cheap. leaflet-gpx
+        // stores elevation in each latlng's meta.ele.
+        const raw = e.line.getLatLngs();
+        const flat = Array.isArray(raw) && Array.isArray(raw[0]) ? [].concat.apply([], raw) : raw;
+        if (flat.length > MAX_ELEV_POINTS) {
+          const coords = flat.map(function(ll) { return [ll.lng, ll.lat, (ll.meta && ll.meta.ele != null) ? ll.meta.ele : 0]; });
+          elevationControl.addData({ type: 'Feature', geometry: { type: 'LineString', coordinates: decimateCoords(coords, MAX_ELEV_POINTS) }, properties: {} });
+        } else {
+          elevationControl.addData(e.line);
+        }
       }).addTo(map);
       }).catch(function(err) { console.warn('[ferd] gpx load failed', err); });
     }
