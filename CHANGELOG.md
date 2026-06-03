@@ -28,6 +28,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Catalog categories consolidated to 10 broad buckets (from 18): overlapping and singleton categories merged into ruins/monument/nature/city, and Park Güell/Erbil Citadel recategorized. Sub-types and feature detail moved to tags.
 
 ### Fixed
+- Opening a large multi-segment route no longer flashes and re-fits the map a second or two in: the elevation area reserves its height up front instead of expanding once the GPX finishes parsing.
 - Very large routes (continental routes with tens of thousands of points, whether one track or many) open and pan smoothly in the detail view instead of stalling: map geometry thins to the current zoom, elevation profiles are sampled down, and route lines hold a constant width through zoom.
 - Editing a route's name or region from its detail view now follows the route to its new address instead of leaving a dead link that showed "route not found".
 - Places added from the catalog (or via the Add form) now appear in the Places list immediately instead of only after a manual reload.

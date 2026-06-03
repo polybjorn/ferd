@@ -8586,9 +8586,16 @@
       html += '<div id="map"></div>';
       if (isMultiTrack) {
         // Any multi-segment route: a fixed graph on top (whole route by
-        // default) over a collapsible segment list. The graph reserves its own
-        // height, so the container needs none.
-        html += '<div id="multi-elevation-container"></div>';
+        // default) over a collapsible segment list. renderMultiTrack fills this
+        // in after the GPX parses, so render a same-height shell now (title +
+        // 174px graph + toggle bar). Otherwise the container is 0-height until
+        // the parse lands, the flex-grow map fills the gap, and populating it
+        // shrinks + re-fits the map - a jarring "reload" a second or two in.
+        html += '<div id="multi-elevation-container" class="elev-dropdown-host">' +
+          '<div class="detail-elev-title"><span class="detail-elev-title-text">Whole route</span></div>' +
+          '<div class="detail-elev-graph"></div>' +
+          '<div class="elev-segments"><button type="button" class="elev-segments-toggle collapsed"><span class="elev-toggle-label">Elevation by segment</span></button></div>' +
+        '</div>';
       } else if (route.hasElevation) {
         // Single-track: same collapsible graph-title + graph as the
         // many-segment view, so single and multi look and behave alike.
