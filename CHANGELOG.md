@@ -32,7 +32,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The navigation tabs, Add, and Menu buttons use one larger size at every width instead of shrinking on narrow screens, and the space above page content is tighter and no longer jumps when the window crosses a breakpoint.
 
 ### Fixed
-- Panning a map with routes visible is no longer sluggish on touch devices (and smoother on desktop): route geometry is re-projected only when the zoom changes, so a pure pan falls back to the map's native cheap translate instead of reprojecting every route vertex on each frame.
+- Maps with routes visible are no longer sluggish to pan or pinch-zoom on touch devices: the per-frame route reprojection (needed only to pin stroke width during desktop smooth-wheel zoom) now runs on desktop only, so touch gestures use the device's native pan/zoom and routes settle crisply when the gesture ends. Desktop also skips reprojection on pure pans.
 - Index map: place pins no longer vanish on the right side of the map after the window is widened. The marker canvas now resizes with the map instead of holding its initial width and clipping pins past it.
 - Opening a large multi-segment route no longer flashes and re-fits the map a second or two in: the elevation area reserves its height up front instead of expanding once the GPX finishes parsing.
 - Very large routes (continental routes with tens of thousands of points, whether one track or many) open and pan smoothly in the detail view instead of stalling: map geometry thins to the current zoom, elevation profiles are sampled down, and route lines hold a constant width through zoom.

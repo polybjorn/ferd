@@ -5208,24 +5208,48 @@
       }
     }
 
-    // Bind stroke-fixup to map motion. Pan-only 'move' frames don't change
-    // zoom, so the SVG scale and stroke widths are unchanged and Leaflet
-    // translates the renderer pane natively - reprojecting every route vertex
-    // per pan frame is wasted work that makes touch panning crawl when many
-    // routes are visible. Only reproject when the zoom actually changed (zoom
-    // gestures: desktop smooth-wheel, mobile pinch, both step zoom per frame).
-    // A trailing pass on zoomend/moveend guarantees correctness at rest.
+    // Bind stroke-fixup to map motion.
+    //
+    // The per-frame reprojection (hold the SVG at CSS scale 1, reproject every
+    // route vertex, re-_update the renderer) exists only to keep stroke widths
+    // pinned during desktop *smooth-wheel* zoom, where Leaflet feeds fractional
+    // zooms through _move/zoomanim and counter-scaling stroke-width against the
+    // CSS transform races the compositor. It is expensive: it reprojects the
+    // whole visible route geometry each frame.
+    //
+    // Touch devices have no smooth-wheel zoom. Their pan is a native pane
+    // translate and their pinch / double-tap zoom is a native compositor CSS
+    // animation that scales the whole map pane (routes included) for free, then
+    // settles at zoomend (where simplifyRouteForZoom also re-thins). So on
+    // coarse pointers we skip all per-frame work and only fix up at rest -
+    // otherwise reprojecting per frame stalls the gesture when many routes show.
+    //
+    // Desktop keeps the per-frame path, gated on an actual zoom change so a
+    // pure pan still uses Leaflet's cheap native translate.
     function bindTrailStrokeMotion(map) {
+      const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
       let lastZoom = map.getZoom();
+      map.on('zoomend moveend', function () {
+        lastZoom = map.getZoom();
+        adjustTrailStrokes();
+      });
+      if (coarse) return;
       map.on('move', function () {
         const z = map.getZoom();
         if (z === lastZoom) return;
         lastZoom = z;
         adjustTrailStrokes();
       });
-      map.on('zoomend moveend', function () {
-        lastZoom = map.getZoom();
-        adjustTrailStrokes();
+      // Stepped desktop zoom (250ms CSS anim) doesn't fire 'move' per frame;
+      // a short rAF loop keeps strokes constant across the animation.
+      map.on('zoomanim', function () {
+        const start = performance.now();
+        const tick = () => {
+          if (!state.currentMap) return;
+          adjustTrailStrokes();
+          if (performance.now() - start < 270) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
       });
     }
 
@@ -5608,26 +5632,9 @@
       state.currentMap = map;
       applyCoverMinZoom(map);
       map.on('resize', function() { applyCoverMinZoom(map); });
-      // Counter-scale route stroke widths during zoom. 'zoom' covers
-      // mobile pinch (fires per frame); zoomanim kicks off a brief rAF
-      // loop to cover the desktop 250ms CSS animation where 'zoom'
-      // doesn't fire until the end.
-      // 'move' fires after all 'zoom' listeners on each _move() call, so
-      // by the time we run, the SVG renderer has already applied its new
-      // CSS scale transform - we read the freshest value to counter-scale
-      // against. Also covers pan-only frames.
+      // Keep route stroke widths constant through zoom (desktop) and settle at
+      // rest (all devices); see bindTrailStrokeMotion for the per-pointer split.
       bindTrailStrokeMotion(map);
-      map.on('zoomanim', function() {
-        const start = performance.now();
-        const tick = () => {
-          if (!state.currentMap) return;
-          adjustTrailStrokes();
-          if (performance.now() - start < 270) {
-            requestAnimationFrame(tick);
-          }
-        };
-        requestAnimationFrame(tick);
-      });
       addTileLayersToMap(map);
 
       if (getRememberView()) {
@@ -8822,26 +8829,9 @@
         ro.observe(map.getContainer());
         state._currentMapResizeObserver = ro;
       }
-      // Counter-scale route stroke widths during zoom. 'zoom' covers
-      // mobile pinch (fires per frame); zoomanim kicks off a brief rAF
-      // loop to cover the desktop 250ms CSS animation where 'zoom'
-      // doesn't fire until the end.
-      // 'move' fires after all 'zoom' listeners on each _move() call, so
-      // by the time we run, the SVG renderer has already applied its new
-      // CSS scale transform - we read the freshest value to counter-scale
-      // against. Also covers pan-only frames.
+      // Keep route stroke widths constant through zoom (desktop) and settle at
+      // rest (all devices); see bindTrailStrokeMotion for the per-pointer split.
       bindTrailStrokeMotion(map);
-      map.on('zoomanim', function() {
-        const start = performance.now();
-        const tick = () => {
-          if (!state.currentMap) return;
-          adjustTrailStrokes();
-          if (performance.now() - start < 270) {
-            requestAnimationFrame(tick);
-          }
-        };
-        requestAnimationFrame(tick);
-      });
       addTileLayersToMap(map);
 
       // Show the on-map elevation position marker only while an elevation
