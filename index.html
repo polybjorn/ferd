@@ -628,6 +628,28 @@
     .filter-dropdown .filter-btn.has-active { border-color: var(--accent); color: var(--accent); }
     /* A filter select holding a non-default value reads as active. */
     .filter-popover select.filter-active { border-color: var(--accent); color: var(--accent); }
+    /* Multi-select tag control: a dropdown button that matches the filter
+       selects and opens the themed listbox in multi-pick mode. */
+    .filter-ms-btn {
+      width: 100%; text-align: left; padding: 0.45rem 1.7rem 0.45rem 0.6rem;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+      color: var(--text); font-size: 0.85rem; font-family: inherit; cursor: pointer; position: relative;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .filter-ms-btn::after {
+      content: ''; position: absolute; right: 0.75rem; top: 50%; width: 6px; height: 6px;
+      border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
+      transform: translateY(-70%) rotate(45deg); transition: transform 0.15s;
+    }
+    .filter-ms-btn[aria-expanded="true"]::after { transform: translateY(-30%) rotate(225deg); }
+    .filter-ms-btn.filter-active { border-color: var(--accent); color: var(--accent); }
+    /* Checkbox indicator for the multi-pick listbox options. */
+    .select-popover .select-option-multi { position: relative; padding-right: 1.8rem; }
+    .select-popover .select-option-multi::before {
+      content: ''; position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%);
+      width: 0.85rem; height: 0.85rem; border: 1px solid var(--border); border-radius: 3px; box-sizing: border-box;
+    }
+    .select-popover .select-option-multi.checked::before { background: var(--accent); border-color: var(--accent); }
     .filter-popover {
       position: absolute;
       top: calc(100% + 6px);
@@ -4232,6 +4254,13 @@
       const w = String(want).toLowerCase();
       return Array.isArray(tags) && tags.some(t => t.toLowerCase() === w);
     }
+    // Multi-select AND match: the entry must carry every wanted tag
+    // (case-insensitive). An empty/absent want list matches everything.
+    function tagsIncludeAll(tags, wants) {
+      if (!Array.isArray(wants) || !wants.length) return true;
+      const have = new Set((Array.isArray(tags) ? tags : []).map(t => t.toLowerCase()));
+      return wants.every(w => have.has(String(w).toLowerCase()));
+    }
 
     function readPlaceFormFields(prefix) {
       const $ = id => document.getElementById(prefix + '-' + id);
@@ -4323,13 +4352,22 @@
     // select + the search. onApply re-renders the list after any change/clear.
     // Shared by the Places, Routes, and History list pages.
     function wireFilterPopover(opts) {
-      const { btn, pop, clear, sels, keyById, filters, searchInput, searchKey, onApply } = opts;
+      const { btn, pop, clear, sels, keyById, filters, searchInput, searchKey, onApply, tagOptions, tagsKey, tagMsBtn } = opts;
+      function tagsActive() { return !!(tagsKey && filters[tagsKey] && filters[tagsKey].length); }
+      function syncTagLabel() {
+        if (!tagMsBtn) return;
+        const sel = (tagsKey && filters[tagsKey]) || [];
+        tagMsBtn.textContent = sel.length ? sel.join(', ') : 'Tags';
+        tagMsBtn.classList.toggle('filter-active', sel.length > 0);
+      }
       function updateLabel() {
-        const n = sels.reduce((acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
+        let n = sels.reduce((acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
+        if (tagsActive()) n += 1;
         if (btn) btn.classList.toggle('has-active', n > 0);
         // Tint each select that holds a non-default value, so an applied filter
         // reads as applied even with the popover closed.
         sels.forEach(s => s.classList.toggle('filter-active', s.value !== 'all'));
+        syncTagLabel();
       }
       function apply() { onApply(); updateLabel(); }
       if (searchInput && searchKey) searchInput.addEventListener('input', function() {
@@ -4341,13 +4379,19 @@
         if (k) filters[k] = s.value;
         apply();
       }));
+      if (tagMsBtn && tagsKey && tagOptions && tagOptions.length) tagMsBtn.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        if (_selPopover) { closeSelectPopover(); return; }
+        openMultiSelectList(tagMsBtn, tagOptions, () => filters[tagsKey] || [], function(arr) { filters[tagsKey] = arr; apply(); });
+      });
       wirePopover(btn, pop);
       if (clear) clear.addEventListener('click', function() {
         const hasSearch = searchInput && searchInput.value !== '';
-        const hasFilter = sels.some(s => s.value !== 'all');
+        const hasFilter = sels.some(s => s.value !== 'all') || tagsActive();
         if (!hasSearch && !hasFilter) return;
         sels.forEach(s => { s.value = 'all'; });
         for (const k of Object.values(keyById)) filters[k] = 'all';
+        if (tagsKey) { filters[tagsKey] = []; closeSelectPopover(); }
         if (searchInput && searchKey) { searchInput.value = ''; filters[searchKey] = ''; }
         apply();
       });
@@ -4601,8 +4645,8 @@
       trailsGroupBy: (function(){ try { return localStorage.getItem('trails-group-by') || 'region'; } catch { return 'region'; } })(),
       // Filter values are kept in memory only — they survive in-page re-renders
       // (catalog refresh, CRUD writes) but reset on a full page reload.
-      placeFilters: { search: '', status: 'all', category: 'all', country: 'all', tag: 'all', catalog: 'all' },
-      trailFilters: { search: '', status: 'all', region: 'all', difficulty: 'all', rating: 'all', tag: 'all' },
+      placeFilters: { search: '', status: 'all', category: 'all', country: 'all', tags: [], catalog: 'all' },
+      trailFilters: { search: '', status: 'all', region: 'all', difficulty: 'all', rating: 'all', tags: [] },
       historyFilters: { search: '', kind: 'all', year: 'all', rating: 'all' },
       // unified-map filter state
       hiddenCategories: new Set(),
@@ -7483,10 +7527,7 @@
               cats.map(c => '<option value="' + escapeHtml(c) + '"' + (state.placeFilters.category === c ? ' selected' : '') + '>' + escapeHtml(displayCategory(c)) + '</option>').join('') +
             '</select>' +
             (placeTags.length ?
-              '<select id="filter-tag">' +
-                '<option value="all">Tag</option>' +
-                placeTags.map(t => '<option value="' + escapeHtml(t) + '"' + (state.placeFilters.tag === t ? ' selected' : '') + '>' + escapeHtml(t) + '</option>').join('') +
-              '</select>'
+              '<button type="button" class="filter-ms-btn" id="filter-tag-ms-btn" aria-haspopup="listbox" aria-expanded="false">Tags</button>'
               : '') +
             '<select id="filter-catalog">' +
               '<option value="all">Catalog</option>' +
@@ -7523,16 +7564,15 @@
       const statusSel = document.getElementById('filter-status');
       const catSel = document.getElementById('filter-category');
       const countrySel = document.getElementById('filter-country');
-      const tagSel = document.getElementById('filter-tag');
       const catalogSel = document.getElementById('filter-catalog');
       const filterBtn = document.getElementById('filter-btn');
       const filterPop = document.getElementById('filter-popover');
       const filterClear = document.getElementById('filter-clear');
-      const filterSels = [statusSel, catSel, countrySel, tagSel, catalogSel].filter(Boolean);
+      const filterSels = [statusSel, catSel, countrySel, catalogSel].filter(Boolean);
       function rerender() {
         renderPlaceList(placesSearchInput ? placesSearchInput.value : '');
       }
-      const filterKeyById = { 'filter-status': 'status', 'filter-category': 'category', 'filter-country': 'country', 'filter-tag': 'tag', 'filter-catalog': 'catalog' };
+      const filterKeyById = { 'filter-status': 'status', 'filter-category': 'category', 'filter-country': 'country', 'filter-catalog': 'catalog' };
       const groupBySel = document.getElementById('filter-group-by');
       if (groupBySel) groupBySel.addEventListener('change', function() {
         state.groupBy = this.value;
@@ -7543,6 +7583,8 @@
         btn: filterBtn, pop: filterPop, clear: filterClear, sels: filterSels,
         keyById: filterKeyById, filters: state.placeFilters,
         searchInput: placesSearchInput, searchKey: 'search', onApply: rerender,
+        tagOptions: placeTags, tagsKey: 'tags',
+        tagMsBtn: document.getElementById('filter-tag-ms-btn'),
       });
     }
 
@@ -7602,8 +7644,7 @@
       const wantStatus = statusEl ? statusEl.value : 'all';
       const wantCat = catEl ? catEl.value : 'all';
       const wantCountry = countryEl ? countryEl.value : 'all';
-      const tagEl = document.getElementById('filter-tag');
-      const wantTag = tagEl ? tagEl.value : 'all';
+      const wantTags = state.placeFilters.tags || [];
       const catalogEl = document.getElementById('filter-catalog');
       const wantCatalog = catalogEl ? catalogEl.value : 'all';
       const filtered = state.places.filter(p => {
@@ -7618,7 +7659,7 @@
         if (wantStatus === 'want' && p.visited) return false;
         if (wantCat !== 'all' && p.category !== wantCat) return false;
         if (wantCountry !== 'all' && p.country !== wantCountry) return false;
-        if (!tagsInclude(p.tags, wantTag)) return false;
+        if (!tagsIncludeAll(p.tags, wantTags)) return false;
         if (wantCatalog === 'from-catalog' && !p.from_catalog) return false;
         if (wantCatalog === 'not-from-catalog' && p.from_catalog) return false;
         if (wantCatalog === 'updates-available' && !findCatalogUpdate(p)) return false;
@@ -8243,10 +8284,7 @@
               ['unrated','1','2','3','4','5'].map(v => '<option value="' + v + '"' + (state.trailFilters.rating === v ? ' selected' : '') + '>' + (v === 'unrated' ? 'Unrated' : (v + ' star' + (v === '1' ? '' : 's'))) + '</option>').join('') +
             '</select>' +
             (allTags.length ?
-              '<select id="filter-tag">' +
-                '<option value="all">Tag</option>' +
-                allTags.map(t => '<option value="' + escapeHtml(t) + '"' + (state.trailFilters.tag === t ? ' selected' : '') + '>' + escapeHtml(t) + '</option>').join('') +
-              '</select>'
+              '<button type="button" class="filter-ms-btn" id="filter-tag-ms-btn" aria-haspopup="listbox" aria-expanded="false">Tags</button>'
               : '') +
             '<div class="filter-divider"></div>' +
             '<select id="filter-group-by">' +
@@ -8272,16 +8310,15 @@
       const regionSel = document.getElementById('filter-region');
       const diffSel = document.getElementById('filter-difficulty');
       const ratingSel = document.getElementById('filter-rating');
-      const tagSel = document.getElementById('filter-tag');
       const groupBySel = document.getElementById('filter-group-by');
       const filterBtn = document.getElementById('filter-btn');
       const filterPop = document.getElementById('filter-popover');
       const filterClear = document.getElementById('filter-clear');
       const mountEl = document.getElementById('trails-list-mount');
-      const filterSels = [statusSel, regionSel, diffSel, ratingSel, tagSel].filter(Boolean);
+      const filterSels = [statusSel, regionSel, diffSel, ratingSel].filter(Boolean);
       // Flatten once: each entry pairs a route with its parent region name.
       const flatRoutes = regions.flatMap(r => r.routes.map(rt => ({route: rt, region: r.name})));
-      function routeMatches(entry, q, wantStatus, wantRegion, wantDiff, wantRating, wantTag) {
+      function routeMatches(entry, q, wantStatus, wantRegion, wantDiff, wantRating, wantTags) {
         const route = entry.route;
         if (q) {
           const inName = route.name.toLowerCase().includes(q);
@@ -8294,7 +8331,7 @@
         if (wantDiff !== 'all' && route.difficulty !== wantDiff) return false;
         if (wantRating === 'unrated' && route.rating) return false;
         if (wantRating !== 'all' && wantRating !== 'unrated' && String(route.rating || '') !== wantRating) return false;
-        if (!tagsInclude(route.tags, wantTag)) return false;
+        if (!tagsIncludeAll(route.tags, wantTags)) return false;
         return true;
       }
       function renderTrailsList() {
@@ -8304,8 +8341,8 @@
         const wantRegion = regionSel ? regionSel.value : 'all';
         const wantDiff = diffSel ? diffSel.value : 'all';
         const wantRating = ratingSel ? ratingSel.value : 'all';
-        const wantTag = tagSel ? tagSel.value : 'all';
-        const filtered = flatRoutes.filter(e => routeMatches(e, q, wantStatus, wantRegion, wantDiff, wantRating, wantTag));
+        const wantTags = state.trailFilters.tags || [];
+        const filtered = flatRoutes.filter(e => routeMatches(e, q, wantStatus, wantRegion, wantDiff, wantRating, wantTags));
         setResultCount(filtered.length);
         const byLetter = state.trailsGroupBy === 'letter';
         const { grouped, keys } = groupAndSort(
@@ -8409,7 +8446,7 @@
           });
         });
       }
-      const trailFilterKeyById = { 'filter-status': 'status', 'filter-region': 'region', 'filter-difficulty': 'difficulty', 'filter-rating': 'rating', 'filter-tag': 'tag' };
+      const trailFilterKeyById = { 'filter-status': 'status', 'filter-region': 'region', 'filter-difficulty': 'difficulty', 'filter-rating': 'rating' };
       if (groupBySel) groupBySel.addEventListener('change', function() {
         state.trailsGroupBy = this.value;
         setPref('trails-group-by', this.value);
@@ -8419,6 +8456,8 @@
         btn: filterBtn, pop: filterPop, clear: filterClear, sels: filterSels,
         keyById: trailFilterKeyById, filters: state.trailFilters,
         searchInput: searchInput, searchKey: 'search', onApply: renderTrailsList,
+        tagOptions: allTags, tagsKey: 'tags',
+        tagMsBtn: document.getElementById('filter-tag-ms-btn'),
       });
       renderTrailsList();
       wireListViewPopover('routes', renderTrailsList);
@@ -11731,6 +11770,86 @@
         }
       });
       container.querySelectorAll('select').forEach(enhanceSelect);
+    }
+
+    // Multi-pick variant of the themed listbox: options toggle a checkbox and
+    // the popover stays open. `anchor` is the trigger button; `onToggle` gets
+    // the new selected-array after each toggle. Reuses the single-popover slot
+    // so only one themed list is ever open.
+    function openMultiSelectList(anchor, options, getSelected, onToggle) {
+      closeSelectPopover();
+      if (!options || !options.length) return;
+      const pop = document.createElement('div');
+      pop.className = 'select-popover';
+      pop.setAttribute('role', 'listbox');
+      pop.setAttribute('aria-multiselectable', 'true');
+      const chosen = new Set((getSelected() || []).map(String));
+      const optEls = [];
+      let activeIdx = 0;
+      const setActive = i => {
+        if (i < 0 || i >= optEls.length) return;
+        if (optEls[activeIdx]) optEls[activeIdx].classList.remove('active');
+        activeIdx = i;
+        optEls[activeIdx].classList.add('active');
+        optEls[activeIdx].scrollIntoView({ block: 'nearest' });
+      };
+      const moveActive = dir => { setActive((activeIdx + dir + optEls.length) % optEls.length); };
+      const toggle = i => {
+        const v = options[i];
+        if (chosen.has(v)) chosen.delete(v); else chosen.add(v);
+        const on = chosen.has(v);
+        optEls[i].classList.toggle('checked', on);
+        optEls[i].setAttribute('aria-selected', on ? 'true' : 'false');
+        onToggle(options.filter(o => chosen.has(o)));
+      };
+      options.forEach((o, i) => {
+        const el = document.createElement('div');
+        el.className = 'select-option select-option-multi' + (chosen.has(o) ? ' checked' : '');
+        el.setAttribute('role', 'option');
+        el.setAttribute('aria-selected', chosen.has(o) ? 'true' : 'false');
+        el.textContent = o;
+        el.addEventListener('mousemove', () => { if (activeIdx !== i) setActive(i); });
+        el.addEventListener('click', ev => { ev.stopPropagation(); toggle(i); });
+        pop.appendChild(el);
+        optEls.push(el);
+      });
+      document.body.appendChild(pop);
+      const r = anchor.getBoundingClientRect();
+      const vw = window.innerWidth, vh = window.innerHeight;
+      pop.style.minWidth = r.width + 'px';
+      const ph = pop.getBoundingClientRect().height;
+      let top = r.bottom + 4;
+      if (top + ph > vh - 8 && r.top - ph - 4 >= 8) top = r.top - ph - 4;
+      pop.style.top = Math.max(8, Math.min(top, vh - ph - 8)) + 'px';
+      const pw = pop.getBoundingClientRect().width;
+      pop.style.left = Math.max(8, Math.min(r.left, vw - pw - 8)) + 'px';
+      if (optEls[0]) optEls[0].classList.add('active');
+      anchor.setAttribute('aria-expanded', 'true');
+      const onKey = e => {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeSelectPopover(); }
+        else if (e.key === 'ArrowDown') { e.preventDefault(); e.stopPropagation(); moveActive(1); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); e.stopPropagation(); moveActive(-1); }
+        else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); toggle(activeIdx); }
+        else if (e.key === 'Tab') { e.stopPropagation(); closeSelectPopover(); }
+      };
+      const onOutside = e => { if (_selPopover && !_selPopover.contains(e.target) && e.target !== anchor) closeSelectPopover(); };
+      const onScroll = e => { if (_selPopover && _selPopover.contains(e.target)) return; closeSelectPopover(); };
+      _selPopover = pop;
+      setTimeout(() => {
+        document.addEventListener('keydown', onKey, true);
+        document.addEventListener('mousedown', onOutside, true);
+        window.addEventListener('scroll', onScroll, true);
+        window.addEventListener('resize', closeSelectPopover);
+        window.addEventListener('blur', closeSelectPopover);
+      }, 0);
+      _selPopoverTeardown = () => {
+        document.removeEventListener('keydown', onKey, true);
+        document.removeEventListener('mousedown', onOutside, true);
+        window.removeEventListener('scroll', onScroll, true);
+        window.removeEventListener('resize', closeSelectPopover);
+        window.removeEventListener('blur', closeSelectPopover);
+        anchor.setAttribute('aria-expanded', 'false');
+      };
     }
 
     function openSelectList(sel) {
