@@ -28,6 +28,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Importing places from the catalog confirms only when adding 10 or more at once; smaller selections import without a prompt.
 - Catalog categories reworked to 10 broad, legible buckets (from 18): overlapping and singleton categories merged, `beach` folded into `nature`, and a `tomb` category split out. Finer distinctions and feature detail moved to tags.
 - List filters no longer show an applied-count on the Filters button; instead the button and any filter dropdown holding a non-default value are accent-tinted, so active filters read at a glance.
+- Places list layout: country/category sections now stack as one full-width column, with cards at a uniform capped width, centered, up to 3 per row, and each section header aligned above its left-most card. The previous two-column masonry stretched single-entry and partial rows to full width, which read as messy on wide windows.
+- The navigation tabs, Add, and Menu buttons use one larger size at every width instead of shrinking on narrow screens, and the space above page content is tighter and no longer jumps when the window crosses a breakpoint.
 
 ### Fixed
 - Index map: place pins no longer vanish on the right side of the map after the window is widened. The marker canvas now resizes with the map instead of holding its initial width and clipping pins past it.
@@ -35,6 +37,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Very large routes (continental routes with tens of thousands of points, whether one track or many) open and pan smoothly in the detail view instead of stalling: map geometry thins to the current zoom, elevation profiles are sampled down, and route lines hold a constant width through zoom.
 - Editing a route's name or region from its detail view now follows the route to its new address instead of leaving a dead link that showed "route not found".
 - Places added from the catalog (or via the Add form) now appear in the Places list immediately instead of only after a manual reload.
+- Routes list cards no longer stretch to fill the row: a region with a single route, or the partial last row of any region, kept normal-sized tiles instead of ballooning to full width.
 
 ### Removed
 - The one-shot `show-native-name` to `show-local-name` localStorage migration (from before 1.1.0); browsers have long since booted through it.

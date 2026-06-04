@@ -463,11 +463,11 @@
       align-items: center;
       color: var(--muted);
       text-decoration: none;
-      font-size: 0.7rem;
+      font-size: 0.8rem;
       font-weight: 400;
       line-height: 1;
       letter-spacing: 0.03em;
-      padding: 0.4rem 0.7rem;
+      padding: 0.55rem 0.85rem;
       transition: background 0.15s, color 0.15s;
     }
     .view-tabs a + a { border-left: 1px solid var(--border); }
@@ -478,9 +478,9 @@
     .nav-actions:empty { display: none; }
     .nav-action-btn {
       font: inherit;
-      font-size: 0.7rem;
+      font-size: 0.8rem;
       line-height: 1;
-      padding: 0.4rem 0.8rem;
+      padding: 0.55rem 0.85rem;
       background: var(--accent);
       color: var(--bg);
       border: none;
@@ -499,7 +499,7 @@
       margin: 0 auto;
       height: calc(100vh - 50px);
       overflow-y: overlay;
-      padding: 2rem 1.5rem 2rem;
+      padding: 0.75rem 1.5rem 2rem;
       box-sizing: border-box;
     }
 
@@ -512,10 +512,25 @@
     }
 
     /* Index grids (places + routes) */
-    .category-grid,
     .region-grid {
       columns: 2;
       column-gap: 1.5rem;
+    }
+    /* Places: one full-width column of country/category sections; cards inside
+       are width-capped and centered, up to 3 per row (see .place-grid). Plain
+       block (columns: auto, not multicol) so content-visibility on each section
+       is honored - containment is ignored inside a multicol context. */
+    .category-grid { columns: auto; }
+    /* Cap the section just under where a 4th 320px card would fit (4x320 + gaps
+       > 1300), so rows top out at 3; margin-inline centers it in the page.
+       content-visibility skips layout for sections scrolled out of view, so a
+       window resize only reflows what's on screen; contain-intrinsic-size keeps
+       the scrollbar stable (auto remembers each real height once seen). */
+    .category-group {
+      max-width: 1300px;
+      margin-inline: auto;
+      content-visibility: auto;
+      contain-intrinsic-size: auto 240px;
     }
     /* Empty-state message must span both columns; otherwise it sits in one
        column with the other empty, which looks like off-center alignment. */
@@ -562,7 +577,7 @@
     }
 
     @media (max-width: 600px) {
-      .category-grid, .region-grid { columns: 1; }
+      .region-grid { columns: 1; }
     }
 
     /* Places index */
@@ -770,8 +785,9 @@
 
     .place-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(320px, 460px));
       gap: 0.5rem;
+      justify-content: center;
     }
 
     .place-card, .route-card {
@@ -953,7 +969,7 @@
     /* Routes index */
     .route-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 0.5rem;
     }
 
@@ -1752,12 +1768,10 @@
     }
 
     @media (max-width: 900px) {
-      #app { padding: 1rem 1rem 3rem; }
-      .place-grid, .route-grid { grid-template-columns: 1fr; }
+      #app { padding: 0.75rem 1.5rem 3rem; }
+      .route-grid { grid-template-columns: 1fr; }
       .detail-layout { padding: 0; }
-      nav { padding: 0 0.75rem; gap: 0.5rem; }
-      nav .view-tabs a { font-size: 0.8rem; padding: 0.55rem 0.85rem; }
-      nav .auth-widget button, nav .auth-widget a, nav .nav-action-btn { font-size: 0.8rem; padding: 0.55rem 0.85rem; }
+      nav { gap: 0.5rem; }
       .nav-group { gap: 0.4rem; }
       .nav-group + .nav-group { padding-left: 0.4rem; }
       .nav-stat .label { font-size: 0.5rem; }
@@ -1785,11 +1799,11 @@
       border: 1px solid var(--border);
       color: var(--muted);
       font-family: inherit;
-      font-size: 0.7rem;
+      font-size: 0.8rem;
       font-weight: 400;
       line-height: 1;
       letter-spacing: 0.03em;
-      padding: 0.4rem 0.7rem;
+      padding: 0.55rem 0.85rem;
       border-radius: var(--radius);
       cursor: pointer;
       text-decoration: none;
@@ -7818,7 +7832,80 @@
           location.hash = '#/';
         });
       });
+      alignPlaceHeaders();
     }
+
+    // Cards are centered within each section, so a section's leftmost card is
+    // indented from the section edge. Pure CSS can't put the header above that
+    // moving edge, so shift each header to share the leftmost card's left (and,
+    // by symmetry, right) inset, measured from the actual card.
+    //
+    // Sections use content-visibility, so measuring an off-screen one would
+    // force it to render and undo the resize savings. An IntersectionObserver
+    // tracks which sections are on screen; we only ever measure those, and a
+    // section gets aligned as it scrolls into view. The label's own margin
+    // doesn't move the cards, so reads need no clear-first pass; reads are still
+    // batched ahead of writes to keep it to ~one reflow.
+    let _placeHeaderObserver = null;
+    const _visiblePlaceSections = new Set();
+    function alignVisibleHeaders() {
+      const listEl = document.getElementById('place-list');
+      if (!listEl) return;
+      const skip = listEl.classList.contains('view-compact') || listEl.classList.contains('view-gallery');
+      const pads = [];
+      _visiblePlaceSections.forEach(function(g) {
+        const label = g.querySelector('.category-label');
+        if (!label) return;
+        if (skip) { pads.push([label, 0]); return; }
+        const grid = g.querySelector('.place-grid');
+        const first = grid && grid.querySelector('.place-card');
+        if (!first) { pads.push([label, 0]); return; }
+        pads.push([label, Math.max(0, Math.round(first.getBoundingClientRect().left - grid.getBoundingClientRect().left))]);
+      });
+      pads.forEach(function(p) {
+        p[0].style.marginLeft = p[1] ? p[1] + 'px' : '';
+        p[0].style.marginRight = p[1] ? p[1] + 'px' : '';
+      });
+    }
+    // (Re)build the observer for the current list render. Called at the end of
+    // renderPlaceList; replaces any prior observer.
+    function alignPlaceHeaders() {
+      const listEl = document.getElementById('place-list');
+      if (!listEl) return;
+      if (_placeHeaderObserver) { _placeHeaderObserver.disconnect(); }
+      _visiblePlaceSections.clear();
+      const groups = listEl.querySelectorAll('.category-group');
+      if (typeof IntersectionObserver === 'undefined') {
+        // Fallback: no observer, treat all sections as visible (older browsers
+        // also lack content-visibility, so there's nothing to defeat).
+        groups.forEach(function(g) { _visiblePlaceSections.add(g); });
+        alignVisibleHeaders();
+        return;
+      }
+      _placeHeaderObserver = new IntersectionObserver(function(entries) {
+        let changed = false;
+        entries.forEach(function(e) {
+          if (e.isIntersecting) {
+            if (!_visiblePlaceSections.has(e.target)) { _visiblePlaceSections.add(e.target); changed = true; }
+          } else {
+            _visiblePlaceSections.delete(e.target);
+          }
+        });
+        if (changed) alignVisibleHeaders();
+      }, { root: document.getElementById('app'), rootMargin: '200px 0px' });
+      groups.forEach(function(g) { _placeHeaderObserver.observe(g); });
+    }
+    // Re-align the on-screen sections per frame while resizing. Only the visible
+    // few are measured, so this is cheap and never forces an off-screen
+    // content-visibility section to render.
+    let _alignHeadersRaf = 0;
+    window.addEventListener('resize', function() {
+      if (_alignHeadersRaf) return;
+      _alignHeadersRaf = requestAnimationFrame(function() {
+        _alignHeadersRaf = 0;
+        alignVisibleHeaders();
+      });
+    });
 
     // ----- History (chronological journal) -----
     function renderHistoryIndex() {
