@@ -5,6 +5,7 @@ on:
     paths:
       - 'android/**'
       - 'index.html'
+      - 'catalog.json'
       - 'sw.js'
       - 'vendor/**'
       - 'icons/**'
@@ -13,6 +14,7 @@ on:
     paths:
       - 'android/**'
       - 'index.html'
+      - 'catalog.json'
       - 'sw.js'
       - 'vendor/**'
       - 'icons/**'
