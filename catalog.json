@@ -4,16 +4,16 @@
     "lat": 22.3369,
     "lon": 31.6256,
     "category": "monument",
+    "tags": [
+      "Egyptian",
+      "UNESCO"
+    ],
     "country": "Egypt",
     "local_name": "أبو سمبل",
     "note": "Ramesses II rock-cut temples, relocated above Lake Nasser",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Ramsis%2C_Aswan_Governorate%2C_Egypt_-_panoramio.jpg/1280px-Ramsis%2C_Aswan_Governorate%2C_Egypt_-_panoramio.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Abu_Simbel_temples"
-    ],
-    "tags": [
-      "Egyptian",
-      "UNESCO"
     ]
   },
   {
@@ -21,15 +21,15 @@
     "lat": 43.7768,
     "lon": 11.2588,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Galleria dell'Accademia",
     "note": "Home of Michelangelo's David",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Firenze%2C_galleria_dell%27accademia%2C_sala_del_colosso%2C_01%2C0.jpg/1280px-Firenze%2C_galleria_dell%27accademia%2C_sala_del_colosso%2C_01%2C0.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Galleria_dell%27Accademia"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -50,16 +50,16 @@
     "lat": 37.97167,
     "lon": 23.72611,
     "category": "ruins",
+    "tags": [
+      "Greek",
+      "UNESCO"
+    ],
     "country": "Greece",
     "local_name": "Ακρόπολη Αθηνών",
     "note": "Ancient hilltop citadel crowned by the Parthenon",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/1029_Acropolis_of_Athens_in_Greece_at_night_Photo_by_Giles_Laurent.jpg/1280px-1029_Acropolis_of_Athens_in_Greece_at_night_Photo_by_Giles_Laurent.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Acropolis_of_Athens"
-    ],
-    "tags": [
-      "Greek",
-      "UNESCO"
     ]
   },
   {
@@ -67,15 +67,15 @@
     "lat": 36.09154,
     "lon": 28.08854,
     "category": "ruins",
+    "tags": [
+      "Greek"
+    ],
     "country": "Greece",
     "local_name": "Ακρόπολη της Λίνδου",
     "note": "Hilltop citadel with a 4th-century BC Temple of Athena",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/20210826-Lindos-DJI_0205.jpg/1280px-20210826-Lindos-DJI_0205.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Lindos"
-    ],
-    "tags": [
-      "Greek"
     ]
   },
   {
@@ -83,6 +83,10 @@
     "lat": 32.85306,
     "lon": 59.22806,
     "category": "garden",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "باغ اکبریه",
     "note": "Qajar Persian garden in Birjand, eastern Iran",
@@ -90,10 +94,6 @@
     "image_focus": "bottom",
     "sources": [
       "https://en.wikipedia.org/wiki/Akbarieh_Garden"
-    ],
-    "tags": [
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -126,15 +126,15 @@
     "lat": 32.65722,
     "lon": 51.67667,
     "category": "palace",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "note": "Safavid imperial palace on Naqsh-e Jahan, Isfahan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/%C4%80l%C4%AB_Q%C4%81p%C5%AB_in_golden_time.jpg/1280px-%C4%80l%C4%AB_Q%C4%81p%C5%AB_in_golden_time.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Ali_Qapu"
-    ],
-    "tags": [
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -142,15 +142,15 @@
     "lat": 35.30161,
     "lon": 48.30388,
     "category": "nature",
+    "tags": [
+      "Cave"
+    ],
     "country": "Iran",
     "local_name": "غار علی‌صدر",
     "note": "Water cave with navigable underground lakes, Hamedan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Ali_Sadr_Cave%2C_Hamadan_Province%2C_Iran%2Csiamak_sabet.jpg/1280px-Ali_Sadr_Cave%2C_Hamadan_Province%2C_Iran%2Csiamak_sabet.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Ali-Sadr_Cave"
-    ],
-    "tags": [
-      "Cave"
     ]
   },
   {
@@ -158,14 +158,14 @@
     "lat": 52.52083,
     "lon": 13.39806,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Germany",
     "note": "19th-century art museum on Berlin's Museum Island",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/AlteNationalgalerie_1a.jpg/1280px-AlteNationalgalerie_1a.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Alte_Nationalgalerie"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -185,14 +185,14 @@
     "lat": 52.51944,
     "lon": 13.39833,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Germany",
     "note": "Schinkel's Neoclassical museum on Berlin's Museum Island",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Altes_Museum_%28Berlin%29_%286339770591%29.jpg/1280px-Altes_Museum_%28Berlin%29_%286339770591%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Altes_Museum"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -200,16 +200,16 @@
     "lat": 37.6388,
     "lon": 21.6299,
     "category": "ruins",
+    "tags": [
+      "Greek",
+      "UNESCO"
+    ],
     "country": "Greece",
     "local_name": "Αρχαία Ολυμπία",
     "note": "Birthplace of the ancient Olympic Games",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Restored_ruins_of_the_Temple_of_Hera%2C_ancient_Doric_Greek_temple_at_Olympia%2C_Greece_%2816189637837%29.jpg/1280px-Restored_ruins_of_the_Temple_of_Hera%2C_ancient_Doric_Greek_temple_at_Olympia%2C_Greece_%2816189637837%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Olympia,_Greece"
-    ],
-    "tags": [
-      "Greek",
-      "UNESCO"
     ]
   },
   {
@@ -217,15 +217,15 @@
     "lat": 36.36464,
     "lon": 25.47798,
     "category": "ruins",
+    "tags": [
+      "Greek"
+    ],
     "country": "Greece",
     "local_name": "Αρχαία Θήρα",
     "note": "Ancient city ruins on Mesa Vouno, founded 9th c. BC",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Santorini_ancient_thera_1.jpg/1280px-Santorini_ancient_thera_1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Ancient_Thera"
-    ],
-    "tags": [
-      "Greek"
     ]
   },
   {
@@ -246,23 +246,26 @@
     "lat": 13.4125,
     "lon": 103.8667,
     "category": "religious",
+    "tags": [
+      "Khmer",
+      "UNESCO"
+    ],
     "country": "Cambodia",
     "local_name": "អង្គរវត្ត",
     "note": "World's largest religious monument, 12th-century Khmer",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Buddhist_monks_in_front_of_the_Angkor_Wat.jpg/1280px-Buddhist_monks_in_front_of_the_Angkor_Wat.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Angkor_Wat"
-    ],
-    "tags": [
-      "Khmer",
-      "UNESCO"
     ]
   },
   {
     "name": "Anse Source d'Argent",
     "lat": -4.37154,
     "lon": 55.82721,
-    "category": "beach",
+    "category": "nature",
+    "tags": [
+      "Beach"
+    ],
     "country": "Seychelles",
     "note": "Granite-boulder beach with shallow water, La Digue island",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/La_Digue_asv2024-10_img22_Union_Estate.jpg/1280px-La_Digue_asv2024-10_img22_Union_Estate.jpg",
@@ -287,16 +290,17 @@
     "lat": 40.63224,
     "lon": 22.95174,
     "category": "monument",
+    "tags": [
+      "Arch",
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Greece",
     "local_name": "Καμάρα",
     "note": "Roman triumphal arch for Galerius's win over Persia, 303 AD",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Arch_of_Galerius-Kamara.jpg/1280px-Arch_of_Galerius-Kamara.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Arch_of_Galerius_and_Rotunda"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -316,15 +320,15 @@
     "lat": 34.3955,
     "lon": 132.4536,
     "category": "monument",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Japan",
     "local_name": "原爆ドーム",
     "note": "Ruin left standing nearest the atomic bomb hypocenter",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Genbaku_Dome04-r.JPG/1280px-Genbaku_Dome04-r.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Hiroshima_Peace_Memorial"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -332,15 +336,15 @@
     "lat": 50.03583,
     "lon": 19.17833,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Poland",
     "local_name": "Państwowe Muzeum Auschwitz-Birkenau",
     "note": "Nazi death camp where 1.1 million were murdered",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Auschwitz_I_%2822_May_2010%29_b.jpg/1280px-Auschwitz_I_%2822_May_2010%29_b.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Auschwitz-Birkenau_State_Museum"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -361,16 +365,16 @@
     "lat": 21.1717,
     "lon": 94.8585,
     "category": "religious",
+    "tags": [
+      "Burmese",
+      "UNESCO"
+    ],
     "country": "Myanmar",
     "local_name": "ပុဂံ",
     "note": "Plain of 2,000+ Buddhist temples, 9th-13th century",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Bagan%2C_Burma.jpg/1280px-Bagan%2C_Burma.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Bagan"
-    ],
-    "tags": [
-      "Burmese",
-      "UNESCO"
     ]
   },
   {
@@ -378,16 +382,16 @@
     "lat": 29.11694,
     "lon": 58.36861,
     "category": "castle",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "ارگ بم",
     "note": "Massive adobe citadel of Bam, Silk Road landmark",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/010213-Kerman-IMG_0371-2.jpg/1280px-010213-Kerman-IMG_0371-2.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Arg-e_Bam"
-    ],
-    "tags": [
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -395,15 +399,15 @@
     "lat": 14.333,
     "lon": -3.417,
     "category": "nature",
+    "tags": [
+      "Dogon",
+      "UNESCO"
+    ],
     "country": "Mali",
     "note": "Dogon cliff dwellings carved into sandstone",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Mali_-_Pays_Dogon_%28falaise_de_Biandagara%29_%2813667559705%29.jpg/1280px-Mali_-_Pays_Dogon_%28falaise_de_Biandagara%29_%2813667559705%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Bandiagara_Escarpment"
-    ],
-    "tags": [
-      "Dogon",
-      "UNESCO"
     ]
   },
   {
@@ -411,14 +415,14 @@
     "lat": 45.45833,
     "lon": 9.18194,
     "category": "religious",
+    "tags": [
+      "Roman"
+    ],
     "country": "Italy",
     "note": "Early Christian basilica with a Roman colonnade",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Milano_Colonne_di_San_Lorenzo_1.jpg/1280px-Milano_Colonne_di_San_Lorenzo_1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Basilica_of_San_Lorenzo,_Milan"
-    ],
-    "tags": [
-      "Roman"
     ]
   },
   {
@@ -426,16 +430,16 @@
     "lat": 44.4206,
     "lon": 12.1964,
     "category": "religious",
+    "tags": [
+      "Byzantine",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Basilica di San Vitale",
     "note": "6th-century church with major Byzantine mosaics",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Basilica_of_San_Vitale.jpg/1280px-Basilica_of_San_Vitale.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Basilica_of_San_Vitale"
-    ],
-    "tags": [
-      "Byzantine",
-      "UNESCO"
     ]
   },
   {
@@ -443,15 +447,15 @@
     "lat": 50.9615,
     "lon": 14.0727,
     "category": "monument",
+    "tags": [
+      "Bridge"
+    ],
     "country": "Germany",
     "local_name": "Basteibrücke",
     "note": "Sandstone bridge over a gorge in Saxon Switzerland",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Rathen_und_Elbsandsteingebirge_asv2022-08_img04.jpg/1280px-Rathen_und_Elbsandsteingebirge_asv2022-08_img04.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Bastei"
-    ],
-    "tags": [
-      "Bridge"
     ]
   },
   {
@@ -459,16 +463,17 @@
     "lat": 41.87944,
     "lon": 12.49306,
     "category": "ruins",
+    "tags": [
+      "Bath",
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Terme di Caracalla",
     "note": "Towering ruins of a vast Roman bath complex",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Baths_of_Caracalla%2C_facing_Caldarium.jpg/1280px-Baths_of_Caracalla%2C_facing_Caldarium.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Baths_of_Caracalla"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -476,16 +481,17 @@
     "lat": 41.89187,
     "lon": 12.49628,
     "category": "ruins",
+    "tags": [
+      "Bath",
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Terme di Traiano",
     "note": "Vast Roman bathing complex dedicated under Trajan, 109 AD",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Trajansthermen.jpg/1280px-Trajansthermen.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Baths_of_Trajan"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -493,34 +499,34 @@
     "lat": 13.44111,
     "lon": 103.85861,
     "category": "religious",
+    "tags": [
+      "Khmer",
+      "UNESCO"
+    ],
     "country": "Cambodia",
     "local_name": "ប្រាសាទបាយ័ន",
     "note": "Smiling stone-face towers at the heart of Angkor Thom",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Stone_faces_in_Bayon%2C_Angkor_%283%29.JPG/1280px-Stone_faces_in_Bayon%2C_Angkor_%283%29.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Bayon"
-    ],
-    "tags": [
-      "Khmer",
-      "UNESCO"
     ]
   },
   {
     "name": "Bent Pyramid",
     "lat": 29.79028,
     "lon": 31.20917,
-    "category": "monument",
+    "category": "tomb",
+    "tags": [
+      "Egyptian",
+      "Pyramid",
+      "UNESCO"
+    ],
     "country": "Egypt",
     "local_name": "هرم سنفرو المائل",
     "note": "One of the few pyramids keeping its smooth casing",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Bent_Pyramid_%E6%9B%B2%E6%8A%98%E9%87%91%E5%AD%97%E5%A1%94_-_panoramio.jpg/1280px-Bent_Pyramid_%E6%9B%B2%E6%8A%98%E9%87%91%E5%AD%97%E5%A1%94_-_panoramio.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Bent_Pyramid"
-    ],
-    "tags": [
-      "Egyptian",
-      "Pyramid",
-      "UNESCO"
     ]
   },
   {
@@ -528,16 +534,16 @@
     "lat": 40.70222,
     "lon": 19.95833,
     "category": "city",
+    "tags": [
+      "Ottoman",
+      "UNESCO"
+    ],
     "country": "Albania",
     "local_name": "Berati",
     "note": "Ottoman hillside town known for its tiered windows",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Berat_57.jpg/1280px-Berat_57.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Berat"
-    ],
-    "tags": [
-      "Ottoman",
-      "UNESCO"
     ]
   },
   {
@@ -558,16 +564,16 @@
     "lat": 35.81056,
     "lon": 103.04833,
     "category": "religious",
+    "tags": [
+      "Chinese",
+      "UNESCO"
+    ],
     "country": "China",
     "local_name": "炳灵寺",
     "note": "Cliffside Buddhist grottoes with a 27 m Buddha",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Bingling_Temple_Grottoes_51.jpg/1280px-Bingling_Temple_Grottoes_51.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Bingling_Temple"
-    ],
-    "tags": [
-      "Chinese",
-      "UNESCO"
     ]
   },
   {
@@ -575,15 +581,15 @@
     "lat": 40.5614,
     "lon": 14.2054,
     "category": "nature",
+    "tags": [
+      "Cave"
+    ],
     "country": "Italy",
     "local_name": "Grotta Azzurra",
     "note": "Sea cave with electric blue water on Capri",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Blue_Grotto.jpg/1280px-Blue_Grotto.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Blue_Grotto_(Capri)"
-    ],
-    "tags": [
-      "Cave"
     ]
   },
   {
@@ -604,15 +610,15 @@
     "lat": 52.52194,
     "lon": 13.39472,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Germany",
     "local_name": "Bode-Museum",
     "note": "Sculpture and Byzantine art on Berlin's Museum Island",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Berlin_Museumsinsel_Fernsehturm.jpg/1280px-Berlin_Museumsinsel_Fernsehturm.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Bode_Museum"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -633,6 +639,9 @@
     "lat": 52.5163,
     "lon": 13.3777,
     "category": "monument",
+    "tags": [
+      "Gate"
+    ],
     "country": "Germany",
     "local_name": "Brandenburger Tor",
     "note": "Symbol of German reunification",
@@ -658,14 +667,14 @@
     "lat": 60.39722,
     "lon": 5.32306,
     "category": "monument",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Norway",
     "note": "Colorful Hanseatic wharf of old wooden buildings",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Bryggen%2C_Bergen%2C_Noruega%2C_2019-09-08%2C_DD_115-117_PAN.jpg/1280px-Bryggen%2C_Bergen%2C_Noruega%2C_2019-09-08%2C_DD_115-117_PAN.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Bryggen"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -673,25 +682,28 @@
     "lat": 39.74556,
     "lon": 20.02056,
     "category": "ruins",
+    "tags": [
+      "Byzantine",
+      "Greek",
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Albania",
     "local_name": "Butrinti",
     "note": "Ruined Greek and Roman city, now a national park",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Amphitheatre_of_Butrint_2009.jpg/1280px-Amphitheatre_of_Butrint_2009.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Butrint"
-    ],
-    "tags": [
-      "Byzantine",
-      "Greek",
-      "Roman",
-      "UNESCO"
     ]
   },
   {
     "name": "Cable Beach",
     "lat": -17.95223,
     "lon": 122.20558,
-    "category": "beach",
+    "category": "nature",
+    "tags": [
+      "Beach"
+    ],
     "country": "Australia",
     "note": "22 km white sand beach in Broome with camel rides at sunset",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Cable_Beach%2C_Broome.jpg/1280px-Cable_Beach%2C_Broome.jpg",
@@ -704,14 +716,14 @@
     "lat": 5.1036,
     "lon": -1.2414,
     "category": "castle",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Ghana",
     "note": "Slave trade fort, now a museum",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Cape_Coast_Castle%2C_Cape_Coast%2C_Ghana.JPG/1280px-Cape_Coast_Castle%2C_Cape_Coast%2C_Ghana.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Cape_Coast_Castle"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -719,15 +731,15 @@
     "lat": 38.6437,
     "lon": 34.8353,
     "category": "nature",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Turkey",
     "local_name": "Kapadokya",
     "note": "Fairy chimneys and ancient rock-cut cave dwellings",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/CAPPADOCIA_G%C3%B6reme_National_Park_and_the_Rock_Sites._World_Heritage_List._Turkey._Hot_Air_Ballooning_Cappadocia.jpg/1280px-CAPPADOCIA_G%C3%B6reme_National_Park_and_the_Rock_Sites._World_Heritage_List._Turkey._Hot_Air_Ballooning_Cappadocia.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Cappadocia"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -735,14 +747,14 @@
     "lat": 43.2065,
     "lon": 2.3634,
     "category": "castle",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "France",
     "note": "Double-walled medieval citadel in southern France",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Carcassonne_-_Pont_Neuf_-_View_SSE_on_Old_Bridge_%26_Citadel_-_Porte_d%27Aude.jpg/1280px-Carcassonne_-_Pont_Neuf_-_View_SSE_on_Old_Bridge_%26_Citadel_-_Porte_d%27Aude.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Cité_de_Carcassonne"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -750,16 +762,16 @@
     "lat": 41.9031,
     "lon": 12.4663,
     "category": "castle",
+    "tags": [
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Castel Sant'Angelo",
     "note": "Cylindrical Tiber fortress, once Hadrian's mausoleum",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Engelsburg_und_Engelsbr%C3%BCcke_abends.jpg/1280px-Engelsburg_und_Engelsbr%C3%BCcke_abends.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Castel_Sant%27Angelo"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -792,16 +804,16 @@
     "lat": 50.08639,
     "lon": 14.41194,
     "category": "monument",
+    "tags": [
+      "Bridge",
+      "UNESCO"
+    ],
     "country": "Czech Republic",
     "local_name": "Karlův most",
     "note": "14th-century stone bridge lined with baroque statues",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Prague_07-2016_view_from_Lesser_Town_Tower_of_Charles_Bridge_img3.jpg/1280px-Prague_07-2016_view_from_Lesser_Town_Tower_of_Charles_Bridge_img3.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Charles_Bridge"
-    ],
-    "tags": [
-      "Bridge",
-      "UNESCO"
     ]
   },
   {
@@ -809,15 +821,15 @@
     "lat": 48.4477,
     "lon": 1.4879,
     "category": "religious",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "France",
     "local_name": "Cathédrale Notre-Dame de Chartres",
     "note": "Gothic cathedral with intact medieval stained glass",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Chartres_03.jpg/1280px-Chartres_03.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Chartres_Cathedral"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -825,15 +837,15 @@
     "lat": 47.61611,
     "lon": 1.51722,
     "category": "castle",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "France",
     "local_name": "Château de Chambord",
     "note": "Largest château in the Loire Valley, built for Francis I",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Aerial_image_of_Ch%C3%A2teau_de_Chambord_%28view_from_the_southeast%29.jpg/1280px-Aerial_image_of_Ch%C3%A2teau_de_Chambord_%28view_from_the_southeast%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Château_de_Chambord"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -841,15 +853,15 @@
     "lat": 47.3249,
     "lon": 1.0705,
     "category": "castle",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "France",
     "local_name": "Château de Chenonceau",
     "note": "Renaissance château spanning the River Cher",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Chateau_de_Chenonceau_2008E_%28adjusted2%29.jpg/1280px-Chateau_de_Chenonceau_2008E_%28adjusted2%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Château_de_Chenonceau"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -870,16 +882,16 @@
     "lat": 32.6575,
     "lon": 51.67222,
     "category": "garden",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "باغ چهل‌ستون",
     "note": "17th-c. Safavid pavilion of 'forty columns', Isfahan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Chehel_Sotoon.jpg/1280px-Chehel_Sotoon.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Chehel_Sotoun"
-    ],
-    "tags": [
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -887,16 +899,16 @@
     "lat": 20.6829,
     "lon": -88.5686,
     "category": "ruins",
+    "tags": [
+      "Maya",
+      "UNESCO"
+    ],
     "country": "Mexico",
     "local_name": "Chichʼen Itzaʼ",
     "note": "Maya city with the Kukulcán step-pyramid",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Chichen_Itza_3.jpg/1280px-Chichen_Itza_3.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Chichen_Itza"
-    ],
-    "tags": [
-      "Maya",
-      "UNESCO"
     ]
   },
   {
@@ -917,15 +929,15 @@
     "lat": 32.00833,
     "lon": 48.52083,
     "category": "ruins",
+    "tags": [
+      "Elamite",
+      "UNESCO"
+    ],
     "country": "Iran",
     "note": "13th-c. BC Elamite ziggurat, southwest Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/%D8%B2%DB%8C%DA%AF%D9%88%D8%B1%D8%A7%D8%AA_%DA%86%D8%BA%D8%A7_%D8%B2%D9%86%D8%A8%DB%8C%D9%84.jpg/1280px-%D8%B2%DB%8C%DA%AF%D9%88%D8%B1%D8%A7%D8%AA_%DA%86%D8%BA%D8%A7_%D8%B2%D9%86%D8%A8%DB%8C%D9%84.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Chogha_Zanbil"
-    ],
-    "tags": [
-      "Elamite",
-      "UNESCO"
     ]
   },
   {
@@ -933,16 +945,16 @@
     "lat": -22.95194,
     "lon": -43.21056,
     "category": "monument",
+    "tags": [
+      "Statue",
+      "UNESCO"
+    ],
     "country": "Brazil",
     "local_name": "Cristo Redentor",
     "note": "Art Deco Christ atop Corcovado, overlooking Rio",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Christ_on_Corcovado_mountain.JPG/1280px-Christ_on_Corcovado_mountain.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Christ_the_Redeemer_(statue)"
-    ],
-    "tags": [
-      "Statue",
-      "UNESCO"
     ]
   },
   {
@@ -950,16 +962,16 @@
     "lat": 42.69694,
     "lon": 23.32278,
     "category": "religious",
+    "tags": [
+      "Byzantine",
+      "Roman"
+    ],
     "country": "Bulgaria",
     "local_name": "Ротонда „Свети Георги\"",
     "note": "Oldest building in Sofia, a 4th-century Roman rotunda",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/StGeorgeRotundaSofia.JPG/1280px-StGeorgeRotundaSofia.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Church_of_Saint_George,_Sofia"
-    ],
-    "tags": [
-      "Byzantine",
-      "Roman"
     ]
   },
   {
@@ -967,16 +979,16 @@
     "lat": 31.7785,
     "lon": 35.2296,
     "category": "religious",
+    "tags": [
+      "Byzantine",
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Israel",
     "note": "Traditional site of Jesus's crucifixion and burial",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Church_of_the_Holy_Sepulchre_by_Gerd_Eichmann_%28cropped%29.jpg/1280px-Church_of_the_Holy_Sepulchre_by_Gerd_Eichmann_%28cropped%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Church_of_the_Holy_Sepulchre"
-    ],
-    "tags": [
-      "Byzantine",
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -984,15 +996,15 @@
     "lat": 50.9413,
     "lon": 6.9583,
     "category": "religious",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Germany",
     "local_name": "Kölner Dom",
     "note": "Gothic cathedral, took 600 years to complete",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Cologne_Dome%2C_dramatic_style_%2816652836665%29.jpg/1280px-Cologne_Dome%2C_dramatic_style_%2816652836665%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Cologne_Cathedral"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -1000,32 +1012,34 @@
     "lat": 41.8902,
     "lon": 12.4922,
     "category": "ruins",
+    "tags": [
+      "Amphitheatre",
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Colosseo",
     "note": "Ancient amphitheatre in central Rome",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/1280px-Colosseo_2020.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Colosseum"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
     "name": "Copacabana Beach",
     "lat": -22.9711,
     "lon": -43.1822,
-    "category": "beach",
+    "category": "nature",
+    "tags": [
+      "Beach",
+      "UNESCO"
+    ],
     "country": "Brazil",
     "local_name": "Praia de Copacabana",
     "note": "4 km beach with its black-and-white wave promenade",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Copacabana_in_Rio_de_Janeiro_4_%2822126347021%29.jpg/1280px-Copacabana_in_Rio_de_Janeiro_4_%2822126347021%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Copacabana,_Rio_de_Janeiro"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -1033,15 +1047,15 @@
     "lat": 39.6243,
     "lon": 19.9217,
     "category": "city",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Greece",
     "local_name": "Κέρκυρα",
     "note": "Venetian-era old town, UNESCO World Heritage site",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/The_Old_Fortress_and_the_Old_Town_of_Corfu_-_September_2017.jpg/1280px-The_Old_Fortress_and_the_Old_Town_of_Corfu_-_September_2017.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Corfu_(city)"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -1049,17 +1063,17 @@
     "lat": 35.0583,
     "lon": 51.4202,
     "category": "monument",
+    "tags": [
+      "Caravanserai",
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "کاروانسرای دیر گچین",
     "note": "Sasanian caravanserai rebuilt by Safavids, Qom",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D8%AF%DB%8C%D8%B1_%DA%AF%DA%86%DB%8C%D9%86_%D8%A7%D8%B3%D8%AA%D8%A7%D9%86_%D9%82%D9%85_-_%D9%88%DB%8C%DA%A9%DB%8C_%D8%AF%D9%88%D8%B3%D8%AA%D8%AF%D8%A7%D8%B1_%DB%8C%D8%A7%D8%AF%D9%85%D8%A7%D9%86_2018_21.jpg/1280px-%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D8%AF%DB%8C%D8%B1_%DA%AF%DA%86%DB%8C%D9%86_%D8%A7%D8%B3%D8%AA%D8%A7%D9%86_%D9%82%D9%85_-_%D9%88%DB%8C%DA%A9%DB%8C_%D8%AF%D9%88%D8%B3%D8%AA%D8%AF%D8%A7%D8%B1_%DB%8C%D8%A7%D8%AF%D9%85%D8%A7%D9%86_2018_21.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Dayr-e_Gachin"
-    ],
-    "tags": [
-      "Caravanserai",
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -1067,15 +1081,15 @@
     "lat": -24.76,
     "lon": 15.2929,
     "category": "nature",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Namibia",
     "local_name": "Dooie Vlei",
     "note": "Clay pan with dead trees among red dunes",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Dead_Vlei_4.jpg/1280px-Dead_Vlei_4.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Deadvlei"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -1083,16 +1097,16 @@
     "lat": 37.39333,
     "lon": 25.27111,
     "category": "ruins",
+    "tags": [
+      "Greek",
+      "UNESCO"
+    ],
     "country": "Greece",
     "local_name": "Δήλος",
     "note": "Sacred island, mythical birthplace of Apollo",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Terrace_of_the_Lions_-_51681905195.jpg/1280px-Terrace_of_the_Lions_-_51681905195.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Delos"
-    ],
-    "tags": [
-      "Greek",
-      "UNESCO"
     ]
   },
   {
@@ -1100,16 +1114,16 @@
     "lat": 38.4824,
     "lon": 22.5011,
     "category": "ruins",
+    "tags": [
+      "Greek",
+      "UNESCO"
+    ],
     "country": "Greece",
     "local_name": "Δελφοί",
     "note": "Sanctuary of Apollo, seat of the ancient Oracle",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Delphi%2C_Greece_-_panoramio.jpg/1280px-Delphi%2C_Greece_-_panoramio.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Delphi"
-    ],
-    "tags": [
-      "Greek",
-      "UNESCO"
     ]
   },
   {
@@ -1129,15 +1143,15 @@
     "lat": 50.42038,
     "lon": 14.4646,
     "category": "monument",
+    "tags": [
+      "Statue"
+    ],
     "country": "Czech Republic",
     "local_name": "Čertovy hlavy",
     "note": "Two 9 m devil heads carved into a sandstone cliff",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Certovy_hlavy_Zelizy.jpg/1280px-Certovy_hlavy_Zelizy.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/%C4%8Certovy_hlavy"
-    ],
-    "tags": [
-      "Statue"
     ]
   },
   {
@@ -1145,16 +1159,16 @@
     "lat": 43.50833,
     "lon": 16.44,
     "category": "palace",
+    "tags": [
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Croatia",
     "local_name": "Dioklecijanova palača",
     "note": "Roman emperor's palace, now Split's old town",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Aerial_view_of_Diocletian%27s_Palace_in_Split%2C_Croatia_%2848608247353%29.jpg/1280px-Aerial_view_of_Diocletian%27s_Palace_in_Split%2C_Croatia_%2848608247353%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Diocletian%27s_Palace"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -1162,15 +1176,15 @@
     "lat": 24.73333,
     "lon": 46.57556,
     "category": "ruins",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Saudi Arabia",
     "local_name": "الدرعية",
     "note": "Mud-brick birthplace of the first Saudi state",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/At-Turaif_District_of_Diriyah%2C_Saudi_Arabia.jpg/1280px-At-Turaif_District_of_Diriyah%2C_Saudi_Arabia.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Diriyah"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -1178,16 +1192,16 @@
     "lat": 36.31667,
     "lon": 5.73333,
     "category": "ruins",
+    "tags": [
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Algeria",
     "local_name": "جميلة",
     "note": "Roman ruins of ancient Cuicul, adapted to mountain terrain",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Roman_Ruins_of_Djemila_in_S%C3%A9tif%2C_Algeria.jpg/1280px-Roman_Ruins_of_Djemila_in_S%C3%A9tif%2C_Algeria.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Djémila"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -1195,33 +1209,32 @@
     "lat": 45.4337,
     "lon": 12.3401,
     "category": "palace",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Palazzo Ducale",
     "note": "Gothic palace on St. Mark's Square in Venice",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/%28Venice%29_Doge%27s_Palace_and_campanile_of_St._Mark%27s_Basilica_facing_the_sea.jpg/1280px-%28Venice%29_Doge%27s_Palace_and_campanile_of_St._Mark%27s_Basilica_facing_the_sea.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Doge%27s_Palace"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
     "name": "Dome of Soltaniyeh",
     "lat": 36.43397,
     "lon": 48.79603,
-    "category": "monument",
+    "category": "tomb",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "گنبد سلطانیه",
     "note": "14th-c. Ilkhanid mausoleum, northwest Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Gonbad_Soltaniye.jpg/1280px-Gonbad_Soltaniye.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Dome_of_Soltaniyeh"
-    ],
-    "tags": [
-      "Persian",
-      "Tomb",
-      "UNESCO"
     ]
   },
   {
@@ -1229,16 +1242,16 @@
     "lat": 31.7781,
     "lon": 35.2354,
     "category": "religious",
+    "tags": [
+      "Umayyad",
+      "UNESCO"
+    ],
     "country": "Israel",
     "local_name": "قبة الصخرة",
     "note": "Gold-domed Islamic shrine on the Temple Mount",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Jerusalem-2013%282%29-Temple_Mount-Dome_of_the_Rock_%28SE_exposure%29.jpg/1280px-Jerusalem-2013%282%29-Temple_Mount-Dome_of_the_Rock_%28SE_exposure%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Dome_of_the_Rock"
-    ],
-    "tags": [
-      "Umayyad",
-      "UNESCO"
     ]
   },
   {
@@ -1246,15 +1259,16 @@
     "lat": 14.66778,
     "lon": -17.39722,
     "category": "monument",
+    "tags": [
+      "Gate",
+      "UNESCO"
+    ],
     "country": "Senegal",
     "local_name": "Porte du Voyage sans Retour",
     "note": "Doorway from the House of Slaves on Gorée Island",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/La_maison_des_esclaves.jpg/1280px-La_maison_des_esclaves.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/House_of_Slaves"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -1262,16 +1276,16 @@
     "lat": 31.90278,
     "lon": 54.35222,
     "category": "garden",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "باغ دولت آباد",
     "note": "18th-c. Persian garden with giant windcatcher, Yazd",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Dolat_Abad_Garden_-_Pavilion_01.jpg/1280px-Dolat_Abad_Garden_-_Pavilion_01.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Dowlatabad_Garden"
-    ],
-    "tags": [
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -1291,15 +1305,15 @@
     "lat": 42.6407,
     "lon": 18.1083,
     "category": "city",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Croatia",
     "local_name": "Stari Grad Dubrovnik",
     "note": "Medieval walled city on the Adriatic coast",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/The_walls_of_the_fortress_and_View_of_the_old_city._panorama.jpg/1280px-The_walls_of_the_fortress_and_View_of_the_old_city._panorama.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Dubrovnik"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -1332,23 +1346,26 @@
     "lat": 48.8584,
     "lon": 2.2945,
     "category": "monument",
+    "tags": [
+      "Tower",
+      "UNESCO"
+    ],
     "country": "France",
     "local_name": "Tour Eiffel",
     "note": "1889 wrought-iron tower and symbol of Paris",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Paris_-_Jardins_du_Trocad%C3%A9ro_%26_Tour_Eiffel_%2826804140054%29.jpg/1280px-Paris_-_Jardins_du_Trocad%C3%A9ro_%26_Tour_Eiffel_%2826804140054%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Eiffel_Tower"
-    ],
-    "tags": [
-      "Tower",
-      "UNESCO"
     ]
   },
   {
     "name": "Elafonisi Beach",
     "lat": 35.27134,
     "lon": 23.54175,
-    "category": "beach",
+    "category": "nature",
+    "tags": [
+      "Beach"
+    ],
     "country": "Greece",
     "local_name": "Ελαφονήσι",
     "note": "Pink-sand beach and lagoon on western Crete",
@@ -1362,14 +1379,14 @@
     "lat": 17.04167,
     "lon": 21.86278,
     "category": "nature",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Chad",
     "note": "Sandstone arches and ancient rock art in the Sahara",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Ourini_Arch_at_sunset%2C_Ennedi%2C_Chad_%2840598172781%29.jpg/1280px-Ourini_Arch_at_sunset%2C_Ennedi%2C_Chad_%2840598172781%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Ennedi_Plateau"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -1377,16 +1394,17 @@
     "lat": 37.5961,
     "lon": 23.0792,
     "category": "ruins",
+    "tags": [
+      "Greek",
+      "Theatre",
+      "UNESCO"
+    ],
     "country": "Greece",
     "local_name": "Επίδαυρος",
     "note": "Best-preserved ancient Greek theatre, famed acoustics",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Theatre_of_Epidaurus_2.jpg/1280px-Theatre_of_Epidaurus_2.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Epidaurus"
-    ],
-    "tags": [
-      "Greek",
-      "UNESCO"
     ]
   },
   {
@@ -1394,16 +1412,16 @@
     "lat": 29.63583,
     "lon": 52.52528,
     "category": "garden",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "باغ ارم",
     "note": "Qajar Persian garden with cypress avenue, Shiraz",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Bagh_Eram_Shiraz.jpg/1280px-Bagh_Eram_Shiraz.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Eram_Garden"
-    ],
-    "tags": [
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -1411,15 +1429,15 @@
     "lat": 36.1912,
     "lon": 44.0094,
     "category": "castle",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Iraq",
     "local_name": "قەڵای هەولێر",
     "note": "Possibly the oldest continuously inhabited place on Earth",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Hawler_Castle.jpg/1280px-Hawler_Castle.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Citadel_of_Erbil"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -1427,14 +1445,14 @@
     "lat": 63.62,
     "lon": -19.61333,
     "category": "nature",
+    "tags": [
+      "Volcano"
+    ],
     "country": "Iceland",
     "note": "Ice cap covering a 1,651 m active volcano",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Eyjafjallaj%C3%B6kull_major_eruption_20100510.jpg/1280px-Eyjafjallaj%C3%B6kull_major_eruption_20100510.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Eyjafjallaj%C3%B6kull"
-    ],
-    "tags": [
-      "Volcano"
     ]
   },
   {
@@ -1442,16 +1460,16 @@
     "lat": 34.0625,
     "lon": -4.9725,
     "category": "city",
+    "tags": [
+      "Moorish",
+      "UNESCO"
+    ],
     "country": "Morocco",
     "local_name": "فاس البالي",
     "note": "Walled medina of Fez, world's largest car-free area",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Fes_Bab_Bou_Jeloud_2011.jpg/1280px-Fes_Bab_Bou_Jeloud_2011.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Fes_el_Bali"
-    ],
-    "tags": [
-      "Moorish",
-      "UNESCO"
     ]
   },
   {
@@ -1459,16 +1477,16 @@
     "lat": 33.94638,
     "lon": 51.37259,
     "category": "garden",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "باغ فین",
     "note": "Safavid Persian garden with spring-fed pools, Kashan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Jard%C3%ADn_de_Fin%2C_Kashan%2C_Ir%C3%A1n%2C_2016-09-19%2C_DD_22.jpg/1280px-Jard%C3%ADn_de_Fin%2C_Kashan%2C_Ir%C3%A1n%2C_2016-09-19%2C_DD_22.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Fin_Garden"
-    ],
-    "tags": [
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -1476,14 +1494,14 @@
     "lat": 56.43389,
     "lon": -6.33611,
     "category": "nature",
+    "tags": [
+      "Cave"
+    ],
     "country": "Scotland",
     "note": "Basalt-column sea cave that inspired Mendelssohn",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Fingal%27s_Cave%2C_Staffa_Island_02.jpg/1280px-Fingal%27s_Cave%2C_Staffa_Island_02.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Fingal%27s_Cave"
-    ],
-    "tags": [
-      "Cave"
     ]
   },
   {
@@ -1504,15 +1522,15 @@
     "lat": 47.5019,
     "lon": 19.0348,
     "category": "monument",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Hungary",
     "local_name": "Halászbástya",
     "note": "Neo-Gothic terrace with panoramic views of Budapest",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Fishermans_bastion_Budapest_IMG_1429.JPG/1280px-Fishermans_bastion_Budapest_IMG_1429.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Fisherman%27s_Bastion"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -1520,15 +1538,15 @@
     "lat": 43.7733,
     "lon": 11.2555,
     "category": "religious",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Basilica di Santa Maria del Fiore",
     "note": "Duomo crowned by Brunelleschi's vast brick dome",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Cattedrale_di_Santa_Maria_del_Fiore_%E2%80%93_Il_Duomo_di_Firenze.jpg/1280px-Cattedrale_di_Santa_Maria_del_Fiore_%E2%80%93_Il_Duomo_di_Firenze.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Florence_Cathedral"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -1536,15 +1554,15 @@
     "lat": 34.9671,
     "lon": 135.7727,
     "category": "religious",
+    "tags": [
+      "Japanese"
+    ],
     "country": "Japan",
     "local_name": "伏見稲荷大社",
     "note": "Thousands of vermillion torii gates up a mountain trail",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Torii_path_with_lantern_at_Fushimi_Inari_Taisha_Shrine%2C_Kyoto%2C_Japan.jpg/1280px-Torii_path_with_lantern_at_Fushimi_Inari_Taisha_Shrine%2C_Kyoto%2C_Japan.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Fushimi_Inari-taisha"
-    ],
-    "tags": [
-      "Japanese"
     ]
   },
   {
@@ -1552,15 +1570,15 @@
     "lat": 40.11242,
     "lon": 44.73028,
     "category": "monument",
+    "tags": [
+      "Armenian"
+    ],
     "country": "Armenia",
     "local_name": "Գառնիի տաճար",
     "note": "Only standing Greco-Roman colonnaded temple in the region",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Garni_temple_2021_drone.jpg/1280px-Garni_temple_2021_drone.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_Garni"
-    ],
-    "tags": [
-      "Armenian"
     ]
   },
   {
@@ -1568,16 +1586,16 @@
     "lat": 40.14043,
     "lon": 44.81851,
     "category": "religious",
+    "tags": [
+      "Armenian",
+      "UNESCO"
+    ],
     "country": "Armenia",
     "local_name": "Գեղարդ",
     "note": "Medieval monastery partly carved into the cliffside",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Monasterio_de_Geghard%2C_Armenia%2C_2016-10-02%2C_DD_63.jpg/1280px-Monasterio_de_Geghard%2C_Armenia%2C_2016-10-02%2C_DD_63.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Geghard"
-    ],
-    "tags": [
-      "Armenian",
-      "UNESCO"
     ]
   },
   {
@@ -1585,15 +1603,15 @@
     "lat": 47.80806,
     "lon": 107.52975,
     "category": "monument",
+    "tags": [
+      "Statue"
+    ],
     "country": "Mongolia",
     "local_name": "Чингис хааны морьт хөшөө",
     "note": "40 m stainless-steel Genghis Khan on horseback",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Genghis_Khan_Equestrian_Statue%2C_photo_by_Vaiz_Ha.jpg/1280px-Genghis_Khan_Equestrian_Statue%2C_photo_by_Vaiz_Ha.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Equestrian_statue_of_Genghis_Khan"
-    ],
-    "tags": [
-      "Statue"
     ]
   },
   {
@@ -1640,16 +1658,16 @@
     "lat": 35.67972,
     "lon": 51.42028,
     "category": "palace",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "کاخ گلستان",
     "note": "Qajar royal palace complex in central Tehran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Palais_du_Golestan%2C_T%C3%A9h%C3%A9ran_%285%29.jpg/1280px-Palais_du_Golestan%2C_T%C3%A9h%C3%A9ran_%285%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Golestan_Palace"
-    ],
-    "tags": [
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -1683,15 +1701,16 @@
     "lat": 50.8467,
     "lon": 4.3525,
     "category": "monument",
+    "tags": [
+      "Square",
+      "UNESCO"
+    ],
     "country": "Belgium",
     "local_name": "Grote Markt",
     "note": "Ornate guildhall square in Brussels",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Grand-Place%2C_Brussels_-_panorama%2C_June_2018.jpg/1280px-Grand-Place%2C_Brussels_-_panorama%2C_June_2018.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Grand-Place"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -1711,32 +1730,32 @@
     "lat": 19.0575,
     "lon": -98.30194,
     "category": "monument",
+    "tags": [
+      "Pyramid"
+    ],
     "country": "Mexico",
     "local_name": "Tlachihualtepetl",
     "note": "Largest pyramid by volume in the world",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Gran_Pir%C3%A1mide_de_Cholula%2C_Puebla%2C_M%C3%A9xico%2C_2013-10-12%2C_DD_10.JPG/1280px-Gran_Pir%C3%A1mide_de_Cholula%2C_Puebla%2C_M%C3%A9xico%2C_2013-10-12%2C_DD_10.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Great_Pyramid_of_Cholula"
-    ],
-    "tags": [
-      "Pyramid"
     ]
   },
   {
     "name": "Great Pyramid of Giza",
     "lat": 29.97917,
     "lon": 31.13417,
-    "category": "monument",
+    "category": "tomb",
+    "tags": [
+      "Egyptian",
+      "Pyramid",
+      "UNESCO"
+    ],
     "country": "Egypt",
     "note": "Oldest of the Seven Wonders and only one still standing",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Great_Pyramid_of_Giza_-_Pyramid_of_Khufu.jpg/1280px-Great_Pyramid_of_Giza_-_Pyramid_of_Khufu.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Great_Pyramid_of_Giza"
-    ],
-    "tags": [
-      "Egyptian",
-      "Pyramid",
-      "UNESCO"
     ]
   },
   {
@@ -1744,16 +1763,16 @@
     "lat": 29.9753,
     "lon": 31.1376,
     "category": "monument",
+    "tags": [
+      "Egyptian",
+      "UNESCO"
+    ],
     "country": "Egypt",
     "local_name": "أبو الهول",
     "note": "Limestone sphinx on the Giza plateau, c. 2500 BCE",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Sphinx_with_the_third_pyramid.jpg/1280px-Sphinx_with_the_third_pyramid.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Great_Sphinx_of_Giza"
-    ],
-    "tags": [
-      "Egyptian",
-      "UNESCO"
     ]
   },
   {
@@ -1761,15 +1780,15 @@
     "lat": -20.2674,
     "lon": 30.9338,
     "category": "ruins",
+    "tags": [
+      "Shona",
+      "UNESCO"
+    ],
     "country": "Zimbabwe",
     "note": "Medieval stone city, gave the country its name",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Great-zim-aerial-looking-West.JPG/1280px-Great-zim-aerial-looking-West.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Great_Zimbabwe"
-    ],
-    "tags": [
-      "Shona",
-      "UNESCO"
     ]
   },
   {
@@ -1777,16 +1796,16 @@
     "lat": 41.946,
     "lon": 12.77252,
     "category": "ruins",
+    "tags": [
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Villa Adriana",
     "note": "Vast Roman villa recreating sites from the empire",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Villa_Hadriana_%28Villa_Adriana_Tivoli%29_1000_20.jpg/1280px-Villa_Hadriana_%28Villa_Adriana_Tivoli%29_1000_20.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Hadrian%27s_Villa"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -1794,32 +1813,32 @@
     "lat": 32.6275,
     "lon": 129.7383,
     "category": "ruins",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Japan",
     "local_name": "端島",
     "note": "Abandoned concrete island, former coal mining city",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Battle-Ship_Island_Nagasaki_Japan.jpg/1280px-Battle-Ship_Island_Nagasaki_Japan.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Hashima_Island"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
     "name": "Hegra",
     "lat": 26.79167,
     "lon": 37.95278,
-    "category": "ruins",
+    "category": "tomb",
+    "tags": [
+      "Nabataean",
+      "UNESCO"
+    ],
     "country": "Saudi Arabia",
     "local_name": "مدائن صالح",
     "note": "Over 100 Nabataean rock-cut tombs in the desert",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Hegra%2C_Al-Ula%2C_Saudi_Arabia.png/1280px-Hegra%2C_Al-Ula%2C_Saudi_Arabia.png",
     "sources": [
       "https://en.wikipedia.org/wiki/Hegra"
-    ],
-    "tags": [
-      "Nabataean",
-      "UNESCO"
     ]
   },
   {
@@ -1840,15 +1859,15 @@
     "lat": 59.9406,
     "lon": 30.3136,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Russia",
     "local_name": "Государственный Эрмитаж",
     "note": "Imperial art collection in Saint Petersburg's Winter Palace",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/RUS-2016-Aerial-SPB-Winter_Palace_%28crop%29.jpg/1280px-RUS-2016-Aerial-SPB-Winter_Palace_%28crop%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Hermitage_Museum"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -1856,16 +1875,16 @@
     "lat": 34.8394,
     "lon": 134.6939,
     "category": "castle",
+    "tags": [
+      "Japanese",
+      "UNESCO"
+    ],
     "country": "Japan",
     "local_name": "姫路城",
     "note": "Japan's best-preserved castle, white heron design",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Himeji_castle_in_may_2015.jpg/1280px-Himeji_castle_in_may_2015.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Himeji_Castle"
-    ],
-    "tags": [
-      "Japanese",
-      "UNESCO"
     ]
   },
   {
@@ -1924,15 +1943,15 @@
     "lat": 47.5071,
     "lon": 19.0458,
     "category": "monument",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Hungary",
     "local_name": "Országház",
     "note": "Largest building in Hungary",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Hungarian_Parliament_Building_from_across_the_Danube%2C_2025-01-11.jpg/1280px-Hungarian_Parliament_Building_from_across_the_Danube%2C_2025-01-11.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Hungarian_Parliament_Building"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -1940,15 +1959,15 @@
     "lat": 36.288,
     "lon": 59.6157,
     "category": "religious",
+    "tags": [
+      "Persian"
+    ],
     "country": "Iran",
     "local_name": "حرم امام رضا",
     "note": "Tomb of 8th Shia Imam, vast pilgrimage complex, Mashhad",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/%D8%B5%D8%AD%D9%86_%D8%A7%DB%8C%D9%88%D8%A7%D9%86_%D8%B7%D9%84%D8%A7_%D9%88_%D8%B3%D9%82%D8%A7%D8%AE%D8%A7%D9%86%D9%87.jpg/1280px-%D8%B5%D8%AD%D9%86_%D8%A7%DB%8C%D9%88%D8%A7%D9%86_%D8%B7%D9%84%D8%A7_%D9%88_%D8%B3%D9%82%D8%A7%D8%AE%D8%A7%D9%86%D9%87.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Imam_Reza_shrine"
-    ],
-    "tags": [
-      "Persian"
     ]
   },
   {
@@ -1956,16 +1975,16 @@
     "lat": 34.2961,
     "lon": 132.3198,
     "category": "religious",
+    "tags": [
+      "Japanese",
+      "UNESCO"
+    ],
     "country": "Japan",
     "local_name": "厳島神社",
     "note": "Floating torii gate in the sea off Miyajima island",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Itsukushima_Shrine_Torii_Gate_%2813890465459%29.jpg/1280px-Itsukushima_Shrine_Torii_Gate_%2813890465459%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Itsukushima_Shrine"
-    ],
-    "tags": [
-      "Japanese",
-      "UNESCO"
     ]
   },
   {
@@ -1973,17 +1992,17 @@
     "lat": 37.27189,
     "lon": 47.84306,
     "category": "monument",
+    "tags": [
+      "Caravanserai",
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "کاروانسرای جمال آباد",
     "note": "Ilkhanid caravanserai near Mianeh, northwest Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Jamal_abad_caravansary.jpg/1280px-Jamal_abad_caravansary.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Jamalabad_Caravanserai"
-    ],
-    "tags": [
-      "Caravanserai",
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -1991,16 +2010,16 @@
     "lat": 32.66972,
     "lon": 51.68528,
     "category": "religious",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "مسجد جامع اصفهان",
     "note": "Friday mosque of Isfahan, founder of four-iwan plan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/20180301124354_IMG_4179And6more_Interior_3.jpg/1280px-20180301124354_IMG_4179And6more_Interior_3.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Jameh_Mosque_of_Isfahan"
-    ],
-    "tags": [
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -2021,16 +2040,16 @@
     "lat": 41.8381,
     "lon": 44.7339,
     "category": "religious",
+    "tags": [
+      "Georgian",
+      "UNESCO"
+    ],
     "country": "Georgia",
     "local_name": "ჯვრის მონასტერი",
     "note": "6th-century hilltop church above the confluence at Mtskheta",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Georgia_Jvari_monastery_IMG_9345_2070.jpg/1280px-Georgia_Jvari_monastery_IMG_9345_2070.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Jvari_monastery"
-    ],
-    "tags": [
-      "Georgian",
-      "UNESCO"
     ]
   },
   {
@@ -2038,23 +2057,26 @@
     "lat": 20.02389,
     "lon": 75.17917,
     "category": "religious",
+    "tags": [
+      "Rashtrakuta",
+      "UNESCO"
+    ],
     "country": "India",
     "local_name": "कैलाश मन्दिर",
     "note": "Hindu temple carved top-down from a single rock",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Kailasa_Temple_at_Ellora_%28Cave_16%29.jpg/1280px-Kailasa_Temple_at_Ellora_%28Cave_16%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Kailasa_Temple,_Ellora"
-    ],
-    "tags": [
-      "Rashtrakuta",
-      "UNESCO"
     ]
   },
   {
     "name": "Kaputas Beach",
     "lat": 36.22892,
     "lon": 29.44912,
-    "category": "beach",
+    "category": "nature",
+    "tags": [
+      "Beach"
+    ],
     "country": "Turkey",
     "local_name": "Kaputaş Plajı",
     "note": "Narrow canyon beach between cliffs",
@@ -2068,16 +2090,16 @@
     "lat": 25.7188,
     "lon": 32.6573,
     "category": "ruins",
+    "tags": [
+      "Egyptian",
+      "UNESCO"
+    ],
     "country": "Egypt",
     "local_name": "الكرنك",
     "note": "Egyptian temple complex, 134-column Hypostyle Hall",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Temple_de_Louxor_68.jpg/1280px-Temple_de_Louxor_68.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Karnak"
-    ],
-    "tags": [
-      "Egyptian",
-      "UNESCO"
     ]
   },
   {
@@ -2085,14 +2107,14 @@
     "lat": 36.82639,
     "lon": 28.62139,
     "category": "ruins",
+    "tags": [
+      "Greek"
+    ],
     "country": "Turkey",
     "note": "Carian city with temple-fronted rock-cut tombs",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Kaunos_Kaya_Mezarlar%C4%B1.jpg/1280px-Kaunos_Kaya_Mezarlar%C4%B1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Kaunos"
-    ],
-    "tags": [
-      "Greek"
     ]
   },
   {
@@ -2100,15 +2122,15 @@
     "lat": 36.5625,
     "lon": 136.6628,
     "category": "garden",
+    "tags": [
+      "Japanese"
+    ],
     "country": "Japan",
     "local_name": "兼六園",
     "note": "One of Japan's top three gardens, in Kanazawa",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Stone_lantern_Kenrokuen.jpg/1280px-Stone_lantern_Kenrokuen.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Kenroku-en"
-    ],
-    "tags": [
-      "Japanese"
     ]
   },
   {
@@ -2116,16 +2138,16 @@
     "lat": 19.4211,
     "lon": -155.28676,
     "category": "nature",
+    "tags": [
+      "UNESCO",
+      "Volcano"
+    ],
     "country": "United States",
     "local_name": "Kīlauea",
     "note": "One of the most active volcanoes on Earth",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Episode_4_of_Kilauea%27s_December_2024_eruption_2025-01-16.jpg/1280px-Episode_4_of_Kilauea%27s_December_2024_eruption_2025-01-16.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/K%C4%ABlauea"
-    ],
-    "tags": [
-      "UNESCO",
-      "Volcano"
     ]
   },
   {
@@ -2133,16 +2155,16 @@
     "lat": 34.995,
     "lon": 135.785,
     "category": "religious",
+    "tags": [
+      "Japanese",
+      "UNESCO"
+    ],
     "country": "Japan",
     "local_name": "清水寺",
     "note": "Hillside temple with a nail-free wooden stage",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Kiyomizu.jpg/1280px-Kiyomizu.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Kiyomizu-dera"
-    ],
-    "tags": [
-      "Japanese",
-      "UNESCO"
     ]
   },
   {
@@ -2150,15 +2172,15 @@
     "lat": 35.2979,
     "lon": 25.1631,
     "category": "ruins",
+    "tags": [
+      "Minoan"
+    ],
     "country": "Greece",
     "local_name": "Κνωσός",
     "note": "Largest Bronze Age Minoan palace on Crete",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/North_Entrance_of_the_Palace_of_Knossos%2C_Crete._%2853809932111%29.jpg/1280px-North_Entrance_of_the_Palace_of_Knossos%2C_Crete._%2853809932111%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Knossos"
-    ],
-    "tags": [
-      "Minoan"
     ]
   },
   {
@@ -2179,14 +2201,14 @@
     "lat": 48.2035,
     "lon": 16.3615,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Austria",
     "note": "Habsburg art museum with the largest Bruegel collection",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Maria-Theresien-Platz_Kunsthistorisches_Museum_Wien_2010.jpg/1280px-Maria-Theresien-Platz_Kunsthistorisches_Museum_Wien_2010.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Kunsthistorisches_Museum"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -2206,33 +2228,32 @@
     "lat": 43.72306,
     "lon": 10.39639,
     "category": "monument",
+    "tags": [
+      "Tower",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Torre pendente di Pisa",
     "note": "Freestanding bell tower famous for its unintended tilt",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Leaning_Tower_of_Pisa%2C_Italy%2C_15_Sep._2023%2C_Landscape.jpg/1280px-Leaning_Tower_of_Pisa%2C_Italy%2C_15_Sep._2023%2C_Landscape.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Leaning_Tower_of_Pisa"
-    ],
-    "tags": [
-      "Tower",
-      "UNESCO"
     ]
   },
   {
     "name": "Lenin's Mausoleum",
     "lat": 55.75361,
     "lon": 37.61972,
-    "category": "monument",
+    "category": "tomb",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Russia",
     "local_name": "Мавзолей Ленина",
     "note": "Granite mausoleum housing Lenin's body, Red Square",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Mauzoleumlenina_%28cropped%29.jpeg/1280px-Mauzoleumlenina_%28cropped%29.jpeg",
     "sources": [
       "https://en.wikipedia.org/wiki/Lenin%27s_Mausoleum"
-    ],
-    "tags": [
-      "Tomb",
-      "UNESCO"
     ]
   },
   {
@@ -2240,17 +2261,17 @@
     "lat": 29.54472,
     "lon": 103.77333,
     "category": "religious",
+    "tags": [
+      "Chinese",
+      "Statue",
+      "UNESCO"
+    ],
     "country": "China",
     "local_name": "乐山大佛",
     "note": "World's largest stone Buddha, carved into a cliff",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/36275-Leshan_%2849067653383%29.jpg/1280px-36275-Leshan_%2849067653383%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Leshan_Giant_Buddha"
-    ],
-    "tags": [
-      "Chinese",
-      "Statue",
-      "UNESCO"
     ]
   },
   {
@@ -2258,15 +2279,15 @@
     "lat": 47.05833,
     "lon": 8.31056,
     "category": "monument",
+    "tags": [
+      "Statue"
+    ],
     "country": "Switzerland",
     "local_name": "Löwendenkmal",
     "note": "Dying lion carved in rock for fallen Swiss Guards",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Lion_Monument.jpg/1280px-Lion_Monument.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Lion_Monument"
-    ],
-    "tags": [
-      "Statue"
     ]
   },
   {
@@ -2274,15 +2295,15 @@
     "lat": 48.8611,
     "lon": 2.3358,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "France",
     "local_name": "Musée du Louvre",
     "note": "World's most-visited museum, home of the Mona Lisa",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Louvre_Museum_Wikimedia_Commons.jpg/1280px-Louvre_Museum_Wikimedia_Commons.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Louvre"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -2290,15 +2311,15 @@
     "lat": 25.7,
     "lon": 32.63917,
     "category": "ruins",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Egypt",
     "local_name": "معبد الأقصر",
     "note": "Ancient Egyptian temple complex on the east bank of the Nile",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Templo_de_Luxor%2C_Luxor%2C_Egipto%2C_2022-04-01%2C_DD_01.jpg/1280px-Templo_de_Luxor%2C_Luxor%2C_Egipto%2C_2022-04-01%2C_DD_01.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Luxor_Temple"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -2319,16 +2340,16 @@
     "lat": -13.16333,
     "lon": -72.54556,
     "category": "ruins",
+    "tags": [
+      "Inca",
+      "UNESCO"
+    ],
     "country": "Peru",
     "local_name": "Machu Pikchu",
     "note": "15th-century Inca citadel at 2,430 m in the Andes",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Machu_Picchu_Panorama_2025.jpg/1280px-Machu_Picchu_Panorama_2025.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Machu_Picchu"
-    ],
-    "tags": [
-      "Inca",
-      "UNESCO"
     ]
   },
   {
@@ -2336,24 +2357,27 @@
     "lat": 31.3156,
     "lon": 35.3536,
     "category": "ruins",
+    "tags": [
+      "Judaean",
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Israel",
     "local_name": "מצדה",
     "note": "Hilltop fortress overlooking the Dead Sea",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Aerial_view_of_Masada_%28Israel%29_02.jpg/1280px-Aerial_view_of_Masada_%28Israel%29_02.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Masada"
-    ],
-    "tags": [
-      "Judaean",
-      "Roman",
-      "UNESCO"
     ]
   },
   {
     "name": "Matira Beach",
     "lat": -16.5394,
     "lon": -151.746,
-    "category": "beach",
+    "category": "nature",
+    "tags": [
+      "Beach"
+    ],
     "country": "French Polynesia",
     "note": "Bora Bora's main public beach",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Matira_Beach%2C_Bora_Bora%2C_French_Polynesia.jpg/1280px-Matira_Beach%2C_Bora_Bora%2C_French_Polynesia.jpg",
@@ -2366,57 +2390,58 @@
     "lat": 36.2388,
     "lon": 137.9688,
     "category": "castle",
+    "tags": [
+      "Japanese"
+    ],
     "country": "Japan",
     "local_name": "松本城",
     "note": "One of Japan's original castles with striking black exterior",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Matsumoto_Castle_Keep_Tower.jpg/1280px-Matsumoto_Castle_Keep_Tower.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Matsumoto_Castle"
-    ],
-    "tags": [
-      "Japanese"
     ]
   },
   {
     "name": "Mausoleum of Constantina",
     "lat": 41.92261,
     "lon": 12.51738,
-    "category": "religious",
+    "category": "tomb",
+    "tags": [
+      "Roman"
+    ],
     "country": "Italy",
     "local_name": "Santa Costanza",
     "note": "4th-century domed tomb with original Roman ceiling mosaics",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Mausoleo_di_Santa_Costanza_-_esterno.jpg/1280px-Mausoleo_di_Santa_Costanza_-_esterno.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Mausoleum_of_Constantina"
-    ],
-    "tags": [
-      "Roman",
-      "Tomb"
     ]
   },
   {
     "name": "Mausoleum of Qin Shi Huang",
     "lat": 34.38167,
     "lon": 109.25389,
-    "category": "monument",
+    "category": "tomb",
+    "tags": [
+      "Chinese",
+      "UNESCO"
+    ],
     "country": "China",
     "local_name": "秦始皇陵",
     "note": "First emperor's tomb, guarded by the Terracotta Army",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Terra-cotta_Warriors_%2811523319873%29.jpg/1280px-Terra-cotta_Warriors_%2811523319873%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Mausoleum_of_Qin_Shi_Huang"
-    ],
-    "tags": [
-      "Chinese",
-      "Tomb",
-      "UNESCO"
     ]
   },
   {
     "name": "Maya Bay",
     "lat": 7.6783,
     "lon": 98.7648,
-    "category": "beach",
+    "category": "nature",
+    "tags": [
+      "Beach"
+    ],
     "country": "Thailand",
     "note": "Bay made famous by the film The Beach",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Maya_Bay%2C_Thailand_by_Mike_Clegg_Photography.jpg/1280px-Maya_Bay%2C_Thailand_by_Mike_Clegg_Photography.jpg",
@@ -2428,17 +2453,17 @@
     "name": "Meidum Pyramid",
     "lat": 29.38806,
     "lon": 31.15694,
-    "category": "monument",
+    "category": "tomb",
+    "tags": [
+      "Egyptian",
+      "Pyramid"
+    ],
     "country": "Egypt",
     "local_name": "ميدوم",
     "note": "Egypt's first straight-sided pyramid, collapsed",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Meidoum03.jpg/1280px-Meidoum03.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Meidum"
-    ],
-    "tags": [
-      "Egyptian",
-      "Pyramid"
     ]
   },
   {
@@ -2446,15 +2471,15 @@
     "lat": 35.6764,
     "lon": 139.6993,
     "category": "religious",
+    "tags": [
+      "Japanese"
+    ],
     "country": "Japan",
     "local_name": "明治神宮",
     "note": "Forested Shinto shrine in central Tokyo",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Meiji_Jingu_2023-3.jpg/1280px-Meiji_Jingu_2023-3.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Meiji_Shrine"
-    ],
-    "tags": [
-      "Japanese"
     ]
   },
   {
@@ -2474,16 +2499,16 @@
     "lat": 39.72389,
     "lon": 21.62444,
     "category": "religious",
+    "tags": [
+      "Byzantine",
+      "UNESCO"
+    ],
     "country": "Greece",
     "local_name": "Μονή Μεγάλου Μετεώρου",
     "note": "Largest of the cliff-top Meteora monasteries",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Megalo_Meteoro_panorama.jpg/1280px-Megalo_Meteoro_panorama.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Great_Meteoron"
-    ],
-    "tags": [
-      "Byzantine",
-      "UNESCO"
     ]
   },
   {
@@ -2491,15 +2516,15 @@
     "lat": 36.68778,
     "lon": 23.05556,
     "category": "castle",
+    "tags": [
+      "Byzantine"
+    ],
     "country": "Greece",
     "local_name": "Μονεμβασιά",
     "note": "Medieval rock fortress town on the Peloponnese coast",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/%CE%9A%CE%B1%CF%83%CF%84%CF%81%CE%BF%CF%80%CE%BF%CE%BB%CE%B9%CF%84%CE%B5%CE%B9%CE%B1_%CE%BC%CE%BF%CE%BD%CE%B5%CE%BC%CE%B2%CE%B1%CF%83%CE%B9%CE%B1%CF%82.jpg/1280px-%CE%9A%CE%B1%CF%83%CF%84%CF%81%CE%BF%CF%80%CE%BF%CE%BB%CE%B9%CF%84%CE%B5%CE%B9%CE%B1_%CE%BC%CE%BF%CE%BD%CE%B5%CE%BC%CE%B2%CE%B1%CF%83%CE%B9%CE%B1%CF%82.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Monemvasia"
-    ],
-    "tags": [
-      "Byzantine"
     ]
   },
   {
@@ -2507,14 +2532,14 @@
     "lat": 48.636,
     "lon": -1.5114,
     "category": "religious",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "France",
     "note": "Medieval abbey on a tidal island in Normandy",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Mont-Saint-Michel_vu_du_ciel.jpg/1280px-Mont-Saint-Michel_vu_du_ciel.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Mont-Saint-Michel"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -2522,15 +2547,15 @@
     "lat": 37.32178,
     "lon": 41.5385,
     "category": "religious",
+    "tags": [
+      "Byzantine"
+    ],
     "country": "Turkey",
     "local_name": "ܕܝܪܐ ܕܡܪܝ ܓܒܪܐܝܠ",
     "note": "Syriac Orthodox monastery founded in 397 AD",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/MorGabrielMonastery1.jpg/1280px-MorGabrielMonastery1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Mor_Gabriel_Monastery"
-    ],
-    "tags": [
-      "Byzantine"
     ]
   },
   {
@@ -2538,16 +2563,16 @@
     "lat": 37.755,
     "lon": 14.995,
     "category": "nature",
+    "tags": [
+      "UNESCO",
+      "Volcano"
+    ],
     "country": "Italy",
     "local_name": "Etna",
     "note": "Europe's most active volcano",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Mt_Etna_and_Catania1.jpg/1280px-Mt_Etna_and_Catania1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Mount_Etna"
-    ],
-    "tags": [
-      "UNESCO",
-      "Volcano"
     ]
   },
   {
@@ -2555,14 +2580,14 @@
     "lat": 43.87889,
     "lon": -103.45917,
     "category": "monument",
+    "tags": [
+      "Statue"
+    ],
     "country": "United States",
     "note": "Four U.S. presidents carved into a granite mountain",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Mount_Rushmore_detail_view_%28100MP%29.jpg/1280px-Mount_Rushmore_detail_view_%28100MP%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Mount_Rushmore"
-    ],
-    "tags": [
-      "Statue"
     ]
   },
   {
@@ -2570,15 +2595,15 @@
     "lat": 40.82139,
     "lon": 14.42611,
     "category": "nature",
+    "tags": [
+      "Volcano"
+    ],
     "country": "Italy",
     "local_name": "Monte Vesuvio",
     "note": "Destroyed Pompeii, walkable crater",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Il_cratere_del_Vulcano_-_panoramio.jpg/1280px-Il_cratere_del_Vulcano_-_panoramio.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Mount_Vesuvius"
-    ],
-    "tags": [
-      "Volcano"
     ]
   },
   {
@@ -2648,14 +2673,14 @@
     "lat": 48.85997,
     "lon": 2.32653,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "France",
     "note": "Impressionist art in a former Beaux-Arts railway station",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Mus%C3%A9e_d%27Orsay_%2849570190661%29.jpg/1280px-Mus%C3%A9e_d%27Orsay_%2849570190661%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Mus%C3%A9e_d%27Orsay"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -2663,16 +2688,16 @@
     "lat": 37.0769,
     "lon": 22.3656,
     "category": "ruins",
+    "tags": [
+      "Byzantine",
+      "UNESCO"
+    ],
     "country": "Greece",
     "local_name": "Μυστράς",
     "note": "Byzantine ghost town with frescoed churches near Sparta",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Palace_at_Mystras_by_Joy_of_Museums.jpg/1280px-Palace_at_Mystras_by_Joy_of_Museums.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Mystras"
-    ],
-    "tags": [
-      "Byzantine",
-      "UNESCO"
     ]
   },
   {
@@ -2693,16 +2718,17 @@
     "lat": 32.6567,
     "lon": 51.6776,
     "category": "monument",
+    "tags": [
+      "Persian",
+      "Square",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "میدان نقش جهان",
     "note": "One of the largest public squares in the world",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Shah_%28_Emam_%29_Square_5.jpg/1280px-Shah_%28_Emam_%29_Square_5.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Naqsh-e_Jahan_Square"
-    ],
-    "tags": [
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -2710,15 +2736,15 @@
     "lat": 34.6851,
     "lon": 135.843,
     "category": "nature",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Japan",
     "local_name": "奈良公園",
     "note": "Free-roaming deer among temple grounds and gardens",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/003_Nara_deer_in_Japan_-_deer_of_Nara_Park_under_autumn_leaves.jpg/1280px-003_Nara_deer_in_Japan_-_deer_of_Nara_Park_under_autumn_leaves.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Nara_Park"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -2726,15 +2752,15 @@
     "lat": 29.60861,
     "lon": 52.54833,
     "category": "religious",
+    "tags": [
+      "Persian"
+    ],
     "country": "Iran",
     "local_name": "مسجد نصیرالملک",
     "note": "The Pink Mosque, famous for stained glass light",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Nasir_ol_Molk_Mosque_%2831233739431%29.jpg/1280px-Nasir_ol_Molk_Mosque_%2831233739431%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Nasir-ol-Molk_Mosque"
-    ],
-    "tags": [
-      "Persian"
     ]
   },
   {
@@ -2927,7 +2953,10 @@
     "name": "Navagio Beach",
     "lat": 37.85984,
     "lon": 20.62395,
-    "category": "beach",
+    "category": "nature",
+    "tags": [
+      "Beach"
+    ],
     "country": "Greece",
     "local_name": "Παραλία Ναυάγιο",
     "note": "Shipwreck beach on Zakynthos",
@@ -2941,33 +2970,32 @@
     "lat": 13.46306,
     "lon": 103.89444,
     "category": "religious",
+    "tags": [
+      "Khmer",
+      "UNESCO"
+    ],
     "country": "Cambodia",
     "local_name": "ប្រាសាទនាគព័ន្ធ",
     "note": "Island temple in a circular healing pool",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Neak_Pean_%2840335935051%29.jpg/1280px-Neak_Pean_%2840335935051%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Neak_Pean"
-    ],
-    "tags": [
-      "Khmer",
-      "UNESCO"
     ]
   },
   {
     "name": "Necropolis of Pantalica",
     "lat": 37.14167,
     "lon": 15.02833,
-    "category": "ruins",
+    "category": "tomb",
+    "tags": [
+      "Greek",
+      "UNESCO"
+    ],
     "country": "Italy",
     "note": "Some 4,000 rock-cut tombs in limestone cliffs",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Nekropolis_von_Pantalica.jpg/1280px-Nekropolis_von_Pantalica.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Necropolis_of_Pantalica"
-    ],
-    "tags": [
-      "Greek",
-      "Tomb",
-      "UNESCO"
     ]
   },
   {
@@ -2975,14 +3003,14 @@
     "lat": 52.52056,
     "lon": 13.39778,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Germany",
     "note": "Berlin's Egyptian and prehistory museum on Museum Island",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Berlin_Neues_Museum_001.JPG/1280px-Berlin_Neues_Museum_001.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Neues_Museum"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3003,15 +3031,15 @@
     "lat": 35.72028,
     "lon": 139.76083,
     "category": "religious",
+    "tags": [
+      "Japanese"
+    ],
     "country": "Japan",
     "local_name": "根津神社",
     "note": "Quiet shrine with a tunnel of torii gates and azalea garden",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Nezu_Shrine_2010.jpg/1280px-Nezu_Shrine_2010.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Nezu_Shrine"
-    ],
-    "tags": [
-      "Japanese"
     ]
   },
   {
@@ -3045,15 +3073,15 @@
     "lat": 34.6873,
     "lon": 135.5262,
     "category": "castle",
+    "tags": [
+      "Japanese"
+    ],
     "country": "Japan",
     "local_name": "大阪城",
     "note": "Landmark fortress in a large park in central Osaka",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Osaka_Castle_03bs3200.jpg/1280px-Osaka_Castle_03bs3200.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Osaka_Castle"
-    ],
-    "tags": [
-      "Japanese"
     ]
   },
   {
@@ -3061,15 +3089,15 @@
     "lat": 36.44578,
     "lon": 28.2241,
     "category": "castle",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Greece",
     "local_name": "Παλάτι του Μεγάλου Μαγίστρου",
     "note": "Medieval Knights Hospitaller fortress in Rhodes Old Town",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes_%289451928431%29.jpg/1280px-Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes_%289451928431%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3077,15 +3105,15 @@
     "lat": 48.8049,
     "lon": 2.1204,
     "category": "palace",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "France",
     "local_name": "Château de Versailles",
     "note": "Louis XIV's palace and gardens with the Hall of Mirrors",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Versailles-Chateau-Jardins02.jpg/1280px-Versailles-Chateau-Jardins02.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Palace_of_Versailles"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3093,15 +3121,15 @@
     "lat": 41.8986,
     "lon": 12.4769,
     "category": "monument",
+    "tags": [
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Italy",
     "note": "Best-preserved Roman temple, vast unreinforced dome",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Fa%C3%A7ade_of_the_Pantheon%2C_Rome%2C_Italy.jpg/1280px-Fa%C3%A7ade_of_the_Pantheon%2C_Rome%2C_Italy.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pantheon,_Rome"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -3109,15 +3137,15 @@
     "lat": 34.75567,
     "lon": 32.40417,
     "category": "ruins",
+    "tags": [
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Cyprus",
     "note": "Roman villas with elaborate floor mosaics",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Casa_de_Teseo%2C_parque_arqueol%C3%B3gico_de_Pafos%2C_Chipre%2C_2021-12-10%2C_DD_28.jpg/1280px-Casa_de_Teseo%2C_parque_arqueol%C3%B3gico_de_Pafos%2C_Chipre%2C_2021-12-10%2C_DD_28.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Paphos_Archaeological_Park"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -3125,15 +3153,15 @@
     "lat": 41.4145,
     "lon": 2.1527,
     "category": "garden",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Spain",
     "local_name": "Parc Güell",
     "note": "Gaudí's mosaic-tiled park on Carmel Hill, Barcelona",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Parc_guell_-_panoramio.jpg/1280px-Parc_guell_-_panoramio.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Park_G%C3%BCell"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3141,15 +3169,15 @@
     "lat": 52.5213,
     "lon": 13.3965,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Germany",
     "local_name": "Pergamonmuseum",
     "note": "Berlin museum of monumental reconstructed antiquities",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Pergamonmuseum_Front.jpg/1280px-Pergamonmuseum_Front.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pergamon_Museum"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3157,16 +3185,16 @@
     "lat": 29.9352,
     "lon": 52.8906,
     "category": "ruins",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "تخت جمشید",
     "note": "Ceremonial capital of the Achaemenid Empire",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Apadana_palace_persepolis.JPG/1280px-Apadana_palace_persepolis.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Persepolis"
-    ],
-    "tags": [
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -3174,16 +3202,16 @@
     "lat": 30.32861,
     "lon": 35.44194,
     "category": "ruins",
+    "tags": [
+      "Nabataean",
+      "UNESCO"
+    ],
     "country": "Jordan",
     "local_name": "البتراء",
     "note": "Nabataean city carved into rose-red cliffs",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Nabatean_Treasury_in_Petra%2C_Jordan_%284053066453%29.jpg/1280px-Nabatean_Treasury_in_Petra%2C_Jordan_%284053066453%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Petra"
-    ],
-    "tags": [
-      "Nabataean",
-      "UNESCO"
     ]
   },
   {
@@ -3191,15 +3219,16 @@
     "lat": 42.1472,
     "lon": 24.7511,
     "category": "monument",
+    "tags": [
+      "Roman",
+      "Theatre"
+    ],
     "country": "Bulgaria",
     "local_name": "Пловдивски античен театър",
     "note": "Well-preserved 2nd-century Roman theatre above Plovdiv",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Roman_Theatre_Plovdiv_3.jpg/1280px-Roman_Theatre_Plovdiv_3.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Plovdiv_Roman_theatre"
-    ],
-    "tags": [
-      "Roman"
     ]
   },
   {
@@ -3207,16 +3236,16 @@
     "lat": 40.75,
     "lon": 14.48611,
     "category": "ruins",
+    "tags": [
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Pompei",
     "note": "Roman city buried by Vesuvius's ash in AD 79",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Old_house_pompei_site.jpeg/1280px-Old_house_pompei_site.jpeg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pompeii"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -3224,16 +3253,17 @@
     "lat": 43.9472,
     "lon": 4.5354,
     "category": "monument",
+    "tags": [
+      "Aqueduct",
+      "Bridge",
+      "Roman",
+      "UNESCO"
+    ],
     "country": "France",
     "note": "Three-tier Roman aqueduct bridge spanning the Gardon",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Pont_du_Gard_BLS.jpg/1280px-Pont_du_Gard_BLS.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pont_du_Gard"
-    ],
-    "tags": [
-      "Bridge",
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -3241,15 +3271,15 @@
     "lat": 50.0911,
     "lon": 14.4003,
     "category": "castle",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Czech Republic",
     "local_name": "Pražský hrad",
     "note": "Largest ancient castle complex in the world",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Prague_Castle_from_Alsovo_nabrezi.jpg/1280px-Prague_Castle_from_Alsovo_nabrezi.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Prague_Castle"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3257,16 +3287,16 @@
     "lat": 13.46196,
     "lon": 103.87159,
     "category": "religious",
+    "tags": [
+      "Khmer",
+      "UNESCO"
+    ],
     "country": "Cambodia",
     "local_name": "ប្រាសាទព្រះខ័ន",
     "note": "Jungle temple that housed a Buddhist university",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Preah_Khan%2C_Angkor%2C_Camboya%2C_2013-08-17%2C_DD_26.JPG/1280px-Preah_Khan%2C_Angkor%2C_Camboya%2C_2013-08-17%2C_DD_26.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Preah_Khan"
-    ],
-    "tags": [
-      "Khmer",
-      "UNESCO"
     ]
   },
   {
@@ -3274,15 +3304,16 @@
     "lat": 44.8733,
     "lon": 13.8503,
     "category": "monument",
+    "tags": [
+      "Amphitheatre",
+      "Roman"
+    ],
     "country": "Croatia",
     "local_name": "Arena Pula",
     "note": "1st-century Roman amphitheatre, among the best preserved",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Pula_Arena_%282024-10-10_1%29.jpg/1280px-Pula_Arena_%282024-10-10_1%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pula_Arena"
-    ],
-    "tags": [
-      "Roman"
     ]
   },
   {
@@ -3302,69 +3333,69 @@
     "name": "Pyramid of Cestius",
     "lat": 41.87639,
     "lon": 12.48083,
-    "category": "monument",
+    "category": "tomb",
+    "tags": [
+      "Pyramid",
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Piramide Cestia",
     "note": "Egyptian-style pyramid tomb in Rome, c. 12 BC",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Piramide_Cestia.jpg/1280px-Piramide_Cestia.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pyramid_of_Cestius"
-    ],
-    "tags": [
-      "Pyramid",
-      "Roman",
-      "UNESCO"
     ]
   },
   {
     "name": "Pyramid of Djoser",
     "lat": 29.8711,
     "lon": 31.2167,
-    "category": "monument",
+    "category": "tomb",
+    "tags": [
+      "Egyptian",
+      "Pyramid",
+      "UNESCO"
+    ],
     "country": "Egypt",
     "note": "Egypt's oldest pyramid, a six-tier step pyramid",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Saqqara_pyramid_ver_2.jpg/1280px-Saqqara_pyramid_ver_2.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pyramid_of_Djoser"
-    ],
-    "tags": [
-      "Egyptian",
-      "Pyramid",
-      "UNESCO"
     ]
   },
   {
     "name": "Pyramid of Khafre",
     "lat": 29.97611,
     "lon": 31.13083,
-    "category": "monument",
+    "category": "tomb",
+    "tags": [
+      "Egyptian",
+      "Pyramid",
+      "UNESCO"
+    ],
     "country": "Egypt",
     "note": "Second-tallest Giza pyramid, still capped with casing stone",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Pyramid_of_Khafre_and_Sphinx%2C_Giza%2C_Greater_Cairo%2C_Egypt.jpg/1280px-Pyramid_of_Khafre_and_Sphinx%2C_Giza%2C_Greater_Cairo%2C_Egypt.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pyramid_of_Khafre"
-    ],
-    "tags": [
-      "Egyptian",
-      "Pyramid",
-      "UNESCO"
     ]
   },
   {
     "name": "Pyramid of Menkaure",
     "lat": 29.9725,
     "lon": 31.12833,
-    "category": "monument",
+    "category": "tomb",
+    "tags": [
+      "Egyptian",
+      "Pyramid",
+      "UNESCO"
+    ],
     "country": "Egypt",
     "note": "Smallest of the three main Giza pyramids",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Cairo%2C_Gizeh%2C_Pyramid_of_Menkaure%2C_Egypt%2C_Oct_2005.jpg/1280px-Cairo%2C_Gizeh%2C_Pyramid_of_Menkaure%2C_Egypt%2C_Oct_2005.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pyramid_of_Menkaure"
-    ],
-    "tags": [
-      "Egyptian",
-      "Pyramid",
-      "UNESCO"
     ]
   },
   {
@@ -3372,17 +3403,17 @@
     "lat": 19.6996,
     "lon": -98.844,
     "category": "monument",
+    "tags": [
+      "Pyramid",
+      "Teotihuacan",
+      "UNESCO"
+    ],
     "country": "Mexico",
     "local_name": "Pirámide de la Luna",
     "note": "Closes the Avenue of the Dead, echoing Cerro Gordo",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Piramide_de_la_Luna_072006.jpg/1280px-Piramide_de_la_Luna_072006.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pyramid_of_the_Moon"
-    ],
-    "tags": [
-      "Pyramid",
-      "Teotihuacan",
-      "UNESCO"
     ]
   },
   {
@@ -3390,36 +3421,35 @@
     "lat": 19.693,
     "lon": -98.844,
     "category": "monument",
+    "tags": [
+      "Pyramid",
+      "Teotihuacan",
+      "UNESCO"
+    ],
     "country": "Mexico",
     "local_name": "Pirámide del Sol",
     "note": "Largest Teotihuacan pyramid, over a sacred cave",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/2020-02-11_Teotihuacan_la_Avenida_de_los_Muertos_y_la_Pir%C3%A1mide_del_Sol.jpg/1280px-2020-02-11_Teotihuacan_la_Avenida_de_los_Muertos_y_la_Pir%C3%A1mide_del_Sol.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pyramid_of_the_Sun"
-    ],
-    "tags": [
-      "Pyramid",
-      "Teotihuacan",
-      "UNESCO"
     ]
   },
   {
     "name": "Qabus Tower",
     "lat": 37.25803,
     "lon": 55.169,
-    "category": "monument",
+    "category": "tomb",
+    "tags": [
+      "Persian",
+      "Tower",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "برج گنبد قابوس",
     "note": "11th-c. brick funerary tower for Qabus, NE Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/%DA%AF%D9%86%D8%A8%D8%AF_%DA%A9%D8%A7%D9%88%D9%88%D8%B3_-_%D9%BE%D8%A7%D8%B1%DA%AF_%DA%AF%D9%86%D8%A8%D8%AF.jpg/1280px-%DA%AF%D9%86%D8%A8%D8%AF_%DA%A9%D8%A7%D9%88%D9%88%D8%B3_-_%D9%BE%D8%A7%D8%B1%DA%AF_%DA%AF%D9%86%D8%A8%D8%AF.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Gonbad-e_Qabus_(tower)"
-    ],
-    "tags": [
-      "Persian",
-      "Tomb",
-      "Tower",
-      "UNESCO"
     ]
   },
   {
@@ -3427,22 +3457,25 @@
     "lat": 29.60784,
     "lon": 52.55257,
     "category": "garden",
+    "tags": [
+      "Persian"
+    ],
     "country": "Iran",
     "local_name": "نارنجستان قوام",
     "note": "Qajar mansion and orange garden in Shiraz",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Qavam_House_2018.jpg/1280px-Qavam_House_2018.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Qavam_House"
-    ],
-    "tags": [
-      "Persian"
     ]
   },
   {
     "name": "Railay Beach",
     "lat": 8.0103,
     "lon": 98.8378,
-    "category": "beach",
+    "category": "nature",
+    "tags": [
+      "Beach"
+    ],
     "country": "Thailand",
     "local_name": "ไร่เลย์",
     "note": "Only reachable by boat, surrounded by limestone karst cliffs",
@@ -3456,56 +3489,58 @@
     "lat": 39.1219,
     "lon": 27.1833,
     "category": "ruins",
+    "tags": [
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Turkey",
     "local_name": "Kızıl Avlu",
     "note": "Monumental Roman temple to Egyptian gods at Pergamon",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Red_basilica_west_view.jpg/1280px-Red_basilica_west_view.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Red_Basilica"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
     "name": "Red Pyramid",
     "lat": 29.80833,
     "lon": 31.20583,
-    "category": "monument",
+    "category": "tomb",
+    "tags": [
+      "Egyptian",
+      "Pyramid",
+      "UNESCO"
+    ],
     "country": "Egypt",
     "note": "Egypt's first true smooth-sided pyramid",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Rote_Pyramide_%28Dahschur%29_04.jpg/1280px-Rote_Pyramide_%28Dahschur%29_04.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Red_Pyramid"
-    ],
-    "tags": [
-      "Egyptian",
-      "Pyramid",
-      "UNESCO"
     ]
   },
   {
     "name": "Revash",
     "lat": -6.5407,
     "lon": -77.8562,
-    "category": "ruins",
+    "category": "tomb",
+    "tags": [
+      "Chachapoya"
+    ],
     "country": "Peru",
     "note": "Chachapoya cliff tombs shaped like tiny houses",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Mausoleos_de_Revash-nX-11.jpg/1280px-Mausoleos_de_Revash-nX-11.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Revash"
-    ],
-    "tags": [
-      "Chachapoya",
-      "Tomb"
     ]
   },
   {
     "name": "Reynisfjara",
     "lat": 63.4035,
     "lon": -19.0474,
-    "category": "beach",
+    "category": "nature",
+    "tags": [
+      "Beach"
+    ],
     "country": "Iceland",
     "note": "Black volcanic sand and basalt columns",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Reynisfjara_Beach_Looking_West_Towards_Dyrh%C3%B3laey.jpg/1280px-Reynisfjara_Beach_Looking_West_Towards_Dyrh%C3%B3laey.jpg",
@@ -3518,16 +3553,16 @@
     "lat": 45.4381,
     "lon": 12.3358,
     "category": "monument",
+    "tags": [
+      "Bridge",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Ponte di Rialto",
     "note": "16th-century stone arch over the Grand Canal",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Rialto_2025_4.jpg/1280px-Rialto_2025_4.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Rialto_Bridge"
-    ],
-    "tags": [
-      "Bridge",
-      "UNESCO"
     ]
   },
   {
@@ -3535,17 +3570,17 @@
     "lat": 31.41165,
     "lon": 54.70687,
     "category": "monument",
+    "tags": [
+      "Caravanserai",
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "رباط زين الدين",
     "note": "Safavid Silk Road caravanserai with circular towers",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Zeinodin_Caravanserai.jpg/1280px-Zeinodin_Caravanserai.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Ribat_of_Zein-o-din"
-    ],
-    "tags": [
-      "Caravanserai",
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -3553,16 +3588,16 @@
     "lat": 36.2664,
     "lon": 60.6555,
     "category": "monument",
+    "tags": [
+      "Caravanserai",
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "note": "12th-c. Seljuk caravanserai, northeast Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/%D9%86%D9%85%D8%A7%DB%8C_%D8%B3%D9%87_%D8%B1%D8%AE_%D8%B1%D8%A8%D8%A7%D8%B7_%D8%B4%D8%B1%D9%81.jpg/1280px-%D9%86%D9%85%D8%A7%DB%8C_%D8%B3%D9%87_%D8%B1%D8%AE_%D8%B1%D8%A8%D8%A7%D8%B7_%D8%B4%D8%B1%D9%81.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Ribat-i_Sharaf"
-    ],
-    "tags": [
-      "Caravanserai",
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -3582,15 +3617,15 @@
     "lat": 42.1336,
     "lon": 23.3403,
     "category": "religious",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Bulgaria",
     "local_name": "Рилски манастир",
     "note": "Largest Eastern Orthodox monastery in Bulgaria",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Rila_Monastery%2C_August_2013.jpg/1280px-Rila_Monastery%2C_August_2013.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Rila_Monastery"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3598,15 +3633,15 @@
     "lat": 44.64118,
     "lon": 22.29125,
     "category": "monument",
+    "tags": [
+      "Statue"
+    ],
     "country": "Romania",
     "local_name": "Chipul lui Decebal",
     "note": "55 m face of King Decebalus carved in a cliff",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Statuia_Chipul_lui_Decebal_-_Cazanele_Dun%C4%83rii%2C_Rom%C3%A2nia.jpg/1280px-Statuia_Chipul_lui_Decebal_-_Cazanele_Dun%C4%83rii%2C_Rom%C3%A2nia.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Rock_sculpture_of_Decebalus"
-    ],
-    "tags": [
-      "Statue"
     ]
   },
   {
@@ -3614,16 +3649,16 @@
     "lat": 12.03174,
     "lon": 39.04113,
     "category": "religious",
+    "tags": [
+      "UNESCO",
+      "Zagwe"
+    ],
     "country": "Ethiopia",
     "local_name": "ቤተ ጊዮርጊስ",
     "note": "Cross-shaped church carved from solid rock",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Lalibela%2C_san_giorgio%2C_esterno_24.jpg/1280px-Lalibela%2C_san_giorgio%2C_esterno_24.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Church_of_Saint_George,_Lalibela"
-    ],
-    "tags": [
-      "UNESCO",
-      "Zagwe"
     ]
   },
   {
@@ -3631,16 +3666,16 @@
     "lat": 41.8925,
     "lon": 12.4853,
     "category": "ruins",
+    "tags": [
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Foro Romano",
     "note": "Ruins of the political center of ancient Rome",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Forum_Romanum_Rom.jpg/1280px-Forum_Romanum_Rom.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Roman_Forum"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -3648,18 +3683,18 @@
     "lat": 40.6333,
     "lon": 22.95285,
     "category": "religious",
+    "tags": [
+      "Byzantine",
+      "Ottoman",
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Greece",
     "local_name": "Ροτόντα",
     "note": "4th-century domed mausoleum, later church and mosque",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Rotunda_of_Galerius435.jpg/1280px-Rotunda_of_Galerius435.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Arch_of_Galerius_and_Rotunda"
-    ],
-    "tags": [
-      "Byzantine",
-      "Ottoman",
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -3667,15 +3702,15 @@
     "lat": 52.2478,
     "lon": 21.0142,
     "category": "castle",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Poland",
     "local_name": "Zamek Królewski w Warszawie",
     "note": "Royal residence rebuilt after WWII destruction",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Royal_Castle_in_Warsaw%2C_Poland%2C_2022%2C_03.jpg/1280px-Royal_Castle_in_Warsaw%2C_Poland%2C_2022%2C_03.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Royal_Castle,_Warsaw"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3683,14 +3718,14 @@
     "lat": -37.8047,
     "lon": 144.9717,
     "category": "monument",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Australia",
     "note": "1880 Melbourne hall, site of Australia's first parliament",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Royal_exhibition_building_tulips_straight.jpg/1280px-Royal_exhibition_building_tulips_straight.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Royal_Exhibition_Building"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3698,15 +3733,15 @@
     "lat": 59.93859,
     "lon": 30.33222,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Russia",
     "local_name": "Государственный Русский музей",
     "note": "World's largest collection of Russian art, St Petersburg",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%D0%B4%D0%B2%D0%BE%D1%80%D0%B5%D1%86%2C_%D0%B4%D0%B2%D0%BE%D1%8003.jpg/1280px-%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%D0%B4%D0%B2%D0%BE%D1%80%D0%B5%D1%86%2C_%D0%B4%D0%B2%D0%BE%D1%8003.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Russian_Museum"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3714,17 +3749,17 @@
     "lat": 36.26889,
     "lon": 50.00056,
     "category": "monument",
+    "tags": [
+      "Caravanserai",
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "کاروانسرای سعدالسلطنه",
     "note": "Qajar urban caravanserai, the largest in Iran, Qazvin",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/%D8%B3%D8%B1%D8%A7%DB%8C_%D8%B3%D8%B9%D8%AF%D8%A7%D9%84%D8%B3%D9%84%D8%B7%D9%86%D9%87_%D9%82%D8%B2%D9%88%DB%8C%D9%86.jpg/1280px-%D8%B3%D8%B1%D8%A7%DB%8C_%D8%B3%D8%B9%D8%AF%D8%A7%D9%84%D8%B3%D9%84%D8%B7%D9%86%D9%87_%D9%82%D8%B2%D9%88%DB%8C%D9%86.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sa%27d_al-Saltaneh_Caravanserai"
-    ],
-    "tags": [
-      "Caravanserai",
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -3732,15 +3767,15 @@
     "lat": 37.67806,
     "lon": 30.51944,
     "category": "ruins",
+    "tags": [
+      "Greek",
+      "Roman"
+    ],
     "country": "Turkey",
     "note": "Pisidian mountain city at 1500m, restored fountain",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Sagalassos_Antik_Kenti_03.jpg/1280px-Sagalassos_Antik_Kenti_03.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sagalassos"
-    ],
-    "tags": [
-      "Greek",
-      "Roman"
     ]
   },
   {
@@ -3748,15 +3783,15 @@
     "lat": 41.4036,
     "lon": 2.1744,
     "category": "religious",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Spain",
     "local_name": "Basílica de la Sagrada Família",
     "note": "Gaudí's Barcelona basilica, begun 1882",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/SF_maig_2026.jpg/1280px-SF_maig_2026.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sagrada_Fam%C3%ADlia"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3764,15 +3799,15 @@
     "lat": 55.7525,
     "lon": 37.62306,
     "category": "religious",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Russia",
     "local_name": "Собор Василия Блаженного",
     "note": "Onion-domed cathedral on Moscow's Red Square",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/030524-Moscow-IMG_9807-2.jpg/1280px-030524-Moscow-IMG_9807-2.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Saint_Basil%27s_Cathedral"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3793,15 +3828,15 @@
     "lat": 52.40326,
     "lon": 13.03863,
     "category": "palace",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Germany",
     "local_name": "Schloss Sanssouci",
     "note": "Rococo summer palace of Frederick the Great, Potsdam",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Schloss_Sanssouci_2014.jpg/1280px-Schloss_Sanssouci_2014.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sanssouci"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3809,16 +3844,16 @@
     "lat": 41.89206,
     "lon": 12.48743,
     "category": "religious",
+    "tags": [
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Basilica dei Santi Cosma e Damiano",
     "note": "6th-century church in the Forum with Byzantine apse mosaic",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Palatine_view_of_temple_of_romulus.jpg/1280px-Palatine_view_of_temple_of_romulus.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Santi_Cosma_e_Damiano,_Rome"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -3826,13 +3861,13 @@
     "lat": 37.05794,
     "lon": 14.89506,
     "category": "religious",
+    "tags": [
+      "Greek"
+    ],
     "country": "Italy",
     "note": "Twelve rock-cut reliefs of the goddess Cybele",
     "sources": [
       "https://en.wikipedia.org/wiki/Santoni"
-    ],
-    "tags": [
-      "Greek"
     ]
   },
   {
@@ -3840,14 +3875,14 @@
     "lat": 40.6667,
     "lon": 16.6083,
     "category": "city",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Italy",
     "note": "Ancient cave dwellings inhabited for millennia",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Matera_boenisch_nov_2005.jpg/1280px-Matera_boenisch_nov_2005.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sassi_di_Matera"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3855,15 +3890,15 @@
     "lat": 48.1845,
     "lon": 16.3122,
     "category": "palace",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Austria",
     "local_name": "Schloss Schönbrunn",
     "note": "Habsburg summer residence",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Wien_-_Schloss_Sch%C3%B6nbrunn.JPG/1280px-Wien_-_Schloss_Sch%C3%B6nbrunn.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Schönbrunn_Palace"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3871,14 +3906,14 @@
     "lat": 55.95083,
     "lon": -3.19556,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Scotland",
     "note": "Scotland's national art collection, on The Mound",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Scottish_National_Gallery_-_aerial_-_2025-04-19_01.jpg/1280px-Scottish_National_Gallery_-_aerial_-_2025-04-19_01.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Scottish_National_Gallery"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3886,15 +3921,15 @@
     "lat": 49.9614,
     "lon": 15.2883,
     "category": "religious",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Czech Republic",
     "local_name": "Kostnice v Sedlci",
     "note": "Chapel decorated with bones of 40,000 people",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Bone_Chandelabra.jpg/1280px-Bone_Chandelabra.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sedlec_Ossuary"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -3902,14 +3937,14 @@
     "lat": 63.61583,
     "lon": -19.99278,
     "category": "nature",
+    "tags": [
+      "Waterfall"
+    ],
     "country": "Iceland",
     "note": "60 m waterfall you can walk behind",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Idyllic_landscape_with_a_waterfall_%28Unsplash%29.jpg/1280px-Idyllic_landscape_with_a_waterfall_%28Unsplash%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Seljalandsfoss"
-    ],
-    "tags": [
-      "Waterfall"
     ]
   },
   {
@@ -3917,15 +3952,15 @@
     "lat": 35.7148,
     "lon": 139.7967,
     "category": "religious",
+    "tags": [
+      "Japanese"
+    ],
     "country": "Japan",
     "local_name": "浅草寺",
     "note": "Tokyo's oldest temple with the Kaminarimon gate",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Sensoji_2023.jpg/1280px-Sensoji_2023.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sens%C5%8D-ji"
-    ],
-    "tags": [
-      "Japanese"
     ]
   },
   {
@@ -3972,16 +4007,16 @@
     "lat": 30.02388,
     "lon": 57.28209,
     "category": "garden",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "باغ شاهزاده ماهان",
     "note": "Qajar Persian garden with terraced waterworks, Mahan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/%D8%A8%D8%A7%D8%BA_%D8%B4%D8%A7%D9%87%D8%B2%D8%A7%D8%AF%D9%87-%D9%85%D8%A7%D9%87%D8%A7%D9%86-%DA%A9%D8%B1%D9%85%D8%A7%D9%86.jpg/1280px-%D8%A8%D8%A7%D8%BA_%D8%B4%D8%A7%D9%87%D8%B2%D8%A7%D8%AF%D9%87-%D9%85%D8%A7%D9%87%D8%A7%D9%86-%DA%A9%D8%B1%D9%85%D8%A7%D9%86.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Shazdeh_Garden"
-    ],
-    "tags": [
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -4002,16 +4037,16 @@
     "lat": 36.2576,
     "lon": 136.9066,
     "category": "city",
+    "tags": [
+      "Japanese",
+      "UNESCO"
+    ],
     "country": "Japan",
     "local_name": "白川郷",
     "note": "Traditional steep-roofed farmhouses in a mountain village",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Ogi_Shirakawa-g%C5%8D%2C_Gifu%2C_Japan.jpg/1280px-Ogi_Shirakawa-g%C5%8D%2C_Gifu%2C_Japan.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Shirakawa-g%C5%8D"
-    ],
-    "tags": [
-      "Japanese",
-      "UNESCO"
     ]
   },
   {
@@ -4019,16 +4054,16 @@
     "lat": 38.24861,
     "lon": 48.29139,
     "category": "religious",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "مجموعه آرامگاه و خانقاه شیخ صفی‌الدین",
     "note": "16th-c. Safavid Sufi shrine in Ardabil, northwest Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Sheikh_Safi_Al_Din_Ardabili_Tomb.jpg/1280px-Sheikh_Safi_Al_Din_Ardabili_Tomb.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sheikh_Safi_al-Din_Kh%C4%81neg%C4%81h_and_Shrine_Ensemble"
-    ],
-    "tags": [
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -4036,16 +4071,16 @@
     "lat": 26.217,
     "lon": 127.7195,
     "category": "castle",
+    "tags": [
+      "Japanese",
+      "UNESCO"
+    ],
     "country": "Japan",
     "local_name": "首里城",
     "note": "Ryukyuan royal palace in Okinawa",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Naha_Okinawa_Japan_Shuri-Castle-01.jpg/1280px-Naha_Okinawa_Japan_Shuri-Castle-01.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Shuri_Castle"
-    ],
-    "tags": [
-      "Japanese",
-      "UNESCO"
     ]
   },
   {
@@ -4053,16 +4088,16 @@
     "lat": 32.0441,
     "lon": 48.8585,
     "category": "ruins",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "سازه‌های آبی شوشتر",
     "note": "Sasanian canals, dams, and watermills, southwest Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Shushtar_Historical_Hydraulic_System_Panorama.jpg/1280px-Shushtar_Historical_Hydraulic_System_Panorama.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Shushtar_Historical_Hydraulic_System"
-    ],
-    "tags": [
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -4070,15 +4105,15 @@
     "lat": 36.7667,
     "lon": 31.3889,
     "category": "ruins",
+    "tags": [
+      "Greek",
+      "Roman"
+    ],
     "country": "Turkey",
     "note": "Coastal ruins with a seaside Temple of Apollo",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Temple_Apollo_Side_Wide.jpg/1280px-Temple_Apollo_Side_Wide.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Side,_Turkey"
-    ],
-    "tags": [
-      "Greek",
-      "Roman"
     ]
   },
   {
@@ -4086,16 +4121,16 @@
     "lat": 7.95694,
     "lon": 80.75972,
     "category": "ruins",
+    "tags": [
+      "Sinhalese",
+      "UNESCO"
+    ],
     "country": "Sri Lanka",
     "local_name": "සීගිරිය",
     "note": "5th-century palace atop a 180 m rock column",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Sigiriya_%28141688197%29.jpeg/1280px-Sigiriya_%28141688197%29.jpeg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sigiriya"
-    ],
-    "tags": [
-      "Sinhalese",
-      "UNESCO"
     ]
   },
   {
@@ -4103,14 +4138,14 @@
     "lat": 36.19016,
     "lon": 29.85979,
     "category": "ruins",
+    "tags": [
+      "Greek"
+    ],
     "country": "Turkey",
     "note": "Lycian castle village over Kekova, reached by boat",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Sunken_City_Simena.JPG/1280px-Sunken_City_Simena.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Simena"
-    ],
-    "tags": [
-      "Greek"
     ]
   },
   {
@@ -4118,6 +4153,9 @@
     "lat": 41.9029,
     "lon": 12.4545,
     "category": "religious",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Cappella Sistina",
     "note": "Chapel in the Vatican with Michelangelo's ceiling frescoes",
@@ -4125,9 +4163,6 @@
     "image_focus": "top",
     "sources": [
       "https://en.wikipedia.org/wiki/Sistine_Chapel"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -4160,16 +4195,16 @@
     "lat": 17.45694,
     "lon": 106.2875,
     "category": "nature",
+    "tags": [
+      "Cave",
+      "UNESCO"
+    ],
     "country": "Vietnam",
     "local_name": "Hang Sơn Đoòng",
     "note": "World's largest cave by volume",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Son_Doong_Cave_DB_%281%29.jpg/1280px-Son_Doong_Cave_DB_%281%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Hang_Sơn_Đoòng"
-    ],
-    "tags": [
-      "Cave",
-      "UNESCO"
     ]
   },
   {
@@ -4177,15 +4212,15 @@
     "lat": 33.77508,
     "lon": 112.45093,
     "category": "monument",
+    "tags": [
+      "Statue"
+    ],
     "country": "China",
     "local_name": "中原大佛",
     "note": "128 m gilded statue of Vairocana Buddha",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Spring_Temple_Buddha_05.jpg/1280px-Spring_Temple_Buddha_05.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Spring_Temple_Buddha"
-    ],
-    "tags": [
-      "Statue"
     ]
   },
   {
@@ -4193,15 +4228,15 @@
     "lat": 50.94333,
     "lon": 6.94583,
     "category": "religious",
+    "tags": [
+      "Roman"
+    ],
     "country": "Germany",
     "local_name": "Basilika Sankt Gereon",
     "note": "Romanesque church with Europe's largest dome of its era",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Frontal_view_-_St._Gereon_-_Cologne_-_Germany_2017_%282%29.jpg/1280px-Frontal_view_-_St._Gereon_-_Cologne_-_Germany_2017_%282%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/St._Gereon%27s_Basilica,_Cologne"
-    ],
-    "tags": [
-      "Roman"
     ]
   },
   {
@@ -4209,15 +4244,15 @@
     "lat": 35.3123,
     "lon": 33.2808,
     "category": "castle",
+    "tags": [
+      "Byzantine"
+    ],
     "country": "Cyprus",
     "local_name": "Κάστρο του Αγίου Ιλαρίωνα",
     "note": "Mountain-top Crusader castle in the Kyrenia range",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Saint_Hilarion_Castle%2C_Northern_Cyprus_-_panoramio_%286%29.jpg/1280px-Saint_Hilarion_Castle%2C_Northern_Cyprus_-_panoramio_%286%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/St._Hilarion_Castle"
-    ],
-    "tags": [
-      "Byzantine"
     ]
   },
   {
@@ -4225,16 +4260,16 @@
     "lat": 45.4345,
     "lon": 12.3396,
     "category": "religious",
+    "tags": [
+      "Byzantine",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Basilica di San Marco",
     "note": "Byzantine cathedral with gold mosaics in Venice",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Venezia_Basilica_di_San_Marco_Fassade_2.jpg/1280px-Venezia_Basilica_di_San_Marco_Fassade_2.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/St_Mark%27s_Basilica"
-    ],
-    "tags": [
-      "Byzantine",
-      "UNESCO"
     ]
   },
   {
@@ -4242,15 +4277,15 @@
     "lat": 36.24467,
     "lon": 29.98543,
     "category": "religious",
+    "tags": [
+      "Byzantine"
+    ],
     "country": "Turkey",
     "local_name": "Noel Baba Kilisesi",
     "note": "Burial church of St. Nicholas, the original Santa",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Noel_Baba_Kilisesi..._-_panoramio.jpg/1280px-Noel_Baba_Kilisesi..._-_panoramio.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/St._Nicholas_Church,_Demre"
-    ],
-    "tags": [
-      "Byzantine"
     ]
   },
   {
@@ -4258,15 +4293,15 @@
     "lat": 41.9022,
     "lon": 12.4539,
     "category": "religious",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Basilica di San Pietro",
     "note": "Renaissance church in Vatican City, largest in the world",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Basilica_di_San_Pietro_in_Vaticano_September_2015-1a.jpg/1280px-Basilica_di_San_Pietro_in_Vaticano_September_2015-1a.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/St._Peter%27s_Basilica"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -4274,15 +4309,15 @@
     "lat": 55.755,
     "lon": 37.6181,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Russia",
     "local_name": "Государственный исторический музей",
     "note": "Russian national history museum on Red Square, Moscow",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Museo_Estatal_de_Historia%2C_Mosc%C3%BA%2C_Rusia%2C_2016-10-03%2C_DD_49.jpg/1280px-Museo_Estatal_de_Historia%2C_Mosc%C3%BA%2C_Rusia%2C_2016-10-03%2C_DD_49.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/State_Historical_Museum"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -4290,15 +4325,15 @@
     "lat": 40.68917,
     "lon": -74.04444,
     "category": "monument",
+    "tags": [
+      "Statue",
+      "UNESCO"
+    ],
     "country": "United States",
     "note": "France's 1886 gift, icon of freedom and welcome",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/The_Statue_of_Liberty_%2810197568643%29.jpg/1280px-The_Statue_of_Liberty_%2810197568643%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Statue_of_Liberty"
-    ],
-    "tags": [
-      "Statue",
-      "UNESCO"
     ]
   },
   {
@@ -4306,14 +4341,14 @@
     "lat": 21.838,
     "lon": 73.7191,
     "category": "monument",
+    "tags": [
+      "Statue"
+    ],
     "country": "India",
     "note": "World's tallest statue, 182 m, of Sardar Patel",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Statue_of_Unity_2.jpg/1280px-Statue_of_Unity_2.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Statue_of_Unity"
-    ],
-    "tags": [
-      "Statue"
     ]
   },
   {
@@ -4321,14 +4356,14 @@
     "lat": 51.17889,
     "lon": -1.82611,
     "category": "monument",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "England",
     "note": "Prehistoric standing stone circle on Salisbury Plain",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Stonehenge2007_07_30.jpg/1280px-Stonehenge2007_07_30.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Stonehenge"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -4336,15 +4371,15 @@
     "lat": 38.79389,
     "lon": 15.21111,
     "category": "nature",
+    "tags": [
+      "UNESCO",
+      "Volcano"
+    ],
     "country": "Italy",
     "note": "Constant eruptions visible at night",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Aerial_image_of_Stromboli_%28view_from_the_northeast%29.jpg/1280px-Aerial_image_of_Stromboli_%28view_from_the_northeast%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Stromboli"
-    ],
-    "tags": [
-      "UNESCO",
-      "Volcano"
     ]
   },
   {
@@ -4365,14 +4400,14 @@
     "lat": -33.8568,
     "lon": 151.2153,
     "category": "monument",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Australia",
     "note": "Shell-roofed performing arts centre on Sydney Harbour",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Sydney_Australia._%2821339175489%29.jpg/1280px-Sydney_Australia._%2821339175489%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sydney_Opera_House"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -4380,14 +4415,14 @@
     "lat": 36.44111,
     "lon": 32.1525,
     "category": "ruins",
+    "tags": [
+      "Roman"
+    ],
     "country": "Turkey",
     "note": "Ancient port city ruins on a hilltop 20 km east of Alanya",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Syedra_-_panoramio_-_matzi01.jpg/1280px-Syedra_-_panoramio_-_matzi01.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Syedra"
-    ],
-    "tags": [
-      "Roman"
     ]
   },
   {
@@ -4395,33 +4430,32 @@
     "lat": 40.69,
     "lon": 39.65833,
     "category": "religious",
+    "tags": [
+      "Byzantine"
+    ],
     "country": "Turkey",
     "local_name": "Sümela Manastırı",
     "note": "4th-century cliffside monastery in the Pontic Mountains",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Sumela_From_Across_Valley.JPG/1280px-Sumela_From_Across_Valley.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Sümela_Monastery"
-    ],
-    "tags": [
-      "Byzantine"
     ]
   },
   {
     "name": "Taj Mahal",
     "lat": 27.1739,
     "lon": 78.0421,
-    "category": "monument",
+    "category": "tomb",
+    "tags": [
+      "Mughal",
+      "UNESCO"
+    ],
     "country": "India",
     "local_name": "ताजमहल",
     "note": "White marble mausoleum on the Yamuna River in Agra",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/1280px-Taj_Mahal_%28Edited%29.jpeg",
     "sources": [
       "https://en.wikipedia.org/wiki/Taj_Mahal"
-    ],
-    "tags": [
-      "Mughal",
-      "Tomb",
-      "UNESCO"
     ]
   },
   {
@@ -4441,15 +4475,15 @@
     "lat": 39.3797,
     "lon": 46.2478,
     "category": "religious",
+    "tags": [
+      "Armenian"
+    ],
     "country": "Armenia",
     "local_name": "Տաթևի վանք",
     "note": "9th-century gorge-edge monastery, reached by aerial tramway",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Monasterio_de_Tatev%2C_Armenia%2C_2016-10-01%2C_DD_77-79_HDR.jpg/1280px-Monasterio_de_Tatev%2C_Armenia%2C_2016-10-01%2C_DD_77-79_HDR.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Tatev_Monastery"
-    ],
-    "tags": [
-      "Armenian"
     ]
   },
   {
@@ -4457,16 +4491,16 @@
     "lat": 28.2721,
     "lon": -16.642,
     "category": "nature",
+    "tags": [
+      "UNESCO",
+      "Volcano"
+    ],
     "country": "Spain",
     "local_name": "El Teide",
     "note": "Active volcano, Spain's highest peak at 3715 m",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Roque_Cinchado_und_Teide.jpg/1280px-Roque_Cinchado_und_Teide.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Teide"
-    ],
-    "tags": [
-      "UNESCO",
-      "Volcano"
     ]
   },
   {
@@ -4474,15 +4508,15 @@
     "lat": 34.50139,
     "lon": 47.96028,
     "category": "ruins",
+    "tags": [
+      "Persian"
+    ],
     "country": "Iran",
     "local_name": "پرستشگاه‌ آناهیتا",
     "note": "Ancient temple ruins ascribed to Anahita, Kermanshah",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/%D9%85%D8%B9%D8%A8%D8%AF_%D8%A2%D9%86%D8%A7%D9%87%DB%8C%D8%AA%D8%A7_%DA%A9%D9%86%DA%AF%D8%A7%D9%88%D8%B1_3_soheilchehri.jpg/1280px-%D9%85%D8%B9%D8%A8%D8%AF_%D8%A2%D9%86%D8%A7%D9%87%DB%8C%D8%AA%D8%A7_%DA%A9%D9%86%DA%AF%D8%A7%D9%88%D8%B1_3_soheilchehri.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_Anahita,_Kangavar"
-    ],
-    "tags": [
-      "Persian"
     ]
   },
   {
@@ -4490,15 +4524,15 @@
     "lat": 37.6503,
     "lon": 24.0246,
     "category": "ruins",
+    "tags": [
+      "Greek"
+    ],
     "country": "Greece",
     "local_name": "Ναός του Ποσειδώνα",
     "note": "Clifftop marble temple over the Aegean, c.440 BC",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Greece_Cape_Sounion_BW_2017-10-09_10-12-43.jpg/1280px-Greece_Cape_Sounion_BW_2017-10-09_10-12-43.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_Poseidon,_Sounion"
-    ],
-    "tags": [
-      "Greek"
     ]
   },
   {
@@ -4506,31 +4540,31 @@
     "lat": 26.185,
     "lon": 31.91889,
     "category": "religious",
+    "tags": [
+      "Egyptian"
+    ],
     "country": "Egypt",
     "note": "Pharaonic temple holding the Abydos King List",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Temple_of_Seti_I_at_Abydos_-_panoramio_%283%29.jpg/1280px-Temple_of_Seti_I_at_Abydos_-_panoramio_%283%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_Seti_I_(Abydos)"
-    ],
-    "tags": [
-      "Egyptian"
     ]
   },
   {
     "name": "Temple of the Inscriptions",
     "lat": 17.4836,
     "lon": -92.0468,
-    "category": "ruins",
+    "category": "tomb",
+    "tags": [
+      "Maya",
+      "UNESCO"
+    ],
     "country": "Mexico",
     "local_name": "Templo de las Inscripciones",
     "note": "Palenque pyramid with Pakal's tomb and Maya glyphs",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Tumba_de_pakal%2C_Chiapas.JPG/1280px-Tumba_de_pakal%2C_Chiapas.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_the_Inscriptions"
-    ],
-    "tags": [
-      "Maya",
-      "UNESCO"
     ]
   },
   {
@@ -4538,15 +4572,15 @@
     "lat": 36.9825,
     "lon": 30.46472,
     "category": "ruins",
+    "tags": [
+      "Greek",
+      "Roman"
+    ],
     "country": "Turkey",
     "note": "Hilltop city Alexander the Great failed to take",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Termessos_-_Theater.jpg/1280px-Termessos_-_Theater.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Termessos"
-    ],
-    "tags": [
-      "Greek",
-      "Roman"
     ]
   },
   {
@@ -4554,15 +4588,15 @@
     "lat": 30.59528,
     "lon": 61.32639,
     "category": "ruins",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "شهر سوخته",
     "note": "Bronze Age city ruins on the Helmand, southeast Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/C20R1002.jpg/1280px-C20R1002.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Shahr-e_Sukhteh"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -4570,15 +4604,15 @@
     "lat": 48.7425,
     "lon": 44.53694,
     "category": "monument",
+    "tags": [
+      "Statue"
+    ],
     "country": "Russia",
     "local_name": "Родина-мать зовёт!",
     "note": "Sword-raising memorial to the Battle of Stalingrad",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Mamayev_Kurgan_Volgograd.jpg/1280px-Mamayev_Kurgan_Volgograd.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/The_Motherland_Calls"
-    ],
-    "tags": [
-      "Statue"
     ]
   },
   {
@@ -4598,16 +4632,16 @@
     "lat": 36.60317,
     "lon": 47.23595,
     "category": "ruins",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "تخت سلیمان",
     "note": "Sasanian fire temple ruins, northwest Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Takht-e-soleiman-1.jpg/1280px-Takht-e-soleiman-1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Takht-e_Soleym%C4%81n"
-    ],
-    "tags": [
-      "Persian",
-      "UNESCO"
     ]
   },
   {
@@ -4615,16 +4649,16 @@
     "lat": 16.77348,
     "lon": -3.00742,
     "category": "city",
+    "tags": [
+      "Mali",
+      "UNESCO"
+    ],
     "country": "Mali",
     "local_name": "تنبكت",
     "note": "Medieval center of Islamic learning and Saharan trade",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Djenguereber_Mosque%2C_Timbuktu%2C_Mali.jpg/1280px-Djenguereber_Mosque%2C_Timbuktu%2C_Mali.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Timbuktu"
-    ],
-    "tags": [
-      "Mali",
-      "UNESCO"
     ]
   },
   {
@@ -4632,16 +4666,16 @@
     "lat": 35.4849,
     "lon": 6.4683,
     "category": "ruins",
+    "tags": [
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Algeria",
     "local_name": "تيمقاد",
     "note": "Well-preserved Roman town built on a grid plan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Timgad_%2815685889550%29.jpg/1280px-Timgad_%2815685889550%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Timgad"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -4649,16 +4683,16 @@
     "lat": 34.68917,
     "lon": 135.83972,
     "category": "religious",
+    "tags": [
+      "Japanese",
+      "UNESCO"
+    ],
     "country": "Japan",
     "local_name": "東大寺",
     "note": "World's largest bronze Buddha in a vast wooden hall",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/T%C5%8Ddai-ji_Kon-d%C5%8D.jpg/1280px-T%C5%8Ddai-ji_Kon-d%C5%8D.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/T%C5%8Ddai-ji"
-    ],
-    "tags": [
-      "Japanese",
-      "UNESCO"
     ]
   },
   {
@@ -4692,67 +4726,64 @@
     "lat": 35.6586,
     "lon": 139.7454,
     "category": "monument",
+    "tags": [
+      "Tower"
+    ],
     "country": "Japan",
     "local_name": "東京タワー",
     "note": "1958 red-and-white lattice tower, classic city symbol",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Tokyo_Tower%2C_Minato_City.jpg/1280px-Tokyo_Tower%2C_Minato_City.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Tokyo_Tower"
-    ],
-    "tags": [
-      "Tower"
     ]
   },
   {
     "name": "Tomb of Cyrus the Great",
     "lat": 30.19389,
     "lon": 53.16722,
-    "category": "monument",
+    "category": "tomb",
+    "tags": [
+      "Persian",
+      "UNESCO"
+    ],
     "country": "Iran",
     "local_name": "آرامگاه کوروش بزرگ",
     "note": "6th-c. BC mausoleum of Cyrus the Great at Pasargadae",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Pasargad_Tomb_Cyrus3.jpg/1280px-Pasargad_Tomb_Cyrus3.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Tomb_of_Cyrus"
-    ],
-    "tags": [
-      "Persian",
-      "Tomb",
-      "UNESCO"
     ]
   },
   {
     "name": "Tomb of Darius the Great",
     "lat": 29.98889,
     "lon": 52.87472,
-    "category": "monument",
+    "category": "tomb",
+    "tags": [
+      "Persian"
+    ],
     "country": "Iran",
     "local_name": "آرامگاه داریوش بزرگ",
     "note": "Darius the Great's cliff tomb at Naqsh-e Rostam",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Tomb_of_Darius_I_front.jpg/1280px-Tomb_of_Darius_I_front.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Tomb_of_Darius_the_Great"
-    ],
-    "tags": [
-      "Persian",
-      "Tomb"
     ]
   },
   {
     "name": "Tombs of the Kings of Pontus",
     "lat": 40.65333,
     "lon": 35.83028,
-    "category": "ruins",
+    "category": "tomb",
+    "tags": [
+      "Greek"
+    ],
     "country": "Turkey",
     "local_name": "Kral Kaya Mezarları",
     "note": "Pontic royal tombs cut into a sheer cliff face",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Amasya-Pontisches_Grab-02.JPG/1280px-Amasya-Pontisches_Grab-02.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Tombs_of_the_kings_of_Pontus"
-    ],
-    "tags": [
-      "Greek",
-      "Tomb"
     ]
   },
   {
@@ -4760,16 +4791,16 @@
     "lat": 41.0115,
     "lon": 28.9833,
     "category": "palace",
+    "tags": [
+      "Ottoman",
+      "UNESCO"
+    ],
     "country": "Turkey",
     "local_name": "Topkapı Sarayı",
     "note": "Ottoman sultans' palace overlooking the Bosphorus",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Topkapi_Palace_Seen_From_Harem.JPG/1280px-Topkapi_Palace_Seen_From_Harem.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Topkap%C4%B1_Palace"
-    ],
-    "tags": [
-      "Ottoman",
-      "UNESCO"
     ]
   },
   {
@@ -4803,15 +4834,16 @@
     "lat": 41.9009,
     "lon": 12.4833,
     "category": "monument",
+    "tags": [
+      "Fountain",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Fontana di Trevi",
     "note": "Baroque fountain, the largest in Rome",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Trevi_Fountain_-_Roma.jpg/1280px-Trevi_Fountain_-_Roma.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Trevi_Fountain"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -4819,17 +4851,17 @@
     "lat": 39.9574,
     "lon": 26.2389,
     "category": "ruins",
+    "tags": [
+      "Greek",
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Turkey",
     "local_name": "Truva",
     "note": "Legendary Bronze Age city of the Iliad, nine layers",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Walls_of_Troy_%282%29.jpg/1280px-Walls_of_Troy_%282%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Troy"
-    ],
-    "tags": [
-      "Greek",
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -4837,15 +4869,15 @@
     "lat": 43.7683,
     "lon": 11.2553,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Galleria degli Uffizi",
     "note": "Renaissance art collection of the Medici in Florence",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Florence%2C_Italy_-_panoramio_%28125%29.jpg/1280px-Florence%2C_Italy_-_panoramio_%28125%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Uffizi"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -4866,34 +4898,33 @@
     "lat": 61.29811,
     "lon": 7.32259,
     "category": "religious",
+    "tags": [
+      "Norse",
+      "UNESCO"
+    ],
     "country": "Norway",
     "local_name": "Urnes stavkyrkje",
     "note": "Oldest surviving stave church, built around 1130",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/2023-07-04-Stabkirche_Urnes-6799.jpg/1280px-2023-07-04-Stabkirche_Urnes-6799.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Urnes_Stave_Church"
-    ],
-    "tags": [
-      "Norse",
-      "UNESCO"
     ]
   },
   {
     "name": "Valley of the Kings",
     "lat": 25.7402,
     "lon": 32.6014,
-    "category": "ruins",
+    "category": "tomb",
+    "tags": [
+      "Egyptian",
+      "UNESCO"
+    ],
     "country": "Egypt",
     "local_name": "وادي الملوك",
     "note": "Royal tombs including Tutankhamun's",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Valles_de_las_Reinas_y_de_los_Reyes%2C_Luxor%2C_Egipto%2C_2022-04-03%2C_DD_21.jpg/1280px-Valles_de_las_Reinas_y_de_los_Reyes%2C_Luxor%2C_Egipto%2C_2022-04-03%2C_DD_21.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Valley_of_the_Kings"
-    ],
-    "tags": [
-      "Egyptian",
-      "Tomb",
-      "UNESCO"
     ]
   },
   {
@@ -4901,16 +4932,16 @@
     "lat": 37.28972,
     "lon": 13.59333,
     "category": "ruins",
+    "tags": [
+      "Greek",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Valle dei Templi",
     "note": "Ancient Greek temple ruins in Agrigento, Sicily",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Concordiatempel_Tempio_della_Temple_of_Concordia_de_la_Concorde_Tal_der_Tempel_Valle_dei_Templi_Agrigento_Sizilien_Foto_Wolfgang_Pehlemann_DSC07490.jpg/1280px-Concordiatempel_Tempio_della_Temple_of_Concordia_de_la_Concorde_Tal_der_Tempel_Valle_dei_Templi_Agrigento_Sizilien_Foto_Wolfgang_Pehlemann_DSC07490.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Valley_of_the_Temples_(Sicily)"
-    ],
-    "tags": [
-      "Greek",
-      "UNESCO"
     ]
   },
   {
@@ -4930,15 +4961,15 @@
     "lat": 41.38092,
     "lon": 43.28376,
     "category": "ruins",
+    "tags": [
+      "Georgian"
+    ],
     "country": "Georgia",
     "local_name": "ვარძია",
     "note": "12th-century cave monastery city carved into a cliff face",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Vardzia_Cave_Monastery_05.jpg/1280px-Vardzia_Cave_Monastery_05.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Vardzia"
-    ],
-    "tags": [
-      "Georgian"
     ]
   },
   {
@@ -4959,15 +4990,15 @@
     "lat": 41.9064,
     "lon": 12.4544,
     "category": "museum",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Vatican City",
     "local_name": "Musei Vaticani",
     "note": "Papal art collections and the Sistine Chapel",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Circular_staircase_of_the_Vatican_Museums.jpg/1280px-Circular_staircase_of_the_Vatican_Museums.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Vatican_Museums"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -4975,16 +5006,17 @@
     "lat": 45.43889,
     "lon": 10.99444,
     "category": "monument",
+    "tags": [
+      "Amphitheatre",
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Arena di Verona",
     "note": "1st-century Roman amphitheatre, famed for its opera season",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Arena-XE3F2406a.jpg/1280px-Arena-XE3F2406a.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Verona_Arena"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -5004,16 +5036,16 @@
     "lat": -17.9244,
     "lon": 25.8567,
     "category": "nature",
+    "tags": [
+      "UNESCO",
+      "Waterfall"
+    ],
     "country": "Zimbabwe",
     "local_name": "Mosi-oa-Tunya",
     "note": "One of the largest waterfalls on Earth",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Cataratas_Victoria%2C_Zambia-Zimbabue%2C_2018-07-27%2C_DD_05.jpg/1280px-Cataratas_Victoria%2C_Zambia-Zimbabue%2C_2018-07-27%2C_DD_05.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Victoria_Falls"
-    ],
-    "tags": [
-      "UNESCO",
-      "Waterfall"
     ]
   },
   {
@@ -5034,16 +5066,16 @@
     "lat": 15.33333,
     "lon": 76.46,
     "category": "ruins",
+    "tags": [
+      "UNESCO",
+      "Vijayanagara"
+    ],
     "country": "India",
     "local_name": "ವಿಜಯನಗರ",
     "note": "Vast ruined imperial capital, now Hampi",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/View_of_the_Virupaksha_temple_complex_from_Hemakuta_hill.JPG/1280px-View_of_the_Virupaksha_temple_complex_from_Hemakuta_hill.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Vijayanagara"
-    ],
-    "tags": [
-      "UNESCO",
-      "Vijayanagara"
     ]
   },
   {
@@ -5064,16 +5096,16 @@
     "lat": 40.75369,
     "lon": 14.47744,
     "category": "ruins",
+    "tags": [
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Italy",
     "local_name": "Villa dei Misteri",
     "note": "Pompeii villa with vivid mystery-cult frescoes",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Pompeii_Ruins_Scenes_of_a_Dionysiac_Mystery_Cult%2C_Villa_of_the_Mysteries_Fresco%2C_c._50_BC_%2848445603162%29.jpg/1280px-Pompeii_Ruins_Scenes_of_a_Dionysiac_Mystery_Cult%2C_Villa_of_the_Mysteries_Fresco%2C_c._50_BC_%2848445603162%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Villa_of_the_Mysteries"
-    ],
-    "tags": [
-      "Roman",
-      "UNESCO"
     ]
   },
   {
@@ -5093,15 +5125,15 @@
     "lat": 50.05389,
     "lon": 19.93472,
     "category": "castle",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Poland",
     "local_name": "Zamek Królewski na Wawelu",
     "note": "Royal residence and coronation site of Polish kings",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Wawel_%284%29.jpg/1280px-Wawel_%284%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Wawel_Castle"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -5109,31 +5141,32 @@
     "lat": 31.7767,
     "lon": 35.2345,
     "category": "religious",
+    "tags": [
+      "Judaean",
+      "UNESCO"
+    ],
     "country": "Israel",
     "local_name": "הכותל המערבי",
     "note": "Holiest site where Jews can pray",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/16-03-30-Klagemauer_Jerusalem_RalfR-DSCF7673.jpg/1280px-16-03-30-Klagemauer_Jerusalem_RalfR-DSCF7673.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Western_Wall"
-    ],
-    "tags": [
-      "Judaean",
-      "UNESCO"
     ]
   },
   {
     "name": "Whitehaven Beach",
     "lat": -20.27861,
     "lon": 149.03639,
-    "category": "beach",
+    "category": "nature",
+    "tags": [
+      "Beach",
+      "UNESCO"
+    ],
     "country": "Australia",
     "note": "Pure silica sand with swirling tidal patterns",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Hill_Inlet_at_the_end_of_Whitehaven_Beach_in_the_Whitsundays.JPG/1280px-Hill_Inlet_at_the_end_of_Whitehaven_Beach_in_the_Whitsundays.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Whitehaven_Beach"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -5141,15 +5174,15 @@
     "lat": 49.97917,
     "lon": 20.06389,
     "category": "monument",
+    "tags": [
+      "UNESCO"
+    ],
     "country": "Poland",
     "local_name": "Kopalnia soli Wieliczka",
     "note": "Chapels and chandeliers carved from rock salt",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/%CE%91%CE%BB%CE%B1%CF%84%CF%89%CF%81%CF%85%CF%87%CE%B5%CE%AF%CE%B1_%CE%92%CE%B9%CE%B5%CE%BB%CE%AF%CF%84%CF%83%CE%BA%CE%B1_5021.jpg/1280px-%CE%91%CE%BB%CE%B1%CF%84%CF%89%CF%81%CF%85%CF%87%CE%B5%CE%AF%CE%B1_%CE%92%CE%B9%CE%B5%CE%BB%CE%AF%CF%84%CF%83%CE%BA%CE%B1_5021.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Wieliczka_Salt_Mine"
-    ],
-    "tags": [
-      "UNESCO"
     ]
   },
   {
@@ -5157,16 +5190,16 @@
     "lat": 36.3565,
     "lon": 29.3182,
     "category": "ruins",
+    "tags": [
+      "Greek",
+      "Roman",
+      "UNESCO"
+    ],
     "country": "Turkey",
     "note": "Ancient Lycian capital with monumental tombs",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Xanthos_Roman_Theatre_2019.jpg/1280px-Xanthos_Roman_Theatre_2019.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Xanthos"
-    ],
-    "tags": [
-      "Greek",
-      "Roman",
-      "UNESCO"
     ]
   },
   {

@@ -11,18 +11,18 @@ Users browse via the Add modal's Browse tab in the Places list. Importing an ent
 
 ## Shipped baseline
 
-Each entry in `catalog.json` is a JSON object with these fields, in this order:
+Each entry is a JSON object with these fields, in this order. `name`, `lat`, `lon`, `category`, and `country` are required; the rest are optional.
 
 - `name` - English/Latin-script display name. Used for dedup and Browse search.
-- `lat`, `lon` - 5 decimals (~1 m, matches the in-app picker). Source from OSM Nominatim or by picking on the map in the app, not from Wikipedia's "geo" links (often village-center, not the specific landmark).
-- `category` - one of the slugs in `CATEGORY_VOCAB` (`tests/test_shipped_catalog.py`). New slugs go in the same PR.
+- `lat`, `lon` - 5 decimals (~1 m). Source from OSM Nominatim or the in-app map picker, not Wikipedia's "geo" links (often village-center, not the landmark).
+- `category` - one slug from `CATEGORY_VOCAB` (`tests/test_shipped_catalog.py`). See [Categories and tags](#categories-and-tags) for the rules.
+- `tags` - labels (`[a-zA-Z0-9][a-zA-Z0-9-]{0,31}`, max 10, deduped case-insensitively, casing kept). Shipped tags must come from `TAG_VOCAB`. See [Categories and tags](#categories-and-tags) for the rules.
 - `country` - country name in English.
-- `local_name` - the place's name in the local language, in its native script (e.g. `Ακρόπολη της Λίνδου`, `تخت جمشید`, `Государственный Эрмитаж`). Don't transliterate to Latin; romanizations like `Takht-e Jamshid` add no value for readers who don't know the language and obscure the actual name for those who do. For languages already written in Latin script (German, Italian, French, Spanish, Turkish, etc.), use the native form as-is. Omit if the native form equals `name` exactly (same script, same spelling).
+- `local_name` - the name in its native script (e.g. `Ακρόπολη της Λίνδου`, `تخت جمشید`). Don't transliterate (no `Takht-e Jamshid`). For Latin-script languages, use the native form as-is. Omit if it equals `name`.
 - `note` - one-line identifier, max 60 chars.
-- `image` - stable thumbnail URL. For Wikipedia Commons sources, always use the 1280 px thumb form (`https://upload.wikimedia.org/wikipedia/commons/thumb/X/XY/<file>/1280px-<file>`), not the full-resolution original (`https://upload.wikimedia.org/wikipedia/commons/X/XY/<file>`). The popup downsizes to ~280 px and the service worker caches repeats, so the original is just wasted bandwidth - often multi-MB per load. Smaller thumb widths often 400 from the thumbnailer; stick to 1280. Prefer landscape (`width >= height`); portrait images crop poorly unless paired with `image_focus`.
-- `image_focus` - optional. Crop anchor for the landscape popup frame, applied as CSS `object-position`. Accepts `top`, `bottom`, `left`, `right`, `center`, or `"X% Y%"`. Omit for landscape images (default `center` is fine). Set for portrait images so the meaningful part of the photo stays in frame (e.g. `top` for towers, `bottom` when the foreground matters). The server clears this field automatically when `image` changes, so it always tracks a specific photo.
-- `sources` - array of URLs, usually one Wikipedia link. Add more only if a single source can't carry the claim.
-- `tags` - optional array of labels (`[a-zA-Z0-9][a-zA-Z0-9-]{0,31}`, max 10, deduped case-insensitively so casing is kept). Shipped tags must come from the controlled `TAG_VOCAB` in `tests/test_shipped_catalog.py` (personal place tags stay free-form); extend the vocab in the same PR that uses a new tag. Tags are cross-cutting attributes that aren't the single `category` (a place is one category but can carry several tags), grouped by dimension: designation (`UNESCO`), natural-feature sub-type within `nature` (`Volcano`/`Waterfall`/`Cave`, so the feature stays filterable without its own marker color), structural form (`Statue`/`Pyramid`/`Tomb`/...), and the civilization that built or defines the site (`Roman`/`Greek`/`Persian`/...). Imported and update-tracked like the other catalog fields.
+- `image` - stable thumbnail URL. For Wikipedia Commons, use the 1280 px thumb form (`.../thumb/X/XY/<file>/1280px-<file>`), not the full-res original: the popup shows ~280 px, so the original is wasted multi-MB. Prefer landscape; portrait crops poorly without `image_focus`.
+- `image_focus` - crop anchor for the popup frame (CSS `object-position`): `top`/`bottom`/`left`/`right`/`center` or `"X% Y%"`. Omit for landscape; set for portrait so the subject stays in frame (`top` for towers). Cleared automatically when `image` changes.
+- `sources` - array of URLs, usually one Wikipedia link. Add more only if one can't carry the claim.
 
 Insert new entries in alphabetical order by `name` (case-insensitive). Example:
 
@@ -32,6 +32,7 @@ Insert new entries in alphabetical order by `name` (case-insensitive). Example:
   "lat": 36.09154,
   "lon": 28.08854,
   "category": "ruins",
+  "tags": ["Greek"],
   "country": "Greece",
   "local_name": "Ακρόπολη της Λίνδου",
   "note": "Hilltop citadel with a 4th-century BC Temple of Athena",
@@ -42,6 +43,67 @@ Insert new entries in alphabetical order by `name` (case-insensitive). Example:
 
 `tests/test_shipped_catalog.py` (runs in CI) enforces these conventions plus the place schema, so PRs catch malformed entries at review time.
 
+## Categories and tags
+
+Rules for assigning `category` and `tags`, kept here so the taxonomy stays consistent as the catalog grows.
+
+### Principle
+
+- A **category** answers "what kind of place is this?" with one mutually-exclusive choice: a *fundamental kind*, not a sub-type of another, kept at a consistent level of detail. One per entry, required.
+- A **tag** is an attribute that is *not* the identity: several can stack on one entry, a tag can apply across categories, and tags are what the filter works on. Optional; every tag belongs to one **dimension**.
+- **Sub-feature rule:** a category may not be a sub-type of another category. If X is a kind of Y, X is a tag in Y's dimension, not its own category. A beach is a kind of natural site, so it is a `Beach` tag on `nature`, not a `beach` category.
+
+### Categories
+
+The controlled set (`CATEGORY_VOCAB`):
+
+| Category | What it is |
+|---|---|
+| `museum` | An institution and its collection (art, history, science). |
+| `monument` | A notable built structure or landmark with no more specific category: gates, towers, arches, fountains, statues, memorials. Intentionally broad; the specific kind goes in a Type tag. |
+| `ruins` | The surviving remains of an ancient or abandoned site. Names a state more than a type; what it once was and who built it go in tags. |
+| `tomb` | A burial monument: mausoleum, necropolis, royal or rock-cut tomb, funerary pyramid. |
+| `religious` | A place of worship or sacred site: church, temple, mosque, shrine, monastery. |
+| `nature` | A natural site. A broad bucket; the specific feature goes in a Landscape tag. |
+| `castle` | A fortification: castle, fort, or citadel. |
+| `garden` | A man-made designed outdoor space (garden or park), distinct from wild `nature`. |
+| `city` | A settlement visited as a whole, such as a historic town or old town. |
+| `palace` | A grand residence, royal or noble. |
+
+### Choosing between categories
+
+When more than one fits, decide in this order:
+
+- **Condition first, for old sites.** A ruined temple or fort is `ruins`, not `religious`/`castle`. A place of worship still in use is `religious`; once it is mainly a ruin, `ruins`.
+- **Identity over current use.** A palace now run as a museum is a `palace`; a fort now a museum is a `castle`. The category is what the place *is*, not how it is used today.
+- **Defense vs residence.** A fortified residence is `castle` if the defenses dominate, `palace` if the living quarters do.
+- **Part vs whole.** A single landmark inside a historic town is `monument` (or its specific category); the town taken as a whole is `city`.
+
+### Tag dimensions
+
+The controlled set (`TAG_VOCAB`), grouped by dimension:
+
+| Dimension | Applies to | Tags |
+|---|---|---|
+| Designation | any category | `UNESCO` |
+| Civilization | built or historical sites (`ruins`/`monument`/`religious`/`castle`/`palace`/`city`) | `Roman`, `Greek`, `Persian`, `Byzantine`, `Maya`, `Khmer`, ... |
+| Landscape | a `nature` site | `Volcano`, `Waterfall`, `Cave`, `Beach` |
+| Type | a built site, across categories | `Amphitheatre`, `Theatre`, `Bath`, `Aqueduct`, `Bridge`, `Square`, `Gate`, `Arch`, `Fountain`, `Caravanserai`, `Statue`, `Pyramid`, `Tower` |
+
+Type cuts across the loose categories, so the precise kind stays filterable even when the category is broad: every amphitheatre shares the `Amphitheatre` tag whether it is categorized `ruins` (Colosseum) or `monument` (Verona Arena).
+
+Designation, Landscape, and Type are listed in full; Civilization is illustrative (`TAG_VOCAB` is authoritative). A site can carry several Civilization tags (multiple periods, in build order) or none (modern and natural sites).
+
+### Assignment rules
+
+- Pick the single most specific category that fits.
+- Add a shipped category only when it is a distinct, legible kind of place that isn't a sub-type of an existing category. Anything finer, or cross-cutting, is a tag.
+- Apply a tag only when the place clearly has that trait. Leaving a tag off is fine and keeps the tags that are present meaningful. Don't force a tag onto a place with no clear one (a fauna park carries no Landscape tag).
+- For Civilization, tag the culture that built or defines the place, not its architectural style and not its era. Prefer the specific empire over a religion; don't invent national labels (no "French").
+- Add to either vocab deliberately, in the same PR that first uses a new term. CI fails on any category or tag outside its vocab.
+
 ## Local additions
 
 Admins curate the per-instance catalog from the in-app Manage catalog modal, which calls the admin endpoints listed in [api.md](api.md#admin). Promoted places have their visit-only fields (`visited`, `date_visited`, `rating`) stripped on the way in - the catalog describes a place, not a personal visit.
+
+The `CATEGORY_VOCAB` and `TAG_VOCAB` controls cover only the shipped `catalog.json` (the test reads that file). Local additions are not vocab-restricted, so an admin can use any category or tag there.

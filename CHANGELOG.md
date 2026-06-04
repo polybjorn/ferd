@@ -12,7 +12,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Settings > Appearance > On-map controls can hide the route detail view's expand button.
 - Catalog Browse can be filtered by category, country, and tag, alongside the existing search.
 - 184 catalog entries are tagged UNESCO (World Heritage sites), surfaced by the new Browse tag filter.
-- Catalog entries carry descriptive tags (Volcano, Waterfall, Cave, Statue, Pyramid, Tomb, Tower, Bridge, Caravanserai), filterable in Browse alongside UNESCO.
+- Catalog entries carry natural-feature tags (Volcano, Waterfall, Cave, Beach) and built-form Type tags (Amphitheatre, Theatre, Bath, Bridge, Tower, Statue, Pyramid, and more), filterable in Browse. A Type tag groups the same kind of place even across categories, so every amphitheatre filters together whether it is categorized ruins or monument.
 - Catalog entries are tagged by civilization where one clearly applies (Roman, Greek, Egyptian, Persian, Byzantine, Maya, Khmer, and more), filterable like the other tags. Shipped catalog tags are now a controlled vocabulary.
 - Pending catalog updates can be reviewed in bulk: a "Review updates" chip in the Places controls (a Menu entry on mobile) opens every affected place's field-level diff in one modal, with per-field selection, check-all, and a single Apply. It appears only while updates are pending.
 - 105 new shipped catalog entries.
@@ -26,7 +26,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Confirmation dialogs no longer show a Cancel button; dismiss with Esc, the X, or a click outside.
 - Route tags now keep the casing you type (e.g. `UNESCO`) instead of being forced to lowercase; matching and dedup stay case-insensitive.
 - Importing places from the catalog confirms only when adding 10 or more at once; smaller selections import without a prompt.
-- Catalog categories consolidated to 10 broad buckets (from 18): overlapping and singleton categories merged into ruins/monument/nature/city, and Park Güell/Erbil Citadel recategorized. Sub-types and feature detail moved to tags.
+- Catalog categories reworked to 10 broad, legible buckets (from 18): overlapping and singleton categories merged, `beach` folded into `nature`, and a `tomb` category split out. Finer distinctions and feature detail moved to tags.
 - List filters no longer show an applied-count on the Filters button; instead the button and any filter dropdown holding a non-default value are accent-tinted, so active filters read at a glance.
 
 ### Fixed

@@ -28,18 +28,16 @@ CATALOG_PATH = REPO_ROOT / "catalog.json"
 # restricted; this only applies to the file we ship in git. Extend deliberately
 # (one PR adds vocab + the entries that use it).
 CATEGORY_VOCAB = {
-  "beach",
   "castle",
   "city",
   "garden",
-  "lighthouse",
   "monument",
   "museum",
   "nature",
   "palace",
   "religious",
   "ruins",
-  "viewpoint",
+  "tomb",
 }
 
 # Controlled tag vocabulary for shipped entries (personal tags are free-form;
@@ -50,12 +48,13 @@ TAG_VOCAB = {
   # Designation
   "UNESCO",
   # Natural feature (sub-types within the `nature` category)
-  "Volcano", "Waterfall", "Cave",
-  # Structural form
-  "Statue", "Pyramid", "Tomb", "Tower", "Bridge", "Caravanserai",
+  "Volcano", "Waterfall", "Cave", "Beach",
+  # Type: what a built site is/was, filterable across loose categories
+  "Amphitheatre", "Theatre", "Bath", "Aqueduct", "Bridge", "Square", "Gate",
+  "Arch", "Fountain", "Caravanserai", "Statue", "Pyramid", "Tower",
   # Civilization / culture that built or defines the site
   "Roman", "Greek", "Egyptian", "Persian", "Byzantine", "Japanese", "Chinese",
-  "Khmer", "Ottoman", "Armenian", "Georgian", "Maya", "Aztec", "Inca",
+  "Khmer", "Ottoman", "Armenian", "Georgian", "Maya", "Inca",
   "Teotihuacan", "Chachapoya", "Nabataean", "Judaean", "Elamite", "Umayyad",
   "Moorish", "Mughal", "Rashtrakuta", "Vijayanagara", "Sinhalese", "Burmese",
   "Minoan", "Norse", "Dogon", "Shona", "Zagwe", "Mali",
@@ -70,8 +69,8 @@ NOTE_MAX = 60
 # diff-friendly and visually scannable.
 CANONICAL_ORDER = [
   "name", "lat", "lon",
-  "category", "country", "local_name",
-  "note", "image", "image_focus", "sources", "tags",
+  "category", "tags", "country", "local_name",
+  "note", "image", "image_focus", "sources",
 ]
 
 IMAGE_FOCUS_RE = re.compile(r"^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$")
