@@ -6511,7 +6511,9 @@
         map.on('move', this._redraw, this);
         map.on('zoomanim', this._onZoomAnim, this);
         map.on('zoomend', this._stopZoomAnim, this);
-        map.on('resize', this._redraw, this);
+        // Must resize the canvas bitmap (not just repaint) when the map grows,
+        // else pins past the old width are clipped off a stale-width canvas.
+        map.on('resize', this._onResize, this);
         map.on('click', this._onClick, this);
         map.on('mousemove', this._onMouseMove, this);
         this._redraw();
@@ -6525,7 +6527,7 @@
         map.off('move', this._redraw, this);
         map.off('zoomanim', this._onZoomAnim, this);
         map.off('zoomend', this._stopZoomAnim, this);
-        map.off('resize', this._redraw, this);
+        map.off('resize', this._onResize, this);
         map.off('click', this._onClick, this);
         map.off('mousemove', this._onMouseMove, this);
         this._stopZoomAnim();

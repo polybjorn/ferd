@@ -30,6 +30,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - List filters no longer show an applied-count on the Filters button; instead the button and any filter dropdown holding a non-default value are accent-tinted, so active filters read at a glance.
 
 ### Fixed
+- Index map: place pins no longer vanish on the right side of the map after the window is widened. The marker canvas now resizes with the map instead of holding its initial width and clipping pins past it.
 - Opening a large multi-segment route no longer flashes and re-fits the map a second or two in: the elevation area reserves its height up front instead of expanding once the GPX finishes parsing.
 - Very large routes (continental routes with tens of thousands of points, whether one track or many) open and pan smoothly in the detail view instead of stalling: map geometry thins to the current zoom, elevation profiles are sampled down, and route lines hold a constant width through zoom.
 - Editing a route's name or region from its detail view now follows the route to its new address instead of leaving a dead link that showed "route not found".
