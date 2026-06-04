@@ -54,7 +54,7 @@ TAG_VOCAB = {
   "Arch", "Fountain", "Caravanserai", "Statue", "Pyramid", "Tower",
   # Civilization / culture that built or defines the site
   "Roman", "Greek", "Egyptian", "Persian", "Byzantine", "Japanese", "Chinese",
-  "Khmer", "Ottoman", "Armenian", "Georgian", "Maya", "Inca",
+  "Khmer", "Ottoman", "Seljuk", "Armenian", "Georgian", "Maya", "Inca",
   "Teotihuacan", "Chachapoya", "Nabataean", "Judaean", "Elamite", "Umayyad",
   "Moorish", "Mughal", "Rashtrakuta", "Vijayanagara", "Sinhalese", "Burmese",
   "Minoan", "Norse", "Dogon", "Shona", "Zagwe", "Mali",

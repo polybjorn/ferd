@@ -122,6 +122,38 @@
     ]
   },
   {
+    "name": "Alanya Castle",
+    "lat": 36.5333,
+    "lon": 31.9908,
+    "category": "castle",
+    "tags": [
+      "Seljuk"
+    ],
+    "country": "Turkey",
+    "local_name": "Alanya Kalesi",
+    "note": "Medieval fortress with 6.5 km of walls on a rocky peninsula",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Alanya_Castel_Sunset_-_panoramio.jpg/1280px-Alanya_Castel_Sunset_-_panoramio.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Alanya_Castle"
+    ]
+  },
+  {
+    "name": "Alara Castle",
+    "lat": 36.6984,
+    "lon": 31.7296,
+    "category": "castle",
+    "tags": [
+      "Seljuk"
+    ],
+    "country": "Turkey",
+    "local_name": "Alara Kalesi",
+    "note": "13th-century Silk Road fortress between Alanya and Manavgat",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Castle_on_the_maontain_Alara_Han_-_panoramio.jpg/1280px-Castle_on_the_maontain_Alara_Han_-_panoramio.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Alara_Castle"
+    ]
+  },
+  {
     "name": "Ali Qapu",
     "lat": 32.65722,
     "lon": 51.67667,
@@ -619,6 +651,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Berlin_Museumsinsel_Fernsehturm.jpg/1280px-Berlin_Museumsinsel_Fernsehturm.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Bode_Museum"
+    ]
+  },
+  {
+    "name": "Bodrum Castle",
+    "lat": 37.0317,
+    "lon": 27.4297,
+    "category": "castle",
+    "country": "Turkey",
+    "local_name": "Bodrum Kalesi",
+    "note": "Crusader castle housing the Museum of Underwater Archaeology",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Bodrum_Castle_%282017%29.jpg/1280px-Bodrum_Castle_%282017%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Bodrum_Castle"
     ]
   },
   {
@@ -3056,6 +3101,21 @@
     ]
   },
   {
+    "name": "Nungwi Beach",
+    "lat": -5.7269,
+    "lon": 39.2983,
+    "category": "nature",
+    "tags": [
+      "Beach"
+    ],
+    "country": "Tanzania",
+    "note": "White sand and tidal flats on Zanzibar's northern tip",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Nungwi%2C_Zanzibar_%2851553981452%29.jpg/1280px-Nungwi%2C_Zanzibar_%2851553981452%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Nungwi"
+    ]
+  },
+  {
     "name": "Osaka Aquarium Kaiyukan",
     "lat": 34.6545,
     "lon": 135.429,
@@ -3280,6 +3340,21 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Prague_Castle_from_Alsovo_nabrezi.jpg/1280px-Prague_Castle_from_Alsovo_nabrezi.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Prague_Castle"
+    ]
+  },
+  {
+    "name": "Praia da Marinha",
+    "lat": 37.09008,
+    "lon": -8.4125,
+    "category": "nature",
+    "tags": [
+      "Beach"
+    ],
+    "country": "Portugal",
+    "note": "Limestone arches and sea caves",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Praia_da_Marinha_%281%29.JPG/1280px-Praia_da_Marinha_%281%29.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Praia_da_Marinha"
     ]
   },
   {
@@ -3591,6 +3666,7 @@
     "tags": [
       "Caravanserai",
       "Persian",
+      "Seljuk",
       "UNESCO"
     ],
     "country": "Iran",
