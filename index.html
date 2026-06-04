@@ -5208,32 +5208,64 @@
       }
     }
 
-    // Bind stroke-fixup to map motion.
+    // Walk every route polyline path on the current map (index overview layers
+    // and route-detail polylines), descending into multi-track groups.
+    function eachRouteLayerPath(fn) {
+      const visit = (layer) => {
+        if (layer._path) fn(layer);
+        if (typeof layer.eachLayer === 'function') layer.eachLayer(visit);
+      };
+      if (state._routeLayers) for (const t of state._routeLayers) visit(t.layer);
+      if (state._detailPolylines) for (const pl of state._detailPolylines) visit(pl);
+    }
+
+    // Bind stroke-fixup to map motion. Routes must hold a constant pixel width
+    // through zoom, but Leaflet's zoom CSS-scales the whole pane (strokes
+    // included), so something has to counteract it per frame. Two strategies,
+    // split by pointer type:
     //
-    // The per-frame reprojection (hold the SVG at CSS scale 1, reproject every
-    // route vertex, re-_update the renderer) exists only to keep stroke widths
-    // pinned during desktop *smooth-wheel* zoom, where Leaflet feeds fractional
-    // zooms through _move/zoomanim and counter-scaling stroke-width against the
-    // CSS transform races the compositor. It is expensive: it reprojects the
-    // whole visible route geometry each frame.
+    // Desktop: reproject every route vertex each frame and re-_update the
+    // renderer, holding the SVG at CSS scale 1. Accurate (no compositor-vs-
+    // main-thread stroke-width race) but expensive - fine on a desktop CPU, and
+    // required because smooth-wheel zoom feeds many fractional frames.
     //
-    // Touch devices have no smooth-wheel zoom. Their pan is a native pane
-    // translate and their pinch / double-tap zoom is a native compositor CSS
-    // animation that scales the whole map pane (routes included) for free, then
-    // settles at zoomend (where simplifyRouteForZoom also re-thins). So on
-    // coarse pointers we skip all per-frame work and only fix up at rest -
-    // otherwise reprojecting per frame stalls the gesture when many routes show.
-    //
-    // Desktop keeps the per-frame path, gated on an actual zoom change so a
-    // pure pan still uses Leaflet's cheap native translate.
+    // Touch: reprojecting per frame stalls the gesture when many routes show, so
+    // instead leave the geometry alone and just counter-scale each stroke-width
+    // against the live zoom scale (O(routes) style writes, no geometry rebuild).
+    // During a pinch map.getZoom() is the live fractional zoom, so
+    // getZoomScale(now, settled) is exactly the CSS scale Leaflet applied;
+    // setting width = base/scale renders at a constant base px. Cleared and
+    // reprojected crisp at zoomend (which also re-thins via simplifyRouteForZoom).
+    // Pan stays the native pane translate either way.
     function bindTrailStrokeMotion(map) {
       const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+      let settledZoom = map.getZoom();
+
+      if (coarse) {
+        map.on('move', function () {
+          const s = map.getZoomScale(map.getZoom(), settledZoom);
+          if (!(s > 0) || s === 1) return;
+          eachRouteLayerPath(function (layer) {
+            if (layer.options && typeof layer.options.weight === 'number') {
+              layer._path.style.strokeWidth = (layer.options.weight / s) + 'px';
+            }
+          });
+        });
+        map.on('zoomend moveend', function () {
+          settledZoom = map.getZoom();
+          eachRouteLayerPath(function (layer) {
+            if (layer._path && layer._path.style) layer._path.style.strokeWidth = '';
+          });
+          adjustTrailStrokes();
+        });
+        return;
+      }
+
       let lastZoom = map.getZoom();
       map.on('zoomend moveend', function () {
         lastZoom = map.getZoom();
         adjustTrailStrokes();
       });
-      if (coarse) return;
       map.on('move', function () {
         const z = map.getZoom();
         if (z === lastZoom) return;
