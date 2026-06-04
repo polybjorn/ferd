@@ -79,6 +79,22 @@
     ]
   },
   {
+    "name": "Ait Benhaddou",
+    "lat": 31.047,
+    "lon": -7.1299,
+    "category": "village",
+    "tags": [
+      "UNESCO"
+    ],
+    "country": "Morocco",
+    "local_name": "آيت بن حدّو",
+    "note": "Earthen-clay ksar on the old trans-Saharan caravan route",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/%22Hervorragendes_Beispiel_marokkanischer_Lehmbauarchitektur%22._10.jpg/1280px-%22Hervorragendes_Beispiel_marokkanischer_Lehmbauarchitektur%22._10.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/A%C3%AFt_Benhaddou"
+    ]
+  },
+  {
     "name": "Akbarieh Garden",
     "lat": 32.85306,
     "lon": 59.22806,
@@ -151,6 +167,23 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Castle_on_the_maontain_Alara_Han_-_panoramio.jpg/1280px-Castle_on_the_maontain_Alara_Han_-_panoramio.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Alara_Castle"
+    ]
+  },
+  {
+    "name": "Alhambra",
+    "lat": 37.176,
+    "lon": -3.5883,
+    "category": "palace",
+    "tags": [
+      "Moorish",
+      "UNESCO"
+    ],
+    "country": "Spain",
+    "local_name": "الحمراء",
+    "note": "13th-century Moorish palace complex in Granada",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Dawn_Charles_V_Palace_Alhambra_Granada_Andalusia_Spain.jpg/1280px-Dawn_Charles_V_Palace_Alhambra_Granada_Andalusia_Spain.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Alhambra"
     ]
   },
   {
@@ -772,6 +805,19 @@
     ]
   },
   {
+    "name": "Cape Reinga",
+    "lat": -34.4287,
+    "lon": 172.6796,
+    "category": "nature",
+    "country": "New Zealand",
+    "local_name": "Te Rerenga Wairua",
+    "note": "Cape where the Tasman Sea meets the Pacific, sacred to Maori",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Cap_Reinga_Ile_du_Nord_Nouvelle_Z%C3%A9lande.jpg/1280px-Cap_Reinga_Ile_du_Nord_Nouvelle_Z%C3%A9lande.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Cape_Reinga"
+    ]
+  },
+  {
     "name": "Cappadocia",
     "lat": 38.6437,
     "lon": 34.8353,
@@ -1150,6 +1196,22 @@
     ]
   },
   {
+    "name": "Damlatas Cave",
+    "lat": 36.5419,
+    "lon": 31.9888,
+    "category": "nature",
+    "tags": [
+      "Cave"
+    ],
+    "country": "Turkey",
+    "local_name": "Damlataş Mağarası",
+    "note": "Stalactite cave whose humid air is used to treat asthma",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/9/90/Damlata%C5%9F_Cave.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Damlata%C5%9F_Cave"
+    ]
+  },
+  {
     "name": "Dayr-e Gachin",
     "lat": 35.0583,
     "lon": 51.4202,
@@ -1165,6 +1227,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D8%AF%DB%8C%D8%B1_%DA%AF%DA%86%DB%8C%D9%86_%D8%A7%D8%B3%D8%AA%D8%A7%D9%86_%D9%82%D9%85_-_%D9%88%DB%8C%DA%A9%DB%8C_%D8%AF%D9%88%D8%B3%D8%AA%D8%AF%D8%A7%D8%B1_%DB%8C%D8%A7%D8%AF%D9%85%D8%A7%D9%86_2018_21.jpg/1280px-%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D8%AF%DB%8C%D8%B1_%DA%AF%DA%86%DB%8C%D9%86_%D8%A7%D8%B3%D8%AA%D8%A7%D9%86_%D9%82%D9%85_-_%D9%88%DB%8C%DA%A9%DB%8C_%D8%AF%D9%88%D8%B3%D8%AA%D8%AF%D8%A7%D8%B1_%DB%8C%D8%A7%D8%AF%D9%85%D8%A7%D9%86_2018_21.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Dayr-e_Gachin"
+    ]
+  },
+  {
+    "name": "Dead Sea",
+    "lat": 31.72,
+    "lon": 35.5841,
+    "category": "nature",
+    "country": "Jordan",
+    "local_name": "البحر الميت",
+    "note": "Earth's lowest dry land, 430m below sea level",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Dead_Sea_beach_00.JPG/1280px-Dead_Sea_beach_00.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Dead_Sea"
     ]
   },
   {
@@ -1243,6 +1318,22 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Certovy_hlavy_Zelizy.jpg/1280px-Certovy_hlavy_Zelizy.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/%C4%8Certovy_hlavy"
+    ]
+  },
+  {
+    "name": "Dim Cave",
+    "lat": 36.5392,
+    "lon": 32.1098,
+    "category": "nature",
+    "tags": [
+      "Cave"
+    ],
+    "country": "Turkey",
+    "local_name": "Dim Mağarası",
+    "note": "Dripstone cave with galleries and an underground lake",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Dim_Cave.jpg/1280px-Dim_Cave.jpg",
+    "sources": [
+      "https://tr.wikipedia.org/wiki/Dim_Ma%C4%9Faras%C4%B1"
     ]
   },
   {
@@ -1466,6 +1557,19 @@
     ]
   },
   {
+    "name": "Elephant Rock",
+    "lat": 26.6876,
+    "lon": 37.7917,
+    "category": "nature",
+    "country": "Saudi Arabia",
+    "local_name": "جبل الفيل",
+    "note": "Elephant-shaped sandstone monolith in the AlUla desert",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Elephant_rock%2C_Al-%27Ula.jpg/1280px-Elephant_rock%2C_Al-%27Ula.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Elephant_Rock_(Saudi_Arabia)"
+    ]
+  },
+  {
     "name": "Ennedi Plateau",
     "lat": 17.04167,
     "lon": 21.86278,
@@ -1654,6 +1758,22 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Torii_path_with_lantern_at_Fushimi_Inari_Taisha_Shrine%2C_Kyoto%2C_Japan.jpg/1280px-Torii_path_with_lantern_at_Fushimi_Inari_Taisha_Shrine%2C_Kyoto%2C_Japan.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Fushimi_Inari-taisha"
+    ]
+  },
+  {
+    "name": "Galata Tower",
+    "lat": 41.0256,
+    "lon": 28.9741,
+    "category": "monument",
+    "tags": [
+      "Tower"
+    ],
+    "country": "Turkey",
+    "local_name": "Galata Kulesi",
+    "note": "Medieval stone tower with panoramic views over Istanbul",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Galata_Tower_%2867m.%29.jpg/1280px-Galata_Tower_%2867m.%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Galata_Tower"
     ]
   },
   {
@@ -2079,6 +2199,38 @@
     ]
   },
   {
+    "name": "Imperial Palace East Gardens",
+    "lat": 35.6852,
+    "lon": 139.7528,
+    "category": "garden",
+    "tags": [
+      "Japanese"
+    ],
+    "country": "Japan",
+    "local_name": "皇居東御苑",
+    "note": "Free public gardens on the old Edo Castle grounds",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/East_Garden_Edo_Castle_Tokyo_photo_Don_Ramey_Logan.jpg/1280px-East_Garden_Edo_Castle_Tokyo_photo_Don_Ramey_Logan.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Imperial_Palace_East_Garden"
+    ]
+  },
+  {
+    "name": "Ishak Pasha Palace",
+    "lat": 39.5205,
+    "lon": 44.129,
+    "category": "palace",
+    "tags": [
+      "Ottoman"
+    ],
+    "country": "Turkey",
+    "local_name": "İshak Paşa Sarayı",
+    "note": "18th-century Ottoman palace with views of Mount Ararat",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Ishakpa%C5%9Fa_sarayiii.jpg/1280px-Ishakpa%C5%9Fa_sarayiii.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Ishak_Pasha_Palace"
+    ]
+  },
+  {
     "name": "Itsukushima Shrine",
     "lat": 34.2961,
     "lon": 132.3198,
@@ -2131,6 +2283,22 @@
     ]
   },
   {
+    "name": "Jeita Grotto",
+    "lat": 33.9439,
+    "lon": 35.6381,
+    "category": "nature",
+    "tags": [
+      "Cave"
+    ],
+    "country": "Lebanon",
+    "local_name": "مغارة جعيتا",
+    "note": "Massive stalactite cave with underground river boat ride",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Jeita_Grotto_ITH044.jpg/1280px-Jeita_Grotto_ITH044.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Jeita_Grotto"
+    ]
+  },
+  {
     "name": "Jeronimos Monastery",
     "lat": 38.6979,
     "lon": -9.2068,
@@ -2174,6 +2342,22 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Georgia_Jvari_monastery_IMG_9345_2070.jpg/1280px-Georgia_Jvari_monastery_IMG_9345_2070.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Jvari_monastery"
+    ]
+  },
+  {
+    "name": "Kadisha Valley",
+    "lat": 34.2431,
+    "lon": 36.0383,
+    "category": "nature",
+    "tags": [
+      "UNESCO"
+    ],
+    "country": "Lebanon",
+    "local_name": "وادي قاديشا",
+    "note": "Holy valley with ancient monasteries carved into cliffs",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Qadisha_Valley%2C_Aerial_View_From_Qannoubine_Monastery.jpg/1280px-Qadisha_Valley%2C_Aerial_View_From_Qannoubine_Monastery.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Kadisha_Valley"
     ]
   },
   {
@@ -2272,6 +2456,21 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Episode_4_of_Kilauea%27s_December_2024_eruption_2025-01-16.jpg/1280px-Episode_4_of_Kilauea%27s_December_2024_eruption_2025-01-16.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/K%C4%ABlauea"
+    ]
+  },
+  {
+    "name": "Kinderdijk",
+    "lat": 51.8839,
+    "lon": 4.6381,
+    "category": "monument",
+    "tags": [
+      "UNESCO"
+    ],
+    "country": "Netherlands",
+    "note": "19 historic windmills lined along the canals",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/KinderdijkMolens02.jpg/1280px-KinderdijkMolens02.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Kinderdijk"
     ]
   },
   {
@@ -3300,6 +3499,21 @@
     ]
   },
   {
+    "name": "Pamukkale",
+    "lat": 37.9205,
+    "lon": 29.121,
+    "category": "nature",
+    "tags": [
+      "UNESCO"
+    ],
+    "country": "Turkey",
+    "note": "White travertine terraces with thermal pools",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Pamukkale%2C_Denizli_2026_68.jpg/1280px-Pamukkale%2C_Denizli_2026_68.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Pamukkale"
+    ]
+  },
+  {
     "name": "Pantheon",
     "lat": 41.8986,
     "lon": 12.4769,
@@ -3463,6 +3677,22 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Pont_du_Gard_BLS.jpg/1280px-Pont_du_Gard_BLS.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pont_du_Gard"
+    ]
+  },
+  {
+    "name": "Postojna Cave",
+    "lat": 45.782,
+    "lon": 14.2044,
+    "category": "nature",
+    "tags": [
+      "Cave"
+    ],
+    "country": "Slovenia",
+    "local_name": "Postojnska jama",
+    "note": "Europe's most-visited show cave, with a train inside",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Postojna_%2822206343750%29.jpg/1280px-Postojna_%2822206343750%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Postojna_Cave"
     ]
   },
   {
@@ -4703,6 +4933,19 @@
     ]
   },
   {
+    "name": "Table Mountain",
+    "lat": -33.9625,
+    "lon": 18.4039,
+    "category": "nature",
+    "country": "South Africa",
+    "local_name": "Tafelberg",
+    "note": "Flat-topped mountain overlooking Cape Town",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Table_Mountain_DanieVDM.jpg/1280px-Table_Mountain_DanieVDM.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Table_Mountain"
+    ]
+  },
+  {
     "name": "Taj Mahal",
     "lat": 27.1739,
     "lon": 78.0421,
@@ -5367,6 +5610,33 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Pompeii_Ruins_Scenes_of_a_Dionysiac_Mystery_Cult%2C_Villa_of_the_Mysteries_Fresco%2C_c._50_BC_%2848445603162%29.jpg/1280px-Pompeii_Ruins_Scenes_of_a_Dionysiac_Mystery_Cult%2C_Villa_of_the_Mysteries_Fresco%2C_c._50_BC_%2848445603162%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Villa_of_the_Mysteries"
+    ]
+  },
+  {
+    "name": "Wai-O-Tapu",
+    "lat": -38.3583,
+    "lon": 176.3694,
+    "category": "nature",
+    "country": "New Zealand",
+    "note": "Geothermal area with colorful hot springs near Rotorua",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/ChampagnePool-Wai-O-Tapu_rotated_MC.jpg/1280px-ChampagnePool-Wai-O-Tapu_rotated_MC.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Wai-O-Tapu"
+    ]
+  },
+  {
+    "name": "Waitomo Glowworm Caves",
+    "lat": -38.2609,
+    "lon": 175.106,
+    "category": "nature",
+    "tags": [
+      "Cave"
+    ],
+    "country": "New Zealand",
+    "note": "Cave ceilings lit blue by bioluminescent glowworms",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Green_Glow_Caves_in_New_Zealand_%286563152219%29.jpg/1280px-Green_Glow_Caves_in_New_Zealand_%286563152219%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Waitomo_Glowworm_Caves"
     ]
   },
   {

@@ -38,6 +38,7 @@ CATEGORY_VOCAB = {
   "religious",
   "ruins",
   "tomb",
+  "village",
 }
 
 # Controlled tag vocabulary for shipped entries (personal tags are free-form;
