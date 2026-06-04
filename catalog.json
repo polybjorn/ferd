@@ -833,6 +833,23 @@
     ]
   },
   {
+    "name": "Cathedral of Córdoba",
+    "lat": 37.8789,
+    "lon": -4.7794,
+    "category": "religious",
+    "tags": [
+      "Moorish",
+      "UNESCO"
+    ],
+    "country": "Spain",
+    "local_name": "Mezquita-Catedral de Córdoba",
+    "note": "Mosque-cathedral with a forest of striped double arches",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Mezquita_de_C%C3%B3rdoba_desde_el_aire_%28C%C3%B3rdoba%2C_Espa%C3%B1a%29.jpg/1280px-Mezquita_de_C%C3%B3rdoba_desde_el_aire_%28C%C3%B3rdoba%2C_Espa%C3%B1a%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Mosque%E2%80%93Cathedral_of_C%C3%B3rdoba"
+    ]
+  },
+  {
     "name": "Centre Pompidou",
     "lat": 48.86064,
     "lon": 2.35225,
@@ -1034,6 +1051,35 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Church_of_the_Holy_Sepulchre_by_Gerd_Eichmann_%28cropped%29.jpg/1280px-Church_of_the_Holy_Sepulchre_by_Gerd_Eichmann_%28cropped%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Church_of_the_Holy_Sepulchre"
+    ]
+  },
+  {
+    "name": "Citadel of Aleppo",
+    "lat": 36.1986,
+    "lon": 37.1614,
+    "category": "castle",
+    "tags": [
+      "UNESCO"
+    ],
+    "country": "Syria",
+    "local_name": "قلعة حلب",
+    "note": "Among the oldest and largest castles, in use since 3000 BC",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Citadel_of_Aleppo.jpg/1280px-Citadel_of_Aleppo.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Citadel_of_Aleppo"
+    ]
+  },
+  {
+    "name": "Coca Castle",
+    "lat": 41.2151,
+    "lon": -4.5255,
+    "category": "castle",
+    "country": "Spain",
+    "local_name": "Castillo de Coca",
+    "note": "15th-century Mudejar brick castle in Segovia province",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Castele_01.JPG/1280px-Castele_01.JPG",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Castillo_de_Coca"
     ]
   },
   {
@@ -1854,6 +1900,23 @@
     ]
   },
   {
+    "name": "Hagia Sophia",
+    "lat": 41.0086,
+    "lon": 28.9802,
+    "category": "religious",
+    "tags": [
+      "Byzantine",
+      "UNESCO"
+    ],
+    "country": "Turkey",
+    "local_name": "Ayasofya",
+    "note": "6th-century Byzantine cathedral turned mosque in Istanbul",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Hagia_Sophia_%28228968325%29.jpeg/1280px-Hagia_Sophia_%28228968325%29.jpeg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Hagia_Sophia"
+    ]
+  },
+  {
     "name": "Hashima Island",
     "lat": 32.6275,
     "lon": 129.7383,
@@ -2068,6 +2131,22 @@
     ]
   },
   {
+    "name": "Jeronimos Monastery",
+    "lat": 38.6979,
+    "lon": -9.2068,
+    "category": "religious",
+    "tags": [
+      "UNESCO"
+    ],
+    "country": "Portugal",
+    "local_name": "Mosteiro dos Jerónimos",
+    "note": "Manueline monastery built to honor Vasco da Gama's voyage",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/The_Jer%C3%B3nimos_Monastery_or_Hieronymites_Monastery.png/1280px-The_Jer%C3%B3nimos_Monastery_or_Hieronymites_Monastery.png",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Jer%C3%B3nimos_Monastery"
+    ]
+  },
+  {
     "name": "Jigokudani Monkey Park",
     "lat": 36.7331,
     "lon": 138.4625,
@@ -2242,6 +2321,22 @@
     ]
   },
   {
+    "name": "Krak des Chevaliers",
+    "lat": 34.757,
+    "lon": 36.2947,
+    "category": "castle",
+    "tags": [
+      "UNESCO"
+    ],
+    "country": "Syria",
+    "local_name": "قلعة الحصن",
+    "note": "Best-preserved Crusader castle in the world",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/KRAK_DES_CHEVALIERS_-_GAR_-_6-00.jpg/1280px-KRAK_DES_CHEVALIERS_-_GAR_-_6-00.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Krak_des_Chevaliers"
+    ]
+  },
+  {
     "name": "Kunsthistorisches Museum",
     "lat": 48.2035,
     "lon": 16.3615,
@@ -2395,6 +2490,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Machu_Picchu_Panorama_2025.jpg/1280px-Machu_Picchu_Panorama_2025.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Machu_Picchu"
+    ]
+  },
+  {
+    "name": "Mamure Castle",
+    "lat": 36.0808,
+    "lon": 32.8944,
+    "category": "castle",
+    "country": "Turkey",
+    "local_name": "Mamure Kalesi",
+    "note": "Massive coastal fortress with 39 towers in Anamur",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Castle_in_Mamure%2C_Anamur%2C_Turkey_from_the_Sea.jpg/1280px-Castle_in_Mamure%2C_Anamur%2C_Turkey_from_the_Sea.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Mamure_Castle"
     ]
   },
   {
@@ -3145,6 +3253,21 @@
     ]
   },
   {
+    "name": "Osun-Osogbo Sacred Grove",
+    "lat": 7.7554,
+    "lon": 4.5519,
+    "category": "religious",
+    "tags": [
+      "UNESCO"
+    ],
+    "country": "Nigeria",
+    "note": "Sacred forest of Yoruba shrines and sculptures",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Osun_groove_Osogbo.jpg/1280px-Osun_groove_Osogbo.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Osun-Osogbo"
+    ]
+  },
+  {
     "name": "Palace of the Grand Master",
     "lat": 36.44578,
     "lon": 28.2241,
@@ -3222,6 +3345,22 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Parc_guell_-_panoramio.jpg/1280px-Parc_guell_-_panoramio.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Park_G%C3%BCell"
+    ]
+  },
+  {
+    "name": "Pena Palace",
+    "lat": 38.7876,
+    "lon": -9.3907,
+    "category": "palace",
+    "tags": [
+      "UNESCO"
+    ],
+    "country": "Portugal",
+    "local_name": "Palácio da Pena",
+    "note": "Colorful Romanticist palace on a hilltop in Sintra",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Sintra_Portugal_Pal%C3%A1cio_da_Pena-01.jpg/1280px-Sintra_Portugal_Pal%C3%A1cio_da_Pena-01.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Pena_Palace"
     ]
   },
   {
@@ -3372,6 +3511,19 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Preah_Khan%2C_Angkor%2C_Camboya%2C_2013-08-17%2C_DD_26.JPG/1280px-Preah_Khan%2C_Angkor%2C_Camboya%2C_2013-08-17%2C_DD_26.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Preah_Khan"
+    ]
+  },
+  {
+    "name": "Predjama Castle",
+    "lat": 45.8155,
+    "lon": 14.1269,
+    "category": "castle",
+    "country": "Slovenia",
+    "local_name": "Predjamski grad",
+    "note": "Renaissance castle built into the mouth of a cave",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/H%C3%B6hlenburg_Predjama_in_Slovenien.jpg/1280px-H%C3%B6hlenburg_Predjama_in_Slovenien.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Predjama_Castle"
     ]
   },
   {
@@ -3933,6 +4085,23 @@
     ]
   },
   {
+    "name": "Santiago de Compostela Cathedral",
+    "lat": 42.8805,
+    "lon": -8.5446,
+    "category": "religious",
+    "tags": [
+      "UNESCO"
+    ],
+    "country": "Spain",
+    "local_name": "Catedral de Santiago de Compostela",
+    "note": "Endpoint of the Camino de Santiago, tomb of St. James",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Santiago_cathedral_2021.jpg/1280px-Santiago_cathedral_2021.jpg",
+    "image_focus": "top",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Santiago_de_Compostela_Cathedral"
+    ]
+  },
+  {
     "name": "Santoni",
     "lat": 37.05794,
     "lon": 14.89506,
@@ -4037,6 +4206,22 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Sensoji_2023.jpg/1280px-Sensoji_2023.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sens%C5%8D-ji"
+    ]
+  },
+  {
+    "name": "Seville Cathedral",
+    "lat": 37.3861,
+    "lon": -5.9926,
+    "category": "religious",
+    "tags": [
+      "UNESCO"
+    ],
+    "country": "Spain",
+    "local_name": "Catedral de Sevilla",
+    "note": "World's largest Gothic cathedral, with the Giralda tower",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Cathedral_sunset_with_palm_%284281433272%29.jpg/1280px-Cathedral_sunset_with_palm_%284281433272%29.jpg",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Seville_Cathedral"
     ]
   },
   {
