@@ -42,6 +42,25 @@ CATEGORY_VOCAB = {
   "viewpoint",
 }
 
+# Controlled tag vocabulary for shipped entries (personal tags are free-form;
+# this only governs the file we ship). Tags are cross-cutting attributes, not
+# the single category. Grouped by dimension for readability. Extend
+# deliberately (one PR adds vocab + the entries that use it).
+TAG_VOCAB = {
+  # Designation
+  "UNESCO",
+  # Natural feature (sub-types within the `nature` category)
+  "Volcano", "Waterfall", "Cave",
+  # Structural form
+  "Statue", "Pyramid", "Tomb", "Tower", "Bridge", "Caravanserai",
+  # Civilization / culture that built or defines the site
+  "Roman", "Greek", "Egyptian", "Persian", "Byzantine", "Japanese", "Chinese",
+  "Khmer", "Ottoman", "Armenian", "Georgian", "Maya", "Aztec", "Inca",
+  "Teotihuacan", "Chachapoya", "Nabataean", "Judaean", "Elamite", "Umayyad",
+  "Moorish", "Mughal", "Rashtrakuta", "Vijayanagara", "Sinhalese", "Burmese",
+  "Minoan", "Norse", "Dogon", "Shona", "Zagwe", "Mali",
+}
+
 # Catalog notes are one-line identifiers, kept short on purpose. Personal
 # place notes can be up to 2000 chars; this is just the catalog convention.
 NOTE_MAX = 60
@@ -81,6 +100,16 @@ class ShippedCatalogTests(unittest.TestCase):
           msg=f"category {cat!r} not in vocabulary. To add a new category, "
               f"extend CATEGORY_VOCAB in this test in the same PR."
         )
+
+  def test_tags_in_vocabulary(self):
+    for i, entry in enumerate(self.entries):
+      for tag in (entry.get("tags") or []):
+        with self.subTest(i=i, name=entry.get("name", "?"), tag=tag):
+          self.assertIn(
+            tag, TAG_VOCAB,
+            msg=f"tag {tag!r} not in vocabulary. To add a new tag, extend "
+                f"TAG_VOCAB in this test in the same PR."
+          )
 
   def test_note_length(self):
     for i, entry in enumerate(self.entries):

@@ -13,6 +13,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Catalog Browse can be filtered by category, country, and tag, alongside the existing search.
 - 184 catalog entries are tagged UNESCO (World Heritage sites), surfaced by the new Browse tag filter.
 - Catalog entries carry descriptive tags (Volcano, Waterfall, Cave, Statue, Pyramid, Tomb, Tower, Bridge, Caravanserai), filterable in Browse alongside UNESCO.
+- Catalog entries are tagged by civilization where one clearly applies (Roman, Greek, Egyptian, Persian, Byzantine, Maya, Khmer, and more), filterable like the other tags. Shipped catalog tags are now a controlled vocabulary.
 - Pending catalog updates can be reviewed in bulk: a "Review updates" chip in the Places controls (a Menu entry on mobile) opens every affected place's field-level diff in one modal, with per-field selection, check-all, and a single Apply. It appears only while updates are pending.
 - 105 new shipped catalog entries.
 

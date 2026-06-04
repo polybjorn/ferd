@@ -12,6 +12,7 @@
       "https://en.wikipedia.org/wiki/Abu_Simbel_temples"
     ],
     "tags": [
+      "Egyptian",
       "UNESCO"
     ]
   },
@@ -57,6 +58,7 @@
       "https://en.wikipedia.org/wiki/Acropolis_of_Athens"
     ],
     "tags": [
+      "Greek",
       "UNESCO"
     ]
   },
@@ -71,6 +73,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/20210826-Lindos-DJI_0205.jpg/1280px-20210826-Lindos-DJI_0205.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Lindos"
+    ],
+    "tags": [
+      "Greek"
     ]
   },
   {
@@ -87,6 +92,7 @@
       "https://en.wikipedia.org/wiki/Akbarieh_Garden"
     ],
     "tags": [
+      "Persian",
       "UNESCO"
     ]
   },
@@ -127,6 +133,7 @@
       "https://en.wikipedia.org/wiki/Ali_Qapu"
     ],
     "tags": [
+      "Persian",
       "UNESCO"
     ]
   },
@@ -201,6 +208,7 @@
       "https://en.wikipedia.org/wiki/Olympia,_Greece"
     ],
     "tags": [
+      "Greek",
       "UNESCO"
     ]
   },
@@ -215,6 +223,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Santorini_ancient_thera_1.jpg/1280px-Santorini_ancient_thera_1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Ancient_Thera"
+    ],
+    "tags": [
+      "Greek"
     ]
   },
   {
@@ -243,6 +254,7 @@
       "https://en.wikipedia.org/wiki/Angkor_Wat"
     ],
     "tags": [
+      "Khmer",
       "UNESCO"
     ]
   },
@@ -283,6 +295,7 @@
       "https://en.wikipedia.org/wiki/Arch_of_Galerius_and_Rotunda"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -356,6 +369,7 @@
       "https://en.wikipedia.org/wiki/Bagan"
     ],
     "tags": [
+      "Burmese",
       "UNESCO"
     ]
   },
@@ -372,6 +386,7 @@
       "https://en.wikipedia.org/wiki/Arg-e_Bam"
     ],
     "tags": [
+      "Persian",
       "UNESCO"
     ]
   },
@@ -387,6 +402,7 @@
       "https://en.wikipedia.org/wiki/Bandiagara_Escarpment"
     ],
     "tags": [
+      "Dogon",
       "UNESCO"
     ]
   },
@@ -400,6 +416,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Milano_Colonne_di_San_Lorenzo_1.jpg/1280px-Milano_Colonne_di_San_Lorenzo_1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Basilica_of_San_Lorenzo,_Milan"
+    ],
+    "tags": [
+      "Roman"
     ]
   },
   {
@@ -415,6 +434,7 @@
       "https://en.wikipedia.org/wiki/Basilica_of_San_Vitale"
     ],
     "tags": [
+      "Byzantine",
       "UNESCO"
     ]
   },
@@ -447,6 +467,7 @@
       "https://en.wikipedia.org/wiki/Baths_of_Caracalla"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -463,6 +484,7 @@
       "https://en.wikipedia.org/wiki/Baths_of_Trajan"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -479,6 +501,7 @@
       "https://en.wikipedia.org/wiki/Bayon"
     ],
     "tags": [
+      "Khmer",
       "UNESCO"
     ]
   },
@@ -495,6 +518,7 @@
       "https://en.wikipedia.org/wiki/Bent_Pyramid"
     ],
     "tags": [
+      "Egyptian",
       "Pyramid",
       "UNESCO"
     ]
@@ -512,6 +536,7 @@
       "https://en.wikipedia.org/wiki/Berat"
     ],
     "tags": [
+      "Ottoman",
       "UNESCO"
     ]
   },
@@ -541,6 +566,7 @@
       "https://en.wikipedia.org/wiki/Bingling_Temple"
     ],
     "tags": [
+      "Chinese",
       "UNESCO"
     ]
   },
@@ -655,6 +681,9 @@
       "https://en.wikipedia.org/wiki/Butrint"
     ],
     "tags": [
+      "Byzantine",
+      "Greek",
+      "Roman",
       "UNESCO"
     ]
   },
@@ -729,6 +758,7 @@
       "https://en.wikipedia.org/wiki/Castel_Sant%27Angelo"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -848,6 +878,7 @@
       "https://en.wikipedia.org/wiki/Chehel_Sotoun"
     ],
     "tags": [
+      "Persian",
       "UNESCO"
     ]
   },
@@ -864,6 +895,7 @@
       "https://en.wikipedia.org/wiki/Chichen_Itza"
     ],
     "tags": [
+      "Maya",
       "UNESCO"
     ]
   },
@@ -892,6 +924,7 @@
       "https://en.wikipedia.org/wiki/Chogha_Zanbil"
     ],
     "tags": [
+      "Elamite",
       "UNESCO"
     ]
   },
@@ -923,6 +956,10 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/StGeorgeRotundaSofia.JPG/1280px-StGeorgeRotundaSofia.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Church_of_Saint_George,_Sofia"
+    ],
+    "tags": [
+      "Byzantine",
+      "Roman"
     ]
   },
   {
@@ -937,6 +974,8 @@
       "https://en.wikipedia.org/wiki/Church_of_the_Holy_Sepulchre"
     ],
     "tags": [
+      "Byzantine",
+      "Roman",
       "UNESCO"
     ]
   },
@@ -969,6 +1008,7 @@
       "https://en.wikipedia.org/wiki/Colosseum"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -1018,6 +1058,7 @@
     ],
     "tags": [
       "Caravanserai",
+      "Persian",
       "UNESCO"
     ]
   },
@@ -1050,6 +1091,7 @@
       "https://en.wikipedia.org/wiki/Delos"
     ],
     "tags": [
+      "Greek",
       "UNESCO"
     ]
   },
@@ -1066,6 +1108,7 @@
       "https://en.wikipedia.org/wiki/Delphi"
     ],
     "tags": [
+      "Greek",
       "UNESCO"
     ]
   },
@@ -1110,6 +1153,7 @@
       "https://en.wikipedia.org/wiki/Diocletian%27s_Palace"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -1142,6 +1186,7 @@
       "https://en.wikipedia.org/wiki/Djémila"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -1174,6 +1219,7 @@
       "https://en.wikipedia.org/wiki/Dome_of_Soltaniyeh"
     ],
     "tags": [
+      "Persian",
       "Tomb",
       "UNESCO"
     ]
@@ -1191,6 +1237,7 @@
       "https://en.wikipedia.org/wiki/Dome_of_the_Rock"
     ],
     "tags": [
+      "Umayyad",
       "UNESCO"
     ]
   },
@@ -1223,6 +1270,7 @@
       "https://en.wikipedia.org/wiki/Dowlatabad_Garden"
     ],
     "tags": [
+      "Persian",
       "UNESCO"
     ]
   },
@@ -1337,6 +1385,7 @@
       "https://en.wikipedia.org/wiki/Epidaurus"
     ],
     "tags": [
+      "Greek",
       "UNESCO"
     ]
   },
@@ -1353,6 +1402,7 @@
       "https://en.wikipedia.org/wiki/Eram_Garden"
     ],
     "tags": [
+      "Persian",
       "UNESCO"
     ]
   },
@@ -1400,6 +1450,7 @@
       "https://en.wikipedia.org/wiki/Fes_el_Bali"
     ],
     "tags": [
+      "Moorish",
       "UNESCO"
     ]
   },
@@ -1416,6 +1467,7 @@
       "https://en.wikipedia.org/wiki/Fin_Garden"
     ],
     "tags": [
+      "Persian",
       "UNESCO"
     ]
   },
@@ -1490,6 +1542,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Torii_path_with_lantern_at_Fushimi_Inari_Taisha_Shrine%2C_Kyoto%2C_Japan.jpg/1280px-Torii_path_with_lantern_at_Fushimi_Inari_Taisha_Shrine%2C_Kyoto%2C_Japan.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Fushimi_Inari-taisha"
+    ],
+    "tags": [
+      "Japanese"
     ]
   },
   {
@@ -1503,6 +1558,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Garni_temple_2021_drone.jpg/1280px-Garni_temple_2021_drone.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_Garni"
+    ],
+    "tags": [
+      "Armenian"
     ]
   },
   {
@@ -1518,6 +1576,7 @@
       "https://en.wikipedia.org/wiki/Geghard"
     ],
     "tags": [
+      "Armenian",
       "UNESCO"
     ]
   },
@@ -1589,6 +1648,7 @@
       "https://en.wikipedia.org/wiki/Golestan_Palace"
     ],
     "tags": [
+      "Persian",
       "UNESCO"
     ]
   },
@@ -1674,6 +1734,7 @@
       "https://en.wikipedia.org/wiki/Great_Pyramid_of_Giza"
     ],
     "tags": [
+      "Egyptian",
       "Pyramid",
       "UNESCO"
     ]
@@ -1691,6 +1752,7 @@
       "https://en.wikipedia.org/wiki/Great_Sphinx_of_Giza"
     ],
     "tags": [
+      "Egyptian",
       "UNESCO"
     ]
   },
@@ -1706,6 +1768,7 @@
       "https://en.wikipedia.org/wiki/Great_Zimbabwe"
     ],
     "tags": [
+      "Shona",
       "UNESCO"
     ]
   },
@@ -1722,6 +1785,7 @@
       "https://en.wikipedia.org/wiki/Hadrian%27s_Villa"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -1754,6 +1818,7 @@
       "https://en.wikipedia.org/wiki/Hegra"
     ],
     "tags": [
+      "Nabataean",
       "UNESCO"
     ]
   },
@@ -1799,6 +1864,7 @@
       "https://en.wikipedia.org/wiki/Himeji_Castle"
     ],
     "tags": [
+      "Japanese",
       "UNESCO"
     ]
   },
@@ -1880,6 +1946,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/%D8%B5%D8%AD%D9%86_%D8%A7%DB%8C%D9%88%D8%A7%D9%86_%D8%B7%D9%84%D8%A7_%D9%88_%D8%B3%D9%82%D8%A7%D8%AE%D8%A7%D9%86%D9%87.jpg/1280px-%D8%B5%D8%AD%D9%86_%D8%A7%DB%8C%D9%88%D8%A7%D9%86_%D8%B7%D9%84%D8%A7_%D9%88_%D8%B3%D9%82%D8%A7%D8%AE%D8%A7%D9%86%D9%87.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Imam_Reza_shrine"
+    ],
+    "tags": [
+      "Persian"
     ]
   },
   {
@@ -1895,6 +1964,7 @@
       "https://en.wikipedia.org/wiki/Itsukushima_Shrine"
     ],
     "tags": [
+      "Japanese",
       "UNESCO"
     ]
   },
@@ -1912,6 +1982,7 @@
     ],
     "tags": [
       "Caravanserai",
+      "Persian",
       "UNESCO"
     ]
   },
@@ -1928,6 +1999,7 @@
       "https://en.wikipedia.org/wiki/Jameh_Mosque_of_Isfahan"
     ],
     "tags": [
+      "Persian",
       "UNESCO"
     ]
   },
@@ -1957,6 +2029,7 @@
       "https://en.wikipedia.org/wiki/Jvari_monastery"
     ],
     "tags": [
+      "Georgian",
       "UNESCO"
     ]
   },
@@ -1973,6 +2046,7 @@
       "https://en.wikipedia.org/wiki/Kailasa_Temple,_Ellora"
     ],
     "tags": [
+      "Rashtrakuta",
       "UNESCO"
     ]
   },
@@ -2002,6 +2076,7 @@
       "https://en.wikipedia.org/wiki/Karnak"
     ],
     "tags": [
+      "Egyptian",
       "UNESCO"
     ]
   },
@@ -2015,6 +2090,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Kaunos_Kaya_Mezarlar%C4%B1.jpg/1280px-Kaunos_Kaya_Mezarlar%C4%B1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Kaunos"
+    ],
+    "tags": [
+      "Greek"
     ]
   },
   {
@@ -2028,6 +2106,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Stone_lantern_Kenrokuen.jpg/1280px-Stone_lantern_Kenrokuen.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Kenroku-en"
+    ],
+    "tags": [
+      "Japanese"
     ]
   },
   {
@@ -2060,6 +2141,7 @@
       "https://en.wikipedia.org/wiki/Kiyomizu-dera"
     ],
     "tags": [
+      "Japanese",
       "UNESCO"
     ]
   },
@@ -2074,6 +2156,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/North_Entrance_of_the_Palace_of_Knossos%2C_Crete._%2853809932111%29.jpg/1280px-North_Entrance_of_the_Palace_of_Knossos%2C_Crete._%2853809932111%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Knossos"
+    ],
+    "tags": [
+      "Minoan"
     ]
   },
   {
@@ -2163,6 +2248,7 @@
       "https://en.wikipedia.org/wiki/Leshan_Giant_Buddha"
     ],
     "tags": [
+      "Chinese",
       "Statue",
       "UNESCO"
     ]
@@ -2241,6 +2327,7 @@
       "https://en.wikipedia.org/wiki/Machu_Picchu"
     ],
     "tags": [
+      "Inca",
       "UNESCO"
     ]
   },
@@ -2257,6 +2344,8 @@
       "https://en.wikipedia.org/wiki/Masada"
     ],
     "tags": [
+      "Judaean",
+      "Roman",
       "UNESCO"
     ]
   },
@@ -2283,6 +2372,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Matsumoto_Castle_Keep_Tower.jpg/1280px-Matsumoto_Castle_Keep_Tower.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Matsumoto_Castle"
+    ],
+    "tags": [
+      "Japanese"
     ]
   },
   {
@@ -2298,6 +2390,7 @@
       "https://en.wikipedia.org/wiki/Mausoleum_of_Constantina"
     ],
     "tags": [
+      "Roman",
       "Tomb"
     ]
   },
@@ -2314,6 +2407,7 @@
       "https://en.wikipedia.org/wiki/Mausoleum_of_Qin_Shi_Huang"
     ],
     "tags": [
+      "Chinese",
       "Tomb",
       "UNESCO"
     ]
@@ -2343,6 +2437,7 @@
       "https://en.wikipedia.org/wiki/Meidum"
     ],
     "tags": [
+      "Egyptian",
       "Pyramid"
     ]
   },
@@ -2357,6 +2452,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Meiji_Jingu_2023-3.jpg/1280px-Meiji_Jingu_2023-3.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Meiji_Shrine"
+    ],
+    "tags": [
+      "Japanese"
     ]
   },
   {
@@ -2384,6 +2482,7 @@
       "https://en.wikipedia.org/wiki/Great_Meteoron"
     ],
     "tags": [
+      "Byzantine",
       "UNESCO"
     ]
   },
@@ -2398,6 +2497,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/%CE%9A%CE%B1%CF%83%CF%84%CF%81%CE%BF%CF%80%CE%BF%CE%BB%CE%B9%CF%84%CE%B5%CE%B9%CE%B1_%CE%BC%CE%BF%CE%BD%CE%B5%CE%BC%CE%B2%CE%B1%CF%83%CE%B9%CE%B1%CF%82.jpg/1280px-%CE%9A%CE%B1%CF%83%CF%84%CF%81%CE%BF%CF%80%CE%BF%CE%BB%CE%B9%CF%84%CE%B5%CE%B9%CE%B1_%CE%BC%CE%BF%CE%BD%CE%B5%CE%BC%CE%B2%CE%B1%CF%83%CE%B9%CE%B1%CF%82.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Monemvasia"
+    ],
+    "tags": [
+      "Byzantine"
     ]
   },
   {
@@ -2426,6 +2528,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/MorGabrielMonastery1.jpg/1280px-MorGabrielMonastery1.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Mor_Gabriel_Monastery"
+    ],
+    "tags": [
+      "Byzantine"
     ]
   },
   {
@@ -2566,6 +2671,7 @@
       "https://en.wikipedia.org/wiki/Mystras"
     ],
     "tags": [
+      "Byzantine",
       "UNESCO"
     ]
   },
@@ -2595,6 +2701,7 @@
       "https://en.wikipedia.org/wiki/Naqsh-e_Jahan_Square"
     ],
     "tags": [
+      "Persian",
       "UNESCO"
     ]
   },
@@ -2625,6 +2732,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Nasir_ol_Molk_Mosque_%2831233739431%29.jpg/1280px-Nasir_ol_Molk_Mosque_%2831233739431%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Nasir-ol-Molk_Mosque"
+    ],
+    "tags": [
+      "Persian"
     ]
   },
   {
@@ -2839,6 +2949,7 @@
       "https://en.wikipedia.org/wiki/Neak_Pean"
     ],
     "tags": [
+      "Khmer",
       "UNESCO"
     ]
   },
@@ -2854,6 +2965,7 @@
       "https://en.wikipedia.org/wiki/Necropolis_of_Pantalica"
     ],
     "tags": [
+      "Greek",
       "Tomb",
       "UNESCO"
     ]
@@ -2897,6 +3009,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Nezu_Shrine_2010.jpg/1280px-Nezu_Shrine_2010.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Nezu_Shrine"
+    ],
+    "tags": [
+      "Japanese"
     ]
   },
   {
@@ -2936,6 +3051,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Osaka_Castle_03bs3200.jpg/1280px-Osaka_Castle_03bs3200.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Osaka_Castle"
+    ],
+    "tags": [
+      "Japanese"
     ]
   },
   {
@@ -2982,6 +3100,7 @@
       "https://en.wikipedia.org/wiki/Pantheon,_Rome"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -2997,6 +3116,7 @@
       "https://en.wikipedia.org/wiki/Paphos_Archaeological_Park"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -3045,6 +3165,7 @@
       "https://en.wikipedia.org/wiki/Persepolis"
     ],
     "tags": [
+      "Persian",
       "UNESCO"
     ]
   },
@@ -3061,6 +3182,7 @@
       "https://en.wikipedia.org/wiki/Petra"
     ],
     "tags": [
+      "Nabataean",
       "UNESCO"
     ]
   },
@@ -3075,6 +3197,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Roman_Theatre_Plovdiv_3.jpg/1280px-Roman_Theatre_Plovdiv_3.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Plovdiv_Roman_theatre"
+    ],
+    "tags": [
+      "Roman"
     ]
   },
   {
@@ -3090,6 +3215,7 @@
       "https://en.wikipedia.org/wiki/Pompeii"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -3106,6 +3232,7 @@
     ],
     "tags": [
       "Bridge",
+      "Roman",
       "UNESCO"
     ]
   },
@@ -3138,6 +3265,7 @@
       "https://en.wikipedia.org/wiki/Preah_Khan"
     ],
     "tags": [
+      "Khmer",
       "UNESCO"
     ]
   },
@@ -3152,6 +3280,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Pula_Arena_%282024-10-10_1%29.jpg/1280px-Pula_Arena_%282024-10-10_1%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Pula_Arena"
+    ],
+    "tags": [
+      "Roman"
     ]
   },
   {
@@ -3181,6 +3312,7 @@
     ],
     "tags": [
       "Pyramid",
+      "Roman",
       "UNESCO"
     ]
   },
@@ -3196,6 +3328,7 @@
       "https://en.wikipedia.org/wiki/Pyramid_of_Djoser"
     ],
     "tags": [
+      "Egyptian",
       "Pyramid",
       "UNESCO"
     ]
@@ -3212,6 +3345,7 @@
       "https://en.wikipedia.org/wiki/Pyramid_of_Khafre"
     ],
     "tags": [
+      "Egyptian",
       "Pyramid",
       "UNESCO"
     ]
@@ -3228,6 +3362,7 @@
       "https://en.wikipedia.org/wiki/Pyramid_of_Menkaure"
     ],
     "tags": [
+      "Egyptian",
       "Pyramid",
       "UNESCO"
     ]
@@ -3246,6 +3381,7 @@
     ],
     "tags": [
       "Pyramid",
+      "Teotihuacan",
       "UNESCO"
     ]
   },
@@ -3263,6 +3399,7 @@
     ],
     "tags": [
       "Pyramid",
+      "Teotihuacan",
       "UNESCO"
     ]
   },
@@ -3279,6 +3416,7 @@
       "https://en.wikipedia.org/wiki/Gonbad-e_Qabus_(tower)"
     ],
     "tags": [
+      "Persian",
       "Tomb",
       "Tower",
       "UNESCO"
@@ -3295,6 +3433,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Qavam_House_2018.jpg/1280px-Qavam_House_2018.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Qavam_House"
+    ],
+    "tags": [
+      "Persian"
     ]
   },
   {
@@ -3323,6 +3464,7 @@
       "https://en.wikipedia.org/wiki/Red_Basilica"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -3338,6 +3480,7 @@
       "https://en.wikipedia.org/wiki/Red_Pyramid"
     ],
     "tags": [
+      "Egyptian",
       "Pyramid",
       "UNESCO"
     ]
@@ -3354,6 +3497,7 @@
       "https://en.wikipedia.org/wiki/Revash"
     ],
     "tags": [
+      "Chachapoya",
       "Tomb"
     ]
   },
@@ -3400,6 +3544,7 @@
     ],
     "tags": [
       "Caravanserai",
+      "Persian",
       "UNESCO"
     ]
   },
@@ -3416,6 +3561,7 @@
     ],
     "tags": [
       "Caravanserai",
+      "Persian",
       "UNESCO"
     ]
   },
@@ -3476,7 +3622,8 @@
       "https://en.wikipedia.org/wiki/Church_of_Saint_George,_Lalibela"
     ],
     "tags": [
-      "UNESCO"
+      "UNESCO",
+      "Zagwe"
     ]
   },
   {
@@ -3492,6 +3639,7 @@
       "https://en.wikipedia.org/wiki/Roman_Forum"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -3508,6 +3656,9 @@
       "https://en.wikipedia.org/wiki/Arch_of_Galerius_and_Rotunda"
     ],
     "tags": [
+      "Byzantine",
+      "Ottoman",
+      "Roman",
       "UNESCO"
     ]
   },
@@ -3572,6 +3723,7 @@
     ],
     "tags": [
       "Caravanserai",
+      "Persian",
       "UNESCO"
     ]
   },
@@ -3585,6 +3737,10 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Sagalassos_Antik_Kenti_03.jpg/1280px-Sagalassos_Antik_Kenti_03.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sagalassos"
+    ],
+    "tags": [
+      "Greek",
+      "Roman"
     ]
   },
   {
@@ -3661,6 +3817,7 @@
       "https://en.wikipedia.org/wiki/Santi_Cosma_e_Damiano,_Rome"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -3673,6 +3830,9 @@
     "note": "Twelve rock-cut reliefs of the goddess Cybele",
     "sources": [
       "https://en.wikipedia.org/wiki/Santoni"
+    ],
+    "tags": [
+      "Greek"
     ]
   },
   {
@@ -3763,6 +3923,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Sensoji_2023.jpg/1280px-Sensoji_2023.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Sens%C5%8D-ji"
+    ],
+    "tags": [
+      "Japanese"
     ]
   },
   {
@@ -3817,6 +3980,7 @@
       "https://en.wikipedia.org/wiki/Shazdeh_Garden"
     ],
     "tags": [
+      "Persian",
       "UNESCO"
     ]
   },
@@ -3846,6 +4010,7 @@
       "https://en.wikipedia.org/wiki/Shirakawa-g%C5%8D"
     ],
     "tags": [
+      "Japanese",
       "UNESCO"
     ]
   },
@@ -3862,6 +4027,7 @@
       "https://en.wikipedia.org/wiki/Sheikh_Safi_al-Din_Kh%C4%81neg%C4%81h_and_Shrine_Ensemble"
     ],
     "tags": [
+      "Persian",
       "UNESCO"
     ]
   },
@@ -3878,6 +4044,7 @@
       "https://en.wikipedia.org/wiki/Shuri_Castle"
     ],
     "tags": [
+      "Japanese",
       "UNESCO"
     ]
   },
@@ -3894,6 +4061,7 @@
       "https://en.wikipedia.org/wiki/Shushtar_Historical_Hydraulic_System"
     ],
     "tags": [
+      "Persian",
       "UNESCO"
     ]
   },
@@ -3907,6 +4075,10 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Temple_Apollo_Side_Wide.jpg/1280px-Temple_Apollo_Side_Wide.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Side,_Turkey"
+    ],
+    "tags": [
+      "Greek",
+      "Roman"
     ]
   },
   {
@@ -3922,6 +4094,7 @@
       "https://en.wikipedia.org/wiki/Sigiriya"
     ],
     "tags": [
+      "Sinhalese",
       "UNESCO"
     ]
   },
@@ -3935,6 +4108,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Sunken_City_Simena.JPG/1280px-Sunken_City_Simena.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Simena"
+    ],
+    "tags": [
+      "Greek"
     ]
   },
   {
@@ -4023,6 +4199,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Frontal_view_-_St._Gereon_-_Cologne_-_Germany_2017_%282%29.jpg/1280px-Frontal_view_-_St._Gereon_-_Cologne_-_Germany_2017_%282%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/St._Gereon%27s_Basilica,_Cologne"
+    ],
+    "tags": [
+      "Roman"
     ]
   },
   {
@@ -4036,6 +4215,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Saint_Hilarion_Castle%2C_Northern_Cyprus_-_panoramio_%286%29.jpg/1280px-Saint_Hilarion_Castle%2C_Northern_Cyprus_-_panoramio_%286%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/St._Hilarion_Castle"
+    ],
+    "tags": [
+      "Byzantine"
     ]
   },
   {
@@ -4051,6 +4233,7 @@
       "https://en.wikipedia.org/wiki/St_Mark%27s_Basilica"
     ],
     "tags": [
+      "Byzantine",
       "UNESCO"
     ]
   },
@@ -4065,6 +4248,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Noel_Baba_Kilisesi..._-_panoramio.jpg/1280px-Noel_Baba_Kilisesi..._-_panoramio.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/St._Nicholas_Church,_Demre"
+    ],
+    "tags": [
+      "Byzantine"
     ]
   },
   {
@@ -4199,6 +4385,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Syedra_-_panoramio_-_matzi01.jpg/1280px-Syedra_-_panoramio_-_matzi01.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Syedra"
+    ],
+    "tags": [
+      "Roman"
     ]
   },
   {
@@ -4212,6 +4401,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Sumela_From_Across_Valley.JPG/1280px-Sumela_From_Across_Valley.JPG",
     "sources": [
       "https://en.wikipedia.org/wiki/Sümela_Monastery"
+    ],
+    "tags": [
+      "Byzantine"
     ]
   },
   {
@@ -4227,6 +4419,7 @@
       "https://en.wikipedia.org/wiki/Taj_Mahal"
     ],
     "tags": [
+      "Mughal",
       "Tomb",
       "UNESCO"
     ]
@@ -4254,6 +4447,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Monasterio_de_Tatev%2C_Armenia%2C_2016-10-01%2C_DD_77-79_HDR.jpg/1280px-Monasterio_de_Tatev%2C_Armenia%2C_2016-10-01%2C_DD_77-79_HDR.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Tatev_Monastery"
+    ],
+    "tags": [
+      "Armenian"
     ]
   },
   {
@@ -4284,6 +4480,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/%D9%85%D8%B9%D8%A8%D8%AF_%D8%A2%D9%86%D8%A7%D9%87%DB%8C%D8%AA%D8%A7_%DA%A9%D9%86%DA%AF%D8%A7%D9%88%D8%B1_3_soheilchehri.jpg/1280px-%D9%85%D8%B9%D8%A8%D8%AF_%D8%A2%D9%86%D8%A7%D9%87%DB%8C%D8%AA%D8%A7_%DA%A9%D9%86%DA%AF%D8%A7%D9%88%D8%B1_3_soheilchehri.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_Anahita,_Kangavar"
+    ],
+    "tags": [
+      "Persian"
     ]
   },
   {
@@ -4297,6 +4496,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Greece_Cape_Sounion_BW_2017-10-09_10-12-43.jpg/1280px-Greece_Cape_Sounion_BW_2017-10-09_10-12-43.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_Poseidon,_Sounion"
+    ],
+    "tags": [
+      "Greek"
     ]
   },
   {
@@ -4309,6 +4511,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Temple_of_Seti_I_at_Abydos_-_panoramio_%283%29.jpg/1280px-Temple_of_Seti_I_at_Abydos_-_panoramio_%283%29.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_Seti_I_(Abydos)"
+    ],
+    "tags": [
+      "Egyptian"
     ]
   },
   {
@@ -4324,6 +4529,7 @@
       "https://en.wikipedia.org/wiki/Temple_of_the_Inscriptions"
     ],
     "tags": [
+      "Maya",
       "UNESCO"
     ]
   },
@@ -4337,6 +4543,10 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Termessos_-_Theater.jpg/1280px-Termessos_-_Theater.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Termessos"
+    ],
+    "tags": [
+      "Greek",
+      "Roman"
     ]
   },
   {
@@ -4396,6 +4606,7 @@
       "https://en.wikipedia.org/wiki/Takht-e_Soleym%C4%81n"
     ],
     "tags": [
+      "Persian",
       "UNESCO"
     ]
   },
@@ -4412,6 +4623,7 @@
       "https://en.wikipedia.org/wiki/Timbuktu"
     ],
     "tags": [
+      "Mali",
       "UNESCO"
     ]
   },
@@ -4428,6 +4640,7 @@
       "https://en.wikipedia.org/wiki/Timgad"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -4444,6 +4657,7 @@
       "https://en.wikipedia.org/wiki/T%C5%8Ddai-ji"
     ],
     "tags": [
+      "Japanese",
       "UNESCO"
     ]
   },
@@ -4502,6 +4716,7 @@
       "https://en.wikipedia.org/wiki/Tomb_of_Cyrus"
     ],
     "tags": [
+      "Persian",
       "Tomb",
       "UNESCO"
     ]
@@ -4519,6 +4734,7 @@
       "https://en.wikipedia.org/wiki/Tomb_of_Darius_the_Great"
     ],
     "tags": [
+      "Persian",
       "Tomb"
     ]
   },
@@ -4535,6 +4751,7 @@
       "https://en.wikipedia.org/wiki/Tombs_of_the_kings_of_Pontus"
     ],
     "tags": [
+      "Greek",
       "Tomb"
     ]
   },
@@ -4551,6 +4768,7 @@
       "https://en.wikipedia.org/wiki/Topkap%C4%B1_Palace"
     ],
     "tags": [
+      "Ottoman",
       "UNESCO"
     ]
   },
@@ -4609,6 +4827,8 @@
       "https://en.wikipedia.org/wiki/Troy"
     ],
     "tags": [
+      "Greek",
+      "Roman",
       "UNESCO"
     ]
   },
@@ -4654,6 +4874,7 @@
       "https://en.wikipedia.org/wiki/Urnes_Stave_Church"
     ],
     "tags": [
+      "Norse",
       "UNESCO"
     ]
   },
@@ -4670,6 +4891,7 @@
       "https://en.wikipedia.org/wiki/Valley_of_the_Kings"
     ],
     "tags": [
+      "Egyptian",
       "Tomb",
       "UNESCO"
     ]
@@ -4687,6 +4909,7 @@
       "https://en.wikipedia.org/wiki/Valley_of_the_Temples_(Sicily)"
     ],
     "tags": [
+      "Greek",
       "UNESCO"
     ]
   },
@@ -4713,6 +4936,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Vardzia_Cave_Monastery_05.jpg/1280px-Vardzia_Cave_Monastery_05.jpg",
     "sources": [
       "https://en.wikipedia.org/wiki/Vardzia"
+    ],
+    "tags": [
+      "Georgian"
     ]
   },
   {
@@ -4757,6 +4983,7 @@
       "https://en.wikipedia.org/wiki/Verona_Arena"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -4815,7 +5042,8 @@
       "https://en.wikipedia.org/wiki/Vijayanagara"
     ],
     "tags": [
-      "UNESCO"
+      "UNESCO",
+      "Vijayanagara"
     ]
   },
   {
@@ -4844,6 +5072,7 @@
       "https://en.wikipedia.org/wiki/Villa_of_the_Mysteries"
     ],
     "tags": [
+      "Roman",
       "UNESCO"
     ]
   },
@@ -4888,6 +5117,7 @@
       "https://en.wikipedia.org/wiki/Western_Wall"
     ],
     "tags": [
+      "Judaean",
       "UNESCO"
     ]
   },
@@ -4934,6 +5164,8 @@
       "https://en.wikipedia.org/wiki/Xanthos"
     ],
     "tags": [
+      "Greek",
+      "Roman",
       "UNESCO"
     ]
   },
