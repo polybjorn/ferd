@@ -5208,6 +5208,27 @@
       }
     }
 
+    // Bind stroke-fixup to map motion. Pan-only 'move' frames don't change
+    // zoom, so the SVG scale and stroke widths are unchanged and Leaflet
+    // translates the renderer pane natively - reprojecting every route vertex
+    // per pan frame is wasted work that makes touch panning crawl when many
+    // routes are visible. Only reproject when the zoom actually changed (zoom
+    // gestures: desktop smooth-wheel, mobile pinch, both step zoom per frame).
+    // A trailing pass on zoomend/moveend guarantees correctness at rest.
+    function bindTrailStrokeMotion(map) {
+      let lastZoom = map.getZoom();
+      map.on('move', function () {
+        const z = map.getZoom();
+        if (z === lastZoom) return;
+        lastZoom = z;
+        adjustTrailStrokes();
+      });
+      map.on('zoomend moveend', function () {
+        lastZoom = map.getZoom();
+        adjustTrailStrokes();
+      });
+    }
+
     // Index-map route highlight. Clicking a route flags it as selected: it
     // fattens, goes fully opaque, and jumps to the front while the rest dim
     // back, so it stands out where several routes overlap. Style-based, so it
@@ -5595,8 +5616,7 @@
       // by the time we run, the SVG renderer has already applied its new
       // CSS scale transform - we read the freshest value to counter-scale
       // against. Also covers pan-only frames.
-      map.on('move', adjustTrailStrokes);
-      map.on('zoomend moveend', adjustTrailStrokes);
+      bindTrailStrokeMotion(map);
       map.on('zoomanim', function() {
         const start = performance.now();
         const tick = () => {
@@ -8810,8 +8830,7 @@
       // by the time we run, the SVG renderer has already applied its new
       // CSS scale transform - we read the freshest value to counter-scale
       // against. Also covers pan-only frames.
-      map.on('move', adjustTrailStrokes);
-      map.on('zoomend moveend', adjustTrailStrokes);
+      bindTrailStrokeMotion(map);
       map.on('zoomanim', function() {
         const start = performance.now();
         const tick = () => {
