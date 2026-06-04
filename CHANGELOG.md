@@ -5,6 +5,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
+- 140 new shipped catalog entries.
 - Offline editing. Adding or editing places, completing/editing/moving/deleting routes, uploading new GPX, and managing regions and category labels now work while offline: changes apply immediately, survive a reload, and sync to the server automatically when the connection returns. The offline banner shows how many changes are waiting, and a brief toast reports the result after a sync (including any skipped because the server copy changed first).
 - Index map: clicking a route highlights it (the line thickens slightly and goes opaque while the rest dim back), so overlapping routes are easy to tell apart. Clicking the same spot again steps through routes stacked there; clicking an empty spot clears the highlight; arriving from a route's detail view highlights it automatically.
 - Map: categories, regions, and place/route statuses can be hidden by default. Set a category or region hidden via its eye toggle in Manage categories/regions, or toggle the four status defaults in Settings > Appearance; the map opens with them hidden, and the filter panel still shows them for the current session.
@@ -15,7 +16,6 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Catalog entries carry natural-feature tags (Volcano, Waterfall, Cave, Beach) and built-form Type tags (Amphitheatre, Theatre, Bath, Bridge, Tower, Statue, Pyramid, and more), filterable in Browse. A Type tag groups the same kind of place even across categories, so every amphitheatre filters together whether it is categorized ruins or monument.
 - Catalog entries are tagged by civilization where one clearly applies (Roman, Greek, Egyptian, Persian, Byzantine, Maya, Khmer, and more), filterable like the other tags. Shipped catalog tags are now a controlled vocabulary.
 - Pending catalog updates can be reviewed in bulk: a "Review updates" chip in the Places controls (a Menu entry on mobile) opens every affected place's field-level diff in one modal, with per-field selection, check-all, and a single Apply. It appears only while updates are pending.
-- 140 new shipped catalog entries.
 
 ### Changed
 - The route detail view for multi-segment routes (GPX with several tracks) is now one whole-route elevation graph over a collapsible "Elevation by segment" list. Pick a segment from the list or by clicking its line on the map to see that segment's profile, distance, and climb; click again to return to the whole route. The graph collapses too. A 4-track hike and a 150-segment cycle route now use the same view, replacing the old per-track accordion.
