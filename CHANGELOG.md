@@ -4,6 +4,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-06-05
+
 ### Added
 - 140 new shipped catalog entries.
 - 198 catalog entries tagged UNESCO (World Heritage sites), filterable in Browse.
