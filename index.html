@@ -4637,7 +4637,11 @@
       // seam issue actually shows up: coarse-pointer (touch) devices.
       const _isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
       L.TileLayer.mergeOptions({
-        updateWhenZooming: false,
+        // On touch, load tiles during the pinch so the new level is painted
+        // before the integer-snap at release (otherwise the snap reloads tiles
+        // and briefly flashes seams). Desktop smooth-wheel keeps it off to avoid
+        // requesting a batch per fractional level mid-gesture.
+        updateWhenZooming: _isTouch,
         dumpToCanvas: _isTouch,
       });
     }
@@ -5362,7 +5366,11 @@
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
         vertCount = data.length / GL_ROUTE_STRIDE;
       }
-      function draw() {
+      // Draw at a specific zoom/center, or null/null for the map's current
+      // state. The interpolated form is driven by drawZoomAnim's rAF loop so
+      // the routes track the tiles through the 250ms release zoom animation
+      // (move/zoom don't fire during it), the same way the place canvas does.
+      function drawAt(zoom, center) {
         raf = 0;
         if (!gl) return;
         // Keep the canvas pinned to the viewport (counter the map-pane pan offset).
@@ -5370,8 +5378,10 @@
         gl.clear(gl.COLOR_BUFFER_BIT);
         if (!vertCount || !originRef) return;
         const size = map.getSize();
-        const scale = map.getZoomScale(map.getZoom(), GL_ROUTE_REFZOOM);
-        const cNow = map.project(map.getCenter(), GL_ROUTE_REFZOOM);
+        const z = (zoom == null) ? map.getZoom() : zoom;
+        const c = (center == null) ? map.getCenter() : center;
+        const scale = map.getZoomScale(z, GL_ROUTE_REFZOOM);
+        const cNow = map.project(c, GL_ROUTE_REFZOOM);
         gl.useProgram(program);
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         const S = GL_ROUTE_STRIDE * 4;
@@ -5390,6 +5400,50 @@
         gl.uniform2f(loc.uViewport, size.x, size.y);
         gl.uniform1f(loc.uHlT, (state._hlT == null) ? 1 : state._hlT);
         gl.drawArrays(gl.TRIANGLES, 0, vertCount);
+      }
+      function draw() { drawAt(null, null); }
+
+      // Release zoom animation: zoomanim fires with the target zoom/center, then
+      // the tiles CSS-animate over 250ms with no move/zoom events. Interpolate
+      // along Leaflet's tile easing and redraw each frame so the routes track the
+      // tiles at constant width instead of freezing then snapping (the drift).
+      let zoomAnimRaf = 0;
+      function stopZoomAnim() { if (zoomAnimRaf) { cancelAnimationFrame(zoomAnimRaf); zoomAnimRaf = 0; } }
+      function onZoomAnim(e) {
+        stopZoomAnim();
+        const startZoom = map.getZoom(), startCenter = map.getCenter();
+        const targetZoom = e.zoom, targetCenter = L.latLng(e.center);
+        const startTime = performance.now(), duration = 250;
+        // Leaflet's tile transition is CSS cubic-bezier(0,0,0.25,1) on the
+        // transform, interpolating SCALE (not zoom) linearly; match it via
+        // Newton's method so the routes track the tiles (same as the place canvas).
+        const easeLeaflet = function (t) {
+          let s = t;
+          for (let i = 0; i < 6; i++) {
+            const sm = 1 - s;
+            const x = 0.75 * sm * s * s + s * s * s;
+            const dx = 1.5 * s + 0.75 * s * s;
+            if (Math.abs(dx) < 1e-6) break;
+            s -= (x - t) / dx;
+            if (s < 0) s = 0; else if (s > 1) s = 1;
+          }
+          const sm = 1 - s;
+          return 3 * sm * s * s + s * s * s;
+        };
+        const targetScale = Math.pow(2, targetZoom - startZoom);
+        const tick = () => {
+          if (!gl) { zoomAnimRaf = 0; return; }
+          const t = Math.min((performance.now() - startTime) / duration, 1);
+          const eased = easeLeaflet(t);
+          const interpZoom = startZoom + Math.log2(1 + eased * (targetScale - 1));
+          const interpCenter = L.latLng(
+            startCenter.lat + (targetCenter.lat - startCenter.lat) * eased,
+            startCenter.lng + (targetCenter.lng - startCenter.lng) * eased
+          );
+          drawAt(interpZoom, interpCenter);
+          zoomAnimRaf = (t < 1) ? requestAnimationFrame(tick) : 0;
+        };
+        zoomAnimRaf = requestAnimationFrame(tick);
       }
       let rebuildTimer = 0;
       function rebuildSoon() {
@@ -5412,7 +5466,8 @@
       state._glRoutesRebuild = function () { rebuild(); draw(); }; // selection change: upload from/to buffer once
       state._glRoutesDraw = function () { draw(); };               // animation frame: cheap uniform update only
       map.on('move zoom', draw); // synchronous: lockstep with the tiles, no one-frame lag
-      map.on('moveend zoomend', function () { rebuild(); draw(); });
+      map.on('zoomanim', onZoomAnim); // follow the release zoom animation (no move/zoom during it)
+      map.on('moveend zoomend', function () { stopZoomAnim(); rebuild(); draw(); });
       map.on('resize', function () { resize(); draw(); });
       map.on('layeradd', rebuildSoon); // routes load lazily (async GPX)
     }
@@ -5855,7 +5910,10 @@
         scrollWheelZoom: false,
         smoothWheelZoom: true,
         smoothSensitivity: 1.5,
-        zoomSnap: 0, // continuous zoom (no integer-level snapping); matches desktop smooth-wheel, avoids the touch pinch-release snap
+        // Default zoomSnap (integer release): zoomSnap:0 makes the touch pinch
+        // re-round the tile pixel-origin every fractional frame, which vibrates
+        // the map. The GL route layer follows the release animation via its own
+        // zoomanim interpolation (see attachGLRoutes) so it stays glued instead.
         renderer: L.svg()
       }).setView(dv.center, dv.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
@@ -9024,7 +9082,10 @@
         scrollWheelZoom: false,
         smoothWheelZoom: true,
         smoothSensitivity: 1.5,
-        zoomSnap: 0, // continuous zoom (no integer-level snapping); matches desktop smooth-wheel, avoids the touch pinch-release snap
+        // Default zoomSnap (integer release): zoomSnap:0 makes the touch pinch
+        // re-round the tile pixel-origin every fractional frame, which vibrates
+        // the map. The detail view's routes are SVG (zoom-animated overlay pane),
+        // so they ride the release animation with the tiles.
         renderer: L.svg()
       });
       // Fit to the route's bbox up-front so the initial tile load is near
