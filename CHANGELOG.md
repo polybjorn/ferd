@@ -5,44 +5,44 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
-- Selecting a route on the index map animates the highlight: the chosen route's thicken/opacity and the dimming of the others ease over ~150ms instead of snapping (respects reduced-motion).
 - 140 new shipped catalog entries.
-- Offline editing. Adding or editing places, completing/editing/moving/deleting routes, uploading new GPX, and managing regions and category labels now work while offline: changes apply immediately, survive a reload, and sync to the server automatically when the connection returns. The offline banner shows how many changes are waiting, and a brief toast reports the result after a sync (including any skipped because the server copy changed first).
-- Index map: clicking a route highlights it (the line thickens slightly and goes opaque while the rest dim back), so overlapping routes are easy to tell apart. Clicking the same spot again steps through routes stacked there; clicking an empty spot clears the highlight; arriving from a route's detail view highlights it automatically.
-- Map: categories, regions, and place/route statuses can be hidden by default. Set a category or region hidden via its eye toggle in Manage categories/regions, or toggle the four status defaults in Settings > Appearance; the map opens with them hidden, and the filter panel still shows them for the current session.
-- Places can carry free-form tags (e.g. `UNESCO`), editable in the place form, shown on the map popup and list cards, and searchable in the Places list and filterable on both the Places and Routes lists. The tag filter is multi-select: pick several tags to show only entries that carry all of them. Tags keep their casing and dedupe case-insensitively; catalog entries can ship tags too. Tag visibility is toggleable via Settings > Optional fields (filters stay available either way).
+- 198 catalog entries tagged UNESCO (World Heritage sites), filterable in Browse.
+- Catalog entries carry natural-feature tags (e.g. Volcano, Waterfall, Cave) and Type tags (e.g. Amphitheatre, Bridge, Tower), filterable in Browse; a Type tag collects the same kind of place from any category.
+- Catalog entries tagged by civilization (e.g. Roman, Greek, Egyptian, Maya), filterable in Browse. Shipped catalog tags are now a controlled vocabulary.
+- Catalog Browse filters by category, country, and tag alongside search.
+- A "Review updates" chip opens all pending catalog updates in one modal, with per-field diffs and a single Apply.
+- Places carry free-form tags (e.g. `UNESCO`), shown on popups and cards and filterable on both lists (pick several to match all); tags keep their casing, dedupe case-insensitively, and toggle via Settings > Optional fields.
+- Offline editing. Place, route, GPX, region, and category-label changes work offline, apply immediately, survive a reload, and sync when the connection returns. The offline banner shows pending changes; a toast reports the sync result.
+- Clicking a route on the index map highlights it (it thickens, others dim) so overlapping routes stand apart; clicking the same spot steps through stacked routes, and empty space clears it.
+- The route highlight animates over ~150ms instead of snapping (respects reduced-motion).
+- Categories, regions, and place/route statuses can be hidden by default (eye toggles in Manage categories/regions, status defaults in Settings > Appearance); the filter panel still shows them for the session.
 - Settings > Appearance > On-map controls can hide the route detail view's expand button.
-- Catalog Browse can be filtered by category, country, and tag, alongside the existing search.
-- 198 catalog entries are tagged UNESCO (World Heritage sites), surfaced by the new Browse tag filter.
-- Catalog entries carry natural-feature tags (Volcano, Waterfall, Cave, Beach) and built-form Type tags (Amphitheatre, Theatre, Bath, Bridge, Tower, Statue, Pyramid, and more), filterable in Browse. A Type tag groups the same kind of place even across categories, so every amphitheatre filters together whether it is categorized ruins or monument.
-- Catalog entries are tagged by civilization where one clearly applies (Roman, Greek, Egyptian, Persian, Byzantine, Maya, Khmer, and more), filterable like the other tags. Shipped catalog tags are now a controlled vocabulary.
-- Pending catalog updates can be reviewed in bulk: a "Review updates" chip in the Places controls (a Menu entry on mobile) opens every affected place's field-level diff in one modal, with per-field selection, check-all, and a single Apply. It appears only while updates are pending.
 
 ### Changed
-- The route detail view for multi-segment routes (GPX with several tracks) is now one whole-route elevation graph over a collapsible "Elevation by segment" list. Pick a segment from the list or by clicking its line on the map to see that segment's profile, distance, and climb; click again to return to the whole route. The graph collapses too. A 4-track hike and a 150-segment cycle route now use the same view, replacing the old per-track accordion.
-- Distances and elevations show thousand separators (e.g. `7,340.9 km`, `+101,424 m`) everywhere they appear: route detail, lists, popups, and history.
-- The route detail view's top stats bar is gone; length and climb now sit on the elevation header. The estimated-time figure (a rough guess from distance and gain) was dropped.
-- The index map simplifies each route's geometry to the current zoom level, so long or dense GPX tracks (continental routes with 100k+ points) stay smooth to pan and zoom; detail returns as you zoom in. The route detail view thins its geometry the same way.
-- The map filter panel marks a toggled-off category or region by fading its whole row and hiding its color dot, so the off state reads more clearly.
-- Confirmation dialogs no longer show a Cancel button; dismiss with Esc, the X, or a click outside.
-- Route tags now keep the casing you type (e.g. `UNESCO`) instead of being forced to lowercase; matching and dedup stay case-insensitive.
-- Importing places from the catalog confirms only when adding 10 or more at once; smaller selections import without a prompt.
-- Catalog categories reworked to 10 broad, legible buckets (from 18): overlapping and singleton categories merged, `beach` folded into `nature`, and a `tomb` category split out. Finer distinctions and feature detail moved to tags.
-- List filters no longer show an applied-count on the Filters button; instead the button and any filter dropdown holding a non-default value are accent-tinted, so active filters read at a glance.
-- Places list layout: country/category sections now stack as one full-width column, with cards at a uniform capped width, centered, up to 3 per row, and each section header aligned above its left-most card. The previous two-column masonry stretched single-entry and partial rows to full width, which read as messy on wide windows.
-- The navigation tabs, Add, and Menu buttons use one larger size at every width instead of shrinking on narrow screens, and the space above page content is tighter and no longer jumps when the window crosses a breakpoint.
+- The multi-segment route detail view is now one whole-route elevation graph above a collapsible "Elevation by segment" list; pick a segment from the list or the map for its own profile, or click again for the whole route. Replaces the old per-track accordion.
+- Distances and elevations show thousand separators (e.g. `7,340.9 km`, `+101,424 m`).
+- The route detail top stats bar is gone; length and climb sit on the elevation header, and the rough estimated-time figure was dropped.
+- The index and detail maps thin each route's geometry to the current zoom, so dense GPX tracks (100k+ points) stay smooth; detail returns as you zoom in.
+- The filter panel fades a toggled-off category or region's row and hides its color dot, so the off state reads clearly.
+- Confirmation dialogs drop the Cancel button; dismiss with Esc, the X, or a click outside.
+- Route tags keep their casing (e.g. `UNESCO`) instead of being lowercased; matching stays case-insensitive.
+- Catalog imports confirm only when adding 10 or more; smaller selections import without a prompt.
+- Catalog categories reworked from 18 to 10 broad buckets, with finer detail moved to tags.
+- Active list filters now tint the Filters button and the affected dropdowns instead of showing a count badge.
+- Places list sections stack as one full-width column of uniform capped-width cards (up to 3 per row, centered), replacing the two-column masonry that stretched partial rows.
+- The nav tabs, Add, and Menu buttons keep one size at every width instead of shrinking on narrow screens, and the space above content no longer jumps at breakpoints.
 
 ### Fixed
-- On touch devices, route lines on a map now hold a constant width through a pinch-zoom instead of ballooning and snapping back at the end, and panning/zooming stays smooth with many routes. Routes are drawn on a GPU (WebGL) layer there; desktop rendering is unchanged, and touch devices without WebGL fall back to the standard rendering.
-- Index map: place pins no longer vanish on the right side of the map after the window is widened. The marker canvas now resizes with the map instead of holding its initial width and clipping pins past it.
-- Opening a large multi-segment route no longer flashes and re-fits the map a second or two in: the elevation area reserves its height up front instead of expanding once the GPX finishes parsing.
-- Very large routes (continental routes with tens of thousands of points, whether one track or many) open and pan smoothly in the detail view instead of stalling: map geometry thins to the current zoom, elevation profiles are sampled down, and route lines hold a constant width through zoom.
-- Editing a route's name or region from its detail view now follows the route to its new address instead of leaving a dead link that showed "route not found".
-- Places added from the catalog (or via the Add form) now appear in the Places list immediately instead of only after a manual reload.
-- Routes list cards no longer stretch to fill the row: a region with a single route, or the partial last row of any region, kept normal-sized tiles instead of ballooning to full width.
+- On touch, route lines hold a constant width through pinch-zoom and panning stays smooth with many routes, via a GPU (WebGL) layer. Desktop is unchanged; touch without WebGL falls back to standard rendering.
+- Index map place pins no longer vanish on the right after the window is widened; the marker canvas now resizes with the map.
+- Opening a large multi-segment route no longer flashes and re-fits the map, since the elevation area reserves its height up front.
+- Very large routes (tens of thousands of points) open and pan smoothly in the detail view instead of stalling; geometry and elevation thin to the current zoom.
+- Editing a route's name or region from its detail view follows it to the new address instead of leaving a dead "route not found" link.
+- Places added from the catalog or Add form appear in the list immediately, not only after a reload.
+- Routes list cards no longer stretch to fill a row; single-route regions and partial last rows keep normal-sized tiles.
 
 ### Removed
-- The one-shot `show-native-name` to `show-local-name` localStorage migration (from before 1.1.0); browsers have long since booted through it.
+- The one-shot `show-native-name` to `show-local-name` localStorage migration (pre-1.1.0); browsers have long since booted through it.
 
 ## [1.2.0] - 2026-05-31
 
