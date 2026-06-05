@@ -367,6 +367,12 @@
     [data-theme][data-mode] { --planned: #d23f3f; --completed: #2ea043; }
 
     .leaflet-div-icon { background: transparent; border: none; }
+    /* Touch holds route stroke width constant through the zoom CSS-transform
+       (the SVG pane is scaled mid-pinch, which would otherwise balloon the
+       stroke). Compositor-native, zero per-frame work; the desktop per-frame
+       reprojection (adjustTrailStrokes) covers smooth-wheel zoom, where Firefox
+       does not honor non-scaling-stroke. */
+    .leaflet-overlay-pane path { vector-effect: non-scaling-stroke; }
     /* Selector targets .leaflet-tile-container so it applies to both the
        <img> tiles and the per-level <canvas> created by the NoGap plugin. */
     [data-tile-filter="muted"] .leaflet-tile-container { filter: saturate(0.35) brightness(0.95) contrast(0.95); }
