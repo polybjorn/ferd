@@ -367,12 +367,6 @@
     [data-theme][data-mode] { --planned: #d23f3f; --completed: #2ea043; }
 
     .leaflet-div-icon { background: transparent; border: none; }
-    /* Touch holds route stroke width constant through the zoom CSS-transform
-       (the SVG pane is scaled mid-pinch, which would otherwise balloon the
-       stroke). Compositor-native, zero per-frame work; the desktop per-frame
-       reprojection (adjustTrailStrokes) covers smooth-wheel zoom, where Firefox
-       does not honor non-scaling-stroke. */
-    .leaflet-overlay-pane path { vector-effect: non-scaling-stroke; }
     /* Selector targets .leaflet-tile-container so it applies to both the
        <img> tiles and the per-level <canvas> created by the NoGap plugin. */
     [data-tile-filter="muted"] .leaflet-tile-container { filter: saturate(0.35) brightness(0.95) contrast(0.95); }
@@ -5232,6 +5226,185 @@
     //
     // Desktop keeps the per-frame path, gated on an actual zoom change so a
     // pure pan still uses Leaflet's cheap native translate.
+    // ---- GPU route layer (touch only) -------------------------------------
+    // The index map can show many routes; per-frame SVG reprojection (the
+    // desktop path) stalls a touch pinch, and the browser balloons SVG stroke
+    // width during the zoom CSS-transform. So on coarse pointers we draw the
+    // routes on a WebGL canvas in the map container: geometry uploaded once
+    // (Web-Mercator px at a fixed reference zoom, local-origin relative for
+    // float32 precision); each frame only a cheap uniform changes. The vertex
+    // shader expands the line to a constant pixel width in screen space, so
+    // width stays constant through zoom with no per-frame geometry work.
+    // Desktop and any touch device without WebGL keep the SVG path (fallback).
+    const _glColCanvas = document.createElement('canvas');
+    _glColCanvas.width = _glColCanvas.height = 1;
+    const _glColCtx = _glColCanvas.getContext('2d');
+    const _glColCache = {};
+    function glParseColor(c) {
+      if (_glColCache[c]) return _glColCache[c];
+      _glColCtx.fillStyle = '#000'; _glColCtx.fillStyle = c; _glColCtx.fillRect(0, 0, 1, 1);
+      const d = _glColCtx.getImageData(0, 0, 1, 1).data;
+      const rgb = [d[0] / 255, d[1] / 255, d[2] / 255];
+      _glColCache[c] = rgb; return rgb;
+    }
+    const GL_ROUTE_REFZOOM = 20;
+    const GL_ROUTE_STRIDE = 11; // segA(2) segB(2) end(1) side(1) rgba(4) halfWidth(1)
+    function attachGLRoutes(map) {
+      const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+      if (!coarse) return; // desktop keeps SVG + per-frame reprojection (no WebGL dependency)
+
+      let gl, program, buffer, vertCount = 0, originRef = null, raf = 0;
+      const loc = {};
+      const canvas = document.createElement('canvas');
+      canvas.className = 'gl-routes';
+      canvas.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;';
+      // Own pane below the place-canvas (450), markers (600) and popups (700),
+      // above the tile pane (200). Not zoom-animated, so it never gets the zoom
+      // CSS scale; draw() counters the map-pane pan offset each frame.
+      const pane = map.getPane('glRoutesPane') || map.createPane('glRoutesPane');
+      pane.style.zIndex = 410;
+      pane.style.pointerEvents = 'none';
+      pane.appendChild(canvas);
+
+      const VS = [
+        'attribute vec2 aSegA; attribute vec2 aSegB; attribute float aEnd; attribute float aSide;',
+        'attribute vec4 aColor; attribute float aWidth;',
+        'uniform float uScale; uniform vec2 uOriginDelta; uniform vec2 uHalfSize; uniform vec2 uViewport;',
+        'varying vec4 vColor;',
+        'vec2 toC(vec2 v){ return uHalfSize + (v + uOriginDelta) * uScale; }',
+        'vec2 toClip(vec2 c){ return vec2(c.x / uViewport.x * 2.0 - 1.0, 1.0 - c.y / uViewport.y * 2.0); }',
+        'void main(){',
+        '  vColor = aColor;',
+        '  vec2 cA = toC(aSegA); vec2 cB = toC(aSegB);',
+        '  vec2 self = mix(cA, cB, aEnd);',
+        '  vec2 d = cB - cA; float l = length(d);',
+        '  vec2 t = l > 0.0 ? d / l : vec2(1.0, 0.0);',
+        '  vec2 perp = vec2(-t.y, t.x);',
+        '  gl_Position = vec4(toClip(self + perp * aSide * aWidth), 0.0, 1.0);',
+        '}'
+      ].join('\n');
+      const FS = 'precision mediump float; varying vec4 vColor; void main(){ gl_FragColor = vec4(vColor.rgb * vColor.a, vColor.a); }'; // premultiplied
+
+      function compile(type, src) {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src); gl.compileShader(s);
+        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { console.warn('[gl-routes] shader', gl.getShaderInfoLog(s)); return null; }
+        return s;
+      }
+      function init() {
+        gl = canvas.getContext('webgl', { antialias: true, premultipliedAlpha: true });
+        if (!gl) return false;
+        const vs = compile(gl.VERTEX_SHADER, VS), fs = compile(gl.FRAGMENT_SHADER, FS);
+        if (!vs || !fs) return false;
+        program = gl.createProgram();
+        gl.attachShader(program, vs); gl.attachShader(program, fs); gl.linkProgram(program);
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) { console.warn('[gl-routes] link', gl.getProgramInfoLog(program)); return false; }
+        gl.useProgram(program);
+        ['aSegA', 'aSegB', 'aEnd', 'aSide', 'aColor', 'aWidth'].forEach(a => loc[a] = gl.getAttribLocation(program, a));
+        ['uScale', 'uOriginDelta', 'uHalfSize', 'uViewport'].forEach(u => loc[u] = gl.getUniformLocation(program, u));
+        buffer = gl.createBuffer();
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); // premultiplied alpha
+        resize();
+        return true;
+      }
+      function resize() {
+        const size = map.getSize(), dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.round(size.x * dpr); canvas.height = Math.round(size.y * dpr);
+        canvas.style.width = size.x + 'px'; canvas.style.height = size.y + 'px';
+        gl.viewport(0, 0, canvas.width, canvas.height);
+      }
+      const V6 = [[0, 1], [0, -1], [1, 1], [0, -1], [1, -1], [1, 1]];
+      function rebuild() {
+        if (!gl || !state._routeLayers) return;
+        originRef = map.project(map.getCenter(), GL_ROUTE_REFZOOM);
+        const sel = state._selectedRouteKey;
+        const factor = getTrailWeightFactor();
+        const base = [], top = []; // selected route appended last so it draws on top
+        const pushSeg = (arr, ax, ay, bx, by, col, hw) => {
+          for (const [end, side] of V6) arr.push(ax, ay, bx, by, end, side, col[0], col[1], col[2], col[3], hw);
+        };
+        const drawRoute = (record) => {
+          const isSel = sel && record.route.key === sel;
+          const rgb = glParseColor(routeStatusColor(record.completed));
+          const col = [rgb[0], rgb[1], rgb[2], isSel ? 1.0 : (sel ? 0.4 : 0.85)];
+          const hw = (isSel ? 4 * factor + 2 : 4 * factor) / 2;
+          const arr = isSel ? top : base;
+          const visit = (layer) => {
+            if (layer.getLatLngs && !layer.eachLayer) {
+              const raw = layer.getLatLngs();
+              const flat = Array.isArray(raw) && Array.isArray(raw[0]) ? [].concat.apply([], raw) : raw;
+              let prev = null;
+              for (const ll of flat) {
+                const p = map.project(ll, GL_ROUTE_REFZOOM);
+                const x = p.x - originRef.x, y = p.y - originRef.y;
+                if (prev) pushSeg(arr, prev[0], prev[1], x, y, col, hw);
+                prev = [x, y];
+              }
+            }
+            if (layer.eachLayer) layer.eachLayer(visit);
+          };
+          visit(record.layer);
+        };
+        for (const record of state._routeLayers) {
+          if (state.hiddenRegions.has(record.region)) continue;
+          if (!(record.completed ? state.showCompleted : state.showPlanned)) continue;
+          drawRoute(record);
+        }
+        const data = base.concat(top);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
+        vertCount = data.length / GL_ROUTE_STRIDE;
+      }
+      function draw() {
+        raf = 0;
+        if (!gl) return;
+        // Keep the canvas pinned to the viewport (counter the map-pane pan offset).
+        L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint([0, 0]));
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        if (!vertCount || !originRef) return;
+        const size = map.getSize();
+        const scale = map.getZoomScale(map.getZoom(), GL_ROUTE_REFZOOM);
+        const cNow = map.project(map.getCenter(), GL_ROUTE_REFZOOM);
+        gl.useProgram(program);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        const S = GL_ROUTE_STRIDE * 4;
+        gl.enableVertexAttribArray(loc.aSegA); gl.vertexAttribPointer(loc.aSegA, 2, gl.FLOAT, false, S, 0);
+        gl.enableVertexAttribArray(loc.aSegB); gl.vertexAttribPointer(loc.aSegB, 2, gl.FLOAT, false, S, 8);
+        gl.enableVertexAttribArray(loc.aEnd); gl.vertexAttribPointer(loc.aEnd, 1, gl.FLOAT, false, S, 16);
+        gl.enableVertexAttribArray(loc.aSide); gl.vertexAttribPointer(loc.aSide, 1, gl.FLOAT, false, S, 20);
+        gl.enableVertexAttribArray(loc.aColor); gl.vertexAttribPointer(loc.aColor, 4, gl.FLOAT, false, S, 24);
+        gl.enableVertexAttribArray(loc.aWidth); gl.vertexAttribPointer(loc.aWidth, 1, gl.FLOAT, false, S, 40);
+        gl.uniform1f(loc.uScale, scale);
+        gl.uniform2f(loc.uOriginDelta, originRef.x - cNow.x, originRef.y - cNow.y);
+        gl.uniform2f(loc.uHalfSize, size.x / 2, size.y / 2);
+        gl.uniform2f(loc.uViewport, size.x, size.y);
+        gl.drawArrays(gl.TRIANGLES, 0, vertCount);
+      }
+      let rebuildTimer = 0;
+      function rebuildSoon() {
+        if (rebuildTimer) return;
+        rebuildTimer = setTimeout(function () { rebuildTimer = 0; rebuild(); draw(); }, 150);
+      }
+
+      if (!init()) { canvas.remove(); return; } // no WebGL: keep SVG routes (fallback)
+      // GL is up: hide the SVG route lines so only the GL layer shows on this map.
+      map.getContainer().classList.add('gl-routes-active');
+      if (!document.getElementById('gl-routes-style')) {
+        const st = document.createElement('style');
+        st.id = 'gl-routes-style';
+        st.textContent = '.gl-routes-active path.route-line{opacity:0 !important;}';
+        document.head.appendChild(st);
+      }
+      rebuild(); draw();
+      // Selection/highlight + weight-pref changes go through applyRouteHighlight.
+      state._glRoutesDirty = function () { rebuildSoon(); };
+      map.on('move zoom', draw); // synchronous: lockstep with the tiles, no one-frame lag
+      map.on('moveend zoomend', function () { rebuild(); draw(); });
+      map.on('resize', function () { resize(); draw(); });
+      map.on('layeradd', rebuildSoon); // routes load lazily (async GPX)
+    }
+
     function bindTrailStrokeMotion(map) {
       const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
       let lastZoom = map.getZoom();
@@ -5275,6 +5448,7 @@
           if (on && typeof t.layer.bringToFront === 'function') t.layer.bringToFront();
         } catch (e) {}
       }
+      if (state._glRoutesDirty) state._glRoutesDirty();
     }
 
     function setSelectedRoute(key) {
@@ -5632,6 +5806,7 @@
         scrollWheelZoom: false,
         smoothWheelZoom: true,
         smoothSensitivity: 1.5,
+        zoomSnap: 0, // continuous zoom (no integer-level snapping); matches desktop smooth-wheel, avoids the touch pinch-release snap
         renderer: L.svg()
       }).setView(dv.center, dv.zoom);
       L.control.attribution({ prefix: false }).addTo(map);
@@ -5642,6 +5817,7 @@
       // rest (all devices); see bindTrailStrokeMotion for the per-pointer split.
       bindTrailStrokeMotion(map);
       addTileLayersToMap(map);
+      attachGLRoutes(map);
 
       if (getRememberView()) {
         map.on('moveend zoomend', function() {
@@ -8799,6 +8975,7 @@
         scrollWheelZoom: false,
         smoothWheelZoom: true,
         smoothSensitivity: 1.5,
+        zoomSnap: 0, // continuous zoom (no integer-level snapping); matches desktop smooth-wheel, avoids the touch pinch-release snap
         renderer: L.svg()
       });
       // Fit to the route's bbox up-front so the initial tile load is near
