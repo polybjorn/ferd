@@ -5,6 +5,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
+- Selecting a route on the index map animates the highlight: the chosen route's thicken/opacity and the dimming of the others ease over ~150ms instead of snapping (respects reduced-motion).
 - 140 new shipped catalog entries.
 - Offline editing. Adding or editing places, completing/editing/moving/deleting routes, uploading new GPX, and managing regions and category labels now work while offline: changes apply immediately, survive a reload, and sync to the server automatically when the connection returns. The offline banner shows how many changes are waiting, and a brief toast reports the result after a sync (including any skipped because the server copy changed first).
 - Index map: clicking a route highlights it (the line thickens slightly and goes opaque while the rest dim back), so overlapping routes are easy to tell apart. Clicking the same spot again steps through routes stacked there; clicking an empty spot clears the highlight; arriving from a route's detail view highlights it automatically.

@@ -5248,7 +5248,7 @@
       _glColCache[c] = rgb; return rgb;
     }
     const GL_ROUTE_REFZOOM = 20;
-    const GL_ROUTE_STRIDE = 11; // segA(2) segB(2) end(1) side(1) rgba(4) halfWidth(1)
+    const GL_ROUTE_STRIDE = 13; // segA(2) segB(2) end(1) side(1) rgb(3) opFrom(1) opTo(1) wFrom(1) wTo(1)
     function attachGLRoutes(map) {
       const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
       if (!coarse) return; // desktop keeps SVG + per-frame reprojection (no WebGL dependency)
@@ -5268,19 +5268,20 @@
 
       const VS = [
         'attribute vec2 aSegA; attribute vec2 aSegB; attribute float aEnd; attribute float aSide;',
-        'attribute vec4 aColor; attribute float aWidth;',
-        'uniform float uScale; uniform vec2 uOriginDelta; uniform vec2 uHalfSize; uniform vec2 uViewport;',
+        'attribute vec3 aColor; attribute float aOpFrom; attribute float aOpTo; attribute float aWFrom; attribute float aWTo;',
+        'uniform float uScale; uniform vec2 uOriginDelta; uniform vec2 uHalfSize; uniform vec2 uViewport; uniform float uHlT;',
         'varying vec4 vColor;',
         'vec2 toC(vec2 v){ return uHalfSize + (v + uOriginDelta) * uScale; }',
         'vec2 toClip(vec2 c){ return vec2(c.x / uViewport.x * 2.0 - 1.0, 1.0 - c.y / uViewport.y * 2.0); }',
         'void main(){',
-        '  vColor = aColor;',
+        '  vColor = vec4(aColor, mix(aOpFrom, aOpTo, uHlT));', // highlight opacity interpolated
+        '  float hw = mix(aWFrom, aWTo, uHlT);',              // and half-width
         '  vec2 cA = toC(aSegA); vec2 cB = toC(aSegB);',
         '  vec2 self = mix(cA, cB, aEnd);',
         '  vec2 d = cB - cA; float l = length(d);',
         '  vec2 t = l > 0.0 ? d / l : vec2(1.0, 0.0);',
         '  vec2 perp = vec2(-t.y, t.x);',
-        '  gl_Position = vec4(toClip(self + perp * aSide * aWidth), 0.0, 1.0);',
+        '  gl_Position = vec4(toClip(self + perp * aSide * hw), 0.0, 1.0);',
         '}'
       ].join('\n');
       const FS = 'precision mediump float; varying vec4 vColor; void main(){ gl_FragColor = vec4(vColor.rgb * vColor.a, vColor.a); }'; // premultiplied
@@ -5300,8 +5301,8 @@
         gl.attachShader(program, vs); gl.attachShader(program, fs); gl.linkProgram(program);
         if (!gl.getProgramParameter(program, gl.LINK_STATUS)) { console.warn('[gl-routes] link', gl.getProgramInfoLog(program)); return false; }
         gl.useProgram(program);
-        ['aSegA', 'aSegB', 'aEnd', 'aSide', 'aColor', 'aWidth'].forEach(a => loc[a] = gl.getAttribLocation(program, a));
-        ['uScale', 'uOriginDelta', 'uHalfSize', 'uViewport'].forEach(u => loc[u] = gl.getUniformLocation(program, u));
+        ['aSegA', 'aSegB', 'aEnd', 'aSide', 'aColor', 'aOpFrom', 'aOpTo', 'aWFrom', 'aWTo'].forEach(a => loc[a] = gl.getAttribLocation(program, a));
+        ['uScale', 'uOriginDelta', 'uHalfSize', 'uViewport', 'uHlT'].forEach(u => loc[u] = gl.getUniformLocation(program, u));
         buffer = gl.createBuffer();
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); // premultiplied alpha
@@ -5318,18 +5319,23 @@
       function rebuild() {
         if (!gl || !state._routeLayers) return;
         originRef = map.project(map.getCenter(), GL_ROUTE_REFZOOM);
+        const base4 = 4 * getTrailWeightFactor();
         const sel = state._selectedRouteKey;
-        const factor = getTrailWeightFactor();
-        const base = [], top = []; // selected route appended last so it draws on top
-        const pushSeg = (arr, ax, ay, bx, by, col, hw) => {
-          for (const [end, side] of V6) arr.push(ax, ay, bx, by, end, side, col[0], col[1], col[2], col[3], hw);
+        // From/to selection keys for the highlight animation. The shader lerps
+        // opacity/width between the two by the uHlT uniform, so a selection
+        // change uploads geometry once and animates with no further rebuilds.
+        const hlFrom = (state._hlFrom === undefined) ? sel : state._hlFrom;
+        const hlTo = (state._hlTo === undefined) ? sel : state._hlTo;
+        const baseArr = [], topArr = []; // the (incoming) selected route appended last so it draws on top
+        const pushSeg = (arr, ax, ay, bx, by, rgb, opF, opT, wF, wT) => {
+          for (const [end, side] of V6) arr.push(ax, ay, bx, by, end, side, rgb[0], rgb[1], rgb[2], opF, opT, wF, wT);
         };
         const drawRoute = (record) => {
-          const isSel = sel && record.route.key === sel;
+          const f = routeHighlightStyle(record.route.key, hlFrom, base4);
+          const g = routeHighlightStyle(record.route.key, hlTo, base4);
           const rgb = glParseColor(routeStatusColor(record.completed));
-          const col = [rgb[0], rgb[1], rgb[2], isSel ? 1.0 : (sel ? 0.4 : 0.85)];
-          const hw = (isSel ? 4 * factor + 2 : 4 * factor) / 2;
-          const arr = isSel ? top : base;
+          const opF = f.opacity, opT = g.opacity, wF = f.weight / 2, wT = g.weight / 2;
+          const arr = (hlTo && record.route.key === hlTo) ? topArr : baseArr;
           const visit = (layer) => {
             if (layer.getLatLngs && !layer.eachLayer) {
               const raw = layer.getLatLngs();
@@ -5338,7 +5344,7 @@
               for (const ll of flat) {
                 const p = map.project(ll, GL_ROUTE_REFZOOM);
                 const x = p.x - originRef.x, y = p.y - originRef.y;
-                if (prev) pushSeg(arr, prev[0], prev[1], x, y, col, hw);
+                if (prev) pushSeg(arr, prev[0], prev[1], x, y, rgb, opF, opT, wF, wT);
                 prev = [x, y];
               }
             }
@@ -5351,7 +5357,7 @@
           if (!(record.completed ? state.showCompleted : state.showPlanned)) continue;
           drawRoute(record);
         }
-        const data = base.concat(top);
+        const data = baseArr.concat(topArr);
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
         vertCount = data.length / GL_ROUTE_STRIDE;
@@ -5373,12 +5379,16 @@
         gl.enableVertexAttribArray(loc.aSegB); gl.vertexAttribPointer(loc.aSegB, 2, gl.FLOAT, false, S, 8);
         gl.enableVertexAttribArray(loc.aEnd); gl.vertexAttribPointer(loc.aEnd, 1, gl.FLOAT, false, S, 16);
         gl.enableVertexAttribArray(loc.aSide); gl.vertexAttribPointer(loc.aSide, 1, gl.FLOAT, false, S, 20);
-        gl.enableVertexAttribArray(loc.aColor); gl.vertexAttribPointer(loc.aColor, 4, gl.FLOAT, false, S, 24);
-        gl.enableVertexAttribArray(loc.aWidth); gl.vertexAttribPointer(loc.aWidth, 1, gl.FLOAT, false, S, 40);
+        gl.enableVertexAttribArray(loc.aColor); gl.vertexAttribPointer(loc.aColor, 3, gl.FLOAT, false, S, 24);
+        gl.enableVertexAttribArray(loc.aOpFrom); gl.vertexAttribPointer(loc.aOpFrom, 1, gl.FLOAT, false, S, 36);
+        gl.enableVertexAttribArray(loc.aOpTo); gl.vertexAttribPointer(loc.aOpTo, 1, gl.FLOAT, false, S, 40);
+        gl.enableVertexAttribArray(loc.aWFrom); gl.vertexAttribPointer(loc.aWFrom, 1, gl.FLOAT, false, S, 44);
+        gl.enableVertexAttribArray(loc.aWTo); gl.vertexAttribPointer(loc.aWTo, 1, gl.FLOAT, false, S, 48);
         gl.uniform1f(loc.uScale, scale);
         gl.uniform2f(loc.uOriginDelta, originRef.x - cNow.x, originRef.y - cNow.y);
         gl.uniform2f(loc.uHalfSize, size.x / 2, size.y / 2);
         gl.uniform2f(loc.uViewport, size.x, size.y);
+        gl.uniform1f(loc.uHlT, (state._hlT == null) ? 1 : state._hlT);
         gl.drawArrays(gl.TRIANGLES, 0, vertCount);
       }
       let rebuildTimer = 0;
@@ -5399,6 +5409,8 @@
       rebuild(); draw();
       // Selection/highlight + weight-pref changes go through applyRouteHighlight.
       state._glRoutesDirty = function () { rebuildSoon(); };
+      state._glRoutesRebuild = function () { rebuild(); draw(); }; // selection change: upload from/to buffer once
+      state._glRoutesDraw = function () { draw(); };               // animation frame: cheap uniform update only
       map.on('move zoom', draw); // synchronous: lockstep with the tiles, no one-frame lag
       map.on('moveend zoomend', function () { rebuild(); draw(); });
       map.on('resize', function () { resize(); draw(); });
@@ -5437,23 +5449,60 @@
     // back, so it stands out where several routes overlap. Style-based, so it
     // survives zoom/pan re-projection; re-applied on weight-pref change and
     // after each lazy route load so the selection sticks.
-    function applyRouteHighlight() {
+    // A route's style under a selection key: selected fattens + opaque; others
+    // dim when something is selected, full when nothing is.
+    function routeHighlightStyle(routeKey, selKey, base) {
+      const on = selKey && routeKey === selKey;
+      return { weight: on ? base + 2 : base, opacity: on ? 1 : (selKey ? 0.4 : 0.85) };
+    }
+    // SVG (desktop) highlight at an interpolated point between two selection states.
+    function svgHighlight(fromKey, toKey, t) {
       if (!state._routeLayers) return;
       const base = 4 * getTrailWeightFactor();
-      const sel = state._selectedRouteKey;
-      for (const t of state._routeLayers) {
-        const on = sel && t.route.key === sel;
+      for (const r of state._routeLayers) {
+        const f = routeHighlightStyle(r.route.key, fromKey, base);
+        const g = routeHighlightStyle(r.route.key, toKey, base);
         try {
-          t.layer.setStyle({ weight: on ? base + 2 : base, opacity: on ? 1 : (sel ? 0.4 : 0.85) });
-          if (on && typeof t.layer.bringToFront === 'function') t.layer.bringToFront();
+          r.layer.setStyle({ weight: f.weight + (g.weight - f.weight) * t, opacity: f.opacity + (g.opacity - f.opacity) * t });
+          if (t >= 1 && toKey && r.route.key === toKey && typeof r.layer.bringToFront === 'function') r.layer.bringToFront();
         } catch (e) {}
       }
-      if (state._glRoutesDirty) state._glRoutesDirty();
+    }
+    // Instant apply (no animation): route loads, weight-pref changes.
+    function applyRouteHighlight() {
+      if (!state._routeLayers) return;
+      const sel = state._selectedRouteKey;
+      state._hlFrom = state._hlTo = sel; state._hlT = 1;
+      svgHighlight(sel, sel, 1);
+      if (state._glRoutesRebuild) state._glRoutesRebuild();
     }
 
+    let _hlRaf = 0;
+    // Selection change from a click: animate from the previous selection to the
+    // new one (~150ms ease-out). The GL buffer is rebuilt once with both end
+    // states; the animation only advances the uHlT uniform (no per-frame
+    // rebuild). SVG interpolates via setStyle. Respects reduced-motion.
     function setSelectedRoute(key) {
-      state._selectedRouteKey = key || null;
-      applyRouteHighlight();
+      const from = state._selectedRouteKey;
+      const to = key || null;
+      state._selectedRouteKey = to;
+      if (_hlRaf) { cancelAnimationFrame(_hlRaf); _hlRaf = 0; }
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (from === to || reduce || !state._routeLayers) { applyRouteHighlight(); return; }
+      state._hlFrom = from; state._hlTo = to; state._hlT = 0;
+      svgHighlight(from, to, 0);
+      if (state._glRoutesRebuild) state._glRoutesRebuild(); // upload from/to buffer once
+      const start = performance.now(), dur = 150;
+      const tick = (now) => {
+        const p = Math.min(1, (now - start) / dur);
+        const e = 1 - (1 - p) * (1 - p); // ease-out quad
+        state._hlT = e;
+        svgHighlight(from, to, e);
+        if (state._glRoutesDraw) state._glRoutesDraw();
+        if (p < 1) { _hlRaf = requestAnimationFrame(tick); }
+        else { _hlRaf = 0; state._hlT = 1; state._hlFrom = state._hlTo = to; }
+      };
+      _hlRaf = requestAnimationFrame(tick);
     }
 
     function refreshTrailWeights() {
