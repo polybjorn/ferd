@@ -4,6 +4,12 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+### Changed
+- Deleting a route from the index map removes just that route in place instead of rebuilding the whole map (no blink or refit).
+
+### Fixed
+- Editing or deleting a route from the index-map right-click menu used the wrong region, so routes in a region couldn't be deleted that way.
+
 ## [1.3.0] - 2026-06-05
 
 ### Added

@@ -4891,6 +4891,7 @@
       state._selectedRouteKey = null;
       state._routeGroupCompleted = null;
       state._routeGroupPlanned = null;
+      state._removeRouteFromMap = null;
       state._routeRenderer = null;
       state._detailPolylines = null;
       state._detailRenderer = null;
@@ -5695,6 +5696,16 @@
         .catch(err => { alert('Failed: ' + err.message); return false; });
     }
 
+    // After a route delete, drop it from the live index map in place so the map
+    // doesn't fully rebuild (blink + refit). state._removeRouteFromMap is a
+    // per-render closure installed by renderHomeMap (it owns the lazy-load
+    // bookkeeping); when no index map is mounted (list, history, detail) fall
+    // back to a router re-render.
+    function afterRouteDeleted(key) {
+      if (state._removeRouteFromMap && state._removeRouteFromMap(key)) return;
+      if (typeof wrappedRouter === 'function') wrappedRouter();
+    }
+
     function findRouteByKey(key) {
       if (!state.manifest) return null;
       for (const region of state.manifest.regions) {
@@ -5786,7 +5797,7 @@
             const btn = this;
             btn.disabled = true;
             deleteTrail(route, regionName).then(function(deleted) {
-              if (deleted) { closeModal(); wrappedRouter(); }
+              if (deleted) { closeModal(); afterRouteDeleted(route.key); }
               else { btn.disabled = false; }
             });
           });
@@ -6217,6 +6228,33 @@
       scheduleTrailEval();
 
       applyMapFilters();
+
+      // Remove a single route from this map in place (after a delete) without a
+      // full rebuild. Prunes the lazy-load bookkeeping too, so a later pan can't
+      // refetch the now-deleted GPX from the SW cache and resurrect it. Returns
+      // true if the route was known to this map.
+      state._removeRouteFromMap = function(key) {
+        for (let i = routeDescriptors.length - 1; i >= 0; i--) {
+          if (routeDescriptors[i].route.key === key) routeDescriptors.splice(i, 1);
+        }
+        loadedRouteKeys.delete(key);
+        pendingRouteKeys.delete(key);
+        let found = false;
+        for (let i = routeLayers.length - 1; i >= 0; i--) {
+          if (routeLayers[i].route.key !== key) continue;
+          const layer = routeLayers[i].layer;
+          try { if (layer.closePopup) layer.closePopup(); } catch (_) {}
+          routeLayers.splice(i, 1);
+          found = true;
+        }
+        if (state._selectedRouteKey === key) state._selectedRouteKey = null;
+        // applyMapFilters clears + re-adds the status groups from routeLayers,
+        // so the spliced layer leaves the map; applyRouteHighlight re-strokes
+        // the survivors (SVG) and rebuilds the GL buffer (touch).
+        applyMapFilters();
+        applyRouteHighlight();
+        return found;
+      };
 
       // Initial bounds: places + routes, prefer focus
       if (focusPlace) {
@@ -11989,8 +12027,10 @@
       openContextMenu({ x: oe.clientX, y: oe.clientY, items });
     }
 
-    // Route polyline right-click on the home map.
-    function openMapRouteContextMenu(route, region, oe, map) {
+    // Route polyline right-click on the home map. regionName is the route's
+    // region as a plain string ('' for no-region); routeLayers records carry
+    // region as the name, not the manifest region object.
+    function openMapRouteContextMenu(route, regionName, oe, map) {
       const items = [];
       const slug = route._slug || route.key;
       items.push({ label: 'Open', onClick: function() { location.hash = '#/routes/route/' + encodeURIComponent(route.key); } });
@@ -11998,7 +12038,7 @@
         items.push({ label: 'Go to source', onClick: function() { window.open(route.source, '_blank', 'noopener'); } });
       }
       if (!isReadOnly() && state.auth && state.auth.authenticated) {
-        items.push({ label: 'Edit', onClick: function() { openEditTrailMetadataModal(route, region.name); } });
+        items.push({ label: 'Edit', onClick: function() { openEditTrailMetadataModal(route, regionName); } });
       }
       items.push({ label: 'Copy link', onClick: function() { copyShareLink('route', slug); } });
       if (!isReadOnly() && state.auth && state.auth.authenticated) {
@@ -12006,14 +12046,14 @@
         items.push({ label: 'Delete', danger: true, onClick: function() {
           openConfirmModal({
             title: 'Delete route',
-            body: 'Delete "' + route.name + '" (' + displayRegion(region.name) + ')? This removes the GPX file.',
+            body: 'Delete "' + route.name + '" (' + displayRegion(regionName) + ')? This removes the GPX file.',
             confirmLabel: 'Delete',
             danger: true,
           }).then(function(ok) {
             if (!ok) return;
-            dataLayer.deleteGpx({ region: region.name, name: route.name })
+            dataLayer.deleteGpx({ region: regionName, name: route.name })
               .then(() => refreshRoutes())
-              .then(() => { if (typeof wrappedRouter === 'function') wrappedRouter(); })
+              .then(() => afterRouteDeleted(route.key))
               .catch(err => alert('Delete failed: ' + err.message));
           });
         }});
