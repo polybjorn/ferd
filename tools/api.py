@@ -145,10 +145,11 @@ DEFAULT_CONFIG = {
 # so any shell change (frontend, vendor, manifest) yields a new version.
 SW_VERSION_PLACEHOLDER = "__FERD_CACHE_VERSION__"
 # Substituted into index.html on serve so the frontend knows its own version
-# without /api/state (e.g. in local-only mode); see APP_VERSION below.
+# without /api/state (e.g. in local-only mode); see get_app_version below.
 APP_VERSION_PLACEHOLDER = "__FERD_APP_VERSION__"
 _SW_VERSION_CACHE: dict = {"version": None, "computed_at": 0.0}
 _SW_VERSION_TTL_SEC = 5
+_APP_VERSION_CACHE: dict = {"version": None, "computed_at": 0.0}
 
 
 def _read_app_version() -> str:
@@ -164,7 +165,17 @@ def _read_app_version() -> str:
   return "unknown"
 
 
-APP_VERSION = _read_app_version()
+def get_app_version() -> str:
+  """Re-read VERSION with a short TTL (like get_sw_version) instead of caching
+  it for the whole process lifetime, so a `git pull` that bumps VERSION is
+  reflected without restarting the API."""
+  import time
+  now = time.monotonic()
+  if (_APP_VERSION_CACHE["version"] is None
+      or now - _APP_VERSION_CACHE["computed_at"] > _SW_VERSION_TTL_SEC):
+    _APP_VERSION_CACHE["version"] = _read_app_version()
+    _APP_VERSION_CACHE["computed_at"] = now
+  return _APP_VERSION_CACHE["version"]
 
 def _compute_sw_version(static_dir: Path) -> str:
   sw_path = static_dir / "sw.js"
@@ -1106,7 +1117,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                           version.encode())
     elif rel == "index.html" and APP_VERSION_PLACEHOLDER.encode() in data:
       data = data.replace(APP_VERSION_PLACEHOLDER.encode(),
-                          APP_VERSION.encode())
+                          get_app_version().encode())
     self.send_response(HTTPStatus.OK)
     self.send_header("Content-Type", ctype)
     self.send_header("Content-Length", str(len(data)))
@@ -1225,7 +1236,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
   # ---- handlers ----
 
   def _h_health(self):
-    self._send_json(HTTPStatus.OK, {"status": "ok", "version": APP_VERSION})
+    self._send_json(HTTPStatus.OK, {"status": "ok", "version": get_app_version()})
 
   def _h_state(self):
     user = self._current_user()
@@ -1242,7 +1253,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "catalog_baseline_open": catalog_baseline_open(self.conn),
       "has_users": user_count(self.conn) > 0,
       "requires_setup_token": Handler.setup_token is not None and user_count(self.conn) == 0,
-      "version": APP_VERSION,
+      "version": get_app_version(),
     })
 
   def _h_public_maps(self):
