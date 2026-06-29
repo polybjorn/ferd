@@ -917,6 +917,29 @@ class TestExport(unittest.TestCase):
     # ZIP magic bytes.
     self.assertEqual(payload[:2], b"PK")
 
+  def test_export_skips_backup_files(self):
+    # A stray backup file (e.g. left by maintenance) must not appear in the
+    # export, and must not abort the whole zip if it happens to be unreadable.
+    c = admin_client()
+    fresh_places([{"name": "Inside", "lat": 0, "lon": 0, "category": "x"}])
+    d = admin_dir()
+    bak = d / "places.json.bak-20260606-175227"
+    bak.write_text("junk", encoding="utf-8")
+    tilde = d / "notes.txt~"
+    tilde.write_text("junk", encoding="utf-8")
+    try:
+      url = _server.base_url + "/api/me/export"  # type: ignore[union-attr]
+      with c.opener.open(urllib.request.Request(url)) as r:
+        self.assertEqual(r.status, 200)
+        payload = r.read()
+      names = zipfile.ZipFile(io.BytesIO(payload)).namelist()
+      self.assertIn("places.json", names)
+      self.assertNotIn(bak.name, names)
+      self.assertNotIn(tilde.name, names)
+    finally:
+      bak.unlink()
+      tilde.unlink()
+
 
 class TestSessionsRevokeOthers(unittest.TestCase):
   def test_revoke_others_keeps_current(self):

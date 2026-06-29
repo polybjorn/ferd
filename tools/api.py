@@ -500,6 +500,16 @@ def admin_count(conn: sqlite3.Connection) -> int:
   return conn.execute("SELECT COUNT(*) AS n FROM users WHERE is_admin=1").fetchone()["n"]
 
 
+def _is_export_junk(base: str) -> bool:
+  """True for files that aren't user data: editor/maintenance backups (*.bak,
+  timestamped *.bak-YYYYMMDD-HHMMSS copies, *~), macOS resource forks (._*) and
+  folder metadata (.DS_Store), Windows junk (Thumbs.db, desktop.ini). Keeps
+  export and import symmetric."""
+  return (base.startswith("._")
+          or base in (".DS_Store", "Thumbs.db", "desktop.ini")
+          or base.endswith(".bak") or ".bak-" in base or base.endswith("~"))
+
+
 def _walk_follow_symlinks(path: Path):
   """os.walk(followlinks=True) with cycle protection. Yields (root, files)
   pairs, deduping directories by (dev, ino) so a self-referential symlink
@@ -2842,8 +2852,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
         for fname in sorted(files):
           if fname.startswith("."):
             continue  # locks (dotfiles), OS noise (.DS_Store, etc.)
+          if _is_export_junk(fname):
+            continue  # editor/maintenance backups, OS metadata (see import)
           path = root_p / fname
-          zf.write(path, arcname=str(path.relative_to(udir)))
+          try:
+            zf.write(path, arcname=str(path.relative_to(udir)))
+          except OSError as e:
+            # A single unreadable file (e.g. a stray root-owned backup) must not
+            # abort the whole export: the response is buffered, so an exception
+            # here would close the connection with no reply at all.
+            print(f"[api] export: skipping unreadable {path}: {e}", file=sys.stderr)
     payload = buf.getvalue()
     fname = f"ferd-{user['username']}-export.zip"
     self.send_response(HTTPStatus.OK)
@@ -2894,9 +2912,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       # (__MACOSX/, ._*), macOS folder metadata (.DS_Store), Windows
       # (Thumbs.db, desktop.ini), and editor backups (*.bak, *~).
       base = name.rsplit("/", 1)[-1]
-      if (name.startswith("__MACOSX/") or base.startswith("._")
-          or base in (".DS_Store", "Thumbs.db", "desktop.ini")
-          or base.endswith(".bak") or base.endswith("~")):
+      if name.startswith("__MACOSX/") or _is_export_junk(base):
         continue
       parts = name.split("/")
       if name in IMPORT_TOP_FILES:
