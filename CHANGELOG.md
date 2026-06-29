@@ -10,6 +10,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ### Fixed
 - Editing or deleting a route from the index-map right-click menu used the wrong region, so routes in a region couldn't be deleted that way.
 - The About dialog reported a stale version after a release; the server now re-reads the VERSION file instead of caching it at startup, so the displayed version tracks the deployed code without an API restart.
+- Data export failed with an empty response when the data directory held an unreadable or stray backup file; export now skips backup and OS-metadata files (matching import) and no longer aborts the whole archive on a single unreadable file.
 
 ## [1.3.0] - 2026-06-05
 
