@@ -3,9 +3,13 @@
 
 Reads scripts/vendor-versions.json: 'deps' are vendored frontend libs (npm),
 'tools' are dev-only CLI tools (npm or pypi per 'source'). Queries each
-registry for the latest version and prints a report. Exits 1 if anything is
-behind upstream, 0 if all match. Designed for CI: a non-zero exit triggers the
-workflow to open an issue with the drift report.
+registry for the latest version and prints a report.
+
+Exit codes, which the CI workflow branches on: 0 every pin matches upstream
+(close any open tracking issue), 1 something is behind (open or update the
+issue with the report), 2 at least one registry lookup failed so the state is
+unknown (fail the run and leave the issue alone). 2 matters because an empty
+drift list after a failed lookup is not evidence of being in sync.
 
 Stdlib only.
 """
@@ -76,6 +80,11 @@ def main() -> int:
         for name, current, latest in drift:
             print(f"  - {name}: {current} -> {latest}")
         return 1
+
+    if errors:
+        print("Version state is unknown: the lookups above failed, so nothing "
+              "here says the pins are in sync.")
+        return 2
 
     print("All vendored deps are at the latest version.")
     return 0

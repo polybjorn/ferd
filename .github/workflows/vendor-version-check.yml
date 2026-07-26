@@ -4,7 +4,9 @@ name: Vendor version check
 # under `vendor/` and the pinned dev tools (jscpd, radon) in
 # scripts/vendor-versions.json. Opens (or updates) a single tracking issue when
 # drift is detected; the issue body is the full report from the check script.
-# Closes that issue again once every pin is back in sync.
+# Closes that issue again once every pin is back in sync. If a registry lookup
+# fails the run fails and the issue is left as-is, since "no drift found" after
+# a failed lookup would otherwise close a live issue.
 
 on:
   schedule:
@@ -44,12 +46,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          NUMBER=$(gh issue list --state open --search "$TRACKER_TITLE in:title" --json number,title \
+          # Exact title match over the open issues rather than a search query:
+          # the title contains a colon, which reads as a search qualifier.
+          NUMBER=$(gh issue list --state open --limit 100 --json number,title \
             | python3 -c "import sys,json,os; d=json.load(sys.stdin); print(next((i['number'] for i in d if i['title']==os.environ['TRACKER_TITLE']), ''))")
           echo "number=$NUMBER" >> "$GITHUB_OUTPUT"
 
       - name: Open or update tracking issue
-        if: steps.check.outputs.status != '0'
+        if: steps.check.outputs.status == '1'
         env:
           GH_TOKEN: ${{ github.token }}
           REPORT: ${{ steps.check.outputs.report }}
@@ -76,3 +80,9 @@ jobs:
           gh issue close "$EXISTING" \
             --comment "Every pin is back at its latest upstream version, closing automatically. A fresh issue opens if drift returns."
           echo "Closed issue #$EXISTING"
+
+      - name: Fail when the check could not run
+        if: steps.check.outputs.status == '2'
+        run: |
+          echo "::error::A registry lookup failed, so drift is unknown. Tracking issue left untouched."
+          exit 1
