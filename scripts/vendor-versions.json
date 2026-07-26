@@ -3,7 +3,7 @@
   "deps": [
     { "npm": "leaflet", "version": "1.9.4" },
     { "npm": "leaflet-gpx", "version": "2.2.0" },
-    { "npm": "@raruto/leaflet-elevation", "version": "2.5.2" },
+    { "npm": "@raruto/leaflet-elevation", "version": "2.6.0" },
     { "npm": "leaflet.tilelayer.nogap", "version": "0.3.0" },
     { "npm": "supercluster", "version": "8.0.1" },
     { "npm": "d3", "version": "7.9.0" }

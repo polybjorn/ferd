@@ -42,7 +42,7 @@ Ferd vendors the third-party libraries listed below under `vendor/`. Each retain
 
 ### @raruto/leaflet-elevation
 - Purpose: elevation chart shown on a trail detail page, plus the position marker that tracks the cursor along the polyline.
-- Version: 2.5.2
+- Version: 2.6.0
 - Upstream: https://github.com/Raruto/leaflet-elevation
 - License: GPL-3.0-or-later
 - Copyright: (c) Raruto

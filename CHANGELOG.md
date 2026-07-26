@@ -12,6 +12,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The About dialog reported a stale version after a release; the server now re-reads the VERSION file instead of caching it at startup, so the displayed version tracks the deployed code without an API restart.
 - Data export failed with an empty response when the data directory held an unreadable or stray backup file; export now skips backup and OS-metadata files (matching import) and no longer aborts the whole archive on a single unreadable file.
 
+### Security
+- Vendored leaflet-elevation bumped to 2.6.0, which strips every space and quote from waypoint marker class names instead of only the first of each. Clears the CodeQL incomplete-sanitization alerts. Ferd was not exposed: it draws GPX waypoints with its own marker code and never reaches leaflet-elevation's waypoint-icon path.
+
 ## [1.3.0] - 2026-06-05
 
 ### Added

@@ -1129,7 +1129,7 @@
 						if ([true, 'markers'].includes(waypoints) && wptIcons != false) {
 							return this._registerMarker({
 								latlng : latlng,
-								sym    : (sym ?? name).replace(' ', '-').replace('"', '').replace("'", '').toLowerCase(),
+								sym    : (sym ?? name).replace(/["']/g, '').replace(/ /g, '-').toLowerCase(),
 								content: [true, 'markers'].includes(wptLabels) && (name || desc) && decodeURI("<b>" + name + "</b>" + (desc.length > 0 ? '<br>' + desc : ''))
 							});
 						}
