@@ -12,6 +12,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Fixed
 - Expired sessions are deleted on login instead of accumulating forever. Expiry was already enforced at lookup; only the dead rows lingered.
+- Enabling `require_setup_token` on an empty database crashed at startup: the user-count check ran on an already-closed DB connection.
 - Editing or deleting a route from the index-map right-click menu used the wrong region, so routes in a region couldn't be deleted that way.
 - The About dialog reported a stale version after a release; the server now re-reads the VERSION file instead of caching it at startup, so the displayed version tracks the deployed code without an API restart.
 - Data export failed with an empty response when the data directory held an unreadable or stray backup file; export now skips backup and OS-metadata files (matching import) and no longer aborts the whole archive on a single unreadable file.

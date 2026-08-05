@@ -3663,6 +3663,15 @@ def main() -> int:
       ensure_user_dir(cfg, r["username"])
     except ValidationError:
       pass
+  # Setup token: if enabled and no users exist yet, generate one and require it
+  # on /api/register. Print to stderr only; the admin copies it from logs.
+  # Must run before conn.close() below - user_count needs the boot connection.
+  Handler.setup_token = None
+  if cfg.get("require_setup_token") and user_count(conn) == 0:
+    Handler.setup_token = secrets.token_urlsafe(24)
+    print(f"[api] setup token (required for first registration): {Handler.setup_token}", file=sys.stderr)
+    print("[api] use the 'Setup token' field on the registration page", file=sys.stderr)
+
   # Boot conn is done with; handlers open per-request connections.
   conn.close()
 
@@ -3671,14 +3680,6 @@ def main() -> int:
   Handler.login_limiter = RateLimiter(RATE_LIMIT_MAX_FAILS, RATE_LIMIT_WINDOW)
   Handler.write_lock = threading.Lock()
   Handler.last_request = time.monotonic()
-
-  # Setup token: if enabled and no users exist yet, generate one and require it
-  # on /api/register. Print to stderr only; the admin copies it from logs.
-  Handler.setup_token = None
-  if cfg.get("require_setup_token") and user_count(conn) == 0:
-    Handler.setup_token = secrets.token_urlsafe(24)
-    print(f"[api] setup token (required for first registration): {Handler.setup_token}", file=sys.stderr)
-    print("[api] use the 'Setup token' field on the registration page", file=sys.stderr)
 
   idle_threshold = int(cfg.get("idle_exit_seconds") or 0)
   if idle_threshold > 0:
