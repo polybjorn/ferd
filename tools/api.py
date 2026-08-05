@@ -654,6 +654,9 @@ def hash_token(raw: str) -> str:
 def session_create(conn: sqlite3.Connection, user_id: int, ip: str | None = None, user_agent: str | None = None) -> str:
   token = secrets.token_urlsafe(SESSION_BYTES)
   now = int(time.time())
+  # Expired rows are inert (lookup checks expires_at) but nothing else deletes
+  # them; sweep here so the table holds live sessions, not history.
+  conn.execute("DELETE FROM sessions WHERE expires_at <= ?", (now,))
   conn.execute(
     "INSERT INTO sessions(token, user_id, created_at, expires_at, last_seen_at, ip, user_agent) "
     "VALUES (?, ?, ?, ?, ?, ?, ?)",

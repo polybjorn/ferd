@@ -284,6 +284,36 @@ class TestClientIpTrustedProxy(unittest.TestCase):
     self.assertEqual(_session_ip(self.srv, "ua-realip-trusted"), "198.51.100.7")
 
 
+class TestSessionPrune(unittest.TestCase):
+  def test_expired_sessions_swept_on_login(self):
+    # Plant an already-expired session row, then log in; session_create's
+    # sweep should delete it.
+    db = _server.data_dir / "test.db"  # type: ignore[union-attr]
+    conn = sqlite3.connect(db)
+    try:
+      uid = conn.execute("SELECT id FROM users WHERE username=?", (SEED_USER,)).fetchone()[0]
+      stale = "e" * 64  # matches the stored sha256-hex token shape
+      now = int(time.time())
+      conn.execute(
+        "INSERT INTO sessions(token, user_id, created_at, expires_at, last_seen_at, ip, user_agent) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (stale, uid, now - 100, now - 10, now - 100, "127.0.0.1", "ua-stale"),
+      )
+      conn.commit()
+    finally:
+      conn.close()
+
+    c = Client(_server.base_url)  # type: ignore[union-attr]
+    self.assertEqual(c.login(SEED_USER, SEED_PW)[0], 200)
+
+    conn = sqlite3.connect(db)
+    try:
+      left = conn.execute("SELECT COUNT(*) FROM sessions WHERE token=?", ("e" * 64,)).fetchone()[0]
+    finally:
+      conn.close()
+    self.assertEqual(left, 0)
+
+
 class TestRegistrationGate(unittest.TestCase):
   def test_registration_closed_by_default_after_seed(self):
     # Seed counts as user 1, so register endpoint should reject.
