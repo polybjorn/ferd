@@ -137,7 +137,24 @@ DEFAULT_CONFIG = {
   # of exact origins (e.g. ["https://app.example.com"]) to restrict, or [] to
   # disable CORS entirely. We never send Access-Control-Allow-Credentials.
   "cors_origins": "*",
+  # Reverse proxies whose forwarded client-IP headers are trusted. When the
+  # TCP peer is one of these addresses, the client IP is read from X-Real-IP
+  # (or the rightmost X-Forwarded-For entry) instead of the socket peer, so
+  # the login rate limit, session records, audit log and access log see the
+  # real client rather than the proxy. Off by default: a forwarded header is
+  # client-supplied unless a proxy in front overwrites it, so trusting it
+  # unconditionally would let clients spoof their IP. List only the proxy
+  # actually in front (e.g. ["127.0.0.1"]). Env var takes a comma-separated
+  # list.
+  "trusted_proxies": [],
 }
+
+
+def parse_trusted_proxies(value) -> frozenset[str]:
+  """Accepts a JSON list (config file) or comma-separated string (env var)."""
+  if isinstance(value, str):
+    value = value.split(",")
+  return frozenset(v.strip() for v in (value or []) if v and v.strip())
 
 # sw.js source carries this placeholder; the static handler swaps it for a
 # content-derived version on every serve so we never bump CACHE_VERSION by
@@ -750,6 +767,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
   # Set on startup if `require_setup_token` is enabled and no users exist.
   # Cleared once the first user registers.
   setup_token: str | None = None
+  # Parsed from cfg["trusted_proxies"] at startup.
+  trusted_proxies: frozenset[str] = frozenset()
 
   def handle_one_request(self):
     Handler.last_request = time.monotonic()
@@ -921,7 +940,27 @@ class Handler(http.server.BaseHTTPRequestHandler):
     return False, None
 
   def _client_ip(self) -> str:
-    return self.client_address[0] if self.client_address else "?"
+    peer = self.client_address[0] if self.client_address else "?"
+    if peer not in Handler.trusted_proxies:
+      return peer
+    headers = getattr(self, "headers", None)
+    if headers is None:
+      return peer
+    real_ip = (headers.get("X-Real-IP") or "").strip()
+    if real_ip:
+      return real_ip
+    forwarded = (headers.get("X-Forwarded-For") or "").strip()
+    if forwarded:
+      # The rightmost entry was appended by the trusted proxy itself;
+      # everything left of it arrived in the client's request and can be
+      # forged.
+      return forwarded.split(",")[-1].strip() or peer
+    return peer
+
+  def address_string(self) -> str:
+    # Feeds the access-log line; same resolution as the rate limiter and
+    # audit trail so the log shows the client, not the proxy.
+    return self._client_ip()
 
   def _send_json(self, status: int, payload: dict, extra_headers: list[tuple[str, str]] | None = None) -> None:
     body = json.dumps(payload).encode("utf-8")
@@ -3625,6 +3664,7 @@ def main() -> int:
   conn.close()
 
   Handler.cfg = cfg
+  Handler.trusted_proxies = parse_trusted_proxies(cfg.get("trusted_proxies"))
   Handler.login_limiter = RateLimiter(RATE_LIMIT_MAX_FAILS, RATE_LIMIT_WINDOW)
   Handler.write_lock = threading.Lock()
   Handler.last_request = time.monotonic()

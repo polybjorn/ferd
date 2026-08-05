@@ -12,6 +12,7 @@ import io
 import json
 import shutil
 import socket
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -39,7 +40,7 @@ def _free_port() -> int:
 class _Server:
   """A subprocess-backed API server with its own tempdir + sqlite."""
 
-  def __init__(self) -> None:
+  def __init__(self, extra_cfg: dict | None = None) -> None:
     self.tmp = tempfile.TemporaryDirectory()
     self.data_dir = Path(self.tmp.name)
     self.port = _free_port()
@@ -55,6 +56,7 @@ class _Server:
       "secure_cookies": False,
       "max_body_bytes": 1048576,
     }
+    cfg.update(extra_cfg or {})
     cfg_path = self.data_dir / "config.json"
     cfg_path.write_text(json.dumps(cfg))
     self.proc = subprocess.Popen(
@@ -215,6 +217,71 @@ class TestAuth(unittest.TestCase):
     status, _ = c.request("POST", "/api/change-password",
                           {"current_password": "wrong", "new_password": "also-long-enough-pw"})
     self.assertEqual(status, 401)
+
+
+def _session_ip(server: _Server, marker_ua: str) -> str:
+  """Read back the ip recorded on the session whose user_agent is marker_ua."""
+  conn = sqlite3.connect(server.data_dir / "test.db")
+  try:
+    row = conn.execute(
+      "SELECT ip FROM sessions WHERE user_agent=? ORDER BY created_at DESC LIMIT 1",
+      (marker_ua,),
+    ).fetchone()
+  finally:
+    conn.close()
+  assert row is not None, f"no session recorded for user-agent {marker_ua!r}"
+  return row[0]
+
+
+class TestClientIpDefault(unittest.TestCase):
+  def test_forwarded_headers_ignored_without_trusted_proxies(self):
+    # 127.0.0.1 is not in the (empty) trusted set, so a spoofed header must
+    # not become the recorded client IP.
+    c = Client(_server.base_url)  # type: ignore[union-attr]
+    status, _ = c.request(
+      "POST", "/api/login", {"username": SEED_USER, "password": SEED_PW},
+      headers={"X-Forwarded-For": "203.0.113.9", "User-Agent": "ua-xff-untrusted"},
+    )
+    self.assertEqual(status, 200)
+    self.assertEqual(_session_ip(_server, "ua-xff-untrusted"), "127.0.0.1")
+
+
+class TestClientIpTrustedProxy(unittest.TestCase):
+  """With the peer listed in trusted_proxies, forwarded headers win."""
+
+  srv: _Server
+
+  @classmethod
+  def setUpClass(cls) -> None:
+    cls.srv = _Server(extra_cfg={"trusted_proxies": ["127.0.0.1"]})
+
+  @classmethod
+  def tearDownClass(cls) -> None:
+    cls.srv.close()
+
+  def _login(self, headers: dict[str, str]):
+    c = Client(self.srv.base_url)
+    return c.request("POST", "/api/login",
+                     {"username": SEED_USER, "password": SEED_PW}, headers=headers)
+
+  def test_rightmost_forwarded_for_entry_wins(self):
+    # The rightmost entry is the one the trusted proxy appended; entries to
+    # its left are client-supplied and must not be believed.
+    status, _ = self._login({
+      "X-Forwarded-For": "10.9.9.9, 203.0.113.9",
+      "User-Agent": "ua-xff-trusted",
+    })
+    self.assertEqual(status, 200)
+    self.assertEqual(_session_ip(self.srv, "ua-xff-trusted"), "203.0.113.9")
+
+  def test_x_real_ip_takes_precedence(self):
+    status, _ = self._login({
+      "X-Real-IP": "198.51.100.7",
+      "X-Forwarded-For": "203.0.113.9",
+      "User-Agent": "ua-realip-trusted",
+    })
+    self.assertEqual(status, 200)
+    self.assertEqual(_session_ip(self.srv, "ua-realip-trusted"), "198.51.100.7")
 
 
 class TestRegistrationGate(unittest.TestCase):

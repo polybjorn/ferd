@@ -7,5 +7,6 @@
   "initial_user": null,
   "initial_password": null,
   "secure_cookies": true,
-  "max_body_bytes": 1048576
+  "max_body_bytes": 1048576,
+  "trusted_proxies": []
 }
