@@ -11,6 +11,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Deleting a route from the index map removes just that route in place instead of rebuilding the whole map (no blink or refit).
 
 ### Fixed
+- The API reference documented `PUT` and `DELETE /places` as addressing places by name (`{original_name, place}` and `{name}`). They take `{id, place}` and `{id}`, so any client written from the reference got a `400`. The place schema now also lists the `id`, `image_focus`, `from_catalog`, and `catalog_skip` fields, and `GET /public-maps` is documented instead of missing.
+- The post-update smoke check in the Python install guide curled port 8092; the shipped socket unit and config default are both 8091, so the command as written could not connect.
 - The API reference documented `/me/category-labels` without the `order` field, so a client written from it would drop category ordering on every write. The payload shape now lists `order`, the accepted ranges for both optional fields, and that only `color` is re-attached when a `PUT` omits it.
 - Expired sessions are deleted on login instead of accumulating forever. Expiry was already enforced at lookup; only the dead rows lingered.
 - Enabling `require_setup_token` on an empty database crashed at startup: the user-count check ran on an already-closed DB connection.

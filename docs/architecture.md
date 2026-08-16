@@ -6,7 +6,7 @@ A one-page tour of what the app is made of and how the pieces fit. If you just w
 
 Two things glued together at one HTTP origin:
 
-1. **A single-file SPA frontend.** `index.html` is the whole app: HTML, CSS, and vanilla JavaScript in one file. It loads Leaflet from a CDN and fetches everything else (`site-config.json`, places, routes, GPX) from the API. No build step, no framework, no bundler.
+1. **A single-file SPA frontend.** `index.html` is the whole app: HTML, CSS, and vanilla JavaScript in one file. Leaflet and its plugins are vendored under `vendor/` and served from the same origin, so the only external host at runtime is the map tile provider. Everything else (`site-config.json`, places, routes, GPX) comes from the API. No build step, no framework, no bundler.
 2. **The Python API.** `tools/api.py` is a stdlib-only HTTP server (`http.server` + `sqlite3`) that handles auth, per-user reads and writes, and serves the static files so the app runs from one origin.
 
 The frontend talks to the API via `fetch`; the API stores users, sessions, and per-user publish state in SQLite and writes each user's places/routes to JSON and GPX files under their own folder on disk.
@@ -28,6 +28,12 @@ See [configure.md](configure.md#data-files) for the full file-by-file table.
 Three groups: directories, repo-meta files, then the rest. Alphabetical (case-insensitive) within each.
 
 ```
+.github/
+  ISSUE_TEMPLATE/          # bug report + feature request forms
+  workflows/               # tests, CodeQL, Docker publish, APK release, vendor drift
+  dependabot.yml           # automated dependency PRs
+  pull_request_template.md
+android/                   # Android client: WebView wrapper around the frontend
 deploy/
   Caddyfile.example        # Caddy server block
   docker-entrypoint.sh     # Docker entrypoint (UID/GID handling)
@@ -39,6 +45,7 @@ deploy/
   uninstall.sh             # guided uninstaller
 docs/
   screenshots/             # images for README and docs
+  README.md                # index of this folder
   api.md                   # /api/* endpoint reference + smoke recipes
   architecture.md          # this file
   catalog.md               # site catalog (shipped baseline + local additions)
@@ -47,8 +54,10 @@ docs/
   pwa.md                   # PWA install + service-worker maintenance
   python.md                # running with Python
   themes.md                # theme system + how to add one
+  troubleshooting.md       # console messages you can safely ignore
 icons/                     # favicon, PWA icons, web app manifest
 scripts/
+  check-refactor.sh        # jscpd + radon pass, run weekly in CI
   check-vendor-versions.py # weekly CI drift check against npm
   gpx-manifest.sh          # generates routes.json from gpx/<Region>/<Route>.gpx
   vendor-versions.json     # tracked versions per vendored dep
@@ -62,6 +71,7 @@ tools/
 vendor/                    # vendored third-party libs (see vendor/NOTICES.md)
 
 CHANGELOG.md               # release notes
+CODE_OF_CONDUCT.md         # contributor conduct policy
 CONTRIBUTING.md            # how to run, test, and submit changes
 LICENSE
 README.md
@@ -74,7 +84,7 @@ catalog.json               # shipped baseline site catalog
 compose.yml                # Docker Compose service definition
 Dockerfile                 # container image
 index.html                 # the app (HTML/CSS/JS in one file)
-site-config.example.json   # branding, default view, category labels, API base
+site-config.example.json   # branding, feature flags, default view, API base
 sw.js                      # PWA service worker (cache shell, tiles, GPX)
 ```
 

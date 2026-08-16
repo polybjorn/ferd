@@ -69,6 +69,7 @@ The controlled set (`CATEGORY_VOCAB`):
 | `garden` | A man-made designed outdoor space (garden or park), distinct from wild `nature`. |
 | `city` | A settlement visited as a whole, such as a historic town or old town. |
 | `palace` | A grand residence, royal or noble. |
+| `village` | A small settlement visited as a whole, where `city` would overstate the scale. |
 
 ### Choosing between categories
 
