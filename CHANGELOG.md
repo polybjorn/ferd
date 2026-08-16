@@ -11,6 +11,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Deleting a route from the index map removes just that route in place instead of rebuilding the whole map (no blink or refit).
 
 ### Fixed
+- The API reference documented `/me/category-labels` without the `order` field, so a client written from it would drop category ordering on every write. The payload shape now lists `order`, the accepted ranges for both optional fields, and that only `color` is re-attached when a `PUT` omits it.
 - Expired sessions are deleted on login instead of accumulating forever. Expiry was already enforced at lookup; only the dead rows lingered.
 - Enabling `require_setup_token` on an empty database crashed at startup: the user-count check ran on an already-closed DB connection.
 - Editing or deleting a route from the index-map right-click menu used the wrong region, so routes in a region couldn't be deleted that way.
