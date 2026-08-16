@@ -63,7 +63,7 @@ cd /path/to/source
 git pull
 sudo ./deploy/install.sh --yes        # if you used the guided installer
 sudo systemctl restart ferd-api.service
-curl -fs http://127.0.0.1:8092/api/health   # smoke check; prints {"status":"ok",...}
+curl -fs http://127.0.0.1:8091/api/health   # smoke check; prints {"status":"ok",...}
 ```
 
 Your config and data are never touched. If you deleted the source clone after install, just clone it again anywhere and run `install.sh` from there.
