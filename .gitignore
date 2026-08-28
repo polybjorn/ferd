@@ -21,3 +21,4 @@ data/
 
 # Compose environment overrides (secrets / per-deployment values)
 .env
+AGENTS.md
