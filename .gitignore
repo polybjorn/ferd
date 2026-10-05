@@ -5,6 +5,10 @@ CLAUDE.md
 reference.md
 .refactor-notes.md
 
+# Python bytecode (tests and tools are stdlib Python, run in place)
+__pycache__/
+*.pyc
+
 # App data + per-deployment config
 places.json
 routes.json
