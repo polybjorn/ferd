@@ -6,32 +6,17 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 
 *Ferd is Norwegian for "journey".*
 
-## Features
+Ferd shows a world map with clustered place pins and GPX route polylines. Route detail has an elevation profile and route stats, and a history page journals your visited places and completed routes. You can browse and import community-curated places from the site catalog or extend it with your own, and filter and browse by category, country, visit status, region, and route completion.
 
-**See where you've been and where you're going**
-- World map with clustered place pins and GPX route polylines.
-- Route detail with elevation profile and route stats.
-- History page that journals your visited places and completed routes.
-- Browse and import community-curated places from the site catalog, or extend it with your own.
-- Powerful filtering and browsing by category, country, visit status, region, and route completion.
+Each account is its own map, with per-user data isolation. You can optionally publish your map as a read-only public page anyone can view by link. Admin tools cover user management, site stats, and registration and publishing toggles.
 
-**Share on your terms**
-- Per-user data isolation - each account is its own map.
-- Optionally publish your map as a read-only public page anyone can view by link.
-- Admin tools for user management, site stats, and registration and publishing toggles.
-
-**Use it anywhere**
-- Install to your device and launch it in its own window.
-- Works offline: reads (app shell, last loaded data, downloaded GPX, previously viewed tiles) and edits, which queue on-device and sync when the connection returns. Account and admin actions still need network.
-- Local-only mode that runs entirely on-device with no server or account.
+Ferd installs to your device and launches in its own window. It works offline: reads (app shell, last loaded data, downloaded GPX, previously viewed tiles) and edits, which queue on-device and sync when the connection returns. Account and admin actions still need network. A local-only mode runs entirely on-device with no server or account.
 
 ## Install
 
 **Requirements:** Python 3.9+ (or Docker), a modern browser. No build step, no Node, no database server (SQLite file).
 
 **Footprint:** ~1.7 MB of code and assets. Python uses about 32 MB of memory at idle; the Docker image is ~45 MB compressed (211 MB on disk) and runs at roughly the same memory plus a small container overhead.
-
-Full documentation in [docs/](docs/).
 
 ### Python
 
@@ -65,14 +50,10 @@ Android client, server-connected or fully on-device. Use an APK manager to auto-
 
 [<img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/polybjorn/ferd)
 
-## Roadmap
+## Docs
 
-### Content
-- Print and PDF stylesheet for route and place details.
-- Uploaded image attachments on places and routes.
+Full documentation is in [docs/](docs/). Planned work is in [docs/roadmap.md](docs/roadmap.md).
 
-### Branding
-- Distinctive logo.
-- Custom iOS launch splash (PWA).
-- Custom Android launcher icon.
-- Custom social preview image for the GitHub repository.
+## License
+
+GPL-3.0, see [LICENSE](LICENSE).
