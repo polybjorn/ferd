@@ -86,7 +86,7 @@ Per-deployment settings live in `.env` on the host (gitignored; `.env.example` i
 | `FERD_SECURE_COOKIES` | `true` in image, `false` in `.env.example` | Set to `false` only for plain-HTTP localhost. `true` whenever there's a reverse proxy with TLS in front. |
 | `FERD_INITIAL_USER` | unset | Pre-create an admin account on first start, instead of registering through the web UI. Used together with `FERD_INITIAL_PASSWORD`. Ignored once any user exists. |
 | `FERD_INITIAL_PASSWORD` | unset | Password for the seeded admin account. |
-| `FERD_REQUIRE_SETUP_TOKEN` | `false` | When `true`, the first registration requires a one-time token printed to the container log at startup. Recommended for anything internet-facing. |
+| `FERD_REQUIRE_SETUP_TOKEN` | `false` | When `true`, the first registration requires a one-time token printed to the container log at startup, or at the next registration attempt if the user table empties while the container runs. Recommended for anything internet-facing. |
 | `PUID` / `PGID` | auto-detect | Pin the container's uid/gid instead of adopting the owner of `./data/`. See the Permissions section above. |
 
 Every other key in `tools/config.json` can also be set as an `FERD_*` environment variable; see [configure.md](configure.md) for the full list. The container-internal paths (bind address, database path, data dir, static dir, manifest command) have sensible defaults baked into the image and almost never need overriding.

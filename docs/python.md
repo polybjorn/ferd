@@ -54,7 +54,7 @@ Between starting the API and registering the first account, registration is open
 
 1. **Don't expose the site to the internet until you've registered.** Trivial for private deploys behind a VPN or LAN.
 2. **Pre-seed the admin account.** Set `initial_user` and `initial_password` in `tools/config.json`. The account is created on first start and registration is already closed by the time the API accepts its first request.
-3. **Require a setup token.** Set `require_setup_token: true`. The API generates a random token at startup and prints it to stderr; the first registration must supply it.
+3. **Require a setup token.** Set `require_setup_token: true`. The API generates a random token at startup and prints it to stderr; the first registration must supply it. If the user table empties while the API runs (a wipe, or a restore from an empty backup), the next registration attempt is refused and prints a fresh token the same way.
 
 ## Updating
 

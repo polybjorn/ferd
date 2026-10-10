@@ -58,6 +58,7 @@ TOKEN_SCOPES = ("full", "readonly")
 GPX_MAX_BYTES = 10 * 1024 * 1024  # 10 MiB cap for GPX uploads
 IMPORT_MAX_BYTES = 50 * 1024 * 1024  # 50 MiB cap for zip imports
 IMPORT_MAX_UNCOMPRESSED = 200 * 1024 * 1024  # 200 MiB uncompressed (zip-bomb guard)
+IMPORT_READ_CHUNK = 64 * 1024
 IMPORT_TOP_FILES = ("places.json", "routes.json", "metadata.json", "prefs.json", "category-labels.json")
 GPX_NS = "http://www.topografix.com/GPX/1/1"
 # Allow any non-control, non-separator character. The real security boundary
@@ -767,8 +768,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
   write_lock: threading.Lock = None
   # Monotonic timestamp of the most recent request; consumed by the idle watcher.
   last_request: float = 0.0
-  # Set on startup if `require_setup_token` is enabled and no users exist.
-  # Cleared once the first user registers.
+  # Set at startup, or at a registration attempt, while `require_setup_token`
+  # is enabled and no users exist. Cleared once the first user registers.
   setup_token: str | None = None
   # Parsed from cfg["trusted_proxies"] at startup.
   trusted_proxies: frozenset[str] = frozenset()
@@ -1304,7 +1305,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "publishing_open": publishing_open(self.conn),
       "catalog_baseline_open": catalog_baseline_open(self.conn),
       "has_users": user_count(self.conn) > 0,
-      "requires_setup_token": Handler.setup_token is not None and user_count(self.conn) == 0,
+      "requires_setup_token": bool(self.cfg.get("require_setup_token")) and user_count(self.conn) == 0,
       "version": get_app_version(),
     })
 
@@ -1415,7 +1416,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
         return self._error(HTTPStatus.CONFLICT, "username taken")
       first_user = user_count(self.conn) == 0
       # First-run setup-token gate: only relevant before the first user exists.
-      if first_user and Handler.setup_token is not None:
+      # The boot-time token is missing when the instance started with users or
+      # the table emptied since (a wipe, an empty restore), so mint one here
+      # rather than let the gate fall open.
+      if first_user and self.cfg.get("require_setup_token"):
+        if Handler.setup_token is None:
+          Handler.setup_token = new_setup_token()
         if not supplied_token or not secrets.compare_digest(supplied_token, Handler.setup_token):
           return self._error(HTTPStatus.FORBIDDEN, "setup token required or incorrect")
       user_id = create_user(self.conn, username, password, is_admin=first_user)
@@ -2943,7 +2949,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.BAD_REQUEST, f"invalid zip: {e}")
 
     staged: dict[str, bytes] = {}
-    total_uncompressed = 0
+    total_declared = 0
+    total_read = 0
     for info in zf.infolist():
       if info.is_dir():
         continue
@@ -2973,14 +2980,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
           return self._error(HTTPStatus.BAD_REQUEST, f"invalid gpx path '{name}': {e}")
       else:
         return self._error(HTTPStatus.BAD_REQUEST, f"unexpected file in zip: {name}")
-      total_uncompressed += info.file_size
-      if total_uncompressed > IMPORT_MAX_UNCOMPRESSED:
+      # The declared size rejects an honest oversized archive before any
+      # decompression; only the bounded read below holds against a lying one.
+      total_declared += info.file_size
+      if total_declared > IMPORT_MAX_UNCOMPRESSED:
         return self._error(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "uncompressed size exceeds limit")
       try:
-        with zf.open(info) as fh:
-          staged[name] = fh.read()
+        staged[name] = read_zip_entry_bounded(zf, info, IMPORT_MAX_UNCOMPRESSED - total_read)
+      except ImportTooLarge:
+        return self._error(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "uncompressed size exceeds limit")
       except Exception as e:
         return self._error(HTTPStatus.BAD_REQUEST, f"failed reading {name}: {e}")
+      total_read += len(staged[name])
 
     def parse_json(arcname: str, expected_type: type):
       if arcname not in staged:
@@ -3246,6 +3257,29 @@ def _valid_password(pw: str) -> bool:
 
 class ValidationError(Exception):
   pass
+
+
+class ImportTooLarge(ValidationError):
+  pass
+
+
+def read_zip_entry_bounded(zf: zipfile.ZipFile, info: zipfile.ZipInfo, limit: int) -> bytes:
+  """Read one archive entry in chunks, raising ImportTooLarge once it yields
+  more than `limit` bytes and ValidationError on a corrupt entry. The bound is
+  counted on the bytes the stream produces, since `info.file_size` comes from
+  the uploader."""
+  chunks = []
+  total = 0
+  try:
+    with zf.open(info) as fh:
+      while chunk := fh.read(IMPORT_READ_CHUNK):
+        total += len(chunk)
+        if total > limit:
+          raise ImportTooLarge("uncompressed size exceeds limit")
+        chunks.append(chunk)
+  except zipfile.BadZipFile as e:
+    raise ValidationError(f"failed reading {info.filename}: {e}")
+  return b"".join(chunks)
 
 
 class NotFoundError(ValidationError):
@@ -3548,6 +3582,12 @@ def validate_route_metadata(m: object) -> dict:
 
 # ---------- gpx PII strip + validation ----------
 
+# Real GPX stops around eight levels (gpx/trk/trkseg/trkpt/extensions/...).
+# The cap keeps every recursive consumer of the tree, ET.tostring included,
+# far from Python's recursion limit.
+XML_MAX_DEPTH = 64
+
+
 def _safe_xml_fromstring(xml_bytes: bytes):
   """Parse XML to an Element with internal DTD / entity declarations rejected
   at the expat layer. This blocks billion-laughs / quadratic-blowup XML bombs
@@ -3558,11 +3598,16 @@ def _safe_xml_fromstring(xml_bytes: bytes):
   from xml.parsers import expat
   builder = ET.TreeBuilder()
   parser = expat.ParserCreate(namespace_separator="}")
+  depth = 0
 
   def _reject(*_a, **_kw):
     raise ValidationError("XML DOCTYPE or entity declarations are not allowed")
 
   def _start(name, attrs):
+    nonlocal depth
+    depth += 1
+    if depth > XML_MAX_DEPTH:
+      raise ValidationError(f"XML nested deeper than {XML_MAX_DEPTH} levels")
     # expat with namespace_separator="}" emits names as "URI}local"; ET wants
     # them as "{URI}local". Normalize on the fly. Same for attribute keys.
     if "}" in name:
@@ -3571,6 +3616,8 @@ def _safe_xml_fromstring(xml_bytes: bytes):
     builder.start(name, fixed)
 
   def _end(name):
+    nonlocal depth
+    depth -= 1
     if "}" in name:
       name = "{" + name
     builder.end(name)
@@ -3634,6 +3681,13 @@ def strip_gpx_pii(xml_bytes: bytes) -> bytes:
   return ET.tostring(root, xml_declaration=True, encoding="UTF-8")
 
 
+def new_setup_token() -> str:
+  token = secrets.token_urlsafe(24)
+  print(f"[api] setup token (required for first registration): {token}", file=sys.stderr)
+  print("[api] use the 'Setup token' field on the registration page", file=sys.stderr)
+  return token
+
+
 # ---------- server ----------
 
 class ThreadingHTTPServer(http.server.ThreadingHTTPServer):
@@ -3668,9 +3722,7 @@ def main() -> int:
   # Must run before conn.close() below - user_count needs the boot connection.
   Handler.setup_token = None
   if cfg.get("require_setup_token") and user_count(conn) == 0:
-    Handler.setup_token = secrets.token_urlsafe(24)
-    print(f"[api] setup token (required for first registration): {Handler.setup_token}", file=sys.stderr)
-    print("[api] use the 'Setup token' field on the registration page", file=sys.stderr)
+    Handler.setup_token = new_setup_token()
 
   # Boot conn is done with; handlers open per-request connections.
   conn.close()

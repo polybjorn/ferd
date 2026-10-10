@@ -323,6 +323,37 @@ class TestRegistrationGate(unittest.TestCase):
     self.assertEqual(status, 403)
 
 
+
+class TestSetupTokenAfterUsersEmptied(unittest.TestCase):
+  """A seeded instance never makes a boot-time setup token, so emptying the
+  user table while it runs must not open admin registration to anyone (#33)."""
+
+  srv: _Server
+
+  @classmethod
+  def setUpClass(cls) -> None:
+    cls.srv = _Server(extra_cfg={"require_setup_token": True})
+
+  @classmethod
+  def tearDownClass(cls) -> None:
+    cls.srv.close()
+
+  def test_registration_needs_token_once_users_are_gone(self):
+    db = sqlite3.connect(self.srv.data_dir / "test.db")
+    try:
+      db.execute("PRAGMA foreign_keys = ON")
+      db.execute("DELETE FROM users")
+      db.commit()
+    finally:
+      db.close()
+    c = Client(self.srv.base_url)
+    status, body = c.request("GET", "/api/state")
+    self.assertEqual(status, 200)
+    self.assertTrue(body["requires_setup_token"])
+    status, _ = c.request("POST", "/api/register",
+                          {"username": "mallory", "password": "mallory-password-1"})
+    self.assertEqual(status, 403)
+
 class TestPlacesAuthGates(unittest.TestCase):
   PAYLOAD = {"name": "AuthGateTest", "lat": 0, "lon": 0, "category": "test"}
 

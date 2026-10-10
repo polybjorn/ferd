@@ -3,10 +3,13 @@
 Run with: python3 -m unittest discover -s tests
 """
 
+import io
 import json
 import sys
 import tempfile
+import tracemalloc
 import unittest
+import zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
@@ -379,6 +382,49 @@ class TestStripGpxPii(unittest.TestCase):
   def test_wrong_root_rejected(self):
     with self.assertRaises(api.ValidationError):
       api.strip_gpx_pii(b'<?xml version="1.0"?><kml/>')
+
+  def test_deep_nesting_rejected(self):
+    # The handler catches ValidationError only, so a RecursionError here used
+    # to drop the connection with no response (#31).
+    deep = (b'<gpx xmlns="http://www.topografix.com/GPX/1/1">'
+            + b"<a>" * 2000 + b"</a>" * 2000 + b"</gpx>")
+    with self.assertRaises(api.ValidationError):
+      api.strip_gpx_pii(deep)
+    with self.assertRaises(api.ValidationError):
+      api.validate_gpx(deep)
+
+
+class TestReadZipEntryBounded(unittest.TestCase):
+  def _entry(self, data: bytes):
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+      zf.writestr("places.json", data)
+    zf = zipfile.ZipFile(io.BytesIO(buf.getvalue()))
+    return zf, zf.infolist()[0]
+
+  def _peak_while_rejected(self, zf, info, limit: int) -> int:
+    tracemalloc.start()
+    try:
+      with self.assertRaises(api.ValidationError):
+        api.read_zip_entry_bounded(zf, info, limit)
+      return tracemalloc.get_traced_memory()[1]
+    finally:
+      tracemalloc.stop()
+
+  def test_reads_entry_within_limit(self):
+    zf, info = self._entry(b"[]")
+    self.assertEqual(api.read_zip_entry_bounded(zf, info, 1024), b"[]")
+
+  def test_stops_at_limit(self):
+    zf, info = self._entry(b"\0" * (32 * 1024 * 1024))
+    self.assertLess(self._peak_while_rejected(zf, info, 1024 * 1024), 4 * 1024 * 1024)
+
+  def test_lying_declared_size_stays_bounded(self):
+    # The declared size is the uploader's claim, so it can't be what bounds
+    # the read (#30).
+    zf, info = self._entry(b"\0" * (32 * 1024 * 1024))
+    info.file_size = 1
+    self.assertLess(self._peak_while_rejected(zf, info, 1024 * 1024), 4 * 1024 * 1024)
 
 
 class TestPasswordHash(unittest.TestCase):

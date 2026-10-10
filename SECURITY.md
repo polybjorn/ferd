@@ -42,7 +42,7 @@ Before the first user registers, registration is open. If the site is reachable 
 - `sources` entries are restricted to `http://` or `https://` URLs. Other schemes (`javascript:`, `data:`, `mailto:`, ...) are rejected at the API. The frontend re-checks the protocol when rendering source links and falls back to inert text if it isn't http(s), so legacy data from before this check can't be turned into a clickable script URL.
 - Writes are atomic: tmp file in the target directory, fsync, `os.replace`, fsync directory. Symlinks are resolved so writes land on the real file and the link stays intact.
 - A file lock (`fcntl.flock`) serializes concurrent writes to `places.json` and the `gpx/` tree within each user's folder.
-- GPX uploads are XML-parsed before saving; non-GPX content is rejected. PII is stripped server-side: `<time>` and `<author>` elements removed, `creator=` attribute on `<gpx>` dropped. Never trusts client-side stripping.
+- GPX uploads are XML-parsed before saving; non-GPX content, DTD and entity declarations, and nesting deeper than 64 elements are rejected. PII is stripped server-side: `<time>` and `<author>` elements removed, `creator=` attribute on `<gpx>` dropped. Never trusts client-side stripping.
 - GPX region and filename are validated against a strict character set, normalized, and confirmed to resolve inside the user's `gpx/` root. The public read path applies the same validation to the username and path components before resolving.
 
 ## What's served by the dev `static_dir`

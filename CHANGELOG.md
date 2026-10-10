@@ -21,6 +21,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Data export failed with an empty response when the data directory held an unreadable or stray backup file; export now skips backup and OS-metadata files (matching import) and no longer aborts the whole archive on a single unreadable file.
 
 ### Security
+- With `require_setup_token` on, an instance whose user table emptied while it ran (a wipe, a restore from an empty backup, or an instance that started with users and so never made a token) let the next registration become admin without any token. That attempt is now refused, and a fresh token is printed to the log for the next one.
+- Zip import checked its 200 MiB uncompressed limit against the sizes the archive declares, so an archive with a false header was decompressed in full: a 611 KB upload drove the API to about 1.2 GiB of memory. Entries are now read in chunks and counted as they decompress.
+- A GPX nested a few thousand elements deep, uploaded with PII stripping on, closed the connection without a response. GPX deeper than 64 elements is now rejected with a `400`.
 - Vendored leaflet-elevation bumped to 2.6.0, which strips every space and quote from waypoint marker class names instead of only the first of each. Clears the CodeQL incomplete-sanitization alerts. Ferd was not exposed: it draws GPX waypoints with its own marker code and never reaches leaflet-elevation's waypoint-icon path.
 
 ## [1.3.0] - 2026-06-05
