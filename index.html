@@ -3312,6 +3312,23 @@
     }
 
     function _round6(n) { return Math.round(n * 1e6) / 1e6; }
+    // Leaflet's tile transition is CSS cubic-bezier(0, 0, 0.25, 1). Match it
+    // exactly via Newton's method so pins and routes track the tiles through a
+    // zoom animation; a polynomial ease-out diverges ~5% mid-animation, visible
+    // as drift then snap.
+    function easeLeaflet(t) {
+      let s = t;
+      for (let i = 0; i < 6; i++) {
+        const sm = 1 - s;
+        const x = 0.75 * sm * s * s + s * s * s;
+        const dx = 1.5 * s + 0.75 * s * s;
+        if (Math.abs(dx) < 1e-6) break;
+        s -= (x - t) / dx;
+        if (s < 0) s = 0; else if (s > 1) s = 1;
+      }
+      const sm = 1 - s;
+      return 3 * sm * s * s + s * s * s;
+    }
     function _genId() {
       const b = new Uint8Array(4);
       (crypto || window.crypto).getRandomValues(b);
@@ -5418,22 +5435,6 @@
         const startZoom = map.getZoom(), startCenter = map.getCenter();
         const targetZoom = e.zoom, targetCenter = L.latLng(e.center);
         const startTime = performance.now(), duration = 250;
-        // Leaflet's tile transition is CSS cubic-bezier(0,0,0.25,1) on the
-        // transform, interpolating SCALE (not zoom) linearly; match it via
-        // Newton's method so the routes track the tiles (same as the place canvas).
-        const easeLeaflet = function (t) {
-          let s = t;
-          for (let i = 0; i < 6; i++) {
-            const sm = 1 - s;
-            const x = 0.75 * sm * s * s + s * s * s;
-            const dx = 1.5 * s + 0.75 * s * s;
-            if (Math.abs(dx) < 1e-6) break;
-            s -= (x - t) / dx;
-            if (s < 0) s = 0; else if (s > 1) s = 1;
-          }
-          const sm = 1 - s;
-          return 3 * sm * s * s + s * s * s;
-        };
         const targetScale = Math.pow(2, targetZoom - startZoom);
         const tick = () => {
           if (!gl) { zoomAnimRaf = 0; return; }
@@ -7019,23 +7020,6 @@
         const targetCenter = L.latLng(e.center);
         const startTime = performance.now();
         const duration = 250;
-        // Leaflet's tile transition uses CSS `cubic-bezier(0, 0, 0.25, 1)`.
-        // Match it exactly via Newton's method so pins track tiles through
-        // the animation. A polynomial ease-out approximation diverges by
-        // ~5% mid-animation, visible as drift+snap on every desktop zoom.
-        const easeLeaflet = function(t) {
-          let s = t;
-          for (let i = 0; i < 6; i++) {
-            const sm = 1 - s;
-            const x = 0.75 * sm * s * s + s * s * s;
-            const dx = 1.5 * s + 0.75 * s * s;
-            if (Math.abs(dx) < 1e-6) break;
-            s -= (x - t) / dx;
-            if (s < 0) s = 0; else if (s > 1) s = 1;
-          }
-          const sm = 1 - s;
-          return 3 * sm * s * s + s * s * s;
-        };
         // Leaflet's tile transform interpolates SCALE linearly between
         // 1 and the target scale (CSS transition on the transform
         // property). Mapping that to zoom is logarithmic, not linear:
