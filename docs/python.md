@@ -17,6 +17,10 @@ Open http://localhost:8091 and register the first account; that user becomes the
 
 To reach the site from other devices on your network, change `bind` to `0.0.0.0:8091` and set `secure_cookies: false` (required when there's no HTTPS in front).
 
+## Footprint
+
+About 1.7 MB of code and assets. Python uses about 32 MB of memory at idle.
+
 ## Run it as a service
 
 For "always on" without keeping a terminal open, use your usual process manager (systemd `--user`, supervisord, a tmux session). On a Linux server with systemd available system-wide, the repo ships a guided installer that lays files at `/srv/ferd`, creates a `ferd` user, and installs socket-activated units:

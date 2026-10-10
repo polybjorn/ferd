@@ -16,8 +16,6 @@ Ferd installs to your device and launches in its own window. It works offline: r
 
 **Requirements:** Python 3.9+ (or Docker), a modern browser. No build step, no Node, no database server (SQLite file).
 
-**Footprint:** ~1.7 MB of code and assets. Python uses about 32 MB of memory at idle; the Docker image is ~45 MB compressed (211 MB on disk) and runs at roughly the same memory plus a small container overhead.
-
 ### Python
 
 ```sh
