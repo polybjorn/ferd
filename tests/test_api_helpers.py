@@ -514,6 +514,33 @@ class TestStripGpxPii(unittest.TestCase):
       api.validate_gpx(deep)
 
 
+class TestImportWriters(unittest.TestCase):
+  def setUp(self):
+    self.tmp = tempfile.TemporaryDirectory()
+    self.root = Path(self.tmp.name)
+    self.udir = self.root / "user"
+    self.udir.mkdir()
+
+  def tearDown(self):
+    self.tmp.cleanup()
+
+  def test_gpx_write_stays_under_gpx_root(self):
+    # stage_archive already rejects this name; the writer must not rely on it.
+    payload = api.ImportPayload(gpx={"gpx/../../evil.gpx": b"<gpx/>"})
+    for mode in ("replace", "merge"):
+      with self.assertRaises(api.ValidationError):
+        api.IMPORT_WRITERS[mode](self.udir, payload)
+      self.assertFalse((self.root / "evil.gpx").exists())
+
+  def test_merge_writes_through_symlinked_gpx_root(self):
+    external = self.root / "external"
+    external.mkdir()
+    (self.udir / "gpx").symlink_to(external)
+    payload = api.ImportPayload(gpx={"gpx/r/t.gpx": b"<gpx/>"})
+    api.IMPORT_WRITERS["merge"](self.udir, payload)
+    self.assertEqual((external / "r" / "t.gpx").read_bytes(), b"<gpx/>")
+
+
 class TestReadZipEntryBounded(unittest.TestCase):
   def _entry(self, data: bytes):
     buf = io.BytesIO()

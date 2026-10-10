@@ -1284,6 +1284,71 @@ class TestImport(unittest.TestCase):
     self.assertEqual(body["imported"]["gpx"], 1)
     self.assertTrue((admin_dir() / arc).exists())
 
+  def test_error_messages(self):
+    # The UI shows `error` verbatim; pin the text through the handler split.
+    gpx = self._gpx_bytes("t")
+    cases = [
+      (b"not a zip", 400, "invalid zip: File is not a zip file"),
+      (self._make_zip({"../escape.json": b"{}"}), 400, "invalid entry: ../escape.json"),
+      (self._make_zip({"random.bin": b"x"}), 400, "unexpected file in zip: random.bin"),
+      (self._make_zip({"gpx/a/b/c.gpx": gpx}), 400, "unexpected file in zip: gpx/a/b/c.gpx"),
+      (self._make_zip({"gpx/a:b\x01/t.gpx": gpx}), 400, "invalid gpx path 'gpx/a:b\x01/t.gpx': contains disallowed characters"),
+      (self._make_zip({"places.json": b"{"}), 400, "places.json not valid JSON: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"),
+      (self._make_zip({"places.json": b"{}"}), 400, "places.json must be an array"),
+      (self._make_zip({"prefs.json": b"[]"}), 400, "prefs.json must be an object"),
+      (self._make_zip({"places.json": b'[{"name": "x", "lat": 999, "lon": 0}]'}), 400, "places.json[0]: lat must be a number in [-90, 90]"),
+      (self._make_zip({"category-labels.json": b'{"a": 1}'}), 400, "category-labels.json: category_labels['a'] must be an object"),
+      (self._make_zip({"gpx/t.gpx": b"<gpx"}), 400, None),
+    ]
+    for payload, want_status, want_error in cases:
+      status, body = self._post_zip(self.c, "merge", payload)
+      self.assertEqual(status, want_status, body)
+      if want_error is not None:
+        self.assertEqual(body["error"], want_error)
+      else:
+        self.assertTrue(body["error"].startswith("gpx/t.gpx: "), body)
+
+  def test_rejects_declared_oversize(self):
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+      zf.writestr("places.json", b" " * (200 * 1024 * 1024 + 1))
+    status, body = self._post_zip(self.c, "merge", buf.getvalue())
+    self.assertEqual(status, 413, body)
+    self.assertEqual(body["error"], "uncompressed size exceeds limit")
+
+  def test_stores_normalized_places(self):
+    # Import must store what validate_place returns, as the write endpoints
+    # do, not the client's bytes.
+    raw = {"name": "  Padded  ", "lat": 1, "lon": 2, "category": " c ", "tags": ["a", "A", ""], "image_focus": "  "}
+    want = {"name": "Padded", "lat": 1.0, "lon": 2.0, "visited": False, "category": "c", "tags": ["a"]}
+    for mode in ("replace", "merge"):
+      fresh_places([])
+      status, body = self._post_zip(self.c, mode, self._make_zip({"places.json": json.dumps([raw]).encode("utf-8")}))
+      self.assertEqual(status, 200, body)
+      stored = json.loads((admin_dir() / "places.json").read_text("utf-8"))
+      self.assertEqual(stored, [want], mode)
+
+  def test_merge_dedupes_on_normalized_name(self):
+    fresh_places([{"name": "Keep", "lat": 1.0, "lon": 2.0, "visited": False}])
+    payload = self._make_zip({"places.json": json.dumps([{"name": " Keep ", "lat": 5, "lon": 6}]).encode("utf-8")})
+    status, body = self._post_zip(self.c, "merge", payload)
+    self.assertEqual(status, 200, body)
+    self.assertEqual(body["imported"]["places"], 0)
+
+  def test_prefs_mode_skips_places_and_gpx(self):
+    fresh_places([{"name": "Keep", "lat": 1.0, "lon": 2.0, "visited": False}])
+    payload = self._make_zip({
+      "places.json": b'[{"name": "x", "lat": 999, "lon": 0}]',
+      "gpx/skip/t.gpx": b"<not gpx",
+      "prefs.json": b'{"theme": "dark"}',
+    })
+    status, body = self._post_zip(self.c, "prefs", payload)
+    self.assertEqual(status, 200, body)
+    self.assertEqual(body["imported"], {"places": 0, "gpx": 0, "metadata": 0, "prefs": body["imported"]["prefs"]})
+    stored = json.loads((admin_dir() / "places.json").read_text("utf-8"))
+    self.assertEqual([p["name"] for p in stored], ["Keep"])
+    self.assertFalse((admin_dir() / "gpx" / "skip").exists())
+
 
 class TestAdmin(unittest.TestCase):
   """Admin endpoints: user list, stats, role/unpublish/revoke/delete, publishing toggle."""

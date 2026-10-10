@@ -30,6 +30,7 @@ import time
 import xml.etree.ElementTree as ET
 import zipfile
 import hashlib
+from dataclasses import dataclass, field
 from hashlib import pbkdf2_hmac
 from http import HTTPStatus
 from pathlib import Path
@@ -2072,7 +2073,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return
     self._send_json(HTTPStatus.OK, {"ok": True, "category_labels": merged})
 
-  def _clean_category_labels(self, labels):
+  @staticmethod
+  def _clean_category_labels(labels):
     """Validate a category_labels payload. Shape: {slug: {label, color?}}.
     Raises ValidationError (-> 400) on bad input."""
     if not isinstance(labels, dict):
@@ -2927,7 +2929,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     qs = parse_qs(urlparse(self.path).query)
     mode = (qs.get("mode") or ["replace"])[0]
-    if mode not in ("replace", "merge", "prefs"):
+    if mode not in IMPORT_WRITERS:
       return self._error(HTTPStatus.BAD_REQUEST, "mode must be 'replace', 'merge', or 'prefs'")
 
     ctype = (self.headers.get("Content-Type") or "").split(";")[0].strip()
@@ -2944,193 +2946,24 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.BAD_REQUEST, "empty body")
 
     try:
-      zf = zipfile.ZipFile(io.BytesIO(raw))
-    except zipfile.BadZipFile as e:
-      return self._error(HTTPStatus.BAD_REQUEST, f"invalid zip: {e}")
-
-    staged: dict[str, bytes] = {}
-    total_declared = 0
-    total_read = 0
-    for info in zf.infolist():
-      if info.is_dir():
-        continue
-      name = info.filename
-      if name.startswith("/") or "\\" in name or ".." in name.split("/"):
-        return self._error(HTTPStatus.BAD_REQUEST, f"invalid entry: {name}")
-      # Silently skip junk added by OS archivers: macOS resource forks
-      # (__MACOSX/, ._*), macOS folder metadata (.DS_Store), Windows
-      # (Thumbs.db, desktop.ini), and editor backups (*.bak, *~).
-      base = name.rsplit("/", 1)[-1]
-      if name.startswith("__MACOSX/") or _is_export_junk(base):
-        continue
-      parts = name.split("/")
-      if name in IMPORT_TOP_FILES:
-        pass
-      elif len(parts) == 3 and parts[0] == "gpx" and parts[2].endswith(".gpx"):
-        try:
-          safe_path_component(parts[1])
-          safe_path_component(parts[2][:-4])
-        except ValidationError as e:
-          return self._error(HTTPStatus.BAD_REQUEST, f"invalid gpx path '{name}': {e}")
-      elif len(parts) == 2 and parts[0] == "gpx" and parts[1].endswith(".gpx"):
-        # Root-level GPX (no region).
-        try:
-          safe_path_component(parts[1][:-4])
-        except ValidationError as e:
-          return self._error(HTTPStatus.BAD_REQUEST, f"invalid gpx path '{name}': {e}")
-      else:
-        return self._error(HTTPStatus.BAD_REQUEST, f"unexpected file in zip: {name}")
-      # The declared size rejects an honest oversized archive before any
-      # decompression; only the bounded read below holds against a lying one.
-      total_declared += info.file_size
-      if total_declared > IMPORT_MAX_UNCOMPRESSED:
-        return self._error(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "uncompressed size exceeds limit")
-      try:
-        staged[name] = read_zip_entry_bounded(zf, info, IMPORT_MAX_UNCOMPRESSED - total_read)
-      except ImportTooLarge:
-        return self._error(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, "uncompressed size exceeds limit")
-      except Exception as e:
-        return self._error(HTTPStatus.BAD_REQUEST, f"failed reading {name}: {e}")
-      total_read += len(staged[name])
-
-    def parse_json(arcname: str, expected_type: type):
-      if arcname not in staged:
-        return None
-      try:
-        data = json.loads(staged[arcname].decode("utf-8"))
-      except (json.JSONDecodeError, UnicodeDecodeError) as e:
-        raise ValidationError(f"{arcname} not valid JSON: {e}")
-      if not isinstance(data, expected_type):
-        kind = "an array" if expected_type is list else "an object"
-        raise ValidationError(f"{arcname} must be {kind}")
-      return data
-
-    try:
-      new_places = parse_json("places.json", list)
-      new_routes = parse_json("routes.json", dict)
-      new_metadata = parse_json("metadata.json", dict)
-      new_prefs = parse_json("prefs.json", dict)
-      new_labels = parse_json("category-labels.json", dict)
+      payload = parse_payloads(stage_archive(raw), mode)
+    except ImportTooLarge as e:
+      return self._error(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, str(e))
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    cleaned_labels = None
-    if new_labels is not None:
-      try:
-        cleaned_labels = self._clean_category_labels(new_labels)
-      except ValidationError as e:
-        return self._error(HTTPStatus.BAD_REQUEST, f"category-labels.json: {e}")
-      # Re-stage the cleaned form so the writer below uses the canonical bytes.
-      staged["category-labels.json"] = (json.dumps(cleaned_labels, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
-
-    if mode != "prefs" and new_places is not None:
-      for i, p in enumerate(new_places):
-        try:
-          validate_place(p)
-        except ValidationError as e:
-          return self._error(HTTPStatus.BAD_REQUEST, f"places.json[{i}]: {e}")
-
-    cleaned_gpx: dict[str, bytes] = {}
-    if mode != "prefs":
-      for arcname, data in staged.items():
-        if not arcname.startswith("gpx/"):
-          continue
-        try:
-          cleaned_gpx[arcname] = strip_gpx_pii(data)
-        except ValidationError as e:
-          return self._error(HTTPStatus.BAD_REQUEST, f"{arcname}: {e}")
-
     udir = self._user_dir(user["username"])
-    lock_path = udir / ".import.lock"
-
-    def do_import():
-      if mode == "replace":
-        for name in IMPORT_TOP_FILES:
-          p = udir / name
-          if p.exists():
-            p.unlink()
-        gpx_root = udir / "gpx"
-        if gpx_root.is_symlink():
-          # Replace-mode wipes the GPX tree. If it's a symlink, drop the
-          # link itself rather than rmtree-ing the target (which could be
-          # a user-managed external directory).
-          gpx_root.unlink()
-        elif gpx_root.exists():
-          shutil.rmtree(gpx_root)
-        for arcname in IMPORT_TOP_FILES:
-          if arcname in staged:
-            atomic_write_bytes(udir / arcname, staged[arcname])
-        for arcname, data in cleaned_gpx.items():
-          target = udir / arcname
-          target.parent.mkdir(parents=True, exist_ok=True)
-          atomic_write_bytes(target, data)
-        return {
-          "added_places": len(new_places or []),
-          "changed_meta": len(new_metadata or {}),
-          "changed_prefs": len(new_prefs or {}),
-        }
-      if mode == "prefs":
-        # Preferences-only import: merge prefs.json and category-labels.json,
-        # skip places/routes/metadata and any GPX entries in the archive.
-        changed_prefs = 0
-        if new_prefs is not None:
-          prefs_path = udir / "prefs.json"
-          existing = load_json_file(prefs_path, expected_type=dict, required=False, label="prefs.json")
-          changed_prefs = sum(1 for k, v in new_prefs.items() if existing.get(k) != v)
-          existing.update(new_prefs)
-          write_json_file(prefs_path, existing)
-        if new_labels is not None:
-          labels_path = udir / "category-labels.json"
-          existing = load_json_file(labels_path, expected_type=dict, required=False, label="category-labels.json")
-          existing.update(cleaned_labels)
-          write_json_file(labels_path, existing)
-        return {"added_places": 0, "changed_meta": 0, "changed_prefs": changed_prefs}
-      # merge
-      added = 0
-      if new_places is not None:
-        places_path = udir / "places.json"
-        existing = load_json_file(places_path, expected_type=list, required=False, label="places.json")
-        existing_names = {p.get("name") for p in existing if isinstance(p, dict)}
-        for p in new_places:
-          if p.get("name") not in existing_names:
-            existing.append(p)
-            existing_names.add(p.get("name"))
-            added += 1
-        write_json_file(places_path, existing)
-      changed_meta = 0
-      if new_metadata is not None:
-        meta_path = udir / "metadata.json"
-        existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
-        changed_meta = sum(1 for k, v in new_metadata.items() if existing.get(k) != v)
-        existing.update(new_metadata)
-        write_json_file(meta_path, existing)
-      changed_prefs = 0
-      if new_prefs is not None:
-        prefs_path = udir / "prefs.json"
-        existing = load_json_file(prefs_path, expected_type=dict, required=False, label="prefs.json")
-        changed_prefs = sum(1 for k, v in new_prefs.items() if existing.get(k) != v)
-        existing.update(new_prefs)
-        write_json_file(prefs_path, existing)
-      if new_labels is not None:
-        labels_path = udir / "category-labels.json"
-        existing = load_json_file(labels_path, expected_type=dict, required=False, label="category-labels.json")
-        existing.update(cleaned_labels)
-        write_json_file(labels_path, existing)
-      for arcname, data in cleaned_gpx.items():
-        target = udir / arcname
-        target.parent.mkdir(parents=True, exist_ok=True)
-        atomic_write_bytes(target, data)
-      return {"added_places": added, "changed_meta": changed_meta, "changed_prefs": changed_prefs}
-
     try:
-      result = with_file_lock(lock_path, do_import)
+      result = with_file_lock(udir / ".import.lock", lambda: IMPORT_WRITERS[mode](udir, payload))
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, str(e))
     except OSError as e:
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"import failed: {e}")
 
     log_event(self.conn, actor=user["username"], action="user.import", details={
       "mode": mode,
       "places": result["added_places"],
-      "gpx": len(cleaned_gpx),
+      "gpx": len(payload.gpx),
       "metadata": result["changed_meta"],
       "prefs": result["changed_prefs"],
     })
@@ -3140,7 +2973,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "mode": mode,
       "imported": {
         "places": result["added_places"],
-        "gpx": len(cleaned_gpx),
+        "gpx": len(payload.gpx),
         "metadata": result["changed_meta"],
         "prefs": result["changed_prefs"],
       },
@@ -3679,6 +3512,204 @@ def strip_gpx_pii(xml_bytes: bytes) -> bytes:
     del root.attrib["creator"]
   walk(root)
   return ET.tostring(root, xml_declaration=True, encoding="UTF-8")
+
+
+# ---------- zip import ----------
+
+@dataclass
+class ImportPayload:
+  """An archive's contents after validation: places normalized by
+  validate_place, labels cleaned, GPX stripped of PII. None means the archive
+  had no such file."""
+  places: list | None = None
+  routes: dict | None = None
+  metadata: dict | None = None
+  prefs: dict | None = None
+  labels: dict | None = None
+  gpx: dict[str, bytes] = field(default_factory=dict)
+
+
+def stage_archive(raw: bytes) -> dict[str, bytes]:
+  """Read the allowlisted entries of an import zip into memory, keyed by
+  archive name. Raises ImportTooLarge past IMPORT_MAX_UNCOMPRESSED and
+  ValidationError on anything else wrong with the archive."""
+  try:
+    zf = zipfile.ZipFile(io.BytesIO(raw))
+  except zipfile.BadZipFile as e:
+    raise ValidationError(f"invalid zip: {e}")
+  staged: dict[str, bytes] = {}
+  total_declared = 0
+  total_read = 0
+  for info in zf.infolist():
+    if info.is_dir():
+      continue
+    name = info.filename
+    if name.startswith("/") or "\\" in name or ".." in name.split("/"):
+      raise ValidationError(f"invalid entry: {name}")
+    # Silently skip junk added by OS archivers: macOS resource forks
+    # (__MACOSX/, ._*), macOS folder metadata (.DS_Store), Windows
+    # (Thumbs.db, desktop.ini), and editor backups (*.bak, *~).
+    base = name.rsplit("/", 1)[-1]
+    if name.startswith("__MACOSX/") or _is_export_junk(base):
+      continue
+    parts = name.split("/")
+    if name in IMPORT_TOP_FILES:
+      pass
+    elif len(parts) in (2, 3) and parts[0] == "gpx" and parts[-1].endswith(".gpx"):
+      # gpx/<region>/<route>.gpx, or gpx/<route>.gpx for a route with no region.
+      try:
+        for component in parts[1:-1] + [parts[-1][:-4]]:
+          safe_path_component(component)
+      except ValidationError as e:
+        raise ValidationError(f"invalid gpx path '{name}': {e}")
+    else:
+      raise ValidationError(f"unexpected file in zip: {name}")
+    # The declared size rejects an honest oversized archive before any
+    # decompression; only the bounded read below holds against a lying one.
+    total_declared += info.file_size
+    if total_declared > IMPORT_MAX_UNCOMPRESSED:
+      raise ImportTooLarge("uncompressed size exceeds limit")
+    try:
+      staged[name] = read_zip_entry_bounded(zf, info, IMPORT_MAX_UNCOMPRESSED - total_read)
+    except ImportTooLarge:
+      raise
+    except Exception as e:
+      raise ValidationError(f"failed reading {name}: {e}")
+    total_read += len(staged[name])
+  return staged
+
+
+def _parse_staged_json(staged: dict[str, bytes], arcname: str, expected_type: type):
+  if arcname not in staged:
+    return None
+  try:
+    data = json.loads(staged[arcname].decode("utf-8"))
+  except (json.JSONDecodeError, UnicodeDecodeError) as e:
+    raise ValidationError(f"{arcname} not valid JSON: {e}")
+  if not isinstance(data, expected_type):
+    kind = "an array" if expected_type is list else "an object"
+    raise ValidationError(f"{arcname} must be {kind}")
+  return data
+
+
+def parse_payloads(staged: dict[str, bytes], mode: str) -> ImportPayload:
+  """Parse and validate staged entries. Every JSON file must parse in every
+  mode; places and GPX are only validated when the mode will write them."""
+  out = ImportPayload(
+    places=_parse_staged_json(staged, "places.json", list),
+    routes=_parse_staged_json(staged, "routes.json", dict),
+    metadata=_parse_staged_json(staged, "metadata.json", dict),
+    prefs=_parse_staged_json(staged, "prefs.json", dict),
+    labels=_parse_staged_json(staged, "category-labels.json", dict),
+  )
+  if out.labels is not None:
+    try:
+      out.labels = Handler._clean_category_labels(out.labels)
+    except ValidationError as e:
+      raise ValidationError(f"category-labels.json: {e}")
+  if mode == "prefs":
+    return out
+  if out.places is not None:
+    normalized = []
+    for i, p in enumerate(out.places):
+      try:
+        normalized.append(validate_place(p))
+      except ValidationError as e:
+        raise ValidationError(f"places.json[{i}]: {e}")
+    out.places = normalized
+  for arcname, data in staged.items():
+    if arcname.startswith("gpx/"):
+      try:
+        out.gpx[arcname] = strip_gpx_pii(data)
+      except ValidationError as e:
+        raise ValidationError(f"{arcname}: {e}")
+  return out
+
+
+def _merge_json_object(path: Path, new: dict, label: str) -> int:
+  """Overlay `new` onto the object stored at `path`; return how many keys changed."""
+  existing = load_json_file(path, expected_type=dict, required=False, label=label)
+  changed = sum(1 for k, v in new.items() if existing.get(k) != v)
+  existing.update(new)
+  write_json_file(path, existing)
+  return changed
+
+
+def _write_import_gpx(udir: Path, gpx: dict[str, bytes]) -> None:
+  for arcname, data in gpx.items():
+    # Contain against gpx/ rather than udir, so a gpx/ that is a symlink to an
+    # external directory still takes the write, as the GPX endpoints allow.
+    target = resolve_under(udir / "gpx", *arcname.split("/")[1:])
+    target.parent.mkdir(parents=True, exist_ok=True)
+    atomic_write_bytes(target, data)
+
+
+def import_replace(udir: Path, payload: ImportPayload) -> dict:
+  for name in IMPORT_TOP_FILES:
+    p = udir / name
+    if p.exists():
+      p.unlink()
+  gpx_root = udir / "gpx"
+  if gpx_root.is_symlink():
+    # Replace-mode wipes the GPX tree. If it's a symlink, drop the link itself
+    # rather than rmtree-ing the target (which could be a user-managed
+    # external directory).
+    gpx_root.unlink()
+  elif gpx_root.exists():
+    shutil.rmtree(gpx_root)
+  files = {
+    "places.json": payload.places,
+    "routes.json": payload.routes,
+    "metadata.json": payload.metadata,
+    "prefs.json": payload.prefs,
+    "category-labels.json": payload.labels,
+  }
+  for name, data in files.items():
+    if data is not None:
+      write_json_file(udir / name, data)
+  _write_import_gpx(udir, payload.gpx)
+  return {
+    "added_places": len(payload.places or []),
+    "changed_meta": len(payload.metadata or {}),
+    "changed_prefs": len(payload.prefs or {}),
+  }
+
+
+def _merge_prefs_and_labels(udir: Path, payload: ImportPayload) -> int:
+  changed_prefs = 0
+  if payload.prefs is not None:
+    changed_prefs = _merge_json_object(udir / "prefs.json", payload.prefs, "prefs.json")
+  if payload.labels is not None:
+    _merge_json_object(udir / "category-labels.json", payload.labels, "category-labels.json")
+  return changed_prefs
+
+
+def import_merge(udir: Path, payload: ImportPayload) -> dict:
+  added = 0
+  if payload.places is not None:
+    places_path = udir / "places.json"
+    existing = load_json_file(places_path, expected_type=list, required=False, label="places.json")
+    existing_names = {p.get("name") for p in existing if isinstance(p, dict)}
+    for p in payload.places:
+      if p["name"] not in existing_names:
+        existing.append(p)
+        existing_names.add(p["name"])
+        added += 1
+    write_json_file(places_path, existing)
+  changed_meta = 0
+  if payload.metadata is not None:
+    changed_meta = _merge_json_object(udir / "metadata.json", payload.metadata, "metadata.json")
+  changed_prefs = _merge_prefs_and_labels(udir, payload)
+  _write_import_gpx(udir, payload.gpx)
+  return {"added_places": added, "changed_meta": changed_meta, "changed_prefs": changed_prefs}
+
+
+def import_prefs(udir: Path, payload: ImportPayload) -> dict:
+  """Preferences-only import: prefs.json and category-labels.json, nothing else."""
+  return {"added_places": 0, "changed_meta": 0, "changed_prefs": _merge_prefs_and_labels(udir, payload)}
+
+
+IMPORT_WRITERS = {"replace": import_replace, "merge": import_merge, "prefs": import_prefs}
 
 
 def new_setup_token() -> str:

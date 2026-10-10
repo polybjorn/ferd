@@ -4,6 +4,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+### Fixed
+- Zip import stored each place exactly as the archive had it, so `places.json` could hold untrimmed names, integer coordinates, duplicate tags, or empty fields that adding or editing a place never writes. Imported places are now stored in the same normalized form, and merge mode matches existing places on the trimmed name.
+
 ## [1.4.0] - 2026-10-10
 
 ### Added
