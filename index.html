@@ -8743,8 +8743,11 @@
       const filterClear = document.getElementById('filter-clear');
       const mountEl = document.getElementById('trails-list-mount');
       const filterSels = [statusSel, regionSel, diffSel, ratingSel].filter(Boolean);
-      // Flatten once: each entry pairs a route with its parent region name.
-      const flatRoutes = regions.flatMap(r => r.routes.map(rt => ({route: rt, region: r.name})));
+      // Re-read the manifest on every render: refreshRoutes replaces it, so a
+      // list flattened once at mount keeps showing deleted routes.
+      function flattenRoutes() {
+        return state.manifest.regions.flatMap(r => r.routes.map(rt => ({route: rt, region: r.name})));
+      }
       function routeMatches(entry, q, wantStatus, wantRegion, wantDiff, wantRating, wantTags) {
         const route = entry.route;
         if (q) {
@@ -8769,7 +8772,7 @@
         const wantDiff = diffSel ? diffSel.value : 'all';
         const wantRating = ratingSel ? ratingSel.value : 'all';
         const wantTags = state.trailFilters.tags || [];
-        const filtered = flatRoutes.filter(e => routeMatches(e, q, wantStatus, wantRegion, wantDiff, wantRating, wantTags));
+        const filtered = flattenRoutes().filter(e => routeMatches(e, q, wantStatus, wantRegion, wantDiff, wantRating, wantTags));
         setResultCount(filtered.length);
         const byLetter = state.trailsGroupBy === 'letter';
         const { grouped, keys } = groupAndSort(
