@@ -265,6 +265,126 @@ class TestValidatePlace(unittest.TestCase):
       api.validate_place(self.minimal(sources=["x"] * 21))
 
 
+class TestValidatePlaceMessages(unittest.TestCase):
+  """index.html shows the server's `error` verbatim, so the message text is
+  user-facing. Pin it per field group; the type-only tests above would stay
+  green through a rewrite that degraded every message."""
+
+  def minimal(self, **overrides):
+    p = {"name": "Test", "lat": 1.0, "lon": 2.0}
+    p.update(overrides)
+    return p
+
+  def assertMessage(self, place, expected):
+    with self.assertRaises(api.ValidationError) as cm:
+      api.validate_place(place)
+    self.assertEqual(str(cm.exception), expected, msg=f"for {place!r}")
+
+  def test_shape(self):
+    self.assertMessage("nope", "place must be an object")
+    self.assertMessage(self.minimal(extra=1, zzz=2), "unknown fields: ['extra', 'zzz']")
+    self.assertMessage({"name": "x"}, "missing required fields: ['lat', 'lon']")
+    # Unknown fields are reported before missing ones.
+    self.assertMessage({"extra": 1}, "unknown fields: ['extra']")
+
+  def test_required_fields(self):
+    for bad in ("", "  ", "x" * 201, 1, None):
+      self.assertMessage(self.minimal(name=bad), "name must be a non-empty string (<=200 chars)")
+    for bad in (-91, 91, "0", True, None):
+      self.assertMessage(self.minimal(lat=bad), "lat must be a number in [-90, 90]")
+    for bad in (-181, 181, "0", True, None):
+      self.assertMessage(self.minimal(lon=bad), "lon must be a number in [-180, 180]")
+    # Fields are checked in a fixed order; the first failure wins.
+    self.assertMessage(self.minimal(name="", lat=99, rating=9), "name must be a non-empty string (<=200 chars)")
+    self.assertMessage(self.minimal(lat=99, lon=999), "lat must be a number in [-90, 90]")
+
+  def test_category(self):
+    for bad in ("   ", "x" * 65, 123):
+      self.assertMessage(self.minimal(category=bad), "category, when set, must be a non-empty string (<=64 chars)")
+
+  def test_optional_strings(self):
+    for key, cap in (("country", 100), ("note", 2000), ("local_name", 200), ("from_catalog", 200)):
+      for bad in ("x" * (cap + 1), 123, ["x"]):
+        self.assertMessage(self.minimal(**{key: bad}), f"{key} must be a string (<={cap} chars) or null")
+
+  def test_visited_date_rating(self):
+    for bad in ("yes", 1, None):
+      self.assertMessage(self.minimal(visited=bad), "visited must be boolean")
+    for bad in ("2024/07/15", "yesterday", 123):
+      self.assertMessage(self.minimal(date_visited=bad), "date_visited must be YYYY-MM-DD")
+    for bad in (0, 6, "4", True, 3.5):
+      self.assertMessage(self.minimal(rating=bad), "rating must be an integer 1-5")
+
+  def test_sources(self):
+    self.assertMessage(self.minimal(sources="x"), "sources must be a list (<=20 items)")
+    self.assertMessage(self.minimal(sources=None), "sources must be a list (<=20 items)")
+    self.assertMessage(self.minimal(sources=["https://a.b"] * 21), "sources must be a list (<=20 items)")
+    self.assertMessage(self.minimal(sources=[1]), "each source must be a string (<=500 chars)")
+    self.assertMessage(self.minimal(sources=["https://a.b/" + "x" * 500]), "each source must be a string (<=500 chars)")
+    self.assertMessage(self.minimal(sources=["ftp://a.b"]), "each source must be an http(s) URL")
+
+  def test_tags(self):
+    self.assertMessage(self.minimal(tags="unesco"), "tags must be a list of strings")
+    self.assertMessage(self.minimal(tags=[1]), "each tag must be a string")
+    self.assertMessage(
+      self.minimal(tags=["has space"]),
+      "invalid tag: 'has space' (alphanumerics + hyphen, 1-32 chars, starts with alphanumeric)",
+    )
+    self.assertMessage(self.minimal(tags=[f"t{i}" for i in range(11)]), "too many tags (max 10)")
+
+  def test_image(self):
+    for bad in (1, "https://a.b/" + "x" * 1000):
+      self.assertMessage(self.minimal(image=bad), "image must be a string (<=1000 chars) or null")
+    self.assertMessage(self.minimal(image="data:x"), "image must be an http(s) URL")
+    self.assertMessage(self.minimal(image_focus=1), "image_focus must be a string")
+    self.assertMessage(
+      self.minimal(image_focus="topp"),
+      "image_focus must be one of top/bottom/center/left/right or 'N% N%'",
+    )
+
+  def test_catalog_skip(self):
+    for bad in ("x", [], {f"k{i}": 1 for i in range(21)}):
+      self.assertMessage(self.minimal(catalog_skip=bad), "catalog_skip must be an object (<=20 entries)")
+    for bad in ({"": 1}, {"x" * 65: 1}):
+      self.assertMessage(self.minimal(catalog_skip=bad), "catalog_skip keys must be non-empty strings (<=64 chars)")
+    self.assertMessage(self.minimal(catalog_skip={"k": {"a": 1}}), "catalog_skip values must be JSON scalars or lists")
+    self.assertMessage(self.minimal(catalog_skip={"k": [1] * 51}), "catalog_skip list values capped at 50 items")
+    for bad in ([None], [[1]], ["x" * 501]):
+      self.assertMessage(
+        self.minimal(catalog_skip={"k": bad}),
+        "catalog_skip list items must be JSON scalars (strings <=500 chars)",
+      )
+
+  def test_id(self):
+    for bad in ("ABCDEF12", "abc", 12345678):
+      self.assertMessage(self.minimal(id=bad), "id must be an 8-char hex string")
+
+  def test_full_normalized_output(self):
+    # Pins the returned shape for every field so a rewrite of the output
+    # builder cannot drop or reshape one.
+    out = api.validate_place({
+      "id": "0123abcd", "name": " N ", "lat": 1, "lon": -2, "category": " c ",
+      "country": " NO ", "visited": True, "note": " n ", "local_name": " l ",
+      "sources": ["https://a.b"], "date_visited": "2024-01-02", "rating": 3,
+      "image": " https://i.b/x.jpg ", "image_focus": " 10% 20% ", "tags": ["a", "A", "b"],
+      "from_catalog": " Cat ", "catalog_skip": {"note": "x"},
+    })
+    self.assertEqual(out, {
+      "name": "N", "lat": 1.0, "lon": -2.0, "visited": True, "id": "0123abcd",
+      "category": "c", "country": "NO", "note": "n", "local_name": "l",
+      "sources": ["https://a.b"], "image": "https://i.b/x.jpg", "from_catalog": "Cat",
+      "image_focus": "10% 20%", "date_visited": "2024-01-02", "rating": 3,
+      "catalog_skip": {"note": "x"}, "tags": ["a", "b"],
+    })
+    # Nulls and empties are dropped rather than stored, except a string
+    # field set to "", which is kept as "".
+    out = api.validate_place(self.minimal(
+      id="", category="", country=None, note=None, local_name=None, image="",
+      image_focus="", date_visited="", rating="", tags=[], from_catalog=None, catalog_skip={},
+    ))
+    self.assertEqual(out, {"name": "Test", "lat": 1.0, "lon": 2.0, "visited": False, "image": ""})
+
+
 class TestWriteAndLoadJsonFile(unittest.TestCase):
   def setUp(self):
     self.tmp = tempfile.TemporaryDirectory()
