@@ -7,6 +7,10 @@
 # ci-actions is cloned through $GITHUB_SERVER_URL and its scripts run directly,
 # not through `uses:`. That form needs the CI host written out, this file goes
 # to GitHub with the history, and the denylist gate refuses the host name.
+#
+# QUALIFIED_REFS refuses a bare `#N` in a commit message: forge issue numbers
+# restart at 1 while GitHub's do not, so a synced `closes #N` would close
+# GitHub's #N too. Write `bjorn/ferd#N`.
 name: CI
 
 on:
@@ -36,6 +40,7 @@ jobs:
           HEAD_SHA: ${{ github.sha }}
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           BEFORE: ${{ github.event.before }}
+          QUALIFIED_REFS: "true"
         run: GITHUB_ACTION_PATH="${RUNNER_TEMP:-/tmp}/ci-actions/attribution" bash "${RUNNER_TEMP:-/tmp}/ci-actions/attribution/run.sh"
 
   test:
