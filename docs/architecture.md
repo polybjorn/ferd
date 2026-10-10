@@ -31,7 +31,6 @@ Three groups: directories, repo-meta files, then the rest. Alphabetical (case-in
 .github/
   ISSUE_TEMPLATE/          # bug report + feature request forms
   workflows/               # tests, CodeQL, Docker publish, APK release, vendor drift
-  dependabot.yml           # automated dependency PRs
   pull_request_template.md
 android/                   # Android client: WebView wrapper around the frontend
 deploy/

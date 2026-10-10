@@ -1,8 +1,8 @@
 # The forge is origin and GitHub is a fast-forward copy with the full history,
 # because GitHub Actions build the ghcr images and the release APK that
-# Obtainium reads. Nothing is forced, so a merge made on GitHub (Dependabot)
-# stops the sync until it is pulled into the forge. The sync waits for the
-# attribution check and the unit tests.
+# Obtainium reads. Nothing is forced, so a commit made on GitHub stops the sync
+# until it is pulled into the forge. The sync waits for the attribution
+# check and the unit tests.
 #
 # ci-actions is cloned through $GITHUB_SERVER_URL and its scripts run directly,
 # not through `uses:`. That form needs the CI host written out, this file goes
@@ -72,5 +72,6 @@ jobs:
         env:
           DEPLOY_KEY: ${{ secrets.PUBLISH_DEPLOY_KEY }}
           DENYLIST: ${{ secrets.DEPLOY_DENYLIST }}
+          REPO: polybjorn/ferd
           REF: ${{ github.ref }}
-        run: bash .forgejo/github-sync.sh "${RUNNER_TEMP:-/tmp}/ci-actions"
+        run: bash "${RUNNER_TEMP:-/tmp}/ci-actions/github-sync/github-sync.sh"
