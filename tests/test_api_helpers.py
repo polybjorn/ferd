@@ -755,6 +755,45 @@ class TestPrefsPutLocking(unittest.TestCase):
       self.assertEqual(json.loads((udir / "prefs.json").read_text()), {"theme": "dark"})
 
 
+class TestSendUserJson(unittest.TestCase):
+  """A missing or empty per-user file reads as the endpoint's empty shape."""
+
+  def _send(self, filename, expected_type, content=None, **kw):
+    with tempfile.TemporaryDirectory() as tmp:
+      udir = Path(tmp)
+      if content is not None:
+        (udir / filename).write_text(content)
+      sent = []
+
+      class H(api.Handler):
+        def __init__(self):
+          pass
+
+      h = H()
+      h._send_json = lambda status, payload: sent.append(("ok", payload))
+      h._error = lambda status, msg: sent.append((int(status), msg))
+      h._send_user_json(udir, filename, expected_type, **kw)
+      return sent[0]
+
+  def test_missing_file_uses_the_default(self):
+    self.assertEqual(self._send("routes.json", dict, default={"regions": []}), ("ok", {"regions": []}))
+    self.assertEqual(self._send("prefs.json", dict, default={}), ("ok", {}))
+
+  def test_missing_places_file_is_an_empty_list(self):
+    self.assertEqual(self._send("places.json", list), ("ok", []))
+
+  def test_key_wraps_the_value(self):
+    self.assertEqual(self._send("category-labels.json", dict, default={}, key="category_labels"),
+                     ("ok", {"category_labels": {}}))
+    self.assertEqual(self._send("category-labels.json", dict, '{"a": {"label": "A"}}', default={}, key="category_labels"),
+                     ("ok", {"category_labels": {"a": {"label": "A"}}}))
+
+  def test_invalid_file_is_a_500_naming_the_file(self):
+    status, msg = self._send("prefs.json", dict, "[]", default={})
+    self.assertEqual(status, 500)
+    self.assertIn("prefs.json", msg)
+
+
 class TestPasswordHash(unittest.TestCase):
   """Minimal round-trip only; PBKDF2 is slow (~300ms per call)."""
 

@@ -979,6 +979,28 @@ class Handler(http.server.BaseHTTPRequestHandler):
   def _error(self, status: int, message: str) -> None:
     self._send_json(status, {"error": message})
 
+  def _send_user_json(self, udir: Path, filename: str, expected_type: type, *, default=None, key: str | None = None) -> None:
+    """Send a per-user JSON file. A missing file reads as empty; `default`
+    replaces an empty value and `key` wraps the result in {key: value}."""
+    try:
+      data = load_json_file(udir / filename, expected_type=expected_type, required=False, label=filename)
+    except ValidationError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+    if default is not None:
+      data = data or default
+    self._send_json(HTTPStatus.OK, {key: data} if key else data)
+
+  def _admin_body(self):
+    """(admin row, parsed body) for an admin-only JSON endpoint, or None once
+    the error response has been sent."""
+    admin = self._require_admin()
+    if admin is None:
+      return None
+    body = self._read_body_or_400()
+    if body is None:
+      return None
+    return admin, body
+
   def _read_body_or_400(self) -> dict | None:
     try:
       return self._read_body()
@@ -1608,12 +1630,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"ok": True, "removed": removed})
 
   def _h_settings_registration(self):
-    admin = self._require_admin()
-    if admin is None:
+    ctx = self._admin_body()
+    if ctx is None:
       return
-    body = self._read_body_or_400()
-    if body is None:
-      return
+    admin, body = ctx
     mode = body.get("mode")
     if mode not in ("open", "closed"):
       return self._error(HTTPStatus.BAD_REQUEST, "mode must be 'open' or 'closed'")
@@ -1624,12 +1644,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"registration": mode})
 
   def _h_admin_settings_publishing(self):
-    admin = self._require_admin()
-    if admin is None:
+    ctx = self._admin_body()
+    if ctx is None:
       return
-    body = self._read_body_or_400()
-    if body is None:
-      return
+    admin, body = ctx
     mode = body.get("mode")
     if mode not in ("open", "closed"):
       return self._error(HTTPStatus.BAD_REQUEST, "mode must be 'open' or 'closed'")
@@ -1640,12 +1658,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"publishing": mode})
 
   def _h_admin_settings_catalog_baseline(self):
-    admin = self._require_admin()
-    if admin is None:
+    ctx = self._admin_body()
+    if ctx is None:
       return
-    body = self._read_body_or_400()
-    if body is None:
-      return
+    admin, body = ctx
     mode = body.get("mode")
     if mode not in ("open", "closed"):
       return self._error(HTTPStatus.BAD_REQUEST, "mode must be 'open' or 'closed'")
@@ -1771,12 +1787,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"ok": True})
 
   def _h_admin_user_role(self, uid: int):
-    admin = self._require_admin()
-    if admin is None:
+    ctx = self._admin_body()
+    if ctx is None:
       return
-    body = self._read_body_or_400()
-    if body is None:
-      return
+    admin, body = ctx
     val = body.get("is_admin")
     if not isinstance(val, bool):
       return self._error(HTTPStatus.BAD_REQUEST, "is_admin (bool) required")
@@ -1816,12 +1830,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"ok": True, "affected": affected})
 
   def _h_admin_catalog_add(self):
-    admin = self._require_admin()
-    if admin is None:
+    ctx = self._admin_body()
+    if ctx is None:
       return
-    body = self._read_body_or_400()
-    if body is None:
-      return
+    admin, body = ctx
     entries = body.get("entries")
     if not isinstance(entries, list) or not entries:
       return self._error(HTTPStatus.BAD_REQUEST, "entries: non-empty list required")
@@ -1875,12 +1887,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self._send_json(HTTPStatus.OK, {"ok": True, **state})
 
   def _h_admin_catalog_delete(self):
-    admin = self._require_admin()
-    if admin is None:
+    ctx = self._admin_body()
+    if ctx is None:
       return
-    body = self._read_body_or_400()
-    if body is None:
-      return
+    admin, body = ctx
     names_in = body.get("names")
     if not isinstance(names_in, list) or not names_in or not all(isinstance(n, str) for n in names_in):
       return self._error(HTTPStatus.BAD_REQUEST, "names: non-empty list of strings required")
@@ -1932,12 +1942,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
     """Toggle visibility of a single shipped catalog entry. Hidden names are
     suppressed from /api/catalog responses for everyone; admin Manage UI sees
     them via `?include_hidden=1`. Body: `{name: str, hidden: bool}`."""
-    admin = self._require_admin()
-    if admin is None:
+    ctx = self._admin_body()
+    if ctx is None:
       return
-    body = self._read_body_or_400()
-    if body is None:
-      return
+    admin, body = ctx
     name = body.get("name")
     if not isinstance(name, str) or not name.strip():
       return self._error(HTTPStatus.BAD_REQUEST, "name required")
@@ -2016,11 +2024,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if user is None:
       return
     udir = self._user_dir(user["username"])
-    try:
-      data = load_json_file(udir / "category-labels.json", expected_type=dict, required=False, label="category-labels.json")
-    except ValidationError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
-    self._send_json(HTTPStatus.OK, {"category_labels": data or {}})
+    self._send_user_json(udir, "category-labels.json", dict, default={}, key="category_labels")
 
   def _h_me_category_labels_put(self):
     user = self._require_user()
@@ -2170,9 +2174,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_update():
       existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
-      idx = next((i for i, p in enumerate(existing) if isinstance(p, dict) and p.get("id") == target_id), None)
-      if idx is None:
-        raise NotFoundError(f"place not found: {target_id}")
+      idx = find_place_idx(existing, target_id)
       # Drop stale image_focus when image changes and the caller didn't
       # explicitly set a new focus. Focus is tied to a specific image's
       # framing; an image swap invalidates the old anchor.
@@ -2234,9 +2236,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_delete():
       existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
-      idx = next((i for i, p in enumerate(existing) if isinstance(p, dict) and p.get("id") == target_id), None)
-      if idx is None:
-        raise NotFoundError(f"place not found: {target_id}")
+      idx = find_place_idx(existing, target_id)
       del existing[idx]
       write_json_file(places_path, existing)
       return len(existing)
@@ -2739,33 +2739,21 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if user is None:
       return
     udir = self._user_dir(user["username"])
-    try:
-      data = load_json_file(udir / "places.json", expected_type=list, required=False, label="places.json")
-    except ValidationError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
-    self._send_json(HTTPStatus.OK, data)
+    self._send_user_json(udir, "places.json", list)
 
   def _h_routes_get(self):
     user = self._require_user()
     if user is None:
       return
     udir = self._user_dir(user["username"])
-    try:
-      data = load_json_file(udir / "routes.json", expected_type=dict, required=False, label="routes.json")
-    except ValidationError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
-    self._send_json(HTTPStatus.OK, data or {"regions": []})
+    self._send_user_json(udir, "routes.json", dict, default={"regions": []})
 
   def _h_metadata_get(self):
     user = self._require_user()
     if user is None:
       return
     udir = self._user_dir(user["username"])
-    try:
-      data = load_json_file(udir / "metadata.json", expected_type=dict, required=False, label="metadata.json")
-    except ValidationError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
-    self._send_json(HTTPStatus.OK, data or {})
+    self._send_user_json(udir, "metadata.json", dict, default={})
 
   def _h_metadata_put(self):
     """Upsert metadata for one route. Body: {key, metadata}. Empty metadata
@@ -2828,11 +2816,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if user is None:
       return
     udir = self._user_dir(user["username"])
-    try:
-      data = load_json_file(udir / "prefs.json", expected_type=dict, required=False, label="prefs.json")
-    except ValidationError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
-    self._send_json(HTTPStatus.OK, data or {})
+    self._send_user_json(udir, "prefs.json", dict, default={})
 
   def _h_prefs_put(self):
     user = self._require_user()
@@ -2981,41 +2965,25 @@ class Handler(http.server.BaseHTTPRequestHandler):
     udir = self._public_user_dir(username)
     if udir is None:
       return self._error(HTTPStatus.NOT_FOUND, "not found")
-    try:
-      data = load_json_file(udir / "places.json", expected_type=list, required=False, label="places.json")
-    except ValidationError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
-    self._send_json(HTTPStatus.OK, data)
+    self._send_user_json(udir, "places.json", list)
 
   def _h_public_routes(self, username: str):
     udir = self._public_user_dir(username)
     if udir is None:
       return self._error(HTTPStatus.NOT_FOUND, "not found")
-    try:
-      data = load_json_file(udir / "routes.json", expected_type=dict, required=False, label="routes.json")
-    except ValidationError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
-    self._send_json(HTTPStatus.OK, data or {"regions": []})
+    self._send_user_json(udir, "routes.json", dict, default={"regions": []})
 
   def _h_public_metadata(self, username: str):
     udir = self._public_user_dir(username)
     if udir is None:
       return self._error(HTTPStatus.NOT_FOUND, "not found")
-    try:
-      data = load_json_file(udir / "metadata.json", expected_type=dict, required=False, label="metadata.json")
-    except ValidationError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
-    self._send_json(HTTPStatus.OK, data or {})
+    self._send_user_json(udir, "metadata.json", dict, default={})
 
   def _h_public_category_labels(self, username: str):
     udir = self._public_user_dir(username)
     if udir is None:
       return self._error(HTTPStatus.NOT_FOUND, "not found")
-    try:
-      data = load_json_file(udir / "category-labels.json", expected_type=dict, required=False, label="category-labels.json")
-    except ValidationError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
-    self._send_json(HTTPStatus.OK, {"category_labels": data or {}})
+    self._send_user_json(udir, "category-labels.json", dict, default={}, key="category_labels")
 
   def _h_public_gpx(self, username: str, region: str, fname: str):
     udir = self._public_user_dir(username)
@@ -3130,6 +3098,14 @@ def resolve_under(base: Path, *parts: str) -> Path:
 def write_json_file(path: Path, data) -> None:
   """Serialize `data` as pretty JSON with trailing newline and write atomically."""
   atomic_write_bytes(path, (json.dumps(data, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+
+
+def find_place_idx(places: list, place_id: str) -> int:
+  """Index of the place with this id; NotFoundError if absent."""
+  for i, p in enumerate(places):
+    if isinstance(p, dict) and p.get("id") == place_id:
+      return i
+  raise NotFoundError(f"place not found: {place_id}")
 
 
 def load_json_file(path: Path, *, expected_type: type, required: bool, label: str):
