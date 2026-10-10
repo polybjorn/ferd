@@ -50,6 +50,8 @@ jobs:
         run: bash "${RUNNER_TEMP:-/tmp}/ci-actions/checkout/checkout.sh"
       - name: Unit tests
         run: python3 -m unittest discover -s tests
+      - name: Offline queue tests
+        run: node --test tests/js/*.test.js
 
   github-sync:
     if: github.event_name == 'push'

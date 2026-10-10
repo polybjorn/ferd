@@ -3683,6 +3683,7 @@
     // survive reload with no call-site changes. drainOutbox replays the queue
     // in FIFO order (last-write-wins; skip + notify on a definitive conflict).
 
+    // OFFLINE-QUEUE-BEGIN (tests/js/offline-queue.test.js runs the code between these markers)
     // Namespace the queue by server origin + viewer identity, mirroring
     // dataCacheKey, so edits to one map never replay against another.
     function currentNs() {
@@ -3998,6 +3999,8 @@
         .then(() => { updateOfflineBanner(); if (synced || skipped) showSyncToast(synced, skipped); })
         .catch(() => {});
     }
+
+    // OFFLINE-QUEUE-END
 
     // Count of pending writes for the current map (outbox is namespaced).
     function pendingCount() {

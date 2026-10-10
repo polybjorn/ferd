@@ -35,6 +35,12 @@ Tests live in `tests/`. Run from the repo root:
 python3 -m unittest discover -s tests
 ```
 
+The offline write queue in `index.html` has its own tests, run with Node 20 or newer and no install step:
+
+```sh
+node --test tests/js/*.test.js
+```
+
 Stdlib only, no deps. Two layers: unit tests for pure helpers and file utilities in `tools/api.py`, and integration tests that launch the API in a subprocess and hit endpoints over HTTP. Run before opening a PR. If your change touches the API surface or one of the helpers, add a case.
 
 To verify the static side end to end, run the dev server above, sign in, and do all of: add a place from the map ("Pick on map" then form), edit a place from its popup, delete a place, upload a GPX, delete a route, switch themes, change your password, revoke a session.
