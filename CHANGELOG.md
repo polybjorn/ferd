@@ -9,6 +9,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Changed
 - Deleting a route from the index map removes just that route in place instead of rebuilding the whole map (no blink or refit).
+- Vendored supercluster bumped to 9.1.0 and leaflet-elevation to 2.6.1. Map clusters are the same as before at every zoom level.
 
 ### Fixed
 - The API reference documented `PUT` and `DELETE /places` as addressing places by name (`{original_name, place}` and `{name}`). They take `{id, place}` and `{id}`, so any client written from the reference got a `400`. The place schema now also lists the `id`, `image_focus`, `from_catalog`, and `catalog_skip` fields, and `GET /public-maps` is documented instead of missing.

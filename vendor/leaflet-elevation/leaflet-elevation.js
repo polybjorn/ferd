@@ -403,6 +403,8 @@
 
 			this._data      = [];
 			this.track_info = {};
+			this._yCoordMin = 0;
+			this._yCoordMax = -Infinity;
 
 			this._fireEvt("eledata_clear");
 
@@ -518,6 +520,7 @@
 			this._start          = L.circleMarker([0,0], (opts.trkStart || Options.trkStart));
 			this._end            = L.circleMarker([0,0], (opts.trkEnd || Options.trkEnd));
 			this._chartEnabled   = true;
+			this._yCoordMin      = 0;
 			this._yCoordMax      = -Infinity;
 			this.track_info      = {};
 			//  this.handlers        = [];
@@ -694,6 +697,7 @@
 
 				this.fire("elepoint_added", { point: point, index: this._data.length - 1 });
 
+				if (this._yCoordMin > this._data[this._data.length - 1][this.options.yAttr]) this._yCoordMin = this._data[this._data.length - 1][this.options.yAttr];
 				if (this._yCoordMax < this._data[this._data.length - 1][this.options.yAttr]) this._yCoordMax = this._data[this._data.length - 1][this.options.yAttr];
 			});
 
@@ -1593,6 +1597,7 @@
 				this._marker.update({
 					map         : this._map,
 					item        : item,
+					yCoordMin   : this._yCoordMin,
 					yCoordMax   : this._yCoordMax || 0,
 					options     : this.options
 				});

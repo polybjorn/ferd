@@ -34,7 +34,7 @@ Ferd vendors the third-party libraries listed below under `vendor/`. Each retain
 - Copyright: (c) Ivan Sanchez Ortega
 ### supercluster
 - Purpose: fast spatial clustering for the place markers on the index map.
-- Version: 8.0.1
+- Version: 9.1.0
 - Upstream: https://github.com/mapbox/supercluster
 - License: ISC
 - Copyright: (c) Mapbox
@@ -42,7 +42,7 @@ Ferd vendors the third-party libraries listed below under `vendor/`. Each retain
 
 ### @raruto/leaflet-elevation
 - Purpose: elevation chart shown on a trail detail page, plus the position marker that tracks the cursor along the polyline.
-- Version: 2.6.0
+- Version: 2.6.1
 - Upstream: https://github.com/Raruto/leaflet-elevation
 - License: GPL-3.0-or-later
 - Copyright: (c) Raruto
