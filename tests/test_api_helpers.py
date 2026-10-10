@@ -574,6 +574,122 @@ class TestReadZipEntryBounded(unittest.TestCase):
     self.assertLess(self._peak_while_rejected(zf, info, 1024 * 1024), 4 * 1024 * 1024)
 
 
+class TestRouting(unittest.TestCase):
+  """Drive do_* on a handler whose _h_* methods only record the call, so the
+  path -> handler mapping is pinned without a server."""
+
+  def dispatch(self, method, path, readonly=False):
+    calls = []
+
+    class H(api.Handler):
+      def __init__(self):
+        pass
+
+    for name in dir(api.Handler):
+      if name.startswith("_h_"):
+        setattr(H, name, lambda self, *a, _n=name: calls.append((_n, *a)))
+    H._error = lambda self, status, msg: calls.append(("error", int(status), msg))
+    H._serve_static = lambda self, p: calls.append(("static", p))
+    H._block_if_readonly = lambda self: readonly
+    h = H()
+    h.path = path
+    getattr(h, "do_" + method)()
+    return calls
+
+  def test_exact_routes(self):
+    routes = {
+      "GET": {
+        "/api/health": "_h_health", "/api/state": "_h_state", "/api/sessions": "_h_sessions_list",
+        "/api/places": "_h_places_get", "/api/routes": "_h_routes_get", "/api/metadata": "_h_metadata_get",
+        "/api/me/prefs": "_h_prefs_get", "/api/me/category-labels": "_h_me_category_labels_get",
+        "/api/me/export": "_h_export_get", "/api/me/tokens": "_h_tokens_list",
+        "/api/public-maps": "_h_public_maps", "/api/catalog": "_h_catalog_get",
+        "/api/admin/users": "_h_admin_users_list", "/api/admin/stats": "_h_admin_stats",
+        "/api/admin/logs": "_h_admin_logs",
+      },
+      "POST": {
+        "/api/register": "_h_register", "/api/login": "_h_login", "/api/logout": "_h_logout",
+        "/api/change-password": "_h_change_password", "/api/settings/registration": "_h_settings_registration",
+        "/api/places": "_h_places_create", "/api/places/clear-category": "_h_places_clear_category",
+        "/api/gpx": "_h_gpx_upload", "/api/gpx/move": "_h_gpx_move", "/api/gpx/set-completed": "_h_gpx_set_completed",
+        "/api/regions/rename": "_h_region_rename", "/api/regions/delete": "_h_region_delete",
+        "/api/regions/clear": "_h_region_clear", "/api/me/publish": "_h_publish_post",
+        "/api/me/import": "_h_import_post", "/api/me/tokens": "_h_tokens_create",
+        "/api/me/tokens/revoke": "_h_tokens_revoke", "/api/sessions/revoke": "_h_sessions_revoke",
+        "/api/sessions/revoke-others": "_h_sessions_revoke_others",
+        "/api/admin/settings/publishing": "_h_admin_settings_publishing",
+        "/api/admin/settings/catalog-baseline": "_h_admin_settings_catalog_baseline",
+        "/api/admin/unpublish-all": "_h_admin_unpublish_all", "/api/admin/catalog/add": "_h_admin_catalog_add",
+        "/api/admin/catalog/delete": "_h_admin_catalog_delete", "/api/admin/catalog/clear": "_h_admin_catalog_clear",
+        "/api/admin/catalog/hide": "_h_admin_catalog_hide",
+      },
+      "PUT": {
+        "/api/places": "_h_places_update", "/api/me/prefs": "_h_prefs_put",
+        "/api/metadata": "_h_metadata_put", "/api/me/category-labels": "_h_me_category_labels_put",
+      },
+      "DELETE": {
+        "/api/places": "_h_places_delete", "/api/gpx": "_h_gpx_delete", "/api/admin/logs": "_h_admin_logs_clear",
+      },
+    }
+    for method, table in routes.items():
+      for path, handler in table.items():
+        self.assertEqual(self.dispatch(method, path), [(handler,)], f"{method} {path}")
+        # The query string is not part of the route.
+        self.assertEqual(self.dispatch(method, path + "?x=1"), [(handler,)], f"{method} {path}?x=1")
+
+  def test_parameterized_routes(self):
+    nf = [("error", 404, "not found")]
+    cases = [
+      ("GET", "/api/gpx/r%20a/t.gpx", [("_h_gpx_get", "r a", "t.gpx")]),
+      ("GET", "/api/gpx/t%C3%B8.gpx", [("_h_gpx_get", "", "tø.gpx")]),
+      ("GET", "/api/gpx//t.gpx", [("_h_gpx_get", "", "t.gpx")]),
+      ("GET", "/api/gpx/r/", [("_h_gpx_get", "r", "")]),
+      ("GET", "/api/gpx/r/a/b.gpx", [("_h_gpx_get", "r", "a/b.gpx")]),
+      ("GET", "/api/gpx/", nf),
+      ("GET", "/api/u/bob%20b/places", [("_h_public_places", "bob b")]),
+      ("GET", "/api/u/bob/routes", [("_h_public_routes", "bob")]),
+      ("GET", "/api/u/bob/metadata", [("_h_public_metadata", "bob")]),
+      ("GET", "/api/u/bob/category-labels", [("_h_public_category_labels", "bob")]),
+      ("GET", "/api/u/bob/gpx/r/t%20x.gpx", [("_h_public_gpx", "bob", "r", "t x.gpx")]),
+      ("GET", "/api/u/bob/gpx/t.gpx", [("_h_public_gpx", "bob", "", "t.gpx")]),
+      ("GET", "/api/u/bob/gpx/", nf),
+      ("GET", "/api/u/bob/other", nf),
+      ("GET", "/api/u/bob", nf),
+      ("GET", "/api/u/", nf),
+      ("POST", "/api/admin/users/7/role", [("_h_admin_user_role", 7)]),
+      ("POST", "/api/admin/users/7/unpublish", [("_h_admin_user_unpublish", 7)]),
+      ("POST", "/api/admin/users/7/revoke-sessions", [("_h_admin_user_revoke_sessions", 7)]),
+      ("POST", "/api/admin/users/7/other", nf),
+      ("POST", "/api/admin/users/x/role", nf),
+      ("POST", "/api/admin/users/7", nf),
+      ("DELETE", "/api/admin/users/7", [("_h_admin_user_delete", 7)]),
+      ("DELETE", "/api/admin/users/x", nf),
+      ("DELETE", "/api/admin/users/7/role", nf),
+    ]
+    for method, path, want in cases:
+      self.assertEqual(self.dispatch(method, path), want, f"{method} {path}")
+
+  def test_unmatched(self):
+    nf = [("error", 404, "not found")]
+    self.assertEqual(self.dispatch("GET", "/api/nope"), nf)
+    self.assertEqual(self.dispatch("GET", "/api/places/"), nf)
+    self.assertEqual(self.dispatch("GET", "/index.html?v=1"), [("static", "/index.html")])
+    self.assertEqual(self.dispatch("GET", "/u/bob"), [("static", "/u/bob")])
+    for method in ("POST", "PUT", "DELETE"):
+      self.assertEqual(self.dispatch(method, "/api/nope"), nf, method)
+      self.assertEqual(self.dispatch(method, "/index.html"), nf, method)
+    # Exact routes are per method.
+    self.assertEqual(self.dispatch("GET", "/api/login"), nf)
+    self.assertEqual(self.dispatch("PUT", "/api/gpx"), nf)
+    self.assertEqual(self.dispatch("GET", "/api/admin/users/7"), nf)
+
+  def test_readonly_blocks_writes_before_routing(self):
+    for method in ("POST", "PUT", "DELETE"):
+      self.assertEqual(self.dispatch(method, "/api/places", readonly=True), [], method)
+      self.assertEqual(self.dispatch(method, "/api/nope", readonly=True), [], method)
+    self.assertEqual(self.dispatch("GET", "/api/places", readonly=True), [("_h_places_get",)])
+
+
 class TestPasswordHash(unittest.TestCase):
   """Minimal round-trip only; PBKDF2 is slow (~300ms per call)."""
 

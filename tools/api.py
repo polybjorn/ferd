@@ -1058,69 +1058,154 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
   # ---- routing ----
 
+  # Exact paths per method, as handler names; the query string is not part of
+  # the path. Paths that carry parameters go through PREFIX_ROUTES, whose
+  # routers parse the remainder and send their own 404.
+  ROUTES = {
+    "GET": {
+      "/api/health": "_h_health",
+      "/api/state": "_h_state",
+      "/api/sessions": "_h_sessions_list",
+      "/api/places": "_h_places_get",
+      "/api/routes": "_h_routes_get",
+      "/api/metadata": "_h_metadata_get",
+      "/api/me/prefs": "_h_prefs_get",
+      "/api/me/category-labels": "_h_me_category_labels_get",
+      "/api/me/export": "_h_export_get",
+      "/api/me/tokens": "_h_tokens_list",
+      "/api/public-maps": "_h_public_maps",
+      "/api/catalog": "_h_catalog_get",
+      "/api/admin/users": "_h_admin_users_list",
+      "/api/admin/stats": "_h_admin_stats",
+      "/api/admin/logs": "_h_admin_logs",
+    },
+    "POST": {
+      "/api/register": "_h_register",
+      "/api/login": "_h_login",
+      "/api/logout": "_h_logout",
+      "/api/change-password": "_h_change_password",
+      "/api/settings/registration": "_h_settings_registration",
+      "/api/places": "_h_places_create",
+      "/api/places/clear-category": "_h_places_clear_category",
+      "/api/gpx": "_h_gpx_upload",
+      "/api/gpx/move": "_h_gpx_move",
+      "/api/gpx/set-completed": "_h_gpx_set_completed",
+      "/api/regions/rename": "_h_region_rename",
+      "/api/regions/delete": "_h_region_delete",
+      "/api/regions/clear": "_h_region_clear",
+      "/api/me/publish": "_h_publish_post",
+      "/api/me/import": "_h_import_post",
+      "/api/me/tokens": "_h_tokens_create",
+      "/api/me/tokens/revoke": "_h_tokens_revoke",
+      "/api/sessions/revoke": "_h_sessions_revoke",
+      "/api/sessions/revoke-others": "_h_sessions_revoke_others",
+      "/api/admin/settings/publishing": "_h_admin_settings_publishing",
+      "/api/admin/settings/catalog-baseline": "_h_admin_settings_catalog_baseline",
+      "/api/admin/unpublish-all": "_h_admin_unpublish_all",
+      "/api/admin/catalog/add": "_h_admin_catalog_add",
+      "/api/admin/catalog/delete": "_h_admin_catalog_delete",
+      "/api/admin/catalog/clear": "_h_admin_catalog_clear",
+      "/api/admin/catalog/hide": "_h_admin_catalog_hide",
+    },
+    "PUT": {
+      "/api/places": "_h_places_update",
+      "/api/me/prefs": "_h_prefs_put",
+      "/api/metadata": "_h_metadata_put",
+      "/api/me/category-labels": "_h_me_category_labels_put",
+    },
+    "DELETE": {
+      "/api/places": "_h_places_delete",
+      "/api/gpx": "_h_gpx_delete",
+      "/api/admin/logs": "_h_admin_logs_clear",
+    },
+  }
+  PREFIX_ROUTES = {
+    "GET": (("/api/gpx/", "_route_gpx_get"), ("/api/u/", "_route_public_get")),
+    "POST": (("/api/admin/users/", "_route_admin_user_post"),),
+    "PUT": (),
+    "DELETE": (("/api/admin/users/", "_route_admin_user_delete"),),
+  }
+  PUBLIC_ROUTES = {
+    "places": "_h_public_places",
+    "routes": "_h_public_routes",
+    "metadata": "_h_public_metadata",
+    "category-labels": "_h_public_category_labels",
+  }
+  ADMIN_USER_POST_ROUTES = {
+    "role": "_h_admin_user_role",
+    "unpublish": "_h_admin_user_unpublish",
+    "revoke-sessions": "_h_admin_user_revoke_sessions",
+  }
+
+  def _dispatch(self, method: str, path: str) -> bool:
+    """Run the handler routed for `path`. False when no route matches."""
+    name = self.ROUTES[method].get(path)
+    if name:
+      getattr(self, name)()
+      return True
+    for prefix, router in self.PREFIX_ROUTES[method]:
+      if path.startswith(prefix):
+        getattr(self, router)(path[len(prefix):])
+        return True
+    return False
+
+  def _dispatch_write(self, method: str):
+    if self._block_if_readonly():
+      return
+    if not self._dispatch(method, urlparse(self.path).path):
+      self._error(HTTPStatus.NOT_FOUND, "not found")
+
+  def _route_gpx_get(self, rest: str):
+    parts = rest.split("/", 1)
+    if len(parts) == 2:
+      return self._h_gpx_get(unquote(parts[0]), unquote(parts[1]))
+    if parts[0]:
+      return self._h_gpx_get("", unquote(parts[0]))
+    self._error(HTTPStatus.NOT_FOUND, "not found")
+
+  def _route_public_get(self, rest: str):
+    seg = rest.split("/", 1)
+    if len(seg) < 2:
+      return self._error(HTTPStatus.NOT_FOUND, "not found")
+    uname, tail = unquote(seg[0]), seg[1]
+    name = self.PUBLIC_ROUTES.get(tail)
+    if name:
+      return getattr(self, name)(uname)
+    if tail.startswith("gpx/"):
+      gparts = tail[len("gpx/"):].split("/", 1)
+      if len(gparts) == 2:
+        return self._h_public_gpx(uname, unquote(gparts[0]), unquote(gparts[1]))
+      if gparts[0]:
+        return self._h_public_gpx(uname, "", unquote(gparts[0]))
+    self._error(HTTPStatus.NOT_FOUND, "not found")
+
+  def _route_admin_user_post(self, rest: str):
+    parts = rest.split("/", 1)
+    if len(parts) == 2 and parts[0].isdigit() and parts[1] in self.ADMIN_USER_POST_ROUTES:
+      return getattr(self, self.ADMIN_USER_POST_ROUTES[parts[1]])(int(parts[0]))
+    self._error(HTTPStatus.NOT_FOUND, "not found")
+
+  def _route_admin_user_delete(self, rest: str):
+    if rest.isdigit():
+      return self._h_admin_user_delete(int(rest))
+    self._error(HTTPStatus.NOT_FOUND, "not found")
+
   def do_GET(self):
     path = urlparse(self.path).path
-    if path == "/api/health":
-      return self._h_health()
-    if path == "/api/state":
-      return self._h_state()
-    if path == "/api/sessions":
-      return self._h_sessions_list()
-    if path == "/api/places":
-      return self._h_places_get()
-    if path == "/api/routes":
-      return self._h_routes_get()
-    if path == "/api/metadata":
-      return self._h_metadata_get()
-    if path == "/api/me/prefs":
-      return self._h_prefs_get()
-    if path == "/api/me/category-labels":
-      return self._h_me_category_labels_get()
-    if path == "/api/me/export":
-      return self._h_export_get()
-    if path == "/api/me/tokens":
-      return self._h_tokens_list()
-    if path == "/api/public-maps":
-      return self._h_public_maps()
-    if path == "/api/catalog":
-      return self._h_catalog_get()
-    if path == "/api/admin/users":
-      return self._h_admin_users_list()
-    if path == "/api/admin/stats":
-      return self._h_admin_stats()
-    if path == "/api/admin/logs":
-      return self._h_admin_logs()
-    if path.startswith("/api/gpx/"):
-      parts = path[len("/api/gpx/"):].split("/", 1)
-      if len(parts) == 2:
-        return self._h_gpx_get(unquote(parts[0]), unquote(parts[1]))
-      if len(parts) == 1 and parts[0]:
-        return self._h_gpx_get("", unquote(parts[0]))
-      return self._error(HTTPStatus.NOT_FOUND, "not found")
-    if path.startswith("/api/u/"):
-      rest = path[len("/api/u/"):]
-      seg = rest.split("/", 1)
-      if len(seg) < 2:
-        return self._error(HTTPStatus.NOT_FOUND, "not found")
-      uname, tail = unquote(seg[0]), seg[1]
-      if tail == "places":
-        return self._h_public_places(uname)
-      if tail == "routes":
-        return self._h_public_routes(uname)
-      if tail == "metadata":
-        return self._h_public_metadata(uname)
-      if tail == "category-labels":
-        return self._h_public_category_labels(uname)
-      if tail.startswith("gpx/"):
-        gparts = tail[len("gpx/"):].split("/", 1)
-        if len(gparts) == 2:
-          return self._h_public_gpx(uname, unquote(gparts[0]), unquote(gparts[1]))
-        if len(gparts) == 1 and gparts[0]:
-          return self._h_public_gpx(uname, "", unquote(gparts[0]))
-      return self._error(HTTPStatus.NOT_FOUND, "not found")
+    if self._dispatch("GET", path):
+      return
     if path.startswith("/api/"):
       return self._error(HTTPStatus.NOT_FOUND, "not found")
     return self._serve_static(path)
+
+  def do_POST(self):
+    self._dispatch_write("POST")
+
+  def do_PUT(self):
+    self._dispatch_write("PUT")
+
+  def do_DELETE(self):
+    self._dispatch_write("DELETE")
 
   def _serve_static(self, path: str):
     static_dir = self.cfg.get("static_dir")
@@ -1185,107 +1270,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self.send_header("Content-Length", str(len(body)))
     self.end_headers()
     self.wfile.write(body)
-
-  def do_POST(self):
-    if self._block_if_readonly():
-      return
-    path = urlparse(self.path).path
-    if path == "/api/register":
-      return self._h_register()
-    if path == "/api/login":
-      return self._h_login()
-    if path == "/api/logout":
-      return self._h_logout()
-    if path == "/api/change-password":
-      return self._h_change_password()
-    if path == "/api/settings/registration":
-      return self._h_settings_registration()
-    if path == "/api/places":
-      return self._h_places_create()
-    if path == "/api/places/clear-category":
-      return self._h_places_clear_category()
-    if path == "/api/gpx":
-      return self._h_gpx_upload()
-    if path == "/api/gpx/move":
-      return self._h_gpx_move()
-    if path == "/api/gpx/set-completed":
-      return self._h_gpx_set_completed()
-    if path == "/api/regions/rename":
-      return self._h_region_rename()
-    if path == "/api/regions/delete":
-      return self._h_region_delete()
-    if path == "/api/regions/clear":
-      return self._h_region_clear()
-    if path == "/api/me/publish":
-      return self._h_publish_post()
-    if path == "/api/me/import":
-      return self._h_import_post()
-    if path == "/api/me/tokens":
-      return self._h_tokens_create()
-    if path == "/api/me/tokens/revoke":
-      return self._h_tokens_revoke()
-    if path == "/api/sessions/revoke":
-      return self._h_sessions_revoke()
-    if path == "/api/sessions/revoke-others":
-      return self._h_sessions_revoke_others()
-    if path == "/api/admin/settings/publishing":
-      return self._h_admin_settings_publishing()
-    if path == "/api/admin/settings/catalog-baseline":
-      return self._h_admin_settings_catalog_baseline()
-    if path == "/api/admin/unpublish-all":
-      return self._h_admin_unpublish_all()
-    if path == "/api/admin/catalog/add":
-      return self._h_admin_catalog_add()
-    if path == "/api/admin/catalog/delete":
-      return self._h_admin_catalog_delete()
-    if path == "/api/admin/catalog/clear":
-      return self._h_admin_catalog_clear()
-    if path == "/api/admin/catalog/hide":
-      return self._h_admin_catalog_hide()
-    if path.startswith("/api/admin/users/"):
-      rest = path[len("/api/admin/users/"):]
-      parts = rest.split("/", 1)
-      if len(parts) == 2 and parts[0].isdigit():
-        uid = int(parts[0])
-        if parts[1] == "role":
-          return self._h_admin_user_role(uid)
-        if parts[1] == "unpublish":
-          return self._h_admin_user_unpublish(uid)
-        if parts[1] == "revoke-sessions":
-          return self._h_admin_user_revoke_sessions(uid)
-      return self._error(HTTPStatus.NOT_FOUND, "not found")
-    self._error(HTTPStatus.NOT_FOUND, "not found")
-
-  def do_PUT(self):
-    if self._block_if_readonly():
-      return
-    path = urlparse(self.path).path
-    if path == "/api/places":
-      return self._h_places_update()
-    if path == "/api/me/prefs":
-      return self._h_prefs_put()
-    if path == "/api/metadata":
-      return self._h_metadata_put()
-    if path == "/api/me/category-labels":
-      return self._h_me_category_labels_put()
-    self._error(HTTPStatus.NOT_FOUND, "not found")
-
-  def do_DELETE(self):
-    if self._block_if_readonly():
-      return
-    path = urlparse(self.path).path
-    if path == "/api/places":
-      return self._h_places_delete()
-    if path == "/api/gpx":
-      return self._h_gpx_delete()
-    if path.startswith("/api/admin/users/"):
-      rest = path[len("/api/admin/users/"):]
-      if rest.isdigit():
-        return self._h_admin_user_delete(int(rest))
-      return self._error(HTTPStatus.NOT_FOUND, "not found")
-    if path == "/api/admin/logs":
-      return self._h_admin_logs_clear()
-    self._error(HTTPStatus.NOT_FOUND, "not found")
 
   # ---- handlers ----
 
