@@ -3610,7 +3610,7 @@ def stage_archive(raw: bytes) -> dict[str, bytes]:
       raise ImportTooLarge("uncompressed size exceeds limit")
     try:
       staged[name] = read_zip_entry_bounded(zf, info, IMPORT_MAX_UNCOMPRESSED - total_read)
-    except ImportTooLarge:
+    except ValidationError:
       raise
     except Exception as e:
       raise ValidationError(f"failed reading {name}: {e}")

@@ -590,6 +590,15 @@ class TestReadZipEntryBounded(unittest.TestCase):
     info.file_size = 1
     self.assertLess(self._peak_while_rejected(zf, info, 1024 * 1024), 4 * 1024 * 1024)
 
+  def test_corrupt_entry_names_it_once(self):
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as zf:
+      zf.writestr("places.json", b"[1234567890]")
+    raw = buf.getvalue().replace(b"[1234567890]", b"[0234567890]")
+    with self.assertRaises(api.ValidationError) as cm:
+      api.stage_archive(raw)
+    self.assertEqual(str(cm.exception).count("failed reading"), 1)
+
 
 class TestRouting(unittest.TestCase):
   """Drive do_* on a handler whose _h_* methods only record the call, so the
