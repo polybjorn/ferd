@@ -2378,93 +2378,28 @@ class Handler(http.server.BaseHTTPRequestHandler):
     body = self._read_body_or_400()
     if body is None:
       return
-    key = body.get("key") or ""
-    new_region_raw = body.get("new_region")
-    new_name_raw = body.get("new_name")
-    if not isinstance(key, str) or not key:
-      return self._error(HTTPStatus.BAD_REQUEST, "key required")
-    if not isinstance(new_region_raw, str):
-      return self._error(HTTPStatus.BAD_REQUEST, "new_region (string, may be empty) required")
-    if new_name_raw is not None and not isinstance(new_name_raw, str):
-      return self._error(HTTPStatus.BAD_REQUEST, "new_name must be a string if provided")
-
-    parts = key.split("/")
-    if len(parts) == 1:
-      old_region, route_name = "", parts[0]
-    elif len(parts) == 2:
-      old_region, route_name = parts
-    else:
-      return self._error(HTTPStatus.BAD_REQUEST, f"invalid key: {key}")
-
     try:
-      if old_region:
-        safe_path_component(old_region)
-      safe_path_component(route_name)
-      new_region = safe_path_component(new_region_raw) if new_region_raw else ""
-      final_name = safe_path_component((new_name_raw or route_name).strip())
+      req = parse_gpx_move(body)
+      if req["noop"]:
+        return self._send_json(HTTPStatus.OK, {"ok": True, "old_key": req["old_key"],
+                                               "new_key": req["old_key"], "moved": 0})
+      udir = self._user_dir(user["username"])
+      pairs = plan_gpx_move(udir / "gpx", req)
+    except NotFoundError as e:
+      return self._error(HTTPStatus.NOT_FOUND, str(e))
+    except ConflictError as e:
+      return self._error(HTTPStatus.CONFLICT, str(e))
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    if old_region == new_region and route_name == final_name:
-      return self._send_json(HTTPStatus.OK, {"ok": True, "old_key": key, "new_key": key, "moved": 0})
-
-    udir = self._user_dir(user["username"])
-    gpx_root = udir / "gpx"
     try:
-      src_dir = resolve_under(gpx_root, old_region) if old_region else resolve_under(gpx_root)
-      dst_dir = resolve_under(gpx_root, new_region) if new_region else resolve_under(gpx_root)
-    except ValidationError as e:
-      return self._error(HTTPStatus.BAD_REQUEST, str(e))
-
-    # Move both the walked and planned variants if either exists.
-    pairs = []  # (src_path, dst_path)
-    for suffix in (".gpx", ".planned.gpx"):
-      try:
-        src = resolve_under(src_dir, f"{route_name}{suffix}")
-        dst = resolve_under(dst_dir, f"{final_name}{suffix}")
-      except ValidationError as e:
-        return self._error(HTTPStatus.BAD_REQUEST, str(e))
-      if src.is_file():
-        pairs.append((src, dst))
-    if not pairs:
-      return self._error(HTTPStatus.NOT_FOUND, f"route not found: {key}")
-    conflicts = [dst.name for src, dst in pairs if dst.exists() and dst != src]
-    if conflicts:
-      return self._error(HTTPStatus.CONFLICT,
-                         f"target already has: {', '.join(conflicts)}")
-
-    new_key = f"{new_region}/{final_name}" if new_region else final_name
-    meta_path = udir / "metadata.json"
-    lock_path = udir / ".gpx.lock"
-    moved_count = {"n": 0}
-
-    def do_move():
-      if new_region:
-        dst_dir.mkdir(parents=True, exist_ok=True)
-      for src, dst in pairs:
-        src.rename(dst)
-        moved_count["n"] += 1
-      if meta_path.exists():
-        existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
-        if key in existing:
-          existing[new_key] = existing.pop(key)
-          write_json_file(meta_path, existing)
-      # Best-effort prune of an empty old region dir (no-region root never pruned).
-      if old_region:
-        try:
-          if not any(src_dir.iterdir()):
-            src_dir.rmdir()
-        except OSError:
-          pass
-
-    try:
-      with_file_lock(lock_path, do_move)
+      moved = with_file_lock(udir / ".gpx.lock", lambda: apply_gpx_move(udir, req, pairs))
     except OSError as e:
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"move failed: {e}")
     manifest_status = self._regenerate_manifest(udir)
     self._send_json(HTTPStatus.OK, {
-      "ok": True, "old_key": key, "new_key": new_key,
-      "moved": moved_count["n"], "manifest": manifest_status,
+      "ok": True, "old_key": req["old_key"], "new_key": req["new_key"],
+      "moved": moved, "manifest": manifest_status,
     })
 
   def _h_gpx_set_completed(self):
@@ -3158,6 +3093,91 @@ def atomic_write_bytes(path: Path, data: bytes) -> None:
     os.close(dir_fd)
 
 
+class ConflictError(ValidationError):
+  """The target of a move already exists, so callers can map to 409 by type."""
+  pass
+
+
+def parse_gpx_move(body: dict) -> dict:
+  """Validate a /gpx/move body without touching the filesystem. Returns the
+  parsed old/new region and name, both keys and whether the move changes
+  nothing; raises ValidationError."""
+  key = body.get("key") or ""
+  new_region_raw = body.get("new_region")
+  new_name_raw = body.get("new_name")
+  if not isinstance(key, str) or not key:
+    raise ValidationError("key required")
+  if not isinstance(new_region_raw, str):
+    raise ValidationError("new_region (string, may be empty) required")
+  if new_name_raw is not None and not isinstance(new_name_raw, str):
+    raise ValidationError("new_name must be a string if provided")
+  parts = key.split("/")
+  if len(parts) == 1:
+    old_region, route_name = "", parts[0]
+  elif len(parts) == 2:
+    old_region, route_name = parts
+  else:
+    raise ValidationError(f"invalid key: {key}")
+  if old_region:
+    safe_path_component(old_region)
+  safe_path_component(route_name)
+  new_region = safe_path_component(new_region_raw) if new_region_raw else ""
+  final_name = safe_path_component((new_name_raw or route_name).strip())
+  return {
+    "old_region": old_region, "route_name": route_name,
+    "new_region": new_region, "final_name": final_name,
+    "old_key": key,
+    "new_key": f"{new_region}/{final_name}" if new_region else final_name,
+    "noop": old_region == new_region and route_name == final_name,
+  }
+
+
+def plan_gpx_move(gpx_root: Path, req: dict) -> list:
+  """The (src, dst) file pairs a parsed move renames: the walked and planned
+  variants, whichever exist. Raises NotFoundError when neither does and
+  ConflictError when a destination is taken."""
+  src_dir = resolve_under(gpx_root, req["old_region"]) if req["old_region"] else resolve_under(gpx_root)
+  dst_dir = resolve_under(gpx_root, req["new_region"]) if req["new_region"] else resolve_under(gpx_root)
+  pairs = []
+  for suffix in (".gpx", ".planned.gpx"):
+    src = resolve_under(src_dir, f"{req['route_name']}{suffix}")
+    dst = resolve_under(dst_dir, f"{req['final_name']}{suffix}")
+    if src.is_file():
+      pairs.append((src, dst))
+  if not pairs:
+    raise NotFoundError(f"route not found: {req['old_key']}")
+  conflicts = [dst.name for src, dst in pairs if dst.exists() and dst != src]
+  if conflicts:
+    raise ConflictError(f"target already has: {', '.join(conflicts)}")
+  return pairs
+
+
+def apply_gpx_move(udir: Path, req: dict, pairs: list) -> int:
+  """Rename the planned pairs, re-key the metadata entry and prune the old
+  region dir if it emptied. Caller holds the .gpx.lock. Returns files moved."""
+  if req["new_region"]:
+    pairs[0][1].parent.mkdir(parents=True, exist_ok=True)
+  moved = 0
+  for src, dst in pairs:
+    src.rename(dst)
+    moved += 1
+  meta_path = udir / "metadata.json"
+  if meta_path.exists():
+    existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
+    if req["old_key"] in existing:
+      existing[req["new_key"]] = existing.pop(req["old_key"])
+      write_json_file(meta_path, existing)
+  # Best-effort prune of an empty old region dir (no-region root never pruned).
+  if req["old_region"]:
+    src_dir = pairs[0][0].parent
+    try:
+      if not any(src_dir.iterdir()):
+        src_dir.rmdir()
+    except OSError:
+      pass
+  return moved
+
+
 def with_file_lock(lock_path: Path, fn):
   """Run fn() while holding an exclusive flock on lock_path. Creates the file if needed."""
   lock_path.parent.mkdir(parents=True, exist_ok=True)
@@ -3355,6 +3375,73 @@ def validate_place(p: object) -> dict:
   return out
 
 
+def _route_text(max_len: int):
+  """Spec for an optional free-text route field: blank after strip drops it."""
+  def check(key: str, v: object):
+    if not isinstance(v, str):
+      raise ValidationError(f"{key} must be a string")
+    stripped = v.strip()
+    if not stripped:
+      return _OMIT
+    if len(stripped) > max_len:
+      raise ValidationError(f"{key} too long (max {max_len} chars)")
+    return stripped
+  return check
+
+
+_route_notes = _route_text(2000)
+_route_local_name = _route_text(200)
+_route_source_text = _route_text(500)
+
+
+def _route_source(key: str, v: object):
+  s = _route_source_text(key, v)
+  if s is _OMIT:
+    return _OMIT
+  try:
+    parsed = urlparse(s)
+  except ValueError:
+    raise ValidationError("source is not a valid URL")
+  if parsed.scheme not in ("http", "https") or not parsed.netloc:
+    raise ValidationError("source must be an http or https URL")
+  return s
+
+
+def _route_date_completed(key: str, v: object):
+  _check_date(v, key)
+  return v
+
+
+def _route_rating(key: str, v: object):
+  _check_rating(v)
+  return v
+
+
+def _route_tags(key: str, v: object):
+  # Unlike the other fields, any falsy value (not only None or "") means unset.
+  return (normalize_tags(v) or _OMIT) if v else _OMIT
+
+
+def _route_difficulty(key: str, v: object):
+  if v not in ROUTE_DIFFICULTIES:
+    raise ValidationError(f"difficulty must be one of: {', '.join(ROUTE_DIFFICULTIES)}")
+  return v
+
+
+# One spec per route metadata field: check(key, value) raises ValidationError
+# or returns the value to store, or _OMIT to leave it out. None and "" never
+# reach a check. Order is the order fields are checked and written.
+ROUTE_META_CHECKS = {
+  "source": _route_source,
+  "date_completed": _route_date_completed,
+  "rating": _route_rating,
+  "notes": _route_notes,
+  "tags": _route_tags,
+  "difficulty": _route_difficulty,
+  "local_name": _route_local_name,
+}
+
+
 def validate_route_metadata(m: object) -> dict:
   """Validate a per-route metadata payload. Returns a normalized dict containing
   only the fields that have a non-empty value. Raises ValidationError on any
@@ -3365,65 +3452,13 @@ def validate_route_metadata(m: object) -> dict:
   if unknown:
     raise ValidationError(f"unknown fields: {sorted(unknown)}")
   out: dict = {}
-
-  src = m.get("source")
-  if src is not None and src != "":
-    if not isinstance(src, str):
-      raise ValidationError("source must be a string")
-    s = src.strip()
-    if s:
-      if len(s) > 500:
-        raise ValidationError("source too long (max 500 chars)")
-      try:
-        parsed = urlparse(s)
-      except ValueError:
-        raise ValidationError("source is not a valid URL")
-      if parsed.scheme not in ("http", "https") or not parsed.netloc:
-        raise ValidationError("source must be an http or https URL")
-      out["source"] = s
-
-  d = m.get("date_completed")
-  if d is not None and d != "":
-    _check_date(d, "date_completed")
-    out["date_completed"] = d
-
-  r = m.get("rating")
-  if r is not None and r != "":
-    _check_rating(r)
-    out["rating"] = r
-
-  n = m.get("notes")
-  if n is not None and n != "":
-    if not isinstance(n, str):
-      raise ValidationError("notes must be a string")
-    ns = n.strip()
-    if ns:
-      if len(ns) > 2000:
-        raise ValidationError("notes too long (max 2000 chars)")
-      out["notes"] = ns
-
-  tags = m.get("tags")
-  if tags:
-    cleaned = normalize_tags(tags)
-    if cleaned:
-      out["tags"] = cleaned
-
-  diff = m.get("difficulty")
-  if diff is not None and diff != "":
-    if diff not in ROUTE_DIFFICULTIES:
-      raise ValidationError(f"difficulty must be one of: {', '.join(ROUTE_DIFFICULTIES)}")
-    out["difficulty"] = diff
-
-  ln = m.get("local_name")
-  if ln is not None and ln != "":
-    if not isinstance(ln, str):
-      raise ValidationError("local_name must be a string")
-    lns = ln.strip()
-    if lns:
-      if len(lns) > 200:
-        raise ValidationError("local_name too long (max 200 chars)")
-      out["local_name"] = lns
-
+  for key, check in ROUTE_META_CHECKS.items():
+    v = m.get(key)
+    if v is None or v == "":
+      continue
+    value = check(key, v)
+    if value is not _OMIT:
+      out[key] = value
   return out
 
 

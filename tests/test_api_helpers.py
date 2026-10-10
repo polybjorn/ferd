@@ -848,5 +848,90 @@ class TestSafeXmlFromString(unittest.TestCase):
       api._safe_xml_fromstring(b"<gpx><unclosed>")
 
 
+class TestValidateRouteMetadata(unittest.TestCase):
+  def test_blank_and_unset_fields_are_dropped(self):
+    self.assertEqual(api.validate_route_metadata(
+      {"source": "", "notes": "   ", "local_name": None, "tags": [], "rating": ""}), {})
+
+  def test_values_are_stripped_and_kept_in_field_order(self):
+    out = api.validate_route_metadata(
+      {"local_name": " Nord ", "rating": 4, "source": " https://a.b/c ", "difficulty": "hard"})
+    self.assertEqual(list(out), ["source", "rating", "difficulty", "local_name"])
+    self.assertEqual(out["source"], "https://a.b/c")
+    self.assertEqual(out["local_name"], "Nord")
+
+  def test_rejections_name_the_field(self):
+    cases = {
+      "source": ("ftp://a.b", "http or https"),
+      "date_completed": ("2025-1-1", "YYYY-MM-DD"),
+      "rating": (6, "1-5"),
+      "notes": ("x" * 2001, "notes too long"),
+      "difficulty": ("nope", "difficulty must be one of"),
+      "local_name": (7, "local_name must be a string"),
+    }
+    for field, (value, fragment) in cases.items():
+      with self.subTest(field=field):
+        with self.assertRaises(api.ValidationError) as cm:
+          api.validate_route_metadata({field: value})
+        self.assertIn(fragment, str(cm.exception))
+
+  def test_unknown_field_and_non_object_rejected(self):
+    with self.assertRaises(api.ValidationError):
+      api.validate_route_metadata({"colour": "red"})
+    with self.assertRaises(api.ValidationError):
+      api.validate_route_metadata([])
+
+
+class TestGpxMovePlan(unittest.TestCase):
+  def setUp(self):
+    self._tmp = tempfile.TemporaryDirectory()
+    self.addCleanup(self._tmp.cleanup)
+    self.udir = Path(self._tmp.name)
+    self.gpx = self.udir / "gpx"
+    (self.gpx / "From").mkdir(parents=True)
+
+  def _touch(self, rel):
+    (self.gpx / rel).write_bytes(b"<gpx/>")
+
+  def test_parse_defaults_name_and_flags_noop(self):
+    req = api.parse_gpx_move({"key": "From/t", "new_region": "To"})
+    self.assertEqual((req["new_key"], req["noop"]), ("To/t", False))
+    self.assertTrue(api.parse_gpx_move({"key": "From/t", "new_region": "From"})["noop"])
+
+  def test_parse_rejects_bad_input(self):
+    for body in ({}, {"key": "a/b/c", "new_region": ""}, {"key": "t"},
+                 {"key": "t", "new_region": "", "new_name": 3},
+                 {"key": "../t", "new_region": ""}):
+      with self.subTest(body=body):
+        with self.assertRaises(api.ValidationError):
+          api.parse_gpx_move(body)
+
+  def test_plan_missing_route_is_not_found(self):
+    req = api.parse_gpx_move({"key": "From/t", "new_region": "To"})
+    with self.assertRaises(api.NotFoundError):
+      api.plan_gpx_move(self.gpx, req)
+
+  def test_plan_conflict_names_the_taken_file(self):
+    self._touch("From/t.gpx")
+    (self.gpx / "To").mkdir()
+    self._touch("To/t.gpx")
+    req = api.parse_gpx_move({"key": "From/t", "new_region": "To"})
+    with self.assertRaises(api.ConflictError) as cm:
+      api.plan_gpx_move(self.gpx, req)
+    self.assertIn("t.gpx", str(cm.exception))
+
+  def test_apply_moves_both_variants_rekeys_metadata_and_prunes(self):
+    self._touch("From/t.gpx")
+    self._touch("From/t.planned.gpx")
+    (self.udir / "metadata.json").write_text(json.dumps({"From/t": {"rating": 4}}))
+    req = api.parse_gpx_move({"key": "From/t", "new_region": "To", "new_name": "u"})
+    pairs = api.plan_gpx_move(self.gpx, req)
+    self.assertEqual(api.apply_gpx_move(self.udir, req, pairs), 2)
+    self.assertTrue((self.gpx / "To" / "u.gpx").is_file())
+    self.assertTrue((self.gpx / "To" / "u.planned.gpx").is_file())
+    self.assertFalse((self.gpx / "From").exists())
+    self.assertEqual(json.loads((self.udir / "metadata.json").read_text()), {"To/u": {"rating": 4}})
+
+
 if __name__ == "__main__":
   unittest.main()
