@@ -4,6 +4,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-10
+
 ### Added
 - `trusted_proxies` config field (env `FERD_TRUSTED_PROXIES`). When set to the reverse proxy's address, the API resolves the real client IP from `X-Real-IP` / `X-Forwarded-For` for the login rate limit, session records, audit log, and access log. Without it, every request behind a proxy counts as the proxy's own IP, so all clients share a single rate-limit bucket and the audit trail carries no per-client information. Off by default; forwarded headers from unlisted peers are ignored as before.
 
