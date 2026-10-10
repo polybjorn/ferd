@@ -2844,10 +2844,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if not isinstance(body, dict):
       return self._error(HTTPStatus.BAD_REQUEST, "prefs must be an object")
     udir = self._user_dir(user["username"])
-    try:
-      write_json_file(udir / "prefs.json", body)
-    except OSError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write prefs: {e}")
+    ok, _ = self._locked_write(user, "prefs.json", lambda: write_json_file(udir / "prefs.json", body))
+    if not ok:
+      return
     self._send_json(HTTPStatus.OK, {"ok": True})
 
   def _h_publish_post(self):

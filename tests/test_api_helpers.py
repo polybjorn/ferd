@@ -716,6 +716,45 @@ class TestRouting(unittest.TestCase):
     self.assertEqual(self.dispatch("GET", "/api/places", readonly=True), [("_h_places_get",)])
 
 
+class TestPrefsPutLocking(unittest.TestCase):
+  """prefs PUT must serialize on the per-user lock like the other JSON mutations."""
+
+  def test_write_happens_under_prefs_lock(self):
+    with tempfile.TemporaryDirectory() as tmp:
+      udir = Path(tmp)
+      events = []
+
+      class H(api.Handler):
+        def __init__(self):
+          pass
+
+      h = H()
+      h._require_user = lambda: {"username": "bob"}
+      h._read_body_or_400 = lambda: {"theme": "dark"}
+      h._user_dir = lambda username: udir
+      h._send_json = lambda status, payload: events.append(("sent", payload))
+      h._error = lambda status, msg: events.append(("error", msg))
+
+      real_lock, real_write = api.with_file_lock, api.write_json_file
+
+      def spy_lock(lock_path, fn):
+        events.append(("lock", lock_path.name))
+        return real_lock(lock_path, fn)
+
+      def spy_write(path, data):
+        events.append(("write", path.name))
+        return real_write(path, data)
+
+      api.with_file_lock, api.write_json_file = spy_lock, spy_write
+      try:
+        h._h_prefs_put()
+      finally:
+        api.with_file_lock, api.write_json_file = real_lock, real_write
+
+      self.assertEqual(events, [("lock", ".prefs.lock"), ("write", "prefs.json"), ("sent", {"ok": True})])
+      self.assertEqual(json.loads((udir / "prefs.json").read_text()), {"theme": "dark"})
+
+
 class TestPasswordHash(unittest.TestCase):
   """Minimal round-trip only; PBKDF2 is slow (~300ms per call)."""
 
