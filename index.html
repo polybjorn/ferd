@@ -6571,19 +6571,12 @@
           document.getElementById('e-delete').addEventListener('click', function() {
             if (!confirm('Delete place "' + place.name + '"?')) return;
             this.disabled = true;
-            const prevColors = Object.assign({}, state.categoryColors);
-            const slug = place._slug || '';
-            const wasVisited = !!place.visited;
-            let failed = false;
-            const anim = animatePlaceCardOut(slug).then(function() { if (!failed) removePlaceCardFromList(slug, wasVisited); });
-            dataLayer.deletePlace({ id: place.id })
-              .then(() => refreshPlaces())
-              .then(() => anim)
-              // Resync any survivor whose slug shifted (deleting one of several
-              // same-named places renumbers the rest), so its context menu /
-              // edit keep working without re-rendering the list.
-              .then(() => { closeModal(); syncPlacesOnMap(prevColors); resyncPlaceCardSlugs(); })
-              .catch(err => { failed = true; this.disabled = false; if (document.getElementById('place-list')) renderPlaceList(); showModalError(err.message); });
+            const btn = this;
+            deletePlaceNow(place, {
+              animate: true,
+              after: function(prevColors) { closeModal(); syncPlacesOnMap(prevColors); resyncPlaceCardSlugs(); },
+              onError: function(err) { btn.disabled = false; showModalError(err.message); },
+            });
           });
           document.getElementById('edit-place-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -6686,6 +6679,55 @@
       const fire = () => { if (fired) return; fired = true; done(); };
       el.addEventListener('transitionend', fire, { once: true });
       setTimeout(fire, fallbackMs || 300);
+    }
+
+    // Drop the card the moment the collapse finishes, not after the network
+    // round-trip, so there's no pause between the animation ending and the row
+    // closing. `failed` guards that optimistic removal against a delete that
+    // errors and re-renders the list. after(prevColors) runs once the refresh
+    // lands; callers that keep the list resync survivors there, since deleting
+    // one of several same-named places renumbers the rest's slugs.
+    function deletePlaceNow(place, { animate, after, onError }) {
+      const prevColors = Object.assign({}, state.categoryColors);
+      const slug = place._slug || '';
+      const wasVisited = !!place.visited;
+      let failed = false;
+      const anim = animate
+        ? animatePlaceCardOut(slug).then(function() { if (!failed) removePlaceCardFromList(slug, wasVisited); })
+        : Promise.resolve();
+      return dataLayer.deletePlace({ id: place.id })
+        .then(() => refreshPlaces())
+        .then(() => anim)
+        .then(() => after(prevColors))
+        .catch(err => {
+          failed = true;
+          if (animate && document.getElementById('place-list')) renderPlaceList();
+          (onError || function(e) { alert('Delete failed: ' + e.message); })(err);
+        });
+    }
+
+    function deletePlaceItem(place, opts) {
+      return openConfirmModal({
+        title: 'Delete place',
+        body: 'Delete "' + place.name + '"? This cannot be undone.',
+        confirmLabel: 'Delete',
+        danger: true,
+      }).then(function(ok) { if (ok) return deletePlaceNow(place, opts); });
+    }
+
+    function deleteRouteItem(route, regionName, after) {
+      return openConfirmModal({
+        title: 'Delete route',
+        body: 'Delete "' + route.name + '" (' + displayRegion(regionName) + ')? This removes the GPX file.',
+        confirmLabel: 'Delete',
+        danger: true,
+      }).then(function(ok) {
+        if (!ok) return;
+        return dataLayer.deleteGpx({ region: regionName, name: route.name })
+          .then(() => refreshRoutes())
+          .then(() => after())
+          .catch(err => alert('Delete failed: ' + err.message));
+      });
     }
 
     // Collapse a place card to zero height + opacity, then resolve. Lets
@@ -8130,30 +8172,7 @@
           if (!isReadOnly() && state.auth && state.auth.authenticated) {
             items.push(null);
             items.push({ label: 'Delete', danger: true, onClick: function() {
-              openConfirmModal({
-                title: 'Delete place',
-                body: 'Delete "' + place.name + '"? This cannot be undone.',
-                confirmLabel: 'Delete',
-                danger: true,
-              }).then(function(ok) {
-                if (!ok) return;
-                const prevColors = Object.assign({}, state.categoryColors);
-                const slug = place._slug || '';
-                const wasVisited = !!place.visited;
-                // Drop the card the moment the collapse finishes, not after the
-                // network round-trip, so there's no pause between the animation
-                // ending and the row closing. `failed` guards the optimistic
-                // removal against a delete that errors and re-renders the list.
-                let failed = false;
-                const anim = animatePlaceCardOut(slug).then(function() { if (!failed) removePlaceCardFromList(slug, wasVisited); });
-                dataLayer.deletePlace({ id: place.id })
-                  .then(() => refreshPlaces())
-                  .then(() => anim)
-                  // Resync any survivor whose slug shifted (see the edit-modal
-                  // delete handler) instead of re-rendering the whole list.
-                  .then(() => { syncPlacesOnMap(prevColors); resyncPlaceCardSlugs(); })
-                  .catch(err => { failed = true; if (document.getElementById('place-list')) renderPlaceList(); alert('Delete failed: ' + err.message); });
-              });
+              deletePlaceItem(place, { animate: true, after: function(prevColors) { syncPlacesOnMap(prevColors); resyncPlaceCardSlugs(); } });
             }});
           }
           return items;
@@ -8408,18 +8427,7 @@
           if (canEdit) {
             items.push(null);
             items.push({ label: 'Delete', danger: true, onClick: function() {
-              openConfirmModal({
-                title: 'Delete place',
-                body: 'Delete "' + place.name + '"? This cannot be undone.',
-                confirmLabel: 'Delete',
-                danger: true,
-              }).then(function(ok) {
-                if (!ok) return;
-                dataLayer.deletePlace({ id: place.id })
-                  .then(() => refreshPlaces())
-                  .then(() => renderHistoryIndex())
-                  .catch(err => alert('Delete failed: ' + err.message));
-              });
+              deletePlaceItem(place, { after: renderHistoryIndex });
             }});
           }
         } else {
@@ -8434,18 +8442,7 @@
           if (canEdit) {
             items.push(null);
             items.push({ label: 'Delete', danger: true, onClick: function() {
-              openConfirmModal({
-                title: 'Delete route',
-                body: 'Delete "' + route.name + '" (' + displayRegion(regionName) + ')? This removes the GPX file.',
-                confirmLabel: 'Delete',
-                danger: true,
-              }).then(function(ok) {
-                if (!ok) return;
-                dataLayer.deleteGpx({ region: regionName, name: route.name })
-                  .then(() => refreshRoutes())
-                  .then(() => renderHistoryIndex())
-                  .catch(err => alert('Delete failed: ' + err.message));
-              });
+              deleteRouteItem(route, regionName, renderHistoryIndex);
             }});
           }
         }
@@ -8844,18 +8841,7 @@
             if (!isReadOnly() && state.auth && state.auth.authenticated) {
               items.push(null);
               items.push({ label: 'Delete', danger: true, onClick: function() {
-                openConfirmModal({
-                  title: 'Delete route',
-                  body: 'Delete "' + route.name + '" (' + displayRegion(regionName) + ')? This removes the GPX file.',
-                  confirmLabel: 'Delete',
-                  danger: true,
-                }).then(function(ok) {
-                  if (!ok) return;
-                  dataLayer.deleteGpx({ region: regionName, name: route.name })
-                    .then(() => refreshRoutes())
-                    .then(() => renderTrailsList())
-                    .catch(err => alert('Delete failed: ' + err.message));
-                });
+                deleteRouteItem(route, regionName, renderTrailsList);
               }});
             }
             return items;
@@ -11996,19 +11982,7 @@
       if (!isReadOnly() && state.auth && state.auth.authenticated) {
         items.push(null);
         items.push({ label: 'Delete', danger: true, onClick: function() {
-          openConfirmModal({
-            title: 'Delete place',
-            body: 'Delete "' + place.name + '"? This cannot be undone.',
-            confirmLabel: 'Delete',
-            danger: true,
-          }).then(function(ok) {
-            if (!ok) return;
-            const prevColors = Object.assign({}, state.categoryColors);
-            dataLayer.deletePlace({ id: place.id })
-              .then(() => refreshPlaces())
-              .then(() => { syncPlacesOnMap(prevColors); })
-              .catch(err => alert('Delete failed: ' + err.message));
-          });
+          deletePlaceItem(place, { after: syncPlacesOnMap });
         }});
       }
       openContextMenu({ x: oe.clientX, y: oe.clientY, items });
@@ -12031,18 +12005,7 @@
       if (!isReadOnly() && state.auth && state.auth.authenticated) {
         items.push(null);
         items.push({ label: 'Delete', danger: true, onClick: function() {
-          openConfirmModal({
-            title: 'Delete route',
-            body: 'Delete "' + route.name + '" (' + displayRegion(regionName) + ')? This removes the GPX file.',
-            confirmLabel: 'Delete',
-            danger: true,
-          }).then(function(ok) {
-            if (!ok) return;
-            dataLayer.deleteGpx({ region: regionName, name: route.name })
-              .then(() => refreshRoutes())
-              .then(() => afterRouteDeleted(route.key))
-              .catch(err => alert('Delete failed: ' + err.message));
-          });
+          deleteRouteItem(route, regionName, function() { afterRouteDeleted(route.key); });
         }});
       }
       openContextMenu({ x: oe.clientX, y: oe.clientY, items });
