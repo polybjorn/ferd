@@ -376,6 +376,12 @@ class TestValidatePlaceMessages(unittest.TestCase):
       "image_focus": "10% 20%", "date_visited": "2024-01-02", "rating": 3,
       "catalog_skip": {"note": "x"}, "tags": ["a", "b"],
     })
+    # Key order is what lands in places.json.
+    self.assertEqual(list(out), [
+      "name", "lat", "lon", "visited", "id", "category", "country", "note", "local_name",
+      "sources", "image", "from_catalog", "image_focus", "date_visited", "rating",
+      "catalog_skip", "tags",
+    ])
     # Nulls and empties are dropped rather than stored, except a string
     # field set to "", which is kept as "".
     out = api.validate_place(self.minimal(
@@ -383,6 +389,17 @@ class TestValidatePlaceMessages(unittest.TestCase):
       image_focus="", date_visited="", rating="", tags=[], from_catalog=None, catalog_skip={},
     ))
     self.assertEqual(out, {"name": "Test", "lat": 1.0, "lon": 2.0, "visited": False, "image": ""})
+
+  def test_falsy_tags_are_ignored(self):
+    for v in ("", 0, False, {}):
+      self.assertNotIn("tags", api.validate_place(self.minimal(tags=v)))
+
+  def test_optional_fields_cover_the_schema(self):
+    self.assertEqual(api.PLACE_ALL, api.PLACE_REQUIRED | api.PLACE_OPTIONAL)
+    self.assertEqual(api.PLACE_OPTIONAL, {
+      "id", "category", "country", "visited", "note", "sources", "local_name", "date_visited",
+      "rating", "image", "image_focus", "tags", "from_catalog", "catalog_skip",
+    })
 
 
 class TestWriteAndLoadJsonFile(unittest.TestCase):

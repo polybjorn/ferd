@@ -67,9 +67,7 @@ GPX_NS = "http://www.topografix.com/GPX/1/1"
 # dot-dot whole-string rejection lives in safe_path_component itself.
 PATH_COMPONENT_RE = re.compile(r"^[^\x00-\x1f/\\]{1,255}$")
 PLACE_REQUIRED = {"name", "lat", "lon"}
-PLACE_OPTIONAL = {"id", "category", "country", "visited", "note", "sources", "local_name", "date_visited", "rating", "image", "image_focus", "tags", "from_catalog", "catalog_skip"}
 PLACE_ID_RE = re.compile(r"^[0-9a-f]{8}$")
-PLACE_ALL = PLACE_REQUIRED | PLACE_OPTIONAL
 
 # Route metadata fields and their constraints (used by /api/metadata).
 ROUTE_META_FIELDS = {"source", "date_completed", "rating", "notes", "tags", "difficulty", "local_name"}
@@ -3198,12 +3196,7 @@ def with_file_lock(lock_path: Path, fn):
 
 # ---------- place validation ----------
 
-def _opt_str(p: dict, key: str, max_len: int) -> None:
-  """Reject a present-but-non-null field that isn't a string within max_len."""
-  if key in p and p[key] is not None:
-    v = p[key]
-    if not isinstance(v, str) or len(v) > max_len:
-      raise ValidationError(f"{key} must be a string (<={max_len} chars) or null")
+_OMIT = object()
 
 
 def _check_rating(r: object) -> None:
@@ -3216,7 +3209,152 @@ def _check_date(v: object, name: str) -> None:
     raise ValidationError(f"{name} must be YYYY-MM-DD")
 
 
+def _place_text(max_len: int):
+  """Spec for an optional free-text field: null drops it, "" is kept."""
+  def check(key: str, v: object):
+    if v is None:
+      return _OMIT
+    if not isinstance(v, str) or len(v) > max_len:
+      raise ValidationError(f"{key} must be a string (<={max_len} chars) or null")
+    return v.strip()
+  return check
+
+
+def _place_id(key: str, v: object):
+  # `id` is a server-assigned per-row identifier (8-char hex). On create the
+  # client never sets it; on update the client echoes back what GET returned.
+  if v is None or v == "":
+    return _OMIT
+  if not isinstance(v, str) or not PLACE_ID_RE.match(v):
+    raise ValidationError("id must be an 8-char hex string")
+  return v
+
+
+def _place_visited(key: str, v: object):
+  if not isinstance(v, bool):
+    raise ValidationError("visited must be boolean")
+  return v
+
+
+def _place_category(key: str, v: object):
+  # An empty string or missing field both mean "uncategorized" and are
+  # stripped from the stored object.
+  if v is None or v == "":
+    return _OMIT
+  if not isinstance(v, str) or not v.strip() or len(v) > 64:
+    raise ValidationError("category, when set, must be a non-empty string (<=64 chars)")
+  return v.strip()
+
+
+def _place_sources(key: str, v: object):
+  if not isinstance(v, list) or len(v) > 20:
+    raise ValidationError("sources must be a list (<=20 items)")
+  for s in v:
+    if not isinstance(s, str) or len(s) > 500:
+      raise ValidationError("each source must be a string (<=500 chars)")
+    if urlparse(s).scheme.lower() not in ("http", "https"):
+      raise ValidationError("each source must be an http(s) URL")
+  return v
+
+
+def _place_image(key: str, v: object):
+  if v is None:
+    return _OMIT
+  if v == "":
+    return v
+  if not isinstance(v, str) or len(v) > 1000:
+    raise ValidationError("image must be a string (<=1000 chars) or null")
+  if urlparse(v).scheme.lower() not in ("http", "https"):
+    raise ValidationError("image must be an http(s) URL")
+  return v.strip()
+
+
+def _place_image_focus(key: str, v: object):
+  if v is None:
+    return _OMIT
+  if not isinstance(v, str):
+    raise ValidationError("image_focus must be a string")
+  stripped = v.strip()
+  if not stripped:
+    return _OMIT
+  if not re.match(r"^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$", stripped):
+    raise ValidationError("image_focus must be one of top/bottom/center/left/right or 'N% N%'")
+  return stripped
+
+
+def _place_date_visited(key: str, v: object):
+  if v is None or v == "":
+    return _OMIT
+  _check_date(v, key)
+  return v
+
+
+def _place_rating(key: str, v: object):
+  if v is None or v == "":
+    return _OMIT
+  _check_rating(v)
+  return v
+
+
+def _place_catalog_skip(key: str, v: object):
+  # Catalog-tracked fields the user has opted out of for this place, mapped to
+  # the catalog value at the time of opt-out. Used to suppress "Update
+  # available" for diffs the user has already considered; if the catalog value
+  # later changes, the field reappears as a new update.
+  if v is None:
+    return _OMIT
+  if not isinstance(v, dict) or len(v) > 20:
+    raise ValidationError("catalog_skip must be an object (<=20 entries)")
+  for k, val in v.items():
+    if not isinstance(k, str) or not k or len(k) > 64:
+      raise ValidationError("catalog_skip keys must be non-empty strings (<=64 chars)")
+    if val is not None and not isinstance(val, (str, int, float, bool, list)):
+      raise ValidationError("catalog_skip values must be JSON scalars or lists")
+    if isinstance(val, list):
+      if len(val) > 50:
+        raise ValidationError("catalog_skip list values capped at 50 items")
+      for item in val:
+        if not isinstance(item, (str, int, float, bool)) or (isinstance(item, str) and len(item) > 500):
+          raise ValidationError("catalog_skip list items must be JSON scalars (strings <=500 chars)")
+  return v or _OMIT
+
+
+def _place_tags(key: str, v: object):
+  # Free-form labels (e.g. "unesco"), same format/cap as route tags.
+  if not v:
+    return _OMIT
+  return normalize_tags(v) or _OMIT
+
+
+# One spec per optional place field: check(key, value) raises ValidationError
+# or returns the value to store, or _OMIT to leave the field out. Order is the
+# order fields are checked and the key order written to places.json.
+PLACE_FIELDS = {
+  "visited": _place_visited,
+  "id": _place_id,
+  "category": _place_category,
+  "country": _place_text(100),
+  "note": _place_text(2000),
+  "local_name": _place_text(200),
+  "sources": _place_sources,
+  "image": _place_image,
+  # Name of the catalog entry this place was imported from; the UI uses it to
+  # hide already-imported entries in Browse and to offer "Update from catalog"
+  # when the upstream entry diverges.
+  "from_catalog": _place_text(200),
+  "image_focus": _place_image_focus,
+  "date_visited": _place_date_visited,
+  "rating": _place_rating,
+  "catalog_skip": _place_catalog_skip,
+  "tags": _place_tags,
+}
+PLACE_DEFAULTS = {"visited": False}
+PLACE_OPTIONAL = set(PLACE_FIELDS)
+PLACE_ALL = PLACE_REQUIRED | PLACE_OPTIONAL
+
+
 def validate_place(p: object) -> dict:
+  """Validate a place and return the normalized copy that gets stored."""
   if not isinstance(p, dict):
     raise ValidationError("place must be an object")
   extra = set(p) - PLACE_ALL
@@ -3234,94 +3372,11 @@ def validate_place(p: object) -> dict:
   lon = p["lon"]
   if not isinstance(lon, (int, float)) or isinstance(lon, bool) or not (-180 <= lon <= 180):
     raise ValidationError("lon must be a number in [-180, 180]")
-  # Category is optional. An empty string or missing field both mean
-  # "uncategorized" and are stripped from the stored object.
-  category = p.get("category")
-  if category is not None and category != "":
-    if not isinstance(category, str) or not category.strip() or len(category) > 64:
-      raise ValidationError("category, when set, must be a non-empty string (<=64 chars)")
-  _opt_str(p, "country", 100)
-  if "visited" in p and not isinstance(p["visited"], bool):
-    raise ValidationError("visited must be boolean")
-  _opt_str(p, "note", 2000)
-  _opt_str(p, "local_name", 200)
-  if "date_visited" in p and p["date_visited"] not in (None, ""):
-    _check_date(p["date_visited"], "date_visited")
-  if "rating" in p and p["rating"] not in (None, ""):
-    _check_rating(p["rating"])
-  if "sources" in p:
-    if not isinstance(p["sources"], list) or len(p["sources"]) > 20:
-      raise ValidationError("sources must be a list (<=20 items)")
-    for s in p["sources"]:
-      if not isinstance(s, str) or len(s) > 500:
-        raise ValidationError("each source must be a string (<=500 chars)")
-      if urlparse(s).scheme.lower() not in ("http", "https"):
-        raise ValidationError("each source must be an http(s) URL")
-  # Free-form labels (e.g. "unesco"), same format/cap as route tags.
-  place_tags = normalize_tags(p["tags"]) if p.get("tags") else []
-  if "image" in p and p["image"] is not None and p["image"] != "":
-    if not isinstance(p["image"], str) or len(p["image"]) > 1000:
-      raise ValidationError("image must be a string (<=1000 chars) or null")
-    if urlparse(p["image"]).scheme.lower() not in ("http", "https"):
-      raise ValidationError("image must be an http(s) URL")
-  if "image_focus" in p and p["image_focus"] is not None:
-    if not isinstance(p["image_focus"], str):
-      raise ValidationError("image_focus must be a string")
-    stripped = p["image_focus"].strip()
-    if stripped and not re.match(r"^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$", stripped):
-      raise ValidationError("image_focus must be one of top/bottom/center/left/right or 'N% N%'")
-  # `from_catalog` is the name of the catalog entry this place was imported
-  # from; the UI uses it to hide already-imported entries in Browse and (later)
-  # to offer "Update from catalog" when the upstream entry diverges.
-  _opt_str(p, "from_catalog", 200)
-  # `catalog_skip` records catalog-tracked fields the user has opted out of
-  # for this place, mapped to the catalog value at the time of opt-out. Used
-  # to suppress "Update available" for diffs the user has already considered;
-  # if the catalog value later changes, the field reappears as a new update.
-  if "catalog_skip" in p and p["catalog_skip"] is not None:
-    cs = p["catalog_skip"]
-    if not isinstance(cs, dict) or len(cs) > 20:
-      raise ValidationError("catalog_skip must be an object (<=20 entries)")
-    for k, v in cs.items():
-      if not isinstance(k, str) or not k or len(k) > 64:
-        raise ValidationError("catalog_skip keys must be non-empty strings (<=64 chars)")
-      if v is not None and not isinstance(v, (str, int, float, bool, list)):
-        raise ValidationError("catalog_skip values must be JSON scalars or lists")
-      if isinstance(v, list):
-        if len(v) > 50:
-          raise ValidationError("catalog_skip list values capped at 50 items")
-        for item in v:
-          if not isinstance(item, (str, int, float, bool)) or (isinstance(item, str) and len(item) > 500):
-            raise ValidationError("catalog_skip list items must be JSON scalars (strings <=500 chars)")
-  # `id` is a server-assigned per-row identifier (8-char hex). On create the
-  # client never sets it; on update the client echoes back what GET returned.
-  if "id" in p and p["id"] is not None and p["id"] != "":
-    if not isinstance(p["id"], str) or not PLACE_ID_RE.match(p["id"]):
-      raise ValidationError("id must be an 8-char hex string")
-  # Return a normalized copy: trimmed strings, defaulted booleans.
-  out = {
-    "name": name.strip(),
-    "lat": float(lat),
-    "lon": float(lon),
-    "visited": bool(p.get("visited", False)),
-  }
-  if isinstance(p.get("id"), str) and PLACE_ID_RE.match(p["id"]):
-    out["id"] = p["id"]
-  if category is not None and category != "":
-    out["category"] = category.strip()
-  for k in ("country", "note", "local_name", "sources", "image", "from_catalog"):
-    if k in p and p[k] is not None:
-      out[k] = p[k].strip() if isinstance(p[k], str) else p[k]
-  if "image_focus" in p and isinstance(p["image_focus"], str) and p["image_focus"].strip():
-    out["image_focus"] = p["image_focus"].strip()
-  if "date_visited" in p and p["date_visited"]:
-    out["date_visited"] = p["date_visited"]
-  if "rating" in p and p["rating"] not in (None, ""):
-    out["rating"] = p["rating"]
-  if isinstance(p.get("catalog_skip"), dict) and p["catalog_skip"]:
-    out["catalog_skip"] = p["catalog_skip"]
-  if place_tags:
-    out["tags"] = place_tags
+  out = {"name": name.strip(), "lat": float(lat), "lon": float(lon)}
+  for key, check in PLACE_FIELDS.items():
+    value = check(key, p[key]) if key in p else PLACE_DEFAULTS.get(key, _OMIT)
+    if value is not _OMIT:
+      out[key] = value
   return out
 
 
