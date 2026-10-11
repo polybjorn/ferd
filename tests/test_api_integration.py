@@ -8,6 +8,7 @@ Run with: python3 -m unittest discover -s tests
 
 from __future__ import annotations
 
+import importlib.util
 import io
 import json
 import shutil
@@ -1209,6 +1210,32 @@ class TestImport(unittest.TestCase):
     self.assertEqual(status, 200)
     names = sorted(p["name"] for p in listing)
     self.assertEqual(names, ["Fresh1", "Fresh2"])
+
+  def test_demo_data_zip_imports(self):
+    # scripts/demo-data.py feeds the screenshot recipe; its zip has to pass
+    # the real import validation, keep <ele>, and span several history years.
+    spec = importlib.util.spec_from_file_location(
+      "demo_data", Path(__file__).resolve().parent.parent / "scripts" / "demo-data.py")
+    demo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(demo)
+    status, body = self._post_zip(self.c, "replace", demo.build_zip())
+    self.assertEqual(status, 200, body)
+    self.assertEqual(body["imported"]["places"], len(demo.PLACES))
+    status, meta = self.c.request("GET", "/api/metadata")
+    self.assertEqual(status, 200)
+    self.assertEqual(set(meta), {demo.route_key(r) for r in demo.ROUTES})
+    years = {m["date_completed"][:4] for m in meta.values() if "date_completed" in m}
+    status, places = self.c.request("GET", "/api/places")
+    self.assertEqual(status, 200)
+    years |= {p["date_visited"][:4] for p in places if p.get("date_visited")}
+    self.assertGreaterEqual(len(years), 2)
+    status, labels = self.c.request("GET", "/api/me/category-labels")
+    self.assertEqual(status, 200)
+    self.assertEqual(labels["category_labels"]["castle"]["label"], "Castles")
+    gpx = sorted((admin_dir() / "gpx").rglob("*.gpx"))
+    self.assertEqual(len(gpx), len(demo.ROUTES))
+    for path in gpx:
+      self.assertIn("ele>", path.read_text("utf-8"), path.name)
 
   def test_merge_mode_dedupes_by_name(self):
     fresh_places([{"name": "Keep", "lat": 1, "lon": 2, "category": "old"}])
