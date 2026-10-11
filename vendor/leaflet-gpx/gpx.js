@@ -140,7 +140,7 @@ L.GPX = L.FeatureGroup.extend({
 
   get_duration_string_iso: function(duration, hidems) {
     var s = this.get_duration_string(duration, hidems);
-    return s.replace("'",':').replace('"','');
+    return s.replace(/'/g, ':').replace(/"/g, '');
   },
   _toFixed_helper: function(v, unit = 0) {
     if (typeof(v) == 'number'){

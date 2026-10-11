@@ -9,6 +9,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Zip import stored each place exactly as the archive had it, so `places.json` could hold untrimmed names, integer coordinates, duplicate tags, or empty fields that adding or editing a place never writes. Imported places are now stored in the same normalized form, and merge mode matches existing places on the trimmed name.
 - Importing a zip with a corrupt entry returned `failed reading places.json: failed reading places.json: ...`; the entry name now appears once.
 
+### Security
+- The vendored leaflet-gpx ISO duration formatter stripped only the first quote mark of each kind. It now strips them all, which closes two CodeQL alerts.
+
 ## [1.4.0] - 2026-10-10
 
 ### Added
