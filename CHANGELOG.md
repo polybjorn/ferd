@@ -5,6 +5,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Fixed
+- A route's elevation chart drew no profile on any single-track route long enough to be thinned for the map, which is most of them. It reads the full track again.
 - Deleting a route from the routes list left its card on screen until a reload. The list now drops it right away.
 - Zip import stored each place exactly as the archive had it, so `places.json` could hold untrimmed names, integer coordinates, duplicate tags, or empty fields that adding or editing a place never writes. Imported places are now stored in the same normalized form, and merge mode matches existing places on the trimmed name.
 - Importing a zip with a corrupt entry returned `failed reading places.json: failed reading places.json: ...`; the entry name now appears once.

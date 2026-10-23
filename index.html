@@ -9296,18 +9296,16 @@
         }
       }).on('addline', function(e) {
         if (!elevationControl) return;
-        // Normal routes feed the full line straight through (unchanged). For a
-        // very large track, stride the elevation series the same way the
+        // For a very large track, stride the elevation series the same way the
         // multi-segment view does, so the D3 chart stays cheap. leaflet-gpx
         // stores elevation in each latlng's meta.ele.
         const raw = e.line.getLatLngs();
         const flat = Array.isArray(raw) && Array.isArray(raw[0]) ? [].concat.apply([], raw) : raw;
-        if (flat.length > MAX_ELEV_POINTS) {
-          const coords = flat.map(function(ll) { return [ll.lng, ll.lat, (ll.meta && ll.meta.ele != null) ? ll.meta.ele : 0]; });
-          elevationControl.addData({ type: 'Feature', geometry: { type: 'LineString', coordinates: decimateCoords(coords, MAX_ELEV_POINTS) }, properties: {} });
-        } else {
-          elevationControl.addData(e.line);
-        }
+        // Snapshot the coordinates now: addData defers until the chart's
+        // modules load, and by then simplifyRouteForZoom has swapped the
+        // line's latlngs for thinned copies that carry no meta.ele.
+        const coords = flat.map(function(ll) { return [ll.lng, ll.lat, (ll.meta && ll.meta.ele != null) ? ll.meta.ele : 0]; });
+        elevationControl.addData({ type: 'Feature', geometry: { type: 'LineString', coordinates: flat.length > MAX_ELEV_POINTS ? decimateCoords(coords, MAX_ELEV_POINTS) : coords }, properties: {} });
       }).addTo(map);
       }).catch(function(err) { console.warn('[ferd] gpx load failed', err); });
     }
