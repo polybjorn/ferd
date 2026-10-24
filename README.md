@@ -12,9 +12,15 @@ Ferd shows a world map with clustered place pins and GPX route polylines. Route 
 
 ![History tab](docs/screenshots/history.png)
 
+![Map filter panel with category toggles and status chips](docs/screenshots/filters.png)
+
 Each account is its own map, with per-user data isolation. You can optionally publish your map as a read-only public page anyone can view by link. Admin tools cover user management, site stats, and registration and publishing toggles.
 
+![Sign-in dialog](docs/screenshots/sign-in.png)
+
 Ferd installs to your device and launches in its own window. It works offline: reads (app shell, last loaded data, downloaded GPX, previously viewed tiles) and edits, which queue on-device and sync when the connection returns. Account and admin actions still need network. A local-only mode runs entirely on-device with no server or account.
+
+![Mobile map view](docs/screenshots/mobile.png)
 
 ## Install
 

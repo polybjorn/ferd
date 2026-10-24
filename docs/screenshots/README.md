@@ -45,6 +45,9 @@ The import answers with `"places": 8, "gpx": 4` and `"manifest": {"ran": true, .
 
 - `route.png`: Ridge Climb's detail page (`#/routes/route/Demo%20Highlands%2FRidge%20Climb`), which shows its elevation profile.
 - `history.png`: the History tab (`#/history`).
+- `filters.png`: the map with the Places tab of the bottom-left panel open, which shows the category toggles and the Visited / Planned chips.
+- `sign-in.png`: the start page while signed out (sign out first, or use a private window).
+- `mobile.png`: the map at a 500x1080 page, the narrowest the capture tooling allows and inside the 600 px mobile breakpoint. See [Mobile](#mobile) for how it is laid out.
 
 The demo user stays local and unpublished. When done, stop the server and `rm -rf /tmp/ferd-demo`.
 
@@ -58,3 +61,11 @@ magick light.png dark.png mask.png -composite route.png
 ```
 
 The mask's white triangle (bottom-right) takes the dark capture, the black one keeps the light capture. On ImageMagick 6, use `convert` in place of `magick`.
+
+### Mobile
+
+A phone-width capture split on the diagonal is too narrow to read, so `mobile.png` sets the two captures side by side instead, light on the left and dark on the right, on a transparent 1600x1080 canvas:
+
+```sh
+magick -size 1600x1080 xc:none light.png -geometry +280+0 -composite dark.png -geometry +820+0 -composite mobile.png
+```
