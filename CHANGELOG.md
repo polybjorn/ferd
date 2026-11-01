@@ -8,6 +8,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Beta releases. The Android beta installs as a separate "Ferd beta" app beside the stable one, with its own data, and the Docker image ships as `:beta`. The stable app, `:latest` and the version tags never receive a beta.
 
 ### Changed
+- The Android app targets Android 16 (API 36) and draws edge-to-edge: the system bars are transparent over a dark frame, and the page is kept clear of the bars, the camera cutout and the keyboard. Building it needs the Android SDK platform 36.
 - Running Ferd with Python now needs 3.11 or newer. Python 3.10 reached end of life in October 2026 and is no longer tested. The Docker image is unaffected.
 - The elevation chart runs on leaflet-elevation 2.9.2, which draws without d3, so the app no longer downloads or caches d3 (about 280 KB).
 

@@ -23,7 +23,7 @@ works for any self-hosted instance.
 
 ## Build
 
-Requires JDK 17 and the Android SDK (platform 34). From this `android/`
+Requires JDK 17 and the Android SDK (platform 36). From this `android/`
 directory:
 
 ```

@@ -5,6 +5,7 @@ import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.util.Base64
@@ -17,14 +18,19 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
+import android.widget.FrameLayout
 import android.widget.Toast
 import android.net.http.SslError
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.webkit.ServiceWorkerClientCompat
 import androidx.webkit.ServiceWorkerControllerCompat
 import androidx.webkit.WebViewAssetLoader
@@ -56,6 +62,12 @@ class MainActivity : AppCompatActivity() {
   private var pendingExportBytes: ByteArray? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
+    // targetSdk 35+ always draws edge-to-edge; do it on every API level so the
+    // inset handling below behaves the same everywhere.
+    enableEdgeToEdge(
+      statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+      navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+    )
     super.onCreate(savedInstanceState)
     certStore = CertStore(this)
 
@@ -104,7 +116,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     webView = WebView(this)
-    setContentView(webView)
+    // Pad the WebView clear of the system bars, cutout and keyboard; the
+    // container's colour shows through behind the transparent bars.
+    val root = FrameLayout(this).apply {
+      setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.system_bars))
+      addView(webView, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+    }
+    ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+      val bars = insets.getInsets(
+        WindowInsetsCompat.Type.systemBars() or
+          WindowInsetsCompat.Type.displayCutout() or
+          WindowInsetsCompat.Type.ime()
+      )
+      view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+      WindowInsetsCompat.CONSUMED
+    }
+    setContentView(root)
     configureWebView()
     webView.addJavascriptInterface(FerdBridge(this), "FerdAndroid")
 
@@ -129,7 +156,6 @@ class MainActivity : AppCompatActivity() {
     with(webView.settings) {
       javaScriptEnabled = true
       domStorageEnabled = true          // localStorage holds the server + token
-      databaseEnabled = true
       setGeolocationEnabled(true)
       setSupportZoom(false)
       builtInZoomControls = false

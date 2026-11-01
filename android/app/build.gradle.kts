@@ -1,6 +1,7 @@
+import javax.inject.Inject
+
 plugins {
   id("com.android.application")
-  id("org.jetbrains.kotlin.android")
 }
 
 // Derive a unique, monotonic version from git so every build is identifiable
@@ -27,12 +28,12 @@ val isBeta = ferdVersion.contains("-beta.")
 
 android {
   namespace = "io.github.polybjorn.ferd"
-  compileSdk = 34
+  compileSdk = 36
 
   defaultConfig {
     applicationId = "io.github.polybjorn.ferd"
     minSdk = 26
-    targetSdk = 34
+    targetSdk = 36
     versionCode = commitCount
     versionName = "$ferdVersion+$commitCount"
     if (isBeta) applicationIdSuffix = ".beta"
@@ -75,35 +76,58 @@ android {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
   }
-  kotlinOptions {
-    jvmTarget = "17"
-  }
+}
 
-  // The frontend shell is the single source of truth in the repo root; the app
-  // bundles a build-time copy so it can never drift from source. Nothing under
-  // android/ duplicates the web app in git.
-  sourceSets["main"].assets.srcDir(layout.buildDirectory.dir("generated/web_assets"))
+// AGP 9 compiles Kotlin itself; the root build pins the Kotlin version.
+kotlin {
+  compilerOptions {
+    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+  }
 }
 
 // Copy the served frontend (../index.html, ../sw.js, ../vendor, ../icons) into a
 // generated assets dir, mapped to the WebView's app origin root at runtime.
-val copyWebAssets by tasks.registering(Copy::class) {
-  val repoRoot = rootProject.projectDir.parentFile
-  into(layout.buildDirectory.dir("generated/web_assets"))
-  from(repoRoot) {
-    include("index.html", "sw.js", "catalog.json")
+abstract class CopyWebAssets @Inject constructor(
+  private val fs: FileSystemOperations,
+) : DefaultTask() {
+  @get:Internal
+  abstract val repoRoot: DirectoryProperty
+
+  @get:InputFiles
+  @get:PathSensitive(PathSensitivity.RELATIVE)
+  val webSources: FileCollection
+    get() = repoRoot.get().asFileTree.matching {
+      include("index.html", "sw.js", "catalog.json", "vendor/**", "icons/**")
+    }
+
+  @get:OutputDirectory
+  abstract val outputDir: DirectoryProperty
+
+  @TaskAction
+  fun copy() {
+    fs.sync {
+      from(webSources)
+      into(outputDir)
+    }
   }
-  from(repoRoot.resolve("vendor")) { into("vendor") }
-  from(repoRoot.resolve("icons")) { into("icons") }
 }
 
-tasks.named("preBuild") {
-  dependsOn(copyWebAssets)
+val copyWebAssets = tasks.register<CopyWebAssets>("copyWebAssets") {
+  repoRoot.set(rootProject.layout.projectDirectory.dir(".."))
+}
+
+// The frontend shell is the single source of truth in the repo root; the app
+// bundles a build-time copy so it can never drift from source. Nothing under
+// android/ duplicates the web app in git.
+androidComponents {
+  onVariants { variant ->
+    variant.sources.assets?.addGeneratedSourceDirectory(copyWebAssets, CopyWebAssets::outputDir)
+  }
 }
 
 dependencies {
-  implementation("androidx.core:core-ktx:1.13.1")
-  implementation("androidx.appcompat:appcompat:1.7.0")
-  implementation("androidx.activity:activity-ktx:1.9.0")
-  implementation("androidx.webkit:webkit:1.11.0")
+  implementation("androidx.core:core-ktx:1.18.0")
+  implementation("androidx.appcompat:appcompat:1.8.0")
+  implementation("androidx.activity:activity-ktx:1.13.0")
+  implementation("androidx.webkit:webkit:1.18.0")
 }
