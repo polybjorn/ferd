@@ -8,7 +8,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Beta releases. The Android beta installs as a separate "Ferd beta" app beside the stable one, with its own data, and the Docker image ships as `:beta`. The stable app, `:latest` and the version tags never receive a beta.
 
 ### Changed
-- Running Ferd with Python now needs 3.10 or newer. Python 3.9 reached end of life in October 2025 and is no longer tested. The Docker image is unaffected.
+- Running Ferd with Python now needs 3.11 or newer. Python 3.10 reached end of life in October 2026 and is no longer tested. The Docker image is unaffected.
 
 ### Fixed
 - A route's elevation chart drew no profile on any single-track route long enough to be thinned for the map, which is most of them. It reads the full track again.
