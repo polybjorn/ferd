@@ -1,5 +1,11 @@
 # Security
 
+## Reporting a vulnerability
+
+Please use GitHub's [private vulnerability reporting](https://github.com/polybjorn/ferd/security/advisories/new) rather than opening a public issue. This keeps the disclosure private until a fix is available. Expect an initial response within a week. Only the latest release receives fixes.
+
+## Threat model
+
 Ferd is a self-hosted single-instance app. The threat model assumes the admin controls the box and the network gate (nginx + TLS, or a VPN). This page documents what the app does to harden itself within that assumption, and where the admin still has to think.
 
 ## First-run window

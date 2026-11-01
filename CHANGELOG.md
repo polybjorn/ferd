@@ -17,6 +17,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Importing a zip with a corrupt entry returned `failed reading places.json: failed reading places.json: ...`; the entry name now appears once.
 
 ### Security
+- Vulnerabilities can be reported privately through GitHub's private vulnerability reporting. SECURITY.md links the form.
 - The vendored leaflet-gpx ISO duration formatter stripped only the first quote mark of each kind. It now strips them all, which closes two CodeQL alerts.
 
 ## [1.4.0] - 2026-10-10
