@@ -28,7 +28,7 @@ val isBeta = ferdVersion.contains("-beta.")
 
 android {
   namespace = "io.github.polybjorn.ferd"
-  compileSdk = 36
+  compileSdk = 37
 
   defaultConfig {
     applicationId = "io.github.polybjorn.ferd"
@@ -126,7 +126,7 @@ androidComponents {
 }
 
 dependencies {
-  implementation("androidx.core:core-ktx:1.18.0")
+  implementation("androidx.core:core-ktx:1.19.1")
   implementation("androidx.appcompat:appcompat:1.8.0")
   implementation("androidx.activity:activity-ktx:1.13.0")
   implementation("androidx.webkit:webkit:1.18.0")
