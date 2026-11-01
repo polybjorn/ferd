@@ -6,6 +6,8 @@ name: docker-publish
 #   - push of a vX.Y.Z-beta.N tag -> :X.Y.Z-beta.N and :beta only, so nobody on
 #     :latest or a version line gets a beta
 # Pull requests build the image to verify the Dockerfile but don't push.
+# A tag push waits for release-gate.yml: the commit is on main, the tests pass
+# on it, and a stable tag matches VERSION. Main and PR builds skip the gate.
 
 on:
   push:
@@ -18,7 +20,16 @@ permissions:
   packages: write
 
 jobs:
+  gate:
+    if: startsWith(github.ref, 'refs/tags/v')
+    uses: ./.github/workflows/release-gate.yml
+    permissions:
+      contents: read
+
   build-and-push:
+    needs: gate
+    # A skipped gate (main, PR) lets the build run; a failed one stops it.
+    if: ${{ !cancelled() && needs.gate.result != 'failure' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

@@ -1,0 +1,46 @@
+name: release-gate
+
+# Called by the publish workflows before they ship anything from a v* tag. It
+# fails unless the tag commit is on main, the tests pass on that commit, and a
+# stable tag matches VERSION. Beta tags (vX.Y.Z-beta.N) skip the VERSION check,
+# since VERSION names the last stable release until the next one is cut.
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Tag commit is on main
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_REF_NAME ($GITHUB_SHA) is not an ancestor of origin/main"
+            exit 1
+          fi
+
+      - name: Stable tag matches VERSION
+        run: |
+          if [[ $GITHUB_REF != refs/tags/v* ]]; then
+            echo "Not a tag, skipping"
+            exit 0
+          fi
+          if [[ ! $GITHUB_REF_NAME =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "$GITHUB_REF_NAME is not a stable tag, skipping"
+            exit 0
+          fi
+          expected="v$(tr -d '[:space:]' < VERSION)"
+          if [[ $GITHUB_REF_NAME != "$expected" ]]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match VERSION ($expected)"
+            exit 1
+          fi

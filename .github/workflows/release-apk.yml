@@ -7,6 +7,8 @@ name: Release APK
 # verify step, so a misconfigured release never ships an unsigned APK.
 # A vX.Y.Z-beta.N tag builds the beta app (its own app ID) as a pre-release,
 # which Obtainium skips unless prereleases are turned on.
+# Nothing builds until release-gate.yml passes: the commit is on main, the
+# tests pass on it, and a stable tag matches VERSION.
 on:
   push:
     tags: ['v*']
@@ -16,7 +18,13 @@ permissions:
   contents: write
 
 jobs:
+  gate:
+    uses: ./.github/workflows/release-gate.yml
+    permissions:
+      contents: read
+
   release-apk:
+    needs: gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
