@@ -20,3 +20,4 @@
 
 - [API](api.md) - reference for every `/api/*` endpoint, for scripts and integrations.
 - [Architecture](architecture.md) - one-page tour of the codebase: what the pieces are, where data lives, how requests flow.
+- [Releasing](releasing.md) - versioning policy, stable and beta release steps, and the checks a tag must pass before anything ships.
