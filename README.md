@@ -24,7 +24,7 @@ Ferd installs to your device and launches in its own window. It works offline: r
 
 ## Install
 
-**Requirements:** Python 3.9+ (or Docker), a modern browser. No build step, no Node, no database server (SQLite file).
+**Requirements:** Python 3.10+ (or Docker), a modern browser. No build step, no Node, no database server (SQLite file).
 
 ### Python
 

@@ -1,6 +1,6 @@
 # Running with Python
 
-Requires Python 3.9+. No build step, no Node, no `pip install`.
+Requires Python 3.10+. No build step, no Node, no `pip install`.
 
 If you'd rather run in a container, see [docker.md](docker.md).
 

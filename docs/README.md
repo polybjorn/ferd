@@ -2,7 +2,7 @@
 
 ## Install and run
 
-- [Python](python.md) - bare Python 3.9+, no build step. Covers local use, LAN, and service install (systemd, launchd).
+- [Python](python.md) - bare Python 3.10+, no build step. Covers local use, LAN, and service install (systemd, launchd).
 - [Docker](docker.md) - tag tracks, `compose.yml`, reverse proxy, updates.
 - [PWA](pwa.md) - install on phone, what works offline, cache and update behavior.
 
