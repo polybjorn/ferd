@@ -5,6 +5,8 @@ name: Release APK
 # secrets: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS,
 # ANDROID_KEY_PASSWORD. Without them the build is unsigned and the job fails the
 # verify step, so a misconfigured release never ships an unsigned APK.
+# A vX.Y.Z-beta.N tag builds the beta app (its own app ID) as a pre-release,
+# which Obtainium skips unless prereleases are turned on.
 on:
   push:
     tags: ['v*']
@@ -46,7 +48,12 @@ jobs:
           FERD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           FERD_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           FERD_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: ./gradlew assembleRelease --no-daemon --stacktrace
+        run: |
+          args=()
+          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+            args=("-PferdVersion=${GITHUB_REF_NAME#v}")
+          fi
+          ./gradlew assembleRelease "${args[@]}" --no-daemon --stacktrace
 
       - name: Verify the APK is signed
         run: |
@@ -68,3 +75,4 @@ jobs:
         with:
           files: ${{ steps.apk.outputs.path }}
           fail_on_unmatched_files: true
+          prerelease: ${{ contains(github.ref_name, '-beta.') }}

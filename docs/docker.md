@@ -31,6 +31,7 @@ Ferd publishes multi-arch (amd64, arm64) images to GitHub Container Registry:
 | `ghcr.io/polybjorn/ferd:latest` | Newest tagged stable release | Default. Predictable updates, only changes when a new version ships. |
 | `ghcr.io/polybjorn/ferd:dev` | Tip of the `main` branch | Early access to in-progress changes. Rebuilt on every commit; may break. |
 | `ghcr.io/polybjorn/ferd:1.0.0`, `:1.0`, `:1` | Pinned stable release | Hold a specific version forever. |
+| `ghcr.io/polybjorn/ferd:beta`, `:1.1.0-beta.1` | Newest beta, or one pinned beta | Trying the next version before it ships. Back up `./data` before switching. |
 
 To switch tags, edit the `image:` line in [`compose.yml`](../compose.yml), then `docker compose pull && docker compose up -d`.
 

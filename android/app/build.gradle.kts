@@ -14,11 +14,16 @@ fun gitOutput(vararg args: String): String = try {
 val commitCount = gitOutput("rev-list", "--count", "HEAD").toIntOrNull() ?: 1
 // Track Ferd's own version (the app bundles its frontend); the commit count is
 // the build identifier. Yields e.g. "1.0.1-dev+177", later "1.1.0+N".
-val ferdVersion = try {
+// A release build passes its tag's version (-PferdVersion=1.5.0-beta.1),
+// because a beta is cut without bumping VERSION.
+val ferdVersion = providers.gradleProperty("ferdVersion").orNull ?: try {
   rootProject.projectDir.parentFile.resolve("VERSION").readText().trim()
 } catch (e: Exception) {
   "0.0.0"
 }
+// A beta installs as its own app beside the stable one, so a broken beta never
+// touches the data a tester keeps in the stable app.
+val isBeta = ferdVersion.contains("-beta.")
 
 android {
   namespace = "io.github.polybjorn.ferd"
@@ -30,6 +35,8 @@ android {
     targetSdk = 34
     versionCode = commitCount
     versionName = "$ferdVersion+$commitCount"
+    if (isBeta) applicationIdSuffix = ".beta"
+    manifestPlaceholders["appLabel"] = if (isBeta) "Ferd beta" else "@string/app_name"
   }
 
   buildFeatures {

@@ -4,6 +4,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+### Added
+- Beta releases. The Android beta installs as a separate "Ferd beta" app beside the stable one, with its own data, and the Docker image ships as `:beta`. The stable app, `:latest` and the version tags never receive a beta.
+
 ### Fixed
 - A route's elevation chart drew no profile on any single-track route long enough to be thinned for the map, which is most of them. It reads the full track again.
 - Deleting a route from the routes list left its card on screen until a reload. The list now drops it right away.
