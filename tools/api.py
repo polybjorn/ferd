@@ -550,7 +550,7 @@ def _walk_follow_symlinks(path: Path):
 
 def dir_size_bytes(path: Path) -> int:
   """Walk a directory tree and return total bytes of regular files. Follows
-  symlinks (the documented dev pattern symlinks user data dirs into a Vault)
+  symlinks (a dev setup may symlink user data dirs to another disk)
   with cycle protection. Best effort: any per-file stat error is skipped."""
   total = 0
   for root, files in _walk_follow_symlinks(path):

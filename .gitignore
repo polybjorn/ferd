@@ -1,8 +1,6 @@
 # OS / editor state
 .DS_Store
 .claude/
-CLAUDE.md
-reference.md
 .refactor-notes.md
 
 # Python bytecode (tests and tools are stdlib Python, run in place)
@@ -25,4 +23,3 @@ data/
 
 # Compose environment overrides (secrets / per-deployment values)
 .env
-AGENTS.md
