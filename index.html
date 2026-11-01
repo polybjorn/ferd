@@ -5042,13 +5042,6 @@
     // Apply current route-weight to all live route polylines without rebuilding.
     // Stamp the original stroke-width on first observation so later
     // adjustments can divide back without losing precision.
-    // Override leaflet-elevation's lazy-import URLs to point at our
-    // vendored copies so the chart works without a network round-trip
-    // to unpkg. The constants match the lib's internal option names.
-    const ELEVATION_VENDOR_URLS = {
-      __D3: '/vendor/d3/d3.min.js',
-    };
-
     // Waypoint rendering helpers. leaflet-gpx skips creating a marker if
     // wptIcons[''] is null (just logs a warning), so we feed it a
     // placeholder icon to trigger its 'addpoint' event, then replace the
@@ -9209,7 +9202,7 @@
       }
       let elevationControl = null;
       if (route.hasElevation) {
-        elevationControl = L.control.elevation(Object.assign({
+        elevationControl = L.control.elevation({
           theme: 'custom-theme',
           detached: true,
           elevationDiv: '#elevation-container',
@@ -9219,7 +9212,7 @@
           legend: false, summary: false, ruler: false, downloadLink: false,
           almostOver: false, distanceMarkers: false, autofitBounds: false, fitBounds: false,
           polyline: { color: color, opacity: 0.9, weight: 5 * getTrailWeightFactor() },
-        }, ELEVATION_VENDOR_URLS)).addTo(map);
+        }).addTo(map);
         state.currentElevation = elevationControl;
       }
 
@@ -9297,7 +9290,7 @@
       }).on('addline', function(e) {
         if (!elevationControl) return;
         // For a very large track, stride the elevation series the same way the
-        // multi-segment view does, so the D3 chart stays cheap. leaflet-gpx
+        // multi-segment view does, so the chart stays cheap. leaflet-gpx
         // stores elevation in each latlng's meta.ele.
         const raw = e.line.getLatLngs();
         const flat = Array.isArray(raw) && Array.isArray(raw[0]) ? [].concat.apply([], raw) : raw;
@@ -9333,7 +9326,7 @@
           const container = document.getElementById('multi-elevation-container');
 
           function makeElevationControl(divSel) {
-            return L.control.elevation(Object.assign({
+            return L.control.elevation({
               theme: 'custom-theme', detached: true,
               elevationDiv: divSel,
               height: elevHeight,
@@ -9342,7 +9335,7 @@
               legend: false, summary: false, ruler: false, downloadLink: false,
               almostOver: false, distanceMarkers: false, autofitBounds: false, fitBounds: false,
               polyline: false,
-            }, ELEVATION_VENDOR_URLS)).addTo(map);
+            }).addTo(map);
           }
 
           // Map polylines + per-segment stats for every track.

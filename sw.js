@@ -36,7 +36,6 @@ const SHELL_ASSETS = [
   '/vendor/leaflet-elevation/leaflet-elevation.css',
   '/vendor/leaflet-elevation/leaflet-elevation.js',
   '/vendor/src/components/chart.js',
-  '/vendor/src/components/d3.js',
   '/vendor/src/components/marker.js',
   '/vendor/src/components/summary.js',
   '/vendor/src/handlers/acceleration.js',
@@ -56,7 +55,6 @@ const SHELL_ASSETS = [
   '/vendor/libs/leaflet-edgescale.min.js',
   '/vendor/libs/leaflet-hotline.min.js',
   '/vendor/images/elevation.svg',
-  '/vendor/d3/d3.min.js',
 ];
 
 const TILE_HOSTS = [

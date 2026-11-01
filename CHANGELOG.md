@@ -9,6 +9,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Changed
 - Running Ferd with Python now needs 3.11 or newer. Python 3.10 reached end of life in October 2026 and is no longer tested. The Docker image is unaffected.
+- The elevation chart runs on leaflet-elevation 2.9.2, which draws without d3, so the app no longer downloads or caches d3 (about 280 KB).
 
 ### Fixed
 - A route's elevation chart drew no profile on any single-track route long enough to be thinned for the map, which is most of them. It reads the full track again.

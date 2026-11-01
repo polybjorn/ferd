@@ -20,7 +20,7 @@ Ferd vendors the third-party libraries listed below under `vendor/`. Each retain
 - Copyright: (c) Maxime Petazzoni and contributors
 ### Leaflet.SmoothWheelZoom
 - Purpose: replaces Leaflet's stepped wheel zoom with a continuous, animated zoom for desktop mouse and trackpad gestures.
-- Version: master (commit f090a2d), retrieved 2026-05-24
+- Version: master at commit a68e52f (2026-03-25); the vendored file is byte-identical to it, and SmoothWheelZoom.js last changed upstream in 39d9f58 (2022-11-12). The earlier record named a commit f090a2d that does not exist upstream.
 - Upstream: https://github.com/mutsuyuki/Leaflet.SmoothWheelZoom
 - License: MIT
 - Copyright: (c) 2018 mutsuyuki
@@ -42,18 +42,15 @@ Ferd vendors the third-party libraries listed below under `vendor/`. Each retain
 
 ### @raruto/leaflet-elevation
 - Purpose: elevation chart shown on a trail detail page, plus the position marker that tracks the cursor along the polyline.
-- Version: 2.6.1
+- Version: 2.9.2
 - Upstream: https://github.com/Raruto/leaflet-elevation
 - License: GPL-3.0-or-later
 - Copyright: (c) Raruto
-- Notes: bundles leaflet-hotline (iosphere), leaflet-edgescale (jjimenezshaw), and leaflet-distance-marker (raruto) under `libs/`, all GPL-3.0-compatible.
+- Notes: bundles three helpers under `libs/`, all GPL-3.0-compatible. None carries a version of its own, so each is the copy shipped in the 2.9.2 npm package's `libs/`:
+  - leaflet-hotline: Leaflet.hotline, (c) 2017 iosphere GmbH, https://github.com/iosphere/Leaflet.hotline
+  - leaflet-edgescale: (c) 2023 Raruto, GPL-3.0-or-later, incorporating Leaflet.EdgeScaleBar (Dražen Tutić, GPL-3.0+) and Leaflet.MapCenterCoord (Xisco Guaita, MIT)
+  - leaflet-distance-marker: (c) 2022 Raruto, GPL-3.0-or-later, incorporating work by Doroszlai Attila and Phil Whitehurst under an ISC-style permission notice
 
-### d3
-- Purpose: drives the elevation chart's SVG axes, scales, and brush; lazy-loaded by leaflet-elevation only when a chart is rendered.
-- Version: 7.9.0
-- Upstream: https://github.com/d3/d3
-- License: ISC
-- Copyright: (c) Mike Bostock
 ---
 
 ## Maintenance
