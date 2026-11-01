@@ -20,6 +20,15 @@ on:
   pull_request:
     branches: [main]
 
+# One run per ref. Four pushes to a pull request branch in a row queue four
+# builds on a runner with one slot, and only the last of them says anything
+# about what is being merged. Pushes to main and tags are never cancelled: the
+# attribution job reads the range a push added, so a run skipped there is a
+# hole in the record rather than a repeat of it.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 defaults:
   run:
     shell: bash
