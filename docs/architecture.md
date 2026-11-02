@@ -57,9 +57,8 @@ docs/
 icons/                     # favicon, PWA icons, web app manifest
 scripts/
   check-refactor.sh        # jscpd + radon pass, run weekly in CI
-  check-vendor-versions.py # weekly CI drift check against npm
   gpx-manifest.sh          # generates routes.json from gpx/<Region>/<Route>.gpx
-  vendor-versions.json     # tracked versions per vendored dep
+  vendor-versions.json     # pinned versions, read by Renovate and check-refactor.sh
 tests/
   test_api_helpers.py      # unit tests for pure helpers
   test_api_integration.py  # subprocess + HTTP integration tests

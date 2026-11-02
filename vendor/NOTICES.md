@@ -24,7 +24,7 @@ Ferd vendors the third-party libraries listed below under `vendor/`. Each retain
 - Upstream: https://github.com/mutsuyuki/Leaflet.SmoothWheelZoom
 - License: MIT
 - Copyright: (c) 2018 mutsuyuki
-- Notes: not published to npm, so `scripts/check-vendor-versions.py` cannot track it.
+- Notes: not published to npm, so Renovate cannot track it.
 
 ### Leaflet.TileLayer.NoGap
 - Purpose: dumps loaded tiles to a single canvas so gaps don't appear between tile seams on fractional-DPR Android devices.
@@ -57,4 +57,4 @@ Ferd vendors the third-party libraries listed below under `vendor/`. Each retain
 
 Adding, removing, replacing, or bumping a vendored dep means updating the entry here.
 
-Version drift is tracked by `scripts/check-vendor-versions.py` against `scripts/vendor-versions.json`. Deps not on npm are listed here but omitted from that manifest.
+Version drift is tracked by Renovate, which reads `scripts/vendor-versions.json` and opens a forge PR per pin. Deps not on npm are listed here but omitted from that manifest.

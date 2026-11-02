@@ -10,7 +10,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 # Versions are pinned in scripts/vendor-versions.json (single source of truth,
-# watched weekly by check-vendor-versions.py), read here so they never drift.
+# watched by Renovate on the forge), read here so they never drift.
 eval "$(python3 - <<'PY'
 import json
 t = {x["name"]: x["version"] for x in json.load(open("scripts/vendor-versions.json"))["tools"]}
