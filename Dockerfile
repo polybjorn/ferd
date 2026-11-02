@@ -1,7 +1,7 @@
 # Ferd - self-hosted Leaflet map for places and GPX routes.
 # Stdlib-only Python; no pip install step.
 
-FROM python:3.12-slim
+FROM python:3.15-slim
 
 LABEL org.opencontainers.image.title="Ferd" \
       org.opencontainers.image.description="Self-hosted personal map for places and GPX routes." \
