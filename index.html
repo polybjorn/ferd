@@ -367,8 +367,6 @@
     [data-theme][data-mode] { --planned: #d23f3f; --completed: #2ea043; }
 
     .leaflet-div-icon { background: transparent; border: none; }
-    /* Selector targets .leaflet-tile-container so it applies to both the
-       <img> tiles and the per-level <canvas> created by the NoGap plugin. */
     [data-tile-filter="muted"] .leaflet-tile-container { filter: saturate(0.35) brightness(0.95) contrast(0.95); }
     [data-tile-filter="grayscale"] .leaflet-tile-container { filter: grayscale(1); }
     [data-tile-filter="sepia"] .leaflet-tile-container { filter: sepia(0.7); }
@@ -2994,8 +2992,6 @@
   <div id="modal-root"></div>
 
   <script src="/vendor/leaflet/leaflet.js"></script>
-  <script src="/vendor/leaflet-smoothwheelzoom/SmoothWheelZoom.js"></script>
-  <script src="/vendor/leaflet-tilelayer-nogap/L.TileLayer.NoGap.js"></script>
   <script src="/vendor/supercluster/supercluster.min.js"></script>
   <script src="/vendor/leaflet-gpx/gpx.js"></script>
   <script src="/vendor/leaflet-elevation/leaflet-elevation.js"></script>
@@ -4652,9 +4648,6 @@
     // each zoom level transition requests its own batch of tiles while
     // the gesture is still in flight, competing with the animation.
     if (window.L && L.TileLayer && L.TileLayer.mergeOptions) {
-      // NoGap (dumpToCanvas) fixes Android tile seams but causes a small
-      // visible reshuffle at zoomend on desktop. Only enable it where the
-      // seam issue actually shows up: coarse-pointer (touch) devices.
       const _isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
       L.TileLayer.mergeOptions({
         // On touch, load tiles during the pinch so the new level is painted
@@ -4662,9 +4655,108 @@
         // and briefly flashes seams). Desktop smooth-wheel keeps it off to avoid
         // requesting a batch per fractional level mid-gesture.
         updateWhenZooming: _isTouch,
-        dumpToCanvas: _isTouch,
+      });
+
+      // Leaflet 1.9 places each tile with translate3d, which gives it its own
+      // compositor layer. Those layers' antialiased edges show as light lines
+      // between tiles at fractional pixel ratios and zooms. With a 2D transform
+      // a level's tiles paint into one layer, which is Leaflet 2's fix.
+      const addTile = L.GridLayer.prototype._addTile;
+      L.GridLayer.include({
+        _addTile(coords, container) {
+          addTile.call(this, coords, container);
+          const tile = this._tiles[this._tileCoordsToKey(coords)].el;
+          const pos = L.DomUtil.getPosition(tile);
+          tile.style.transform = `translate(${pos.x}px,${pos.y}px)`;
+        },
       });
     }
+
+    // WHEEL-ZOOM-BEGIN
+    // A mouse sends sparse notches whose pixel size depends on browser and OS,
+    // on some setups too small for a distance-based step to move the map, so a
+    // notch moves a fixed step. A trackpad streams pixels, where distance is
+    // the right measure.
+    const WHEEL_ZOOM_PER_NOTCH = 0.5;
+    const WHEEL_ZOOM_PER_UNIT = 0.0045;
+    const WHEEL_EASE_MS = 46;
+    const WHEEL_IDLE_MS = 200;
+
+    function isWheelNotch(e) {
+      // deltaMode comes first: Firefox reports a line-based wheel as pixels to
+      // a page that reads deltaY before it.
+      if (e.deltaMode !== 0) return true;
+      // Chromium and WebKit give a trackpad wheelDeltaY = -3 * deltaY, which
+      // can land on a multiple of 120 mid-stream.
+      return !!e.wheelDeltaY && e.wheelDeltaY % 120 === 0 && e.wheelDeltaY !== -3 * e.deltaY;
+    }
+
+    function wheelZoomStep(e) {
+      if (isWheelNotch(e)) return -Math.sign(e.deltaY) * WHEEL_ZOOM_PER_NOTCH;
+      return L.DomEvent.getWheelDelta(e) * WHEEL_ZOOM_PER_UNIT;
+    }
+
+    function enableWheelZoom(map) {
+      const container = map.getContainer();
+      let frameId = 0;
+      let moved = false;
+      let goalZoom, anchorLatLng, anchorOffset, lastFrame, lastWheel, ownZoom, ownCenter;
+
+      function finish() {
+        frameId = 0;
+        if (moved) {
+          moved = false;
+          map._moveEnd(true);
+        }
+      }
+
+      function onFrame(now) {
+        const zoom = map.getZoom();
+        // Another mover (flyTo, a route focus) took the view: stop fighting it.
+        if (zoom !== ownZoom || !map.getCenter().equals(ownCenter)) return finish();
+        const eased = zoom + (goalZoom - zoom) * (1 - Math.exp(-Math.max(now - lastFrame, 0) / WHEEL_EASE_MS));
+        const next = Math.abs(goalZoom - eased) < 0.005 ? goalZoom : eased;
+        lastFrame = now;
+        if (next !== zoom) {
+          if (!moved) {
+            map._moveStart(true, false);
+            moved = true;
+          }
+          map._move(map.unproject(map.project(anchorLatLng, next).subtract(anchorOffset), next), next);
+          ownZoom = map.getZoom();
+          ownCenter = map.getCenter();
+        }
+        if (next === goalZoom && now - lastWheel >= WHEEL_IDLE_MS) return finish();
+        frameId = requestAnimationFrame(onFrame);
+      }
+
+      function onWheel(e) {
+        const step = wheelZoomStep(e);
+        L.DomEvent.stop(e);
+        if (!frameId) {
+          // Not map.stop(): it snaps the fractional zoom a gesture rests on.
+          map._stop();
+          goalZoom = ownZoom = map.getZoom();
+          ownCenter = map.getCenter();
+          lastFrame = performance.now();
+          frameId = requestAnimationFrame(onFrame);
+        }
+        goalZoom = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), goalZoom + step));
+        const point = map.mouseEventToContainerPoint(e);
+        anchorLatLng = map.containerPointToLatLng(point);
+        anchorOffset = point.subtract(map.getSize().divideBy(2));
+        lastWheel = performance.now();
+      }
+
+      container.addEventListener('wheel', onWheel, { passive: false });
+      // The next map reuses this element, so a listener left behind would
+      // drive a removed map.
+      map.once('unload', () => {
+        cancelAnimationFrame(frameId);
+        container.removeEventListener('wheel', onWheel);
+      });
+    }
+    // WHEEL-ZOOM-END
 
     const state = {
       config: DEFAULT_CONFIG,
@@ -5912,18 +6004,15 @@
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
         markerZoomAnimation: false,
-        // Continuous wheel/trackpad zoom (vendor/leaflet-smoothwheelzoom).
-        // Disable Leaflet's stepped scrollWheelZoom in favor of the
-        // smooth handler, which animates zoom level continuously via rAF.
+        // enableWheelZoom animates the wheel instead of Leaflet's stepped zoom.
         scrollWheelZoom: false,
-        smoothWheelZoom: true,
-        smoothSensitivity: 1.5,
         // Default zoomSnap (integer release): zoomSnap:0 makes the touch pinch
         // re-round the tile pixel-origin every fractional frame, which vibrates
         // the map. The GL route layer follows the release animation via its own
         // zoomanim interpolation (see attachGLRoutes) so it stays glued instead.
         renderer: L.svg()
       }).setView(dv.center, dv.zoom);
+      enableWheelZoom(map);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
       applyCoverMinZoom(map);
@@ -9059,18 +9148,15 @@
         maxBounds: [[-90, -200], [90, 200]],
         maxBoundsViscosity: 1.0,
         markerZoomAnimation: false,
-        // Continuous wheel/trackpad zoom (vendor/leaflet-smoothwheelzoom).
-        // Disable Leaflet's stepped scrollWheelZoom in favor of the
-        // smooth handler, which animates zoom level continuously via rAF.
+        // enableWheelZoom animates the wheel instead of Leaflet's stepped zoom.
         scrollWheelZoom: false,
-        smoothWheelZoom: true,
-        smoothSensitivity: 1.5,
         // Default zoomSnap (integer release): zoomSnap:0 makes the touch pinch
         // re-round the tile pixel-origin every fractional frame, which vibrates
         // the map. The detail view's routes are SVG (zoom-animated overlay pane),
         // so they ride the release animation with the tiles.
         renderer: L.svg()
       });
+      enableWheelZoom(map);
       // Fit to the route's bbox up-front so the initial tile load is near
       // the route instead of the routes-default view (Norway), avoiding a
       // visible jump when GPX-driven fitBounds settles a moment later.
