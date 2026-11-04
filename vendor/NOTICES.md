@@ -50,6 +50,7 @@ Ferd vendors the third-party libraries listed below under `vendor/`. Each retain
   - leaflet-hotline: Leaflet.hotline, (c) 2017 iosphere GmbH, https://github.com/iosphere/Leaflet.hotline
   - leaflet-edgescale: (c) 2023 Raruto, GPL-3.0-or-later, incorporating Leaflet.EdgeScaleBar (Dražen Tutić, GPL-3.0+) and Leaflet.MapCenterCoord (Xisco Guaita, MIT)
   - leaflet-distance-marker: (c) 2022 Raruto, GPL-3.0-or-later, incorporating work by Doroszlai Attila and Phil Whitehurst under an ISC-style permission notice
+- Not vendored: `@tmcw/togeojson`. `leaflet-elevation.js` names it as `__TOGEOJSON`, an unpkg.com URL, and imports it only from `_parseFromString`, which only `load()` and `_loadFile()` call to turn a GPX/KML/TCX string or URL into GeoJSON. Ferd never calls either: `index.html` hands the control ready-made GeoJSON through `addData()`, so the browser never requests unpkg.com. Vendor it and add it to `scripts/vendor-versions.json` if ferd ever starts calling `load()`.
 
 ---
 
