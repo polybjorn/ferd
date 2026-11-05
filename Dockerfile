@@ -6,7 +6,7 @@ FROM python:3.15-slim
 LABEL org.opencontainers.image.title="Ferd" \
       org.opencontainers.image.description="Self-hosted personal map for places and GPX routes." \
       org.opencontainers.image.source="https://github.com/polybjorn/ferd" \
-      org.opencontainers.image.licenses="MIT"
+      org.opencontainers.image.licenses="GPL-3.0-only"
 
 # tini gives clean signal handling. gosu drops privileges in the entrypoint
 # after handling PUID/PGID. No bash; gpx-manifest.sh is POSIX sh.
