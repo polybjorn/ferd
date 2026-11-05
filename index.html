@@ -12967,6 +12967,8 @@
         const cc = assignCategoryColors(state.places || []);
         state.categoryColors = cc.dark;
         state.categoryColorsLight = cc.light;
+        // The layers hold the area objects: left alone they keep the ids an offline create was queued under.
+        syncAreasOnMap();
       });
     }
 
