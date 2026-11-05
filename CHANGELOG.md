@@ -9,7 +9,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - An area's popup shows how many places and routes it holds, and how many of those are visited or completed. Opening a count lists them, and picking one goes to it on the map. A route counts when any part of its track is inside.
 
 ### Fixed
-- On phones, the map fits the visible screen, so its zoom buttons no longer slide under the header.
+- On phones, the map fits the visible screen, so its zoom buttons stay in view, including while the keyboard is open.
 
 ## [1.5.0] - 2026-11-05
 

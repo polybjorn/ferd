@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
   <title>Ferd</title>
   <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
   <link rel="manifest" href="/icons/manifest.webmanifest">
@@ -12999,19 +12999,22 @@
     function armSelectPopover(pop, anchor, onKey, onClose) {
       const onOutside = e => { if (_selPopover && !_selPopover.contains(e.target) && e.target !== anchor) closeSelectPopover(); };
       const onScroll = e => { if (_selPopover && _selPopover.contains(e.target)) return; closeSelectPopover(); };
+      // Pressing the anchor hides a phone keyboard, which resizes the height.
+      const openWidth = window.innerWidth;
+      const onResize = () => { if (window.innerWidth !== openWidth) closeSelectPopover(); else positionSelectPopover(pop, anchor); };
       _selPopover = pop;
       setTimeout(() => {
         document.addEventListener('keydown', onKey, true);
         document.addEventListener('mousedown', onOutside, true);
         window.addEventListener('scroll', onScroll, true);
-        window.addEventListener('resize', closeSelectPopover);
+        window.addEventListener('resize', onResize);
         window.addEventListener('blur', closeSelectPopover);
       }, 0);
       _selPopoverTeardown = () => {
         document.removeEventListener('keydown', onKey, true);
         document.removeEventListener('mousedown', onOutside, true);
         window.removeEventListener('scroll', onScroll, true);
-        window.removeEventListener('resize', closeSelectPopover);
+        window.removeEventListener('resize', onResize);
         window.removeEventListener('blur', closeSelectPopover);
         if (onClose) onClose();
       };
