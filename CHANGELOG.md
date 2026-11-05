@@ -13,7 +13,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The elevation chart runs on leaflet-elevation 2.9.2, which draws without d3, so the app no longer downloads or caches d3 (about 280 KB).
 
 ### Fixed
-- Thin light lines between map tiles no longer show on desktop at fractional display scaling or while zooming. Android keeps its seam fix without the canvas plugin it needed before.
+- Thin light lines between map tiles no longer show on desktop at fractional display scaling or while zooming.
 - Zooming with a mouse wheel barely moved the map on setups that report small wheel steps. Each notch now moves half a zoom level, and trackpad zoom keeps its speed. Scrolling with the cursor at the exact center of the map no longer stops the zoom.
 - A route's elevation chart drew no profile on any single-track route long enough to be thinned for the map, which is most of them. It reads the full track again.
 - Deleting a route from the routes list left its card on screen until a reload. The list now drops it right away.

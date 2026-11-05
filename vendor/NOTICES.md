@@ -18,6 +18,17 @@ Ferd vendors the third-party libraries listed below under `vendor/`. Each retain
 - Upstream: https://github.com/mpetazzoni/leaflet-gpx
 - License: BSD-2-Clause
 - Copyright: (c) Maxime Petazzoni and contributors
+### Leaflet.TileLayer.NoGap
+- Purpose: dumps loaded tiles to a single canvas so gaps don't appear between tile seams on fractional-DPR Android devices.
+- Version: 0.3.0
+- Upstream: https://github.com/Leaflet/Leaflet.TileLayer.NoGap
+- License: Beer-Ware, from the upstream LICENSE file:
+
+  "THE BEER-WARE LICENSE":
+  <ivan@sanchezortega.es> wrote this file. As long as you retain this notice you
+  can do whatever you want with this stuff. If we meet some day, and you think
+  this stuff is worth it, you can buy me a beer in return.
+
 ### supercluster
 - Purpose: fast spatial clustering for the place markers on the index map.
 - Version: 9.1.0

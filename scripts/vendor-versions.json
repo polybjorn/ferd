@@ -4,6 +4,7 @@
     { "npm": "leaflet", "version": "1.9.4" },
     { "npm": "leaflet-gpx", "version": "2.2.0" },
     { "npm": "@raruto/leaflet-elevation", "version": "2.9.2" },
+    { "npm": "leaflet.tilelayer.nogap", "version": "0.3.0" },
     { "npm": "supercluster", "version": "9.1.0" }
   ],
   "tools": [

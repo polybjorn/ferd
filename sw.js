@@ -29,6 +29,7 @@ const SHELL_ASSETS = [
   '/vendor/leaflet/images/marker-shadow.png',
   '/vendor/leaflet/images/layers.png',
   '/vendor/leaflet/images/layers-2x.png',
+  '/vendor/leaflet-tilelayer-nogap/L.TileLayer.NoGap.js',
   '/vendor/supercluster/supercluster.min.js',
   '/vendor/leaflet-gpx/gpx.js',
   '/vendor/leaflet-elevation/leaflet-elevation.css',
