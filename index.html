@@ -4678,6 +4678,23 @@
             tile.style.transform = `translate(${pos.x}px,${pos.y}px)`;
           },
         });
+      } else {
+        // NoGap copies a tile to the canvas only after its fade, and until then
+        // the tiles show the same lines as plain Leaflet. Copying on load skips that.
+        const tileReady = L.TileLayer.prototype._tileReady;
+        const onOpaqueTile = L.TileLayer.prototype._onOpaqueTile;
+        L.TileLayer.include({
+          _tileReady(coords, err, el) {
+            tileReady.call(this, coords, err, el);
+            const tile = this._map && this._tiles[this._tileCoordsToKey(coords)];
+            if (tile && !err) this._onOpaqueTile(tile);
+          },
+          _onOpaqueTile(tile) {
+            if (tile.dumped) return;
+            tile.dumped = true;
+            onOpaqueTile.call(this, tile);
+          },
+        });
       }
     }
 
