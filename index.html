@@ -2538,6 +2538,17 @@
       background: color-mix(in srgb, var(--accent) 12%, var(--surface2));
       border-color: var(--accent);
     }
+    .modal button.area-result[hidden]:not(.modal-close),
+    .modal button.area-results-more[hidden]:not(.modal-close) { display: none; }
+    .modal button.area-results-more:not(.modal-close) {
+      align-self: flex-start;
+      border: none;
+      font-size: 0.8rem;
+      letter-spacing: normal;
+      margin-top: 0.3rem;
+      padding: 0.3rem 0;
+    }
+    .modal button.area-results-more:not(.modal-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
     .area-result-name { font-weight: 600; }
     .area-result-kind, .area-result-detail { color: var(--muted); font-size: 0.75rem; }
     .area-result-kind::first-letter { text-transform: uppercase; }
@@ -3805,6 +3816,10 @@
     // cheap to re-project on every zoom frame.
     const AREA_TARGET_POINTS = 5000;
     const AREA_MAX_FILE_BYTES = 25 * 1024 * 1024;
+    const AREA_CATEGORY_KINDS = new Set([
+      'city', 'country', 'county', 'island', 'municipality', 'national-park', 'nature-reserve',
+      'park', 'province', 'region', 'state', 'town', 'village',
+    ]);
     const AREA_PROJECTED_MSG = 'Coordinates are outside the lon/lat range, so the file is probably in a projected system such as UTM33 (EPSG:25833). Reproject it to WGS84.';
 
     function _areaPosition(pos) {
@@ -13799,6 +13814,7 @@
             '<button type="button" class="primary" id="a-search-go">Search</button>' +
           '</div>' +
           '<div class="area-results" id="a-results" hidden></div>' +
+          '<button type="button" class="area-results-more" id="a-results-more" hidden></button>' +
           '<div class="hint">Searches OpenStreetMap through Nominatim, which sees what you type and your IP address. Boundaries &copy; OpenStreetMap contributors.</div>' +
           '<label>Or use a GeoJSON file</label>' +
           '<div class="file-picker">' +
@@ -13854,17 +13870,27 @@
         const searchEl = document.getElementById('a-search');
         const searchGo = document.getElementById('a-search-go');
         const resultsEl = document.getElementById('a-results');
+        const moreEl = document.getElementById('a-results-more');
         let parsed = null;
         let pickedLocal = '';
         const categoryEl = document.getElementById('a-category');
         let autoCategory = '';
-        // Only an existing category: creating one per OSM type would fill the
-        // list with suburb, city district and the like. A choice the user made
-        // stays, while one this form made follows the picked row.
+        let autoOption = null;
+        // Places share this list, so only AREA_CATEGORY_KINDS may add to it:
+        // one per OSM type would fill it with suburb, city district and the
+        // like. A choice the user made stays, while one this form made follows
+        // the picked row.
         const pickCategory = kind => {
           if (categoryEl.value && categoryEl.value !== autoCategory) return;
           const slug = kind.replace(/ /g, '-');
-          autoCategory = Array.from(categoryEl.options).some(o => o.value === slug) ? slug : '';
+          if (autoOption) autoOption.remove();
+          autoOption = null;
+          const exists = Array.from(categoryEl.options).some(o => o.value === slug);
+          if (!exists && AREA_CATEGORY_KINDS.has(slug)) {
+            autoOption = new Option(displayCategory(slug), slug);
+            categoryEl.insertBefore(autoOption, categoryEl.querySelector('option[value="__new__"]'));
+          }
+          autoCategory = exists || autoOption ? slug : '';
           categoryEl.value = autoCategory;
           categoryEl.dispatchEvent(new Event('change', { bubbles: true }));
         };
@@ -13883,13 +13909,24 @@
           fileName.textContent = 'No file selected';
           fileName.classList.remove('has-file');
         };
+        const showAllResults = () => {
+          resultsEl.querySelectorAll('.area-result').forEach(b => { b.hidden = false; });
+          moreEl.hidden = true;
+        };
+        moreEl.addEventListener('click', showAllResults);
         const pickResult = (result, row) => {
           parsed = { features: [{ name: result.name, polygons: result.polygons }], ignored: 0, osm: true };
           pickedLocal = result.localName;
           nameEl.value = result.name;
           if (localEl) localEl.value = result.localName;
           pickCategory(result.kind);
-          resultsEl.querySelectorAll('.area-result').forEach(b => b.setAttribute('aria-pressed', String(b === row)));
+          const rows = resultsEl.querySelectorAll('.area-result');
+          rows.forEach(b => {
+            b.setAttribute('aria-pressed', String(b === row));
+            b.hidden = b !== row;
+          });
+          moreEl.textContent = 'Show all ' + rows.length + ' results';
+          moreEl.hidden = rows.length < 2;
           clearFile();
           errorEl.classList.remove('visible');
           info.hidden = true;
@@ -13919,6 +13956,7 @@
               return row;
             }));
             resultsEl.hidden = !found.length;
+            moreEl.hidden = true;
             if (!found.length) showModalError('No boundary found. Try a fuller name, such as Hiroshima Prefecture.');
             else if (found.length === 1) pickResult(found[0], resultsEl.firstChild);
           }).catch(() => {
@@ -13944,6 +13982,7 @@
           pickedLocal = '';
           if (localEl) localEl.value = '';
           resultsEl.querySelectorAll('.area-result').forEach(b => b.setAttribute('aria-pressed', 'false'));
+          showAllResults();
           info.hidden = true;
           splitRow.hidden = true;
           errorEl.classList.remove('visible');
