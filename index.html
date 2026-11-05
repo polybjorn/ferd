@@ -1700,6 +1700,17 @@
       background: var(--surface2);
     }
     .leaflet-popup-content .popup-note { color: var(--text); font-size: 0.75rem; margin-top: 0.3rem; }
+    .leaflet-popup-content .popup-area-edit {
+      background: none;
+      border: 0;
+      color: var(--accent);
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.75rem;
+      margin-top: 0.4rem;
+      padding: 0;
+    }
+    .leaflet-popup-content .popup-area-edit:hover { text-decoration: underline; }
     .leaflet-popup-content .popup-summary {
       color: var(--text);
       font-size: 0.75rem;
@@ -3093,7 +3104,7 @@
     }
 
     function dataUrl(kind) {
-      // kind: 'places' | 'routes' | 'metadata'
+      // kind: 'places' | 'areas' | 'routes' | 'metadata'
       const v = state.viewer;
       if (v && v.mode === 'public') return apiUrl('/u/' + encodeURIComponent(v.username) + '/' + kind);
       return apiUrl('/' + kind);
@@ -3142,7 +3153,7 @@
     // is missing or errors, get() yields null and set() is a no-op, so the
     // app degrades to the previous online-only behavior.
     const IDB_NAME = 'ferd';
-    const IDB_VERSION = 4;
+    const IDB_VERSION = 5;
     let _idbPromise = null;
     function idbOpen() {
       if (_idbPromise) return _idbPromise;
@@ -3160,8 +3171,10 @@
           // mutations, auto-increment id, replayed on reconnect) and
           // 'pending_gpx' (bytes of offline-uploaded GPX keyed by file path,
           // served by fetchGpxText until the upload replays to the server).
+          // v5 adds 'areas' (keyed by id), the local-only area polygons.
           if (!db.objectStoreNames.contains('cache')) db.createObjectStore('cache');
           if (!db.objectStoreNames.contains('places')) db.createObjectStore('places', { keyPath: 'id' });
+          if (!db.objectStoreNames.contains('areas')) db.createObjectStore('areas', { keyPath: 'id' });
           if (!db.objectStoreNames.contains('gpx')) db.createObjectStore('gpx', { keyPath: 'file' });
           if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
           if (!db.objectStoreNames.contains('log')) db.createObjectStore('log', { keyPath: 'id', autoIncrement: true });
@@ -3450,13 +3463,27 @@
       },
       clearCategory(body) {
         const target = (body.category || '').trim();
-        return idbGetAll('places').then(list => {
-          let cleared = 0; const puts = [];
+        const clearIn = store => idbGetAll(store).then(list => {
+          const puts = [];
           for (const p of list) {
-            if (p && p.category === target) { delete p.category; cleared++; puts.push(idbPut('places', p)); }
+            if (p && p.category === target) { delete p.category; puts.push(idbPut(store, p)); }
           }
-          return Promise.all(puts).then(() => ({ ok: true, cleared }));
+          return Promise.all(puts).then(() => puts.length);
         });
+        return Promise.all([clearIn('places'), clearIn('areas')]).then(([a, b]) => ({ ok: true, cleared: a + b }));
+      },
+
+      getAreas(fallback) { return idbGetAll('areas').then(a => Array.isArray(a) ? a : (fallback || [])).catch(() => fallback || []); },
+      createArea(payload) {
+        const area = Object.assign({}, payload, { id: _genId() });
+        return idbPut('areas', area).then(() => idbGetAll('areas')).then(a => ({ ok: true, area, total_areas: a.length }));
+      },
+      updateArea(body) {
+        const next = Object.assign({}, body.area, { id: body.id });
+        return idbPut('areas', next).then(() => ({ ok: true, area: next }));
+      },
+      deleteArea(body) {
+        return idbDeleteKey('areas', body.id).then(() => idbGetAll('areas')).then(a => ({ ok: true, total_areas: a.length }));
       },
 
       getRoutes() { return Promise.all([idbGetAll('gpx'), this._metadata()]).then(([recs, meta]) => buildLocalManifest(recs || [], meta || {})); },
@@ -3642,12 +3669,13 @@
     }
     const localBackup = {
       exportZip() {
-        return Promise.all([idbGetAll('places'), idbGetAll('gpx'), localStore._metadata(), idbGet('kv', 'local:category-labels'), localStore.getRoutes()])
-          .then(([places, gpx, metadata, labels, manifest]) => {
+        return Promise.all([idbGetAll('places'), idbGetAll('gpx'), localStore._metadata(), idbGet('kv', 'local:category-labels'), localStore.getRoutes(), idbGetAll('areas')])
+          .then(([places, gpx, metadata, labels, manifest, areas]) => {
             const enc = new TextEncoder();
             const j = o => enc.encode(JSON.stringify(o, null, 2));
             const files = [
               { name: 'places.json', data: j(places || []) },
+              { name: 'areas.json', data: j(areas || []) },
               { name: 'routes.json', data: j(manifest) },
               { name: 'metadata.json', data: j(metadata || {}) },
               { name: 'category-labels.json', data: j(labels || {}) },
@@ -3662,11 +3690,15 @@
           const byName = {};
           for (const e of entries) byName[e.name] = e.data;
           const parse = n => { if (!byName[n]) return null; try { return JSON.parse(dec.decode(byName[n])); } catch { return null; } };
-          const places = parse('places.json'), metadata = parse('metadata.json'), labels = parse('category-labels.json');
-          if (mode === 'replace') { await idbClear('places'); await idbClear('gpx'); }
+          const places = parse('places.json'), areas = parse('areas.json'), metadata = parse('metadata.json'), labels = parse('category-labels.json');
+          if (mode === 'replace') { await idbClear('places'); await idbClear('areas'); await idbClear('gpx'); }
           let nPlaces = 0;
           if (Array.isArray(places)) {
             for (const p of places) { if (p && typeof p === 'object') { if (!p.id) p.id = _genId(); await idbPut('places', p); nPlaces++; } }
+          }
+          let nAreas = 0;
+          if (Array.isArray(areas)) {
+            for (const a of areas) { if (a && typeof a === 'object') { if (!a.id) a.id = _genId(); await idbPut('areas', a); nAreas++; } }
           }
           let nRoutes = 0;
           for (const name in byName) {
@@ -3684,8 +3716,8 @@
             const cur = (await idbGet('kv', 'local:category-labels')) || {};
             await idbSet('kv', 'local:category-labels', mode === 'merge' ? Object.assign({}, cur, labels) : labels);
           }
-          localLog('local.import', '', { places: nPlaces, gpx: nRoutes, mode: mode });
-          return { ok: true, places: nPlaces, routes: nRoutes };
+          localLog('local.import', '', { places: nPlaces, areas: nAreas, gpx: nRoutes, mode: mode });
+          return { ok: true, places: nPlaces, areas: nAreas, routes: nRoutes };
         });
       },
     };
@@ -3698,6 +3730,177 @@
     // write, mutating the cache blob makes the edit appear immediately and
     // survive reload with no call-site changes. drainOutbox replays the queue
     // in FIFO order (last-write-wins; skip + notify on a definitive conflict).
+
+    // AREA-GEO-BEGIN (tests/js/area-geo.test.js runs the code between these markers)
+    // Administrative and park boundaries arrive with hundreds of thousands of
+    // vertices. The target keeps one area well inside the API's body cap and
+    // cheap to re-project on every zoom frame.
+    const AREA_TARGET_POINTS = 5000;
+    const AREA_MAX_FILE_BYTES = 25 * 1024 * 1024;
+    const AREA_PROJECTED_MSG = 'Coordinates are outside the lon/lat range, so the file is probably in a projected system such as UTM33 (EPSG:25833). Reproject it to WGS84.';
+
+    function _areaPosition(pos) {
+      if (!Array.isArray(pos) || pos.length < 2) throw new Error('The file has a malformed coordinate.');
+      const lon = pos[0], lat = pos[1];
+      if (typeof lon !== 'number' || typeof lat !== 'number') throw new Error('The file has a malformed coordinate.');
+      if (!(lon >= -180 && lon <= 180 && lat >= -90 && lat <= 90)) throw new Error(AREA_PROJECTED_MSG);
+      return [lon, lat];
+    }
+    function _areaRing(ring) {
+      if (!Array.isArray(ring)) throw new Error('The file has a malformed polygon.');
+      const out = ring.map(_areaPosition);
+      if (!out.length) return out;
+      const a = out[0], b = out[out.length - 1];
+      if (a[0] !== b[0] || a[1] !== b[1]) out.push([a[0], a[1]]);
+      return out;
+    }
+    // A polygon whose outer ring can't enclose anything is dropped; so is a hole.
+    function _areaPolygon(rings) {
+      if (!Array.isArray(rings) || !rings.length) return null;
+      const clean = rings.map(_areaRing);
+      if (clean[0].length < 4) return null;
+      return [clean[0]].concat(clean.slice(1).filter(r => r.length >= 4));
+    }
+    function _areaPolygons(g) {
+      if (!g || !Array.isArray(g.coordinates)) return [];
+      const raw = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
+      return raw.map(_areaPolygon).filter(Boolean);
+    }
+    // Returns { features: [{ name, polygons }], ignored }, where `polygons` is a
+    // list of ring lists and `ignored` counts features with no polygon in them.
+    function parseAreaGeoJson(text) {
+      let doc;
+      try { doc = JSON.parse(text); } catch { throw new Error('This file is not valid GeoJSON.'); }
+      if (!doc || typeof doc !== 'object') throw new Error('This file is not valid GeoJSON.');
+      const crs = doc.crs && doc.crs.properties && doc.crs.properties.name;
+      if (typeof crs === 'string' && !/CRS84|EPSG:+4326/i.test(crs)) {
+        throw new Error('The file is in ' + crs + '. Reproject it to WGS84.');
+      }
+      let items;
+      if (doc.type === 'FeatureCollection' && Array.isArray(doc.features)) items = doc.features;
+      else if (doc.type === 'Feature') items = [doc];
+      else if (typeof doc.type === 'string' && Array.isArray(doc.coordinates)) items = [{ geometry: doc }];
+      else throw new Error('This file is not valid GeoJSON.');
+      const features = [];
+      let ignored = 0;
+      for (const item of items) {
+        const polygons = _areaPolygons(item && item.geometry);
+        if (!polygons.length) { ignored++; continue; }
+        const name = item.properties && item.properties.name;
+        features.push({ name: typeof name === 'string' ? name.trim().slice(0, 200) : '', polygons });
+      }
+      if (!features.length) throw new Error('The file has no polygons.');
+      return { features, ignored };
+    }
+    function _areaPointCount(polygons) {
+      let n = 0;
+      for (const rings of polygons) for (const r of rings) n += r.length;
+      return n;
+    }
+    function _segDistSq(p, a, b) {
+      let x = a[0], y = a[1];
+      const dx = b[0] - x, dy = b[1] - y;
+      if (dx || dy) {
+        const t = Math.max(0, Math.min(1, ((p[0] - x) * dx + (p[1] - y) * dy) / (dx * dx + dy * dy)));
+        x += t * dx; y += t * dy;
+      }
+      return (p[0] - x) ** 2 + (p[1] - y) ** 2;
+    }
+    // Douglas-Peucker with an explicit stack: a boundary ring can be long enough
+    // to overflow the call stack if this recursed.
+    function _simplifyLine(points, tolSq) {
+      const keep = new Uint8Array(points.length);
+      keep[0] = keep[points.length - 1] = 1;
+      const stack = [[0, points.length - 1]];
+      while (stack.length) {
+        const [lo, hi] = stack.pop();
+        let worst = 0, at = -1;
+        for (let i = lo + 1; i < hi; i++) {
+          const d = _segDistSq(points[i], points[lo], points[hi]);
+          if (d > worst) { worst = d; at = i; }
+        }
+        if (at !== -1 && worst > tolSq) {
+          keep[at] = 1;
+          stack.push([lo, at], [at, hi]);
+        }
+      }
+      return points.filter((_, i) => keep[i]);
+    }
+    // A closed ring has identical end points, which gives Douglas-Peucker no
+    // baseline, so it is split at the vertex farthest from the start.
+    function _simplifyRing(ring, tolSq, mustSurvive) {
+      let far = 1, worst = -1;
+      for (let i = 1; i < ring.length - 1; i++) {
+        const d = (ring[i][0] - ring[0][0]) ** 2 + (ring[i][1] - ring[0][1]) ** 2;
+        if (d > worst) { worst = d; far = i; }
+      }
+      const out = _simplifyLine(ring.slice(0, far + 1), tolSq).concat(_simplifyLine(ring.slice(far), tolSq).slice(1));
+      if (out.length >= 4) return out;
+      if (!mustSurvive) return null;
+      const third = ring[far > 1 ? 1 : ring.length - 2];
+      return [ring[0], ring[far], third, ring[0]];
+    }
+    function _ringArea(ring) {
+      let sum = 0;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        sum += (ring[j][0] + ring[i][0]) * (ring[j][1] - ring[i][1]);
+      }
+      return Math.abs(sum) / 2;
+    }
+    function _simplifyPolygons(polygons, tolSq, largest) {
+      const out = [];
+      for (const rings of polygons) {
+        const outer = _simplifyRing(rings[0], tolSq, rings === largest);
+        if (!outer) continue;
+        const holes = rings.slice(1).map(r => _simplifyRing(r, tolSq, false)).filter(Boolean);
+        out.push([outer].concat(holes));
+      }
+      return out;
+    }
+    function _roundRing(ring) { return ring.map(p => [Math.round(p[0] * 1e6) / 1e6, Math.round(p[1] * 1e6) / 1e6]); }
+    // Simplify to the target and wrap as GeoJSON. Tolerance doubles from about a
+    // metre, so a file that already fits comes through unchanged. The largest
+    // polygon always survives; islets and holes fall away as the tolerance grows.
+    function buildAreaGeometry(polygons, target) {
+      const limit = target || AREA_TARGET_POINTS;
+      let out = polygons;
+      if (_areaPointCount(polygons) > limit) {
+        let largest = polygons[0];
+        for (const rings of polygons) if (_ringArea(rings[0]) > _ringArea(largest[0])) largest = rings;
+        let tol = 1e-5;
+        do {
+          out = _simplifyPolygons(polygons, tol * tol, largest);
+          tol *= 2;
+        } while (_areaPointCount(out) > limit && tol < 360);
+      }
+      const rounded = out.map(rings => rings.map(_roundRing));
+      return rounded.length === 1
+        ? { type: 'Polygon', coordinates: rounded[0] }
+        : { type: 'MultiPolygon', coordinates: rounded };
+    }
+    function _geometryPolygons(g) { return g.type === 'Polygon' ? [g.coordinates] : g.coordinates; }
+    function _ringContains(ring, x, y) {
+      let inside = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const a = ring[i], b = ring[j];
+        if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+      }
+      return inside;
+    }
+    function areaContains(geometry, lon, lat) {
+      return _geometryPolygons(geometry).some(rings =>
+        _ringContains(rings[0], lon, lat) && !rings.slice(1).some(h => _ringContains(h, lon, lat)));
+    }
+    // In squared degrees: only good for ranking one area against another.
+    function areaSize(geometry) {
+      let sum = 0;
+      for (const rings of _geometryPolygons(geometry)) {
+        sum += _ringArea(rings[0]);
+        for (const hole of rings.slice(1)) sum -= _ringArea(hole);
+      }
+      return sum;
+    }
+    // AREA-GEO-END
 
     // OFFLINE-QUEUE-BEGIN (tests/js/offline-queue.test.js runs the code between these markers)
     // Namespace the queue by server origin + viewer identity, mirroring
@@ -3739,10 +3942,33 @@
     }
     function applyClearCategory(body) {
       const target = (body.category || '').trim();
-      return _readBlob('places', state.places || []).then(arr => {
+      const clearIn = (kind, seed) => _readBlob(kind, seed).then(arr => {
         let cleared = 0;
         const next = arr.map(p => { if (p && p.category === target) { cleared++; return Object.assign({}, p, { category: '' }); } return p; });
-        return _writeBlob('places', next).then(() => ({ ok: true, cleared }));
+        return _writeBlob(kind, next).then(() => cleared);
+      });
+      return clearIn('places', state.places || []).then(a =>
+        clearIn('areas', state.areas || []).then(b => ({ ok: true, cleared: a + b })));
+    }
+    function applyCreateArea(payload) {
+      return _readBlob('areas', state.areas || []).then(arr => {
+        const area = Object.assign({}, payload, { id: _genId() });
+        if (area.category == null) area.category = '';
+        const next = arr.concat([area]);
+        return _writeBlob('areas', next).then(() => ({ ok: true, area, total_areas: next.length }));
+      });
+    }
+    function applyUpdateArea(body) {
+      return _readBlob('areas', state.areas || []).then(arr => {
+        const next = Object.assign({}, body.area, { id: body.id });
+        if (next.category == null) next.category = '';
+        return _writeBlob('areas', arr.map(a => a.id === body.id ? next : a)).then(() => ({ ok: true, area: next }));
+      });
+    }
+    function applyDeleteArea(body) {
+      return _readBlob('areas', state.areas || []).then(arr => {
+        const next = arr.filter(a => a.id !== body.id);
+        return _writeBlob('areas', next).then(() => ({ ok: true, total_areas: next.length }));
       });
     }
     // -- optimistic apply: category labels blob --
@@ -3938,6 +4164,9 @@
       updatePlace:       { replay: a => api('PUT', '/places', a),                  apply: applyUpdatePlace },
       deletePlace:       { replay: a => api('DELETE', '/places', a),               apply: applyDeletePlace },
       clearCategory:     { replay: a => api('POST', '/places/clear-category', a),  apply: applyClearCategory },
+      createArea:        { replay: a => api('POST', '/areas', a),                  apply: applyCreateArea },
+      updateArea:        { replay: a => api('PUT', '/areas', a),                   apply: applyUpdateArea },
+      deleteArea:        { replay: a => api('DELETE', '/areas', a),                apply: applyDeleteArea },
       uploadGpx:         { replay: _gpxUploadRequest,                              apply: applyUploadGpx },
       deleteGpx:         { replay: a => api('DELETE', '/gpx', a),                  apply: applyDeleteGpx },
       setGpxCompleted:   { replay: a => api('POST', '/gpx/set-completed', a),      apply: applySetCompleted },
@@ -3966,15 +4195,17 @@
       return Promise.resolve(OPS[method].apply(args)).then(result => {
         const entry = { ns: currentNs(), method, args, ts: Date.now() };
         if (method === 'createPlace' && result && result.place) entry.localId = result.place.id;
+        if (method === 'createArea' && result && result.area) entry.localId = result.area.id;
         if (method === 'uploadGpx' && result && result.__file) entry.file = result.__file;
         return idbPut('outbox', entry).then(() => { updateOfflineBanner(); return result; });
       });
     }
-    // Rewrite a queued op's args at replay time: a place created offline got a
-    // client id; once it replays the server assigns the real id, so later edits
-    // of that place must target the server id. Routes key on stable names.
+    // Rewrite a queued op's args at replay time: a place or area created offline
+    // got a client id; once it replays the server assigns the real id, so later
+    // edits of it must target the server id. Routes key on stable names.
+    const ID_KEYED_OPS = new Set(['updatePlace', 'deletePlace', 'updateArea', 'deleteArea']);
     function remapArgs(method, args, idMap) {
-      if ((method === 'updatePlace' || method === 'deletePlace') && args && idMap[args.id]) {
+      if (ID_KEYED_OPS.has(method) && args && idMap[args.id]) {
         return Object.assign({}, args, { id: idMap[args.id] });
       }
       return args;
@@ -3992,7 +4223,8 @@
           if (stopped) return;
           const args = remapArgs(row.method, row.args, idMap);
           return OPS[row.method].replay(args).then(resp => {
-            if (row.method === 'createPlace' && row.localId && resp && resp.place && resp.place.id) idMap[row.localId] = resp.place.id;
+            const created = resp && (row.method === 'createPlace' ? resp.place : row.method === 'createArea' ? resp.area : null);
+            if (row.localId && created && created.id) idMap[row.localId] = created.id;
             synced++;
             return idbDeleteKey('outbox', row.id).then(() => {
               if (row.method === 'uploadGpx' && row.file) return idbDeleteKey('pending_gpx', row.file);
@@ -4007,7 +4239,7 @@
     function _finishDrain(synced, skipped) {
       _draining = false;
       const reconcile = (synced || skipped)
-        ? Promise.all([refreshPlaces().catch(() => {}), refreshRoutes().catch(() => {})]).then(() => { if (typeof wrappedRouter === 'function') wrappedRouter(); })
+        ? Promise.all([refreshPlaces().catch(() => {}), refreshAreas().catch(() => {}), refreshRoutes().catch(() => {})]).then(() => { if (typeof wrappedRouter === 'function') wrappedRouter(); })
         : Promise.resolve();
       return reconcile
         .then(() => idbGetAll('outbox')).catch(() => [])
@@ -4068,6 +4300,7 @@
     const dataLayer = {
       // -- reads (local store, or cached-on-device server reads) --
       fetchPlaces(fallback)         { return isLocalMode() ? localStore.getPlaces(fallback) : cachedRead('places', dataUrl('places'), fallback); },
+      fetchAreas(fallback)          { return isLocalMode() ? localStore.getAreas(fallback) : cachedRead('areas', dataUrl('areas'), fallback); },
       fetchRoutes(fallback)         { return isLocalMode() ? localStore.getRoutes() : cachedRead('routes', dataUrl('routes'), fallback); },
       fetchCategoryLabels(fallback) { return isLocalMode() ? localStore.getCategoryLabels() : cachedRead('category-labels', categoryLabelsUrl(), fallback); },
 
@@ -4080,6 +4313,15 @@
         return localStore.deletePlace(body).then(logLocal('place.delete', p ? p.name : ''));
       },
       clearCategory(body)    { return isLocalMode() ? localStore.clearCategory(body).then(logLocal('place.clear_category', body.category)) : mutate('clearCategory', body); }, // { category }
+
+      // -- area writes --
+      createArea(payload)    { return isLocalMode() ? localStore.createArea(payload).then(logLocal('area.create', payload.name)) : mutate('createArea', payload); },
+      updateArea(body)       { return isLocalMode() ? localStore.updateArea(body).then(logLocal('area.update', body.area && body.area.name)) : mutate('updateArea', body); },          // { id, area }
+      deleteArea(body)       {
+        if (!isLocalMode()) return mutate('deleteArea', body);                                                                // { id }
+        const a = (state.areas || []).find(x => x.id === body.id);
+        return localStore.deleteArea(body).then(logLocal('area.delete', a ? a.name : ''));
+      },
 
       // -- route / GPX writes --
       uploadGpx(opts) {
@@ -4793,6 +5035,7 @@
       currentElevation: null,
       // data
       places: null,
+      areas: null,
       manifest: null,
       categoryColors: {},
       categoryColorsLight: {},
@@ -4915,7 +5158,7 @@
       // category-labels.json. Unstored slugs get the next free index
       // (highest stored + 1, mod palette length) so adding a new category
       // never reshuffles the existing ones.
-      const cats = [...new Set(places.map(p => p.category))]
+      const cats = [...new Set(places.concat(state.areas || []).map(p => p.category))]
         .filter(c => c !== '').sort();
       const labels = (state.config && state.config.category_labels) || {};
       let nextIdx = 0;
@@ -5025,6 +5268,9 @@
       state.tilePickerLayers = null;
       state._placeRecords = null;
       state._placeClusterGroup = null;
+      state._areaGroup = null;
+      state._areaLayers = null;
+      state._areaRenderer = null;
       state._routeLayers = null;
       state._selectedRouteKey = null;
       state._routeGroupCompleted = null;
@@ -5336,7 +5582,9 @@
       // polylines both need re-projecting so their strokes stay constant.
       if (state._routeLayers) for (const t of state._routeLayers) visit(t.layer);
       if (state._detailPolylines) for (const pl of state._detailPolylines) visit(pl);
+      if (state._areaGroup) visit(state._areaGroup);
       const renderers = [];
+      if (state._areaRenderer) renderers.push(state._areaRenderer);
       if (state._routeRenderer) renderers.push(state._routeRenderer);
       if (state._detailRenderer && state._detailRenderer !== state._routeRenderer) renderers.push(state._detailRenderer);
       for (const r of renderers) {
@@ -5719,6 +5967,7 @@
         state.categoryColors = cc.dark;
         state.categoryColorsLight = cc.light;
         state._placeClusterGroup.redraw();
+        syncAreasOnMap();
         if (typeof refreshFilterPanel === 'function') refreshFilterPanel();
         refreshOpenPlacePopup();
       }
@@ -5733,6 +5982,153 @@
       refreshFilterPanel();
       applyMapFilters();
       refreshOpenPlacePopup();
+    }
+
+    // Areas get their own pane under the route layers, with no pointer events:
+    // a filled polygon must never swallow a click meant for a route, a pin or
+    // the map. Clicks are matched in openAreaPopupAt instead.
+    function initAreaLayers(map) {
+      const pane = map.createPane('areasPane');
+      pane.style.zIndex = 390;
+      pane.style.pointerEvents = 'none';
+      state._areaRenderer = L.svg({ pane: 'areasPane' });
+      state._areaGroup = L.featureGroup().addTo(map);
+      syncAreasOnMap();
+    }
+    function areaStyle(a) {
+      const color = state.categoryColors[a.category] || state.categoryColors[''];
+      return a.visited
+        ? { color, weight: 2, opacity: 0.9, fillColor: color, fillOpacity: 0.22 }
+        : { color, weight: 2, opacity: 0.7, fillColor: color, fillOpacity: 0.08, dashArray: '6 6' };
+    }
+    function syncAreasOnMap() {
+      const group = state._areaGroup;
+      if (!group) return;
+      group.clearLayers();
+      state._areaLayers = (state.areas || []).map(area => ({
+        area,
+        layer: L.geoJSON(area.geometry, {
+          renderer: state._areaRenderer,
+          pane: 'areasPane',
+          interactive: false,
+          style: areaStyle(area),
+        }),
+      }));
+      applyAreaFilters();
+    }
+    function applyAreaFilters() {
+      const group = state._areaGroup;
+      if (!group) return;
+      for (const { area, layer } of state._areaLayers || []) {
+        const show = placesEnabled()
+          && !state.hiddenCategories.has(area.category)
+          && (area.visited ? state.showVisited : state.showWant);
+        if (show && !group.hasLayer(layer)) group.addLayer(layer);
+        else if (!show && group.hasLayer(layer)) group.removeLayer(layer);
+      }
+    }
+    function areaPopupHtml(a) {
+      const catStyle = '--c:' + state.categoryColors[a.category] + ';--cl:' + state.categoryColorsLight[a.category];
+      let html = '<div class="popup-name">' + escapeHtml(a.name) + '</div>';
+      if (a.note && getShowField('note')) html += '<div class="popup-note">' + escapeHtml(a.note) + '</div>';
+      if (!isReadOnly()) html += '<button type="button" class="popup-area-edit">Edit</button>';
+      html += '<div class="popup-meta">' +
+        '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(displayCategory(a.category)) + '</span>' +
+        '<span style="grid-column:3;color:' + (a.visited ? 'var(--completed)' : 'var(--planned)') + '">' + (a.visited ? 'Visited' : 'Want to visit') + '</span>' +
+      '</div>';
+      return html;
+    }
+    function openAreaPopup(map, area, latlng) {
+      const popup = L.popup({ closeButton: false }).setLatLng(latlng).setContent(areaPopupHtml(area)).openOn(map);
+      const edit = popup.getElement().querySelector('.popup-area-edit');
+      if (edit) edit.addEventListener('click', function() { map.closePopup(); openEditAreaModal(area); });
+    }
+    // Smallest first, so a park inside a county stays reachable.
+    function openAreaPopupAt(map, e) {
+      if (document.querySelector('.pick-coords-banner')) return;
+      const cg = state._placeClusterGroup;
+      if (cg && typeof cg._hitTest === 'function' && cg._hitTest(e.containerPoint)) return;
+      const hits = (state._areaLayers || [])
+        .filter(({ area, layer }) => state._areaGroup.hasLayer(layer)
+          && layer.getBounds().contains(e.latlng)
+          && areaContains(area.geometry, e.latlng.lng, e.latlng.lat))
+        .map(x => x.area)
+        .sort((a, b) => areaSize(a.geometry) - areaSize(b.geometry));
+      if (hits.length) openAreaPopup(map, hits[0], e.latlng);
+    }
+    function revealArea(map, id) {
+      const entry = (state._areaLayers || []).find(x => x.area.id === id);
+      if (!entry) return;
+      const b = entry.layer.getBounds();
+      if (!b.isValid()) return;
+      map.fitBounds(b, { padding: [40, 40] });
+      openAreaPopup(map, entry.area, b.getCenter());
+    }
+    // The fields the Add and Edit forms share, read from the given id prefix.
+    function readAreaFormFields(prefix) {
+      const payload = { visited: document.getElementById(prefix + '-visited').checked };
+      const category = readSelectOrNew(prefix + '-category');
+      if (category) payload.category = category;
+      const noteEl = document.getElementById(prefix + '-note');
+      const note = noteEl ? noteEl.value.trim() : '';
+      if (note) payload.note = note;
+      return payload;
+    }
+    function areaFieldsHtml(prefix, area) {
+      const cats = sortedCategorySlugs(Object.keys(state.categoryColors).filter(c => c !== ''));
+      return '<label for="' + prefix + '-category">Category</label>' +
+        selectOrNewHtml(prefix + '-category', cats, (area && area.category) || null, displayCategory, '', 'New category name') +
+        (getShowField('note') ?
+          '<label for="' + prefix + '-note">Note (optional)</label>' +
+          '<textarea id="' + prefix + '-note" style="min-height:40px">' + escapeHtml((area && area.note) || '') + '</textarea>'
+        : '') +
+        '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
+          '<input type="checkbox" class="settings-toggle" id="' + prefix + '-visited"' + (area && area.visited ? ' checked' : '') + '>' +
+          '<label for="' + prefix + '-visited" style="margin:0">I&rsquo;ve visited this area</label>' +
+        '</div>';
+    }
+    function openEditAreaModal(area) {
+      openModal(
+        modalHeaderHtml('Edit area') +
+        '<form id="edit-area-form">' +
+          '<label for="ea-name">Name</label>' +
+          '<input type="text" id="ea-name" required maxlength="200" value="' + escapeHtml(area.name) + '">' +
+          areaFieldsHtml('ea', area) +
+          modalErrorHtml('edit-area-error') +
+          '<div class="modal-actions">' +
+            '<button type="button" class="session-revoke" id="ea-delete">Delete</button>' +
+            '<span style="flex:1"></span>' +
+            '<button type="submit" class="primary" id="ea-submit">Save</button>' +
+          '</div>' +
+        '</form>',
+        function() {
+          wireSelectOrNew('ea-category');
+          const done = () => refreshAreas().then(() => { closeModal(); refreshPlacesPresentation(); });
+          document.getElementById('ea-delete').addEventListener('click', function() {
+            const btn = this;
+            openConfirmModal({ title: 'Delete area?', body: 'Delete "' + area.name + '"?', confirmLabel: 'Delete', danger: true }).then(ok => {
+              if (!ok) return;
+              btn.disabled = true;
+              dataLayer.deleteArea({ id: area.id }).then(done)
+                .catch(err => { btn.disabled = false; showModalError(err.message); });
+            });
+          });
+          document.getElementById('edit-area-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const payload = Object.assign(readAreaFormFields('ea'), {
+              name: document.getElementById('ea-name').value.trim(),
+              geometry: area.geometry,
+            });
+            // A note hidden via Settings > Optional fields isn't in the form,
+            // and a save replaces the whole area.
+            if (!getShowField('note') && area.note) payload.note = area.note;
+            const submit = document.getElementById('ea-submit');
+            submit.disabled = true;
+            dataLayer.updateArea({ id: area.id, area: payload }).then(done)
+              .catch(err => { submit.disabled = false; showModalError(err.message); });
+          });
+        }
+      );
     }
 
     // If a place popup is currently open on the home map, re-render its
@@ -6048,6 +6444,7 @@
       bindTrailStrokeMotion(map);
       addTileLayersToMap(map);
       attachGLRoutes(map);
+      initAreaLayers(map);
 
       if (getRememberView()) {
         map.on('moveend zoomend', function() {
@@ -6188,6 +6585,10 @@
         const c = nearTrailCandidates(containerPt);
         return c.length ? c[0] : null;
       }
+      // Leaflet closes an open popup on preclick. That tap only dismisses it, or
+      // on a large area every tap to close a popup would open the next one.
+      let popupOpenOnPress = false;
+      map.on('preclick', function() { popupOpenOnPress = !!(map._popup && map._popup.isOpen()); });
       map.on('click', function(e) {
         const cands = nearTrailCandidates(e.containerPoint);
         if (cands.length) {
@@ -6203,6 +6604,7 @@
           pick.layer.openPopup(e.latlng);
         } else {
           setSelectedRoute(null);
+          if (!popupOpenOnPress) openAreaPopupAt(map, e);
         }
       });
       // Right-click on the map: hit-test for a place pin first (canvas
@@ -6392,6 +6794,8 @@
         const combined = L.latLngBounds();
         if (placeBounds.isValid()) combined.extend(placeBounds);
         if (routeBounds.isValid()) combined.extend(routeBounds);
+        const areaBounds = state._areaGroup.getBounds();
+        if (areaBounds.isValid()) combined.extend(areaBounds);
         if (combined.isValid()) map.fitBounds(combined, { padding: [40, 40] });
       }
 
@@ -7390,6 +7794,7 @@
           map.removeLayer(cg);
         }
       }
+      applyAreaFilters();
 
       // Routes
       const gc = state._routeGroupCompleted;
@@ -7426,11 +7831,16 @@
           || p.category.toLowerCase().includes(lower)
           || (p.country && p.country.toLowerCase().includes(lower))
         ).slice(0, 6) : [];
+        const areaMatches = (state.areas && placesEnabled()) ? state.areas.filter(a =>
+          a.name.toLowerCase().includes(lower)
+          || (a.note && a.note.toLowerCase().includes(lower))
+          || a.category.toLowerCase().includes(lower)
+        ).slice(0, 6) : [];
         const routeMatches = state.manifest ? state.manifest.regions.flatMap(r =>
           r.routes.filter(route => route.name.toLowerCase().includes(lower) || r.name.toLowerCase().includes(lower)).map(route => ({ route, region: r.name }))
         ).slice(0, 6) : [];
 
-        if (!placeMatches.length && !routeMatches.length) {
+        if (!placeMatches.length && !areaMatches.length && !routeMatches.length) {
           results.classList.remove('visible');
           results.innerHTML = '';
           return;
@@ -7443,6 +7853,12 @@
           html += '<span class="result-dot" style="background:' + color + '"></span>';
           html += escapeHtml(p.name);
           html += '<span class="result-meta">' + escapeHtml(p.country || '') + '</span></div>';
+        }
+        for (const a of areaMatches) {
+          html += '<div class="map-search-result" data-type="area" data-id="' + escapeHtml(a.id) + '">';
+          html += '<span class="result-dot" style="background:' + state.categoryColors[a.category] + '"></span>';
+          html += escapeHtml(a.name);
+          html += '<span class="result-meta">Area</span></div>';
         }
         for (const t of routeMatches) {
           const statusClass = t.route.completed ? 'completed' : 'planned';
@@ -7460,6 +7876,10 @@
       results.addEventListener('click', function(e) {
         const row = e.target.closest('.map-search-result');
         if (!row) return;
+        // Emptying the list below detaches the row from the panel, so Leaflet
+        // no longer sees the panel's click guard and takes this for a map
+        // click, which closes the popup just opened.
+        e.stopPropagation();
         if (row.dataset.type === 'place') {
           const name = row.dataset.name;
           const place = (state._placeRecords || []).find(p => p.name === name);
@@ -7467,6 +7887,8 @@
             revealPlaceMarker(map, place);
             history.replaceState(null, '', '#/?focus=place:' + encodeURIComponent(name));
           }
+        } else if (row.dataset.type === 'area') {
+          revealArea(map, row.dataset.id);
         } else {
           const key = row.dataset.key;
           const entry = (state._routeLayers || []).find(t => t.route.key === key);
@@ -9959,7 +10381,7 @@
           impBtn.disabled = true;
           const orig = impBtn.textContent; impBtn.textContent = 'Importing…';
           localBackup.importZip(f, mode).then(function(res) {
-            if (okEl) { okEl.hidden = false; okEl.textContent = 'Imported ' + res.places + ' places and ' + res.routes + ' routes. Reloading…'; }
+            if (okEl) { okEl.hidden = false; okEl.textContent = 'Imported ' + res.places + ' places' + (res.areas ? ', ' + res.areas + ' areas' : '') + ' and ' + res.routes + ' routes. Reloading…'; }
             setTimeout(function() { location.reload(); }, 900);
           }).catch(function(e) {
             impBtn.disabled = false; impBtn.textContent = orig;
@@ -10754,6 +11176,7 @@
               const successEl = document.getElementById('s-import-success');
               const parts = [];
               if (c.places) parts.push(c.places + ' places');
+              if (c.areas)  parts.push(c.areas  + ' areas');
               if (c.gpx)    parts.push(c.gpx    + ' routes');
               successEl.textContent = parts.length
                 ? 'Imported ' + parts.join(', ') + '.'
@@ -10762,7 +11185,7 @@
               fileInputEl.value = '';
               fileNameEl.textContent = 'No file selected';
               fileNameEl.classList.remove('has-file');
-              Promise.all([refreshPlaces(), refreshRoutes()]).then(() => { wrappedRouter(); });
+              Promise.all([refreshPlaces(), refreshAreas(), refreshRoutes()]).then(() => { wrappedRouter(); });
               importBtn.disabled = false;
               importBtn.textContent = originalLabel;
             }).catch(err => {
@@ -10841,7 +11264,7 @@
     function openManageCategoriesModal() {
       const labels = state.config.category_labels || {};
       // Uncategorized ('') isn't a manageable slug — drop it.
-      const slugsFromPlaces = state.places ? [...new Set(state.places.map(p => p.category).filter(Boolean))] : [];
+      const slugsFromPlaces = [...new Set((state.places || []).concat(state.areas || []).map(p => p.category).filter(Boolean))];
       const allSlugs = [...new Set([...Object.keys(labels), ...slugsFromPlaces])];
       // Stored `order` (if any) wins; entries without one fall to the end,
       // ordered alphabetically by slug so the modal stays deterministic.
@@ -11194,6 +11617,9 @@
                   for (const p of state.places) {
                     if (pendingClears.has(p.category)) p.category = '';
                   }
+                  for (const a of state.areas || []) {
+                    if (pendingClears.has(a.category)) a.category = '';
+                  }
                 }
                 refreshPlacesPresentation();
                 closeTopModal();
@@ -11209,11 +11635,11 @@
             // save - confirm before that destructive bulk edit.
             if (pendingClears.size) {
               const slugs = [...pendingClears];
-              const total = state.places.filter(p => slugs.includes(p.category)).length;
+              const total = state.places.concat(state.areas || []).filter(p => slugs.includes(p.category)).length;
               const many = slugs.length > 1;
               openConfirmModal({
                 title: 'Remove ' + (many ? 'categories' : 'category') + ' in use?',
-                body: total + ' place' + (total === 1 ? '' : 's') + ' will lose ' + (total === 1 ? 'its' : 'their') + ' category (' + slugs.map(s => '"' + s + '"').join(', ') + ') when you save. This cannot be undone.',
+                body: total + ' item' + (total === 1 ? '' : 's') + ' will lose ' + (total === 1 ? 'its' : 'their') + ' category (' + slugs.map(s => '"' + s + '"').join(', ') + ') when you save. This cannot be undone.',
                 confirmLabel: 'Save',
                 danger: true,
               }).then(ok => { if (ok) doSave(); });
@@ -11623,6 +12049,9 @@
         case 'place.update': msg = 'Edited place ' + target; break;
         case 'place.delete': msg = 'Deleted place ' + target; break;
         case 'place.clear_category': msg = 'Cleared category ' + target; break;
+        case 'area.create': msg = 'Added area ' + target; break;
+        case 'area.update': msg = 'Edited area ' + target; break;
+        case 'area.delete': msg = 'Deleted area ' + target; break;
         case 'route.create': msg = 'Added route ' + target; detail = d.region ? 'in ' + d.region : ''; break;
         case 'route.update': msg = 'Edited route ' + target; break;
         case 'route.delete': msg = 'Deleted route ' + target; break;
@@ -12467,6 +12896,20 @@
       });
     }
 
+    // A missing category is the "uncategorized" bucket (key ''), as for places.
+    function setAreas(data) {
+      state.areas = Array.isArray(data) ? data : [];
+      for (const a of state.areas) { if (a.category == null) a.category = ''; }
+    }
+    function refreshAreas() {
+      return dataLayer.fetchAreas([]).then(data => {
+        setAreas(data);
+        const cc = assignCategoryColors(state.places || []);
+        state.categoryColors = cc.dark;
+        state.categoryColorsLight = cc.light;
+      });
+    }
+
     function refreshRoutes() {
       return dataLayer.fetchRoutes(null).then(data => {
         if (!data || !Array.isArray(data.regions)) return;
@@ -12782,7 +13225,7 @@
       // Entry-point determines which tabs the modal exposes:
       //   'place' (Places list Add)  -> [Place, Browse]
       //   'route' (Routes list Add)  -> just the GPX form, no tabs
-      //   null    (map Add button)   -> [Place, Route, Browse], filtered by enabled features
+      //   null    (map Add button)   -> [Place, Route, Area, Browse], filtered by enabled features
       // Browse reads the merged catalog in server mode and the bundled shipped
       // catalog.json in local mode (see fetchCatalog); hidden when the Catalog
       // feature is toggled off.
@@ -12796,10 +13239,11 @@
         tabs = [];
         if (showPlaces) tabs.push('place');
         if (showTrails) tabs.push('route');
+        if (showPlaces) tabs.push('area');
         if (showPlaces && showBrowse) tabs.push('browse');
       }
       let tab = tabs[0];
-      const tabLabels = { place: 'Place', route: 'Route', browse: 'Browse' };
+      const tabLabels = { place: 'Place', route: 'Route', area: 'Area', browse: 'Browse' };
       openModal(
         modalHeaderHtml(null, {floating:true}) +
         (tabs.length > 1 ?
@@ -12826,9 +13270,11 @@
         const oldH = firstRender ? 0 : body.offsetHeight;
         body.innerHTML = tab === 'place' ? placeFormHtml()
           : tab === 'route' ? gpxFormHtml()
+          : tab === 'area' ? areaFormHtml()
           : browseFormHtml();
         if (tab === 'place') wirePlaceForm();
         else if (tab === 'route') wireGpxForm();
+        else if (tab === 'area') wireAreaForm();
         else wireBrowseForm();
         body.dataset.rendered = '1';
         if (firstRender) return;
@@ -13044,6 +13490,103 @@
             .then(() => refreshPlaces())
             .then(() => { closeModal(); syncPlacesOnMap(prevColors); refreshPlacesPresentation(); })
             .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
+        });
+      }
+
+      function areaFormHtml() {
+        return '<form id="area-form">' +
+          '<label>GeoJSON file</label>' +
+          '<div class="file-picker">' +
+            '<input type="file" id="a-file" accept=".geojson,.json,application/geo+json,application/json" class="file-input-hidden">' +
+            '<button type="button" class="primary" id="a-file-pick">Choose file</button>' +
+            '<span class="file-name" id="a-file-name">No file selected</span>' +
+          '</div>' +
+          '<div class="hint" id="a-file-info" hidden></div>' +
+          '<div id="a-split-row" hidden>' +
+            '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
+              '<input type="checkbox" class="settings-toggle" id="a-split">' +
+              '<label for="a-split" style="margin:0">Keep as separate areas</label>' +
+            '</div>' +
+          '</div>' +
+          '<div id="a-name-row">' +
+            '<label for="a-name">Name</label>' +
+            '<input type="text" id="a-name" required maxlength="200" placeholder="e.g. Jotunheimen">' +
+          '</div>' +
+          areaFieldsHtml('a', null) +
+          modalErrorHtml('area-error') +
+          '<div class="modal-actions">' +
+            '<button type="submit" class="primary" id="area-submit">Add area</button>' +
+          '</div>' +
+        '</form>';
+      }
+
+      function wireAreaForm() {
+        wireSelectOrNew('a-category');
+        const fileInput = document.getElementById('a-file');
+        const fileName = document.getElementById('a-file-name');
+        const info = document.getElementById('a-file-info');
+        const splitRow = document.getElementById('a-split-row');
+        const split = document.getElementById('a-split');
+        const nameRow = document.getElementById('a-name-row');
+        const nameEl = document.getElementById('a-name');
+        const errorEl = document.getElementById('area-error');
+        let parsed = null;
+        const syncSplit = () => {
+          const separate = !splitRow.hidden && split.checked;
+          nameRow.hidden = separate;
+          nameEl.required = !separate;
+        };
+        split.addEventListener('change', syncSplit);
+        document.getElementById('a-file-pick').addEventListener('click', function() { fileInput.click(); });
+        fileInput.addEventListener('change', function() {
+          const f = this.files && this.files[0];
+          parsed = null;
+          info.hidden = true;
+          splitRow.hidden = true;
+          errorEl.classList.remove('visible');
+          syncSplit();
+          fileName.textContent = f ? f.name : 'No file selected';
+          fileName.classList.toggle('has-file', !!f);
+          if (!f) return;
+          if (f.size > AREA_MAX_FILE_BYTES) { showModalError('The file is over 25 MB.'); return; }
+          f.text().then(parseAreaGeoJson).then(result => {
+            parsed = result;
+            const n = result.features.length;
+            if (!nameEl.value.trim()) {
+              nameEl.value = (n === 1 && result.features[0].name) || f.name.replace(/\.(geo)?json$/i, '');
+            }
+            const points = result.features.reduce((sum, x) => sum + _areaPointCount(x.polygons), 0);
+            info.textContent = grpNum(n) + (n === 1 ? ' polygon, ' : ' polygons, ') + grpNum(points) + ' points.' +
+              (points > AREA_TARGET_POINTS ? ' Simplified on save.' : '') +
+              (result.ignored ? ' Ignored ' + grpNum(result.ignored) + ' without a polygon.' : '');
+            info.hidden = false;
+            splitRow.hidden = n < 2;
+            syncSplit();
+          }).catch(err => showModalError(err.message));
+        });
+        document.getElementById('area-form').addEventListener('submit', function(e) {
+          e.preventDefault();
+          if (!parsed) { showModalError('Choose a GeoJSON file.'); return; }
+          const shared = readAreaFormFields('a');
+          const items = (!splitRow.hidden && split.checked)
+            ? parsed.features.map((x, i) => Object.assign({}, shared, { name: x.name || 'Area ' + (i + 1), geometry: buildAreaGeometry(x.polygons) }))
+            : [Object.assign({}, shared, { name: nameEl.value.trim(), geometry: buildAreaGeometry(parsed.features.flatMap(x => x.polygons)) })];
+          const submit = document.getElementById('area-submit');
+          submit.disabled = true;
+          const before = new Set((state.areas || []).map(a => a.id));
+          items.reduce((chain, area) => chain.then(() => dataLayer.createArea(area)), Promise.resolve())
+            .then(() => refreshAreas())
+            .then(() => {
+              closeModal();
+              refreshPlacesPresentation();
+              const map = state.currentMap;
+              const added = (state._areaLayers || []).filter(x => !before.has(x.area.id));
+              if (!map || !added.length) return;
+              const bounds = L.latLngBounds();
+              for (const x of added) bounds.extend(x.layer.getBounds());
+              if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
+            })
+            .catch(err => { submit.disabled = false; showModalError(err.message); });
         });
       }
 
@@ -13486,10 +14029,14 @@
       const labelsP = placesAvailable()
         ? dataLayer.fetchCategoryLabels(null).catch(() => null)
         : Promise.resolve(null);
-      return Promise.all([placesP, routesP, labelsP]).then(function([places, routes, labels]) {
+      const areasP = placesAvailable()
+        ? dataLayer.fetchAreas([]).catch(() => [])
+        : Promise.resolve([]);
+      return Promise.all([placesP, routesP, labelsP, areasP]).then(function([places, routes, labels, areas]) {
         if (labels && labels.category_labels) {
           state.config.category_labels = labels.category_labels;
         }
+        setAreas(areas);
         if (Array.isArray(places)) {
           // Normalize: missing/empty category is the "uncategorized" bucket
           // (key ''), so the rest of the UI can treat p.category as a plain

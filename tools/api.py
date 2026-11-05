@@ -60,7 +60,7 @@ GPX_MAX_BYTES = 10 * 1024 * 1024  # 10 MiB cap for GPX uploads
 IMPORT_MAX_BYTES = 50 * 1024 * 1024  # 50 MiB cap for zip imports
 IMPORT_MAX_UNCOMPRESSED = 200 * 1024 * 1024  # 200 MiB uncompressed (zip-bomb guard)
 IMPORT_READ_CHUNK = 64 * 1024
-IMPORT_TOP_FILES = ("places.json", "routes.json", "metadata.json", "prefs.json", "category-labels.json")
+IMPORT_TOP_FILES = ("places.json", "areas.json", "routes.json", "metadata.json", "prefs.json", "category-labels.json")
 GPX_NS = "http://www.topografix.com/GPX/1/1"
 # Allow any non-control, non-separator character. The real security boundary
 # is resolve_under() (the resolved path must stay inside the base). The dot/
@@ -68,6 +68,10 @@ GPX_NS = "http://www.topografix.com/GPX/1/1"
 PATH_COMPONENT_RE = re.compile(r"^[^\x00-\x1f/\\]{1,255}$")
 PLACE_REQUIRED = {"name", "lat", "lon"}
 PLACE_ID_RE = re.compile(r"^[0-9a-f]{8}$")
+AREA_REQUIRED = {"name", "geometry"}
+# The frontend simplifies an import to well under this; the cap holds a direct
+# API write inside the default max_body_bytes.
+AREA_MAX_POINTS = 20000
 
 # Route metadata fields and their constraints (used by /api/metadata).
 ROUTE_META_FIELDS = {"source", "date_completed", "rating", "notes", "tags", "difficulty", "local_name"}
@@ -1087,6 +1091,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "/api/state": "_h_state",
       "/api/sessions": "_h_sessions_list",
       "/api/places": "_h_places_get",
+      "/api/areas": "_h_areas_get",
       "/api/routes": "_h_routes_get",
       "/api/metadata": "_h_metadata_get",
       "/api/me/prefs": "_h_prefs_get",
@@ -1107,6 +1112,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "/api/settings/registration": "_h_settings_registration",
       "/api/places": "_h_places_create",
       "/api/places/clear-category": "_h_places_clear_category",
+      "/api/areas": "_h_areas_create",
       "/api/gpx": "_h_gpx_upload",
       "/api/gpx/move": "_h_gpx_move",
       "/api/gpx/set-completed": "_h_gpx_set_completed",
@@ -1129,12 +1135,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
     },
     "PUT": {
       "/api/places": "_h_places_update",
+      "/api/areas": "_h_areas_update",
       "/api/me/prefs": "_h_prefs_put",
       "/api/metadata": "_h_metadata_put",
       "/api/me/category-labels": "_h_me_category_labels_put",
     },
     "DELETE": {
       "/api/places": "_h_places_delete",
+      "/api/areas": "_h_areas_delete",
       "/api/gpx": "_h_gpx_delete",
       "/api/admin/logs": "_h_admin_logs_clear",
     },
@@ -1147,6 +1155,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
   }
   PUBLIC_ROUTES = {
     "places": "_h_public_places",
+    "areas": "_h_public_areas",
     "routes": "_h_public_routes",
     "metadata": "_h_public_metadata",
     "category-labels": "_h_public_category_labels",
@@ -2203,23 +2212,31 @@ class Handler(http.server.BaseHTTPRequestHandler):
       return self._error(HTTPStatus.BAD_REQUEST, "category required")
     target = target.strip()
 
-    places_path = self._user_dir(user["username"]) / "places.json"
+    udir = self._user_dir(user["username"])
 
-    def do_clear():
-      existing = load_json_file(places_path, expected_type=list, required=False, label="places.json")
-      cleared = 0
-      for p in existing:
-        if isinstance(p, dict) and p.get("category") == target:
-          p.pop("category", None)
-          cleared += 1
-      if cleared:
-        write_json_file(places_path, existing)
-      return cleared
+    def clear_in(filename: str):
+      path = udir / filename
 
-    ok, cleared = self._locked_write(user, "places.json", do_clear)
+      def do_clear():
+        existing = load_json_file(path, expected_type=list, required=False, label=filename)
+        cleared = 0
+        for p in existing:
+          if isinstance(p, dict) and p.get("category") == target:
+            p.pop("category", None)
+            cleared += 1
+        if cleared:
+          write_json_file(path, existing)
+        return cleared
+
+      return self._locked_write(user, filename, do_clear)
+
+    ok, cleared = clear_in("places.json")
     if not ok:
       return
-    self._send_json(HTTPStatus.OK, {"ok": True, "cleared": cleared})
+    ok, cleared_areas = clear_in("areas.json")
+    if not ok:
+      return
+    self._send_json(HTTPStatus.OK, {"ok": True, "cleared": cleared + cleared_areas})
 
   def _h_places_delete(self):
     user = self._require_user()
@@ -2245,6 +2262,92 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if not ok:
       return
     self._send_json(HTTPStatus.OK, {"ok": True, "total_places": total})
+
+  def _h_areas_create(self):
+    user = self._require_user()
+    if user is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    if isinstance(body, dict):
+      body.pop("id", None)
+    try:
+      area = validate_area(body)
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, str(e))
+
+    areas_path = self._user_dir(user["username"]) / "areas.json"
+
+    def do_append():
+      existing = load_json_file(areas_path, expected_type=list, required=False, label="areas.json")
+      seen = {a["id"] for a in existing if isinstance(a, dict) and isinstance(a.get("id"), str)}
+      new_id = secrets.token_hex(4)
+      while new_id in seen:
+        new_id = secrets.token_hex(4)
+      area["id"] = new_id
+      existing.append(area)
+      write_json_file(areas_path, existing)
+      return len(existing)
+
+    ok, total = self._locked_write(user, "areas.json", do_append)
+    if not ok:
+      return
+    self._send_json(HTTPStatus.CREATED, {"ok": True, "total_areas": total, "area": area})
+
+  def _h_areas_update(self):
+    user = self._require_user()
+    if user is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    target_id = (body.get("id") or "").strip()
+    if not target_id or not PLACE_ID_RE.match(target_id):
+      return self._error(HTTPStatus.BAD_REQUEST, "id required (8-char hex)")
+    area_payload = body.get("area")
+    if not isinstance(area_payload, dict):
+      return self._error(HTTPStatus.BAD_REQUEST, "area required")
+    try:
+      validated = validate_area(dict(area_payload, id=target_id))
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_REQUEST, str(e))
+
+    areas_path = self._user_dir(user["username"]) / "areas.json"
+
+    def do_update():
+      existing = load_json_file(areas_path, expected_type=list, required=False, label="areas.json")
+      existing[find_place_idx(existing, target_id, "area")] = validated
+      write_json_file(areas_path, existing)
+
+    ok, _ = self._locked_write(user, "areas.json", do_update)
+    if not ok:
+      return
+    self._send_json(HTTPStatus.OK, {"ok": True, "area": validated})
+
+  def _h_areas_delete(self):
+    user = self._require_user()
+    if user is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    target_id = (body.get("id") or "").strip()
+    if not target_id or not PLACE_ID_RE.match(target_id):
+      return self._error(HTTPStatus.BAD_REQUEST, "id required (8-char hex)")
+
+    areas_path = self._user_dir(user["username"]) / "areas.json"
+
+    def do_delete():
+      existing = load_json_file(areas_path, expected_type=list, required=False, label="areas.json")
+      del existing[find_place_idx(existing, target_id, "area")]
+      write_json_file(areas_path, existing)
+      return len(existing)
+
+    ok, total = self._locked_write(user, "areas.json", do_delete)
+    if not ok:
+      return
+    self._send_json(HTTPStatus.OK, {"ok": True, "total_areas": total})
 
   def _h_gpx_delete(self):
     user = self._require_user()
@@ -2676,6 +2779,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
     udir = self._user_dir(user["username"])
     self._send_user_json(udir, "places.json", list)
 
+  def _h_areas_get(self):
+    user = self._require_user()
+    if user is None:
+      return
+    self._send_user_json(self._user_dir(user["username"]), "areas.json", list)
+
   def _h_routes_get(self):
     user = self._require_user()
     if user is None:
@@ -2863,6 +2972,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     log_event(self.conn, actor=user["username"], action="user.import", details={
       "mode": mode,
       "places": result["added_places"],
+      "areas": result["added_areas"],
       "gpx": len(payload.gpx),
       "metadata": result["changed_meta"],
       "prefs": result["changed_prefs"],
@@ -2873,6 +2983,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "mode": mode,
       "imported": {
         "places": result["added_places"],
+        "areas": result["added_areas"],
         "gpx": len(payload.gpx),
         "metadata": result["changed_meta"],
         "prefs": result["changed_prefs"],
@@ -2901,6 +3012,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if udir is None:
       return self._error(HTTPStatus.NOT_FOUND, "not found")
     self._send_user_json(udir, "places.json", list)
+
+  def _h_public_areas(self, username: str):
+    udir = self._public_user_dir(username)
+    if udir is None:
+      return self._error(HTTPStatus.NOT_FOUND, "not found")
+    self._send_user_json(udir, "areas.json", list)
 
   def _h_public_routes(self, username: str):
     udir = self._public_user_dir(username)
@@ -3035,12 +3152,12 @@ def write_json_file(path: Path, data) -> None:
   atomic_write_bytes(path, (json.dumps(data, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
 
 
-def find_place_idx(places: list, place_id: str) -> int:
-  """Index of the place with this id; NotFoundError if absent."""
+def find_place_idx(places: list, place_id: str, kind: str = "place") -> int:
+  """Index of the entry with this id; NotFoundError if absent."""
   for i, p in enumerate(places):
     if isinstance(p, dict) and p.get("id") == place_id:
       return i
-  raise NotFoundError(f"place not found: {place_id}")
+  raise NotFoundError(f"{kind} not found: {place_id}")
 
 
 def load_json_file(path: Path, *, expected_type: type, required: bool, label: str):
@@ -3375,6 +3492,78 @@ def validate_place(p: object) -> dict:
   return out
 
 
+AREA_FIELDS = {key: PLACE_FIELDS[key] for key in ("visited", "id", "category", "note")}
+AREA_ALL = AREA_REQUIRED | set(AREA_FIELDS)
+
+
+def _area_position(pos: object) -> list:
+  """Check one GeoJSON position and return it as [lon, lat], dropping any
+  altitude. A projected file lands here with coordinates in the hundreds of
+  thousands, so the message names the likely cause."""
+  if not isinstance(pos, list) or len(pos) < 2:
+    raise ValidationError("geometry positions must be [lon, lat] arrays")
+  lon, lat = pos[0], pos[1]
+  for v in (lon, lat):
+    if not isinstance(v, (int, float)) or isinstance(v, bool):
+      raise ValidationError("geometry coordinates must be numbers")
+  if not (-180 <= lon <= 180 and -90 <= lat <= 90):
+    raise ValidationError(
+      "coordinates are outside the lon/lat range, so the file is probably in a "
+      "projected system such as UTM33 (EPSG:25833); reproject it to WGS84"
+    )
+  return [lon, lat]
+
+
+def validate_area_geometry(g: object) -> dict:
+  """Validate a GeoJSON Polygon or MultiPolygon and return a 2D copy."""
+  if not isinstance(g, dict) or g.get("type") not in ("Polygon", "MultiPolygon"):
+    raise ValidationError("geometry must be a GeoJSON Polygon or MultiPolygon")
+  kind = g["type"]
+  coords = g.get("coordinates")
+  polygons = [coords] if kind == "Polygon" else coords
+  if not isinstance(polygons, list) or not polygons:
+    raise ValidationError("geometry has no coordinates")
+  total = 0
+  out = []
+  for polygon in polygons:
+    if not isinstance(polygon, list) or not polygon:
+      raise ValidationError("geometry has an empty polygon")
+    rings = []
+    for ring in polygon:
+      if not isinstance(ring, list) or len(ring) < 4:
+        raise ValidationError("each geometry ring needs at least 4 positions")
+      total += len(ring)
+      if total > AREA_MAX_POINTS:
+        raise ValidationError(f"geometry has more than {AREA_MAX_POINTS} points")
+      clean = [_area_position(pos) for pos in ring]
+      if clean[0] != clean[-1]:
+        raise ValidationError("geometry rings must be closed")
+      rings.append(clean)
+    out.append(rings)
+  return {"type": kind, "coordinates": out[0] if kind == "Polygon" else out}
+
+
+def validate_area(a: object) -> dict:
+  """Validate an area and return the normalized copy that gets stored."""
+  if not isinstance(a, dict):
+    raise ValidationError("area must be an object")
+  extra = set(a) - AREA_ALL
+  if extra:
+    raise ValidationError(f"unknown fields: {sorted(extra)}")
+  missing = AREA_REQUIRED - set(a)
+  if missing:
+    raise ValidationError(f"missing required fields: {sorted(missing)}")
+  name = a["name"]
+  if not isinstance(name, str) or not name.strip() or len(name) > 200:
+    raise ValidationError("name must be a non-empty string (<=200 chars)")
+  out = {"name": name.strip(), "geometry": validate_area_geometry(a["geometry"])}
+  for key, check in AREA_FIELDS.items():
+    value = check(key, a[key]) if key in a else PLACE_DEFAULTS.get(key, _OMIT)
+    if value is not _OMIT:
+      out[key] = value
+  return out
+
+
 def _route_text(max_len: int):
   """Spec for an optional free-text route field: blank after strip drops it."""
   def check(key: str, v: object):
@@ -3571,6 +3760,7 @@ class ImportPayload:
   validate_place, labels cleaned, GPX stripped of PII. None means the archive
   had no such file."""
   places: list | None = None
+  areas: list | None = None
   routes: dict | None = None
   metadata: dict | None = None
   prefs: dict | None = None
@@ -3646,6 +3836,7 @@ def parse_payloads(staged: dict[str, bytes], mode: str) -> ImportPayload:
   mode; places and GPX are only validated when the mode will write them."""
   out = ImportPayload(
     places=_parse_staged_json(staged, "places.json", list),
+    areas=_parse_staged_json(staged, "areas.json", list),
     routes=_parse_staged_json(staged, "routes.json", dict),
     metadata=_parse_staged_json(staged, "metadata.json", dict),
     prefs=_parse_staged_json(staged, "prefs.json", dict),
@@ -3666,6 +3857,14 @@ def parse_payloads(staged: dict[str, bytes], mode: str) -> ImportPayload:
       except ValidationError as e:
         raise ValidationError(f"places.json[{i}]: {e}")
     out.places = normalized
+  if out.areas is not None:
+    normalized = []
+    for i, a in enumerate(out.areas):
+      try:
+        normalized.append(validate_area(a))
+      except ValidationError as e:
+        raise ValidationError(f"areas.json[{i}]: {e}")
+    out.areas = normalized
   for arcname, data in staged.items():
     if arcname.startswith("gpx/"):
       try:
@@ -3708,6 +3907,7 @@ def import_replace(udir: Path, payload: ImportPayload) -> dict:
     shutil.rmtree(gpx_root)
   files = {
     "places.json": payload.places,
+    "areas.json": payload.areas,
     "routes.json": payload.routes,
     "metadata.json": payload.metadata,
     "prefs.json": payload.prefs,
@@ -3719,6 +3919,7 @@ def import_replace(udir: Path, payload: ImportPayload) -> dict:
   _write_import_gpx(udir, payload.gpx)
   return {
     "added_places": len(payload.places or []),
+    "added_areas": len(payload.areas or []),
     "changed_meta": len(payload.metadata or {}),
     "changed_prefs": len(payload.prefs or {}),
   }
@@ -3734,28 +3935,34 @@ def _merge_prefs_and_labels(udir: Path, payload: ImportPayload) -> int:
 
 
 def import_merge(udir: Path, payload: ImportPayload) -> dict:
-  added = 0
-  if payload.places is not None:
-    places_path = udir / "places.json"
-    existing = load_json_file(places_path, expected_type=list, required=False, label="places.json")
-    existing_names = {p.get("name") for p in existing if isinstance(p, dict)}
-    for p in payload.places:
-      if p["name"] not in existing_names:
+  def merge_by_name(filename: str, incoming: list | None) -> int:
+    if incoming is None:
+      return 0
+    path = udir / filename
+    existing = load_json_file(path, expected_type=list, required=False, label=filename)
+    names = {p.get("name") for p in existing if isinstance(p, dict)}
+    count = 0
+    for p in incoming:
+      if p["name"] not in names:
         existing.append(p)
-        existing_names.add(p["name"])
-        added += 1
-    write_json_file(places_path, existing)
+        names.add(p["name"])
+        count += 1
+    write_json_file(path, existing)
+    return count
+
+  added = merge_by_name("places.json", payload.places)
+  added_areas = merge_by_name("areas.json", payload.areas)
   changed_meta = 0
   if payload.metadata is not None:
     changed_meta = _merge_json_object(udir / "metadata.json", payload.metadata, "metadata.json")
   changed_prefs = _merge_prefs_and_labels(udir, payload)
   _write_import_gpx(udir, payload.gpx)
-  return {"added_places": added, "changed_meta": changed_meta, "changed_prefs": changed_prefs}
+  return {"added_places": added, "added_areas": added_areas, "changed_meta": changed_meta, "changed_prefs": changed_prefs}
 
 
 def import_prefs(udir: Path, payload: ImportPayload) -> dict:
   """Preferences-only import: prefs.json and category-labels.json, nothing else."""
-  return {"added_places": 0, "changed_meta": 0, "changed_prefs": _merge_prefs_and_labels(udir, payload)}
+  return {"added_places": 0, "added_areas": 0, "changed_meta": 0, "changed_prefs": _merge_prefs_and_labels(udir, payload)}
 
 
 IMPORT_WRITERS = {"replace": import_replace, "merge": import_merge, "prefs": import_prefs}

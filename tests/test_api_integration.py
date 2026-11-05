@@ -489,6 +489,74 @@ class TestPlacesCRUD(unittest.TestCase):
     self.assertEqual(status, 400)
 
 
+SQUARE = {"type": "Polygon", "coordinates": [[[5, 60], [6, 60], [6, 61], [5, 61], [5, 60]]]}
+
+
+class TestAreas(unittest.TestCase):
+  def setUp(self):
+    self.c = admin_client()
+    (admin_dir() / "areas.json").unlink(missing_ok=True)
+
+  def test_list_is_empty_before_first_write(self):
+    self.assertEqual(self.c.request("GET", "/api/areas"), (200, []))
+
+  def test_create_update_delete(self):
+    status, body = self.c.request("POST", "/api/areas", {"name": "Park", "geometry": SQUARE, "category": "park"})
+    self.assertEqual(status, 201)
+    self.assertEqual(body["total_areas"], 1)
+    area = body["area"]
+    self.assertFalse(area["visited"])
+
+    status, body = self.c.request("PUT", "/api/areas",
+                                  {"id": area["id"], "area": dict(area, name="Renamed", visited=True)})
+    self.assertEqual(status, 200)
+    self.assertEqual(body["area"]["id"], area["id"])
+    _, listed = self.c.request("GET", "/api/areas")
+    self.assertEqual([(a["name"], a["visited"]) for a in listed], [("Renamed", True)])
+
+    status, body = self.c.request("DELETE", "/api/areas", {"id": area["id"]})
+    self.assertEqual((status, body["total_areas"]), (200, 0))
+
+  def test_client_id_is_ignored_on_create(self):
+    _, body = self.c.request("POST", "/api/areas", {"name": "A", "geometry": SQUARE, "id": "deadbeef"})
+    self.assertNotEqual(body["area"]["id"], "deadbeef")
+
+  def test_unknown_id_is_404(self):
+    status, _ = self.c.request("PUT", "/api/areas", {"id": "00000000", "area": {"name": "A", "geometry": SQUARE}})
+    self.assertEqual(status, 404)
+
+  def test_projected_coordinates_name_the_cause(self):
+    utm = {"type": "Polygon", "coordinates": [[[297000, 6700000], [298000, 6700000], [298000, 6701000], [297000, 6700000]]]}
+    status, body = self.c.request("POST", "/api/areas", {"name": "UTM", "geometry": utm})
+    self.assertEqual(status, 400)
+    self.assertIn("EPSG:25833", body["error"])
+
+  def test_requires_auth(self):
+    anon = Client(_server.base_url)  # type: ignore[union-attr]
+    self.assertEqual(anon.request("GET", "/api/areas")[0], 401)
+    self.assertEqual(anon.request("POST", "/api/areas", {"name": "A", "geometry": SQUARE})[0], 401)
+
+  def test_public_read_follows_publish_state(self):
+    self.c.request("POST", "/api/areas", {"name": "Shared", "geometry": SQUARE})
+    anon = Client(_server.base_url)  # type: ignore[union-attr]
+    self.assertEqual(anon.request("GET", f"/api/u/{SEED_USER}/areas")[0], 404)
+    self.c.request("POST", "/api/me/publish", {"published": True})
+    try:
+      status, body = anon.request("GET", f"/api/u/{SEED_USER}/areas")
+      self.assertEqual(status, 200)
+      self.assertEqual(body[0]["name"], "Shared")
+    finally:
+      self.c.request("POST", "/api/me/publish", {"published": False})
+
+  def test_clear_category_reaches_areas(self):
+    fresh_places([{"name": "P", "lat": 1, "lon": 2, "category": "gone"}])
+    self.c.request("POST", "/api/areas", {"name": "A", "geometry": SQUARE, "category": "gone"})
+    status, body = self.c.request("POST", "/api/places/clear-category", {"category": "gone"})
+    self.assertEqual((status, body["cleared"]), (200, 2))
+    _, listed = self.c.request("GET", "/api/areas")
+    self.assertNotIn("category", listed[0])
+
+
 class TestCategoryLabels(unittest.TestCase):
   def test_anon_blocked(self):
     c = Client(_server.base_url)  # type: ignore[union-attr]
@@ -1195,6 +1263,22 @@ class TestImport(unittest.TestCase):
     self.c = admin_client()
     fresh_places([])
 
+  def test_areas_round_trip_through_export(self):
+    (admin_dir() / "areas.json").unlink(missing_ok=True)
+    self.c.request("POST", "/api/areas", {"name": "Kept", "geometry": SQUARE})
+    with self.c.opener.open(_server.base_url + "/api/me/export") as r:  # type: ignore[union-attr]
+      exported = zipfile.ZipFile(io.BytesIO(r.read()))
+    payload = self._make_zip({"areas.json": exported.read("areas.json")})
+    self.assertEqual(self._post_zip(self.c, "replace", payload)[1]["imported"]["areas"], 1)
+    self.assertEqual(self._post_zip(self.c, "merge", payload)[1]["imported"]["areas"], 0)
+    self.assertEqual([a["name"] for a in self.c.request("GET", "/api/areas")[1]], ["Kept"])
+
+  def test_import_refuses_an_invalid_area(self):
+    bad = json.dumps([{"name": "No shape"}]).encode()
+    status, body = self._post_zip(self.c, "merge", self._make_zip({"areas.json": bad}))
+    self.assertEqual(status, 400)
+    self.assertIn("areas.json[0]", body["error"])
+
   def test_replace_mode_overwrites_places(self):
     fresh_places([{"name": "Existing", "lat": 1, "lon": 2, "category": "old"}])
     zip_payload = self._make_zip({
@@ -1371,7 +1455,7 @@ class TestImport(unittest.TestCase):
     })
     status, body = self._post_zip(self.c, "prefs", payload)
     self.assertEqual(status, 200, body)
-    self.assertEqual(body["imported"], {"places": 0, "gpx": 0, "metadata": 0, "prefs": body["imported"]["prefs"]})
+    self.assertEqual(body["imported"], {"places": 0, "areas": 0, "gpx": 0, "metadata": 0, "prefs": body["imported"]["prefs"]})
     stored = json.loads((admin_dir() / "places.json").read_text("utf-8"))
     self.assertEqual([p["name"] for p in stored], ["Keep"])
     self.assertFalse((admin_dir() / "gpx" / "skip").exists())

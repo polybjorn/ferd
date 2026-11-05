@@ -15,6 +15,7 @@ assert.ok(m, 'OFFLINE-QUEUE markers not found in index.html');
 const source = m[1] + `
 globalThis.__q = { OPS, mutate, offlineWrite, drainOutbox, remapArgs, currentNs,
   applyCreatePlace, applyUpdatePlace, applyDeletePlace, applyClearCategory,
+  applyCreateArea, applyUpdateArea, applyDeleteArea,
   applyPutCategoryLabels, applyUploadGpx, applySetCompleted, applyMoveGpx,
   applyDeleteGpx, applyRenameRegion, applyClearRegion, applyPutMetadata };`;
 
@@ -27,7 +28,7 @@ function makeEnv(overrides = {}) {
   const calls = { api: [], upload: [], toast: [], refresh: 0, banner: 0 };
   const ctx = {
     console, Date, JSON, Promise, Object, Array, Error,
-    state: { viewer: null, auth: { username: 'bjorn' }, places: [], manifest: { regions: [] }, config: {} },
+    state: { viewer: null, auth: { username: 'bjorn' }, places: [], areas: [], manifest: { regions: [] }, config: {} },
     navigator: { onLine: true },
     _serverBase: () => 'https://ferd.test',
     dataCacheKey: kind => 'ferd:' + kind,
@@ -59,6 +60,7 @@ function makeEnv(overrides = {}) {
     applyAuth: o => o,
     fetch: () => { throw new Error('unexpected fetch'); },
     refreshPlaces: () => { calls.refresh++; return Promise.resolve(); },
+    refreshAreas: () => Promise.resolve(),
     refreshRoutes: () => Promise.resolve(),
     wrappedRouter: () => {},
     updateOfflineBanner: () => { calls.banner++; },
@@ -110,6 +112,26 @@ test('update, delete and clearCategory touch only the matching places', async ()
   const clr = await q.applyClearCategory({ category: ' x ' });
   assert.equal(clr.cleared, 1);
   assert.deepEqual(blob(stores, 'places').map(p => p.category), ['', '']);
+});
+
+test('area create, update and delete work on the areas blob', async () => {
+  const { q, stores } = makeEnv();
+  const made = await q.applyCreateArea({ name: 'A', visited: false, geometry: { type: 'Polygon', coordinates: [] } });
+  assert.equal(made.area.category, '');
+  assert.equal(made.total_areas, 1);
+  await q.applyUpdateArea({ id: made.area.id, area: { name: 'B', visited: true } });
+  assert.deepEqual(blob(stores, 'areas').map(a => [a.id, a.name, a.visited, a.category]), [[made.area.id, 'B', true, '']]);
+  await q.applyDeleteArea({ id: made.area.id });
+  assert.deepEqual(blob(stores, 'areas'), []);
+});
+
+test('applyClearCategory clears places and areas and sums the count', async () => {
+  const { q, stores } = makeEnv();
+  seed(stores, 'places', [{ id: 'p', category: 'hike' }, { id: 'q', category: 'food' }]);
+  seed(stores, 'areas', [{ id: 'a', category: 'hike' }]);
+  assert.equal((await q.applyClearCategory({ category: 'hike' })).cleared, 2);
+  assert.equal(blob(stores, 'areas')[0].category, '');
+  assert.equal(blob(stores, 'places')[1].category, 'food');
 });
 
 test('applyPutCategoryLabels merges per slug instead of replacing', async () => {
@@ -252,6 +274,29 @@ test('drainOutbox replays this namespace in id order and maps created place ids'
   assert.equal(sent[1][2].id, 'srv1');
   assert.deepEqual([...stores.outbox.keys()], [3]);
   assert.deepEqual(calls.toast, [[2, 0]]);
+});
+
+test('drainOutbox maps created area ids so later area edits reach the server id', async () => {
+  const sent = [];
+  const { q, stores } = makeEnv({
+    api: (method, url, body) => {
+      sent.push([method, url, body]);
+      return Promise.resolve(url === '/areas' && method === 'POST' ? { area: { id: 'srv1' } } : { ok: true });
+    },
+  });
+  stores.outbox.set(1, row(1, 'createArea', { name: 'N' }, { localId: 'local1' }));
+  stores.outbox.set(2, row(2, 'updateArea', { id: 'local1', area: { name: 'M' } }));
+  stores.outbox.set(3, row(3, 'deleteArea', { id: 'local1' }));
+  await q.drainOutbox();
+  assert.deepEqual(sent.map(s => s[0] + ' ' + s[1]), ['POST /areas', 'PUT /areas', 'DELETE /areas']);
+  assert.equal(sent[1][2].id, 'srv1');
+  assert.equal(sent[2][2].id, 'srv1');
+});
+
+test('offlineWrite records the local id of a queued area', async () => {
+  const { q, stores } = makeEnv();
+  const res = await q.offlineWrite('createArea', { name: 'N' });
+  assert.equal([...stores.outbox.values()][0].localId, res.area.id);
 });
 
 test('drainOutbox skips a definitive error and stops on a network error', async () => {

@@ -17,6 +17,57 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 import api  # noqa: E402
 
 
+class TestValidateArea(unittest.TestCase):
+  RING = [[5, 60], [6, 60], [6, 61], [5, 60]]
+
+  def geometry(self, **over):
+    return dict({"type": "Polygon", "coordinates": [self.RING]}, **over)
+
+  def rejects(self, geometry, message):
+    with self.assertRaises(api.ValidationError) as ctx:
+      api.validate_area({"name": "A", "geometry": geometry})
+    self.assertIn(message, str(ctx.exception))
+
+  def test_defaults_and_trimmed_name(self):
+    out = api.validate_area({"name": " A ", "geometry": self.geometry()})
+    self.assertEqual(out["name"], "A")
+    self.assertIs(out["visited"], False)
+
+  def test_altitude_is_dropped(self):
+    ring = [p + [120] for p in self.RING]
+    out = api.validate_area_geometry(self.geometry(coordinates=[ring]))
+    self.assertEqual(out["coordinates"], [self.RING])
+
+  def test_multipolygon_with_a_hole_keeps_its_shape(self):
+    coords = [[self.RING, self.RING], [self.RING]]
+    out = api.validate_area_geometry({"type": "MultiPolygon", "coordinates": coords})
+    self.assertEqual(out["coordinates"], coords)
+
+  def test_unknown_field_rejected(self):
+    with self.assertRaises(api.ValidationError):
+      api.validate_area({"name": "A", "geometry": self.geometry(), "lat": 1})
+
+  def test_point_rejected(self):
+    self.rejects({"type": "Point", "coordinates": [5, 60]}, "Polygon or MultiPolygon")
+
+  def test_open_ring_rejected(self):
+    self.rejects(self.geometry(coordinates=[[[5, 60], [6, 60], [6, 61], [5, 61]]]), "closed")
+
+  def test_short_ring_rejected(self):
+    self.rejects(self.geometry(coordinates=[[[5, 60], [6, 60], [5, 60]]]), "4 positions")
+
+  def test_non_numeric_coordinate_rejected(self):
+    self.rejects(self.geometry(coordinates=[[[5, 60], [True, 60], [6, 61], [5, 60]]]), "numbers")
+
+  def test_nan_rejected(self):
+    nan = float("nan")
+    self.rejects(self.geometry(coordinates=[[[nan, 60], [6, 60], [6, 61], [nan, 60]]]), "EPSG:25833")
+
+  def test_point_cap(self):
+    ring = [[5, 60]] * (api.AREA_MAX_POINTS + 1)
+    self.rejects(self.geometry(coordinates=[ring]), "more than")
+
+
 class TestValidUsername(unittest.TestCase):
   def test_alnum_ok(self):
     self.assertTrue(api._valid_username("alice"))
