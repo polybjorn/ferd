@@ -107,7 +107,7 @@ Minimums for any change to the frontend. Don't drop below them without a real re
 - **Network:** edits work offline. They apply on-device immediately and sync to the server on reconnect; server-only actions (publishing, sessions, account management) still need network and fail loudly. Reads are offline-capable through a hand-rolled service worker (`sw.js`) that precaches the app shell and vendored deps, runs `stale-while-revalidate` on JSON data, and cache-firsts map tiles with an LRU cap. See [pwa.md](pwa.md).
 - **Performance:** soft target under 1s first paint on a 5-year-old laptop, under 500 KB of JS+CSS+HTML on first load (tiles and GPX excluded).
 - **i18n:** English UI today. Keep the language `<select>` in place so localization can be added later. Data round-trips arbitrary Unicode.
-- **Privacy:** no third-party at runtime except map tile providers. No analytics, no third-party fonts, no external APIs from the page.
+- **Privacy:** no third-party at runtime except map tile providers and the boundary search in Add > Area, which calls OpenStreetMap's Nominatim only when you press Search. No analytics, no third-party fonts, no other external APIs from the page.
 
 ## Code style
 

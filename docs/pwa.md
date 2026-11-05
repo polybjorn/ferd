@@ -15,6 +15,7 @@ Ferd is meant to be installed on your phone as a standalone app with offline rea
 
 - Account and admin actions: sign-in/out (if your session expired), publishing, sessions and API tokens, admin tools, and curating the shared catalog. These return a clear "you're offline" error and are not queued.
 - Tiles for areas you haven't viewed before.
+- The boundary search in Add > Area. A GeoJSON file works offline.
 
 ## Install on phone
 

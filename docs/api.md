@@ -128,11 +128,11 @@ Four more optional fields are managed by the server or the catalog flow rather t
 **Area object** (as stored in `areas.json` and used by every `/areas` request and response):
 
 ```json
-{ "id": "4be01c7d", "name": "Jotunheimen", "category": "park", "visited": true,
+{ "id": "4be01c7d", "name": "Jotunheimen", "local_name": "Jotunheimen", "category": "park", "visited": true,
   "note": "...", "geometry": { "type": "Polygon", "coordinates": [[[8.1, 61.4], [8.6, 61.4], [8.6, 61.7], [8.1, 61.4]]] } }
 ```
 
-Required: `name`, `geometry`. Optional: `category`, `visited`, `note`. `geometry` is a GeoJSON `Polygon` or `MultiPolygon` in WGS84 with closed rings and at most 20,000 positions. The app simplifies an imported file to about 5,000 before it sends it.
+Required: `name`, `geometry`. Optional: `category`, `visited`, `note`, `local_name`, `source`. `source` is `"osm"` for a boundary from OpenStreetMap, and the map then credits OpenStreetMap while the area shows. `visited` is the manual tick; the app also shows an area as visited when a place inside is visited or a route inside is completed. `geometry` is a GeoJSON `Polygon` or `MultiPolygon` in WGS84 with closed rings and at most 20,000 positions. The app simplifies an imported file to about 5,000 before it sends it.
 
 **Route metadata entry** (one value in `metadata.json`, keyed by `Region/Route` or `Route`):
 

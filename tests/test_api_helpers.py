@@ -47,6 +47,17 @@ class TestValidateArea(unittest.TestCase):
     with self.assertRaises(api.ValidationError):
       api.validate_area({"name": "A", "geometry": self.geometry(), "lat": 1})
 
+  def test_area_source_is_osm_or_absent(self):
+    out = api.validate_area({"name": "A", "source": "osm", "geometry": self.geometry()})
+    self.assertEqual(out["source"], "osm")
+    self.assertNotIn("source", api.validate_area({"name": "A", "geometry": self.geometry()}))
+    with self.assertRaises(api.ValidationError):
+      api.validate_area({"name": "A", "source": "<b>me</b>", "geometry": self.geometry()})
+
+  def test_area_keeps_local_name(self):
+    out = api.validate_area({"name": "Hiroshima Prefecture", "local_name": "広島県", "geometry": self.geometry()})
+    self.assertEqual(out["local_name"], "広島県")
+
   def test_point_rejected(self):
     self.rejects({"type": "Point", "coordinates": [5, 60]}, "Polygon or MultiPolygon")
 

@@ -3492,7 +3492,15 @@ def validate_place(p: object) -> dict:
   return out
 
 
-AREA_FIELDS = {key: PLACE_FIELDS[key] for key in ("visited", "id", "category", "note")}
+def _area_source(key: str, value: object) -> str:
+  """A closed set, since the app turns it into a credit on public maps."""
+  if value != "osm":
+    raise ValidationError(f"{key} must be \"osm\"")
+  return value
+
+
+AREA_FIELDS = {key: PLACE_FIELDS[key] for key in ("visited", "id", "category", "note", "local_name")}
+AREA_FIELDS["source"] = _area_source
 AREA_ALL = AREA_REQUIRED | set(AREA_FIELDS)
 
 

@@ -6,7 +6,7 @@ Your own map of where you've been, where you want to go, and the journeys betwee
 
 *Ferd is Norwegian for "journey".*
 
-Ferd shows a world map with clustered place pins, GPX route polylines and area polygons imported from GeoJSON. Route detail has an elevation profile and route stats, and a history page journals your visited places and completed routes. You can browse and import community-curated places from the site catalog or extend it with your own, and filter and browse by category, country, visit status, region, and route completion.
+Ferd shows a world map with clustered place pins, GPX route polylines and area polygons found by name or imported from GeoJSON. Route detail has an elevation profile and route stats, and a history page journals your visited places and completed routes. You can browse and import community-curated places from the site catalog or extend it with your own, and filter and browse by category, country, visit status, region, and route completion.
 
 ![Route detail with elevation profile](docs/screenshots/route.png)
 

@@ -1699,19 +1699,57 @@
       object-fit: cover; border-radius: var(--radius); margin: 0.4rem auto;
       background: var(--surface2);
     }
-    .leaflet-popup-content .popup-note,
-    .leaflet-popup-content .popup-area-stats { color: var(--text); font-size: 0.75rem; margin-top: 0.3rem; }
-    .leaflet-popup-content .popup-area-edit {
+    .leaflet-popup-content .popup-note { color: var(--text); font-size: 0.75rem; margin-top: 0.3rem; }
+    .leaflet-popup-content .popup-area-counts {
+      color: var(--text);
+      display: flex;
+      flex-wrap: wrap;
+      font-size: 0.75rem;
+      gap: 0.15rem 0.75rem;
+      margin-top: 0.3rem;
+    }
+    .leaflet-popup-content .popup-area-count,
+    .leaflet-popup-content .popup-area-edit,
+    .leaflet-popup-content .popup-area-item {
       background: none;
       border: 0;
-      color: var(--accent);
       cursor: pointer;
       font: inherit;
-      font-size: 0.75rem;
-      margin-top: 0.4rem;
       padding: 0;
     }
-    .leaflet-popup-content .popup-area-edit:hover { text-decoration: underline; }
+    .leaflet-popup-content .popup-area-count,
+    .leaflet-popup-content .popup-area-edit { color: var(--accent); }
+    .leaflet-popup-content .popup-area-count:hover,
+    .leaflet-popup-content .popup-area-count[aria-expanded="true"],
+    .leaflet-popup-content .popup-area-edit:hover,
+    .leaflet-popup-content .popup-area-item:hover { text-decoration: underline; }
+    .leaflet-popup-content .popup-area-edit { font-size: 0.7rem; letter-spacing: normal; text-transform: none; }
+    .leaflet-popup-content .popup-area-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      margin-top: 0.35rem;
+      max-height: 8.5rem;
+      overflow-y: auto;
+    }
+    .leaflet-popup-content .popup-area-list[hidden] { display: none; }
+    .leaflet-popup-content .popup-area-item {
+      align-items: center;
+      color: var(--text);
+      display: flex;
+      font-size: 0.75rem;
+      gap: 0.4rem;
+      text-align: left;
+    }
+    .leaflet-popup-content .popup-area-item::before {
+      background: var(--planned);
+      border-radius: 50%;
+      content: '';
+      flex: none;
+      height: 0.4rem;
+      width: 0.4rem;
+    }
+    .leaflet-popup-content .popup-area-item.done::before { background: var(--completed); }
     .leaflet-popup-content .popup-summary {
       color: var(--text);
       font-size: 0.75rem;
@@ -2475,6 +2513,31 @@
     #add-body { overflow: hidden; transition: height 0.25s ease; }
     .modal .modal-desc { font-size: 0.85rem; color: var(--text); margin-top: 0.4rem; }
     .modal .file-picker { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.5rem; }
+    .modal .area-search { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.5rem; }
+    .modal .area-search input { flex: 1; min-width: 0; }
+    .modal .area-results { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.5rem; }
+    .modal .area-results[hidden] { display: none; }
+    /* Selectors carry button and :not() to outrank `.modal button:not(.modal-close)`
+       and its hover rule, which sit later and would restyle the row as a button. */
+    .modal button.area-result:not(.modal-close) {
+      background: var(--surface2);
+      color: var(--text);
+      display: grid;
+      font-size: 0.85rem;
+      gap: 0.1rem 0.6rem;
+      grid-template-columns: 1fr auto;
+      letter-spacing: normal;
+      padding: 0.45rem 0.6rem;
+      text-align: left;
+    }
+    .modal button.area-result[aria-pressed="true"]:not(.modal-close):not(:disabled) {
+      background: color-mix(in srgb, var(--accent) 12%, var(--surface2));
+      border-color: var(--accent);
+    }
+    .area-result-name { font-weight: 600; }
+    .area-result-kind, .area-result-detail { color: var(--muted); font-size: 0.75rem; }
+    .area-result-kind::first-letter { text-transform: uppercase; }
+    .area-result-detail { grid-column: 1 / -1; }
     .modal .file-picker .file-name { font-size: 0.85rem; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     /* Collapsible block. Toggle the .expanded class to animate height + opacity.
        Uses grid-template-rows 0fr -> 1fr (smooth, no max-height guessing). */
@@ -3791,7 +3854,29 @@
         features.push({ name: typeof name === 'string' ? name.trim().slice(0, 200) : '', polygons });
       }
       if (!features.length) throw new Error('The file has no polygons.');
-      return { features, ignored };
+      // Nominatim states its licence in `licence`, Overpass in `copyright`.
+      const osm = /openstreetmap/i.test(String(doc.licence || doc.copyright || ''));
+      return { features, ignored, osm };
+    }
+    // `name` follows accept-language, namedetails.name is the name on the ground.
+    function nominatimAreas(doc) {
+      const out = [];
+      for (const item of (doc && doc.features) || []) {
+        const polygons = _areaPolygons(item && item.geometry);
+        const p = (item && item.properties) || {};
+        const local = (p.namedetails && p.namedetails.name) || '';
+        const name = p.name || local;
+        if (!polygons.length || !name) continue;
+        const kind = (p.addresstype || p.type || '').replace(/_/g, ' ');
+        out.push({
+          name: name.slice(0, 200),
+          localName: local === name ? '' : local.slice(0, 200),
+          kind,
+          detail: (p.display_name || '').split(', ').slice(1).join(', '),
+          polygons,
+        });
+      }
+      return out;
     }
     function _areaPointCount(polygons) {
       let n = 0;
@@ -6016,6 +6101,7 @@
       state._placeRecords = (state.places || []).slice();
       refreshFilterPanel();
       applyMapFilters();
+      syncAreasOnMap();
       refreshOpenPlacePopup();
     }
 
@@ -6030,77 +6116,160 @@
       state._areaGroup = L.featureGroup().addTo(map);
       syncAreasOnMap();
     }
-    function areaStyle(a) {
+    // ODbL wants the credit wherever the boundary shows, and not every tile
+    // layer carries it: Esri's has none. Same text as the OpenStreetMap tile
+    // layer, so Leaflet shows it once there.
+    const AREA_OSM_CREDIT = '<a href="https://openstreetmap.org/copyright">OpenStreetMap</a>';
+    function areaStyle(a, visited) {
       const color = state.categoryColors[a.category] || state.categoryColors[''];
-      return a.visited
-        ? { color, weight: 2, opacity: 0.9, fillColor: color, fillOpacity: 0.22 }
+      return visited
+        ? { color, weight: 2, opacity: 0.9, fillColor: color, fillOpacity: 0.22, dashArray: null }
         : { color, weight: 2, opacity: 0.7, fillColor: color, fillOpacity: 0.08, dashArray: '6 6' };
     }
     function syncAreasOnMap() {
       const group = state._areaGroup;
       if (!group) return;
       group.clearLayers();
-      state._areaLayers = (state.areas || []).map(area => ({
-        area,
-        layer: L.geoJSON(area.geometry, {
-          renderer: state._areaRenderer,
-          pane: 'areasPane',
-          interactive: false,
-          style: areaStyle(area),
-        }),
-      }));
+      state._areaLayers = (state.areas || []).map(area => {
+        const visited = !!area.visited || placesInArea(area.geometry, state.places || []).some(p => p.visited);
+        return {
+          area,
+          visited,
+          layer: L.geoJSON(area.geometry, {
+            renderer: state._areaRenderer,
+            pane: 'areasPane',
+            interactive: false,
+            attribution: area.source === 'osm' ? AREA_OSM_CREDIT : undefined,
+            style: areaStyle(area, visited),
+          }),
+        };
+      });
       applyAreaFilters();
+      markAreasByRoute();
+    }
+    // A completed route also makes an area visited, but its track has to load
+    // first, so that answer lands after the map has drawn.
+    function markAreasByRoute() {
+      const completed = manifestRoutes().filter(route => route.completed);
+      for (const entry of state._areaLayers || []) {
+        if (entry.visited) continue;
+        routesInArea(entry.area, completed).then(function(routes) {
+          if (!routes.length) return;
+          entry.visited = true;
+          entry.layer.setStyle(areaStyle(entry.area, true));
+          applyAreaFilters();
+        }, function() {});
+      }
     }
     function applyAreaFilters() {
       const group = state._areaGroup;
       if (!group) return;
-      for (const { area, layer } of state._areaLayers || []) {
+      for (const { area, layer, visited } of state._areaLayers || []) {
         const show = placesEnabled()
           && !state.hiddenCategories.has(area.category)
-          && (area.visited ? state.showVisited : state.showWant);
+          && (visited ? state.showVisited : state.showWant);
         if (show && !group.hasLayer(layer)) group.addLayer(layer);
         else if (!show && group.hasLayer(layer)) group.removeLayer(layer);
       }
     }
-    function areaPopupHtml(a) {
+    function areaStatusHtml(visited) {
+      return '<span class="popup-area-status" style="grid-column:3;color:' + (visited ? 'var(--completed)' : 'var(--planned)') + '">' + (visited ? 'Visited' : 'Want to visit') + '</span>';
+    }
+    function areaPopupHtml(a, visited) {
       const catStyle = '--c:' + state.categoryColors[a.category] + ';--cl:' + state.categoryColorsLight[a.category];
-      let html = '<div class="popup-name">' + escapeHtml(a.name) + '</div>';
+      const local = getShowField('local-name') && a.local_name
+        ? ' <span class="popup-local cat-text" style="' + catStyle + '">' + escapeHtml(a.local_name) + '</span>' : '';
+      let html = '<div class="popup-name">' + escapeHtml(a.name) + local + '</div>';
       if (a.note && getShowField('note')) html += '<div class="popup-note">' + escapeHtml(a.note) + '</div>';
-      const places = placesInArea(a.geometry, state.places);
-      html += '<div class="popup-area-stats">' + areaStatText(places.length, 'place', places.filter(p => p.visited).length, 'visited') + '</div>' +
-        '<div class="popup-area-stats popup-area-routes">Counting routes&hellip;</div>';
-      if (!isReadOnly()) html += '<button type="button" class="popup-area-edit">Edit</button>';
-      html += '<div class="popup-meta">' +
-        '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(displayCategory(a.category)) + '</span>' +
-        '<span style="grid-column:3;color:' + (a.visited ? 'var(--completed)' : 'var(--planned)') + '">' + (a.visited ? 'Visited' : 'Want to visit') + '</span>' +
-      '</div>';
+      html += '<div class="popup-area-counts"><span class="popup-area-places"></span><span class="popup-area-routes">Counting routes&hellip;</span></div>' +
+        '<div class="popup-area-list" hidden></div>' +
+        '<div class="popup-meta">' +
+          '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(displayCategory(a.category)) + '</span>' +
+          (isReadOnly() ? '' : '<button type="button" class="popup-area-edit">Edit</button>') +
+          areaStatusHtml(visited) +
+        '</div>';
       return html;
+    }
+    function manifestRoutes() {
+      return ((state.manifest && state.manifest.regions) || []).flatMap(region => region.routes);
+    }
+    // The bbox is in the key so a replaced track gets read again.
+    const areaTouchCache = new Map();
+    function routeTouchesArea(area, route) {
+      const key = area.id + '|' + route.file + '|' + route.bbox;
+      let touch = areaTouchCache.get(key);
+      if (!touch) {
+        touch = fetchGpxText(gpxUrlFor(route.file))
+          .then(text => tracksTouchArea(area.geometry, parseGpxTracks(text)));
+        touch.catch(() => areaTouchCache.delete(key));
+        areaTouchCache.set(key, touch);
+      }
+      return touch;
     }
     // The manifest bbox narrows the candidates, but only the track can answer,
     // and it may not be loaded yet.
-    function routesInArea(area) {
+    function routesInArea(area, routes) {
       const box = areaBbox(area.geometry);
-      const candidates = ((state.manifest && state.manifest.regions) || [])
-        .flatMap(region => region.routes)
-        .filter(route => !route.bbox || bboxesOverlap(box, route.bbox));
-      return Promise.all(candidates.map(route => fetchGpxText(gpxUrlFor(route.file))
-        .then(text => tracksTouchArea(area.geometry, parseGpxTracks(text)))))
+      const candidates = routes.filter(route => !route.bbox || bboxesOverlap(box, route.bbox));
+      return Promise.all(candidates.map(route => routeTouchesArea(area, route)))
         .then(touches => candidates.filter((_, i) => touches[i]));
     }
     function openAreaPopup(map, area, latlng) {
+      const entry = (state._areaLayers || []).find(x => x.area.id === area.id);
       // An element, not a string: update() would rewrite a string from scratch,
-      // dropping the route count and the Edit listener.
+      // dropping the route count and the listeners.
       const content = document.createElement('div');
-      content.innerHTML = areaPopupHtml(area);
+      content.innerHTML = areaPopupHtml(area, entry ? entry.visited : !!area.visited);
       const popup = L.popup({ closeButton: false }).setLatLng(latlng).setContent(content).openOn(map);
       const edit = content.querySelector('.popup-area-edit');
       if (edit) edit.addEventListener('click', function() { map.closePopup(); openEditAreaModal(area); });
-      const routesLine = content.querySelector('.popup-area-routes');
-      routesInArea(area).then(function(routes) {
-        routesLine.textContent = areaStatText(routes.length, 'route', routes.filter(r => r.completed).length, 'completed');
+      const list = content.querySelector('.popup-area-list');
+      // Items are {label, done, go}. No items leaves plain text: nothing to open.
+      const fillCount = function(slot, text, items) {
+        if (!items.length) { slot.textContent = text; return; }
+        const count = document.createElement('button');
+        count.type = 'button';
+        count.className = 'popup-area-count';
+        count.textContent = text;
+        count.setAttribute('aria-expanded', 'false');
+        count.addEventListener('click', function() {
+          const open = count.getAttribute('aria-expanded') !== 'true';
+          content.querySelectorAll('.popup-area-count').forEach(b => b.setAttribute('aria-expanded', 'false'));
+          count.setAttribute('aria-expanded', String(open));
+          list.hidden = !open;
+          list.replaceChildren(...(open ? items.map(areaListItem) : []));
+          popup.update();
+        });
+        slot.replaceChildren(count);
+      };
+      const areaListItem = function(item) {
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'popup-area-item' + (item.done ? ' done' : '');
+        row.textContent = item.label;
+        row.addEventListener('click', function(e) {
+          // Closing detaches the popup, and Leaflet would take this for a map click.
+          e.stopPropagation();
+          map.closePopup();
+          item.go();
+        });
+        return row;
+      };
+      const byLabel = (x, y) => x.label.localeCompare(y.label);
+      const places = placesInArea(area.geometry, state.places || []);
+      fillCount(content.querySelector('.popup-area-places'),
+        areaStatText(places.length, 'place', places.filter(p => p.visited).length, 'visited'),
+        places.map(p => ({ label: p.name, done: p.visited, go: () => goToPlace(map, p) })).sort(byLabel));
+      popup.update();
+      const routesSlot = content.querySelector('.popup-area-routes');
+      routesInArea(area, manifestRoutes()).then(function(routes) {
+        const completed = routes.filter(r => r.completed);
+        fillCount(routesSlot, areaStatText(routes.length, 'route', completed.length, 'completed'),
+          routes.map(r => ({ label: r.name, done: r.completed, go: () => goToRoute(map, r.key) })).sort(byLabel));
+        if (completed.length) content.querySelector('.popup-area-status').outerHTML = areaStatusHtml(true);
       }, function() {
         // An unreadable track, typically offline: a partial count would read as the real one.
-        routesLine.remove();
+        routesSlot.remove();
       }).then(function() { if (popup.isOpen()) popup.update(); });
     }
     // Smallest first, so a park inside a county stays reachable.
@@ -6134,6 +6303,18 @@
       if (note) payload.note = note;
       return payload;
     }
+    // Settings > Optional fields can leave the input out of the form, and a
+    // save replaces the whole area, so `kept` is what survives it.
+    function readAreaLocalName(prefix, kept) {
+      const el = document.getElementById(prefix + '-local-name');
+      return el ? el.value.trim() : (kept || '');
+    }
+    function areaLocalNameHtml(prefix, value) {
+      return getShowField('local-name') ?
+        '<label for="' + prefix + '-local-name">Local name (optional)</label>' +
+        '<input type="text" id="' + prefix + '-local-name" maxlength="200" placeholder="e.g. 広島県" value="' + escapeHtml(value || '') + '">'
+      : '';
+    }
     function areaFieldsHtml(prefix, area) {
       const cats = sortedCategorySlugs(Object.keys(state.categoryColors).filter(c => c !== ''));
       return '<label for="' + prefix + '-category">Category</label>' +
@@ -6145,7 +6326,8 @@
         '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
           '<input type="checkbox" class="settings-toggle" id="' + prefix + '-visited"' + (area && area.visited ? ' checked' : '') + '>' +
           '<label for="' + prefix + '-visited" style="margin:0">I&rsquo;ve visited this area</label>' +
-        '</div>';
+        '</div>' +
+        '<div class="hint">A visited place or completed route inside also makes it visited.</div>';
     }
     function openEditAreaModal(area) {
       openModal(
@@ -6153,6 +6335,7 @@
         '<form id="edit-area-form">' +
           '<label for="ea-name">Name</label>' +
           '<input type="text" id="ea-name" required maxlength="200" value="' + escapeHtml(area.name) + '">' +
+          areaLocalNameHtml('ea', area.local_name) +
           areaFieldsHtml('ea', area) +
           modalErrorHtml('edit-area-error') +
           '<div class="modal-actions">' +
@@ -6182,6 +6365,9 @@
             // A note hidden via Settings > Optional fields isn't in the form,
             // and a save replaces the whole area.
             if (!getShowField('note') && area.note) payload.note = area.note;
+            const local = readAreaLocalName('ea', area.local_name);
+            if (local) payload.local_name = local;
+            if (area.source) payload.source = area.source;
             const submit = document.getElementById('ea-submit');
             submit.disabled = true;
             dataLayer.updateArea({ id: area.id, area: payload }).then(done)
@@ -7198,6 +7384,34 @@
     // Pan/zoom to a place marker and open its popup. With clustering on, a plain
     // setView+openPopup leaves the marker buried inside an unexpanded cluster;
     // zoomToShowLayer breaks the cluster apart first.
+    function goToPlace(map, place) {
+      revealPlaceMarker(map, place);
+      history.replaceState(null, '', '#/?focus=place:' + encodeURIComponent(place.name));
+    }
+    function goToRoute(map, key) {
+      const entry = (state._routeLayers || []).find(t => t.route.key === key);
+      history.replaceState(null, '', '#/?focus=route:' + encodeURIComponent(key));
+      if (entry) {
+        // Route is already loaded - fit to its actual bounds and open
+        // the popup directly.
+        const layers = [];
+        entry.layer.eachLayer(l => { if (l.getBounds) layers.push(l); });
+        if (layers.length) {
+          const b = layers[0].getBounds();
+          if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
+          if (entry.layer.openPopup) entry.layer.openPopup(b.getCenter());
+        }
+        return;
+      }
+      // Not loaded yet (lazy-loaded by viewport intersection). Fit to the
+      // manifest bbox so the viewport intersects the route, which kicks off
+      // the load.
+      const route = manifestRoutes().find(rt => rt.key === key);
+      if (route && route.bbox && route.bbox.length === 4) {
+        const b = L.latLngBounds([route.bbox[0], route.bbox[1]], [route.bbox[2], route.bbox[3]]);
+        if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
+      }
+    }
     function revealPlaceMarker(map, place) {
       const cg = state._placeClusterGroup;
       if (cg && typeof cg.revealPlace === 'function') {
@@ -7893,6 +8107,7 @@
         ).slice(0, 6) : [];
         const areaMatches = (state.areas && placesEnabled()) ? state.areas.filter(a =>
           a.name.toLowerCase().includes(lower)
+          || (a.local_name && a.local_name.toLowerCase().includes(lower))
           || (a.note && a.note.toLowerCase().includes(lower))
           || a.category.toLowerCase().includes(lower)
         ).slice(0, 6) : [];
@@ -7943,42 +8158,11 @@
         if (row.dataset.type === 'place') {
           const name = row.dataset.name;
           const place = (state._placeRecords || []).find(p => p.name === name);
-          if (place) {
-            revealPlaceMarker(map, place);
-            history.replaceState(null, '', '#/?focus=place:' + encodeURIComponent(name));
-          }
+          if (place) goToPlace(map, place);
         } else if (row.dataset.type === 'area') {
           revealArea(map, row.dataset.id);
         } else {
-          const key = row.dataset.key;
-          const entry = (state._routeLayers || []).find(t => t.route.key === key);
-          history.replaceState(null, '', '#/?focus=route:' + encodeURIComponent(key));
-          if (entry) {
-            // Route is already loaded - fit to its actual bounds and open
-            // the popup directly.
-            const layers = [];
-            entry.layer.eachLayer(l => { if (l.getBounds) layers.push(l); });
-            if (layers.length) {
-              const b = layers[0].getBounds();
-              if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
-              if (entry.layer.openPopup) entry.layer.openPopup(b.getCenter());
-            }
-          } else {
-            // Not loaded yet (lazy-loaded by viewport intersection). Fit
-            // to the manifest bbox so the viewport intersects the route,
-            // which kicks off the load.
-            let route = null;
-            if (state.manifest) {
-              for (const r of state.manifest.regions) {
-                const found = r.routes.find(rt => rt.key === key);
-                if (found) { route = found; break; }
-              }
-            }
-            if (route && route.bbox && route.bbox.length === 4) {
-              const b = L.latLngBounds([route.bbox[0], route.bbox[1]], [route.bbox[2], route.bbox[3]]);
-              if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
-            }
-          }
+          goToRoute(map, row.dataset.key);
         }
         input.value = '';
         results.classList.remove('visible');
@@ -12979,6 +13163,7 @@
         for (const region of data.regions) region.routes.sort((a, b) => a.name.localeCompare(b.name));
         state.manifest = data;
         assignTrailSlugs(state.manifest);
+        syncAreasOnMap();
       });
     }
 
@@ -13557,7 +13742,14 @@
 
       function areaFormHtml() {
         return '<form id="area-form">' +
-          '<label>GeoJSON file</label>' +
+          '<label for="a-search">Find a boundary</label>' +
+          '<div class="area-search">' +
+            '<input type="text" id="a-search" maxlength="200" enterkeyhint="search" placeholder="e.g. Hiroshima Prefecture">' +
+            '<button type="button" class="primary" id="a-search-go">Search</button>' +
+          '</div>' +
+          '<div class="area-results" id="a-results" hidden></div>' +
+          '<div class="hint">Searches OpenStreetMap through Nominatim, which sees what you type and your IP address. Boundaries &copy; OpenStreetMap contributors.</div>' +
+          '<label>Or use a GeoJSON file</label>' +
           '<div class="file-picker">' +
             '<input type="file" id="a-file" accept=".geojson,.json,application/geo+json,application/json" class="file-input-hidden">' +
             '<button type="button" class="primary" id="a-file-pick">Choose file</button>' +
@@ -13573,6 +13765,7 @@
           '<div id="a-name-row">' +
             '<label for="a-name">Name</label>' +
             '<input type="text" id="a-name" required maxlength="200" placeholder="e.g. Jotunheimen">' +
+            areaLocalNameHtml('a', '') +
           '</div>' +
           areaFieldsHtml('a', null) +
           modalErrorHtml('area-error') +
@@ -13582,6 +13775,20 @@
         '</form>';
       }
 
+      // Runs only on an explicit search: Nominatim's usage policy rules out
+      // search-as-you-type.
+      function searchAreaBoundaries(q) {
+        const params = new URLSearchParams({
+          q, format: 'geojson', polygon_geojson: '1', polygon_threshold: '0.001',
+          namedetails: '1', 'accept-language': 'en', limit: '8',
+        });
+        return fetch('https://nominatim.openstreetmap.org/search?' + params, { credentials: 'omit', signal: AbortSignal.timeout(20000) })
+          .then(r => {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+          })
+          .then(nominatimAreas);
+      }
       function wireAreaForm() {
         wireSelectOrNew('a-category');
         const fileInput = document.getElementById('a-file');
@@ -13592,7 +13799,87 @@
         const nameRow = document.getElementById('a-name-row');
         const nameEl = document.getElementById('a-name');
         const errorEl = document.getElementById('area-error');
+        const localEl = document.getElementById('a-local-name');
+        const searchEl = document.getElementById('a-search');
+        const searchGo = document.getElementById('a-search-go');
+        const resultsEl = document.getElementById('a-results');
         let parsed = null;
+        let pickedLocal = '';
+        const categoryEl = document.getElementById('a-category');
+        let autoCategory = '';
+        // Only an existing category: creating one per OSM type would fill the
+        // list with suburb, city district and the like. A choice the user made
+        // stays, while one this form made follows the picked row.
+        const pickCategory = kind => {
+          if (categoryEl.value && categoryEl.value !== autoCategory) return;
+          const slug = kind.replace(/ /g, '-');
+          autoCategory = Array.from(categoryEl.options).some(o => o.value === slug) ? slug : '';
+          categoryEl.value = autoCategory;
+          categoryEl.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+        const showParsed = () => {
+          const n = parsed.features.length;
+          const points = parsed.features.reduce((sum, x) => sum + _areaPointCount(x.polygons), 0);
+          info.textContent = grpNum(n) + (n === 1 ? ' polygon, ' : ' polygons, ') + grpNum(points) + ' points.' +
+            (points > AREA_TARGET_POINTS ? ' Simplified on save.' : '') +
+            (parsed.ignored ? ' Ignored ' + grpNum(parsed.ignored) + ' without a polygon.' : '');
+          info.hidden = false;
+          splitRow.hidden = n < 2;
+          syncSplit();
+        };
+        const clearFile = () => {
+          fileInput.value = '';
+          fileName.textContent = 'No file selected';
+          fileName.classList.remove('has-file');
+        };
+        const pickResult = (result, row) => {
+          parsed = { features: [{ name: result.name, polygons: result.polygons }], ignored: 0, osm: true };
+          pickedLocal = result.localName;
+          nameEl.value = result.name;
+          if (localEl) localEl.value = result.localName;
+          pickCategory(result.kind);
+          resultsEl.querySelectorAll('.area-result').forEach(b => b.setAttribute('aria-pressed', String(b === row)));
+          clearFile();
+          errorEl.classList.remove('visible');
+          info.hidden = true;
+          splitRow.hidden = true;
+          syncSplit();
+        };
+        const runSearch = () => {
+          const q = searchEl.value.trim();
+          if (!q || searchGo.disabled) return;
+          searchGo.disabled = true;
+          errorEl.classList.remove('visible');
+          searchAreaBoundaries(q).then(found => {
+            resultsEl.replaceChildren(...found.map(result => {
+              const row = document.createElement('button');
+              row.type = 'button';
+              row.className = 'area-result';
+              row.setAttribute('aria-pressed', 'false');
+              const part = (cls, text) => {
+                const span = document.createElement('span');
+                span.className = cls;
+                span.textContent = text;
+                return span;
+              };
+              row.append(part('area-result-name', result.name), part('area-result-kind', result.kind));
+              if (result.detail) row.append(part('area-result-detail', result.detail));
+              row.addEventListener('click', () => pickResult(result, row));
+              return row;
+            }));
+            resultsEl.hidden = !found.length;
+            if (!found.length) showModalError('No boundary found. Try a fuller name, such as Hiroshima Prefecture.');
+            else if (found.length === 1) pickResult(found[0], resultsEl.firstChild);
+          }).catch(() => {
+            showModalError('The search failed. Check your connection, or use a file.');
+          }).finally(() => { searchGo.disabled = false; });
+        };
+        searchGo.addEventListener('click', runSearch);
+        searchEl.addEventListener('keydown', function(e) {
+          if (e.key !== 'Enter') return;
+          e.preventDefault();
+          runSearch();
+        });
         const syncSplit = () => {
           const separate = !splitRow.hidden && split.checked;
           nameRow.hidden = separate;
@@ -13603,6 +13890,9 @@
         fileInput.addEventListener('change', function() {
           const f = this.files && this.files[0];
           parsed = null;
+          pickedLocal = '';
+          if (localEl) localEl.value = '';
+          resultsEl.querySelectorAll('.area-result').forEach(b => b.setAttribute('aria-pressed', 'false'));
           info.hidden = true;
           splitRow.hidden = true;
           errorEl.classList.remove('visible');
@@ -13617,22 +13907,19 @@
             if (!nameEl.value.trim()) {
               nameEl.value = (n === 1 && result.features[0].name) || f.name.replace(/\.(geo)?json$/i, '');
             }
-            const points = result.features.reduce((sum, x) => sum + _areaPointCount(x.polygons), 0);
-            info.textContent = grpNum(n) + (n === 1 ? ' polygon, ' : ' polygons, ') + grpNum(points) + ' points.' +
-              (points > AREA_TARGET_POINTS ? ' Simplified on save.' : '') +
-              (result.ignored ? ' Ignored ' + grpNum(result.ignored) + ' without a polygon.' : '');
-            info.hidden = false;
-            splitRow.hidden = n < 2;
-            syncSplit();
+            showParsed();
           }).catch(err => showModalError(err.message));
         });
         document.getElementById('area-form').addEventListener('submit', function(e) {
           e.preventDefault();
-          if (!parsed) { showModalError('Choose a GeoJSON file.'); return; }
+          if (!parsed) { showModalError('Search for a boundary or choose a file.'); return; }
           const shared = readAreaFormFields('a');
           const items = (!splitRow.hidden && split.checked)
             ? parsed.features.map((x, i) => Object.assign({}, shared, { name: x.name || 'Area ' + (i + 1), geometry: buildAreaGeometry(x.polygons) }))
             : [Object.assign({}, shared, { name: nameEl.value.trim(), geometry: buildAreaGeometry(parsed.features.flatMap(x => x.polygons)) })];
+          const local = readAreaLocalName('a', pickedLocal);
+          if (local && items.length === 1 && !split.checked) items[0].local_name = local;
+          if (parsed.osm) for (const item of items) item.source = 'osm';
           const submit = document.getElementById('area-submit');
           submit.disabled = true;
           const before = new Set((state.areas || []).map(a => a.id));

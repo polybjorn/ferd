@@ -13,7 +13,7 @@ assert.ok(m, 'AREA-GEO markers not found in index.html');
 const ctx = { Math, JSON, Array, Uint8Array, Error, console };
 vm.createContext(ctx);
 vm.runInContext(m[1] + `
-globalThis.__g = { parseAreaGeoJson, buildAreaGeometry, areaContains, areaSize, areaBbox, bboxesOverlap,
+globalThis.__g = { nominatimAreas, parseAreaGeoJson, buildAreaGeometry, areaContains, areaSize, areaBbox, bboxesOverlap,
   placesInArea, tracksTouchArea, areaStatText, AREA_TARGET_POINTS };`, ctx);
 const g = ctx.__g;
 // Results come from another realm, so deepEqual needs plain copies.
@@ -195,4 +195,38 @@ test('stat text', () => {
   assert.equal(g.areaStatText(0, 'place', 0, 'visited'), 'No places');
   assert.equal(g.areaStatText(1, 'route', 0, 'completed'), '1 route, 0 completed');
   assert.equal(g.areaStatText(14, 'place', 9, 'visited'), '14 places, 9 visited');
+});
+
+test('nominatimAreas keeps the English name and the local one beside it', () => {
+  const ring = [[0, 0], [1, 0], [1, 1], [0, 0]];
+  const [area] = g.nominatimAreas({ features: [{
+    geometry: { type: 'Polygon', coordinates: [ring] },
+    properties: { name: 'Hiroshima Prefecture', display_name: 'Hiroshima Prefecture, Japan', addresstype: 'province', namedetails: { name: '広島県' } },
+  }] });
+  assert.equal(area.name, 'Hiroshima Prefecture');
+  assert.equal(area.localName, '広島県');
+  assert.equal(area.kind, 'province');
+  assert.equal(area.detail, 'Japan');
+});
+
+test('nominatimAreas leaves the local name empty when it is the same', () => {
+  const ring = [[0, 0], [1, 0], [1, 1], [0, 0]];
+  const [area] = g.nominatimAreas({ features: [{
+    geometry: { type: 'Polygon', coordinates: [ring] },
+    properties: { name: 'Agder', namedetails: { name: 'Agder' } },
+  }] });
+  assert.equal(area.localName, '');
+});
+
+test('nominatimAreas drops results with no polygon', () => {
+  const out = g.nominatimAreas({ features: [{ geometry: { type: 'Point', coordinates: [1, 2] }, properties: { name: 'Galdhopiggen' } }] });
+  assert.equal(out.length, 0);
+});
+
+test('parseAreaGeoJson notices an OpenStreetMap licence', () => {
+  const geometry = { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] };
+  const doc = extra => JSON.stringify(Object.assign({ type: 'FeatureCollection', features: [{ type: 'Feature', geometry, properties: {} }] }, extra));
+  assert.equal(g.parseAreaGeoJson(doc({ licence: 'Data © OpenStreetMap contributors, ODbL 1.0.' })).osm, true);
+  assert.equal(g.parseAreaGeoJson(doc({ copyright: 'The data included in this document is from www.openstreetmap.org.' })).osm, true);
+  assert.equal(g.parseAreaGeoJson(doc({})).osm, false);
 });
