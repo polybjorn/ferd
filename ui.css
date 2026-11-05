@@ -1,0 +1,212 @@
+/* ui.css: shared building blocks for menus, modals and forms.
+
+   Written to be shared between apps, so it carries no app-specific names.
+   Every class starts with `ui-`, which lets old and new markup coexist.
+
+   Host contract
+   1. Declare the layer order before any other stylesheet, with the host's own
+      layers between the two ui layers:
+        @layer ui-tokens, <vendor>, <app>, ui;
+      The `ui` layer then beats every general rule in the host, whatever its
+      specificity. Unlayered CSS and inline styles still beat it, so a block
+      only gets this guarantee once its markup carries no style= attribute and
+      the host's own rules sit in a layer.
+   2. Map the colours in a host layer. The defaults below are system colours,
+      only good enough to stay legible:
+        --ui-text, --ui-muted, --ui-surface, --ui-border, --ui-accent,
+        --ui-danger
+   3. Override any size token in a host layer. The names are shared; the
+      values are per app.
+
+   Markup contract: classes and plain HTML only, with no on*= or style=
+   attributes, so a page with a strict CSP can use it.
+
+   Section
+     <fieldset class="ui-section">
+       <legend class="ui-section-title">Map</legend>
+       ...fields, toggle rows, choice lists...
+     </fieldset>
+   A <section class="ui-section"> with an <h3 class="ui-section-title"> works
+   the same way.
+
+   Field
+     <div class="ui-field">
+       <label class="ui-field-label" for="f-name">Name</label>
+       <input id="f-name" type="text" aria-describedby="f-name-hint">
+       <p class="ui-hint" id="f-name-hint">Shown on the map.</p>
+     </div>
+   Add .ui-field-invalid to the field, and aria-invalid="true" to the control,
+   to show an error; a .ui-hint inside it then reads as the error text.
+
+   Toggle row
+     <label class="ui-toggle-row">
+       <span class="ui-toggle-text">Show labels
+         <span class="ui-hint">Names next to each marker.</span></span>
+       <input type="checkbox">
+     </label>
+
+   Choice list
+     <fieldset class="ui-choice-list">
+       <legend class="ui-field-label">Units</legend>
+       <label class="ui-choice"><input type="radio" name="u" value="km"> Kilometres</label>
+       <label class="ui-choice"><input type="radio" name="u" value="mi"> Miles</label>
+     </fieldset>
+
+   Hint
+     <p class="ui-hint">...</p>, inside any block or on its own. */
+
+@layer ui-tokens {
+  :root {
+    --ui-space-1: 0.25rem;
+    --ui-space-2: 0.5rem;
+    --ui-space-3: 0.75rem;
+    --ui-space-4: 1rem;
+    --ui-space-5: 1.5rem;
+    --ui-space-6: 2rem;
+
+    --ui-text-xs: 0.75rem;
+    --ui-text-sm: 0.85rem;
+    --ui-text-md: 1rem;
+    --ui-text-lg: 1.15rem;
+
+    --ui-control-height: 2.25rem;
+    --ui-radius: 6px;
+
+    --ui-text: CanvasText;
+    --ui-muted: GrayText;
+    --ui-surface: Canvas;
+    --ui-border: GrayText;
+    --ui-accent: LinkText;
+    --ui-danger: #c62828;
+  }
+}
+
+@layer ui {
+  .ui-section {
+    font: inherit;
+    display: grid;
+    gap: var(--ui-space-3);
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .ui-section + .ui-section { margin-block-start: var(--ui-space-5); }
+
+  /* A legend is placed on the fieldset border unless it floats. */
+  .ui-section-title {
+    font: inherit;
+    float: left;
+    inline-size: 100%;
+    margin: 0;
+    padding: 0;
+    font-size: var(--ui-text-xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ui-muted);
+  }
+
+  .ui-field {
+    font: inherit;
+    display: grid;
+    gap: var(--ui-space-1);
+    min-inline-size: 0;
+    margin: 0;
+  }
+  .ui-field-label {
+    font: inherit;
+    display: block;
+    margin: 0;
+    padding: 0;
+    font-size: var(--ui-text-sm);
+    font-weight: 500;
+    color: var(--ui-text);
+  }
+  .ui-field :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]), select, textarea) {
+    font: inherit;
+    inline-size: 100%;
+    min-block-size: var(--ui-control-height);
+    margin: 0;
+    padding: var(--ui-space-1) var(--ui-space-2);
+    font-size: var(--ui-text-sm);
+    color: var(--ui-text);
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+  }
+  .ui-field textarea { min-block-size: calc(var(--ui-control-height) * 2); resize: vertical; }
+  .ui-field :is(input, select, textarea):focus-visible {
+    outline: 2px solid var(--ui-accent);
+    outline-offset: 1px;
+  }
+  .ui-field-invalid :is(input, select, textarea) { border-color: var(--ui-danger); }
+  .ui-field-invalid .ui-hint { color: var(--ui-danger); }
+
+  .ui-hint {
+    font: inherit;
+    margin: 0;
+    padding: 0;
+    font-size: var(--ui-text-xs);
+    font-weight: 400;
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--ui-muted);
+  }
+
+  .ui-toggle-row {
+    font: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-3);
+    min-block-size: var(--ui-control-height);
+    margin: 0;
+    padding: 0;
+    font-size: var(--ui-text-sm);
+    color: var(--ui-text);
+    cursor: pointer;
+  }
+  .ui-toggle-text {
+    display: grid;
+    gap: var(--ui-space-1);
+    min-inline-size: 0;
+  }
+
+  .ui-choice-list {
+    font: inherit;
+    display: grid;
+    gap: var(--ui-space-1);
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .ui-choice-list > legend {
+    float: left;
+    inline-size: 100%;
+    margin-block-end: var(--ui-space-1);
+  }
+  .ui-choice {
+    font: inherit;
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-2);
+    min-block-size: var(--ui-control-height);
+    margin: 0;
+    padding: 0;
+    font-size: var(--ui-text-sm);
+    color: var(--ui-text);
+    cursor: pointer;
+  }
+
+  :is(.ui-toggle-row, .ui-choice) > input {
+    flex: none;
+    margin: 0;
+    accent-color: var(--ui-accent);
+  }
+  :is(.ui-toggle-row, .ui-choice) > input:focus-visible {
+    outline: 2px solid var(--ui-accent);
+    outline-offset: 2px;
+  }
+}

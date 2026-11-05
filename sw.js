@@ -15,6 +15,7 @@ const TILE_TRIM_BATCH = 250;
 const SHELL_ASSETS = [
   '/',
   '/index.html',
+  '/ui.css',
   '/catalog.json',
   '/icons/favicon.svg',
   '/icons/icon-192.png',

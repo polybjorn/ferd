@@ -11,9 +11,15 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Ferd">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="/vendor/leaflet-elevation/leaflet-elevation.css">
   <style>
+    /* Layer order: ui.css components beat the app's own rules and vendor CSS
+       whatever their specificity. Unlayered CSS beats every layer, so new rules
+       go in a layer too; only the WebView notice below stays unlayered. */
+    @layer ui-tokens, vendor, app, ui;
+    @import url("/vendor/leaflet/leaflet.css") layer(vendor);
+    @import url("/vendor/leaflet-elevation/leaflet-elevation.css") layer(vendor);
+
+    @layer app {
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     /* Tell native controls (date picker, radios, scrollbars) which palette to
        follow. The data-mode attribute is set by applyTheme(). */
@@ -3104,9 +3110,43 @@
     }
     .pwa-banner button:hover,
     .pwa-update-toast button:hover { opacity: 0.85; }
+
+    :root {
+      --ui-text:    var(--text);
+      --ui-muted:   var(--muted);
+      --ui-surface: var(--surface);
+      --ui-border:  var(--border);
+      --ui-accent:  var(--accent);
+      --ui-danger:  var(--red);
+      --ui-radius:  var(--radius);
+    }
+    } /* @layer app */
+  </style>
+  <link rel="stylesheet" href="/ui.css">
+  <style>
+    /* Unlayered on purpose: a browser without cascade layers (before Chrome 99)
+       drops every layered rule above, so this is all it can still style. */
+    #webview-notice {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483647;
+      padding: 2rem 1.5rem;
+      background: #2e3440;
+      color: #eceff4;
+      font: 1rem/1.5 system-ui, sans-serif;
+    }
+    #webview-notice h1 { font-size: 1.25rem; margin: 0 0 0.75rem; }
+    #webview-notice p { margin: 0 0 0.75rem; max-width: 36rem; }
   </style>
 </head>
 <body class="app-booting">
+  <div id="webview-notice" role="alert" hidden>
+    <h1>Update your browser to use Ferd</h1>
+    <p>Ferd needs Chrome 99 or a newer browser. On Android, update Android System WebView and Chrome from the Play Store, then reopen Ferd.</p>
+  </div>
+  <script>
+    if (!('CSSLayerBlockRule' in window)) document.getElementById('webview-notice').hidden = false;
+  </script>
   <nav>
     <span class="nav-brand">
       <a href="#/" id="nav-home"><span id="nav-brand-text">Ferd</span></a><span id="nav-crumb"></span>

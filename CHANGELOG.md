@@ -15,6 +15,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Confirm dialogs are shorter, with the button beside the text, and deleting from the place or route edit form uses them instead of the system dialog.
 - Dropdowns on phones use the app's theme instead of the system picker, and so do those on the Add form's Route and Area tabs on desktop.
 
+### Changed
+- Ferd needs Chrome 99 or newer, or Android System WebView 99 in the Android app. An older one shows a notice asking to update it instead of a broken page.
+
 ## [1.5.0] - 2026-11-05
 
 ### Added
