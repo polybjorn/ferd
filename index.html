@@ -3762,7 +3762,7 @@
           }
           let nAreas = 0;
           if (Array.isArray(areas)) {
-            for (const a of areas) { if (a && typeof a === 'object') { if (!a.id) a.id = _genId(); await idbPut('areas', a); nAreas++; } }
+            for (const a of areas) { if (areaHasGeometry(a)) { if (!a.id) a.id = _genId(); await idbPut('areas', a); nAreas++; } }
           }
           let nRoutes = 0;
           for (const name in byName) {
@@ -3829,6 +3829,11 @@
       if (!g || !Array.isArray(g.coordinates)) return [];
       const raw = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
       return raw.map(_areaPolygon).filter(Boolean);
+    }
+    // A local-only import has no server to refuse a malformed area, and one
+    // that reaches the map stops every area from drawing.
+    function areaHasGeometry(area) {
+      try { return !!area && _areaPolygons(area.geometry).length > 0; } catch { return false; }
     }
     // Returns { features: [{ name, polygons }], ignored }, where `polygons` is a
     // list of ring lists and `ignored` counts features with no polygon in them.
@@ -13142,7 +13147,7 @@
 
     // A missing category is the "uncategorized" bucket (key ''), as for places.
     function setAreas(data) {
-      state.areas = Array.isArray(data) ? data : [];
+      state.areas = Array.isArray(data) ? data.filter(areaHasGeometry) : [];
       for (const a of state.areas) { if (a.category == null) a.category = ''; }
     }
     function refreshAreas() {

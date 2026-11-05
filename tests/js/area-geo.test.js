@@ -14,7 +14,7 @@ const ctx = { Math, JSON, Array, Uint8Array, Error, console };
 vm.createContext(ctx);
 vm.runInContext(m[1] + `
 globalThis.__g = { nominatimAreas, parseAreaGeoJson, buildAreaGeometry, areaContains, areaSize, areaBbox, bboxesOverlap,
-  placesInArea, tracksTouchArea, areaStatText, AREA_TARGET_POINTS };`, ctx);
+  placesInArea, tracksTouchArea, areaStatText, areaHasGeometry, AREA_TARGET_POINTS };`, ctx);
 const g = ctx.__g;
 // Results come from another realm, so deepEqual needs plain copies.
 const plain = v => JSON.parse(JSON.stringify(v));
@@ -229,4 +229,14 @@ test('parseAreaGeoJson notices an OpenStreetMap licence', () => {
   assert.equal(g.parseAreaGeoJson(doc({ licence: 'Data © OpenStreetMap contributors, ODbL 1.0.' })).osm, true);
   assert.equal(g.parseAreaGeoJson(doc({ copyright: 'The data included in this document is from www.openstreetmap.org.' })).osm, true);
   assert.equal(g.parseAreaGeoJson(doc({})).osm, false);
+});
+
+test('areaHasGeometry refuses an area that cannot be drawn', () => {
+  assert.equal(g.areaHasGeometry({ geometry: polygon(SQUARE) }), true);
+  assert.equal(g.areaHasGeometry({ geometry: { type: 'MultiPolygon', coordinates: [[SQUARE]] } }), true);
+  assert.equal(g.areaHasGeometry({ name: 'No geometry' }), false);
+  assert.equal(g.areaHasGeometry({ geometry: { type: 'Point', coordinates: [1, 2] } }), false);
+  assert.equal(g.areaHasGeometry({ geometry: polygon([[5, 60], [6, 60]]) }), false);
+  assert.equal(g.areaHasGeometry({ geometry: polygon('not a ring') }), false);
+  assert.equal(g.areaHasGeometry(null), false);
 });
