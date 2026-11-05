@@ -5739,7 +5739,7 @@
     // The index map can show many routes; per-frame SVG reprojection (the
     // desktop path) stalls a touch pinch, and the browser balloons SVG stroke
     // width during the zoom CSS-transform. So on coarse pointers we draw the
-    // routes on a WebGL canvas in the map container: geometry uploaded once
+    // routes and area outlines on a WebGL canvas in the map container: geometry uploaded once
     // (Web-Mercator px at a fixed reference zoom, local-origin relative for
     // float32 precision); each frame only a cheap uniform changes. The vertex
     // shader expands the line to a constant pixel width in screen space, so
@@ -5757,7 +5757,7 @@
       _glColCache[c] = rgb; return rgb;
     }
     const GL_ROUTE_REFZOOM = 20;
-    const GL_ROUTE_STRIDE = 13; // segA(2) segB(2) end(1) side(1) rgb(3) opFrom(1) opTo(1) wFrom(1) wTo(1)
+    const GL_ROUTE_STRIDE = 14; // segA(2) segB(2) end(1) side(1) rgb(3) opFrom(1) opTo(1) wFrom(1) wTo(1) dist(1)
     function attachGLRoutes(map) {
       const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
       if (!coarse) return; // desktop keeps SVG + per-frame reprojection (no WebGL dependency)
@@ -5777,9 +5777,9 @@
 
       const VS = [
         'attribute vec2 aSegA; attribute vec2 aSegB; attribute float aEnd; attribute float aSide;',
-        'attribute vec3 aColor; attribute float aOpFrom; attribute float aOpTo; attribute float aWFrom; attribute float aWTo;',
+        'attribute vec3 aColor; attribute float aOpFrom; attribute float aOpTo; attribute float aWFrom; attribute float aWTo; attribute float aDist;',
         'uniform float uScale; uniform vec2 uOriginDelta; uniform vec2 uHalfSize; uniform vec2 uViewport; uniform float uHlT;',
-        'varying vec4 vColor;',
+        'varying vec4 vColor; varying float vDash;',
         'vec2 toC(vec2 v){ return uHalfSize + (v + uOriginDelta) * uScale; }',
         'vec2 toClip(vec2 c){ return vec2(c.x / uViewport.x * 2.0 - 1.0, 1.0 - c.y / uViewport.y * 2.0); }',
         'void main(){',
@@ -5790,10 +5790,24 @@
         '  vec2 d = cB - cA; float l = length(d);',
         '  vec2 t = l > 0.0 ? d / l : vec2(1.0, 0.0);',
         '  vec2 perp = vec2(-t.y, t.x);',
+        '  vDash = aDist < 0.0 ? -1.0 : mod(aDist * uScale, 12.0) + aEnd * l;', // screen px along the line; -1 is solid
         '  gl_Position = vec4(toClip(self + perp * aSide * hw), 0.0, 1.0);',
         '}'
       ].join('\n');
-      const FS = 'precision mediump float; varying vec4 vColor; void main(){ gl_FragColor = vec4(vColor.rgb * vColor.a, vColor.a); }'; // premultiplied
+      // highp where the device has it: vDash runs to the screen length of a
+      // segment, past what mediump holds. 6 on, 6 off, as areaStyle's dashArray.
+      const FS = [
+        '#ifdef GL_FRAGMENT_PRECISION_HIGH',
+        'precision highp float;',
+        '#else',
+        'precision mediump float;',
+        '#endif',
+        'varying vec4 vColor; varying float vDash;',
+        'void main(){',
+        '  if (vDash >= 0.0 && mod(vDash, 12.0) >= 6.0) discard;',
+        '  gl_FragColor = vec4(vColor.rgb * vColor.a, vColor.a);',
+        '}'
+      ].join('\n');
 
       function compile(type, src) {
         const s = gl.createShader(type);
@@ -5810,7 +5824,7 @@
         gl.attachShader(program, vs); gl.attachShader(program, fs); gl.linkProgram(program);
         if (!gl.getProgramParameter(program, gl.LINK_STATUS)) { console.warn('[gl-routes] link', gl.getProgramInfoLog(program)); return false; }
         gl.useProgram(program);
-        ['aSegA', 'aSegB', 'aEnd', 'aSide', 'aColor', 'aOpFrom', 'aOpTo', 'aWFrom', 'aWTo'].forEach(a => loc[a] = gl.getAttribLocation(program, a));
+        ['aSegA', 'aSegB', 'aEnd', 'aSide', 'aColor', 'aOpFrom', 'aOpTo', 'aWFrom', 'aWTo', 'aDist'].forEach(a => loc[a] = gl.getAttribLocation(program, a));
         ['uScale', 'uOriginDelta', 'uHalfSize', 'uViewport', 'uHlT'].forEach(u => loc[u] = gl.getUniformLocation(program, u));
         buffer = gl.createBuffer();
         gl.enable(gl.BLEND);
@@ -5826,7 +5840,7 @@
       }
       const V6 = [[0, 1], [0, -1], [1, 1], [0, -1], [1, -1], [1, 1]];
       function rebuild() {
-        if (!gl || !state._routeLayers) return;
+        if (!gl) return;
         originRef = map.project(map.getCenter(), GL_ROUTE_REFZOOM);
         const base4 = 4 * getTrailWeightFactor();
         const sel = state._selectedRouteKey;
@@ -5836,9 +5850,33 @@
         const hlFrom = (state._hlFrom === undefined) ? sel : state._hlFrom;
         const hlTo = (state._hlTo === undefined) ? sel : state._hlTo;
         const baseArr = [], topArr = []; // the (incoming) selected route appended last so it draws on top
-        const pushSeg = (arr, ax, ay, bx, by, rgb, opF, opT, wF, wT) => {
-          for (const [end, side] of V6) arr.push(ax, ay, bx, by, end, side, rgb[0], rgb[1], rgb[2], opF, opT, wF, wT);
+        const pushSeg = (arr, ax, ay, bx, by, rgb, opF, opT, wF, wT, dist = -1) => {
+          for (const [end, side] of V6) arr.push(ax, ay, bx, by, end, side, rgb[0], rgb[1], rgb[2], opF, opT, wF, wT, dist);
         };
+        // Only the outline: an area's fill stays in SVG, where scaling with the
+        // pinch is correct, and only a stroke's width has to hold constant.
+        const areaArr = [];
+        const drawArea = (area, visited) => {
+          const style = areaStyle(area, visited);
+          const rgb = glParseColor(style.color), hw = style.weight / 2;
+          for (const rings of _geometryPolygons(area.geometry)) {
+            for (const ring of rings) {
+              let prev = null, dist = 0;
+              for (const [lon, lat] of ring) {
+                const p = map.project([lat, lon], GL_ROUTE_REFZOOM);
+                const x = p.x - originRef.x, y = p.y - originRef.y;
+                if (prev) {
+                  pushSeg(areaArr, prev[0], prev[1], x, y, rgb, style.opacity, style.opacity, hw, hw, style.dashArray ? dist : -1);
+                  dist += Math.hypot(x - prev[0], y - prev[1]);
+                }
+                prev = [x, y];
+              }
+            }
+          }
+        };
+        for (const { area, layer, visited } of state._areaLayers || []) {
+          if (state._areaGroup.hasLayer(layer)) drawArea(area, visited);
+        }
         const drawRoute = (record) => {
           const f = routeHighlightStyle(record.route.key, hlFrom, base4);
           const g = routeHighlightStyle(record.route.key, hlTo, base4);
@@ -5861,12 +5899,12 @@
           };
           visit(record.layer);
         };
-        for (const record of state._routeLayers) {
+        for (const record of state._routeLayers || []) {
           if (state.hiddenRegions.has(record.region)) continue;
           if (!(record.completed ? state.showCompleted : state.showPlanned)) continue;
           drawRoute(record);
         }
-        const data = baseArr.concat(topArr);
+        const data = areaArr.concat(baseArr, topArr);
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
         vertCount = data.length / GL_ROUTE_STRIDE;
@@ -5899,6 +5937,7 @@
         gl.enableVertexAttribArray(loc.aOpTo); gl.vertexAttribPointer(loc.aOpTo, 1, gl.FLOAT, false, S, 40);
         gl.enableVertexAttribArray(loc.aWFrom); gl.vertexAttribPointer(loc.aWFrom, 1, gl.FLOAT, false, S, 44);
         gl.enableVertexAttribArray(loc.aWTo); gl.vertexAttribPointer(loc.aWTo, 1, gl.FLOAT, false, S, 48);
+        gl.enableVertexAttribArray(loc.aDist); gl.vertexAttribPointer(loc.aDist, 1, gl.FLOAT, false, S, 52);
         gl.uniform1f(loc.uScale, scale);
         gl.uniform2f(loc.uOriginDelta, originRef.x - cNow.x, originRef.y - cNow.y);
         gl.uniform2f(loc.uHalfSize, size.x / 2, size.y / 2);
@@ -5946,7 +5985,8 @@
       if (!document.getElementById('gl-routes-style')) {
         const st = document.createElement('style');
         st.id = 'gl-routes-style';
-        st.textContent = '.gl-routes-active path.route-line{opacity:0 !important;}';
+        st.textContent = '.gl-routes-active path.route-line{opacity:0 !important;}'
+          + '.gl-routes-active path.area-shape{stroke-opacity:0 !important;}';
         document.head.appendChild(st);
       }
       rebuild(); draw();
@@ -6143,6 +6183,7 @@
           layer: L.geoJSON(area.geometry, {
             renderer: state._areaRenderer,
             pane: 'areasPane',
+            className: 'area-shape',
             interactive: false,
             attribution: area.source === 'osm' ? AREA_OSM_CREDIT : undefined,
             style: areaStyle(area, visited),
@@ -6176,6 +6217,7 @@
         if (show && !group.hasLayer(layer)) group.addLayer(layer);
         else if (!show && group.hasLayer(layer)) group.removeLayer(layer);
       }
+      if (state._glRoutesDirty) state._glRoutesDirty();
     }
     function areaStatusHtml(visited) {
       return '<span class="popup-area-status" style="grid-column:3;color:' + (visited ? 'var(--completed)' : 'var(--planned)') + '">' + (visited ? 'Visited' : 'Want to visit') + '</span>';
