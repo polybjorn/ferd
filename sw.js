@@ -17,6 +17,8 @@ const SHELL_ASSETS = [
   '/index.html',
   '/ui.css',
   '/catalog.json',
+  '/vendor/natural-earth/country-list.json',
+  '/vendor/natural-earth/country-names.json',
   '/icons/favicon.svg',
   '/icons/icon-192.png',
   '/icons/icon-512.png',

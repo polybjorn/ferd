@@ -1,2 +1,6 @@
 [files]
 extend-exclude = ["vendor/", "catalog.json"]
+
+[default.extend-words]
+ba = "ba"
+nam = "nam"

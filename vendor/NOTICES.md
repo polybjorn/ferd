@@ -49,6 +49,15 @@ Ferd vendors the third-party libraries listed below under `vendor/`. Each retain
   - leaflet-distance-marker: (c) 2022 Raruto, GPL-3.0-or-later, incorporating work by Doroszlai Attila and Phil Whitehurst under an ISC-style permission notice
 - Not vendored: `@tmcw/togeojson`. `leaflet-elevation.js` names it as `__TOGEOJSON`, an unpkg.com URL, and imports it only from `_parseFromString`, which only `load()` and `_loadFile()` call to turn a GPX/KML/TCX string or URL into GeoJSON. Ferd never calls either: `index.html` hands the control ready-made GeoJSON through `addData()`, so the browser never requests unpkg.com. Vendor it and add it to `scripts/vendor-versions.json` if ferd ever starts calling `load()`.
 
+## Visited countries (lazy-loaded)
+
+### Natural Earth admin-0 countries
+- Purpose: country outlines for the opt-in visited-countries layer (`natural-earth/countries.geo.json`), plus the name-to-code table the API uses to set `country_code` on places (`natural-earth/country-names.json`).
+- Version: 5.1.2, 1:10m `ne_10m_admin_0_countries.geojson`
+- Upstream: https://github.com/nvkelso/natural-earth-vector
+- License: public domain (https://www.naturalearthdata.com/about/terms-of-use/)
+- Notes: not the upstream file. `scripts/build-countries.py` merges features by ISO 3166-1 alpha-2 code (`ISO_A2_EH`), drops those with none (Somaliland, Northern Cyprus, Siachen Glacier), simplifies to about 2 km and keeps only the code. `country-list.json` holds one display name per code, from `ADMIN` with a few overrides in the script. Borders are Natural Earth's de facto lines: they show control on the ground and take no position on a dispute. A place shades the country named in its Country field, never the one its pin falls in. Not on npm, so not in `scripts/vendor-versions.json`; to bump, download the new tag's file and re-run the script.
+
 ---
 
 ## Maintenance

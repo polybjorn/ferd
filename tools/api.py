@@ -27,6 +27,7 @@ import sys
 import tempfile
 import threading
 import time
+import unicodedata
 import xml.etree.ElementTree as ET
 import zipfile
 import hashlib
@@ -3471,6 +3472,52 @@ def _place_tags(key: str, v: object):
   return normalize_tags(v) or _OMIT
 
 
+# Country name -> ISO 3166-1 alpha-2 code, built by scripts/build-countries.py
+# from Natural Earth plus common aliases. Loaded on first use; a missing file
+# leaves every place without a code rather than failing the write.
+COUNTRY_NAMES_PATH = Path(__file__).resolve().parent.parent / "vendor" / "natural-earth" / "country-names.json"
+_country_names: dict | None = None
+
+
+def normalise_country_name(name: str) -> str:
+  """Fold case, accents and punctuation. Must match norm() in
+  scripts/build-countries.py and normCountryName in index.html."""
+  s = unicodedata.normalize("NFKD", name)
+  s = "".join(c for c in s if unicodedata.category(c) != "Mn").lower()
+  s = s.replace("&", " and ").replace(".", "").replace("'", "").replace("\u2019", "")
+  s = " ".join(s.replace(",", " ").split())
+  if s.startswith("the "):
+    s = s[4:]
+  return s
+
+
+def country_names() -> dict:
+  global _country_names
+  if _country_names is None:
+    try:
+      data = json.loads(COUNTRY_NAMES_PATH.read_text("utf-8"))
+      _country_names = data if isinstance(data, dict) else {}
+    except (OSError, ValueError) as e:
+      print(f"[api] country codes unavailable: {e}", file=sys.stderr)
+      _country_names = {}
+  return _country_names
+
+
+def country_code_for(name: object) -> str | None:
+  """The ISO code for a free-text country, or None when it does not match.
+  Never guesses: an unknown name stays without a code."""
+  if not isinstance(name, str) or not name.strip():
+    return None
+  return country_names().get(normalise_country_name(name))
+
+
+def _place_country_code(key: str, v: object):
+  # Derived from `country` in validate_place; a client copy is accepted so a
+  # round-tripped place validates, then replaced.
+  if v is not None and (not isinstance(v, str) or len(v) > 8):
+    raise ValidationError("country_code must be a short string or null")
+  return _OMIT
+
 # One spec per optional place field: check(key, value) raises ValidationError
 # or returns the value to store, or _OMIT to leave the field out. Order is the
 # order fields are checked and the key order written to places.json.
@@ -3479,6 +3526,7 @@ PLACE_FIELDS = {
   "id": _place_id,
   "category": _place_category,
   "country": _place_text(100),
+  "country_code": _place_country_code,
   "note": _place_text(2000),
   "local_name": _place_text(200),
   "sources": _place_sources,
@@ -3520,9 +3568,47 @@ def validate_place(p: object) -> dict:
   out = {"name": name.strip(), "lat": float(lat), "lon": float(lon)}
   for key, check in PLACE_FIELDS.items():
     value = check(key, p[key]) if key in p else PLACE_DEFAULTS.get(key, _OMIT)
+    if key == "country_code":
+      value = country_code_for(out.get("country")) or _OMIT
     if value is not _OMIT:
       out[key] = value
   return out
+
+
+def backfill_country_codes(udir: Path) -> int:
+  """Set or refresh country_code on every place in a user's places.json from
+  its free-text country. Runs at startup, so places written before the field
+  existed get one, and a name the table learns in a later release gets
+  matched. Returns how many places changed."""
+  path = udir / "places.json"
+  if not path.exists():
+    return 0
+
+  def run():
+    places = load_json_file(path, expected_type=list, required=False, label="places.json")
+    changed = 0
+    for i, p in enumerate(places):
+      if not isinstance(p, dict):
+        continue
+      code = country_code_for(p.get("country"))
+      if p.get("country_code") == code:
+        continue
+      changed += 1
+      rest = {k: v for k, v in p.items() if k != "country_code"}
+      if code is None:
+        places[i] = rest
+        continue
+      out = {}
+      for k, v in rest.items():
+        out[k] = v
+        if k == "country":
+          out["country_code"] = code
+      places[i] = out
+    if changed:
+      write_json_file(path, places)
+    return changed
+
+  return with_file_lock(udir / ".places.lock", run)
 
 
 def _area_source(key: str, value: object) -> str:
@@ -4153,9 +4239,15 @@ def main() -> int:
   # Ensure every existing user has a data dir (no-op for already-set-up ones).
   for r in conn.execute("SELECT username FROM users").fetchall():
     try:
-      ensure_user_dir(cfg, r["username"])
+      udir = ensure_user_dir(cfg, r["username"])
     except ValidationError:
-      pass
+      continue
+    try:
+      n = backfill_country_codes(udir)
+      if n:
+        print(f"[api] set country_code on {n} places for {r['username']}", file=sys.stderr)
+    except (ValidationError, OSError) as e:
+      print(f"[api] country_code backfill skipped for {r['username']}: {e}", file=sys.stderr)
   # Setup token: if enabled and no users exist yet, generate one and require it
   # on /api/register. Print to stderr only; the admin copies it from logs.
   # Must run before conn.close() below - user_count needs the boot connection.

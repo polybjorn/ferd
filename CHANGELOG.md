@@ -9,6 +9,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - GeoJSON export of places, areas and routes, from Settings > Account, at `/api/me/export.geojson` when signed in and at `/api/u/<username>/export.geojson` for a public map, so QGIS and other map tools can load a Ferd map from a URL. Routes keep their full track and elevation, and no GPX timestamps or author names are included.
 - An area's popup shows how many places and routes it holds, and how many of those are visited or completed. Opening a count lists them, and picking one goes to it on the map. A route counts when any part of its track is inside.
 - Map overlays. `site-config.json` can list XYZ or WMS layers, such as topo maps or hillshade, to draw over the base map. Each shows in the layer picker as an opacity slider, starts at 0 (off) on every load so no third-party host is contacted until you drag it up, and caches offline like base map tiles. The picker's base map options use the app's theme.
+- Visited countries. Turn on Settings > Visible features > Visited countries to shade every country that holds a visited place. It is off by default and set per browser, and the outlines (about 650 KB) download only once it is on, then stay cached for offline use. The shading shows at zoom 6 and further out, and fades as you zoom past that. Borders are Natural Earth's de facto lines.
+- The Country field on the place forms is now a searchable list, so a name always matches. It finds common alternatives too, such as Norge or USA. An older place keeps its existing name until you change it.
+- Places carry a `country_code` (ISO 3166-1 alpha-2) that the server sets from the Country field on every save. Existing places get one when the server starts.
 
 ### Fixed
 - On phones, the map fits the visible screen, so its zoom buttons no longer slide under the header.

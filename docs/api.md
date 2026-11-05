@@ -118,7 +118,7 @@ The browser-facing public URL is `/u/<username>/` (no `/api` prefix); the static
   "from_catalog": "Colosseum", "catalog_skip": { "note": "..." } }
 ```
 
-Required: `name`, `lat`, `lon`. Optional: `category`, `country`, `visited`, `note`, `sources` (array of `http(s)` URLs, max 20, each max 500 chars), `image` (single `http(s)` URL, max 1000 chars), `local_name`, `tags` (array of free-form labels, same format as route tags: `[a-zA-Z0-9][a-zA-Z0-9-]{0,31}`, max 10, deduped case-insensitively), `date_visited` (YYYY-MM-DD), `rating` (1-5). A missing or empty `category` is stored as "uncategorized" (the field is stripped). Anything else is rejected.
+Required: `name`, `lat`, `lon`. Optional: `category`, `country`, `visited`, `note`, `sources` (array of `http(s)` URLs, max 20, each max 500 chars), `image` (single `http(s)` URL, max 1000 chars), `local_name`, `tags` (array of free-form labels, same format as route tags: `[a-zA-Z0-9][a-zA-Z0-9-]{0,31}`, max 10, deduped case-insensitively), `date_visited` (YYYY-MM-DD), `rating` (1-5). `country_code` is set by the server from `country` (its ISO 3166-1 alpha-2 code, or left out when the name does not match the table in `vendor/natural-earth/country-names.json`); a client value is accepted and replaced. A missing or empty `category` is stored as "uncategorized" (the field is stripped). Anything else is rejected.
 
 Four more optional fields are managed by the server or the catalog flow rather than typed in by hand:
 

@@ -56,6 +56,7 @@ docs/
   troubleshooting.md       # console messages you can safely ignore
 icons/                     # favicon, PWA icons, web app manifest
 scripts/
+  build-countries.py       # builds vendor/natural-earth/ from Natural Earth
   check-refactor.sh        # jscpd + radon pass, run weekly in CI
   gpx-manifest.sh          # generates routes.json from gpx/<Region>/<Route>.gpx
   vendor-versions.json     # pinned versions, read by Renovate and check-refactor.sh

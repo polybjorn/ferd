@@ -506,14 +506,14 @@ class TestValidatePlaceMessages(unittest.TestCase):
     })
     self.assertEqual(out, {
       "name": "N", "lat": 1.0, "lon": -2.0, "visited": True, "id": "0123abcd",
-      "category": "c", "country": "NO", "note": "n", "local_name": "l",
+      "category": "c", "country": "NO", "country_code": "NO", "note": "n", "local_name": "l",
       "sources": ["https://a.b"], "image": "https://i.b/x.jpg", "from_catalog": "Cat",
       "image_focus": "10% 20%", "date_visited": "2024-01-02", "rating": 3,
       "catalog_skip": {"note": "x"}, "tags": ["a", "b"],
     })
     # Key order is what lands in places.json.
     self.assertEqual(list(out), [
-      "name", "lat", "lon", "visited", "id", "category", "country", "note", "local_name",
+      "name", "lat", "lon", "visited", "id", "category", "country", "country_code", "note", "local_name",
       "sources", "image", "from_catalog", "image_focus", "date_visited", "rating",
       "catalog_skip", "tags",
     ])
@@ -532,9 +532,62 @@ class TestValidatePlaceMessages(unittest.TestCase):
   def test_optional_fields_cover_the_schema(self):
     self.assertEqual(api.PLACE_ALL, api.PLACE_REQUIRED | api.PLACE_OPTIONAL)
     self.assertEqual(api.PLACE_OPTIONAL, {
-      "id", "category", "country", "visited", "note", "sources", "local_name", "date_visited",
-      "rating", "image", "image_focus", "tags", "from_catalog", "catalog_skip",
+      "id", "category", "country", "country_code", "visited", "note", "sources", "local_name",
+      "date_visited", "rating", "image", "image_focus", "tags", "from_catalog", "catalog_skip",
     })
+
+
+class TestCountryCode(unittest.TestCase):
+  def place(self, **kw):
+    return api.validate_place({"name": "P", "lat": 1, "lon": 2, **kw})
+
+  def test_derived_from_country_name(self):
+    for name, code in (("Norway", "NO"), ("  norway ", "NO"), ("Norge", "NO"),
+                       ("Côte d’Ivoire", "CI"), ("United States", "US"),
+                       ("UK", "GB"), ("Deutschland", "DE"), ("the Netherlands", "NL")):
+      self.assertEqual(self.place(country=name).get("country_code"), code, name)
+
+  def test_unknown_name_gets_no_code(self):
+    self.assertNotIn("country_code", self.place(country="Narnia"))
+    self.assertNotIn("country_code", self.place(country=""))
+    self.assertNotIn("country_code", self.place())
+
+  def test_client_value_is_replaced(self):
+    self.assertEqual(self.place(country="Sweden", country_code="NO")["country_code"], "SE")
+    self.assertNotIn("country_code", self.place(country="Narnia", country_code="NO"))
+    with self.assertRaises(api.ValidationError):
+      self.place(country="Sweden", country_code=5)
+
+  def test_backfill(self):
+    with tempfile.TemporaryDirectory() as d:
+      udir = Path(d)
+      places = [
+        {"name": "A", "lat": 1.0, "lon": 2.0, "visited": True, "country": "Norway", "note": "n"},
+        {"name": "B", "lat": 1.0, "lon": 2.0, "country": "Narnia", "country_code": "NO"},
+        {"name": "C", "lat": 1.0, "lon": 2.0, "country": "Sweden", "country_code": "SE"},
+        {"name": "D", "lat": 1.0, "lon": 2.0},
+      ]
+      api.write_json_file(udir / "places.json", places)
+      self.assertEqual(api.backfill_country_codes(udir), 2)
+      out = json.loads((udir / "places.json").read_text("utf-8"))
+      self.assertEqual(list(out[0]), ["name", "lat", "lon", "visited", "country", "country_code", "note"])
+      self.assertEqual(out[0]["country_code"], "NO")
+      self.assertNotIn("country_code", out[1])
+      self.assertEqual(out[2:], places[2:])
+      mtime = (udir / "places.json").stat().st_mtime_ns
+      self.assertEqual(api.backfill_country_codes(udir), 0)
+      self.assertEqual((udir / "places.json").stat().st_mtime_ns, mtime)
+
+  def test_backfill_without_places_file(self):
+    with tempfile.TemporaryDirectory() as d:
+      self.assertEqual(api.backfill_country_codes(Path(d)), 0)
+
+  def test_names_table_matches_boundaries(self):
+    base = Path(api.COUNTRY_NAMES_PATH).parent
+    shapes = json.loads((base / "countries.geo.json").read_text("utf-8"))
+    codes = {f["properties"]["code"] for f in shapes["features"]}
+    self.assertGreater(len(codes), 200)
+    self.assertLessEqual(set(api.country_names().values()), codes)
 
 
 class TestWriteAndLoadJsonFile(unittest.TestCase):

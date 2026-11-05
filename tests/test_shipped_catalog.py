@@ -18,7 +18,7 @@ from pathlib import Path
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from api import validate_place, ValidationError  # noqa: E402
+from api import country_code_for, validate_place, ValidationError  # noqa: E402
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -90,6 +90,14 @@ class ShippedCatalogTests(unittest.TestCase):
           validate_place(entry)
         except ValidationError as e:
           self.fail(f"entry #{i} ({entry.get('name','?')}): {e}")
+
+  def test_country_resolves_to_a_code(self):
+    # The visited-countries layer shades by code; a catalog name it cannot
+    # match would leave every import of that entry unshaded.
+    for i, entry in enumerate(self.entries):
+      if entry.get("country"):
+        with self.subTest(i=i, name=entry.get("name", "?")):
+          self.assertIsNotNone(country_code_for(entry["country"]), entry["country"])
 
   def test_category_in_vocabulary(self):
     for i, entry in enumerate(self.entries):
