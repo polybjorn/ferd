@@ -6,6 +6,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Added
 - Areas. Add a park, county or other boundary from a GeoJSON file with Add > Area. It shows on the map as a polygon in its category colour, filled when visited and dashed when on the wishlist. Files with many points are simplified on save. Areas follow the category and visit filters, appear in search, public maps and data exports, and work offline and in local-only mode.
+- An area's popup shows how many places and routes it holds, and how many of those are visited or completed. A route counts when any part of its track is inside.
 
 ## [1.5.0] - 2026-11-05
 

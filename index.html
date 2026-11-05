@@ -1699,7 +1699,8 @@
       object-fit: cover; border-radius: var(--radius); margin: 0.4rem auto;
       background: var(--surface2);
     }
-    .leaflet-popup-content .popup-note { color: var(--text); font-size: 0.75rem; margin-top: 0.3rem; }
+    .leaflet-popup-content .popup-note,
+    .leaflet-popup-content .popup-area-stats { color: var(--text); font-size: 0.75rem; margin-top: 0.3rem; }
     .leaflet-popup-content .popup-area-edit {
       background: none;
       border: 0;
@@ -3900,6 +3901,40 @@
       }
       return sum;
     }
+    // [south, west, north, east], the order of a route's bbox in the manifest.
+    function areaBbox(geometry) {
+      const box = [Infinity, Infinity, -Infinity, -Infinity];
+      for (const rings of _geometryPolygons(geometry)) {
+        for (const [lon, lat] of rings[0]) {
+          if (lat < box[0]) box[0] = lat;
+          if (lon < box[1]) box[1] = lon;
+          if (lat > box[2]) box[2] = lat;
+          if (lon > box[3]) box[3] = lon;
+        }
+      }
+      return box;
+    }
+    function bboxesOverlap(a, b) {
+      return a[0] <= b[2] && b[0] <= a[2] && a[1] <= b[3] && b[1] <= a[3];
+    }
+    function _inArea(geometry, box, lon, lat) {
+      return lat >= box[0] && lat <= box[2] && lon >= box[1] && lon <= box[3]
+        && areaContains(geometry, lon, lat);
+    }
+    function placesInArea(geometry, places) {
+      const box = areaBbox(geometry);
+      return places.filter(p => _inArea(geometry, box, p.lon, p.lat));
+    }
+    // A route counts as soon as one track point falls inside, so a route that
+    // only crosses the area is still part of what the area holds.
+    function tracksTouchArea(geometry, tracks) {
+      const box = areaBbox(geometry);
+      return tracks.some(t => t.points.some(pt => _inArea(geometry, box, pt.lon, pt.lat)));
+    }
+    function areaStatText(total, noun, done, doneLabel) {
+      if (!total) return 'No ' + noun + 's';
+      return total + ' ' + noun + (total === 1 ? '' : 's') + ', ' + done + ' ' + doneLabel;
+    }
     // AREA-GEO-END
 
     // OFFLINE-QUEUE-BEGIN (tests/js/offline-queue.test.js runs the code between these markers)
@@ -6031,6 +6066,9 @@
       const catStyle = '--c:' + state.categoryColors[a.category] + ';--cl:' + state.categoryColorsLight[a.category];
       let html = '<div class="popup-name">' + escapeHtml(a.name) + '</div>';
       if (a.note && getShowField('note')) html += '<div class="popup-note">' + escapeHtml(a.note) + '</div>';
+      const places = placesInArea(a.geometry, state.places);
+      html += '<div class="popup-area-stats">' + areaStatText(places.length, 'place', places.filter(p => p.visited).length, 'visited') + '</div>' +
+        '<div class="popup-area-stats popup-area-routes">Counting routes&hellip;</div>';
       if (!isReadOnly()) html += '<button type="button" class="popup-area-edit">Edit</button>';
       html += '<div class="popup-meta">' +
         '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(displayCategory(a.category)) + '</span>' +
@@ -6038,10 +6076,32 @@
       '</div>';
       return html;
     }
+    // The manifest bbox narrows the candidates, but only the track can answer,
+    // and it may not be loaded yet.
+    function routesInArea(area) {
+      const box = areaBbox(area.geometry);
+      const candidates = ((state.manifest && state.manifest.regions) || [])
+        .flatMap(region => region.routes)
+        .filter(route => !route.bbox || bboxesOverlap(box, route.bbox));
+      return Promise.all(candidates.map(route => fetchGpxText(gpxUrlFor(route.file))
+        .then(text => tracksTouchArea(area.geometry, parseGpxTracks(text)))))
+        .then(touches => candidates.filter((_, i) => touches[i]));
+    }
     function openAreaPopup(map, area, latlng) {
-      const popup = L.popup({ closeButton: false }).setLatLng(latlng).setContent(areaPopupHtml(area)).openOn(map);
-      const edit = popup.getElement().querySelector('.popup-area-edit');
+      // An element, not a string: update() would rewrite a string from scratch,
+      // dropping the route count and the Edit listener.
+      const content = document.createElement('div');
+      content.innerHTML = areaPopupHtml(area);
+      const popup = L.popup({ closeButton: false }).setLatLng(latlng).setContent(content).openOn(map);
+      const edit = content.querySelector('.popup-area-edit');
       if (edit) edit.addEventListener('click', function() { map.closePopup(); openEditAreaModal(area); });
+      const routesLine = content.querySelector('.popup-area-routes');
+      routesInArea(area).then(function(routes) {
+        routesLine.textContent = areaStatText(routes.length, 'route', routes.filter(r => r.completed).length, 'completed');
+      }, function() {
+        // An unreadable track, typically offline: a partial count would read as the real one.
+        routesLine.remove();
+      }).then(function() { if (popup.isOpen()) popup.update(); });
     }
     // Smallest first, so a park inside a county stays reachable.
     function openAreaPopupAt(map, e) {
