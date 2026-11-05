@@ -497,7 +497,10 @@
       z-index: 1;
       max-width: 1400px;
       margin: 0 auto;
+      /* 100vh counts the space behind a mobile browser's URL bar, and the extra
+         height lets a focus scroll slide the map under the sticky nav. */
       height: calc(100vh - 50px);
+      height: calc(100dvh - 50px);
       overflow-y: overlay;
       padding: 0.75rem 1.5rem 2rem;
       box-sizing: border-box;
@@ -1507,6 +1510,7 @@
     body.app-booting #pwa-update-banner { display: none; }
     body.signin-only #app {
       height: 100vh;
+      height: 100dvh;
       overflow: hidden;
       padding: 0;
       max-width: none;
