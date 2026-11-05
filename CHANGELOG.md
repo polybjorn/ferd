@@ -4,6 +4,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-11-05
+
 ### Added
 - Beta releases. The Android beta installs as a separate "Ferd beta" app beside the stable one, with its own data, and the Docker image ships as `:beta`. The stable app, `:latest` and the version tags never receive a beta.
 
