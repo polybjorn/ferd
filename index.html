@@ -11098,6 +11098,21 @@
       return dt.toISOString().slice(0, 10);
     }
 
+    const EXPORT_FORMATS = {
+      zip: {
+        path: '/me/export',
+        fallbackName: 'ferd-export.zip',
+        mimeType: 'application/zip',
+        desc: 'Download your data as a zip.',
+      },
+      geojson: {
+        path: '/me/export.geojson',
+        fallbackName: 'ferd.geojson',
+        mimeType: 'application/geo+json',
+        desc: 'Download places, areas and routes for QGIS and other map tools.',
+      },
+    };
+
     function openSettingsModal(initialTab) {
       const isAdmin = state.auth.is_admin;
       const local = isLocalMode();
@@ -11306,8 +11321,12 @@
           '</div>'
         : '') +
         '<h3 class="settings-h">Export</h3>' +
+        '<div class="radio-row radio-segmented" style="margin-bottom:0.5rem">' +
+          '<label><input type="radio" name="export-format" value="zip" checked>Zip</label>' +
+          '<label><input type="radio" name="export-format" value="geojson">GeoJSON</label>' +
+        '</div>' +
         '<div style="display:flex;align-items:center;gap:1rem">' +
-          '<div class="modal-desc" style="flex:1;margin:0">Download your data as a zip.</div>' +
+          '<div class="modal-desc" id="s-export-desc" style="flex:1;margin:0">' + EXPORT_FORMATS.zip.desc + '</div>' +
           '<button type="button" class="primary" id="s-export">Export</button>' +
         '</div>' +
         modalErrorHtml('s-export-error') +
@@ -11678,14 +11697,20 @@
               }
             });
           });
+          const exportFormat = () =>
+            EXPORT_FORMATS[document.querySelector('input[name="export-format"]:checked').value];
+          document.querySelectorAll('input[name="export-format"]').forEach(input => {
+            input.addEventListener('change', function() {
+              document.getElementById('s-export-desc').textContent = exportFormat().desc;
+            });
+          });
           const exportBtn = document.getElementById('s-export');
           if (exportBtn) exportBtn.addEventListener('click', function() {
+            const format = exportFormat();
             const errBox = document.getElementById('s-export-error');
             errBox.classList.remove('visible');
-            const originalLabel = exportBtn.textContent;
             exportBtn.disabled = true;
-            exportBtn.textContent = 'Exporting…';
-            fetch(apiUrl('/me/export'), applyAuth({})).then(async r => {
+            fetch(apiUrl(format.path), applyAuth({})).then(async r => {
               if (!r.ok) {
                 let msg = 'HTTP ' + r.status;
                 try { const j = await r.json(); if (j && j.error) msg = j.error; } catch {}
@@ -11693,7 +11718,7 @@
               }
               const disp = r.headers.get('Content-Disposition') || '';
               const m = /filename="([^"]+)"/.exec(disp);
-              const fname = m ? m[1] : 'ferd-export.zip';
+              const fname = m ? m[1] : format.fallbackName;
               const blob = await r.blob();
               // In the Android shell, hand the bytes to native (which opens the
               // system "Save to..." picker); WebView silently drops blob/anchor
@@ -11705,7 +11730,7 @@
                   reader.onerror = () => reject(new Error('Could not read export'));
                   reader.onloadend = () => {
                     const b64 = String(reader.result).split(',')[1] || '';
-                    window.FerdAndroid.exportFile(fname, blob.type || 'application/zip', b64);
+                    window.FerdAndroid.exportFile(fname, blob.type || format.mimeType, b64);
                     resolve();
                   };
                   reader.readAsDataURL(blob);
@@ -11725,7 +11750,6 @@
               errBox.classList.add('visible');
             }).finally(() => {
               exportBtn.disabled = false;
-              exportBtn.textContent = originalLabel;
             });
           });
           const revokeOthersBtn = document.getElementById('s-revoke-others');

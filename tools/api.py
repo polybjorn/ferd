@@ -1097,6 +1097,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
       "/api/me/prefs": "_h_prefs_get",
       "/api/me/category-labels": "_h_me_category_labels_get",
       "/api/me/export": "_h_export_get",
+      "/api/me/export.geojson": "_h_export_geojson_get",
       "/api/me/tokens": "_h_tokens_list",
       "/api/public-maps": "_h_public_maps",
       "/api/catalog": "_h_catalog_get",
@@ -1159,6 +1160,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
     "routes": "_h_public_routes",
     "metadata": "_h_public_metadata",
     "category-labels": "_h_public_category_labels",
+    "export.geojson": "_h_public_geojson",
   }
   ADMIN_USER_POST_ROUTES = {
     "role": "_h_admin_user_role",
@@ -2935,6 +2937,27 @@ class Handler(http.server.BaseHTTPRequestHandler):
     self.end_headers()
     self.wfile.write(payload)
 
+  def _send_geojson(self, udir: Path, username: str) -> None:
+    try:
+      body = json.dumps(build_geojson(udir), ensure_ascii=False).encode("utf-8")
+    except ValidationError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+    self.send_response(HTTPStatus.OK)
+    self.send_header("Content-Type", "application/geo+json")
+    self.send_header("Content-Length", str(len(body)))
+    # Headers are latin-1, and a username may be any Unicode letter.
+    fname = f"ferd-{username}.geojson" if username.isascii() else "ferd.geojson"
+    self.send_header("Content-Disposition", f'attachment; filename="{fname}"')
+    self.send_header("Cache-Control", "no-store")
+    self.end_headers()
+    self.wfile.write(body)
+
+  def _h_export_geojson_get(self):
+    user = self._require_user()
+    if user is None:
+      return
+    self._send_geojson(self._user_dir(user["username"]), user["username"])
+
   def _h_import_post(self):
     user = self._require_user()
     if user is None:
@@ -3040,6 +3063,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
     if udir is None:
       return self._error(HTTPStatus.NOT_FOUND, "not found")
     self._send_user_json(udir, "category-labels.json", dict, default={}, key="category_labels")
+
+  def _h_public_geojson(self, username: str):
+    udir = self._public_user_dir(username)
+    if udir is None:
+      return self._error(HTTPStatus.NOT_FOUND, "not found")
+    self._send_geojson(udir, username)
 
   def _h_public_gpx(self, username: str, region: str, fname: str):
     udir = self._public_user_dir(username)
@@ -3762,6 +3791,117 @@ def strip_gpx_pii(xml_bytes: bytes) -> bytes:
     del root.attrib["creator"]
   walk(root)
   return ET.tostring(root, xml_declaration=True, encoding="UTF-8")
+
+
+# ---------- GeoJSON export ----------
+
+def _gpx_position(el) -> list | None:
+  """[lon, lat] or [lon, lat, ele] from a <trkpt>/<rtept>, or None when the
+  point has no usable coordinates. Nothing else on the point (time, extensions)
+  is read, so the output carries only geometry."""
+  try:
+    lat = float(el.attrib["lat"])
+    lon = float(el.attrib["lon"])
+  except (KeyError, ValueError):
+    return None
+  if not (-180 <= lon <= 180 and -90 <= lat <= 90):
+    return None
+  pos = [round(lon, 6), round(lat, 6)]
+  for child in el:
+    if child.tag.rsplit("}", 1)[-1] == "ele" and child.text:
+      try:
+        pos.append(round(float(child.text), 1))
+      except ValueError:
+        pass
+      break
+  return pos
+
+
+def gpx_lines(xml_bytes: bytes) -> list[list[list]]:
+  """Every track segment and route in a GPX file as a list of positions, at
+  full resolution. Lines with fewer than two points are dropped."""
+  root = _safe_xml_fromstring(xml_bytes)
+  lines = []
+  for el in root.iter():
+    tag = el.tag.rsplit("}", 1)[-1]
+    if tag not in ("trkseg", "rte"):
+      continue
+    point_tag = "trkpt" if tag == "trkseg" else "rtept"
+    line = []
+    for pt in el:
+      if pt.tag.rsplit("}", 1)[-1] == point_tag:
+        pos = _gpx_position(pt)
+        if pos is not None:
+          line.append(pos)
+    if len(line) >= 2:
+      lines.append(line)
+  return lines
+
+
+def _route_files(gpx_root: Path) -> dict[str, dict]:
+  """Route key ("region/name", or "name" with no region) -> {region, name,
+  path, completed}, preferring the walked file over a planned one, the same
+  pairing gpx-manifest.sh writes to routes.json."""
+  routes: dict[str, dict] = {}
+  for root, files in _walk_follow_symlinks(gpx_root):
+    region = Path(root).relative_to(gpx_root).as_posix()
+    region = "" if region == "." else region
+    for fname in sorted(files):
+      if fname.startswith(".") or not fname.endswith(".gpx"):
+        continue
+      planned = fname.endswith(".planned.gpx")
+      name = fname[:-len(".planned.gpx")] if planned else fname[:-len(".gpx")]
+      key = f"{region}/{name}" if region else name
+      if key in routes and not planned and routes[key]["completed"] is False:
+        del routes[key]
+      if key not in routes:
+        routes[key] = {"region": region, "name": name, "path": Path(root) / fname, "completed": not planned}
+  return routes
+
+
+def build_geojson(udir: Path) -> dict:
+  """A FeatureCollection of a user's places (Point), areas (Polygon or
+  MultiPolygon) and routes (LineString or MultiLineString). Every feature has
+  a `kind` and a `name` property; the rest are the stored fields. Route
+  geometry is coordinates and elevation only, so GPX timestamps, author and
+  creator never reach the output."""
+  features = []
+  places = load_json_file(udir / "places.json", expected_type=list, required=False, label="places.json")
+  for p in places:
+    if not isinstance(p, dict):
+      continue
+    lat, lon = p.get("lat"), p.get("lon")
+    if not all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in (lat, lon)):
+      continue
+    props = {"kind": "place"}
+    props.update((k, v) for k, v in p.items() if k not in ("lat", "lon"))
+    features.append({"type": "Feature", "geometry": {"type": "Point", "coordinates": [lon, lat]}, "properties": props})
+
+  areas = load_json_file(udir / "areas.json", expected_type=list, required=False, label="areas.json")
+  for a in areas:
+    if not isinstance(a, dict) or not isinstance(a.get("geometry"), dict):
+      continue
+    props = {"kind": "area"}
+    props.update((k, v) for k, v in a.items() if k != "geometry")
+    features.append({"type": "Feature", "geometry": a["geometry"], "properties": props})
+
+  metadata = load_json_file(udir / "metadata.json", expected_type=dict, required=False, label="metadata.json")
+  for key, r in sorted(_route_files(udir / "gpx").items()):
+    try:
+      lines = gpx_lines(r["path"].read_bytes())
+    except (OSError, ValidationError) as e:
+      print(f"[api] geojson: skipping {r['path']}: {e}", file=sys.stderr)
+      continue
+    if not lines:
+      continue
+    geometry = ({"type": "LineString", "coordinates": lines[0]} if len(lines) == 1
+                else {"type": "MultiLineString", "coordinates": lines})
+    props = {"kind": "route", "name": r["name"], "region": r["region"], "completed": r["completed"]}
+    meta = metadata.get(key)
+    if isinstance(meta, dict):
+      props.update((k, v) for k, v in meta.items() if k in ROUTE_META_FIELDS)
+    features.append({"type": "Feature", "geometry": geometry, "properties": props})
+  return {"type": "FeatureCollection", "features": features}
 
 
 # ---------- zip import ----------

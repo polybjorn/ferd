@@ -548,6 +548,23 @@ class TestAreas(unittest.TestCase):
     finally:
       self.c.request("POST", "/api/me/publish", {"published": False})
 
+  def test_geojson_export_signed_in_and_public(self):
+    self.c.request("POST", "/api/areas", {"name": "Geo", "geometry": SQUARE})
+    status, body = self.c.request("GET", "/api/me/export.geojson")
+    self.assertEqual(status, 200)
+    self.assertEqual(body["type"], "FeatureCollection")
+    self.assertIn(("area", "Geo"), [(f["properties"]["kind"], f["properties"]["name"]) for f in body["features"]])
+    anon = Client(_server.base_url)  # type: ignore[union-attr]
+    self.assertEqual(anon.request("GET", "/api/me/export.geojson")[0], 401)
+    self.assertEqual(anon.request("GET", f"/api/u/{SEED_USER}/export.geojson")[0], 404)
+    self.c.request("POST", "/api/me/publish", {"published": True})
+    try:
+      status, pub = anon.request("GET", f"/api/u/{SEED_USER}/export.geojson")
+      self.assertEqual(status, 200)
+      self.assertEqual(pub, body)
+    finally:
+      self.c.request("POST", "/api/me/publish", {"published": False})
+
   def test_clear_category_reaches_areas(self):
     fresh_places([{"name": "P", "lat": 1, "lon": 2, "category": "gone"}])
     self.c.request("POST", "/api/areas", {"name": "A", "geometry": SQUARE, "category": "gone"})

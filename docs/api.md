@@ -62,6 +62,7 @@ All paths read and write the signed-in user's own folder (`users/<self>/`).
 | `PUT` | `/me/category-labels` | `{category_labels: {slug: {label, color?, order?}, ...}}` | Replaces the label map. `color` is an int 0-99, `order` an int 0-999, and any other key is rejected. If a slug already had a `color` and the new payload omits it, the existing color is preserved (so Manage Categories can edit labels without stripping colors). `order` is not preserved that way: omitting it drops it, so a caller that wants to keep an existing order has to send it back. |
 | `POST` | `/me/publish` | `{published: bool}` | Flip the public-read gate. Non-admins can always unpublish but can only publish when the site-wide publishing gate is open. |
 | `GET` | `/me/export` | - | Returns a zip of the user's folder (`places.json`, `areas.json`, `routes.json`, `metadata.json`, `prefs.json`, `category-labels.json`, `gpx/...`). Excludes dotfiles, backup files (`*.bak`, `*~`), and OS metadata (`.DS_Store`, `Thumbs.db`). |
+| `GET` | `/me/export.geojson` | - | Places, areas and routes as one GeoJSON `FeatureCollection` (`application/geo+json`) for QGIS and similar tools. Places are `Point`s and areas keep their stored geometry; every feature has `kind` (`place`, `area` or `route`) and `name`, plus the stored fields. Routes are the full track (`LineString`, or `MultiLineString` for several segments) with elevation where the GPX has it, and carry `region`, `completed` and the `metadata.json` fields; GPX timestamps, author and creator are left out. |
 | `POST` | `/me/import?mode=replace\|merge\|prefs` | zip body | `Content-Type: application/zip`. `replace` deletes existing top-level files and the `gpx/` tree before writing; `merge` appends places by unique name and updates metadata/prefs/labels by key; `prefs` only merges `prefs.json` + `category-labels.json` and skips places/routes/metadata/GPX even if they're in the archive. GPX files always have PII stripped on import. Triggers manifest regen. |
 | `GET` | `/catalog?include_hidden=<bool>` | - | Site-wide catalog (array of place objects). Merge of shipped baseline + local additions; see [catalog.md](catalog.md). Each entry carries `_source: "shipped"\|"local"`. Hidden shipped entries are filtered out; `?include_hidden=1` (admin only) returns them with `_hidden: true`. |
 
@@ -100,6 +101,7 @@ Anyone can call these for a user with `published=1`. Other users return `404`. N
 | `GET` | `/u/<username>/metadata` | Per-route overrides. |
 | `GET` | `/u/<username>/category-labels` | `{category_labels: {...}}`. |
 | `GET` | `/u/<username>/gpx/<region>/<file>.gpx` | Raw GPX. `region` segment is optional. |
+| `GET` | `/u/<username>/export.geojson` | The same GeoJSON as `/me/export.geojson`, which holds nothing the public page does not show. Load it in QGIS as a vector layer from this URL. |
 
 The browser-facing public URL is `/u/<username>/` (no `/api` prefix); the static handler serves `index.html` for any such path and the SPA fetches from `/api/u/<username>/...`.
 
@@ -179,6 +181,13 @@ Export everything as a zip:
 
 ```sh
 curl -b jar -o export.zip http://localhost:8091/api/me/export
+```
+
+Export as GeoJSON, or a published user's map without signing in:
+
+```sh
+curl -b jar -o ferd.geojson http://localhost:8091/api/me/export.geojson
+curl -o ferd.geojson http://localhost:8091/api/u/admin/export.geojson
 ```
 
 Read a published user's places without signing in:

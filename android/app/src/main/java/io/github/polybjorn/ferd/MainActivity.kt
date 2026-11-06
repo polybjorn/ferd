@@ -60,6 +60,7 @@ class MainActivity : AppCompatActivity() {
 
   // Bytes awaiting a destination chosen via the system "Save to..." dialog.
   private var pendingExportBytes: ByteArray? = null
+  private var pendingExportMimeType = "application/zip"
 
   override fun onCreate(savedInstanceState: Bundle?) {
     // targetSdk 35+ always draws edge-to-edge; do it on every API level so the
@@ -92,7 +93,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     createDocumentLauncher = registerForActivityResult(
-      ActivityResultContracts.CreateDocument("application/zip")
+      // The picker's file type is fixed when the contract is built, and a
+      // mismatch lets the provider append its own extension to the file name.
+      object : ActivityResultContracts.CreateDocument("application/zip") {
+        override fun createIntent(context: Context, input: String): Intent =
+          super.createIntent(context, input).setType(pendingExportMimeType)
+      }
     ) { uri ->
       val bytes = pendingExportBytes
       pendingExportBytes = null
@@ -278,7 +284,7 @@ class MainActivity : AppCompatActivity() {
   }
 
   /** Decode the base64 export and open the system "Save to..." dialog. */
-  fun beginExport(filename: String, base64Data: String) {
+  fun beginExport(filename: String, mimeType: String, base64Data: String) {
     pendingExportBytes = try {
       Base64.decode(base64Data, Base64.DEFAULT)
     } catch (e: IllegalArgumentException) {
@@ -288,6 +294,7 @@ class MainActivity : AppCompatActivity() {
       Toast.makeText(this, R.string.export_failed, Toast.LENGTH_LONG).show()
       return
     }
+    pendingExportMimeType = mimeType
     createDocumentLauncher.launch(filename.ifBlank { "ferd-export.zip" })
   }
 
@@ -311,7 +318,7 @@ class MainActivity : AppCompatActivity() {
 private class FerdBridge(private val activity: MainActivity) {
   @JavascriptInterface
   fun exportFile(filename: String, mimeType: String, base64Data: String) {
-    activity.runOnUiThread { activity.beginExport(filename, base64Data) }
+    activity.runOnUiThread { activity.beginExport(filename, mimeType, base64Data) }
   }
 
   /** Build version (e.g. "0.1.0+18.gb822621"), shown in the app's About box. */

@@ -17,6 +17,79 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 import api  # noqa: E402
 
 
+GPX_NS = "http://www.topografix.com/GPX/1/1"
+
+
+def _gpx(body: str) -> bytes:
+  return (f'<?xml version="1.0"?><gpx xmlns="{GPX_NS}" version="1.1" creator="Phone">'
+          f'<metadata><author><name>Someone</name></author><time>2024-01-01T00:00:00Z</time></metadata>'
+          f"{body}</gpx>").encode()
+
+
+class TestGeoJsonExport(unittest.TestCase):
+  def test_gpx_lines_keep_full_track_and_elevation(self):
+    lines = api.gpx_lines(_gpx(
+      '<trk><trkseg><trkpt lat="60.1234567" lon="5.1"><ele>12.34</ele><time>2024-01-01T00:00:00Z</time></trkpt>'
+      '<trkpt lat="60.2" lon="5.2"/><trkpt lat="60.3" lon="5.3"/></trkseg>'
+      '<trkseg><trkpt lat="61" lon="6"/></trkseg></trk>'
+      '<rte><rtept lat="62" lon="7"/><rtept lat="62.1" lon="7.1"/></rte>'
+    ))
+    self.assertEqual(lines, [
+      [[5.1, 60.123457, 12.3], [5.2, 60.2], [5.3, 60.3]],
+      [[7.0, 62.0], [7.1, 62.1]],
+    ])
+
+  def test_build_geojson(self):
+    with tempfile.TemporaryDirectory() as tmp:
+      udir = Path(tmp)
+      (udir / "places.json").write_text(json.dumps([
+        {"name": "Hut", "lat": 60, "lon": 5, "visited": True, "category": "hut"},
+        {"name": "Broken", "lat": "x", "lon": 5},
+      ]))
+      ring = [[5, 60], [6, 60], [6, 61], [5, 60]]
+      (udir / "areas.json").write_text(json.dumps([
+        {"name": "Park", "geometry": {"type": "Polygon", "coordinates": [ring]}, "visited": False},
+      ]))
+      (udir / "metadata.json").write_text(json.dumps({"Alps/Ridge": {"rating": 4, "notes": "windy"}}))
+      track = '<trk><trkseg><trkpt lat="46" lon="7"/><trkpt lat="46.1" lon="7.1"/></trkseg></trk>'
+      two = track.replace("</trk>", '<trkseg><trkpt lat="47" lon="8"/><trkpt lat="47.1" lon="8.1"/></trkseg></trk>')
+      (udir / "gpx" / "Alps").mkdir(parents=True)
+      (udir / "gpx" / "Alps" / "Ridge.gpx").write_bytes(_gpx(track))
+      (udir / "gpx" / "Alps" / "Ridge.planned.gpx").write_bytes(_gpx(two))
+      (udir / "gpx" / "Loop.planned.gpx").write_bytes(_gpx(two))
+      (udir / "gpx" / "Bad.gpx").write_bytes(b"not xml")
+
+      doc = api.build_geojson(udir)
+      self.assertEqual(doc["type"], "FeatureCollection")
+      by_name = {f["properties"]["name"]: f for f in doc["features"]}
+      self.assertEqual(sorted(by_name), ["Hut", "Loop", "Park", "Ridge"])
+
+      hut = by_name["Hut"]
+      self.assertEqual(hut["geometry"], {"type": "Point", "coordinates": [5, 60]})
+      self.assertEqual(hut["properties"], {"kind": "place", "name": "Hut", "visited": True, "category": "hut"})
+
+      self.assertEqual(by_name["Park"]["geometry"]["type"], "Polygon")
+      self.assertEqual(by_name["Park"]["properties"]["kind"], "area")
+      self.assertNotIn("geometry", by_name["Park"]["properties"])
+
+      ridge = by_name["Ridge"]
+      self.assertEqual(ridge["geometry"], {"type": "LineString", "coordinates": [[7.0, 46.0], [7.1, 46.1]]})
+      self.assertEqual(ridge["properties"], {
+        "kind": "route", "name": "Ridge", "region": "Alps", "completed": True, "rating": 4, "notes": "windy",
+      })
+      loop = by_name["Loop"]
+      self.assertEqual(loop["geometry"]["type"], "MultiLineString")
+      self.assertEqual((loop["properties"]["region"], loop["properties"]["completed"]), ("", False))
+
+      text = json.dumps(doc)
+      for leaked in ("2024-01-01", "Someone", "Phone"):
+        self.assertNotIn(leaked, text)
+
+  def test_empty_user_dir(self):
+    with tempfile.TemporaryDirectory() as tmp:
+      self.assertEqual(api.build_geojson(Path(tmp)), {"type": "FeatureCollection", "features": []})
+
+
 class TestValidateArea(unittest.TestCase):
   RING = [[5, 60], [6, 60], [6, 61], [5, 60]]
 
@@ -690,7 +763,8 @@ class TestRouting(unittest.TestCase):
         "/api/health": "_h_health", "/api/state": "_h_state", "/api/sessions": "_h_sessions_list",
         "/api/places": "_h_places_get", "/api/routes": "_h_routes_get", "/api/metadata": "_h_metadata_get",
         "/api/me/prefs": "_h_prefs_get", "/api/me/category-labels": "_h_me_category_labels_get",
-        "/api/me/export": "_h_export_get", "/api/me/tokens": "_h_tokens_list",
+        "/api/me/export": "_h_export_get", "/api/me/export.geojson": "_h_export_geojson_get",
+        "/api/me/tokens": "_h_tokens_list",
         "/api/public-maps": "_h_public_maps", "/api/catalog": "_h_catalog_get",
         "/api/admin/users": "_h_admin_users_list", "/api/admin/stats": "_h_admin_stats",
         "/api/admin/logs": "_h_admin_logs",
@@ -738,6 +812,7 @@ class TestRouting(unittest.TestCase):
       ("GET", "/api/u/bob/routes", [("_h_public_routes", "bob")]),
       ("GET", "/api/u/bob/metadata", [("_h_public_metadata", "bob")]),
       ("GET", "/api/u/bob/category-labels", [("_h_public_category_labels", "bob")]),
+      ("GET", "/api/u/bob/export.geojson", [("_h_public_geojson", "bob")]),
       ("GET", "/api/u/bob/gpx/r/t%20x.gpx", [("_h_public_gpx", "bob", "r", "t x.gpx")]),
       ("GET", "/api/u/bob/gpx/t.gpx", [("_h_public_gpx", "bob", "", "t.gpx")]),
       ("GET", "/api/u/bob/gpx/", nf),
