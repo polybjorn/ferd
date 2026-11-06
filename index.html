@@ -748,6 +748,7 @@
       box-shadow: 0 8px 24px var(--shadow);
       max-height: 16rem;
       overflow-y: auto;
+      overscroll-behavior: contain;
       font-size: 0.8rem;
     }
     .select-popover .select-option {
@@ -2858,6 +2859,8 @@
       .cat-swatch { width: 2.5rem; height: 2.5rem; }
       .cat-swatches { grid-template-columns: repeat(5, auto); gap: 0.5rem; }
       .cat-swatches.open { max-height: 16rem; }
+      .select-popover { font-size: 0.9rem; }
+      .select-popover .select-option { padding: 0.7rem 0.75rem; }
     }
     .row-note {
       display: block; max-height: 0; opacity: 0; overflow: hidden; margin-top: 0;
@@ -12923,11 +12926,10 @@
 
     // ----- Themed <select> dropdown -----
     // The native option list is OS-rendered and can't take the app's theme, so
-    // on fine-pointer (desktop) devices we keep the real <select> as the trigger
-    // and render our own listbox over it. Touch devices keep the native picker,
-    // which is a conventional full-screen control there. The <select> stays the
-    // source of truth: choosing an option writes its value and fires `change`, so
-    // every existing reader (selectOrNew, settings, filters) is unaffected.
+    // we keep the real <select> as the trigger and render our own listbox over
+    // it. The <select> stays the source of truth: choosing an option writes its
+    // value and fires `change`, so every existing reader (selectOrNew, settings,
+    // filters) is unaffected.
     const _selectCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
     let _selPopover = null;
     let _selPopoverTeardown = null;
@@ -12938,13 +12940,19 @@
       if (_selPopoverTeardown) { _selPopoverTeardown(); _selPopoverTeardown = null; }
     }
 
+    // Focusing a <select> opens the native picker on iOS, and on touch the list
+    // needs the room an open keyboard takes.
+    function focusSelectTrigger(sel) {
+      if (!_selectCoarsePointer) { sel.focus(); return; }
+      if (document.activeElement) document.activeElement.blur();
+    }
     function enhanceSelect(sel) {
-      if (_selectCoarsePointer || sel.dataset.enhanced === '1' || sel.disabled) return;
+      if (sel.dataset.enhanced === '1' || sel.disabled) return;
       sel.dataset.enhanced = '1';
       sel.addEventListener('mousedown', e => {
         e.preventDefault();
         if (_selPopover) { closeSelectPopover(); return; }
-        sel.focus();
+        focusSelectTrigger(sel);
         openSelectList(sel);
       });
       sel.addEventListener('keydown', e => {
@@ -13006,24 +13014,27 @@
     }
 
     // Claim the single popover slot and close it on outside press, scroll
-    // outside it, resize or blur. The listeners attach on the next tick so the
-    // press that opened it doesn't close it. onKey runs capture-phase.
+    // outside it or blur. A resize only moves it, since a phone keyboard closing
+    // or the URL bar sliding away resizes the page. The listeners attach on the
+    // next tick so the press that opened it doesn't close it. onKey runs
+    // capture-phase.
     function armSelectPopover(pop, anchor, onKey, onClose) {
       const onOutside = e => { if (_selPopover && !_selPopover.contains(e.target) && e.target !== anchor) closeSelectPopover(); };
       const onScroll = e => { if (_selPopover && _selPopover.contains(e.target)) return; closeSelectPopover(); };
+      const onResize = () => positionSelectPopover(pop, anchor);
       _selPopover = pop;
       setTimeout(() => {
         document.addEventListener('keydown', onKey, true);
         document.addEventListener('mousedown', onOutside, true);
         window.addEventListener('scroll', onScroll, true);
-        window.addEventListener('resize', closeSelectPopover);
+        window.addEventListener('resize', onResize);
         window.addEventListener('blur', closeSelectPopover);
       }, 0);
       _selPopoverTeardown = () => {
         document.removeEventListener('keydown', onKey, true);
         document.removeEventListener('mousedown', onOutside, true);
         window.removeEventListener('scroll', onScroll, true);
-        window.removeEventListener('resize', closeSelectPopover);
+        window.removeEventListener('resize', onResize);
         window.removeEventListener('blur', closeSelectPopover);
         if (onClose) onClose();
       };
@@ -13097,7 +13108,7 @@
           sel.dispatchEvent(new Event('change', { bubbles: true }));
         }
         closeSelectPopover();
-        sel.focus();
+        focusSelectTrigger(sel);
       };
 
       options.forEach((o, i) => {
@@ -13586,6 +13597,7 @@
         else if (tab === 'route') wireGpxForm();
         else if (tab === 'area') wireAreaForm();
         else wireBrowseForm();
+        enhanceSelectsIn(body);
         body.dataset.rendered = '1';
         if (firstRender) return;
         if (tab === 'browse') {
@@ -13906,8 +13918,44 @@
           fileName.textContent = 'No file selected';
           fileName.classList.remove('has-file');
         };
+        const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const resultsTiming = { duration: 200, easing: 'ease' };
+        const animateResultsHeight = (from, to) => {
+          if (from === to || reduceMotion()) return;
+          resultsEl.animate([
+            { height: from + 'px', overflow: 'hidden' },
+            { height: to + 'px', overflow: 'hidden' },
+          ], resultsTiming);
+        };
+        let resultsMotion = 0;
+        // The other rows stay rendered until the end so they can fade while the
+        // picked one slides between its place in the list and the top.
+        const foldResults = (row, fold) => {
+          const rows = Array.from(resultsEl.querySelectorAll('.area-result'));
+          const others = rows.filter(b => b !== row);
+          if (others.every(b => b.hidden === fold)) return;
+          const motion = ++resultsMotion;
+          const settle = () => { if (motion === resultsMotion) others.forEach(b => { b.hidden = fold; }); };
+          others.forEach(b => { b.hidden = false; });
+          const fullHeight = resultsEl.offsetHeight;
+          const shift = row.offsetTop - rows[0].offsetTop;
+          others.forEach(b => { b.hidden = true; });
+          const foldedHeight = resultsEl.offsetHeight;
+          if (reduceMotion()) { settle(); return; }
+          others.forEach(b => { b.hidden = false; });
+          if (fold) animateResultsHeight(fullHeight, foldedHeight);
+          else animateResultsHeight(foldedHeight, fullHeight);
+          const inList = { transform: 'none' };
+          const atTop = { transform: 'translateY(' + -shift + 'px)' };
+          row.animate(fold ? [inList, atTop] : [atTop, inList], resultsTiming);
+          const shown = { ...inList, opacity: 1 };
+          const gone = { ...atTop, opacity: 0 };
+          others.forEach(b => b.animate(fold ? [shown, gone] : [gone, shown], resultsTiming));
+          setTimeout(settle, resultsTiming.duration);
+        };
         const showAllResults = () => {
-          resultsEl.querySelectorAll('.area-result').forEach(b => { b.hidden = false; });
+          const picked = resultsEl.querySelector('.area-result:not([hidden])');
+          if (picked) foldResults(picked, false);
           moreEl.hidden = true;
         };
         moreEl.addEventListener('click', showAllResults);
@@ -13918,10 +13966,8 @@
           if (localEl) localEl.value = result.localName;
           pickCategory(result.kind);
           const rows = resultsEl.querySelectorAll('.area-result');
-          rows.forEach(b => {
-            b.setAttribute('aria-pressed', String(b === row));
-            b.hidden = b !== row;
-          });
+          rows.forEach(b => b.setAttribute('aria-pressed', String(b === row)));
+          foldResults(row, true);
           moreEl.textContent = 'Show all ' + rows.length + ' results';
           moreEl.hidden = rows.length < 2;
           clearFile();
@@ -13936,6 +13982,8 @@
           searchGo.disabled = true;
           errorEl.classList.remove('visible');
           searchAreaBoundaries(q).then(found => {
+            const fromHeight = resultsEl.hidden ? 0 : resultsEl.offsetHeight;
+            resultsMotion++;
             resultsEl.replaceChildren(...found.map(result => {
               const row = document.createElement('button');
               row.type = 'button';
@@ -13954,6 +14002,7 @@
             }));
             resultsEl.hidden = !found.length;
             moreEl.hidden = true;
+            animateResultsHeight(fromHeight, resultsEl.offsetHeight);
             if (!found.length) showModalError('No boundary found. Try a fuller name, such as Hiroshima Prefecture.');
             else if (found.length === 1) pickResult(found[0], resultsEl.firstChild);
           }).catch(() => {

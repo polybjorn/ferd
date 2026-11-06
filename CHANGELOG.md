@@ -11,6 +11,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ### Fixed
 - On phones, the map fits the visible screen, so its zoom buttons no longer slide under the header.
 - A place's popup opens just above its pin instead of covering the top of it.
+- Dropdowns on phones use the app's theme instead of the system picker, and so do those on the Add form's Route and Area tabs on desktop.
 
 ## [1.5.0] - 2026-11-05
 
