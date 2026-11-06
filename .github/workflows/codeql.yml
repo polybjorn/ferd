@@ -52,6 +52,12 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
+          # Neither folder ships: fixtures and demo credentials there read as
+          # findings against the app.
+          config: |
+            paths-ignore:
+              - tests
+              - .site-sheet
 
       - name: Build Android app (manual build for CodeQL tracing)
         if: matrix.language == 'java-kotlin'
