@@ -3322,10 +3322,18 @@
 
     // viewer mode: 'public' when the URL is /u/<username>/..., else 'owner'
     // (read+write against /api/places etc. for the signed-in user).
-    function detectViewer() {
-      const m = (location.pathname || '/').match(/^\/u\/([A-Za-z0-9_-]+)(?:\/|$)/);
+    // VIEWER-BEGIN
+    // Leading slashes are tolerated: a link built by joining a base ending in
+    // '/' with '/u/...' reaches the shell as '//u/...', which the server serves.
+    function viewerOf(pathname) {
+      const m = (pathname || '/').match(/^\/+u\/([A-Za-z0-9_-]+)(?:\/|$)/);
       if (m) return { mode: 'public', username: m[1] };
       return { mode: 'owner', username: null };
+    }
+    // VIEWER-END
+
+    function detectViewer() {
+      return viewerOf(location.pathname);
     }
 
     function dataUrl(kind) {
