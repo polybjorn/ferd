@@ -19,11 +19,11 @@ const areaHtml = source(/^( {4}function areaPopupHtml\(a, visited\) \{[\s\S]*?^ 
 
 function popups(viewer, auth) {
   const ctx = {
-    state: { viewer, auth, categoryColors: {}, categoryColorsLight: {} },
+    state: { viewer, auth },
     escapeHtml: s => String(s),
     getShowField: () => false,
     tagPopupHtml: () => '',
-    displayCategory: s => String(s),
+    popupCategoryHtml: s => String(s),
     areaStatusHtml: () => '<span>Visited</span>',
   };
   vm.createContext(ctx);

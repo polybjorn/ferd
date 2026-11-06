@@ -1760,8 +1760,9 @@
     .leaflet-popup-content .popup-source-link:hover { opacity: 1; color: var(--accent); }
     .leaflet-popup-content .popup-source-link svg { width: 0.95rem; height: 0.95rem; display: block; }
     .leaflet-popup-content .popup-local { font-size: 0.75rem; color: var(--muted); font-weight: 300; font-style: italic; white-space: nowrap; }
-    .leaflet-popup-content .cat-text { color: var(--c); }
-    [data-mode="light"] .leaflet-popup-content .cat-text { color: var(--cl); }
+    .leaflet-popup-content .popup-category { color: var(--muted); display: inline-flex; align-items: center; gap: 0.35rem; }
+    .leaflet-popup-content .popup-category-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; background: var(--c, var(--muted)); }
+    [data-mode="light"] .leaflet-popup-content .popup-category-dot { background: var(--cl, var(--muted)); }
     .leaflet-popup-content .popup-image {
       display: block; width: 100%; max-width: 280px; aspect-ratio: 16 / 10;
       object-fit: cover; border-radius: var(--radius); margin: 0.4rem auto;
@@ -6486,17 +6487,22 @@
     const EXTERNAL_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
 
 
+    // Uncategorized carries no colour of its own, so its dot falls back to
+    // --muted and follows the theme while the popup is open.
+    function popupCategoryHtml(category) {
+      const colors = category
+        ? ' style="--c:' + state.categoryColors[category] + ';--cl:' + state.categoryColorsLight[category] + '"' : '';
+      return '<span class="popup-category"><span class="popup-category-dot"' + colors + '></span>' +
+        escapeHtml(displayCategory(category)) + '</span>';
+    }
     function placePopupHtml(p) {
-      const color = state.categoryColors[p.category];
-      const colorLight = state.categoryColorsLight[p.category];
-      const catStyle = '--c:' + color + ';--cl:' + colorLight;
       const sourceUrl = (Array.isArray(p.sources) && p.sources.length) ? p.sources[0] : '';
       let html = '';
       if (sourceUrl) {
         html += '<a class="popup-source-link" href="' + escapeHtml(sourceUrl) + '" target="_blank" rel="noopener noreferrer" title="Go to source" aria-label="Go to source">' + EXTERNAL_ICON_SVG + '</a>';
       }
       const showLocal = getShowField('local-name');
-      html += '<div class="popup-name">' + escapeHtml(p.name) + (showLocal && p.local_name ? ' <span class="popup-local cat-text" style="' + catStyle + '">' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
+      html += '<div class="popup-name">' + escapeHtml(p.name) + (showLocal && p.local_name ? ' <span class="popup-local">' + escapeHtml(p.local_name) + '</span>' : '') + '</div>';
       if (p.image && getShowField('image')) {
         // Hide broken/blocked images instead of showing the empty alt frame.
         const focus = typeof p.image_focus === 'string' && /^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$/.test(p.image_focus.trim()) ? p.image_focus.trim() : '';
@@ -6506,26 +6512,30 @@
       if (p.note && getShowField('note')) html += '<div class="popup-note">' + escapeHtml(p.note) + '</div>';
       html += tagPopupHtml(p.tags);
       html += '<div class="popup-meta">' +
-        '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(displayCategory(p.category)) + '</span>' +
+        popupCategoryHtml(p.category) +
         popupEditHtml() +
         '<span style="grid-column:3">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
       '</div>';
       return html;
     }
 
+    function refreshCategoryColors() {
+      if (!state.places) return;
+      const cc = assignCategoryColors(state.places);
+      state.categoryColors = cc.dark;
+      state.categoryColorsLight = cc.light;
+      if (!state._placeClusterGroup) return;
+      state._placeClusterGroup.redraw();
+      syncAreasOnMap();
+      if (typeof refreshFilterPanel === 'function') refreshFilterPanel();
+      refreshOpenPlacePopup();
+    }
+
     // Refresh place rendering in-place after label edits or bulk-clears.
     // Avoids the full router rebuild (which blinks the map). Recomputes
     // category palette then triggers a canvas redraw and filter panel update.
     function refreshPlacesPresentation() {
-      if (state._placeClusterGroup && state.places) {
-        const cc = assignCategoryColors(state.places);
-        state.categoryColors = cc.dark;
-        state.categoryColorsLight = cc.light;
-        state._placeClusterGroup.redraw();
-        syncAreasOnMap();
-        if (typeof refreshFilterPanel === 'function') refreshFilterPanel();
-        refreshOpenPlacePopup();
-      }
+      refreshCategoryColors();
       if ((location.hash || '#/').startsWith('#/places')) wrappedRouter();
     }
 
@@ -6917,15 +6927,14 @@
       return '<span class="popup-area-status" style="grid-column:3">' + (visited ? 'Visited' : 'Want to visit') + '</span>';
     }
     function areaPopupHtml(a, visited) {
-      const catStyle = '--c:' + state.categoryColors[a.category] + ';--cl:' + state.categoryColorsLight[a.category];
       const local = getShowField('local-name') && a.local_name
-        ? ' <span class="popup-local cat-text" style="' + catStyle + '">' + escapeHtml(a.local_name) + '</span>' : '';
+        ? ' <span class="popup-local">' + escapeHtml(a.local_name) + '</span>' : '';
       let html = '<div class="popup-name">' + escapeHtml(a.name) + local + '</div>';
       if (a.note && getShowField('note')) html += '<div class="popup-note">' + escapeHtml(a.note) + '</div>';
       html += '<div class="popup-area-counts"><span class="popup-area-places"></span><span class="popup-area-routes">Counting routes&hellip;</span></div>' +
         '<div class="popup-area-list" hidden></div>' +
         '<div class="popup-meta">' +
-          '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(displayCategory(a.category)) + '</span>' +
+          popupCategoryHtml(a.category) +
           popupEditHtml() +
           areaStatusHtml(visited) +
         '</div>';
@@ -9625,7 +9634,7 @@
           : '<span>' + nameHtml + '</span>';
         html += '<div class="category-label">';
         if (byCategory) {
-          const dotColor = state.categoryColors[key] || 'var(--muted)';
+          const dotColor = (key && state.categoryColors[key]) || 'var(--muted)';
           html += '<span class="group-color-dot" style="background:' + dotColor + '"></span>';
         }
         html += nameSpan;
@@ -11178,11 +11187,9 @@
       document.documentElement.setAttribute('data-theme', theme);
       document.documentElement.setAttribute('data-mode', eff);
       _routeColorCache = null;
-      // Canvas clusters read theme CSS variables on each draw; force a
-      // redraw so the new theme's cluster colors apply immediately.
-      if (state && state._placeClusterGroup && state._placeClusterGroup.redraw) {
-        state._placeClusterGroup.redraw();
-      }
+      // The uncategorized bucket copies --muted, and canvas clusters read theme
+      // variables on each draw, so both need the new theme's values now.
+      refreshCategoryColors();
     }
     const PIN_STYLES = ['ring', 'pin', 'dot', 'tag'];
     function getPinStyle() {

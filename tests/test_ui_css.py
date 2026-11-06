@@ -282,6 +282,22 @@ class TargetsAndFocus(unittest.TestCase):
       self.assertIn('tabindex="-1"', tag)
 
 
+class CategoryColours(unittest.TestCase):
+  """The palette is chosen to tell categories apart, so it can't carry words."""
+
+  rules = ControlEdges.rules
+
+  def test_no_popup_text_reads_a_category_colour(self):
+    for selector, body in self.rules():
+      if "popup" in selector:
+        self.assertNotRegex(body, r"(?<![\w-])color:\s*var\(--cl?\b", selector.strip())
+
+  def test_the_dot_uses_the_light_palette_in_light_mode(self):
+    dots = {" ".join(s.split()): b for s, b in self.rules() if "popup-category-dot" in s}
+    self.assertIn("var(--c,", dots[".leaflet-popup-content .popup-category-dot"])
+    self.assertIn("var(--cl,", dots['[data-mode="light"] .leaflet-popup-content .popup-category-dot'])
+
+
 class Labels(unittest.TestCase):
   def test_required_is_marked_instead_of_optional(self):
     self.assertNotIn("(optional", INDEX)
