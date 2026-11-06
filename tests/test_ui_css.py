@@ -1,8 +1,8 @@
-"""ui.css contract and the cascade layer order in index.html.
+"""How Ferd loads ui.css, and the cascade layer order in index.html.
 
-ui.css is meant to be shared with other apps, so it must stay free of Ferd
-names, and its blocks only win over the app's general rules while those rules
-sit in a lower cascade layer. These checks keep both true.
+ui.css is a copy from bjorn/ui-foundation, whose own tests cover the file. Its
+blocks only win over the app's general rules while those rules sit in a lower
+cascade layer, which these checks keep true.
 """
 import re
 import unittest
@@ -41,30 +41,6 @@ def top_level_statements(css):
   tail = css[start:].strip()
   if tail:
     yield tail
-
-
-class UiCssContract(unittest.TestCase):
-  def test_no_app_specific_names(self):
-    self.assertNotRegex(UI_CSS.lower(), r"ferd")
-    for name in ("--surface)", "--accent)", "--text)", "--muted)", ".modal"):
-      self.assertNotIn(name, UI_CSS)
-
-  def test_every_class_is_prefixed(self):
-    classes = set(re.findall(r"\.([a-zA-Z_][\w-]*)", strip_comments(UI_CSS)))
-    self.assertTrue(classes)
-    self.assertEqual({c for c in classes if not c.startswith("ui-")}, set())
-
-  def test_every_rule_is_layered(self):
-    for stmt in top_level_statements(UI_CSS):
-      self.assertRegex(stmt, r"^@layer ui(-tokens)? \{", stmt[:60])
-
-  def test_custom_properties_are_prefixed(self):
-    props = set(re.findall(r"(--[\w-]+)\s*:", strip_comments(UI_CSS)))
-    self.assertTrue(props)
-    self.assertEqual({p for p in props if not p.startswith("--ui-")}, set())
-
-  def test_precached(self):
-    self.assertIn("'/ui.css'", SW)
 
 
 class IndexLayers(unittest.TestCase):
@@ -154,6 +130,9 @@ class Labels(unittest.TestCase):
 
 
 class Shipping(unittest.TestCase):
+  def test_precached(self):
+    self.assertIn("'/ui.css'", SW)
+
   def test_android_bundles_the_stylesheet(self):
     gradle = (ROOT / "android" / "app" / "build.gradle.kts").read_text(encoding="utf-8")
     self.assertIn('"ui.css"', gradle)

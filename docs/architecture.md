@@ -63,7 +63,7 @@ tests/
   test_api_helpers.py      # unit tests for pure helpers
   test_api_integration.py  # subprocess + HTTP integration tests
   test_shipped_catalog.py  # CI-enforced catalog conventions
-  test_ui_css.py           # ui.css contract and cascade layer order
+  test_ui_css.py           # how ui.css loads and the cascade layer order
 tools/
   api.py                   # stdlib-only API server (auth + write endpoints)
   config.example.json      # API config template
@@ -85,7 +85,7 @@ Dockerfile                 # container image
 index.html                 # the app (HTML/CSS/JS in one file)
 site-config.example.json   # branding, feature flags, default view, API base
 sw.js                      # PWA service worker (cache shell, tiles, GPX)
-ui.css                     # shared form and modal building blocks, no Ferd names
+ui.css                     # shared form and modal building blocks, copied from bjorn/ui-foundation
 ```
 
 ## Why no build step
@@ -105,7 +105,7 @@ Minimums for any change to the frontend. Don't drop below them without a real re
 - **Browsers:** Baseline Widely Available (caniuse.com / web-platform-dx), with Chrome 99 as the WebView floor. The map layout already needs Chrome 105 for `:has()`. Below 99 the page shows an update-your-WebView notice instead of the app, since a browser without cascade layers drops every layered rule.
 - **Viewport:** desktop first (>=1024 px). Mobile portrait works down to 320 px. Installable as a PWA (own home-screen icon, standalone window), no native wrapper.
 - **CSS:** baseline only. In: `:has()`, `:is()`, `:where()`, grid, flex, custom properties, logical properties, `aspect-ratio`, `prefers-*`, cascade layers, container queries, `color-mix()`. Wait for baseline: subgrid, anchor positioning.
-- **CSS layers:** `index.html` declares `@layer ui-tokens, reset, vendor, app, ui;`. The element resets sit in `reset`, below vendor CSS so they leave Leaflet's margins and link colours alone. Vendor CSS is imported into `vendor`, the app's own rules sit in `app`, and the building blocks in `ui.css` (field, toggle row, choice list, section, hint) sit in `ui`, so a general rule cannot beat a component. Keep new rules in a layer: unlayered CSS and `style=` attributes beat every layer. `ui.css` documents its markup contract at the top and carries no Ferd-specific names, since Dashboard is meant to share it.
+- **CSS layers:** `index.html` declares `@layer ui-tokens, reset, vendor, app, ui;`. The element resets sit in `reset`, below vendor CSS so they leave Leaflet's margins and link colours alone. Vendor CSS is imported into `vendor`, the app's own rules sit in `app`, and the building blocks in `ui.css` (field, toggle row, choice list, section, hint) sit in `ui`, so a general rule cannot beat a component. Keep new rules in a layer: unlayered CSS and `style=` attributes beat every layer. `ui.css` documents its markup contract at the top. It is a copy from a `bjorn/ui-foundation` tag, and its first line records the version: a change or a new block lands in that repo, gets a tag and is copied here unchanged, never edited in place.
 - **Accessibility:** required. Semantic HTML, labels on every input, Esc closes modals, `prefers-reduced-motion` is respected, WCAG AA contrast on every theme.
 - **Network:** edits work offline. They apply on-device immediately and sync to the server on reconnect; server-only actions (publishing, sessions, account management) still need network and fail loudly. Reads are offline-capable through a hand-rolled service worker (`sw.js`) that precaches the app shell and vendored deps, runs `stale-while-revalidate` on JSON data, and cache-firsts map tiles with an LRU cap. See [pwa.md](pwa.md).
 - **Performance:** soft target under 1s first paint on a 5-year-old laptop, under 500 KB of JS+CSS+HTML on first load (tiles and GPX excluded).

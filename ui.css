@@ -1,4 +1,6 @@
-/* ui.css: shared building blocks for menus, modals and forms.
+/* ui.css 1.1.1: shared building blocks for menus, modals and forms.
+   Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
+   vendored copy is replaced from a tag there, never edited in place.
 
    Written to be shared between apps, so it carries no app-specific names.
    Every class starts with `ui-`, which lets old and new markup coexist.
@@ -143,7 +145,8 @@
     font-weight: var(--ui-label-weight);
     color: var(--ui-text);
   }
-  .ui-field :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]), select, textarea) {
+  /* :where keeps this at the weight of the field rules below, which override it. */
+  .ui-field :is(input:where(:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"])), select, textarea) {
     font: inherit;
     inline-size: 100%;
     min-block-size: var(--ui-control-height);
@@ -155,7 +158,12 @@
     border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius);
   }
-  .ui-field textarea { padding-block: var(--ui-space-2); resize: vertical; }
+  /* The first line sits where a one-line input centres its text, so the
+     caret keeps its height moving between fields. */
+  .ui-field textarea {
+    padding-block: calc((var(--ui-control-height) - 1lh) / 2 - 1px);
+    resize: vertical;
+  }
   /* Browsers default to one fixed grey, whatever the surface behind it. */
   .ui-field ::placeholder {
     color: var(--ui-muted);
