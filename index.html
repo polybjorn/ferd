@@ -2412,6 +2412,9 @@
     .modal:is(:has(#settings-tabs), :has(#add-tabs), :has(#add-body), :has(#cat-rows), :has(#rgn-rows),
               :has(#cat-list), :has(#cat-mgr-list), :has(#catalog-bulk-list)) { inset-block: 3rem; }
     .modal:is(:has(#settings-tabs), :has(#add-tabs), :has(#cat-list), :has(#cat-mgr-list)) { block-size: auto; }
+    /* A note dragged taller or a longer tab brings the scrollbar in, and the
+       fields must not narrow when it does. */
+    .modal .ui-dialog-body:has(#add-body, textarea) { scrollbar-gutter: stable; }
     /* A list scrolls inside the body, so the filter or form above it stays put. */
     .modal .ui-dialog-body:has(> :is(#cat-rows, #rgn-rows, #cat-list, #cat-mgr-list, #catalog-bulk-list)) {
       display: flex;

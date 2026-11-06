@@ -252,6 +252,10 @@ class TargetsAndFocus(unittest.TestCase):
     self.assertIn("margin-inline: -4px", body)
     self.assertIn("padding-inline: 4px", body)
 
+  def test_a_growing_form_keeps_its_width_when_the_scrollbar_appears(self):
+    body = self.body(".modal .ui-dialog-body:has(#add-body, textarea)")
+    self.assertIn("scrollbar-gutter: stable", body)
+
   def test_a_closed_section_takes_no_keyboard_stop(self):
     for closed, opened in ((".cat-swatches", ".cat-swatches.open"), (".collapsible", ".collapsible.expanded")):
       self.assertIn("visibility: hidden", self.body(closed))
