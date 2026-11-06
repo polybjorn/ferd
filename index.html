@@ -2518,6 +2518,27 @@
     #add-body { overflow: hidden; transition: height 0.25s ease; }
     .modal .modal-desc { font-size: 0.85rem; color: var(--text); margin-top: 0.4rem; }
     .modal .file-picker { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.5rem; }
+    .modal .area-search-label { display: flex; align-items: center; gap: 0.25rem; }
+    .modal button.area-search-info:not(.modal-close) {
+      border: none;
+      display: flex;
+      padding: 0.4rem;
+    }
+    .modal button.area-search-info:not(.modal-close):hover:not(:disabled),
+    .modal button.area-search-info[aria-expanded="true"]:not(.modal-close) { color: var(--accent); }
+    /* Grid rows, since a height of auto can't transition. */
+    .modal .area-search-note {
+      display: grid;
+      grid-template-rows: 0fr;
+      opacity: 0;
+      transition: grid-template-rows 0.2s ease, opacity 0.2s ease, visibility 0.2s;
+      visibility: hidden;
+    }
+    .modal .area-search-note.open { grid-template-rows: 1fr; opacity: 1; visibility: visible; }
+    .modal .area-search-note p { font-size: 0.85rem; line-height: 1.4; min-height: 0; overflow: hidden; }
+    @media (prefers-reduced-motion: reduce) {
+      .modal .area-search-note { transition: none; }
+    }
     .modal .area-search { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.5rem; }
     .modal .area-search input { flex: 1; min-width: 0; }
     .modal .area-results { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.5rem; }
@@ -2541,14 +2562,15 @@
     }
     .modal button.area-result[hidden]:not(.modal-close),
     .modal button.area-results-more[hidden]:not(.modal-close) { display: none; }
+    .area-results-foot { align-items: center; display: flex; gap: 0.75rem; justify-content: space-between; }
     .modal button.area-results-more:not(.modal-close) {
-      align-self: flex-start;
       border: none;
       font-size: 0.8rem;
       letter-spacing: normal;
       margin-top: 0.3rem;
       padding: 0.3rem 0;
     }
+    .area-results-credit { color: var(--muted); font-size: 0.75rem; margin-left: auto; margin-top: 0.3rem; }
     .modal button.area-results-more:not(.modal-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
     .area-result-name { font-weight: 600; }
     .area-result-kind, .area-result-detail { color: var(--muted); font-size: 0.75rem; }
@@ -13817,14 +13839,22 @@
 
       function areaFormHtml() {
         return '<form id="area-form">' +
-          '<label for="a-search">Find a boundary</label>' +
+          '<div class="area-search-label">' +
+            '<label for="a-search">Find a boundary</label>' +
+            '<button type="button" class="area-search-info" id="a-search-info" aria-label="About this search" aria-expanded="false" aria-controls="a-search-note">' +
+              '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>' +
+            '</button>' +
+          '</div>' +
+          '<div class="area-search-note" id="a-search-note"><p>Nominatim, OpenStreetMap&rsquo;s search service, sees what you type and your IP address.</p></div>' +
           '<div class="area-search">' +
-            '<input type="text" id="a-search" maxlength="200" enterkeyhint="search" placeholder="e.g. Hiroshima Prefecture">' +
+            '<input type="text" id="a-search" maxlength="200" enterkeyhint="search" placeholder="Search OpenStreetMap">' +
             '<button type="button" class="primary" id="a-search-go">Search</button>' +
           '</div>' +
           '<div class="area-results" id="a-results" hidden></div>' +
-          '<button type="button" class="area-results-more" id="a-results-more" hidden></button>' +
-          '<div class="hint">Searches OpenStreetMap through Nominatim, which sees what you type and your IP address. Boundaries &copy; OpenStreetMap contributors.</div>' +
+          '<div class="area-results-foot">' +
+            '<button type="button" class="area-results-more" id="a-results-more" hidden></button>' +
+            '<span class="area-results-credit" id="a-results-credit" hidden>&copy; OpenStreetMap contributors</span>' +
+          '</div>' +
           '<label>Or use a GeoJSON file</label>' +
           '<div class="file-picker">' +
             '<input type="file" id="a-file" accept=".geojson,.json,application/geo+json,application/json" class="file-input-hidden">' +
@@ -13878,6 +13908,12 @@
         const localEl = document.getElementById('a-local-name');
         const searchEl = document.getElementById('a-search');
         const searchGo = document.getElementById('a-search-go');
+        const creditEl = document.getElementById('a-results-credit');
+        const infoBtn = document.getElementById('a-search-info');
+        infoBtn.addEventListener('click', function() {
+          const open = document.getElementById('a-search-note').classList.toggle('open');
+          infoBtn.setAttribute('aria-expanded', String(open));
+        });
         const resultsEl = document.getElementById('a-results');
         const moreEl = document.getElementById('a-results-more');
         let parsed = null;
@@ -14001,6 +14037,7 @@
               return row;
             }));
             resultsEl.hidden = !found.length;
+            creditEl.hidden = !found.length;
             moreEl.hidden = true;
             animateResultsHeight(fromHeight, resultsEl.offsetHeight);
             if (!found.length) showModalError('No boundary found. Try a fuller name, such as Hiroshima Prefecture.');
