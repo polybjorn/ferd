@@ -16,7 +16,7 @@ INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 # Lower these as one-off styles move out. Never raise them.
 MAX_INLINE_STYLES = 131
 MAX_IMPORTANT = 73
-MAX_HARDCODED_COLOURS = 15
+MAX_HARDCODED_COLOURS = 12
 
 COLOUR = re.compile(r"#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?)\(")
 # A theme block defines tokens, so its literals are the theme itself.

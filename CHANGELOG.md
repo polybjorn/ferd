@@ -14,6 +14,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places carry a `country_code` (ISO 3166-1 alpha-2) that the server sets from the Country field on every save. Existing places get one when the server starts.
 
 ### Fixed
+- A filled button in a dialog keeps its label readable on hover in every theme, and shows hover with an inner ring instead of fading.
 - A public map opened with a doubled slash in its address, such as `//u/name/`, shows the map instead of the sign-in prompt.
 - On phones, the map fits the visible screen, so its zoom buttons no longer slide under the header.
 - A place's popup opens just above its pin instead of covering the top of it.
@@ -24,6 +25,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The cursor in the Note and Sources fields sits level with the other form fields.
 - On phones, tall forms and lists keep their margin at the bottom of the screen instead of running down to the edge.
 - Switches that are off are easier to see in every theme: an outlined track with a solid knob instead of a faint filled one.
+- Inputs, dropdowns and unfilled buttons have a clearer edge in every theme, and links, errors, success messages and button labels read better in the themes where they were too faint. Accent and green moved slightly lighter or darker in those themes. Route status dots and legend lines use a brighter red and green in dark mode and a darker pair in light mode, so they stand out on every panel. Place status dots are now filled or hollow in the text colour, so colour on a place only ever means its category, and the Visited and Want to visit labels use the normal text colour.
 - Redrawing the map while it is still zooming, such as at sign-in, no longer leaves the old map's pending redraws running and logging errors.
 - Leaving a route's page while its map is zooming or expanding no longer logs errors from the removed map.
 - Leaving a route's page before its track has loaded no longer logs errors from the removed map.
