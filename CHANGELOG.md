@@ -26,6 +26,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Redrawing the map while it is still zooming, such as at sign-in, no longer leaves the old map's pending redraws running and logging errors.
 - The Dark base map works again. CARTO began stamping its dark tiles with "API KEY REQUIRED", so Dark now shows OpenStreetMap's map in dark colours and no longer contacts CARTO.
 - The Docker image's licence label says GPL-3.0 instead of MIT.
+- The base maps give their providers' full credits: OpenTopoMap names OpenStreetMap contributors, SRTM and its CC-BY-SA licence, and OpenStreetMap and Dark credit OpenStreetMap contributors.
 
 ### Changed
 - The OpenStreetMap and Dark base maps no longer keep tiles for offline use, since OpenStreetMap's tile policy does not permit it; the browser's normal cache still serves recently viewed tiles. OpenTopoMap still works offline. Tiles cached before this update are cleared once.

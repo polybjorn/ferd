@@ -30,6 +30,11 @@ Each entry in `overlays` adds an opacity slider to the map's layer picker, where
     "attribution": "&copy; Kartverket"
   },
   {
+    "name": "Grey topo (Kartverket)",
+    "url": "https://cache.kartverket.no/v1/wmts/1.0.0/topograatone/default/webmercator/{z}/{y}/{x}.png",
+    "attribution": "&copy; Kartverket"
+  },
+  {
     "name": "Hillshade",
     "type": "wms",
     "url": "https://wms.geonorge.no/skwms1/wms.terrengmodell",
@@ -41,11 +46,20 @@ Each entry in `overlays` adds an opacity slider to the map's layer picker, where
     "url": "https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png",
     "max_zoom": 20,
     "attribution": "<a href=\"https://www.cyclosm.org\">CyclOSM</a> &middot; &copy; <a href=\"https://osm.org/copyright\">OpenStreetMap</a> contributors"
+  },
+  {
+    "name": "Sentinel-2 (EOX)",
+    "url": "https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg",
+    "attribution": "<a href=\"https://cloudless.eox.at\">EOxCloudless</a> by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)"
   }
 ]
 ```
 
+Both Kartverket layers cover Norway only. From zoom 12 to 20 they hold Geovekst data, which needs Kartverket's permission to copy, so these examples leave `offline` off.
+
 CyclOSM is hosted by OSM France, whose [usage conditions](https://www.openstreetmap.fr/usage/) cover public, non-profit sites with moderate traffic. Check that your install fits them before adding it, and leave `offline` off: [cyclosm.org](https://www.cyclosm.org/) allows caching its tiles for a few hours at most.
+
+EOX's Sentinel-2 cloudless mosaic is free for non-commercial use; commercial use needs a licence from [EOX](https://cloudless.eox.at). Leave `offline` off for it too, since its terms do not cover caching tiles.
 
 | Field | Default | Notes |
 |---|---|---|
