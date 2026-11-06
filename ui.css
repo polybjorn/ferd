@@ -192,10 +192,11 @@
     min-inline-size: 0;
     overflow: hidden;
     font-size: var(--ui-text-sm);
-    color: var(--ui-text);
+    color: var(--ui-muted);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  a.ui-control-text { text-decoration: underline; }
 
   .ui-required::after {
     content: " *";
@@ -212,7 +213,6 @@
     text-transform: none;
     color: var(--ui-muted);
   }
-  a.ui-hint { text-decoration: underline; }
 
   .ui-toggle-row {
     font: inherit;
