@@ -395,10 +395,11 @@
        Same specificity as the theme blocks but placed after them, so it wins.
        Danger/error keep --danger and success keeps --green. */
     [data-theme][data-mode] { --planned: #d23f3f; --completed: #2ea043; }
-    /* Route lines sit on map tiles and keep the pair above. Dots and legend
-       lines sit on theme surfaces, where one fixed pair cannot reach 3:1 in
-       both modes. Never use these for text: a red that reaches 4.5:1 on the
-       lighter dark panels reads as pink. */
+    /* Route lines sit on map tiles and keep the pair above. Route dots and
+       legend lines sit on theme surfaces, where one fixed pair cannot reach
+       3:1 in both modes. Never use these for text: a red that reaches 4.5:1
+       on the lighter dark panels reads as pink. Places stay off them too,
+       since colour on a place means its category and fill means its status. */
     [data-theme][data-mode="dark"] { --status-planned: #ff6b6b; --status-completed: #32af49; }
     [data-theme][data-mode="light"] { --status-planned: #d32f2f; --status-completed: #258236; }
 
@@ -1014,9 +1015,9 @@
       flex-shrink: 0;
       box-sizing: border-box;
     }
-    .status-dot.visited { background: var(--status-completed); }
+    .status-dot.visited { background: var(--text); }
     .status-dot.completed { background: var(--status-completed); }
-    .status-dot.want { background: transparent; border: 1.5px solid var(--status-planned); }
+    .status-dot.want { background: transparent; border: 1.5px solid var(--text); }
     .status-dot.planned { background: transparent; border: 1.5px solid var(--status-planned); }
 
     /* Routes index */
@@ -1795,14 +1796,20 @@
       text-align: left;
     }
     .leaflet-popup-content .popup-area-item::before {
-      background: var(--status-planned);
+      border: 1.5px solid var(--text);
       border-radius: 50%;
+      box-sizing: border-box;
       content: '';
       flex: none;
       height: 0.4rem;
       width: 0.4rem;
     }
-    .leaflet-popup-content .popup-area-item.done::before { background: var(--status-completed); }
+    .leaflet-popup-content .popup-area-item.done::before { background: var(--text); }
+    .leaflet-popup-content .popup-area-item.route::before { border-color: var(--status-planned); }
+    .leaflet-popup-content .popup-area-item.route.done::before {
+      background: var(--status-completed);
+      border-color: var(--status-completed);
+    }
     .leaflet-popup-content .popup-summary {
       color: var(--text);
       font-size: 0.75rem;
@@ -6945,7 +6952,7 @@
       const areaListItem = function(item) {
         const row = document.createElement('button');
         row.type = 'button';
-        row.className = 'popup-area-item' + (item.done ? ' done' : '');
+        row.className = 'popup-area-item' + (item.route ? ' route' : '') + (item.done ? ' done' : '');
         row.textContent = item.label;
         row.addEventListener('click', function(e) {
           // Closing detaches the popup, and Leaflet would take this for a map click.
@@ -6965,7 +6972,7 @@
       routesInArea(area, manifestRoutes()).then(function(routes) {
         const completed = routes.filter(r => r.completed);
         fillCount(routesSlot, areaStatText(routes.length, 'route', completed.length, 'completed'),
-          routes.map(r => ({ label: r.name, done: r.completed, go: () => goToRoute(map, r.key) })).sort(byLabel));
+          routes.map(r => ({ label: r.name, done: r.completed, route: true, go: () => goToRoute(map, r.key) })).sort(byLabel));
         if (completed.length) content.querySelector('.popup-area-status').outerHTML = areaStatusHtml(true);
       }, function() {
         // An unreadable track, typically offline: a partial count would read as the real one.

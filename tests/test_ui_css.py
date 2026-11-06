@@ -141,6 +141,17 @@ class ThemeContrast(unittest.TestCase):
   def test_status_colours_never_paint_text(self):
     self.assertNotRegex(INDEX, r"(?<![-\w])color:[^;}\n]*--status-")
 
+  def test_place_status_is_fill_not_colour(self):
+    for selector in (r"\.status-dot\.visited", r"\.status-dot\.want",
+                     r"\.popup-area-item::before", r"\.popup-area-item\.done::before"):
+      rule = re.search(selector + r" \{([^}]*)\}", INDEX)
+      self.assertIsNotNone(rule, selector)
+      self.assertIn("var(--text)", rule.group(1), selector)
+
+  def test_routes_in_an_area_list_keep_their_status_colours(self):
+    self.assertRegex(INDEX, r"\.popup-area-item\.route::before \{[^}]*--status-planned")
+    self.assertRegex(INDEX, r"\.popup-area-item\.route\.done::before \{[^}]*--status-completed")
+
   def test_only_route_lines_read_the_tile_colours(self):
     self.assertNotRegex(INDEX, r"var\(--(planned|completed)\)")
 
