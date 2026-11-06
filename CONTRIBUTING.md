@@ -43,6 +43,17 @@ node --test tests/js/*.test.js
 
 Stdlib only, no deps. Two layers: unit tests for pure helpers and file utilities in `tools/api.py`, and integration tests that launch the API in a subprocess and hit endpoints over HTTP. Run before opening a PR. If your change touches the API surface or one of the helpers, add a case.
 
+### Modal review sheet
+
+`.site-sheet/states.json` lists every modal and the clicks that open it, for the `site-sheet` tool, which shoots each one in light and dark at phone and desktop width with an axe run. `.site-sheet/serve.py` starts the API on loopback with a demo admin (`demo` / `demo-password-1`) and the places, area, route and catalog update the states open. To see the sheet locally:
+
+```sh
+python3 .site-sheet/serve.py 8097 &
+site-sheet capture "" / /tmp/ferd-sheet --states .site-sheet/states.json --origin http://127.0.0.1:8097
+```
+
+A new modal needs a state here; `tests/test_site_sheet.py` fails on a modal title no state waits for. Edit place is the one gap: only a right-click menu opens it, and `site-sheet` has no right-click step yet.
+
 To verify the static side end to end, run the dev server above, sign in, and do all of: add a place from the map ("Pick on map" then form), edit a place from its popup, delete a place, upload a GPX, delete a route, switch themes, change your password, revoke a session.
 
 ## Reporting issues

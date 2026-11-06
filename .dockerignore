@@ -26,3 +26,6 @@ android/
 .idea/
 __pycache__/
 *.pyc
+
+# Review sheet states and its demo server.
+.site-sheet/

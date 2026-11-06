@@ -1,0 +1,724 @@
+[
+  {
+    "name": "add-place",
+    "page": "index.html",
+    "label": "Add, place",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#map-add-btn"
+      },
+      {
+        "wait": "#add-tabs"
+      }
+    ]
+  },
+  {
+    "name": "add-route",
+    "page": "index.html",
+    "label": "Add, route",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#map-add-btn"
+      },
+      {
+        "wait": "#add-tabs"
+      },
+      {
+        "click": "#add-tabs [data-tab=\"route\"]"
+      },
+      {
+        "wait": "#add-tabs [data-tab=\"route\"].active"
+      }
+    ]
+  },
+  {
+    "name": "add-area",
+    "page": "index.html",
+    "label": "Add, area",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#map-add-btn"
+      },
+      {
+        "wait": "#add-tabs"
+      },
+      {
+        "click": "#add-tabs [data-tab=\"area\"]"
+      },
+      {
+        "wait": "#add-tabs [data-tab=\"area\"].active"
+      }
+    ]
+  },
+  {
+    "name": "add-browse",
+    "page": "index.html",
+    "label": "Add, browse",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#map-add-btn"
+      },
+      {
+        "wait": "#add-tabs"
+      },
+      {
+        "click": "#add-tabs [data-tab=\"browse\"]"
+      },
+      {
+        "wait": "#add-tabs [data-tab=\"browse\"].active"
+      }
+    ]
+  },
+  {
+    "name": "settings-general",
+    "page": "index.html",
+    "label": "Settings, general",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu [data-action=settings]"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Settings\")"
+      }
+    ]
+  },
+  {
+    "name": "settings-appearance",
+    "page": "index.html",
+    "label": "Settings, appearance",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu [data-action=settings]"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Settings\")"
+      },
+      {
+        "click": "#settings-tabs [data-tab=\"appearance\"]"
+      },
+      {
+        "wait": "#settings-tabs [data-tab=\"appearance\"].active"
+      }
+    ]
+  },
+  {
+    "name": "settings-account",
+    "page": "index.html",
+    "label": "Settings, account",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu [data-action=settings]"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Settings\")"
+      },
+      {
+        "click": "#settings-tabs [data-tab=\"account\"]"
+      },
+      {
+        "wait": "#settings-tabs [data-tab=\"account\"].active"
+      }
+    ]
+  },
+  {
+    "name": "settings-security",
+    "page": "index.html",
+    "label": "Settings, security",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu [data-action=settings]"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Settings\")"
+      },
+      {
+        "click": "#settings-tabs [data-tab=\"security\"]"
+      },
+      {
+        "wait": "#settings-tabs [data-tab=\"security\"].active"
+      }
+    ]
+  },
+  {
+    "name": "settings-admin",
+    "page": "index.html",
+    "label": "Settings, admin",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu [data-action=settings]"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Settings\")"
+      },
+      {
+        "click": "#settings-tabs [data-tab=\"admin\"]"
+      },
+      {
+        "wait": "#settings-tabs [data-tab=\"admin\"].active"
+      }
+    ]
+  },
+  {
+    "name": "manage-categories",
+    "page": "index.html",
+    "label": "Manage categories",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu [data-action=settings]"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Settings\")"
+      },
+      {
+        "click": "#s-manage-cats"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Manage categories\")"
+      }
+    ]
+  },
+  {
+    "name": "manage-regions",
+    "page": "index.html",
+    "label": "Manage regions",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu [data-action=settings]"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Settings\")"
+      },
+      {
+        "click": "#s-manage-regions"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Manage regions\")"
+      }
+    ]
+  },
+  {
+    "name": "catalog-manager",
+    "page": "index.html",
+    "label": "Catalog manager",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu [data-action=settings]"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Settings\")"
+      },
+      {
+        "click": "#settings-tabs [data-tab=\"admin\"]"
+      },
+      {
+        "wait": "#settings-tabs [data-tab=\"admin\"].active"
+      },
+      {
+        "click": "#s-catalog-manage"
+      },
+      {
+        "wait": ".modal-backdrop + .modal-backdrop .modal"
+      }
+    ]
+  },
+  {
+    "name": "catalog-picker",
+    "page": "index.html",
+    "label": "Catalog picker",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu [data-action=settings]"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Settings\")"
+      },
+      {
+        "click": "#settings-tabs [data-tab=\"admin\"]"
+      },
+      {
+        "wait": "#settings-tabs [data-tab=\"admin\"].active"
+      },
+      {
+        "click": "#s-catalog-add"
+      },
+      {
+        "wait": ".modal-backdrop + .modal-backdrop .modal"
+      }
+    ]
+  },
+  {
+    "name": "logs",
+    "page": "index.html",
+    "label": "Logs",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu [data-action=settings]"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Settings\")"
+      },
+      {
+        "click": "label:has(#s-feat-logs)"
+      },
+      {
+        "press": "Escape"
+      },
+      {
+        "click": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu [data-action=logs]"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Audit log\")"
+      }
+    ]
+  },
+  {
+    "name": "about",
+    "page": "index.html",
+    "label": "About",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu [data-action=about]"
+      },
+      {
+        "wait": ".modal h2:has-text(\"About\")"
+      }
+    ]
+  },
+  {
+    "name": "sign-out",
+    "page": "index.html",
+    "label": "Sign out, confirm",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu-btn"
+      },
+      {
+        "click": "#auth-menu [data-action=signout]"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Sign out?\")"
+      }
+    ]
+  },
+  {
+    "name": "sign-in",
+    "page": "u/demo/",
+    "label": "Sign in",
+    "steps": [
+      {
+        "click": "#auth-signin"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Sign in\")"
+      }
+    ]
+  },
+  {
+    "name": "edit-route",
+    "page": "index.html",
+    "label": "Edit route",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#tab-routes:visible, #auth-menu-btn"
+      },
+      {
+        "click": "#tab-routes:visible, #auth-menu [data-action=nav-routes]"
+      },
+      {
+        "wait": ".route-card"
+      },
+      {
+        "click": ".route-card"
+      },
+      {
+        "click": "#route-edit-btn"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Edit route\")"
+      }
+    ]
+  },
+  {
+    "name": "edit-area",
+    "page": "index.html",
+    "label": "Edit area",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "fill": "#map-search-input",
+        "value": "Birch"
+      },
+      {
+        "click": ".map-search-result[data-type=area]"
+      },
+      {
+        "click": ".popup-area-edit"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Edit area\")"
+      }
+    ]
+  },
+  {
+    "name": "catalog-update",
+    "page": "index.html",
+    "label": "Update from catalog",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#tab-places:visible, #auth-menu-btn"
+      },
+      {
+        "click": "#tab-places:visible, #auth-menu [data-action=nav-places]"
+      },
+      {
+        "wait": ".catalog-mark"
+      },
+      {
+        "click": ".catalog-mark"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Update from catalog\")"
+      }
+    ]
+  },
+  {
+    "name": "catalog-updates",
+    "page": "index.html",
+    "label": "Catalog updates",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#tab-places:visible, #auth-menu-btn"
+      },
+      {
+        "click": "#tab-places:visible, #auth-menu [data-action=nav-places]"
+      },
+      {
+        "wait": ".catalog-mark"
+      },
+      {
+        "click": "#auth-menu-btn"
+      },
+      {
+        "click": "#catalog-update-review:visible, #menu-catalog-updates:visible"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Catalog updates\")"
+      }
+    ]
+  }
+]
