@@ -27,6 +27,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Inputs, dropdowns and unfilled buttons have a clearer edge in every theme, and links, errors, success messages and button labels read better in the themes where they were too faint. Accent and green moved slightly lighter or darker in those themes. Status dots, legend lines and the Visited and Want to visit labels use a lighter pair in dark mode and a darker pair in light mode, so they stay readable on every panel.
 - Redrawing the map while it is still zooming, such as at sign-in, no longer leaves the old map's pending redraws running and logging errors.
 - Leaving a route's page while its map is zooming or expanding no longer logs errors from the removed map.
+- Leaving a route's page before its track has loaded no longer logs errors from the removed map.
 - The Dark base map works again. CARTO began stamping its dark tiles with "API KEY REQUIRED", so Dark now shows OpenStreetMap's map in dark colours and no longer contacts CARTO.
 - The Docker image's licence label says GPL-3.0 instead of MIT.
 - The base maps give their providers' full credits: OpenTopoMap names OpenStreetMap contributors, SRTM and its CC-BY-SA licence, and OpenStreetMap and Dark credit OpenStreetMap contributors.

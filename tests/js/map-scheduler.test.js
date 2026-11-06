@@ -150,6 +150,36 @@ test('the route detail map has a scheduler and no frames outside it', () => {
   assert.doesNotMatch(detail, /requestAnimationFrame/);
 });
 
+test('a continuation wrapped by live() does nothing once the map is removed', () => {
+  const env = makeEnv();
+  const map = makeMap(env);
+  const sched = env.mapScheduler(map);
+  const seen = [];
+  const early = sched.live((v) => seen.push(v));
+  const late = sched.live((v) => seen.push(v));
+  early('before');
+  map.remove();
+  late('after');
+  early('after');
+  assert.deepEqual(seen, ['before']);
+});
+
+test('every GPX load on the route detail map goes through live()', () => {
+  // A fetch promise can't be cancelled, so each continuation has to check.
+  for (const name of ['renderTrailDetail', 'renderSingleTrack', 'renderMultiTrack']) {
+    const src = functionSource(name);
+    const loads = (src.match(/fetchGpxText\(/g) || []).length;
+    assert.ok(loads > 0, name + ' no longer loads a GPX');
+    assert.equal((src.match(/\.then\(sched\.live\(/g) || []).length, loads, name);
+  }
+  // L.GPX parses in a later task, so its events can also land after removal.
+  for (const name of ['renderTrailDetail', 'renderSingleTrack']) {
+    const src = functionSource(name);
+    assert.equal((src.match(/\.on\('(?:loaded|addline)', /g) || []).length,
+      (src.match(/\.on\('(?:loaded|addline)', sched\.live\(/g) || []).length, name);
+  }
+});
+
 test('the vendored Leaflet still gates its zoom transition end on _animatingZoom', () => {
   // The cancel above relies on this guard; a Leaflet upgrade that drops it
   // has to revisit mapScheduler.
