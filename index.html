@@ -15,12 +15,17 @@
     /* Layer order: ui.css components beat the app's own rules and vendor CSS
        whatever their specificity. Unlayered CSS beats every layer, so new rules
        go in a layer too; only the WebView notice below stays unlayered. */
-    @layer ui-tokens, vendor, app, ui;
+    @layer ui-tokens, reset, vendor, app, ui;
     @import url("/vendor/leaflet/leaflet.css") layer(vendor);
     @import url("/vendor/leaflet-elevation/leaflet-elevation.css") layer(vendor);
 
+    /* Below vendor, or these replace the margins, padding and link colours Leaflet sets. */
+    @layer reset {
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      a { color: var(--accent); text-decoration: none; }
+    }
+
     @layer app {
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     /* Tell native controls (date picker, radios, scrollbars) which palette to
        follow. The data-mode attribute is set by applyTheme(). */
     [data-mode="dark"] { color-scheme: dark; }
@@ -391,7 +396,6 @@
     }
 
 
-    a { color: var(--accent); text-decoration: none; }
     a:hover { opacity: 0.8; }
 
     /* Nav */

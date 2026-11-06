@@ -70,14 +70,22 @@ class UiCssContract(unittest.TestCase):
 class IndexLayers(unittest.TestCase):
   def test_layer_order_comes_first(self):
     first = next(top_level_statements(head_styles(INDEX)[0]))
-    self.assertEqual(first, "@layer ui-tokens, vendor, app, ui;")
+    self.assertEqual(first, "@layer ui-tokens, reset, vendor, app, ui;")
+
+  def test_element_resets_sit_below_vendor(self):
+    stmts = list(top_level_statements(head_styles(INDEX)[0]))
+    reset = next(s for s in stmts if s.startswith("@layer reset {"))
+    app = next(s for s in stmts if s.startswith("@layer app {"))
+    self.assertIn("*, *::before, *::after", reset)
+    self.assertNotIn("*, *::before, *::after", app)
+    self.assertNotRegex(app, r"(?m)^\s*a \{")
 
   def test_old_rules_and_vendor_css_are_layered(self):
     stmts = list(top_level_statements(head_styles(INDEX)[0]))
     for stmt in stmts[1:]:
       self.assertTrue(
         re.match(r'@import url\("/vendor/[^"]+\.css"\) layer\(vendor\);$', stmt)
-        or stmt.startswith("@layer app {"),
+        or stmt.startswith(("@layer reset {", "@layer app {")),
         "unlayered rule in the main stylesheet: " + stmt[:80])
 
   def test_no_vendor_stylesheet_links(self):
