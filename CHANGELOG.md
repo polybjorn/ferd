@@ -23,6 +23,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The cursor in the Note and Sources fields sits level with the other form fields.
 - On phones, tall forms and lists keep their margin at the bottom of the screen instead of running down to the edge.
 - Switches that are off are easier to see in every theme: an outlined track with a solid knob instead of a faint filled one.
+- The Dark base map works again. CARTO began stamping its dark tiles with "API KEY REQUIRED", so Dark now shows OpenStreetMap's map in dark colours and no longer contacts CARTO.
 
 ### Changed
 - The Add form's switches sit at the right of their row, and tapping anywhere on the row flips them.

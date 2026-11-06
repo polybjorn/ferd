@@ -73,11 +73,6 @@ const TILE_HOSTS = [
   'b.tile-cyclosm.openstreetmap.fr',
   'c.tile-cyclosm.openstreetmap.fr',
   'server.arcgisonline.com',
-  'basemaps.cartocdn.com',
-  'a.basemaps.cartocdn.com',
-  'b.basemaps.cartocdn.com',
-  'c.basemaps.cartocdn.com',
-  'd.basemaps.cartocdn.com',
 ];
 
 // OVERLAY-HOSTS-BEGIN (tests/js/overlays.test.js runs this block)
