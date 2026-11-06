@@ -2517,6 +2517,9 @@
     .modal-backdrop:has(#add-tabs) .modal { max-height: calc(100vh - 8rem); scrollbar-gutter: stable; }
     #add-body { overflow: hidden; transition: height 0.25s ease; }
     .modal .modal-desc { font-size: 0.85rem; color: var(--text); margin-top: 0.4rem; }
+    .modal .confirm-row { align-items: center; display: flex; gap: 0.75rem; margin-top: 0.75rem; }
+    .modal .confirm-row .modal-desc { flex: 1; margin-top: 0; min-width: 0; overflow-wrap: anywhere; }
+    .modal .confirm-row button { flex: none; margin-left: auto; }
     .modal .file-picker { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.5rem; }
     .modal .area-search-label {
       align-items: center;
@@ -6234,6 +6237,47 @@
         ? { color, weight: 2, opacity: 0.9, fillColor: color, fillOpacity: 0.22, dashArray: null }
         : { color, weight: 2, opacity: 0.7, fillColor: color, fillOpacity: 0.08, dashArray: '6 6' };
     }
+    const MAP_FADE_MS = 300;
+    function reduceMotion() {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+    // Routes and area outlines can sit in the WebGL buffer, where one line can't
+    // fade alone, so an SVG copy fades in the place of the removed shape.
+    function fadeOutShape(map, shape) {
+      if (reduceMotion()) return;
+      shape.addTo(map);
+      shape.eachLayer(function(part) {
+        part.getElement().animate([{ opacity: 1 }, { opacity: 0 }], { duration: MAP_FADE_MS, easing: 'ease', fill: 'forwards' });
+      });
+      setTimeout(function() { shape.remove(); }, MAP_FADE_MS);
+    }
+    function fadeOutArea(area, visited) {
+      if (!state.currentMap || !state._areaRenderer) return;
+      fadeOutShape(state.currentMap, L.geoJSON(area.geometry, {
+        renderer: state._areaRenderer,
+        pane: 'areasPane',
+        interactive: false,
+        style: areaStyle(area, visited),
+      }));
+    }
+    function fadeOutRoute(map, layer) {
+      if (!state._areaRenderer) return;
+      const shape = L.featureGroup();
+      const visit = function(part) {
+        if (part.getLatLngs && !part.eachLayer) {
+          const { color, weight, opacity } = part.options;
+          shape.addLayer(L.polyline(part.getLatLngs(), {
+            color, weight, opacity,
+            renderer: state._areaRenderer,
+            pane: 'areasPane',
+            interactive: false,
+          }));
+        }
+        if (part.eachLayer) part.eachLayer(visit);
+      };
+      visit(layer);
+      fadeOutShape(map, shape);
+    }
     function syncAreasOnMap() {
       const group = state._areaGroup;
       if (!group) return;
@@ -6462,8 +6506,18 @@
             openConfirmModal({ title: 'Delete area?', body: 'Delete "' + area.name + '"?', confirmLabel: 'Delete', danger: true }).then(ok => {
               if (!ok) return;
               btn.disabled = true;
-              dataLayer.deleteArea({ id: area.id }).then(done)
-                .catch(err => { btn.disabled = false; showModalError(err.message); });
+              const entry = (state._areaLayers || []).find(x => x.area.id === area.id);
+              const shown = entry && state._areaGroup.hasLayer(entry.layer);
+              dataLayer.deleteArea({ id: area.id }).then(
+                () => {
+                  closeModal();
+                  return refreshAreas().then(() => {
+                    if (shown) fadeOutArea(area, entry.visited);
+                    refreshPlacesPresentation();
+                  }).catch(err => alert('Failed: ' + err.message));
+                },
+                err => { btn.disabled = false; showModalError(err.message); }
+              );
             });
           });
           document.getElementById('edit-area-form').addEventListener('submit', function(e) {
@@ -6553,14 +6607,6 @@
         '<span>' + escapeHtml(displayRegion(regionName)) + '</span>' +
         '</div>';
       return html;
-    }
-
-    function deleteTrail(route, regionName) {
-      if (!confirm('Delete route "' + route.name + '" (' + displayRegion(regionName) + ')? This removes the GPX file.')) return Promise.resolve(false);
-      return dataLayer.deleteGpx({ region: regionName, name: route.name })
-        .then(() => refreshRoutes())
-        .then(() => true)
-        .catch(err => { alert('Failed: ' + err.message); return false; });
     }
 
     // After a route delete, drop it from the live index map in place so the map
@@ -6661,12 +6707,7 @@
             });
           }
           document.getElementById('tm-delete').addEventListener('click', function() {
-            const btn = this;
-            btn.disabled = true;
-            deleteTrail(route, regionName).then(function(deleted) {
-              if (deleted) { closeModal(); afterRouteDeleted(route.key); }
-              else { btn.disabled = false; }
-            });
+            deleteRouteItem(route, regionName, function() { closeModal(); afterRouteDeleted(route.key); });
           });
           document.getElementById('route-meta-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -7115,15 +7156,17 @@
           const layer = routeLayers[i].layer;
           try { if (layer.closePopup) layer.closePopup(); } catch (_) {}
           routeLayers.splice(i, 1);
-          found = true;
+          found = layer;
         }
         if (state._selectedRouteKey === key) state._selectedRouteKey = null;
         // applyMapFilters clears + re-adds the status groups from routeLayers,
         // so the spliced layer leaves the map; applyRouteHighlight re-strokes
         // the survivors (SVG) and rebuilds the GL buffer (touch).
+        const wasShown = found && map.hasLayer(found);
         applyMapFilters();
         applyRouteHighlight();
-        return found;
+        if (wasShown) fadeOutRoute(map, found);
+        return !!found;
       };
 
       // Initial bounds: places + routes, prefer focus
@@ -7434,13 +7477,11 @@
             });
           });
           document.getElementById('e-delete').addEventListener('click', function() {
-            if (!confirm('Delete place "' + place.name + '"?')) return;
-            this.disabled = true;
-            const btn = this;
-            deletePlaceNow(place, {
+            deletePlaceItem(place, {
               animate: true,
-              after: function(prevColors) { closeModal(); syncPlacesOnMap(prevColors); resyncPlaceCardSlugs(); },
-              onError: function(err) { btn.disabled = false; showModalError(err.message); },
+              deleted: closeModal,
+              after: function(prevColors) { syncPlacesOnMap(prevColors); resyncPlaceCardSlugs(); },
+              onError: function(err) { showModalError(err.message); },
             });
           });
           document.getElementById('edit-place-form').addEventListener('submit', function(e) {
@@ -7589,7 +7630,7 @@
     // errors and re-renders the list. after(prevColors) runs once the refresh
     // lands; callers that keep the list resync survivors there, since deleting
     // one of several same-named places renumbers the rest's slugs.
-    function deletePlaceNow(place, { animate, after, onError }) {
+    function deletePlaceNow(place, { animate, deleted, after, onError }) {
       const prevColors = Object.assign({}, state.categoryColors);
       const slug = place._slug || '';
       const wasVisited = !!place.visited;
@@ -7598,7 +7639,11 @@
         ? animatePlaceCardOut(slug).then(function() { if (!failed) removePlaceCardFromList(slug, wasVisited); })
         : Promise.resolve();
       return dataLayer.deletePlace({ id: place.id })
-        .then(() => refreshPlaces())
+        .then(() => {
+          if (deleted) deleted();
+          const layer = state._placeClusterGroup;
+          return Promise.all([refreshPlaces(), layer ? layer.fadeOutPlace(place) : null]);
+        })
         .then(() => anim)
         .then(() => after(prevColors))
         .catch(err => {
@@ -7745,6 +7790,7 @@
       },
 
       setPlaces: function(places) {
+        this._fadingPlaceId = null;
         this._places = (places || []).slice();
         this._rebuildIndex();
         this._redraw();
@@ -7760,6 +7806,26 @@
       },
 
       redraw: function() { this._redraw(); return this; },
+
+      // The pin stays at the end of the fade until setPlaces drops it. The timer,
+      // not the frames, ends the wait: a hidden tab gets no frames.
+      fadeOutPlace: function(place) {
+        const shown = (this._visibleFeatures || []).some(f => !f.properties.cluster && f.properties.place.id === place.id);
+        if (!shown || reduceMotion()) return Promise.resolve();
+        return new Promise(resolve => {
+          const start = performance.now();
+          this._fadingPlaceId = place.id;
+          this._fadeAlpha = 1;
+          const step = now => {
+            if (this._fadingPlaceId !== place.id) return;
+            this._fadeAlpha = Math.min(1, Math.max(0, 1 - (now - start) / MAP_FADE_MS));
+            this._redraw();
+            if (this._fadeAlpha > 0) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+          setTimeout(resolve, MAP_FADE_MS);
+        });
+      },
 
       // Open a popup at the given place. If currently clustered, zoom in
       // first via supercluster's expansion zoom so the popup makes sense.
@@ -7943,7 +8009,9 @@
           } else {
             const place = f.properties.place;
             const color = catColors[place.category] || '#888';
+            ctx.globalAlpha = place.id === this._fadingPlaceId ? this._fadeAlpha : 1;
             this._drawMarker(ctx, pt, place, color, markerSize, pinStyle);
+            ctx.globalAlpha = 1;
           }
         }
       },
@@ -8066,9 +8134,10 @@
             ctx.fill();
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 1;
-            ctx.globalAlpha = 0.6;
+            const alpha = ctx.globalAlpha;
+            ctx.globalAlpha = alpha * 0.6;
             ctx.stroke();
-            ctx.globalAlpha = 1;
+            ctx.globalAlpha = alpha;
           } else {
             ctx.fillStyle = this._withAlpha(color, 0.25);
             ctx.fill();
@@ -13225,8 +13294,8 @@
         };
         const html =
           modalHeaderHtml(title) +
-          (body ? '<div class="modal-desc" style="font-size:0.85rem">' + escapeHtml(body) + '</div>' : '') +
-          '<div class="modal-actions">' +
+          '<div class="confirm-row">' +
+            (body ? '<div class="modal-desc">' + escapeHtml(body) + '</div>' : '') +
             '<button type="button" class="' + (danger ? 'danger-btn' : 'primary') + '" data-role="ok">' + escapeHtml(confirmLabel || 'Confirm') + '</button>' +
           '</div>';
         openModal(html, backdrop => {
@@ -13992,7 +14061,6 @@
           fileName.textContent = 'No file selected';
           fileName.classList.remove('has-file');
         };
-        const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const resultsTiming = { duration: 200, easing: 'ease' };
         const animateResultsHeight = (from, to) => {
           if (from === to || reduceMotion()) return;
