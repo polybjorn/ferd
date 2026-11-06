@@ -261,6 +261,9 @@ class TargetsAndFocus(unittest.TestCase):
     self.assertIn("background: none", body)
     self.assertIn("text-shadow", body)
 
+  def test_the_credit_collapses_only_on_a_phone(self):
+    self.assertRegex(INDEX, r"max-width: 600px\) \{\s+\.credit-collapsed \.leaflet-control-attribution \{ display: none; \}")
+
   def test_a_closed_section_takes_no_keyboard_stop(self):
     for closed, opened in ((".cat-swatches", ".cat-swatches.open"), (".collapsible", ".collapsible.expanded")):
       self.assertIn("visibility: hidden", self.body(closed))

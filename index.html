@@ -1702,6 +1702,25 @@
       text-shadow: 0 0 1px black, 0 0 1px black, 0 0 3px black;
     }
     .leaflet-control-attribution a { color: inherit !important; text-decoration: underline !important; }
+    .map-credit-toggle {
+      display: none;
+      width: 1.75rem;
+      height: 1.75rem;
+      padding: 0;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      font-family: serif;
+      font-size: var(--ui-text-sm);
+      font-style: italic;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    @media (max-width: 600px) {
+      .credit-collapsed .leaflet-control-attribution { display: none; }
+      .credit-collapsed .map-credit-toggle { display: block; }
+    }
 
     .leaflet-tooltip {
       background: var(--surface) !important;
@@ -4925,6 +4944,36 @@
       map.on('unload', function() { observer.disconnect(); });
     }
 
+    // A credit across a phone's map covers more than it needs to. OpenStreetMap's
+    // guidelines let it collapse on map interaction or after five seconds, so
+    // long as a corner button still finds it. Zooming is left to the pointer
+    // listener because fitBounds fires the same zoom events as a pinch, and would
+    // collapse the credit before anyone saw it. Only the phone rule acts on the
+    // class, so a wider window keeps the credit.
+    function collapseCreditOnPhone(map) {
+      const container = map.getContainer();
+      const credit = container.querySelector('.leaflet-control-attribution');
+      const toggle = L.DomUtil.create('button', 'leaflet-control map-credit-toggle', credit.parentElement);
+      toggle.type = 'button';
+      toggle.textContent = 'i';
+      toggle.setAttribute('aria-label', 'Map credits');
+      L.DomEvent.disableClickPropagation(toggle);
+      const collapse = function() {
+        clearTimeout(timer);
+        container.classList.add('credit-collapsed');
+      };
+      const timer = setTimeout(collapse, 5000);
+      map.on('unload', function() { clearTimeout(timer); });
+      container.addEventListener('pointerdown', function(e) {
+        if (e.target !== toggle && !credit.contains(e.target)) collapse();
+      });
+      toggle.addEventListener('click', function() {
+        container.classList.remove('credit-collapsed');
+        const link = credit.querySelector('a');
+        if (link) link.focus();
+      });
+    }
+
     // Rebuild the filter panel DOM in place after a feature is toggled, so the
     // tab row reflects which features are enabled. Falls back to a full map
     // re-render if the panel isn't present yet (e.g. enabling from none).
@@ -7313,6 +7362,7 @@
       }).setView(dv.center, dv.zoom);
       enableWheelZoom(map);
       L.control.attribution({ prefix: false }).addTo(map);
+      collapseCreditOnPhone(map);
       state.currentMap = map;
       const sched = mapScheduler(map);
       applyCoverMinZoom(map);
@@ -10540,6 +10590,7 @@
         map.setView(dvt.center, dvt.zoom);
       }
       L.control.attribution({ prefix: false }).addTo(map);
+      collapseCreditOnPhone(map);
       state.currentMap = map;
       const sched = mapScheduler(map);
       applyCoverMinZoom(map);
