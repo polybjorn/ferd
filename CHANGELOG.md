@@ -36,6 +36,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The Dark base map works again. CARTO began stamping its dark tiles with "API KEY REQUIRED", so Dark now shows OpenStreetMap's map in dark colours and no longer contacts CARTO.
 - The Docker image's licence label says GPL-3.0 instead of MIT.
 - The base maps give their providers' full credits: OpenTopoMap names OpenStreetMap contributors, SRTM and its CC-BY-SA licence, and OpenStreetMap and Dark credit OpenStreetMap contributors.
+- On phones, Settings fits the screen: every tab and every option in a segmented row shows in full, and the dialog no longer scrolls sideways.
 
 ### Changed
 - Text is 0.75rem or larger everywhere, and sizes, spacing, corners, animation speeds and stacking follow the scales in `ui.css`. Spacing moves slightly in places, and a long category in a map popup wraps instead of pushing the status out.

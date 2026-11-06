@@ -347,6 +347,21 @@ class PopupMeta(unittest.TestCase):
     self.assertNotIn("min-width", rule)
 
 
+class PhoneWidth(unittest.TestCase):
+  """Settings fits a phone: nothing is clipped and the dialog never scrolls sideways."""
+  def test_a_segmented_bar_takes_the_whole_row(self):
+    self.assertRegex(INDEX, r"\.settings-inline-row:has\(> \.radio-segmented\) \{ grid-template-columns: 1fr; \}")
+
+  def test_a_segmented_label_can_wrap(self):
+    self.assertRegex(INDEX, r"\.radio-row\.radio-segmented > label \{[^}]*white-space: normal")
+
+  def test_settings_tabs_wrap(self):
+    self.assertIn("#settings-tabs { flex-wrap: wrap; }", INDEX)
+
+  def test_token_rows_leave_their_columns_to_the_stylesheet(self):
+    self.assertNotIn("grid-template-columns:5rem", INDEX)
+
+
 class TextFloor(unittest.TestCase):
   """Text stays at 0.75rem or above, in a rule or in a style the script builds."""
   FLOOR_REM = 0.75
