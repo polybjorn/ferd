@@ -70,14 +70,15 @@ test('invalid entries are dropped and the rest kept', () => {
   assert.deepEqual(plain(parseOverlays(list)).map(o => o.name), ['Topo', 'Hillshade']);
 });
 
-test('the service worker caches each overlay host, with {s} expanded', () => {
+test('the service worker caches each opted-in overlay host, with {s} expanded', () => {
+  const on = o => ({ ...o, offline: true });
   const cfg = { overlays: [
-    TOPO,
-    SHADE,
-    { name: 'Sub', url: 'https://{s}.tiles.example.org/{z}/{x}/{y}.png', subdomains: 'xy' },
-    { name: 'Default subs', url: 'https://{s}.d.example.org/{z}/{x}/{y}.png' },
-    { name: 'Bad', url: 'not a url' },
-    { name: 'Ftp', url: 'ftp://ftp.example.org/x' },
+    on(TOPO),
+    on(SHADE),
+    on({ name: 'Sub', url: 'https://{s}.tiles.example.org/{z}/{x}/{y}.png', subdomains: 'xy' }),
+    on({ name: 'Default subs', url: 'https://{s}.d.example.org/{z}/{x}/{y}.png' }),
+    on({ name: 'Bad', url: 'not a url' }),
+    on({ name: 'Ftp', url: 'ftp://ftp.example.org/x' }),
   ] };
   assert.deepEqual(plain(overlayHosts(cfg)), [
     'cache.example.no', 'wms.example.no',
@@ -86,4 +87,23 @@ test('the service worker caches each overlay host, with {s} expanded', () => {
   ]);
   assert.deepEqual(plain(overlayHosts(null)), []);
   assert.deepEqual(plain(overlayHosts({})), []);
+});
+
+test('an overlay without offline: true stays out of the tile cache', () => {
+  const cfg = { overlays: [
+    TOPO,
+    { ...SHADE, offline: false },
+    { name: 'Truthy', url: 'https://truthy.example.org/{z}/{x}/{y}.png', offline: 'yes' },
+    { name: 'Kept', url: 'https://kept.example.org/{z}/{x}/{y}.png', offline: true },
+  ] };
+  assert.deepEqual(plain(overlayHosts(cfg)), ['kept.example.org']);
+});
+
+test('base map tiles cache offline only from hosts whose terms allow it', () => {
+  const src = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+  const m = /const TILE_HOSTS = (\[[\s\S]*?\]);/.exec(src);
+  assert.ok(m, 'TILE_HOSTS not found in sw.js');
+  const hosts = vm.runInNewContext(m[1]);
+  assert.ok(hosts.includes('a.tile.opentopomap.org'));
+  for (const h of hosts) assert.doesNotMatch(h, /openstreetmap\.(org|fr)$/);
 });

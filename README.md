@@ -18,7 +18,7 @@ Each account is its own map, with per-user data isolation. You can optionally pu
 
 ![Sign-in dialog](docs/screenshots/sign-in.png)
 
-Ferd installs to your device and launches in its own window. It works offline: reads (app shell, last loaded data, downloaded GPX, previously viewed tiles) and edits, which queue on-device and sync when the connection returns. Account and admin actions still need network. A local-only mode runs entirely on-device with no server or account.
+Ferd installs to your device and launches in its own window. It works offline: reads (app shell, last loaded data, downloaded GPX, previously viewed OpenTopoMap tiles) and edits, which queue on-device and sync when the connection returns. Account and admin actions still need network. A local-only mode runs entirely on-device with no server or account.
 
 ![Mobile map view](docs/screenshots/mobile.png)
 

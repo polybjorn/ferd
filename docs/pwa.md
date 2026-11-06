@@ -8,13 +8,14 @@ Ferd is meant to be installed on your phone as a standalone app with offline rea
 - Elevation chart and its deps (leaflet-elevation's own modular handlers, components and bundled libs). All vendored under `vendor/` and precached on install.
 - Last loaded places, routes, GPX files, and category labels. `stale-while-revalidate` refreshes them in the background when you're back online. `/api/gpx/*.gpx` is cached the same way.
 - Editing. Adding/editing/deleting places and areas, completing/editing/moving/deleting routes, uploading new GPX, and managing regions and category labels all work offline. Edits apply immediately and survive a reload, queue in an on-device outbox, and replay to the server when the connection returns (last-write-wins; an edit whose server copy changed first is skipped and reported). The offline banner shows how many changes are waiting; a toast reports the result after a sync.
-- Tiles you've previously viewed. Cap is ~50 MB with LRU eviction.
+- OpenTopoMap tiles you've previously viewed, and those of overlays set to `offline: true` (see [configure.md](configure.md#overlays)). Cap is ~50 MB with LRU eviction.
 - Site config, manifest, and the full icon set.
 
 ## What needs network
 
 - Account and admin actions: sign-in/out (if your session expired), publishing, sessions and API tokens, admin tools, and curating the shared catalog. These return a clear "you're offline" error and are not queued.
 - Tiles for areas you haven't viewed before.
+- The OpenStreetMap and Dark base maps. OpenStreetMap's [tile policy](https://operations.osmfoundation.org/policies/tiles/) does not permit offline use, so their tiles are left to the browser's HTTP cache. Switch to OpenTopoMap before going offline.
 - The boundary search in Add > Area. A GeoJSON file works offline.
 
 ## Install on phone

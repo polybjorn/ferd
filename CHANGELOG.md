@@ -8,7 +8,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Areas. Add a park, county or other boundary with Add > Area, by searching OpenStreetMap by name or from a GeoJSON file. A search fills in the English name, keeps the local one beside it and sets the category from a common boundary type such as city or county, or from one of your own that matches, and the map credits OpenStreetMap while such an area shows, as it does for a file that states an OpenStreetMap licence. An area shows on the map as a polygon in its category colour, filled when visited and dashed when on the wishlist. It counts as visited when you tick it, or when a place inside is visited or a route inside is completed. Files with many points are simplified on save. Areas follow the category and visit filters, appear in search, public maps and data exports, and work offline and in local-only mode.
 - GeoJSON export of places, areas and routes, from Settings > Account, at `/api/me/export.geojson` when signed in and at `/api/u/<username>/export.geojson` for a public map, so QGIS and other map tools can load a Ferd map from a URL. Routes keep their full track and elevation, and no GPX timestamps or author names are included.
 - An area's popup shows how many places and routes it holds, and how many of those are visited or completed. Opening a count lists them, and picking one goes to it on the map. A route counts when any part of its track is inside.
-- Map overlays. `site-config.json` can list XYZ or WMS layers, such as topo maps or hillshade, to draw over the base map. Each shows in the layer picker as an opacity slider, starts at 0 (off) on every load so no third-party host is contacted until you drag it up, and caches offline like base map tiles. The picker's base map options use the app's theme.
+- Map overlays. `site-config.json` can list XYZ or WMS layers, such as topo maps or hillshade, to draw over the base map. Each shows in the layer picker as an opacity slider, starts at 0 (off) on every load so no third-party host is contacted until you drag it up, and keeps tiles offline only when its entry sets `offline: true`, for providers whose terms allow it. The picker's base map options use the app's theme.
 - Visited countries. Turn on Settings > Visible features > Visited countries to shade every country that holds a visited place. It is off by default and set per browser, and the outlines (about 650 KB) download only once it is on, then stay cached for offline use. The shading shows at zoom 6 and further out, and fades as you zoom past that. Borders are Natural Earth's de facto lines.
 - The Country field on the place forms is now a searchable list, so a name always matches. It finds common alternatives too, such as Norge or USA. An older place keeps its existing name until you change it.
 - Places carry a `country_code` (ISO 3166-1 alpha-2) that the server sets from the Country field on every save. Existing places get one when the server starts.
@@ -27,6 +27,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The Docker image's licence label says GPL-3.0 instead of MIT.
 
 ### Changed
+- The OpenStreetMap and Dark base maps no longer keep tiles for offline use, since OpenStreetMap's tile policy does not permit it; the browser's normal cache still serves recently viewed tiles. OpenTopoMap still works offline. Tiles cached before this update are cleared once.
+- The Android app identifies itself to tile servers as `Ferd/<version>` instead of the WebView default.
 - The Add form's switches sit at the right of their row, and tapping anywhere on the row flips them.
 - Forms mark required fields with an asterisk instead of labelling the rest as optional.
 - Placeholder and secondary text meet WCAG AA contrast in every theme, so several themes' muted text is lighter or darker than before.
@@ -35,6 +37,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Name fields no longer show example names, and the local name field says what goes in it.
 
 ### Removed
+- The CyclOSM base map. Its host's conditions cover public, non-profit sites, which Ferd cannot vouch for on every install, so it is now a documented overlay example in `docs/configure.md` that an install can add if it fits them. A map that defaulted to CyclOSM now opens on OpenTopoMap.
 - The Satellite base map. Its imagery's terms do not allow it in an app like Ferd, or its offline caching, so it is gone until a free imagery source with fitting terms turns up. A map that defaulted to Satellite now opens on OpenTopoMap, and the default can be changed in Settings > Map.
 
 ## [1.5.0] - 2026-11-05

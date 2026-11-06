@@ -170,6 +170,9 @@ class MainActivity : AppCompatActivity() {
       // origin is https, so http API calls would otherwise be blocked as mixed
       // content. The user opted into the risk per-server.
       mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+      // Tile hosts such as OpenStreetMap ask apps to identify themselves
+      // rather than send the WebView default.
+      userAgentString = "Ferd/${BuildConfig.VERSION_NAME} (+https://github.com/polybjorn/ferd)"
     }
 
     // Service worker fetches for app-origin shell assets must resolve through

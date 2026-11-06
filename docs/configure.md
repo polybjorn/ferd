@@ -35,9 +35,17 @@ Each entry in `overlays` adds an opacity slider to the map's layer picker, where
     "url": "https://wms.geonorge.no/skwms1/wms.terrengmodell",
     "layers": "relieff",
     "attribution": "&copy; Kartverket"
+  },
+  {
+    "name": "CyclOSM",
+    "url": "https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png",
+    "max_zoom": 20,
+    "attribution": "<a href=\"https://www.cyclosm.org\">CyclOSM</a> &middot; &copy; <a href=\"https://osm.org/copyright\">OpenStreetMap</a> contributors"
   }
 ]
 ```
+
+CyclOSM is hosted by OSM France, whose [usage conditions](https://www.openstreetmap.fr/usage/) cover public, non-profit sites with moderate traffic. Check that your install fits them before adding it, and leave `offline` off: [cyclosm.org](https://www.cyclosm.org/) allows caching its tiles for a few hours at most.
 
 | Field | Default | Notes |
 |---|---|---|
@@ -49,10 +57,11 @@ Each entry in `overlays` adds an opacity slider to the map's layer picker, where
 | `subdomains` | `"abc"` | `xyz` only: the letters `{s}` expands to. |
 | `layers` | required for `wms` | Comma-separated WMS layer names. |
 | `format`, `styles`, `version`, `transparent` | `"image/png"`, `""`, `"1.1.1"`, `true` | `wms` only: passed through to the WMS request. |
+| `offline` | `false` | `true` keeps this host's tiles in the service worker's tile cache for offline use. Set it only when the provider's terms allow keeping tiles. Caching is per host, so one entry with `offline: true` covers every overlay on that host. |
 
 An entry with no name, a repeated name, a non-http URL, an unknown type, or a WMS entry without `layers` is skipped. The picker shows only when "Tile picker" is on in Settings.
 
-The service worker reads the same list and caches overlay tiles for offline use like base map tiles. If your reverse proxy sets a Content-Security-Policy, add each overlay host to `img-src`.
+The service worker reads the same list and keeps tiles offline only from hosts of entries with `offline: true`. Tiles from the others go through the browser's normal HTTP cache, which follows the host's cache headers, and do not show offline. If your reverse proxy sets a Content-Security-Policy, add each overlay host to `img-src`.
 
 ## `tools/config.json`
 

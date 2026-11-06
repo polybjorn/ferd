@@ -59,30 +59,28 @@ const SHELL_ASSETS = [
   '/vendor/images/elevation.svg',
 ];
 
+// Base map hosts whose terms allow keeping tiles offline. OpenStreetMap's
+// tile policy forbids offline use, so its tiles (OpenStreetMap and Dark) are
+// left to the browser's HTTP cache, which honours the server's headers.
 const TILE_HOSTS = [
-  'tile.openstreetmap.org',
-  'a.tile.openstreetmap.org',
-  'b.tile.openstreetmap.org',
-  'c.tile.openstreetmap.org',
   'tile.opentopomap.org',
   'a.tile.opentopomap.org',
   'b.tile.opentopomap.org',
   'c.tile.opentopomap.org',
-  'tile-cyclosm.openstreetmap.fr',
-  'a.tile-cyclosm.openstreetmap.fr',
-  'b.tile-cyclosm.openstreetmap.fr',
-  'c.tile-cyclosm.openstreetmap.fr',
 ];
 
 // OVERLAY-HOSTS-BEGIN (tests/js/overlays.test.js runs this block)
-// Hosts of the overlays in site-config.json, so their tiles cache offline
-// like the base maps' do. {s} expands to each subdomain, Leaflet's default
-// being abc; any other {placeholder} cannot sit in a hostname.
+// Hosts of the overlays in site-config.json that set `offline: true`, so
+// their tiles cache offline like OpenTopoMap's do. The rest are left to the
+// browser's HTTP cache, since not every provider's terms allow keeping tiles.
+// Caching is per host, so one opted-in entry covers every overlay on it.
+// {s} expands to each subdomain, Leaflet's default being abc; any other
+// {placeholder} cannot sit in a hostname.
 function overlayHosts(cfg) {
   const hosts = new Set();
   const list = cfg && Array.isArray(cfg.overlays) ? cfg.overlays : [];
   for (const o of list) {
-    if (!o || typeof o.url !== 'string') continue;
+    if (!o || o.offline !== true || typeof o.url !== 'string') continue;
     const subs = typeof o.subdomains === 'string' && o.subdomains ? o.subdomains : 'abc';
     const urls = o.url.includes('{s}') ? Array.from(subs, (c) => o.url.split('{s}').join(c)) : [o.url];
     for (const u of urls) {
