@@ -2535,11 +2535,8 @@
       align-items: center;
       display: flex;
       gap: 0.25rem;
-      margin-bottom: 0.3rem;
-      margin-top: 0.75rem;
       position: relative;
     }
-    .modal .area-search-label label { margin: 0; }
     /* The negative margin keeps the tap area from making the row taller. */
     .modal button.area-search-info:not(.modal-close) {
       border: none;
@@ -2571,8 +2568,6 @@
     @media (prefers-reduced-motion: reduce) {
       .modal .area-search-note { transition: none; }
     }
-    .modal .area-search { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.5rem; }
-    .modal .area-search input { flex: 1; min-width: 0; }
     .modal .area-results { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.5rem; }
     .modal .area-results[hidden] { display: none; }
     /* Selectors carry button and :not() to outrank `.modal button:not(.modal-close)`
@@ -3119,10 +3114,23 @@
       --ui-text:    var(--text);
       --ui-muted:   var(--muted);
       --ui-surface: var(--surface);
+      --ui-control-surface: var(--surface2);
       --ui-border:  var(--border);
       --ui-accent:  var(--accent);
       --ui-danger:  var(--red);
       --ui-radius:  var(--radius);
+      --ui-text-xs: 0.7rem;
+      --ui-text-sm: 0.8rem;
+      --ui-text-weight: 300;
+      --ui-label-weight: 300;
+    }
+    /* The gap above a reveal sits inside it, so a closed one leaves no space
+       and the gap opens with it. The row it belongs to shares its wrapper,
+       because a section's own gap would also land on the empty row. */
+    .ui-section .collapsible > .collapsible-inner::before {
+      content: '';
+      display: block;
+      block-size: var(--ui-space-3);
     }
     } /* @layer app */
   </style>
@@ -13325,6 +13333,22 @@
       return '<div class="modal-error" id="' + id + '"></div>';
     }
 
+    // A null id labels a group of controls, which a <label for> can't point at.
+    function uiFieldHtml(id, label, control) {
+      const labelHtml = id
+        ? '<label class="ui-field-label" for="' + id + '">' + label + '</label>'
+        : '<span class="ui-field-label">' + label + '</span>';
+      return '<div class="ui-field">' + labelHtml + control + '</div>';
+    }
+
+    function uiToggleHtml(id, label, opts) {
+      const o = opts || {};
+      return '<label class="ui-toggle-row"' + (o.title ? ' title="' + escapeHtml(o.title) + '"' : '') + '>' +
+        '<span class="ui-toggle-text">' + label + '</span>' +
+        '<input type="checkbox" id="' + id + '"' + (o.checked ? ' checked' : '') + '>' +
+      '</label>';
+    }
+
     function openConfirmModal({ title, body, confirmLabel, danger }) {
       return new Promise(resolve => {
         let settled = false;
@@ -13787,59 +13811,63 @@
         const d = draft || {};
         const sourcesText = (d.sources || []).join('\n');
         return '<form id="place-form">' +
-          '<label for="p-name">Name</label>' +
-          '<input type="text" id="p-name" required value="' + escapeHtml(d.name || '') + '">' +
-          (getShowField('local-name') ?
-            '<label for="p-local-name">Local name (optional)</label>' +
-            '<input type="text" id="p-local-name" placeholder="In the local language" value="' + escapeHtml(d.local_name || '') + '">'
-          : '') +
-          '<label>Coordinates</label>' +
-          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem">' +
-            '<button type="button" class="primary" id="pick-on-map" style="flex:0 0 auto">' + (c ? 'Re-pick on map' : 'Pick on map') + '</button>' +
-            (c
-              ? '<span id="p-coords-display" style="font-size:0.78rem;color:var(--text)">' + c.lat.toFixed(5) + ', ' + c.lng.toFixed(5) + '</span>'
-              : '<a href="#" id="p-coords-manual" style="font-size:0.7rem;color:var(--muted);text-decoration:underline">or enter manually</a>') +
-          '</div>' +
-          '<div class="collapsible" id="p-coords-fields">' +
-            '<div class="collapsible-inner">' +
-              '<div class="row" style="margin-top:0.4rem">' +
-                '<div><label for="p-lat">Latitude</label><input type="number" id="p-lat" step="any" value="' + (c ? c.lat.toFixed(5) : '') + '"></div>' +
-                '<div><label for="p-lon">Longitude</label><input type="number" id="p-lon" step="any" value="' + (c ? c.lng.toFixed(5) : '') + '"></div>' +
+          '<div class="ui-section">' +
+            uiFieldHtml('p-name', 'Name',
+              '<input type="text" id="p-name" required value="' + escapeHtml(d.name || '') + '">') +
+            (getShowField('local-name') ?
+              uiFieldHtml('p-local-name', 'Local name (optional)',
+                '<input type="text" id="p-local-name" placeholder="In the local language" value="' + escapeHtml(d.local_name || '') + '">')
+            : '') +
+            '<div>' +
+              uiFieldHtml(null, 'Coordinates',
+                '<div class="ui-control-row">' +
+                  '<button type="button" class="primary" id="pick-on-map">' + (c ? 'Re-pick on map' : 'Pick on map') + '</button>' +
+                  (c
+                    ? '<span class="ui-control-text" id="p-coords-display">' + c.lat.toFixed(5) + ', ' + c.lng.toFixed(5) + '</span>'
+                    : '<a href="#" class="ui-hint" id="p-coords-manual">or enter manually</a>') +
+                '</div>') +
+              '<div class="collapsible" id="p-coords-fields">' +
+                '<div class="collapsible-inner">' +
+                  '<div class="ui-field-row">' +
+                    uiFieldHtml('p-lat', 'Latitude', '<input type="number" id="p-lat" step="any" value="' + (c ? c.lat.toFixed(5) : '') + '">') +
+                    uiFieldHtml('p-lon', 'Longitude', '<input type="number" id="p-lon" step="any" value="' + (c ? c.lng.toFixed(5) : '') + '">') +
+                  '</div>' +
+                '</div>' +
               '</div>' +
             '</div>' +
+            uiFieldHtml('p-category', 'Category',
+              selectOrNewHtml('p-category', cats, d.category || null, displayCategory, '', 'New category name')) +
+            uiFieldHtml('p-country', 'Country (optional)',
+              '<input type="text" id="p-country" value="' + escapeHtml(d.country || '') + '">') +
+            (getShowField('note') ?
+              uiFieldHtml('p-note', 'Note (optional)',
+                '<textarea id="p-note">' + escapeHtml(d.note || '') + '</textarea>')
+            : '') +
+            (getShowField('image') ?
+              uiFieldHtml('p-image', 'Image URL (optional)',
+                '<input type="url" id="p-image" placeholder="https://example.com/photo.jpg" value="' + escapeHtml(d.image || '') + '">')
+            : '') +
+            uiFieldHtml('p-sources', 'Sources (optional, one URL per line)',
+              '<textarea id="p-sources" placeholder="https://example.com/source">' + escapeHtml(sourcesText) + '</textarea>') +
+            '<div>' +
+              uiToggleHtml('p-visited', 'I&rsquo;ve visited this place', { checked: d.visited }) +
+              ((getShowField('date') || getShowField('rating')) ?
+                '<div class="collapsible' + (d.visited ? ' expanded' : '') + '" id="p-visited-extras">' +
+                  '<div class="collapsible-inner">' +
+                    '<div class="ui-section">' +
+                      (getShowField('date') ?
+                        uiFieldHtml('p-date-visited', 'Date visited',
+                          '<input type="date" id="p-date-visited" value="' + escapeHtml(d.date_visited || '') + '">')
+                      : '') +
+                      (getShowField('rating') ?
+                        uiFieldHtml(null, 'Rating', starRatingHtml('p-rating', d.rating || ''))
+                      : '') +
+                    '</div>' +
+                  '</div>' +
+                '</div>'
+              : '') +
+            '</div>' +
           '</div>' +
-          '<label for="p-category">Category</label>' +
-          selectOrNewHtml('p-category', cats, d.category || null, displayCategory, '', 'New category name') +
-          '<label for="p-country">Country (optional)</label>' +
-          '<input type="text" id="p-country" value="' + escapeHtml(d.country || '') + '">' +
-          (getShowField('note') ?
-            '<label for="p-note">Note (optional)</label>' +
-            '<textarea id="p-note" style="min-height:40px">' + escapeHtml(d.note || '') + '</textarea>'
-          : '') +
-          (getShowField('image') ?
-            '<label for="p-image">Image URL (optional)</label>' +
-            '<input type="url" id="p-image" placeholder="https://example.com/photo.jpg" value="' + escapeHtml(d.image || '') + '">'
-          : '') +
-          '<label for="p-sources">Sources (optional, one URL per line)</label>' +
-          '<textarea id="p-sources" style="min-height:40px" placeholder="https://example.com/source">' + escapeHtml(sourcesText) + '</textarea>' +
-          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
-            '<input type="checkbox" class="settings-toggle" id="p-visited"' + (d.visited ? ' checked' : '') + '>' +
-            '<label for="p-visited" style="margin:0">I&rsquo;ve visited this place</label>' +
-          '</div>' +
-          ((getShowField('date') || getShowField('rating')) ?
-            '<div class="collapsible' + (d.visited ? ' expanded' : '') + '" id="p-visited-extras">' +
-              '<div class="collapsible-inner">' +
-                (getShowField('date') ?
-                  '<label for="p-date-visited">Date visited</label>' +
-                  '<input type="date" id="p-date-visited" value="' + escapeHtml(d.date_visited || '') + '">'
-                : '') +
-                (getShowField('rating') ?
-                  '<label for="p-rating">Rating</label>' +
-                  starRatingHtml('p-rating', d.rating || '')
-                : '') +
-              '</div>' +
-            '</div>'
-          : '') +
           modalErrorHtml('add-error') +
           '<div class="modal-actions">' +
             '<button type="submit" class="primary" id="place-submit">Add place</button>' +
@@ -13851,54 +13879,52 @@
         // Skip the synthetic no-region group ("") when listing existing regions.
         const regions = state.manifest ? state.manifest.regions.map(r => r.name).filter(Boolean).sort() : [];
         return '<form id="gpx-form">' +
-          '<label for="g-name">Name</label>' +
-          '<input type="text" id="g-name" required placeholder="e.g. Summit Loop">' +
-          (getShowField('local-name') ?
-            '<label for="g-local-name">Local name (optional)</label>' +
-            '<input type="text" id="g-local-name" placeholder="In the local language">'
-          : '') +
-          '<label>GPX file</label>' +
-          '<div class="file-picker">' +
-            '<input type="file" id="g-file" accept=".gpx,application/gpx+xml,text/xml" class="file-input-hidden" required>' +
-            '<button type="button" class="primary" id="g-file-pick">Choose file</button>' +
-            '<span class="file-name" id="g-file-name">No file selected</span>' +
+          '<div class="ui-section">' +
+            uiFieldHtml('g-name', 'Name',
+              '<input type="text" id="g-name" required placeholder="e.g. Summit Loop">') +
+            (getShowField('local-name') ?
+              uiFieldHtml('g-local-name', 'Local name (optional)',
+                '<input type="text" id="g-local-name" placeholder="In the local language">')
+            : '') +
+            uiFieldHtml(null, 'GPX file',
+              '<div class="ui-control-row">' +
+                '<input type="file" id="g-file" accept=".gpx,application/gpx+xml,text/xml" class="file-input-hidden" required>' +
+                '<button type="button" class="primary" id="g-file-pick">Choose file</button>' +
+                '<span class="ui-control-text" id="g-file-name">No file selected</span>' +
+              '</div>') +
+            uiFieldHtml('g-region', 'Region',
+              selectOrNewHtml('g-region', regions, null, null, '', 'New region name')) +
+            uiFieldHtml(null, 'Difficulty',
+              radioPillsHtml('g-difficulty', [['', 'None'], ['easy', 'Easy'], ['moderate', 'Moderate'], ['hard', 'Hard'], ['expert', 'Expert']], '')) +
+            (getShowField('tags') ?
+              uiFieldHtml('g-tags', 'Tags (comma-separated)',
+                '<input type="text" id="g-tags" placeholder="summit, panorama, via-ferrata">')
+            : '') +
+            (getShowField('note') ?
+              uiFieldHtml('g-notes', 'Notes (optional)',
+                '<textarea id="g-notes" maxlength="2000"></textarea>')
+            : '') +
+            uiFieldHtml('g-source', 'Source URL (optional)',
+              '<input type="url" id="g-source" placeholder="https://example.com/route">') +
+            uiToggleHtml('g-strip-pii', 'Strip personal data from GPX', { title: 'Removes timestamps, author, and creator from the GPX file' }) +
+            '<div>' +
+              uiToggleHtml('g-completed', 'I&rsquo;ve completed this route') +
+              ((getShowField('date') || getShowField('rating')) ?
+                '<div class="collapsible" id="g-completed-extras">' +
+                  '<div class="collapsible-inner">' +
+                    '<div class="ui-section">' +
+                      (getShowField('date') ?
+                        uiFieldHtml('g-date', 'Date completed', '<input type="date" id="g-date">')
+                      : '') +
+                      (getShowField('rating') ?
+                        uiFieldHtml(null, 'Rating', starRatingHtml('g-rating', ''))
+                      : '') +
+                    '</div>' +
+                  '</div>' +
+                '</div>'
+              : '') +
+            '</div>' +
           '</div>' +
-          '<label for="g-region">Region</label>' +
-          selectOrNewHtml('g-region', regions, null, null, '', 'New region name') +
-          '<label for="g-difficulty">Difficulty</label>' +
-          radioPillsHtml('g-difficulty', [['', 'None'], ['easy', 'Easy'], ['moderate', 'Moderate'], ['hard', 'Hard'], ['expert', 'Expert']], '') +
-          (getShowField('tags') ?
-            '<label for="g-tags">Tags (comma-separated)</label>' +
-            '<input type="text" id="g-tags" placeholder="summit, panorama, via-ferrata">'
-          : '') +
-          (getShowField('note') ?
-            '<label for="g-notes">Notes (optional)</label>' +
-            '<textarea id="g-notes" style="min-height:40px" maxlength="2000"></textarea>'
-          : '') +
-          '<label for="g-source">Source URL (optional)</label>' +
-          '<input type="url" id="g-source" placeholder="https://example.com/route">' +
-          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
-            '<input type="checkbox" class="settings-toggle" id="g-strip-pii">' +
-            '<label for="g-strip-pii" title="Removes timestamps, author, and creator from the GPX file" style="margin:0">Strip personal data from GPX</label>' +
-          '</div>' +
-          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
-            '<input type="checkbox" class="settings-toggle" id="g-completed">' +
-            '<label for="g-completed" style="margin:0">I&rsquo;ve completed this route</label>' +
-          '</div>' +
-          ((getShowField('date') || getShowField('rating')) ?
-            '<div class="collapsible" id="g-completed-extras">' +
-              '<div class="collapsible-inner">' +
-                (getShowField('date') ?
-                  '<label for="g-date">Date completed</label>' +
-                  '<input type="date" id="g-date">'
-                : '') +
-                (getShowField('rating') ?
-                  '<label for="g-rating">Rating</label>' +
-                  starRatingHtml('g-rating', '')
-                : '') +
-              '</div>' +
-            '</div>'
-          : '') +
           modalErrorHtml('add-error') +
           '<div class="modal-actions">' +
             '<button type="submit" class="primary" id="gpx-submit">Upload route</button>' +
@@ -13970,42 +13996,56 @@
       }
 
       function areaFormHtml() {
+        const cats = sortedCategorySlugs(Object.keys(state.categoryColors).filter(c => c !== ''));
         return '<form id="area-form">' +
-          '<div class="area-search-label">' +
-            '<label for="a-search">Find a boundary</label>' +
-            '<button type="button" class="area-search-info" id="a-search-info" aria-label="About this search" aria-expanded="false" aria-controls="a-search-note">' +
-              '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>' +
-            '</button>' +
-            '<div class="area-search-note" id="a-search-note">Nominatim, OpenStreetMap&rsquo;s search service, sees what you type and your IP address.</div>' +
-          '</div>' +
-          '<div class="area-search">' +
-            '<input type="text" id="a-search" maxlength="200" enterkeyhint="search" placeholder="Search OpenStreetMap">' +
-            '<button type="button" class="primary" id="a-search-go">Search</button>' +
-          '</div>' +
-          '<div class="area-results" id="a-results" hidden></div>' +
-          '<div class="area-results-foot">' +
-            '<button type="button" class="area-results-more" id="a-results-more" hidden></button>' +
-            '<span class="area-results-credit" id="a-results-credit" hidden>&copy; OpenStreetMap contributors</span>' +
-          '</div>' +
-          '<label>Or use a GeoJSON file</label>' +
-          '<div class="file-picker">' +
-            '<input type="file" id="a-file" accept=".geojson,.json,application/geo+json,application/json" class="file-input-hidden">' +
-            '<button type="button" class="primary" id="a-file-pick">Choose file</button>' +
-            '<span class="file-name" id="a-file-name">No file selected</span>' +
-          '</div>' +
-          '<div class="hint" id="a-file-info" hidden></div>' +
-          '<div id="a-split-row" hidden>' +
-            '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
-              '<input type="checkbox" class="settings-toggle" id="a-split">' +
-              '<label for="a-split" style="margin:0">Keep as separate areas</label>' +
+          '<div class="ui-section">' +
+            '<div class="ui-field">' +
+              '<div class="area-search-label">' +
+                '<label class="ui-field-label" for="a-search">Find a boundary</label>' +
+                '<button type="button" class="area-search-info" id="a-search-info" aria-label="About this search" aria-expanded="false" aria-controls="a-search-note">' +
+                  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>' +
+                '</button>' +
+                '<div class="area-search-note" id="a-search-note">Nominatim, OpenStreetMap&rsquo;s search service, sees what you type and your IP address.</div>' +
+              '</div>' +
+              '<div class="ui-control-row">' +
+                '<input type="text" id="a-search" maxlength="200" enterkeyhint="search" placeholder="Search OpenStreetMap">' +
+                '<button type="button" class="primary" id="a-search-go">Search</button>' +
+              '</div>' +
+              '<div class="area-results" id="a-results" hidden></div>' +
+              '<div class="area-results-foot">' +
+                '<button type="button" class="area-results-more" id="a-results-more" hidden></button>' +
+                '<span class="area-results-credit" id="a-results-credit" hidden>&copy; OpenStreetMap contributors</span>' +
+              '</div>' +
+            '</div>' +
+            uiFieldHtml(null, 'Or use a GeoJSON file',
+              '<div class="ui-control-row">' +
+                '<input type="file" id="a-file" accept=".geojson,.json,application/geo+json,application/json" class="file-input-hidden">' +
+                '<button type="button" class="primary" id="a-file-pick">Choose file</button>' +
+                '<span class="ui-control-text" id="a-file-name">No file selected</span>' +
+              '</div>' +
+              '<p class="ui-hint" id="a-file-info" hidden></p>') +
+            '<div id="a-split-row" hidden>' +
+              uiToggleHtml('a-split', 'Keep as separate areas') +
+            '</div>' +
+            '<div id="a-name-row">' +
+              '<div class="ui-section">' +
+                uiFieldHtml('a-name', 'Name', '<input type="text" id="a-name" required maxlength="200">') +
+                (getShowField('local-name') ?
+                  uiFieldHtml('a-local-name', 'Local name (optional)',
+                    '<input type="text" id="a-local-name" maxlength="200" placeholder="In the local language">')
+                : '') +
+              '</div>' +
+            '</div>' +
+            uiFieldHtml('a-category', 'Category',
+              selectOrNewHtml('a-category', cats, null, displayCategory, '', 'New category name')) +
+            (getShowField('note') ?
+              uiFieldHtml('a-note', 'Note (optional)', '<textarea id="a-note"></textarea>')
+            : '') +
+            '<div>' +
+              uiToggleHtml('a-visited', 'I&rsquo;ve visited this area') +
+              '<p class="ui-hint">A visited place or completed route inside also makes it visited.</p>' +
             '</div>' +
           '</div>' +
-          '<div id="a-name-row">' +
-            '<label for="a-name">Name</label>' +
-            '<input type="text" id="a-name" required maxlength="200">' +
-            areaLocalNameHtml('a', '') +
-          '</div>' +
-          areaFieldsHtml('a', null) +
           modalErrorHtml('area-error') +
           '<div class="modal-actions">' +
             '<button type="submit" class="primary" id="area-submit">Add area</button>' +

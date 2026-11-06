@@ -16,6 +16,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Dropdowns on phones use the app's theme instead of the system picker, and so do those on the Add form's Route and Area tabs on desktop.
 
 ### Changed
+- The Add form's switches sit at the right of their row, and tapping anywhere on the row flips them.
 - Ferd needs Chrome 99 or newer, or Android System WebView 99 in the Android app. An older one shows a notice asking to update it instead of a broken page.
 
 ## [1.5.0] - 2026-11-05

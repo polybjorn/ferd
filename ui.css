@@ -13,8 +13,8 @@
       the host's own rules sit in a layer.
    2. Map the colours in a host layer. The defaults below are system colours,
       only good enough to stay legible:
-        --ui-text, --ui-muted, --ui-surface, --ui-border, --ui-accent,
-        --ui-danger
+        --ui-text, --ui-muted, --ui-surface, --ui-control-surface,
+        --ui-border, --ui-accent, --ui-danger
    3. Override any size token in a host layer. The names are shared; the
       values are per app.
 
@@ -27,7 +27,8 @@
        ...fields, toggle rows, choice lists...
      </fieldset>
    A <section class="ui-section"> with an <h3 class="ui-section-title"> works
-   the same way.
+   the same way, and a <div class="ui-section"> with no title just stacks the
+   blocks inside it.
 
    Field
      <div class="ui-field">
@@ -38,7 +39,19 @@
    Add .ui-field-invalid to the field, and aria-invalid="true" to the control,
    to show an error; a .ui-hint inside it then reads as the error text.
 
-   Toggle row
+   Field row: two short fields side by side.
+     <div class="ui-field-row">
+       <div class="ui-field">...</div>
+       <div class="ui-field">...</div>
+     </div>
+
+   Control row: a control with a button or a short status beside it.
+     <div class="ui-control-row">
+       <button type="button">Choose file</button>
+       <span class="ui-control-text">No file selected</span>
+     </div>
+
+   Toggle row: a checkbox drawn as a switch.
      <label class="ui-toggle-row">
        <span class="ui-toggle-text">Show labels
          <span class="ui-hint">Names next to each marker.</span></span>
@@ -69,12 +82,15 @@
     --ui-text-md: 1rem;
     --ui-text-lg: 1.15rem;
 
+    --ui-text-weight: 400;
+    --ui-label-weight: 500;
     --ui-control-height: 2.25rem;
     --ui-radius: 6px;
 
     --ui-text: CanvasText;
     --ui-muted: GrayText;
     --ui-surface: Canvas;
+    --ui-control-surface: Canvas;
     --ui-border: GrayText;
     --ui-accent: LinkText;
     --ui-danger: #c62828;
@@ -120,7 +136,7 @@
     margin: 0;
     padding: 0;
     font-size: var(--ui-text-sm);
-    font-weight: 500;
+    font-weight: var(--ui-label-weight);
     color: var(--ui-text);
   }
   .ui-field :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]), select, textarea) {
@@ -128,31 +144,69 @@
     inline-size: 100%;
     min-block-size: var(--ui-control-height);
     margin: 0;
-    padding: var(--ui-space-1) var(--ui-space-2);
+    padding: var(--ui-space-1) var(--ui-space-3);
     font-size: var(--ui-text-sm);
     color: var(--ui-text);
-    background: var(--ui-surface);
+    background-color: var(--ui-control-surface);
     border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius);
   }
-  .ui-field textarea { min-block-size: calc(var(--ui-control-height) * 2); resize: vertical; }
+  .ui-field textarea { padding-block: var(--ui-space-2); resize: vertical; }
+  /* Two gradients, so the chevron follows --ui-muted in every theme. */
+  .ui-field select:not([multiple]) {
+    appearance: none;
+    padding-inline-end: var(--ui-space-6);
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--ui-muted) 50%),
+      linear-gradient(135deg, var(--ui-muted) 50%, transparent 50%);
+    background-position: right 1.05rem center, right 0.75rem center;
+    background-size: 6px 6px;
+    background-repeat: no-repeat;
+  }
+  /* Drawn inside the box, since a reveal clips whatever sticks out of it. */
   .ui-field :is(input, select, textarea):focus-visible {
     outline: 2px solid var(--ui-accent);
-    outline-offset: 1px;
+    outline-offset: -2px;
   }
   .ui-field-invalid :is(input, select, textarea) { border-color: var(--ui-danger); }
   .ui-field-invalid .ui-hint { color: var(--ui-danger); }
+
+  .ui-field-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ui-space-2);
+    min-inline-size: 0;
+  }
+
+  .ui-control-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-3);
+    min-inline-size: 0;
+    min-block-size: var(--ui-control-height);
+  }
+  .ui-control-row > button { flex: none; }
+  .ui-field .ui-control-row > input { flex: 1; inline-size: auto; min-inline-size: 0; }
+  .ui-control-text {
+    min-inline-size: 0;
+    overflow: hidden;
+    font-size: var(--ui-text-sm);
+    color: var(--ui-text);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
   .ui-hint {
     font: inherit;
     margin: 0;
     padding: 0;
     font-size: var(--ui-text-xs);
-    font-weight: 400;
+    font-weight: var(--ui-text-weight);
     letter-spacing: normal;
     text-transform: none;
     color: var(--ui-muted);
   }
+  a.ui-hint { text-decoration: underline; }
 
   .ui-toggle-row {
     font: inherit;
@@ -172,6 +226,33 @@
     gap: var(--ui-space-1);
     min-inline-size: 0;
   }
+  .ui-toggle-row > input[type="checkbox"] {
+    appearance: none;
+    position: relative;
+    inline-size: 36px;
+    block-size: 20px;
+    background: var(--ui-border);
+    border: 1px solid var(--ui-border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .ui-toggle-row > input[type="checkbox"]::after {
+    content: '';
+    position: absolute;
+    inset-block-start: 1px;
+    inset-inline-start: 1px;
+    inline-size: 16px;
+    block-size: 16px;
+    background: var(--ui-surface);
+    border-radius: 50%;
+    transition: transform 0.15s;
+  }
+  .ui-toggle-row > input[type="checkbox"]:checked {
+    background: var(--ui-accent);
+    border-color: var(--ui-accent);
+  }
+  .ui-toggle-row > input[type="checkbox"]:checked::after { transform: translateX(16px); }
 
   .ui-choice-list {
     font: inherit;

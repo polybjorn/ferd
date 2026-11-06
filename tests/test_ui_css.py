@@ -109,5 +109,15 @@ class IndexLayers(unittest.TestCase):
                   "document.getElementById('webview-notice').hidden = false;", INDEX)
 
 
+class AddForm(unittest.TestCase):
+  def test_forms_use_the_blocks_without_inline_styles(self):
+    for name, end in (("placeFormHtml", "gpxFormHtml"), ("gpxFormHtml", "wirePlaceForm"),
+                      ("areaFormHtml", "searchAreaBoundaries")):
+      form = INDEX[INDEX.index("function %s(" % name):INDEX.index("function %s(" % end)]
+      self.assertIn("uiFieldHtml(", form)
+      self.assertNotIn("style=", form, name)
+      self.assertNotIn("settings-toggle", form, name)
+
+
 if __name__ == "__main__":
   unittest.main()
