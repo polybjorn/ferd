@@ -14,6 +14,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - A deleted place, route or area fades off the map instead of disappearing at once.
 - Confirm dialogs are shorter, with the button beside the text, and deleting from the place or route edit form uses them instead of the system dialog.
 - Dropdowns on phones use the app's theme instead of the system picker, and so do those on the Add form's Route and Area tabs on desktop.
+- Scrollbars and the checkboxes in the Browse and Add to catalog lists use the app's theme.
 
 ### Changed
 - The Add form's switches sit at the right of their row, and tapping anywhere on the row flips them.

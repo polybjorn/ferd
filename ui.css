@@ -52,6 +52,9 @@
        <span class="ui-control-text">No file selected</span>
      </div>
 
+   Checkbox: for picking rows from a list, where a switch would be too heavy.
+     <input type="checkbox" class="ui-check">
+
    Toggle row: a checkbox drawn as a switch.
      <label class="ui-toggle-row">
        <span class="ui-toggle-text">Show labels
@@ -233,6 +236,40 @@
     color: var(--ui-text);
     cursor: pointer;
   }
+  /* accent-color only reaches the checked state, so the box is drawn to theme
+     the unchecked one too. */
+  .ui-check {
+    appearance: none;
+    position: relative;
+    flex: none;
+    inline-size: 16px;
+    block-size: 16px;
+    margin: 0;
+    background: var(--ui-control-surface);
+    border: 1px solid var(--ui-muted);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .ui-check:checked {
+    background: var(--ui-accent);
+    border-color: var(--ui-accent);
+  }
+  .ui-check:checked::after {
+    content: '';
+    position: absolute;
+    inset-block-start: 1px;
+    inset-inline-start: 4px;
+    inline-size: 4px;
+    block-size: 8px;
+    border: solid var(--ui-surface);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .ui-check:focus-visible {
+    outline: 2px solid var(--ui-accent);
+    outline-offset: 2px;
+  }
+
   .ui-toggle-text {
     display: grid;
     gap: var(--ui-space-1);

@@ -30,6 +30,8 @@
        follow. The data-mode attribute is set by applyTheme(). */
     [data-mode="dark"] { color-scheme: dark; }
     [data-mode="light"] { color-scheme: light; }
+    /* Inherited, so one declaration reaches every scrolling list and modal. */
+    :root { scrollbar-color: var(--muted) transparent; }
 
     :root {
       --bg:           #2e3440;
@@ -12754,7 +12756,7 @@
         const name = escapeHtml(p.name || '(unnamed)');
         const note = (p.note || '').trim();
         return '<label class="browse-row" data-idx="' + i + '" style="display:flex;align-items:flex-start;gap:0.6rem;padding:0.45rem 0;border-bottom:1px solid var(--border);cursor:pointer">' +
-          '<input type="checkbox" class="cat-pick" data-idx="' + i + '" style="margin-top:0.2rem">' +
+          '<input type="checkbox" class="ui-check cat-pick" data-idx="' + i + '" style="margin-top:0.2rem">' +
           '<span style="flex:1;min-width:0">' +
             '<span title="' + name + '" style="display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</span>' +
             (meta ? '<span style="display:block;font-size:0.72rem;color:var(--muted)">' + escapeHtml(meta) + '</span>' : '') +
@@ -14424,7 +14426,7 @@
               ? '<a href="' + escapeHtml(firstSource) + '" target="_blank" rel="noopener" class="row-src">Source</a>'
               : '';
             return '<label class="browse-row" data-idx="' + i + '" style="display:flex;align-items:flex-start;gap:0.6rem;padding:0.45rem 0;border-bottom:1px solid var(--border);cursor:pointer">' +
-              '<input type="checkbox" class="browse-pick" data-idx="' + i + '" style="margin-top:0.2rem">' +
+              '<input type="checkbox" class="ui-check browse-pick" data-idx="' + i + '" style="margin-top:0.2rem">' +
               '<span style="flex:1;min-width:0;display:block">' +
                 '<span style="display:flex;align-items:center;gap:0.5rem;width:100%">' +
                   '<span title="' + name + '" style="flex:1;min-width:0;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</span>' +
