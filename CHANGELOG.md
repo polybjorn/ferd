@@ -38,6 +38,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The base maps give their providers' full credits: OpenTopoMap names OpenStreetMap contributors, SRTM and its CC-BY-SA licence, and OpenStreetMap and Dark credit OpenStreetMap contributors.
 
 ### Changed
+- Text is 0.75rem or larger everywhere, and sizes, spacing, corners, animation speeds and stacking follow the scales in `ui.css`. Spacing moves slightly in places, and a long category in a map popup wraps instead of pushing the status out.
 - The OpenStreetMap and Dark base maps no longer keep tiles for offline use, since OpenStreetMap's tile policy does not permit it; the browser's normal cache still serves recently viewed tiles. OpenTopoMap still works offline. Tiles cached before this update are cleared once.
 - The Android app identifies itself to tile servers as `Ferd/<version>` instead of the WebView default.
 - The Add form's switches sit at the right of their row, and tapping anywhere on the row flips them.

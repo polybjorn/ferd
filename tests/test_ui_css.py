@@ -334,5 +334,48 @@ class AddForm(unittest.TestCase):
       self.assertNotIn("settings-toggle", form, name)
 
 
+class PopupMeta(unittest.TestCase):
+  def test_status_keeps_its_width_beside_the_label(self):
+    # At the text floor a 20 character category outgrows Leaflet's 300px popup.
+    grid = re.search(r"\.popup-meta \{[^}]*grid-template-columns:\s*([^;]+);", INDEX).group(1)
+    self.assertEqual(grid, "auto 1fr auto")
+
+  def test_label_wraps_only_past_the_popup_cap(self):
+    # A fixed nowrap pushes the status out, and normal wraps before the popup grows.
+    rule = re.search(r"\.popup-meta > :first-child \{([^}]*)\}", INDEX).group(1)
+    self.assertIn("white-space: inherit", rule)
+    self.assertNotIn("min-width", rule)
+
+
+class TextFloor(unittest.TestCase):
+  """Text stays at 0.75rem or above, in a rule or in a style the script builds."""
+  FLOOR_REM = 0.75
+  SOURCES = INDEX + UI_CSS
+
+  def under_floor(self, matches):
+    rems = [(float(n) / 16 if unit == "px" else float(n), n + unit) for n, unit in matches]
+    return [text for rem, text in rems if rem < self.FLOOR_REM]
+
+  def test_no_literal_font_size_below_it(self):
+    found = re.findall(r"font-size\s*:\s*(\d*\.?\d+)(rem|px)", self.SOURCES)
+    self.assertTrue(found, "no literal size found, so this check reads nothing")
+    self.assertEqual(self.under_floor(found), [])
+
+  def test_no_font_shorthand_below_it(self):
+    found = re.findall(r"\bfont\s*[:=]\s*['\"]?[^;'\"\n]*?(\d*\.?\d+)(rem|px)", self.SOURCES)
+    self.assertTrue(found, "no shorthand size found, so this check reads nothing")
+    self.assertEqual(self.under_floor(found), [])
+
+  def test_no_text_token_below_it(self):
+    found = re.findall(r"--ui-text-(?:xs|sm|md|lg|xl)\s*:\s*(\d*\.?\d+)(rem|px)", self.SOURCES)
+    self.assertTrue(found, "no text token found, so this check reads nothing")
+    self.assertEqual(self.under_floor(found), [])
+
+  def test_no_relative_font_size(self):
+    # em and % multiply the parent's size, so they can pass under the floor in a
+    # nested element without any one rule saying so.
+    self.assertEqual(re.findall(r"font-size\s*:\s*[\d.]+(?:em|%)", self.SOURCES), [])
+
+
 if __name__ == "__main__":
   unittest.main()

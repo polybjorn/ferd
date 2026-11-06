@@ -66,6 +66,22 @@ jobs:
         run: python3 -m unittest discover -s tests
       - name: Offline queue tests
         run: node --test tests/js/*.test.js
+      # Cloned like ci-actions, for the same reason. The tag comes from the first
+      # line of ui.css, so vendoring a new copy moves the tools in the same commit.
+      - name: Fetch ui-foundation
+        run: |
+          version=$(sed -n '1s/^\/\* ui\.css \([0-9.]*\):.*/\1/p' ui.css)
+          git clone -q --depth 1 --branch "v$version" "$GITHUB_SERVER_URL/bjorn/ui-foundation.git" "${RUNNER_TEMP:-/tmp}/ui-foundation"
+      # What stays off the scales: hairline and negative offsets, px paired with a
+      # fixed box, reserved icon room, and the webview notice, which has to work
+      # without ui.css. Lower a limit when a value goes; never raise one.
+      - name: Check ui.css copy, host mapping, contrast and scales
+        run: |
+          tools="${RUNNER_TEMP:-/tmp}/ui-foundation/tools"
+          python3 "$tools/vendored_check.py" ui.css --repo "$GITHUB_SERVER_URL/bjorn/ui-foundation.git"
+          python3 "$tools/host_check.py" index.html
+          python3 "$tools/contrast.py" index.html --theme-re '\[data-theme="[^"]+"\]\[data-mode="[^"]+"\]'
+          python3 "$tools/css_audit.py" index.html --scale ui.css --max font-size=1 --max spacing=19 --max radius=0 --max transition=0 --max z-index=1
 
   # Reads a PR's commits with the list github-sync applies after the merge, when
   # the only fix for a hit is rewriting protected main. Here it is still a

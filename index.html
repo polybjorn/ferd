@@ -451,26 +451,26 @@
     nav {
       position: sticky;
       top: 0;
-      z-index: 1000;
+      z-index: var(--ui-z-dropdown);
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
       align-items: center;
-      gap: 1rem;
-      padding: 0 1.5rem;
+      gap: var(--ui-space-4);
+      padding: 0 var(--ui-space-5);
       height: 50px;
     }
 
     .nav-right {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: var(--ui-space-3);
       justify-self: end;
     }
 
     .nav-brand {
-      font-size: 0.85rem;
+      font-size: var(--ui-text-sm);
       font-weight: 400;
       color: var(--text);
       letter-spacing: 0.05em;
@@ -488,24 +488,24 @@
     .nav-group {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: var(--ui-space-3);
     }
 
     .nav-group + .nav-group {
-      margin-left: 0.5rem;
-      padding-left: 1.25rem;
+      margin-left: var(--ui-space-2);
+      padding-left: var(--ui-space-5);
       border-left: 1px solid var(--border);
     }
 
-    .nav-stat { display: flex; align-items: center; gap: 0.3rem; }
+    .nav-stat { display: flex; align-items: center; gap: var(--ui-space-1); }
     .nav-stat .label {
-      font-size: 0.6rem;
+      font-size: var(--ui-text-xs);
       font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
     }
     .nav-stat .value { font-weight: 300; color: var(--text); }
-    .nav-stat a { color: var(--accent); text-decoration: none; display: flex; align-items: center; gap: 0.3rem; }
+    .nav-stat a { color: var(--accent); text-decoration: none; display: flex; align-items: center; gap: var(--ui-space-1); }
     .nav-stat a:hover { text-decoration: underline; }
 
     /* View tabs */
@@ -522,24 +522,24 @@
       align-items: center;
       color: var(--muted);
       text-decoration: none;
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
       font-weight: 400;
       line-height: 1;
       letter-spacing: 0.03em;
-      padding: 0.55rem 0.85rem;
-      transition: background 0.15s, color 0.15s;
+      padding: var(--ui-space-2) var(--ui-space-3);
+      transition: background var(--ui-duration-fast), color var(--ui-duration-fast);
     }
     .view-tabs a + a { border-left: 1px solid var(--border); }
     .view-tabs a:hover { color: var(--text); opacity: 1; }
     .view-tabs a.active { background: var(--surface2); color: var(--text); }
 
-    .nav-actions { display: flex; align-items: center; gap: 0.5rem; }
+    .nav-actions { display: flex; align-items: center; gap: var(--ui-space-2); }
     .nav-actions:empty { display: none; }
     .nav-action-btn {
       font: inherit;
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
       line-height: 1;
-      padding: 0.55rem 0.85rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
       background: var(--accent);
       color: var(--bg);
       border: none;
@@ -553,7 +553,7 @@
     /* App container */
     #app {
       position: relative;
-      z-index: 1;
+      z-index: var(--ui-z-raised);
       max-width: 1400px;
       margin: 0 auto;
       /* 100vh counts the space behind a mobile browser's URL bar, and the extra
@@ -561,7 +561,7 @@
       height: calc(100vh - 50px);
       height: calc(100dvh - 50px);
       overflow-y: overlay;
-      padding: 0.75rem 1.5rem 2rem;
+      padding: var(--ui-space-3) var(--ui-space-5) var(--ui-space-6);
       box-sizing: border-box;
     }
 
@@ -576,7 +576,7 @@
     /* Index grids (places + routes) */
     .region-grid {
       columns: 2;
-      column-gap: 1.5rem;
+      column-gap: var(--ui-space-5);
     }
     /* Places: one full-width column of country/category sections; cards inside
        are width-capped and centered, up to 3 per row (see .place-grid). Plain
@@ -601,7 +601,7 @@
 
     .category-group,
     .region-group {
-      margin-bottom: 1.5rem;
+      margin-bottom: var(--ui-space-5);
       break-inside: avoid;
     }
 
@@ -610,17 +610,17 @@
 
     .category-label,
     .region-label {
-      font-size: 0.7rem;
+      font-size: var(--ui-text-xs);
       font-weight: 600;
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--text);
-      padding-bottom: 0.5rem;
-      margin-bottom: 0.75rem;
+      padding-bottom: var(--ui-space-2);
+      margin-bottom: var(--ui-space-3);
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: var(--ui-space-2);
     }
     .section-link { cursor: pointer; }
     .section-link:hover { color: var(--accent); }
@@ -634,7 +634,7 @@
 
     .place-count,
     .route-count {
-      font-size: 0.65rem;
+      font-size: var(--ui-text-xs);
       color: var(--muted);
     }
 
@@ -645,45 +645,45 @@
     /* Places index */
     .index-controls {
       display: flex;
-      gap: 0.75rem;
-      margin-bottom: 1.25rem;
+      gap: var(--ui-space-3);
+      margin-bottom: var(--ui-space-5);
       align-items: center;
     }
 
     .index-controls input[type="text"] {
       flex: 1;
       min-width: 0;
-      padding: 0.6rem 0.85rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
       background: var(--surface);
       border: 1px solid var(--control-border);
       border-radius: var(--radius);
       color: var(--text);
-      font-size: 0.85rem;
+      font-size: var(--ui-text-sm);
       font-weight: 300;
       font-family: inherit;
-      transition: border-color 0.15s;
+      transition: border-color var(--ui-duration-fast);
     }
     .index-controls input[type="text"]:focus { border-color: var(--accent); }
     /* Live result count pinned inside the search box: total when unfiltered,
        the matching count once a search/filter narrows the list. */
     .index-controls .search-wrap { position: relative; flex: 1; min-width: 0; display: flex; }
-    .index-controls .search-wrap input[type="text"] { padding-right: 3rem; }
+    .index-controls .search-wrap input[type="text"] { padding-right: var(--ui-space-7); }
     .index-controls .result-count {
       position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%);
-      font-size: 0.72rem; color: var(--muted); pointer-events: none;
+      font-size: var(--ui-text-xs); color: var(--muted); pointer-events: none;
       font-variant-numeric: tabular-nums;
     }
     .index-controls select {
       flex-shrink: 0;
-      padding: 0.55rem 0.7rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
       background: var(--surface);
       border: 1px solid var(--control-border);
       border-radius: var(--radius);
       color: var(--text);
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
       font-family: inherit;
       cursor: pointer;
-      transition: border-color 0.15s;
+      transition: border-color var(--ui-duration-fast);
     }
     .index-controls select:focus { border-color: var(--accent); }
     .filter-dropdown { position: relative; flex-shrink: 0; }
@@ -693,10 +693,10 @@
       border-radius: var(--radius);
       color: var(--text);
       font-family: inherit;
-      font-size: 0.8rem;
-      padding: 0.55rem 0.85rem;
+      font-size: var(--ui-text-sm);
+      padding: var(--ui-space-2) var(--ui-space-3);
       cursor: pointer;
-      transition: border-color 0.15s;
+      transition: border-color var(--ui-duration-fast);
     }
     .filter-dropdown .filter-btn:hover { border-color: var(--muted); }
     .filter-dropdown .filter-btn.has-active { border-color: var(--accent); color: var(--accent); }
@@ -705,15 +705,15 @@
     /* Multi-select tag control: a dropdown button that matches the filter
        selects and opens the themed listbox in multi-pick mode. */
     .filter-ms-btn {
-      width: 100%; text-align: left; padding: 0.45rem 1.7rem 0.45rem 0.6rem;
+      width: 100%; text-align: left; padding: var(--ui-space-2) 1.7rem var(--ui-space-2) var(--ui-space-2);
       background: var(--surface2); border: 1px solid var(--control-border); border-radius: var(--radius);
-      color: var(--text); font-size: 0.85rem; font-family: inherit; cursor: pointer; position: relative;
+      color: var(--text); font-size: var(--ui-text-sm); font-family: inherit; cursor: pointer; position: relative;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .filter-ms-btn::after {
       content: ''; position: absolute; right: 0.75rem; top: 50%; width: 6px; height: 6px;
       border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
-      transform: translateY(-70%) rotate(45deg); transition: transform 0.15s;
+      transform: translateY(-70%) rotate(45deg); transition: transform var(--ui-duration-fast);
     }
     .filter-ms-btn[aria-expanded="true"]::after { transform: translateY(-30%) rotate(225deg); }
     .filter-ms-btn.filter-active { border-color: var(--accent); color: var(--accent); }
@@ -721,61 +721,61 @@
     .select-popover .select-option-multi { position: relative; padding-right: 1.8rem; }
     .select-popover .select-option-multi::before {
       content: ''; position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%);
-      width: 0.85rem; height: 0.85rem; border: 1px solid var(--control-border); border-radius: 3px; box-sizing: border-box;
+      width: 0.85rem; height: 0.85rem; border: 1px solid var(--control-border); border-radius: var(--ui-radius-sm); box-sizing: border-box;
     }
     .select-popover .select-option-multi.checked::before { background: var(--accent); border-color: var(--accent); }
     .filter-popover {
       position: absolute;
       top: calc(100% + 6px);
       right: 0;
-      z-index: 100;
+      z-index: var(--ui-z-sticky);
       min-width: 200px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 0.75rem;
+      padding: var(--ui-space-3);
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
+      gap: var(--ui-space-2);
       box-shadow: 0 8px 24px var(--shadow);
     }
     .filter-popover[hidden] { display: none; }
-    .filter-popover label { display: block; font-size: 0.7rem; color: var(--muted); margin-bottom: 0.2rem; text-transform: uppercase; letter-spacing: 0.05em; }
-    #hist-view-popover, #view-popover { min-width: 8rem; gap: 0.15rem; padding: 0.4rem; }
-    .filter-popover .view-option { display: block; width: 100%; text-align: left; background: transparent; border: none; border-radius: var(--radius); color: var(--text); font-family: inherit; font-size: 0.85rem; padding: 0.45rem 0.6rem; cursor: pointer; }
+    .filter-popover label { display: block; font-size: var(--ui-text-xs); color: var(--muted); margin-bottom: var(--ui-space-1); text-transform: uppercase; letter-spacing: 0.05em; }
+    #hist-view-popover, #view-popover { min-width: 8rem; gap: var(--ui-space-1); padding: var(--ui-space-2); }
+    .filter-popover .view-option { display: block; width: 100%; text-align: left; background: transparent; border: none; border-radius: var(--radius); color: var(--text); font-family: inherit; font-size: var(--ui-text-sm); padding: var(--ui-space-2) var(--ui-space-2); cursor: pointer; }
     .filter-popover .view-option:hover { background: var(--surface2); }
     .filter-popover .view-option.active { color: var(--accent); font-weight: 600; }
-    .filter-popover select { width: 100%; padding: 0.45rem 0.6rem; background: var(--surface2); border: 1px solid var(--control-border); border-radius: var(--radius); color: var(--text); font-size: 0.85rem; font-family: inherit; cursor: pointer; }
+    .filter-popover select { width: 100%; padding: var(--ui-space-2) var(--ui-space-2); background: var(--surface2); border: 1px solid var(--control-border); border-radius: var(--radius); color: var(--text); font-size: var(--ui-text-sm); font-family: inherit; cursor: pointer; }
     .filter-popover select:focus { border-color: var(--accent); }
     .filter-popover .filter-clear {
       width: 100%;
       background: transparent;
       border: 1px solid var(--accent);
       color: var(--accent);
-      font-size: 0.75rem;
+      font-size: var(--ui-text-xs);
       font-family: inherit;
       letter-spacing: 0.05em;
-      padding: 0.45rem 0.6rem;
+      padding: var(--ui-space-2) var(--ui-space-2);
       border-radius: var(--radius);
       cursor: pointer;
       text-align: center;
-      transition: background-color 0.15s ease, color 0.15s ease;
+      transition: background-color var(--ui-duration-fast) ease, color var(--ui-duration-fast) ease;
     }
     .filter-popover .filter-clear:hover { background: var(--accent); color: var(--fab-text); }
-    .filter-popover .filter-divider { height: 1px; background: var(--border); margin: 0.2rem -0.25rem; }
+    .filter-popover .filter-divider { height: 1px; background: var(--border); margin: var(--ui-space-1) -0.25rem; }
 
     .context-menu {
       position: fixed;
-      z-index: 5000;
+      z-index: var(--ui-z-popover);
       min-width: 120px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 0.3rem;
+      padding: var(--ui-space-1);
       display: flex;
       flex-direction: column;
       box-shadow: 0 8px 24px var(--shadow);
-      font-size: 0.85rem;
+      font-size: var(--ui-text-sm);
     }
     .context-menu[hidden] { display: none; }
     .context-menu button {
@@ -783,33 +783,33 @@
       border: none;
       color: var(--text);
       text-align: left;
-      padding: 0.45rem 0.6rem;
-      border-radius: calc(var(--radius) - 2px);
+      padding: var(--ui-space-2) var(--ui-space-2);
+      border-radius: calc(var(--radius) - var(--ui-radius-sm));
       cursor: pointer;
       font: inherit;
     }
     .context-menu button:hover { background: var(--surface2); }
     .context-menu button.danger { color: var(--danger); }
-    .context-menu .ctx-divider { height: 1px; background: var(--border); margin: 0.2rem 0; }
+    .context-menu .ctx-divider { height: 1px; background: var(--border); margin: var(--ui-space-1) 0; }
     /* Themed replacement for the native <select> popup (which the OS renders and
        CSS can't reach). The closed control stays the real <select>; this floats
        over it while open. */
     .select-popover {
       position: fixed;
-      z-index: 5000;
+      z-index: var(--ui-z-popover);
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 0.3rem;
+      padding: var(--ui-space-1);
       box-shadow: 0 8px 24px var(--shadow);
       max-height: 16rem;
       overflow-y: auto;
       overscroll-behavior: contain;
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
     }
     .select-popover .select-option {
-      padding: 0.45rem 0.6rem;
-      border-radius: calc(var(--radius) - 2px);
+      padding: var(--ui-space-2) var(--ui-space-2);
+      border-radius: calc(var(--radius) - var(--ui-radius-sm));
       color: var(--text);
       cursor: pointer;
       white-space: nowrap;
@@ -819,14 +819,14 @@
     .select-popover .select-option.active { background: var(--surface2); }
     .select-popover .select-option[aria-selected="true"] { color: var(--accent); font-weight: 500; }
     .select-popover .select-option.disabled { opacity: 0.5; cursor: default; }
-    .leaflet-countries-pane { transition: opacity 250ms ease; }
+    .leaflet-countries-pane { transition: opacity var(--ui-duration-slow) ease; }
     .leaflet-countries-pane.zoomed-past { opacity: 0; }
     @media (prefers-reduced-motion: reduce) {
       .leaflet-countries-pane { transition: none; }
       .country-list:not([hidden]) { animation: none; }
     }
-    .country-list { position: static; margin-top: 0.25rem; max-height: 12rem; box-shadow: none; }
-    .country-list:not([hidden]) { animation: country-list-in 250ms ease-in-out; }
+    .country-list { position: static; margin-top: var(--ui-space-1); max-height: 12rem; box-shadow: none; }
+    .country-list:not([hidden]) { animation: country-list-in var(--ui-duration-slow) ease-in-out; }
     @keyframes country-list-in { from { opacity: 0; transform: translateY(-4px); } }
 
     .group-toggle {
@@ -840,12 +840,12 @@
       background: transparent;
       border: none;
       color: var(--muted);
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
       font-weight: 400;
       font-family: inherit;
-      padding: 0.55rem 0.85rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
       cursor: pointer;
-      transition: background 0.15s, color 0.15s;
+      transition: background var(--ui-duration-fast), color var(--ui-duration-fast);
       letter-spacing: 0.03em;
     }
     .group-toggle button + button { border-left: 1px solid var(--border); }
@@ -855,7 +855,7 @@
     .place-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 460px));
-      gap: 0.5rem;
+      gap: var(--ui-space-2);
       justify-content: center;
     }
 
@@ -863,11 +863,11 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 0.75rem 1rem;
+      padding: var(--ui-space-3) var(--ui-space-4);
       cursor: pointer;
-      transition: border-color 0.15s;
+      transition: border-color var(--ui-duration-fast);
       display: flex;
-      gap: 0.5rem;
+      gap: var(--ui-space-2);
     }
     .place-card:hover, .route-card:hover { border-color: var(--border-hover); }
     /* Touch: long-press opens the context menu, so suppress the text-selection
@@ -880,15 +880,15 @@
       }
     }
     .place-card { align-items: flex-start; }
-    .place-card .status-dot { margin-top: 0.35rem; }
+    .place-card .status-dot { margin-top: var(--ui-space-1); }
     .place-card .place-text { min-width: 0; flex: 1; }
-    .place-card .name { font-size: 0.85rem; font-weight: 300; }
-    .place-card .note { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; }
+    .place-card .name { font-size: var(--ui-text-sm); font-weight: 300; }
+    .place-card .note { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); }
     .place-card .catalog-mark {
       position: relative;
       flex: 0 0 auto; color: var(--muted); display: inline-flex;
-      align-items: center; justify-content: center; align-self: center; margin-left: 0.5rem;
-      background: transparent; border: none; padding: 0.2rem; cursor: pointer;
+      align-items: center; justify-content: center; align-self: center; margin-left: var(--ui-space-2);
+      background: transparent; border: none; padding: var(--ui-space-1); cursor: pointer;
     }
     .place-card .catalog-mark:hover { color: var(--text); }
     /* Orphan: the linked catalog entry was removed. Non-actionable, so it
@@ -909,20 +909,20 @@
     }
     /* History timeline (chronological journal of visited places + completed routes) */
     .history-list { max-width: 720px; margin: 0 auto; }
-    .history-group { margin-bottom: 2rem; }
+    .history-group { margin-bottom: var(--ui-space-6); }
     .history-group:last-child { margin-bottom: 0; }
     .history-year {
-      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.2em;
+      font-size: var(--ui-text-xs); font-weight: 600; letter-spacing: 0.2em;
       text-transform: uppercase; color: var(--text);
-      padding-bottom: 0.5rem; margin-bottom: 1rem;
+      padding-bottom: var(--ui-space-2); margin-bottom: var(--ui-space-4);
       border-bottom: 1px solid var(--border);
     }
     .history-card {
-      display: flex; gap: 1rem; align-items: flex-start;
+      display: flex; gap: var(--ui-space-4); align-items: flex-start;
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 0.85rem 1rem;
-      margin-bottom: 0.75rem; cursor: pointer;
-      transition: border-color 0.15s;
+      border-radius: var(--radius); padding: var(--ui-space-3) var(--ui-space-4);
+      margin-bottom: var(--ui-space-3); cursor: pointer;
+      transition: border-color var(--ui-duration-fast);
     }
     .history-card:hover { border-color: var(--border-hover); }
     .history-image {
@@ -931,24 +931,24 @@
       background: var(--surface2);
     }
     .history-body { min-width: 0; flex: 1; }
-    .history-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-    .history-name { font-size: 0.9rem; font-weight: 400; color: var(--text); }
+    .history-head { display: flex; align-items: center; gap: var(--ui-space-2); flex-wrap: wrap; }
+    .history-name { font-size: var(--ui-text-sm); font-weight: 400; color: var(--text); }
     .history-kind {
-      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--muted); border: 1px solid var(--border); border-radius: 999px;
-      padding: 0.05rem 0.45rem; flex: 0 0 auto; margin-left: auto;
+      font-size: var(--ui-text-xs); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); border: 1px solid var(--border); border-radius: var(--ui-radius-full);
+      padding: 0.05rem var(--ui-space-2); flex: 0 0 auto; margin-left: auto;
     }
-    .history-meta { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
+    .history-meta { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); display: flex; align-items: baseline; gap: var(--ui-space-3); flex-wrap: wrap; }
     .history-stars { color: var(--accent); }
-    .history-note { font-size: 0.72rem; color: var(--muted); margin-top: 0.35rem; }
+    .history-note { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); }
     /* Gallery view: single column, image on top and larger. */
-    .history-list.gallery .history-cards { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+    .history-list.gallery .history-cards { display: grid; grid-template-columns: 1fr; gap: var(--ui-space-4); }
     .history-list.gallery .history-card {
       flex-direction: column; align-items: stretch;
       gap: 0; padding: 0; margin-bottom: 0; overflow: hidden;
     }
     .history-list.gallery .history-image { width: 100%; aspect-ratio: 16 / 9; }
-    .history-list.gallery .history-body { padding: 0.85rem 1rem; }
+    .history-list.gallery .history-body { padding: var(--ui-space-3) var(--ui-space-4); }
     /* Compact: reserve the thumbnail's width for media-less entries so text
        aligns; gallery stacks media on top, so no spacer there. */
     .history-image-spacer { flex: 0 0 auto; width: 120px; }
@@ -958,31 +958,31 @@
     }
 
     .catalog-updates-notice {
-      display: flex; align-items: center; gap: 0.75rem;
-      margin: 0 0 1rem; padding: 0.5rem 0.8rem;
+      display: flex; align-items: center; gap: var(--ui-space-3);
+      margin: 0 0 var(--ui-space-4); padding: var(--ui-space-2) var(--ui-space-3);
       background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
-      font-size: 0.78rem; color: var(--text);
+      font-size: var(--ui-text-xs); color: var(--text);
       column-span: all;
     }
     .catalog-updates-notice span { flex: 1; }
     .catalog-updates-notice button {
       background: transparent; border: 1px solid var(--accent); color: var(--accent);
-      border-radius: 999px; padding: 0.15rem 0.6rem; font-size: 0.72rem; cursor: pointer;
+      border-radius: var(--ui-radius-full); padding: var(--ui-space-1) var(--ui-space-2); font-size: var(--ui-text-xs); cursor: pointer;
     }
     .catalog-updates-notice button:hover { background: var(--accent); color: var(--surface); }
     .catalog-diff {
-      margin: 0.5rem 0; padding: 0.6rem 0.8rem;
+      margin: var(--ui-space-2) 0; padding: var(--ui-space-2) var(--ui-space-3);
       background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
-      font-size: 0.78rem;
+      font-size: var(--ui-text-xs);
       /* Parent grid: rows use `subgrid` so the label column auto-sizes to
          the widest label across all diff rows. Saves space when labels are
          short while keeping multi-row labels visually aligned. */
-      display: grid; column-gap: 0.5rem;
+      display: grid; column-gap: var(--ui-space-2);
       grid-template-columns: max-content 1fr;
     }
     .catalog-diff:has(.catalog-diff-field.selectable) {
       grid-template-columns: 1.4rem max-content 1fr;
-      column-gap: 0.75rem;
+      column-gap: var(--ui-space-3);
     }
     .catalog-diff-field,
     .modal label.catalog-diff-field {
@@ -994,9 +994,9 @@
     }
     .catalog-diff-field.selectable,
     .modal label.catalog-diff-field.selectable { cursor: pointer; }
-    .catalog-diff-field + .catalog-diff-field { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border); }
-    .catalog-diff-check { margin: 0.15rem 0 0; cursor: pointer; accent-color: var(--accent); width: 1rem; height: 1rem; }
-    .catalog-diff-label { color: var(--muted); font-size: 0.72rem; padding-top: 0.1rem; }
+    .catalog-diff-field + .catalog-diff-field { margin-top: var(--ui-space-2); padding-top: var(--ui-space-2); border-top: 1px dashed var(--border); }
+    .catalog-diff-check { margin: var(--ui-space-1) 0 0; cursor: pointer; accent-color: var(--accent); width: 1rem; height: 1rem; }
+    .catalog-diff-label { color: var(--muted); font-size: var(--ui-text-xs); padding-top: 0.1rem; }
     .catalog-diff-old { color: var(--muted); text-decoration: line-through; word-break: break-word; }
     .catalog-diff-new { color: var(--text); word-break: break-word; margin-top: 0.1rem; }
     .catalog-diff-image {
@@ -1014,7 +1014,7 @@
        the alt label sits on top and fades in when fields are selected. */
     #catalog-update-confirm { position: relative; }
     #catalog-update-confirm .lbl-default,
-    #catalog-update-confirm .lbl-alt { transition: opacity 0.18s ease; }
+    #catalog-update-confirm .lbl-alt { transition: opacity var(--ui-duration-base) ease; }
     #catalog-update-confirm .lbl-alt { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; }
     #catalog-update-confirm.has-selection .lbl-default { opacity: 0; }
     #catalog-update-confirm.has-selection .lbl-alt { opacity: 1; }
@@ -1039,12 +1039,12 @@
     .route-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 0.5rem;
+      gap: var(--ui-space-2);
     }
 
     .route-card { align-items: center; }
     .route-card .name {
-      font-size: 0.85rem;
+      font-size: var(--ui-text-sm);
       font-weight: 300;
       flex: 1;
       min-width: 0;
@@ -1061,12 +1061,12 @@
     .view-compact .place-grid, .view-gallery .place-grid,
     .view-compact .route-grid, .view-gallery .route-grid { grid-template-columns: 1fr; }
     /* Compact: small media thumbnail on the left, body beside it (like History). */
-    .view-compact .place-card, .view-compact .route-card { gap: 1rem; }
+    .view-compact .place-card, .view-compact .route-card { gap: var(--ui-space-4); }
     .view-compact .card-media {
       flex: 0 0 auto; width: 120px; aspect-ratio: 16 / 10; display: block;
       object-fit: cover; border-radius: var(--radius); background: var(--surface2);
     }
-    .view-compact .card-body { display: flex; gap: 0.5rem; flex: 1; min-width: 0; align-items: flex-start; }
+    .view-compact .card-body { display: flex; gap: var(--ui-space-2); flex: 1; min-width: 0; align-items: flex-start; }
     .view-compact .route-card .card-body { align-items: center; }
     .view-compact .card-media-spacer { flex: 0 0 auto; width: 120px; }
     @media (max-width: 600px) {
@@ -1074,7 +1074,7 @@
       .view-compact .card-media-spacer { width: 88px; }
     }
     /* Gallery: media (image / route silhouette) on top, body below. */
-    .view-gallery .place-grid, .view-gallery .route-grid { gap: 1rem; }
+    .view-gallery .place-grid, .view-gallery .route-grid { gap: var(--ui-space-4); }
     .view-gallery .place-card, .view-gallery .route-card {
       flex-direction: column; align-items: stretch; gap: 0; padding: 0; overflow: hidden;
     }
@@ -1083,7 +1083,7 @@
       object-fit: cover; background: var(--surface2);
       border-bottom: 1px solid var(--border);
     }
-    .view-gallery .card-body { display: flex; gap: 0.5rem; align-items: flex-start; padding: 0.75rem 1rem; }
+    .view-gallery .card-body { display: flex; gap: var(--ui-space-2); align-items: flex-start; padding: var(--ui-space-3) var(--ui-space-4); }
     .view-gallery .route-card .card-body { align-items: center; }
     .view-gallery .route-card .name { white-space: normal; }
 
@@ -1107,21 +1107,21 @@
     }
 
     .panel-search {
-      padding: 0.45rem 0.65rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
       position: relative;
     }
 
     .panel-search input {
       width: 100%;
-      padding: 0.4rem 0.6rem;
+      padding: var(--ui-space-2) var(--ui-space-2);
       background: var(--surface2);
       border: 1px solid var(--control-border);
       border-radius: var(--radius);
       color: var(--text);
-      font-size: 0.7rem;
+      font-size: var(--ui-text-xs);
       font-weight: 300;
       font-family: inherit;
-      transition: border-color 0.15s;
+      transition: border-color var(--ui-duration-fast);
     }
     .panel-search input:focus { border-color: var(--accent); }
 
@@ -1130,7 +1130,7 @@
       bottom: 100%;
       left: 0;
       right: 0;
-      margin-bottom: 0.25rem;
+      margin-bottom: var(--ui-space-1);
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -1140,12 +1140,12 @@
     }
     .map-search-results.visible { display: block; }
     .map-search-result {
-      padding: 0.45rem 0.75rem;
-      font-size: 0.7rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
+      font-size: var(--ui-text-xs);
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: var(--ui-space-2);
       color: var(--text);
     }
     .map-search-result:hover { background: var(--surface2); }
@@ -1154,8 +1154,8 @@
       flex-shrink: 0;
     }
     .map-search-result .result-dot { width: 6px; height: 6px; border-radius: 50%; }
-    .map-search-result .result-line { width: 12px; height: 2px; border-radius: 1px; }
-    .map-search-result .result-meta { color: var(--muted); margin-left: auto; font-size: 0.6rem; }
+    .map-search-result .result-line { width: 12px; height: 2px; border-radius: var(--ui-radius-sm); }
+    .map-search-result .result-meta { color: var(--muted); margin-left: auto; font-size: var(--ui-text-xs); }
 
     /* Filter panel sections */
     .panel-tabs {
@@ -1167,11 +1167,11 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.4rem;
-      padding: 0.45rem 0.65rem;
+      gap: var(--ui-space-2);
+      padding: var(--ui-space-2) var(--ui-space-3);
       cursor: pointer;
       user-select: none;
-      font-size: 0.7rem;
+      font-size: var(--ui-text-xs);
       font-weight: 400;
       color: var(--text);
       letter-spacing: 0.03em;
@@ -1180,7 +1180,7 @@
     .panel-tab .section-arrow {
       display: inline-flex;
       color: var(--muted);
-      transition: transform 0.15s;
+      transition: transform var(--ui-duration-fast);
     }
     .panel-tab .section-arrow svg { width: 0.85rem; height: 0.85rem; display: block; }
     /* Tabs sit at the panel bottom and the list opens upward, so a collapsed
@@ -1193,7 +1193,7 @@
       display: grid;
       grid-template-rows: 0fr;
       opacity: 0;
-      transition: grid-template-rows 0.2s ease, opacity 0.2s ease;
+      transition: grid-template-rows var(--ui-duration-base) ease, opacity var(--ui-duration-base) ease;
     }
     .panel-section:not(.collapsed) { grid-template-rows: 1fr; opacity: 1; }
     @media (prefers-reduced-motion: reduce) {
@@ -1206,47 +1206,47 @@
       min-height: 0;
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
+      gap: var(--ui-space-1);
     }
     /* Border + padding only when open, so a collapsed section (incl. its
        non-compressible padding) flattens to nothing instead of leaving a gap. */
     .panel-section:not(.collapsed) .panel-section-body {
       border-top: 1px solid var(--border);
-      padding: 0.4rem 0.65rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
     }
 
     .legend-cats {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0.15rem 0.5rem;
+      gap: var(--ui-space-1) var(--ui-space-2);
     }
 
     .legend-item {
       display: flex;
       align-items: center;
-      gap: 0.35rem;
-      font-size: 0.65rem;
+      gap: var(--ui-space-1);
+      font-size: var(--ui-text-xs);
       color: var(--text);
       cursor: pointer;
       user-select: none;
-      transition: opacity 0.15s;
-      padding: 0.15rem 0;
+      transition: opacity var(--ui-duration-fast);
+      padding: var(--ui-space-1) 0;
     }
     /* Off = the whole row fades back and the color dot disappears entirely. */
     .legend-item.disabled { opacity: 0.5; }
     .legend-item.disabled .legend-dot { opacity: 0; }
 
-    .legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; transition: opacity 0.15s; }
-    .legend-line { width: 14px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+    .legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; transition: opacity var(--ui-duration-fast); }
+    .legend-line { width: 14px; height: 3px; border-radius: var(--ui-radius-sm); flex-shrink: 0; }
     .legend-line.completed, .result-line.completed { background: var(--status-completed); }
     .legend-line.planned, .result-line.planned { background: var(--status-planned); }
 
     .legend-status {
       display: flex;
       align-items: center;
-      gap: 0.35rem;
-      margin-top: 0.25rem;
-      padding-top: 0.35rem;
+      gap: var(--ui-space-1);
+      margin-top: var(--ui-space-1);
+      padding-top: var(--ui-space-1);
       border-top: 1px solid var(--border);
     }
     /* Shared status footer: pinned below the accordion sections so it doesn't
@@ -1258,9 +1258,9 @@
       display: grid;
       grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      gap: 0.35rem;
+      gap: var(--ui-space-1);
       margin-top: 0;
-      padding: 0.4rem 0.65rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
     }
     .panel-status > .status-chip:first-child { justify-self: start; }
     .panel-status > .panel-toggle-all { justify-self: end; }
@@ -1268,25 +1268,25 @@
     .status-chip {
       display: flex;
       align-items: center;
-      gap: 0.3rem;
-      font-size: 0.6rem;
+      gap: var(--ui-space-1);
+      font-size: var(--ui-text-xs);
       color: var(--text);
       cursor: pointer;
       user-select: none;
-      padding: 0.2rem 0.45rem;
+      padding: var(--ui-space-1) var(--ui-space-2);
       border: 1px solid var(--control-border);
-      border-radius: 3px;
-      transition: opacity 0.15s, border-color 0.15s, color 0.15s;
+      border-radius: var(--ui-radius-sm);
+      transition: opacity var(--ui-duration-fast), border-color var(--ui-duration-fast), color var(--ui-duration-fast);
     }
     .status-chip.active { border-color: var(--muted); }
     /* On = white label + full dot; off = grey label + faded dot. Toggle-all is
        an action, not a toggle, so it stays white. */
-    .status-chip .status-dot { transition: opacity 0.15s; }
+    .status-chip .status-dot { transition: opacity var(--ui-duration-fast); }
     .status-chip:not(.active):not(.panel-toggle-all) { color: var(--muted); }
     .status-chip:not(.active) .status-dot { opacity: 0.2; }
     .status-chip:hover { border-color: var(--muted); }
     .legend-item, .status-chip { transform-origin: center; }
-    .legend-item.pulse, .status-chip.pulse { animation: chip-pulse 180ms ease-out; }
+    .legend-item.pulse, .status-chip.pulse { animation: chip-pulse var(--ui-duration-base) ease-out; }
     @keyframes chip-pulse {
       0%   { transform: scale(1); }
       50%  { transform: scale(1.08); }
@@ -1312,7 +1312,7 @@
       min-height: 320px;
     }
     .detail-layout > :not(#map) {
-      transition: max-height 0.3s ease, opacity 0.2s ease, margin 0.3s ease, padding 0.3s ease, border-width 0.3s ease;
+      transition: max-height var(--ui-duration-slow) ease, opacity var(--ui-duration-base) ease, margin var(--ui-duration-slow) ease, padding var(--ui-duration-slow) ease, border-width var(--ui-duration-slow) ease;
       max-height: 70vh;
       overflow: hidden;
     }
@@ -1352,7 +1352,7 @@
       top: 50%;
       left: 50%;
       margin: -8px 0 0 -8px;
-      transition: opacity 0.2s ease, transform 0.2s ease;
+      transition: opacity var(--ui-duration-base) ease, transform var(--ui-duration-base) ease;
     }
     .map-expand-btn .icon-collapse { opacity: 0; transform: scale(0.7); }
     .detail-layout.map-expanded .map-expand-btn .icon-expand { opacity: 0; transform: scale(0.7); }
@@ -1363,21 +1363,21 @@
 
 
     .no-elevation-notice {
-      font-size: 0.75rem;
+      font-size: var(--ui-text-xs);
       color: var(--muted);
       font-style: italic;
-      margin-top: 0.75rem;
+      margin-top: var(--ui-space-3);
     }
 
     .route-meta-panel {
-      margin-top: 0.5rem;
-      padding: 0.75rem 0.9rem;
+      margin-top: var(--ui-space-2);
+      padding: var(--ui-space-3) var(--ui-space-4);
       background: var(--surface);
       border: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
-      font-size: 0.75rem;
+      gap: var(--ui-space-2);
+      font-size: var(--ui-text-xs);
       color: var(--text);
       flex-shrink: 0;
     }
@@ -1385,14 +1385,14 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 0.4rem 1.25rem;
+      gap: var(--ui-space-2) var(--ui-space-5);
       justify-content: space-between;
     }
     .route-meta-line {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 0 0.5rem;
+      gap: 0 var(--ui-space-2);
       line-height: 1.6;
       color: var(--muted);
     }
@@ -1407,7 +1407,7 @@
       height: 0.5rem;
       border-radius: 50%;
       display: inline-block;
-      margin-right: 0.4rem;
+      margin-right: var(--ui-space-2);
     }
     .route-meta-line .sep {
       color: var(--border);
@@ -1416,34 +1416,34 @@
     .route-meta-tags, .place-tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.25rem 0.5rem;
+      gap: var(--ui-space-1) var(--ui-space-2);
     }
-    .place-tags { margin-top: 0.25rem; }
+    .place-tags { margin-top: var(--ui-space-1); }
     .route-meta-tags .tag, .place-tags .tag {
-      font-size: 0.7rem;
+      font-size: var(--ui-text-xs);
       color: var(--muted);
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 0.05rem 0.5rem;
+      border-radius: var(--ui-radius-full);
+      padding: 0.05rem var(--ui-space-2);
     }
     .route-meta-notes {
-      font-size: 0.75rem;
+      font-size: var(--ui-text-xs);
       color: var(--text);
       line-height: 1.5;
       white-space: pre-wrap;
       word-break: break-word;
-      padding-top: 0.6rem;
+      padding-top: var(--ui-space-2);
       border-top: 1px solid var(--border);
     }
     .route-meta-notes-label {
       display: block;
-      font-size: 0.55rem;
+      font-size: var(--ui-text-xs);
       font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: 0.25rem;
+      margin-bottom: var(--ui-space-1);
     }
 
     /* Multi-track elevation: graph + collapsible segment list. */
@@ -1466,31 +1466,31 @@
        master-collapsible segment list below that scrolls inside a fixed area
        so 100+ rows never become a tall wall. Clicking a row swaps the graph. */
     .detail-elev-title {
-      font-size: 0.65rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+      font-size: var(--ui-text-xs); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
       color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-bottom: none;
-      padding: 0.4rem 0.6rem; cursor: pointer; user-select: none;
-      display: flex; align-items: center; gap: 0.4rem;
+      padding: var(--ui-space-2) var(--ui-space-2); cursor: pointer; user-select: none;
+      display: flex; align-items: center; gap: var(--ui-space-2);
     }
     .detail-elev-title-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     /* Disclosure chevron (down = open, right = collapsed). */
     .detail-elev-title::after {
       content: ''; flex: none; box-sizing: border-box; width: 7px; height: 7px;
       border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
-      transform: translateY(-2px) rotate(45deg); transition: transform 0.15s;
-      margin-left: 0.6rem; margin-right: 2px;
+      transform: translateY(-2px) rotate(45deg); transition: transform var(--ui-duration-fast);
+      margin-left: var(--ui-space-2); margin-right: 2px;
     }
     .detail-elev-title.collapsed::after { transform: translateY(0) rotate(-45deg); }
     .detail-elev-title.collapsed { border-bottom: 1px solid var(--border); }
     /* Stats line shown on the elevation header (single/few-track statbar) or on
        the graph title (many-segment), replacing the old top stats bar. */
     .detail-elev-statbar {
-      font-size: 0.65rem; color: var(--muted); background: var(--surface);
+      font-size: var(--ui-text-xs); color: var(--muted); background: var(--surface);
       border: 1px solid var(--border); border-bottom: none;
-      padding: 0.4rem 0.6rem; overflow: hidden;
+      padding: var(--ui-space-2) var(--ui-space-2); overflow: hidden;
     }
     .detail-elev-stats { font-variant-numeric: tabular-nums; white-space: nowrap; text-transform: none; letter-spacing: normal; }
     .detail-elev-title .detail-elev-stats { color: var(--text); }
-    .fact-source { color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
+    .fact-source { color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: var(--ui-space-1); }
     .fact-source:hover { text-decoration: underline; }
     .fact-source svg { width: 0.85em; height: 0.85em; }
     /* Reserve the chart height here (not on the container) so collapsing the
@@ -1501,7 +1501,7 @@
       height: 174px; overflow: hidden;
       /* !important so this wins over the .detail-layout > :not(#map) transition
          (which omits height) for single-track, whose graph is a direct child. */
-      transition: height 0.2s ease, max-height 0.2s ease, border-width 0.2s ease, opacity 0.2s ease !important;
+      transition: height var(--ui-duration-base) ease, max-height var(--ui-duration-base) ease, border-width var(--ui-duration-base) ease, opacity var(--ui-duration-base) ease !important;
     }
     .detail-elev-graph.collapsed { height: 0; border-width: 0; opacity: 0; }
     @media (prefers-reduced-motion: reduce) {
@@ -1513,16 +1513,16 @@
     .elev-segments { position: relative; }
     .elev-segments-toggle {
       width: 100%; text-align: left; cursor: pointer; font: inherit;
-      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+      font-size: var(--ui-text-xs); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
       color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-top: none;
-      padding: 0.5rem 1rem 0.5rem 0.6rem; display: flex; align-items: center; gap: 0.4rem;
+      padding: var(--ui-space-2) var(--ui-space-4) var(--ui-space-2) var(--ui-space-2); display: flex; align-items: center; gap: var(--ui-space-2);
     }
     /* Chevron on the LEFT so the totals are the rightmost element and align
        with the rows' columns (a trailing chevron would push them left). */
     .elev-segments-toggle::before {
       content: ''; flex: none; box-sizing: border-box; width: 7px; height: 7px;
       border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
-      transform: translateY(-2px) rotate(45deg); transition: transform 0.15s;
+      transform: translateY(-2px) rotate(45deg); transition: transform var(--ui-duration-fast);
     }
     .elev-segments-toggle.collapsed::before { transform: translateY(0) rotate(-45deg); }
     /* Toggle bar: label on the left, whole-route totals on the right (aligned
@@ -1532,21 +1532,21 @@
     .elev-toggle-stats { text-transform: none; letter-spacing: normal; cursor: pointer; }
     .elev-toggle-stats:hover, .elev-toggle-stats.active { color: var(--text); }
     .elev-segments-list {
-      position: absolute; top: 100%; left: 0; right: 0; z-index: 500;
-      max-height: 340px; overflow-y: auto; transition: max-height 0.2s ease;
+      position: absolute; top: 100%; left: 0; right: 0; z-index: var(--ui-z-dropdown);
+      max-height: 340px; overflow-y: auto; transition: max-height var(--ui-duration-base) ease;
       background: var(--surface); border: 1px solid var(--border); border-top: none;
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
     }
     .elev-segments-list.collapsed { max-height: 0; overflow: hidden; border: none; box-shadow: none; }
     .seg-row {
-      display: flex; align-items: center; gap: 0.4rem; cursor: pointer;
-      padding: 0.35rem 1rem 0.35rem 0.6rem; font-size: 0.65rem; letter-spacing: 0.03em;
+      display: flex; align-items: center; gap: var(--ui-space-2); cursor: pointer;
+      padding: var(--ui-space-1) var(--ui-space-4) var(--ui-space-1) var(--ui-space-2); font-size: var(--ui-text-xs); letter-spacing: 0.03em;
       color: var(--muted); border-top: 1px solid var(--border);
     }
     .seg-row:first-child { border-top: none; }
     .seg-row:hover { background: var(--surface2); }
     .seg-row.active { background: var(--surface2); color: var(--text); font-weight: 600; }
-    .seg-row .color-dot { width: 8px; height: 3px; border-radius: 2px; flex: none; }
+    .seg-row .color-dot { width: 8px; height: 3px; border-radius: var(--ui-radius-sm); flex: none; }
     /* Aligned columns across the toggle totals, every row, and the single-track
        title's length+climb: # | name | dist | climb. */
     .elev-segments .seg-num { width: 1.9rem; flex: none; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -1554,7 +1554,7 @@
     .elev-segments .seg-stat,
     .detail-elev-title .seg-stat { flex: none; color: var(--muted); display: flex; align-items: baseline; font-variant-numeric: tabular-nums; text-transform: none; letter-spacing: normal; }
     .elev-segments .seg-dist, .elev-segments .seg-gain,
-    .detail-elev-title .seg-dist, .detail-elev-title .seg-gain { box-sizing: border-box; text-align: right; margin-left: 0.6rem; padding-left: 0.6rem; border-left: 1px solid var(--border); }
+    .detail-elev-title .seg-dist, .detail-elev-title .seg-gain { box-sizing: border-box; text-align: right; margin-left: var(--ui-space-2); padding-left: var(--ui-space-2); border-left: 1px solid var(--border); }
     .elev-segments .seg-dist, .detail-elev-title .seg-dist { width: 5.2rem; }
     .elev-segments .seg-gain, .detail-elev-title .seg-gain { width: 6rem; }
 
@@ -1564,7 +1564,7 @@
       justify-content: center;
       height: 200px;
       color: var(--muted);
-      font-size: 0.85rem;
+      font-size: var(--ui-text-sm);
     }
     body.signin-only nav,
     body.signin-only #pwa-offline-banner,
@@ -1585,8 +1585,8 @@
       align-items: center;
       justify-content: center;
       height: 100%;
-      padding: 2rem 1rem;
-      gap: 1.25rem;
+      padding: var(--ui-space-6) var(--ui-space-4);
+      gap: var(--ui-space-5);
       box-sizing: border-box;
     }
     .signin-page .signin-logo {
@@ -1595,18 +1595,18 @@
       display: block;
     }
     .signin-page .signin-brand {
-      font-size: 1.25rem;
+      font-size: var(--ui-text-lg);
       letter-spacing: 0.08em;
       color: var(--text);
-      margin-bottom: 0.25rem;
+      margin-bottom: var(--ui-space-1);
     }
     .signin-page .modal {
       max-width: 360px;
       box-shadow: 0 10px 40px var(--shadow);
     }
     #signin-public-maps {
-      margin-top: 1.25rem;
-      padding-top: 1rem;
+      margin-top: var(--ui-space-5);
+      padding-top: var(--ui-space-4);
       border-top: 1px solid var(--border);
     }
     .signin-public-toggle {
@@ -1619,9 +1619,9 @@
       border-radius: var(--radius);
       color: var(--muted);
       font: inherit;
-      font-size: 0.75rem;
+      font-size: var(--ui-text-xs);
       letter-spacing: 0.05em;
-      padding: 0.5rem 0.75rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
       cursor: pointer;
     }
     .signin-public-toggle:hover { color: var(--text); border-color: var(--muted); }
@@ -1631,11 +1631,11 @@
        margin-right:auto, leaving the filled Sign in at the right. The button
        keeps the default outlined modal-button style. */
     .signin-server-host {
-      margin-top: 0.75rem;
+      margin-top: var(--ui-space-3);
       text-align: center;
       max-width: 100%;
       font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-      font-size: 0.72rem;
+      font-size: var(--ui-text-xs);
       color: var(--muted);
       opacity: 0.8;
       overflow: hidden;
@@ -1645,8 +1645,8 @@
     .modal .modal-actions .signin-change-server { margin-right: auto; }
     /* "Continue without signing in" entry on the sign-in / server-picker cards. */
     .signin-alt {
-      margin-top: 0.85rem;
-      padding-top: 0.85rem;
+      margin-top: var(--ui-space-3);
+      padding-top: var(--ui-space-3);
       border-top: 1px solid var(--border);
       text-align: center;
     }
@@ -1654,33 +1654,33 @@
       background: none;
       border: none;
       color: var(--muted);
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
       cursor: pointer;
-      padding: 0.25rem;
+      padding: var(--ui-space-1);
       text-decoration: underline;
     }
     .signin-alt button:hover { color: var(--text); }
     /* Plain-http caution in the server picker. Non-blocking: Connect stays
        enabled; this just informs that the token travels unencrypted. */
     .modal .srv-warn {
-      margin: 0.5rem 0 0;
-      font-size: 0.78rem;
+      margin: var(--ui-space-2) 0 0;
+      font-size: var(--ui-text-xs);
       line-height: 1.35;
       color: var(--danger);
     }
-    .signin-public-chevron { transition: transform 0.2s ease; font-size: 0.55rem; }
+    .signin-public-chevron { transition: transform var(--ui-duration-base) ease; font-size: var(--ui-text-xs); }
     .signin-public-toggle.expanded .signin-public-chevron { transform: rotate(180deg); }
-    #signin-public-collapsible.expanded .collapsible-inner { padding-top: 0.5rem; max-height: 40vh; overflow-y: auto; }
-    .public-maps-list { display: flex; flex-direction: column; gap: 0.4rem; }
+    #signin-public-collapsible.expanded .collapsible-inner { padding-top: var(--ui-space-2); max-height: 40vh; overflow-y: auto; }
+    .public-maps-list { display: flex; flex-direction: column; gap: var(--ui-space-2); }
     .public-maps-item {
       display: block;
-      padding: 0.55rem 0.85rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
       background: var(--surface2);
       color: var(--text);
       border: 1px solid var(--control-border);
       border-radius: var(--radius);
       text-decoration: none;
-      font-size: 0.85rem;
+      font-size: var(--ui-text-sm);
     }
     .public-maps-item:hover {
       border-color: var(--accent);
@@ -1702,7 +1702,7 @@
     .leaflet-control-attribution {
       background: var(--attribution-bg) !important;
       color: var(--muted) !important;
-      font-size: 0.6rem !important;
+      font-size: var(--ui-text-xs) !important;
       border-radius: var(--radius) !important;
     }
     .leaflet-control-attribution a { color: var(--accent) !important; }
@@ -1712,7 +1712,7 @@
       color: var(--text) !important;
       border: 1px solid var(--border) !important;
       border-radius: var(--radius) !important;
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
       font-weight: 300;
       white-space: pre;
       box-shadow: 0 2px 8px var(--shadow) !important;
@@ -1727,18 +1727,18 @@
       box-shadow: 0 2px 8px var(--shadow) !important;
     }
     .leaflet-popup-tip { background: var(--surface) !important; }
-    .leaflet-popup-content { font-size: 0.8rem; font-weight: 300; margin: 10px 14px; position: relative; min-width: 220px; }
+    .leaflet-popup-content { font-size: var(--ui-text-sm); font-weight: 300; margin: 10px 14px; position: relative; min-width: 220px; }
     .leaflet-popup-content a { color: var(--accent); }
     .leaflet-popup-content .popup-name {
       font-weight: 400;
-      font-size: 0.85rem;
-      margin-bottom: 0.25rem;
+      font-size: var(--ui-text-sm);
+      margin-bottom: var(--ui-space-1);
       padding-right: 1.6rem;
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: baseline;
-      column-gap: 0.4rem;
+      column-gap: var(--ui-space-2);
     }
     .leaflet-popup-content a.popup-name-link { color: var(--text); text-decoration: none; }
     .leaflet-popup-content a.popup-name-link:hover { color: var(--accent); }
@@ -1755,27 +1755,27 @@
       cursor: pointer;
       opacity: 0.55;
       text-decoration: none;
-      transition: opacity 0.15s ease, color 0.15s ease;
+      transition: opacity var(--ui-duration-fast) ease, color var(--ui-duration-fast) ease;
     }
     .leaflet-popup-content .popup-source-link:hover { opacity: 1; color: var(--accent); }
     .leaflet-popup-content .popup-source-link svg { width: 0.95rem; height: 0.95rem; display: block; }
-    .leaflet-popup-content .popup-local { font-size: 0.75rem; color: var(--muted); font-weight: 300; font-style: italic; white-space: nowrap; }
-    .leaflet-popup-content .popup-category { color: var(--muted); display: inline-flex; align-items: center; gap: 0.35rem; }
+    .leaflet-popup-content .popup-local { font-size: var(--ui-text-xs); color: var(--muted); font-weight: 300; font-style: italic; white-space: nowrap; }
+    .leaflet-popup-content .popup-category { color: var(--muted); display: inline-flex; align-items: center; gap: var(--ui-space-1); }
     .leaflet-popup-content .popup-category-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; background: var(--c, var(--muted)); }
     [data-mode="light"] .leaflet-popup-content .popup-category-dot { background: var(--cl, var(--muted)); }
     .leaflet-popup-content .popup-image {
       display: block; width: 100%; max-width: 280px; aspect-ratio: 16 / 10;
-      object-fit: cover; border-radius: var(--radius); margin: 0.4rem auto;
+      object-fit: cover; border-radius: var(--radius); margin: var(--ui-space-2) auto;
       background: var(--surface2);
     }
-    .leaflet-popup-content .popup-note { color: var(--text); font-size: 0.75rem; margin-top: 0.3rem; }
+    .leaflet-popup-content .popup-note { color: var(--text); font-size: var(--ui-text-xs); margin-top: var(--ui-space-1); }
     .leaflet-popup-content .popup-area-counts {
       color: var(--text);
       display: flex;
       flex-wrap: wrap;
-      font-size: 0.75rem;
-      gap: 0.15rem 0.75rem;
-      margin-top: 0.3rem;
+      font-size: var(--ui-text-xs);
+      gap: var(--ui-space-1) var(--ui-space-3);
+      margin-top: var(--ui-space-1);
     }
     .leaflet-popup-content .popup-area-count,
     .leaflet-popup-content .popup-edit,
@@ -1792,12 +1792,12 @@
     .leaflet-popup-content .popup-area-count[aria-expanded="true"],
     .leaflet-popup-content .popup-edit:hover,
     .leaflet-popup-content .popup-area-item:hover { text-decoration: underline; }
-    .leaflet-popup-content .popup-edit { font-size: 0.7rem; letter-spacing: normal; text-transform: none; }
+    .leaflet-popup-content .popup-edit { font-size: var(--ui-text-xs); letter-spacing: normal; text-transform: none; }
     .leaflet-popup-content .popup-area-list {
       display: flex;
       flex-direction: column;
-      gap: 0.2rem;
-      margin-top: 0.35rem;
+      gap: var(--ui-space-1);
+      margin-top: var(--ui-space-1);
       max-height: 8.5rem;
       overflow-y: auto;
     }
@@ -1806,8 +1806,8 @@
       align-items: center;
       color: var(--text);
       display: flex;
-      font-size: 0.75rem;
-      gap: 0.4rem;
+      font-size: var(--ui-text-xs);
+      gap: var(--ui-space-2);
       text-align: left;
     }
     .leaflet-popup-content .popup-area-item::before {
@@ -1827,35 +1827,39 @@
     }
     .leaflet-popup-content .popup-summary {
       color: var(--text);
-      font-size: 0.75rem;
-      margin-top: 0.25rem;
+      font-size: var(--ui-text-xs);
+      margin-top: var(--ui-space-1);
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 0.5rem;
+      gap: var(--ui-space-2);
     }
     .leaflet-popup-content .popup-summary > span { justify-self: start; }
     .leaflet-popup-content .popup-summary > span:nth-child(2) { justify-self: center; }
     .leaflet-popup-content .popup-summary > span:last-child { justify-self: end; }
-    .leaflet-popup-content .popup-tags { color: var(--text); font-size: 0.7rem; margin-top: 0.25rem; text-align: center; }
-    .leaflet-popup-content .popup-sources { font-size: 0.65rem; margin-top: 0.3rem; }
+    .leaflet-popup-content .popup-tags { color: var(--text); font-size: var(--ui-text-xs); margin-top: var(--ui-space-1); text-align: center; }
+    .leaflet-popup-content .popup-sources { font-size: var(--ui-text-xs); margin-top: var(--ui-space-1); }
     .leaflet-popup-content .popup-sources-center { text-align: center; }
     .leaflet-popup-content .popup-sources a { color: var(--accent); }
     .leaflet-popup-content .popup-meta {
-      margin-top: 0.5rem;
-      padding-top: 0.4rem;
+      margin-top: var(--ui-space-2);
+      padding-top: var(--ui-space-2);
       border-top: 1px solid var(--border);
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: auto 1fr auto;
       align-items: center;
-      gap: 0.6rem;
-      font-size: 0.6rem;
+      gap: var(--ui-space-2);
+      font-size: var(--ui-text-xs);
       text-transform: uppercase;
       letter-spacing: 0.1em;
     }
     .leaflet-popup-content .popup-meta > * { justify-self: start; white-space: nowrap; }
+    /* Leaflet measures the popup at its min-content width with nowrap set inline, then lifts
+       the nowrap. Inheriting it widens the popup for a long label up to the 300px cap and
+       wraps only past the cap; min-width: 0 would take the label out of that measure. */
+    .leaflet-popup-content .popup-meta > :first-child { white-space: inherit; overflow-wrap: anywhere; }
     .leaflet-popup-content .popup-meta > :nth-child(2) { justify-self: center; }
     .leaflet-popup-content .popup-meta > :last-child { justify-self: end; }
-    .leaflet-popup-content .popup-meta a { color: inherit; cursor: pointer; text-transform: none; letter-spacing: normal; font-size: 0.7rem; }
+    .leaflet-popup-content .popup-meta a { color: inherit; cursor: pointer; text-transform: none; letter-spacing: normal; font-size: var(--ui-text-xs); }
     .leaflet-popup-content .popup-meta a:hover { color: var(--accent); }
 
     .leaflet-control-layers { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: var(--radius) !important; color: var(--text) !important; padding: 0 !important; }
@@ -1882,7 +1886,7 @@
     /* Elevation control */
     .elevation-control .background { fill: var(--surface); }
     .elevation-control .area { fill: var(--accent); fill-opacity: 0.35; stroke: var(--accent); }
-    .elevation-control .axis text { fill: var(--text); font-size: 10px; text-shadow: none; paint-order: normal; stroke: none; }
+    .elevation-control .axis text { fill: var(--text); font-size: var(--ui-text-xs); text-shadow: none; paint-order: normal; stroke: none; }
     .elevation-control .axis line, .elevation-control .axis path { stroke: var(--border); }
     .elevation-control .mouse-focus-line { stroke: var(--text); }
     .elevation-detached:not(:hover) .mouse-focus-line,
@@ -1906,13 +1910,13 @@
     }
 
     @media (max-width: 900px) {
-      #app { padding: 0.75rem 1.5rem 3rem; }
+      #app { padding: var(--ui-space-3) var(--ui-space-5) var(--ui-space-7); }
       .route-grid { grid-template-columns: 1fr; }
       .detail-layout { padding: 0; }
-      nav { gap: 0.5rem; }
-      .nav-group { gap: 0.4rem; }
-      .nav-group + .nav-group { padding-left: 0.4rem; }
-      .nav-stat .label { font-size: 0.5rem; }
+      nav { gap: var(--ui-space-2); }
+      .nav-group { gap: var(--ui-space-2); }
+      .nav-group + .nav-group { padding-left: var(--ui-space-2); }
+      .nav-stat .label { font-size: var(--ui-text-xs); }
       #multi-elevation-container { max-height: 40vh; }
       .map-panel { max-width: calc(100vw - 40px); }
     }
@@ -1921,15 +1925,15 @@
       from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .fade-in { animation: fadeIn 0.3s ease both; }
+    .fade-in { animation: fadeIn var(--ui-duration-slow) ease both; }
 
     /* Auth widget in nav */
     .auth-widget {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: var(--ui-space-2);
       flex-shrink: 0;
-      font-size: 0.7rem;
+      font-size: var(--ui-text-xs);
       position: relative;
     }
     .auth-widget button, .auth-widget a {
@@ -1937,18 +1941,18 @@
       border: 1px solid var(--control-border);
       color: var(--muted);
       font-family: inherit;
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
       font-weight: 400;
       line-height: 1;
       letter-spacing: 0.03em;
-      padding: 0.55rem 0.85rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
       border-radius: var(--radius);
       cursor: pointer;
       text-decoration: none;
-      transition: color 0.15s, border-color 0.15s;
+      transition: color var(--ui-duration-fast), border-color var(--ui-duration-fast);
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
+      gap: var(--ui-space-1);
     }
     .auth-widget button:hover, .auth-widget a:hover {
       color: var(--text);
@@ -1968,27 +1972,27 @@
          both sides, capped so a long username can't blow it out. */
       width: max-content;
       max-width: 16rem;
-      z-index: 1500;
-      padding: 0.25rem;
+      z-index: var(--ui-z-dropdown);
+      padding: var(--ui-space-1);
     }
     .auth-menu[hidden] { display: none; }
     .auth-menu .auth-menu-header {
-      padding: 0.5rem 0.7rem 0.4rem;
-      font-size: 0.65rem;
+      padding: var(--ui-space-2) var(--ui-space-3) var(--ui-space-2);
+      font-size: var(--ui-text-xs);
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--muted);
       border-bottom: 1px solid var(--border);
-      margin-bottom: 0.25rem;
+      margin-bottom: var(--ui-space-1);
     }
     .auth-menu .auth-menu-header strong {
       color: var(--text);
       font-weight: 400;
       text-transform: none;
       letter-spacing: 0;
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
       display: block;
-      margin-top: 0.15rem;
+      margin-top: var(--ui-space-1);
     }
     .auth-menu button {
       display: flex;
@@ -1997,10 +2001,10 @@
       border: none;
       color: var(--text);
       font-family: inherit;
-      font-size: 0.75rem;
+      font-size: var(--ui-text-xs);
       text-align: left;
-      padding: 0.5rem 0.7rem;
-      border-radius: 4px;
+      padding: var(--ui-space-2) var(--ui-space-3);
+      border-radius: var(--ui-radius-sm);
       cursor: pointer;
       justify-content: flex-start;
       white-space: nowrap;
@@ -2011,11 +2015,11 @@
       border-color: transparent;
     }
     .auth-menu button.auth-menu-foot {
-      margin-top: 0.25rem;
-      padding-top: 0.55rem;
+      margin-top: var(--ui-space-1);
+      padding-top: var(--ui-space-2);
       border-top: 1px solid var(--border);
       color: var(--muted);
-      border-radius: 0 0 4px 4px;
+      border-radius: 0 0 var(--ui-radius-sm) var(--ui-radius-sm);
     }
     .auth-menu button.auth-menu-foot:hover { color: var(--text); }
     /* Places/Routes section in the menu, shown only on narrow screens where the
@@ -2034,52 +2038,52 @@
       .auth-menu-nav {
         display: block;
         border-bottom: 1px solid var(--border);
-        margin-bottom: 0.25rem;
-        padding-bottom: 0.25rem;
+        margin-bottom: var(--ui-space-1);
+        padding-bottom: var(--ui-space-1);
       }
     }
-    .about-body { text-align: center; padding: 0.5rem 0 0.25rem; }
+    .about-body { text-align: center; padding: var(--ui-space-2) 0 var(--ui-space-1); }
     .about-logo {
       width: 64px;
       height: 64px;
       display: block;
-      margin: 0 auto 0.5rem;
+      margin: 0 auto var(--ui-space-2);
     }
     .about-brand {
-      font-size: 1.4rem;
+      font-size: var(--ui-text-xl);
       letter-spacing: 0.08em;
       color: var(--text);
-      margin-bottom: 0.15rem;
+      margin-bottom: var(--ui-space-1);
     }
     .about-version {
-      font-size: 0.75rem;
+      font-size: var(--ui-text-xs);
       color: var(--muted);
       letter-spacing: 0.05em;
-      margin-bottom: 1rem;
+      margin-bottom: var(--ui-space-4);
     }
     .about-version:has(+ .about-build) { margin-bottom: 0.1rem; }
     .about-build {
-      font-size: 0.68rem;
+      font-size: var(--ui-text-xs);
       color: var(--muted);
       opacity: 0.65;
       letter-spacing: 0.05em;
-      margin-bottom: 1rem;
+      margin-bottom: var(--ui-space-4);
     }
     .about-tagline {
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
       color: var(--text);
       line-height: 1.4;
-      margin-bottom: 1rem;
+      margin-bottom: var(--ui-space-4);
     }
-    .about-links { font-size: 0.7rem; color: var(--muted); }
+    .about-links { font-size: var(--ui-text-xs); color: var(--muted); }
     .about-links a { color: var(--accent); text-decoration: none; }
     .about-links a:hover { text-decoration: underline; }
-    .about-sep { margin: 0 0.4rem; }
+    .about-sep { margin: 0 var(--ui-space-2); }
 
     /* Tile-picker (Leaflet layers control) enter/leave animation */
     .leaflet-control-layers {
       transform-origin: top right;
-      transition: transform 0.18s ease-out, opacity 0.18s ease-out;
+      transition: transform var(--ui-duration-base) ease-out, opacity var(--ui-duration-base) ease-out;
     }
     .leaflet-control-layers.tile-pick-enter,
     .leaflet-control-layers.tile-pick-leave {
@@ -2095,9 +2099,9 @@
     /* Per-control persistent toggles (Settings > Appearance > On-map controls).
        Animate opacity/transform rather than display:none so the toggle is
        visible. The spacebar (.map-chrome-hidden) above still hard-hides. */
-    .map-panel { transform-origin: bottom left; transition: transform 0.18s ease-out, opacity 0.18s ease-out; }
-    .leaflet-control-zoom { transform-origin: top left; transition: transform 0.18s ease-out, opacity 0.18s ease-out; }
-    .map-expand-btn { transition: transform 0.18s ease-out, opacity 0.18s ease-out; }
+    .map-panel { transform-origin: bottom left; transition: transform var(--ui-duration-base) ease-out, opacity var(--ui-duration-base) ease-out; }
+    .leaflet-control-zoom { transform-origin: top left; transition: transform var(--ui-duration-base) ease-out, opacity var(--ui-duration-base) ease-out; }
+    .map-expand-btn { transition: transform var(--ui-duration-base) ease-out, opacity var(--ui-duration-base) ease-out; }
     body.hide-map-filter .map-panel,
     body.hide-map-zoom .leaflet-control-zoom,
     body.hide-map-expand .map-expand-btn {
@@ -2117,33 +2121,33 @@
     .pick-row {
       display: flex;
       justify-content: flex-end;
-      margin-top: 0.4rem;
+      margin-top: var(--ui-space-2);
     }
     .pick-row button {
       background: transparent;
       border: 1px solid var(--control-border);
       color: var(--muted);
       font-family: inherit;
-      font-size: 0.7rem;
+      font-size: var(--ui-text-xs);
       letter-spacing: 0.03em;
-      padding: 0.35rem 0.7rem;
+      padding: var(--ui-space-1) var(--ui-space-3);
       border-radius: var(--radius);
       cursor: pointer;
     }
     .pick-row button:hover { color: var(--text); border-color: var(--muted); }
 
     /* "Add new" toggle for category/region selects */
-    .select-or-new { display: flex; flex-direction: column; gap: 0.4rem; }
+    .select-or-new { display: flex; flex-direction: column; gap: var(--ui-space-2); }
     .select-or-new .new-input[hidden] { display: none; }
 
     /* Settings modal sub-sections */
     .modal h3.settings-h {
-      font-size: 0.95rem;
+      font-size: var(--ui-text-md);
       font-weight: 600;
       color: var(--text);
-      margin-top: 1.5rem;
-      margin-bottom: 0.5rem;
-      padding-top: 1rem;
+      margin-top: var(--ui-space-5);
+      margin-bottom: var(--ui-space-2);
+      padding-top: var(--ui-space-4);
       border-top: 1px solid var(--border-hover, var(--border));
     }
     .modal [data-panel] > h3.settings-h:first-child {
@@ -2163,9 +2167,9 @@
       margin: 0;
       background: transparent;
       border: 1px solid var(--muted);
-      border-radius: 999px;
+      border-radius: var(--ui-radius-full);
       cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
+      transition: background var(--ui-duration-fast), border-color var(--ui-duration-fast);
       flex: 0 0 auto;
     }
     .modal input[type="checkbox"].settings-toggle::after {
@@ -2177,7 +2181,7 @@
       height: 16px;
       background: var(--muted);
       border-radius: 50%;
-      transition: transform 0.15s, background 0.15s;
+      transition: transform var(--ui-duration-fast), background var(--ui-duration-fast);
     }
     .modal input[type="checkbox"].settings-toggle:checked {
       background: var(--accent);
@@ -2195,35 +2199,35 @@
       margin: 0;
       display: flex;
       flex-direction: column;
-      gap: 0.4rem;
+      gap: var(--ui-space-2);
     }
     .session-row {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.5rem 0.7rem;
+      gap: var(--ui-space-3);
+      padding: var(--ui-space-2) var(--ui-space-3);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       background: var(--surface2);
     }
     .session-meta { flex: 1; min-width: 0; }
-    .session-device { font-size: 0.78rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
+    .session-device { font-size: var(--ui-text-xs); color: var(--text); display: flex; align-items: center; gap: var(--ui-space-2); }
     .session-current {
-      font-size: 0.55rem;
+      font-size: var(--ui-text-xs);
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--green);
       border: 1px solid rgba(40,202,65,0.3);
-      padding: 0.1rem 0.4rem;
-      border-radius: 3px;
+      padding: 0.1rem var(--ui-space-2);
+      border-radius: var(--ui-radius-sm);
     }
-    .session-sub { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; }
+    .session-sub { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); }
     .session-revoke {
       background: transparent;
       border: 1px solid var(--control-border);
       color: var(--danger);
-      font-size: 0.7rem;
-      padding: 0.3rem 0.6rem;
+      font-size: var(--ui-text-xs);
+      padding: var(--ui-space-1) var(--ui-space-2);
       border-radius: var(--radius);
       cursor: pointer;
       font-family: inherit;
@@ -2240,7 +2244,7 @@
       border-radius: var(--radius);
       cursor: pointer;
       font-family: inherit;
-      font-size: 1rem;
+      font-size: var(--ui-text-md);
       line-height: 1;
       display: inline-flex;
       align-items: center;
@@ -2261,7 +2265,7 @@
     .btn-x.x-icon { position: relative; }
     .btn-x.x-icon::before, .btn-x.x-icon::after {
       content: ''; position: absolute; top: 50%; left: 50%;
-      width: 0.85rem; height: 2px; background: currentColor; border-radius: 1px;
+      width: 0.85rem; height: 2px; background: currentColor; border-radius: var(--ui-radius-sm);
     }
     .btn-x.x-icon::before { transform: translate(-50%, -50%) rotate(45deg); }
     .btn-x.x-icon::after  { transform: translate(-50%, -50%) rotate(-45deg); }
@@ -2275,14 +2279,14 @@
     .catalog-eye-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .modal input.dirty { border-color: var(--accent); }
     .row-tag {
-      font-size: 0.7rem;
+      font-size: var(--ui-text-xs);
       color: var(--muted);
       flex: 0 0 5rem;
       text-align: right;
     }
     .row-tag.dirty {
       color: var(--accent);
-      animation: rowTagIn 0.2s ease-out;
+      animation: rowTagIn var(--ui-duration-base) ease-out;
     }
     .row-tag.in-input {
       position: absolute;
@@ -2292,9 +2296,9 @@
       pointer-events: none;
       flex: none;
       background: var(--surface2);
-      padding: 0 0.25rem;
+      padding: 0 var(--ui-space-1);
     }
-    .cat-row:not(.dragging) { transition: transform 160ms ease-out; }
+    .cat-row:not(.dragging) { transition: transform var(--ui-duration-base) ease-out; }
     @media (prefers-reduced-motion: reduce) {
       .cat-row { transition: none !important; }
     }
@@ -2302,15 +2306,15 @@
     /* The base .row-tag.dirty animation uses translateX(6px) which would wipe
        the translateY(-50%) that vertical-centers the in-input badge, causing
        it to flash from the lower-right corner. Use a paired-axis keyframe. */
-    .row-tag.in-input.dirty { animation: rowTagInInside 0.2s ease-out; }
+    .row-tag.in-input.dirty { animation: rowTagInInside var(--ui-duration-base) ease-out; }
     @keyframes rowTagInInside {
       from { opacity: 0; transform: translate(6px, -50%); }
       to   { opacity: 1; transform: translate(0, -50%); }
     }
-    .cat-input-wrap > .cat-display { padding-right: 4rem; transition: padding-right 120ms ease-out; }
+    .cat-input-wrap > .cat-display { padding-right: var(--ui-space-8); transition: padding-right var(--ui-duration-fast) ease-out; }
     /* While the input is focused, give it full width and snap-hide the badge
        so the user only sees "edited" after they leave the field. */
-    .cat-input-wrap:has(.cat-display:focus) > .cat-display { padding-right: 0.7rem; }
+    .cat-input-wrap:has(.cat-display:focus) > .cat-display { padding-right: var(--ui-space-3); }
     .cat-input-wrap:has(.cat-display:focus) .row-tag.in-input { display: none; }
     @keyframes rowTagIn {
       from { opacity: 0; transform: translateX(6px); }
@@ -2319,19 +2323,19 @@
 
     .radio-row {
       display: flex;
-      row-gap: 0.4rem;
-      column-gap: 1rem;
+      row-gap: var(--ui-space-2);
+      column-gap: var(--ui-space-4);
       flex-wrap: wrap;
     }
     /* Two-column row pairing two selects (or two columns of settings) side-by-side. */
     .settings-grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0 1rem;
+      gap: 0 var(--ui-space-4);
       align-items: end;
     }
     .settings-grid-2 > * { margin: 0; }
-    .settings-grid-2 > label { margin-top: 0.75rem; margin-bottom: 0.3rem; }
+    .settings-grid-2 > label { margin-top: var(--ui-space-3); margin-bottom: var(--ui-space-1); }
     /* Inline label + control row: label left (fixed width), control fills the rest.
        Wraps on narrow viewports so the control drops under the label. */
     .settings-inline-row {
@@ -2340,13 +2344,13 @@
          row — pill groups line up across rows. Width is tuned to fit "Route
          line thickness" while leaving enough room for 3 pill-style options. */
       grid-template-columns: 9rem 1fr;
-      gap: 0.5rem 0.75rem;
+      gap: var(--ui-space-2) var(--ui-space-3);
       align-items: center;
-      margin-top: 0.75rem;
+      margin-top: var(--ui-space-3);
     }
     /* Out-specifies the later `.modal label { margin-top/bottom: ... }` rule. */
     .modal .settings-inline-row > label { margin: 0; }
-    .settings-inline-row > .radio-row { margin: 0; column-gap: 0.75rem; }
+    .settings-inline-row > .radio-row { margin: 0; column-gap: var(--ui-space-3); }
     .settings-inline-row > select { width: 100%; }
     /* Rows whose right-hand control is a slide toggle: switch from grid to
        flex so the toggle can sit immediately to the left of the label. */
@@ -2354,7 +2358,7 @@
       position: relative;
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: var(--ui-space-3);
       min-height: 24px;
     }
     .settings-inline-row:has(> .settings-toggle) > .settings-toggle {
@@ -2380,18 +2384,18 @@
     .toggle-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0.5rem 1rem;
-      margin-top: 0.5rem;
+      gap: var(--ui-space-2) var(--ui-space-4);
+      margin-top: var(--ui-space-2);
     }
     .toggle-grid > .settings-inline-row { margin-top: 0; }
     .radio-row label {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: var(--ui-space-2);
       margin: 0;
       text-transform: none;
       letter-spacing: 0;
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
       color: var(--text);
       cursor: pointer;
     }
@@ -2399,12 +2403,12 @@
     /* Pill variant of radio-row: each option is a clickable pill, the checked
        one picks up the accent border + background. Single-select. */
     .radio-row.radio-pills > label {
-      padding: 0.35rem 0.7rem;
+      padding: var(--ui-space-1) var(--ui-space-3);
       border: 1px solid var(--control-border);
-      border-radius: 999px;
+      border-radius: var(--ui-radius-full);
       background: var(--surface2);
       color: var(--muted);
-      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      transition: border-color var(--ui-duration-fast), color var(--ui-duration-fast), background var(--ui-duration-fast);
     }
     .radio-row.radio-pills > label:hover { border-color: var(--muted); color: var(--text); }
     .radio-row.radio-pills > label:has(input:checked) {
@@ -2423,20 +2427,20 @@
       column-gap: 0;
       row-gap: 0;
       border: 1px solid var(--control-border);
-      border-radius: 999px;
+      border-radius: var(--ui-radius-full);
       overflow: hidden;
     }
     .radio-row.radio-segmented > label {
       flex: 1 1 0;
       text-align: center;
       margin: 0;
-      padding: 0.4rem 0.85rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
       border-radius: 0;
       border-left: 1px solid var(--border);
       background: var(--surface2);
       color: var(--muted);
       white-space: nowrap;
-      transition: color 0.15s, background 0.15s;
+      transition: color var(--ui-duration-fast), background var(--ui-duration-fast);
     }
     .radio-row.radio-segmented > label:first-child { border-left: none; }
     .radio-row.radio-segmented > label:hover { color: var(--text); }
@@ -2454,19 +2458,19 @@
        Hovering the row previews the rating up to the cursor via .preview. */
     .star-rating {
       display: inline-flex;
-      gap: 0.15rem;
-      font-size: 1.25rem;
+      gap: var(--ui-space-1);
+      font-size: var(--ui-text-lg);
       line-height: 1;
       user-select: none;
     }
-    .star-rating .star { color: var(--muted); cursor: pointer; transition: color 0.1s, transform 0.1s; }
+    .star-rating .star { color: var(--muted); cursor: pointer; transition: color var(--ui-duration-fast), transform var(--ui-duration-fast); }
     .star-rating .star.filled,
     .star-rating .star.preview { color: var(--accent); }
     .star-rating .star:hover { transform: scale(1.1); }
     .star-rating .star-clear {
       align-self: center;
-      margin-left: 0.5rem;
-      font-size: 0.7rem;
+      margin-left: var(--ui-space-2);
+      font-size: var(--ui-text-xs);
       color: var(--muted);
       text-decoration: underline;
       cursor: pointer;
@@ -2481,7 +2485,7 @@
     .modal .ui-dialog-title { letter-spacing: 0.05em; }
     .modal .ui-dialog-actions { align-items: center; }
     .modal .action-spacer { flex: 1; }
-    .modal .modal-title-count { color: var(--muted); margin-left: 0.4rem; }
+    .modal .modal-title-count { color: var(--muted); margin-left: var(--ui-space-2); }
     /* The Add modal's tabs are its head. */
     .modal .ui-dialog-head > .modal-tabs { flex: 1; min-width: 0; margin: 0 0 calc(-1 * var(--ui-space-2) - 1px); border-bottom: 0; }
 
@@ -2504,8 +2508,8 @@
       overflow-y: auto;
       scrollbar-gutter: stable;
     }
-    #catalog-bulk-list { margin-top: 0.5rem; }
-    .catalog-bulk-place { margin-bottom: 1rem; }
+    #catalog-bulk-list { margin-top: var(--ui-space-2); }
+    .catalog-bulk-place { margin-bottom: var(--ui-space-4); }
     .catalog-bulk-place:last-child { margin-bottom: 0; }
 
     /* Self-retiring chip in the Places controls row, accent-bordered to draw
@@ -2513,7 +2517,7 @@
     .filter-dropdown .filter-btn.catalog-update-chip { border-color: var(--accent); color: var(--accent); }
     /* Desktop-only chip; on phones the action moves into the Menu instead. */
     @media (max-width: 600px) { .catalog-update-chip-wrap { display: none; } }
-    .modal [data-panel]:not([hidden]) { animation: tab-fade-in 160ms ease-out; }
+    .modal [data-panel]:not([hidden]) { animation: tab-fade-in var(--ui-duration-base) ease-out; }
     @keyframes tab-fade-in {
       from { opacity: 0; transform: translateY(2px); }
       to { opacity: 1; transform: none; }
@@ -2527,38 +2531,38 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       width: 100%;
-      padding: 1.25rem 1.5rem;
+      padding: var(--ui-space-5) var(--ui-space-5);
     }
     .signin-page .modal h2 {
-      font-size: 0.95rem;
+      font-size: var(--ui-text-md);
       font-weight: 400;
       letter-spacing: 0.05em;
       color: var(--text);
-      margin-bottom: 1rem;
+      margin-bottom: var(--ui-space-4);
     }
     .modal-tabs {
       display: flex;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 1rem;
+      margin-bottom: var(--ui-space-4);
     }
-    #add-body { overflow: hidden; transition: height 0.25s ease; }
-    .modal .modal-desc { font-size: 0.85rem; color: var(--text); margin-top: 0.4rem; }
-    .modal .confirm-row { align-items: center; display: flex; gap: 0.75rem; margin-top: 0.75rem; }
+    #add-body { overflow: hidden; transition: height var(--ui-duration-slow) ease; }
+    .modal .modal-desc { font-size: var(--ui-text-sm); color: var(--text); margin-top: var(--ui-space-2); }
+    .modal .confirm-row { align-items: center; display: flex; gap: var(--ui-space-3); margin-top: var(--ui-space-3); }
     .modal .confirm-row .modal-desc { flex: 1; margin-top: 0; min-width: 0; overflow-wrap: anywhere; }
     .modal .confirm-row button { flex: none; margin-left: auto; }
-    .modal .file-picker { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.5rem; }
+    .modal .file-picker { display: flex; align-items: center; gap: var(--ui-space-2); margin-top: var(--ui-space-2); }
     .modal .area-search-label {
       align-items: center;
       display: flex;
-      gap: 0.25rem;
+      gap: var(--ui-space-1);
       position: relative;
     }
     /* The negative margin keeps the tap area from making the row taller. */
     .modal button.area-search-info:not(.modal-close) {
       border: none;
       display: flex;
-      margin: -0.4rem 0;
-      padding: 0.4rem;
+      margin: -0.5rem 0;
+      padding: var(--ui-space-2);
     }
     .modal button.area-search-info:not(.modal-close):hover:not(:disabled),
     .modal button.area-search-info[aria-expanded="true"]:not(.modal-close) { color: var(--accent); }
@@ -2567,24 +2571,24 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: 0 8px 24px var(--shadow);
-      font-size: 0.85rem;
+      font-size: var(--ui-text-sm);
       left: 0;
       line-height: 1.4;
       opacity: 0;
-      padding: 0.6rem 0.75rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
       position: absolute;
       right: 0;
       top: calc(100% + 0.4rem);
       transform: translateY(-0.25rem);
-      transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+      transition: opacity var(--ui-duration-fast) ease, transform var(--ui-duration-fast) ease, visibility var(--ui-duration-fast);
       visibility: hidden;
-      z-index: 10;
+      z-index: var(--ui-z-dropdown);
     }
     .modal .area-search-note.open { opacity: 1; transform: none; visibility: visible; }
     @media (prefers-reduced-motion: reduce) {
       .modal .area-search-note { transition: none; }
     }
-    .modal .area-results { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.5rem; }
+    .modal .area-results { display: flex; flex-direction: column; gap: var(--ui-space-1); margin-top: var(--ui-space-2); }
     .modal .area-results[hidden] { display: none; }
     /* Selectors carry button and :not() to outrank `.modal button:not(.modal-close)`
        and its hover rule, which sit later and would restyle the row as a button. */
@@ -2592,11 +2596,11 @@
       background: var(--surface2);
       color: var(--text);
       display: grid;
-      font-size: 0.85rem;
-      gap: 0.1rem 0.6rem;
+      font-size: var(--ui-text-sm);
+      gap: 0.1rem var(--ui-space-2);
       grid-template-columns: 1fr auto;
       letter-spacing: normal;
-      padding: 0.45rem 0.6rem;
+      padding: var(--ui-space-2) var(--ui-space-2);
       text-align: left;
     }
     .modal button.area-result[aria-pressed="true"]:not(.modal-close):not(:disabled) {
@@ -2605,21 +2609,21 @@
     }
     .modal button.area-result[hidden]:not(.modal-close),
     .modal button.area-results-more[hidden]:not(.modal-close) { display: none; }
-    .area-results-foot { align-items: center; display: flex; gap: 0.75rem; justify-content: space-between; }
+    .area-results-foot { align-items: center; display: flex; gap: var(--ui-space-3); justify-content: space-between; }
     .modal button.area-results-more:not(.modal-close) {
       border: none;
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
       letter-spacing: normal;
-      margin-top: 0.3rem;
-      padding: 0.3rem 0;
+      margin-top: var(--ui-space-1);
+      padding: var(--ui-space-1) 0;
     }
-    .area-results-credit { color: var(--muted); font-size: 0.75rem; margin-left: auto; margin-top: 0.3rem; }
+    .area-results-credit { color: var(--muted); font-size: var(--ui-text-xs); margin-left: auto; margin-top: var(--ui-space-1); }
     .modal button.area-results-more:not(.modal-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
     .area-result-name { font-weight: 600; }
-    .area-result-kind, .area-result-detail { color: var(--muted); font-size: 0.75rem; }
+    .area-result-kind, .area-result-detail { color: var(--muted); font-size: var(--ui-text-xs); }
     .area-result-kind::first-letter { text-transform: uppercase; }
     .area-result-detail { grid-column: 1 / -1; }
-    .modal .file-picker .file-name { font-size: 0.85rem; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .modal .file-picker .file-name { font-size: var(--ui-text-sm); color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     /* Collapsible block. Toggle the .expanded class to animate height + opacity.
        Uses grid-template-rows 0fr -> 1fr (smooth, no max-height guessing). */
     .collapsible {
@@ -2627,16 +2631,16 @@
       grid-template-rows: 0fr;
       opacity: 0;
       visibility: hidden;
-      transition: grid-template-rows 0.25s ease, opacity 0.25s ease, visibility 0.25s;
+      transition: grid-template-rows var(--ui-duration-slow) ease, opacity var(--ui-duration-slow) ease, visibility var(--ui-duration-slow);
     }
     .collapsible.expanded { grid-template-rows: 1fr; opacity: 1; visibility: visible; }
     .collapsible > .collapsible-inner { overflow: hidden; min-height: 0; }
     .modal input[type="file"].file-input-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
     #p-coords-manual { line-height: 24px; }
-    .modal .backup-sub { font-size: 0.78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-    .modal .modal-success { font-size: 0.85rem; color: var(--green, #6db26d); margin-top: 0.5rem; }
-    .modal h3.sessions-h { display: flex; align-items: baseline; gap: 0.75rem; }
-    .modal button.sessions-revoke-others:not(h2 .modal-close) { margin-left: auto; font-size: 0.75rem; font-weight: 400; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0; letter-spacing: 0; }
+    .modal .backup-sub { font-size: var(--ui-text-xs); font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .modal .modal-success { font-size: var(--ui-text-sm); color: var(--green, #6db26d); margin-top: var(--ui-space-2); }
+    .modal h3.sessions-h { display: flex; align-items: baseline; gap: var(--ui-space-3); }
+    .modal button.sessions-revoke-others:not(h2 .modal-close) { margin-left: auto; font-size: var(--ui-text-xs); font-weight: 400; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0; letter-spacing: 0; }
     .modal button.sessions-revoke-others:not(h2 .modal-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
     .modal .modal-tabs button:not(.modal-close) {
       background: transparent;
@@ -2645,8 +2649,8 @@
       border-radius: 0;
       color: var(--muted);
       font-family: inherit;
-      font-size: 0.75rem;
-      padding: 0.5rem 0.75rem;
+      font-size: var(--ui-text-xs);
+      padding: var(--ui-space-2) var(--ui-space-3);
       cursor: pointer;
       letter-spacing: 0.05em;
     }
@@ -2654,10 +2658,10 @@
     .modal .modal-tabs button:not(.modal-close):hover:not(.active) { color: var(--text); }
     .modal label {
       display: block;
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
       color: var(--text);
-      margin-bottom: 0.3rem;
-      margin-top: 0.75rem;
+      margin-bottom: var(--ui-space-1);
+      margin-top: var(--ui-space-3);
     }
     .modal input[type="text"],
     .modal input[type="password"],
@@ -2669,15 +2673,15 @@
     .modal textarea,
     .modal select {
       width: 100%;
-      padding: 0.5rem 0.7rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
       background: var(--surface2);
       border: 1px solid var(--control-border);
       border-radius: var(--radius);
       color: var(--text);
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
       font-weight: 300;
       font-family: inherit;
-      transition: border-color 0.15s;
+      transition: border-color var(--ui-duration-fast);
     }
     /* Take the select off native rendering so its fill is exactly var(--surface2);
        the native widget paints a lighter control background that doesn't match the
@@ -2687,7 +2691,7 @@
       appearance: none;
       -webkit-appearance: none;
       -moz-appearance: none;
-      padding-right: 2rem;
+      padding-right: var(--ui-space-6);
       background-image:
         linear-gradient(45deg, transparent 50%, var(--muted) 50%),
         linear-gradient(135deg, var(--muted) 50%, transparent 50%);
@@ -2702,12 +2706,12 @@
     .modal input[type="number"]::-webkit-inner-spin-button,
     .modal input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     .modal textarea { min-height: 60px; resize: vertical; }
-    .modal .row { display: flex; gap: 0.5rem; }
+    .modal .row { display: flex; gap: var(--ui-space-2); }
     .modal .row > * { flex: 1; }
-    .modal .checkbox-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; }
+    .modal .checkbox-row { display: flex; align-items: center; gap: var(--ui-space-2); margin-top: var(--ui-space-3); }
     .modal .checkbox-row input { width: auto; }
-    .modal .checkbox-row label { margin: 0; text-transform: none; letter-spacing: 0; font-size: 0.8rem; color: var(--text); }
-    .feature-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    .modal .checkbox-row label { margin: 0; text-transform: none; letter-spacing: 0; font-size: var(--ui-text-sm); color: var(--text); }
+    .feature-pills { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); margin-top: var(--ui-space-2); }
     /* The pills default to a flexible row (content-sized, growing to fill).
        When the modal itself gets narrow enough that the row would wrap and a
        lone pill stretch full-width, drop to a fixed 2-column grid. Keyed to the
@@ -2720,26 +2724,26 @@
     }
     /* Six optional fields as a fixed 3-column grid (3+3), so they never collapse
        to one overflowing row or leave a lone trailing pill on a flex wrap. */
-    .feature-pills.optional-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
-    .feature-pills.optional-fields > .feature-pill { padding-left: 0.6rem; padding-right: 0.6rem; }
+    .feature-pills.optional-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ui-space-2); }
+    .feature-pills.optional-fields > .feature-pill { padding-left: var(--ui-space-2); padding-right: var(--ui-space-2); }
     .feature-pill {
       display: inline-flex;
       align-items: center;
-      gap: 0.45rem;
-      padding: 0.4rem 0.85rem;
+      gap: var(--ui-space-2);
+      padding: var(--ui-space-2) var(--ui-space-3);
       border: 1px solid var(--control-border);
-      border-radius: 999px;
+      border-radius: var(--ui-radius-full);
       background: var(--surface2);
       color: var(--muted);
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
       cursor: pointer;
       user-select: none;
-      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      transition: border-color var(--ui-duration-fast), color var(--ui-duration-fast), background var(--ui-duration-fast);
     }
     .feature-pill { position: relative; }
     .modal label.feature-pill {
       display: inline-flex;
-      font-size: 0.8rem;
+      font-size: var(--ui-text-sm);
       text-transform: none;
       letter-spacing: 0;
       color: var(--muted);
@@ -2763,24 +2767,24 @@
       white-space: nowrap;
     }
     .modal .modal-error {
-      margin-top: 0.75rem;
-      padding: 0.5rem 0.7rem;
+      margin-top: var(--ui-space-3);
+      padding: var(--ui-space-2) var(--ui-space-3);
       background: rgba(255,95,87,0.1);
       border: 1px solid rgba(255,95,87,0.3);
       border-radius: var(--radius);
       color: var(--danger);
-      font-size: 0.75rem;
+      font-size: var(--ui-text-xs);
       display: none;
     }
     .modal .modal-error.visible { display: block; }
     .modal .modal-success-box {
-      margin-top: 0.75rem;
-      padding: 0.5rem 0.7rem;
+      margin-top: var(--ui-space-3);
+      padding: var(--ui-space-2) var(--ui-space-3);
       background: color-mix(in srgb, var(--green) 12%, transparent);
       border: 1px solid color-mix(in srgb, var(--green) 35%, transparent);
       border-radius: var(--radius);
       color: var(--text);
-      font-size: 0.85rem;
+      font-size: var(--ui-text-sm);
     }
 
     /* Admin tab: stats grid + users list */
@@ -2789,91 +2793,91 @@
       grid-template-columns: repeat(3, 1fr);
       grid-template-rows: repeat(2, auto);
       grid-auto-flow: column;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
+      gap: var(--ui-space-2);
+      margin-top: var(--ui-space-2);
     }
     .modal .stat-card {
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 0.55rem 0.7rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
       background: var(--surface2);
       min-width: 0;
     }
-    .modal .stat-card .stat-val { font-size: 1.1rem; color: var(--text); }
+    .modal .stat-card .stat-val { font-size: var(--ui-text-lg); color: var(--text); }
     .modal .stat-card .stat-lbl {
-      font-size: 0.7rem;
+      font-size: var(--ui-text-xs);
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      margin-top: 0.15rem;
+      margin-top: var(--ui-space-1);
     }
     .modal .user-list {
       list-style: none;
       padding: 0;
-      margin: 0.5rem 0 0;
+      margin: var(--ui-space-2) 0 0;
     }
     .modal .user-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
-      gap: 0.3rem 0.75rem;
-      padding: 0.55rem 0;
+      gap: var(--ui-space-1) var(--ui-space-3);
+      padding: var(--ui-space-2) 0;
       border-bottom: 1px solid var(--border);
-      font-size: 0.82rem;
+      font-size: var(--ui-text-sm);
     }
     .modal .user-row:last-child { border-bottom: none; }
     .modal .user-group-h {
-      font-size: 0.68rem;
+      font-size: var(--ui-text-xs);
       font-weight: 400;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      margin: 0.75rem 0 0.1rem;
+      margin: var(--ui-space-3) 0 0.1rem;
     }
-    .modal .user-group-h:first-child { margin-top: 0.25rem; }
+    .modal .user-group-h:first-child { margin-top: var(--ui-space-1); }
     .modal .user-row .user-name {
       color: var(--text);
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      font-size: 0.9rem;
+      font-size: var(--ui-text-sm);
     }
     .modal .user-row.self .user-name { color: var(--accent); font-weight: 500; }
     .modal .user-row .user-counts {
       grid-column: 1 / -1;
       color: var(--muted);
-      font-size: 0.75rem;
+      font-size: var(--ui-text-xs);
       font-variant-numeric: tabular-nums;
       display: flex;
       flex-wrap: wrap;
-      gap: 0.85rem;
+      gap: var(--ui-space-3);
     }
-    .modal .user-row .user-counts b { color: var(--text); font-weight: 500; margin-right: 0.3rem; }
+    .modal .user-row .user-counts b { color: var(--text); font-weight: 500; margin-right: var(--ui-space-1); }
     .modal .user-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.25rem;
+      gap: var(--ui-space-1);
       justify-content: flex-end;
     }
     .modal .user-actions button:not(.modal-close) {
-      padding: 0.2rem 0.5rem;
-      font-size: 0.72rem;
+      padding: var(--ui-space-1) var(--ui-space-2);
+      font-size: var(--ui-text-xs);
     }
     .modal .user-flag {
       display: inline-block;
-      font-size: 0.68rem;
-      padding: 0.05rem 0.4rem;
-      border-radius: 999px;
+      font-size: var(--ui-text-xs);
+      padding: 0.05rem var(--ui-space-2);
+      border-radius: var(--ui-radius-full);
       border: 1px solid var(--border);
       color: var(--muted);
       white-space: nowrap;
-      margin-left: 0.4rem;
+      margin-left: var(--ui-space-2);
     }
     .modal .log-list {
       list-style: none;
       padding: 0;
-      margin: 0.5rem 0 0;
+      margin: var(--ui-space-2) 0 0;
       border: 1px solid var(--border);
       border-radius: var(--radius);
       background: var(--surface2);
@@ -2883,37 +2887,37 @@
       bottom: -1.25rem;
       display: flex;
       justify-content: center;
-      margin: 0.5rem -1.5rem -1.25rem;
-      padding: 0.6rem 1.5rem;
+      margin: var(--ui-space-2) -1.5rem -1.5rem;
+      padding: var(--ui-space-2) var(--ui-space-5);
       background: var(--surface);
       border-top: 1px solid var(--border);
-      z-index: 1;
+      z-index: var(--ui-z-raised);
     }
     .modal .log-toolbar button {
-      padding: 0.25rem 0.7rem;
-      font-size: 0.78rem;
+      padding: var(--ui-space-1) var(--ui-space-3);
+      font-size: var(--ui-text-xs);
     }
     .modal .log-row {
-      padding: 0.45rem 0.7rem;
+      padding: var(--ui-space-2) var(--ui-space-3);
       border-bottom: 1px solid var(--border);
-      font-size: 0.78rem;
+      font-size: var(--ui-text-xs);
       line-height: 1.4;
     }
     .cat-color-dot {
       flex: 0 0 auto; width: 1.5rem; height: 1.5rem; border-radius: 50%;
       border: 2px solid var(--control-border); padding: 0; cursor: pointer;
-      transition: transform 80ms ease-out;
+      transition: transform var(--ui-duration-fast) ease-out;
     }
     .cat-color-dot:hover { transform: scale(1.1); }
     .cat-color-dot.open { box-shadow: 0 0 0 2px var(--text); }
     .cat-swatches {
       display: grid; grid-template-columns: repeat(10, auto);
-      justify-content: center; gap: 0.4rem;
+      justify-content: center; gap: var(--ui-space-2);
       max-height: 0; opacity: 0; overflow: hidden; visibility: hidden;
       padding: 0;
-      transition: max-height 220ms ease, opacity 140ms ease, padding 220ms ease, visibility 220ms;
+      transition: max-height var(--ui-duration-base) ease, opacity var(--ui-duration-fast) ease, padding var(--ui-duration-base) ease, visibility var(--ui-duration-base);
     }
-    .cat-swatches.open { max-height: 12rem; opacity: 1; padding: 0.5rem 0.25rem 0.25rem; visibility: visible; }
+    .cat-swatches.open { max-height: 12rem; opacity: 1; padding: var(--ui-space-2) var(--ui-space-1) var(--ui-space-1); visibility: visible; }
     .cat-swatch {
       width: 1.75rem; height: 1.75rem; border-radius: 50%; padding: 0;
       border: 2px solid transparent; cursor: pointer;
@@ -2925,33 +2929,33 @@
     @media (pointer: coarse) {
       .cat-color-dot { width: 2rem; height: 2rem; }
       .cat-swatch { width: 2.5rem; height: 2.5rem; }
-      .cat-swatches { grid-template-columns: repeat(5, auto); gap: 0.5rem; }
+      .cat-swatches { grid-template-columns: repeat(5, auto); gap: var(--ui-space-2); }
       .cat-swatches.open { max-height: 16rem; }
-      .select-popover { font-size: 0.9rem; }
-      .select-popover .select-option { padding: 0.7rem 0.75rem; }
+      .select-popover { font-size: var(--ui-text-sm); }
+      .select-popover .select-option { padding: var(--ui-space-3) var(--ui-space-3); }
     }
     .row-note {
       display: block; max-height: 0; opacity: 0; overflow: hidden; margin-top: 0;
-      font-size: 0.7rem; color: var(--muted); white-space: pre-wrap; word-break: break-word;
+      font-size: var(--ui-text-xs); color: var(--muted); white-space: pre-wrap; word-break: break-word;
     }
-    .show-notes .row-note { max-height: 8rem; opacity: 1; margin-top: 0.15rem; }
+    .show-notes .row-note { max-height: 8rem; opacity: 1; margin-top: var(--ui-space-1); }
     /* Transitions activate only after the user clicks the toggle, so freshly
        rendered rows don't fire the animation on first paint. */
     .notes-anim .row-note {
-      transition: max-height 220ms ease, opacity 140ms ease, margin-top 220ms ease;
+      transition: max-height var(--ui-duration-base) ease, opacity var(--ui-duration-fast) ease, margin-top var(--ui-duration-base) ease;
     }
-    .row-src { flex: 0 0 auto; font-size: 0.72rem; color: var(--muted); text-decoration: none; padding: 0.05rem 0.45rem; border: 1px solid var(--control-border); border-radius: 999px; }
+    .row-src { flex: 0 0 auto; font-size: var(--ui-text-xs); color: var(--muted); text-decoration: none; padding: 0.05rem var(--ui-space-2); border: 1px solid var(--control-border); border-radius: var(--ui-radius-full); }
     .row-src:hover { color: var(--text); border-color: var(--text); }
     .row-notes-toggle {
       background: transparent; border: none; color: var(--muted); cursor: pointer;
-      padding: 0; font-size: 0.75rem; letter-spacing: 0;
+      padding: 0; font-size: var(--ui-text-xs); letter-spacing: 0;
     }
     .row-notes-toggle:hover { color: var(--text); text-decoration: underline; }
     .modal .log-row:last-child { border-bottom: none; }
     .modal .log-row .log-head {
       display: flex;
       align-items: baseline;
-      gap: 0.5rem;
+      gap: var(--ui-space-2);
       flex-wrap: wrap;
     }
     .modal .log-row .log-msg { color: var(--text); flex: 1; min-width: 0; }
@@ -2961,21 +2965,21 @@
       margin-left: auto;
       color: var(--muted);
       font-variant-numeric: tabular-nums;
-      font-size: 0.72rem;
+      font-size: var(--ui-text-xs);
     }
     .modal .log-row .log-details {
       color: var(--muted);
-      font-size: 0.72rem;
-      margin-top: 0.15rem;
+      font-size: var(--ui-text-xs);
+      margin-top: var(--ui-space-1);
       word-break: break-word;
     }
     .modal .log-row.log-fail .log-msg { color: var(--danger); }
     .modal .log-more {
       display: block;
       width: 100%;
-      margin-top: 0.5rem;
-      padding: 0.4rem;
-      font-size: 0.78rem;
+      margin-top: var(--ui-space-2);
+      padding: var(--ui-space-2);
+      font-size: var(--ui-text-xs);
     }
     .modal .user-flag.on {
       color: var(--text);
@@ -2998,13 +3002,13 @@
       display: flex;
       justify-content: flex-end;
       align-items: center;
-      gap: 0.5rem;
-      margin-top: 1.25rem;
+      gap: var(--ui-space-2);
+      margin-top: var(--ui-space-5);
     }
     /* Inline warning that sits to the left of the action buttons. */
     .modal .action-warning {
       min-width: 0;
-      font-size: 0.78rem;
+      font-size: var(--ui-text-xs);
       font-weight: 400;
       color: var(--danger);
       margin: 0;
@@ -3019,12 +3023,12 @@
       border: 1px solid var(--control-border);
       color: var(--muted);
       font-family: inherit;
-      font-size: 0.75rem;
-      padding: 0.5rem 0.9rem;
+      font-size: var(--ui-text-xs);
+      padding: var(--ui-space-2) var(--ui-space-4);
       border-radius: var(--radius);
       cursor: pointer;
       letter-spacing: 0.05em;
-      transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, opacity 0.12s ease;
+      transition: background-color var(--ui-duration-slow) ease, color var(--ui-duration-slow) ease, border-color var(--ui-duration-slow) ease, opacity var(--ui-duration-fast) ease;
     }
     /* Theme-aware primary button outside the modal (e.g. list-page Add buttons).
        Inside the modal, the higher-specificity rule above still wins. */
@@ -3033,12 +3037,12 @@
       border: 1px solid var(--accent);
       color: var(--fab-text);
       font-family: inherit;
-      font-size: 0.75rem;
-      padding: 0.5rem 0.9rem;
+      font-size: var(--ui-text-xs);
+      padding: var(--ui-space-2) var(--ui-space-4);
       border-radius: var(--radius);
       cursor: pointer;
       letter-spacing: 0.05em;
-      transition: opacity 0.15s;
+      transition: opacity var(--ui-duration-fast);
     }
     button.primary:hover:not(:disabled) { box-shadow: inset 0 0 0 1px var(--fab-text); }
     button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -3050,9 +3054,9 @@
     .modal button:not(.modal-close):not(.primary):hover:not(:disabled) { color: var(--text); border-color: var(--muted); }
     .modal button:not(.modal-close):disabled { opacity: 0.4; cursor: not-allowed; }
     .modal .hint {
-      font-size: 0.7rem;
+      font-size: var(--ui-text-xs);
       color: var(--muted);
-      margin-top: 0.4rem;
+      margin-top: var(--ui-space-2);
     }
     .pick-coords-banner {
       position: absolute;
@@ -3061,10 +3065,10 @@
       transform: translateX(-50%);
       background: var(--accent);
       color: var(--fab-text);
-      padding: 0.4rem 0.9rem;
+      padding: var(--ui-space-2) var(--ui-space-4);
       border-radius: var(--radius);
-      font-size: 0.75rem;
-      z-index: 1500;
+      font-size: var(--ui-text-xs);
+      z-index: var(--ui-z-dropdown);
       box-shadow: 0 2px 8px var(--shadow);
       cursor: pointer;
     }
@@ -3072,14 +3076,14 @@
       display: none;
       align-items: center;
       justify-content: center;
-      gap: 0.75rem;
-      padding: 0.4rem 1rem;
-      font-size: 0.85rem;
+      gap: var(--ui-space-3);
+      padding: var(--ui-space-2) var(--ui-space-4);
+      font-size: var(--ui-text-sm);
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 50px;
-      z-index: 999;
+      z-index: var(--ui-z-sticky);
     }
     .pwa-banner.visible { display: flex; }
     .pwa-banner.offline { background: #fff3cd; color: #663c00; border-bottom-color: #f0d27a; }
@@ -3093,19 +3097,19 @@
       left: 50%;
       transform: translateX(-50%);
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.5rem 0.5rem 0.5rem 1rem;
+      gap: var(--ui-space-3);
+      padding: var(--ui-space-2) var(--ui-space-2) var(--ui-space-2) var(--ui-space-4);
       max-width: calc(100vw - 2rem);
-      font-size: 0.85rem;
+      font-size: var(--ui-text-sm);
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 999px;
+      border-radius: var(--ui-radius-full);
       box-shadow: 0 6px 20px rgba(0,0,0,0.18);
-      z-index: 1500;
+      z-index: var(--ui-z-toast);
     }
     .pwa-update-toast.visible {
       display: flex;
-      animation: pwa-update-toast-in 220ms ease-out;
+      animation: pwa-update-toast-in var(--ui-duration-base) ease-out;
     }
     @keyframes pwa-update-toast-in {
       from { opacity: 0; transform: translate(-50%, 16px); }
@@ -3117,13 +3121,13 @@
     }
     .pwa-banner button,
     .pwa-update-toast button {
-      padding: 0.3rem 0.9rem;
-      font-size: 0.85rem;
+      padding: var(--ui-space-1) var(--ui-space-4);
+      font-size: var(--ui-text-sm);
       font-weight: 500;
       border: 1px solid var(--accent);
       background: var(--accent);
       color: var(--bg);
-      border-radius: 999px;
+      border-radius: var(--ui-radius-full);
       cursor: pointer;
     }
     .pwa-banner button:hover,
@@ -3143,8 +3147,6 @@
       --ui-backdrop: var(--backdrop);
       --ui-shadow:  0 10px 40px var(--shadow);
       --ui-dialog-width: 440px;
-      --ui-text-xs: 0.7rem;
-      --ui-text-sm: 0.8rem;
       --ui-text-weight: 300;
       --ui-label-weight: 300;
     }
@@ -7011,7 +7013,7 @@
           '<label for="' + prefix + '-note">Note</label>' +
           '<textarea id="' + prefix + '-note" style="min-height:40px">' + escapeHtml((area && area.note) || '') + '</textarea>'
         : '') +
-        '<div class="settings-inline-row" style="margin-top:0.75rem">' +
+        '<div class="settings-inline-row" style="margin-top:var(--ui-space-3)">' +
           '<input type="checkbox" class="settings-toggle" id="' + prefix + '-visited"' + (area && area.visited ? ' checked' : '') + '>' +
           '<label for="' + prefix + '-visited">I&rsquo;ve visited this area</label>' +
         '</div>' +
@@ -7199,7 +7201,7 @@
           : '') +
           '<label for="tm-source">Source URL</label>' +
           '<input type="url" id="tm-source" value="' + escapeHtml(route.source || '') + '" placeholder="https://example.com/route">' +
-          '<div class="settings-inline-row" style="margin-top:0.75rem">' +
+          '<div class="settings-inline-row" style="margin-top:var(--ui-space-3)">' +
             '<input type="checkbox" class="settings-toggle" id="tm-completed"' + (route.completed ? ' checked' : '') + '>' +
             '<label for="tm-completed">I&rsquo;ve completed this route</label>' +
           '</div>' +
@@ -7943,7 +7945,7 @@
             '<div><label for="e-lat" class="ui-required">Latitude</label><input type="number" id="e-lat" step="any" required value="' + place.lat + '"></div>' +
             '<div><label for="e-lon" class="ui-required">Longitude</label><input type="number" id="e-lon" step="any" required value="' + place.lon + '"></div>' +
           '</div>' +
-          '<div style="margin-top:0.25rem;text-align:right"><button type="button" class="primary" id="e-pick-on-map">Pick on map</button></div>' +
+          '<div style="margin-top:var(--ui-space-1);text-align:right"><button type="button" class="primary" id="e-pick-on-map">Pick on map</button></div>' +
           '<label for="e-category">Category</label>' +
           selectOrNewHtml('e-category', cats, place.category, displayCategory, '', 'New category name') +
           '<label for="e-country">Country</label>' +
@@ -7962,7 +7964,7 @@
           : '') +
           '<label for="e-sources">Sources</label>' +
           '<textarea id="e-sources" placeholder="One URL per line" style="min-height:40px">' + escapeHtml(sourcesText) + '</textarea>' +
-          '<div class="settings-inline-row" style="margin-top:0.75rem">' +
+          '<div class="settings-inline-row" style="margin-top:var(--ui-space-3)">' +
             '<input type="checkbox" class="settings-toggle" id="e-visited"' + (place.visited ? ' checked' : '') + '>' +
             '<label for="e-visited">I&rsquo;ve visited this place</label>' +
           '</div>' +
@@ -9010,7 +9012,7 @@
           : '';
         return '<img class="catalog-diff-image" src="' + escapeHtml(url) + '"' + focusAttr +
           ' alt="" loading="lazy" referrerpolicy="no-referrer" title="' + escapeHtml(url) +
-          '" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:this.title,style:\'color:var(--muted);font-size:0.7rem;word-break:break-all\'}))">';
+          '" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:this.title,style:\'color:var(--muted);font-size:var(--ui-text-xs);word-break:break-all\'}))">';
       }
       if (Array.isArray(v)) return v.map(x => escapeHtml(String(x))).join('<br>');
       return escapeHtml(String(v));
@@ -9202,7 +9204,7 @@
       const sections = pending.map(p => {
         const r = findCatalogUpdate(p);
         return '<div class="catalog-bulk-place" data-place-id="' + escapeHtml(String(p.id)) + '">' +
-          '<h3 class="settings-h" style="display:flex;align-items:baseline;gap:0.5rem">' +
+          '<h3 class="settings-h" style="display:flex;align-items:baseline;gap:var(--ui-space-2)">' +
             '<span>' + escapeHtml(p.name) + '</span>' +
             '<button type="button" class="sessions-revoke-others catalog-bulk-place-toggle" style="margin-left:auto">Select all</button>' +
           '</h3>' +
@@ -11548,14 +11550,14 @@
         '</select>' +
         (placesAvailable() && !isReadOnly() ?
           '<h3 class="settings-h">Categories</h3>' +
-          '<div style="display:flex;align-items:center;gap:1rem">' +
+          '<div style="display:flex;align-items:center;gap:var(--ui-space-4)">' +
             '<div class="modal-desc" style="flex:1;margin:0">Group your places on the map and in the list.</div>' +
             '<button type="button" class="primary" id="s-manage-cats">Manage</button>' +
           '</div>'
         : '') +
         (routesAvailable() && !isReadOnly() ?
           '<h3 class="settings-h">Regions</h3>' +
-          '<div style="display:flex;align-items:center;gap:1rem">' +
+          '<div style="display:flex;align-items:center;gap:var(--ui-space-4)">' +
             '<div class="modal-desc" style="flex:1;margin:0">Group your routes on the map and in the list.</div>' +
             '<button type="button" class="primary" id="s-manage-regions">Manage</button>' +
           '</div>'
@@ -11564,18 +11566,18 @@
         (local ?
           '<div data-panel="backup" hidden>' +
           '<h3 class="settings-h">Export</h3>' +
-          '<div style="display:flex;align-items:center;gap:1rem">' +
+          '<div style="display:flex;align-items:center;gap:var(--ui-space-4)">' +
             '<div class="modal-desc" style="flex:1;margin:0">Download your data as a zip.</div>' +
             '<button type="button" class="primary" id="s-local-export">Export</button>' +
           '</div>' +
           modalErrorHtml('s-local-export-error') +
           '<h3 class="settings-h">Import</h3>' +
           '<div class="modal-desc" style="margin:0">Restore from a previous export.</div>' +
-          '<div class="radio-row radio-segmented" style="margin-top:0.5rem">' +
+          '<div class="radio-row radio-segmented" style="margin-top:var(--ui-space-2)">' +
             '<label><input type="radio" name="local-import-mode" value="merge" checked>Merge</label>' +
             '<label><input type="radio" name="local-import-mode" value="replace">Replace all</label>' +
           '</div>' +
-          '<div style="display:flex;align-items:center;gap:1rem;margin-top:0.75rem">' +
+          '<div style="display:flex;align-items:center;gap:var(--ui-space-4);margin-top:var(--ui-space-3)">' +
             '<div class="file-picker" style="flex:1;margin:0">' +
               '<input type="file" id="s-local-import-file" tabindex="-1" accept=".zip,application/zip" class="file-input-hidden">' +
               '<button type="button" class="primary" id="s-local-import-pick">Choose file</button>' +
@@ -11665,38 +11667,38 @@
         '<div data-panel="account" hidden>' +
         ((state.auth.publishing_open || isAdmin) ?
           '<h3 class="settings-h">Public sharing</h3>' +
-          '<div class="settings-inline-row" style="margin-top:0.5rem">' +
+          '<div class="settings-inline-row" style="margin-top:var(--ui-space-2)">' +
             '<input type="checkbox" class="settings-toggle" id="s-publish"' + (state.auth.published ? ' checked' : '') + '>' +
             '<label for="s-publish">Make my map public</label>' +
           '</div>' +
           '<div id="s-publish-link" class="collapsible' + (state.auth.published ? ' expanded' : '') + '">' +
             '<div class="collapsible-inner">' +
-              '<div class="modal-desc" style="margin-top:0.5rem">Anyone with the link gets read-only access.</div>' +
-              '<div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem">' +
-                '<input type="text" id="s-publish-url" readonly value="' + escapeHtml(location.origin + '/u/' + (state.auth.username || '') + '/') + '" style="flex:1;font-size:0.75rem">' +
+              '<div class="modal-desc" style="margin-top:var(--ui-space-2)">Anyone with the link gets read-only access.</div>' +
+              '<div style="display:flex;align-items:center;gap:var(--ui-space-2);margin-top:var(--ui-space-2)">' +
+                '<input type="text" id="s-publish-url" readonly value="' + escapeHtml(location.origin + '/u/' + (state.auth.username || '') + '/') + '" style="flex:1;font-size:var(--ui-text-xs)">' +
                 '<button type="button" class="primary" id="s-publish-copy" style="flex:0 0 auto">Copy</button>' +
               '</div>' +
             '</div>' +
           '</div>'
         : '') +
         '<h3 class="settings-h">Export</h3>' +
-        '<div class="radio-row radio-segmented" style="margin-bottom:0.5rem">' +
+        '<div class="radio-row radio-segmented" style="margin-bottom:var(--ui-space-2)">' +
           '<label><input type="radio" name="export-format" value="zip" checked>Zip</label>' +
           '<label><input type="radio" name="export-format" value="geojson">GeoJSON</label>' +
         '</div>' +
-        '<div style="display:flex;align-items:center;gap:1rem">' +
+        '<div style="display:flex;align-items:center;gap:var(--ui-space-4)">' +
           '<div class="modal-desc" id="s-export-desc" style="flex:1;margin:0">' + EXPORT_FORMATS.zip.desc + '</div>' +
           '<button type="button" class="primary" id="s-export">Export</button>' +
         '</div>' +
         modalErrorHtml('s-export-error') +
         '<h3 class="settings-h">Import</h3>' +
         '<div class="modal-desc" style="margin:0">Restore from a previous export.</div>' +
-        '<div class="radio-row radio-segmented" style="margin-top:0.5rem">' +
+        '<div class="radio-row radio-segmented" style="margin-top:var(--ui-space-2)">' +
           '<label><input type="radio" name="import-mode" value="merge" checked>Merge</label>' +
           '<label><input type="radio" name="import-mode" value="replace">Replace all</label>' +
           '<label><input type="radio" name="import-mode" value="prefs">Preferences only</label>' +
         '</div>' +
-        '<div style="display:flex;align-items:center;gap:1rem;margin-top:0.75rem">' +
+        '<div style="display:flex;align-items:center;gap:var(--ui-space-4);margin-top:var(--ui-space-3)">' +
           '<div class="file-picker" style="flex:1;margin:0">' +
             '<input type="file" id="s-import-file" tabindex="-1" accept=".zip,application/zip" class="file-input-hidden">' +
             '<button type="button" class="primary" id="s-import-pick">Choose file</button>' +
@@ -11712,7 +11714,7 @@
           '<input type="password" id="s-current" autocomplete="current-password" required>' +
           '<label for="s-new">New password</label>' +
           '<input type="password" id="s-new" autocomplete="new-password" required>' +
-          '<div style="display:flex;align-items:flex-start;gap:1rem;margin-top:0.5rem">' +
+          '<div style="display:flex;align-items:flex-start;gap:var(--ui-space-4);margin-top:var(--ui-space-2)">' +
             '<div class="modal-desc" style="flex:1;margin:0">At least 12 characters.</div>' +
             '<button type="submit" class="primary" id="s-submit">Change password</button>' +
           '</div>' +
@@ -11725,18 +11727,18 @@
         '<div id="s-sessions">Loading&hellip;</div>' +
         '<h3 class="settings-h">API tokens</h3>' +
         '<div class="modal-desc">Bearer tokens for scripts and non-browser clients.</div>' +
-        '<form id="s-token-form" style="margin-top:0.5rem">' +
+        '<form id="s-token-form" style="margin-top:var(--ui-space-2)">' +
           '<label for="s-token-name">Name</label>' +
           '<input type="text" id="s-token-name" maxlength="100" placeholder="e.g. backup script" required>' +
-          '<div class="settings-inline-row" style="margin-top:0.5rem;grid-template-columns:5rem 1fr">' +
+          '<div class="settings-inline-row" style="margin-top:var(--ui-space-2);grid-template-columns:5rem 1fr">' +
             '<label>Scope</label>' +
             radioPillsHtml('s-token-scope', [['full', 'Full access'], ['readonly', 'Read-only']], 'full', 'radio-segmented') +
           '</div>' +
-          '<div class="settings-inline-row" style="margin-top:0.5rem;grid-template-columns:5rem 1fr">' +
+          '<div class="settings-inline-row" style="margin-top:var(--ui-space-2);grid-template-columns:5rem 1fr">' +
             '<label>Expires</label>' +
             radioPillsHtml('s-token-expiry', [['30', '30 days'], ['90', '90 days'], ['365', '1 year'], ['', 'Never']], '365', 'radio-segmented') +
           '</div>' +
-          '<div style="display:flex;justify-content:flex-end;margin-top:0.75rem">' +
+          '<div style="display:flex;justify-content:flex-end;margin-top:var(--ui-space-3)">' +
             '<button type="submit" class="primary" id="s-token-create">Create token</button>' +
           '</div>' +
           modalErrorHtml('s-token-error') +
@@ -11892,9 +11894,9 @@
                 btn.disabled = false;
                 document.getElementById('s-token-name').value = '';
                 const box = document.getElementById('s-token-new');
-                box.innerHTML = '<div style="margin-bottom:0.4rem">Token created. Copy it now, you won\'t see it again.</div>' +
-                  '<div style="display:flex;align-items:center;gap:0.5rem">' +
-                    '<input type="text" id="s-token-value" readonly value="' + escapeHtml(res.token) + '" style="flex:1;font-size:0.75rem">' +
+                box.innerHTML = '<div style="margin-bottom:var(--ui-space-2)">Token created. Copy it now, you won\'t see it again.</div>' +
+                  '<div style="display:flex;align-items:center;gap:var(--ui-space-2)">' +
+                    '<input type="text" id="s-token-value" readonly value="' + escapeHtml(res.token) + '" style="flex:1;font-size:var(--ui-text-xs)">' +
                     '<button type="button" class="primary" id="s-token-copy" style="flex:0 0 auto">Copy</button>' +
                   '</div>';
                 box.hidden = false;
@@ -12295,14 +12297,14 @@
 
       openModal(
         modalHeaderHtml('Manage categories') +
-        '<h3 class="settings-h" style="margin-top:0.75rem">Add</h3>' +
-        '<div class="row" style="margin-top:0.25rem">' +
+        '<h3 class="settings-h" style="margin-top:var(--ui-space-3)">Add</h3>' +
+        '<div class="row" style="margin-top:var(--ui-space-1)">' +
           '<input type="text" id="cat-new-display" placeholder="e.g. Waterfalls">' +
           '<button type="button" class="primary" id="cat-add" style="flex:0 0 auto">Add</button>' +
         '</div>' +
         '<div class="hint" id="cat-new-slug-preview" hidden></div>' +
         modalErrorHtml('cat-error') +
-        '<h3 class="settings-h" style="margin-top:1.25rem;display:flex;align-items:baseline;gap:0.6rem">Categories' +
+        '<h3 class="settings-h" style="margin-top:var(--ui-space-5);display:flex;align-items:baseline;gap:var(--ui-space-2)">Categories' +
           '<span id="cat-clear-warning" class="action-warning" style="margin-left:auto;text-align:right" hidden></span></h3>' +
         '<div id="cat-rows"></div>' +
         '<div class="ui-dialog-actions">' +
@@ -12361,8 +12363,8 @@
               const innerTag = dirty ? '<span class="row-tag in-input dirty">edited</span>'
                               : r.count === 0 ? '<span class="row-tag in-input">unused</span>'
                               : '<span class="row-tag in-input"></span>';
-              return '<div class="cat-row" data-i="' + i + '" style="margin-top:0.5rem">' +
-                '<div style="display:flex;gap:0.6rem;align-items:center">' +
+              return '<div class="cat-row" data-i="' + i + '" style="margin-top:var(--ui-space-2)">' +
+                '<div style="display:flex;gap:var(--ui-space-2);align-items:center">' +
                   '<button type="button" class="cat-drag btn-x" data-i="' + i + '" aria-label="Drag to reorder" title="Drag to reorder" style="flex:0 0 auto;cursor:grab;touch-action:none">&#x2630;</button>' +
                   '<button type="button" class="cat-color-dot' + (open ? ' open' : '') + '" data-i="' + i + '" title="Change color" style="background:' + dotColor + '"></button>' +
                   '<span class="cat-input-wrap" style="position:relative;flex:1;min-width:0;display:block">' +
@@ -12665,7 +12667,7 @@
 
       openModal(
         modalHeaderHtml('Manage regions') +
-        '<h3 class="settings-h" style="margin-top:0.75rem;display:flex;align-items:baseline;gap:0.6rem">Regions' +
+        '<h3 class="settings-h" style="margin-top:var(--ui-space-3);display:flex;align-items:baseline;gap:var(--ui-space-2)">Regions' +
           '<span id="rgn-clear-warning" class="action-warning" style="margin-left:auto;text-align:right" hidden></span></h3>' +
         '<div id="rgn-rows"></div>' +
         '<div id="rgn-empty" class="hint" hidden>No regions yet. Upload a route with a region to create one.</div>' +
@@ -12712,7 +12714,7 @@
                         : empty ? '<span class="row-tag">empty</span>'
                         : '<span class="row-tag"></span>';
               const xTitle = empty ? 'Remove empty region' : 'Remove region (routes will move to No region)';
-              return '<div style="display:flex;gap:0.6rem;align-items:center;margin-top:0.5rem">' +
+              return '<div style="display:flex;gap:var(--ui-space-2);align-items:center;margin-top:var(--ui-space-2)">' +
                 '<input type="text" data-i="' + i + '" class="rgn-name' + (dirty ? ' dirty' : '') + '" value="' + escapeHtml(r.name) + '" style="flex:1;min-width:0">' +
                 tag +
                 (function() { const h = isDefaultHidden('default-hidden-regions', r.name); return '<button type="button" data-name="' + escapeHtml(r.name) + '" class="rgn-hide btn-x' + (h ? ' is-hidden' : '') + '" aria-label="Default visibility on map" title="' + (h ? 'Hidden by default on the map' : 'Shown by default on the map') + '" style="flex:0 0 auto">' + eyeIconHtml(h) + '</button>'; })() +
@@ -13123,7 +13125,7 @@
         const list = Array.isArray(entries) ? entries : [];
         const n = list.length;
         el.innerHTML =
-          '<div style="display:flex;align-items:center;gap:0.6rem">' +
+          '<div style="display:flex;align-items:center;gap:var(--ui-space-2)">' +
             '<span class="modal-desc" style="margin:0;flex:1">Places users can import.</span>' +
             (n ? '<button type="button" class="primary" id="s-catalog-manage">Manage</button>' : '') +
             '<button type="button" class="primary" id="s-catalog-add">Add</button>' +
@@ -13140,7 +13142,7 @@
     function openCatalogManager() {
       openModal(
         modalHeaderHtml(null, {titleHtml: 'Manage catalog<span id="cat-mgr-count" class="modal-title-count"></span>'}) +
-        '<input type="text" id="cat-mgr-filter" placeholder="Filter…" style="margin-bottom:0.5rem">' +
+        '<input type="text" id="cat-mgr-filter" placeholder="Filter…" style="margin-bottom:var(--ui-space-2)">' +
         '<div id="cat-mgr-list"></div>' +
         '<div class="ui-dialog-actions">' +
           '<button type="button" class="ui-button ui-button-quiet" id="cat-mgr-notes-toggle">Show notes</button>' +
@@ -13181,7 +13183,7 @@
                 return '<li class="user-row" data-name="' + escapeHtml(e.name || '') + '"' + (hidden ? ' style="opacity:0.6"' : '') + '>' +
                   '<span class="user-name" style="min-width:0">' +
                     '<span title="' + name + '" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</span>' +
-                    (meta ? '<span style="display:block;font-size:0.72rem;color:var(--muted);font-weight:400">' + escapeHtml(meta) + '</span>' : '') +
+                    (meta ? '<span style="display:block;font-size:var(--ui-text-xs);color:var(--muted);font-weight:400">' + escapeHtml(meta) + '</span>' : '') +
                     (note ? '<span class="row-note">' + escapeHtml(note) + '</span>' : '') +
                   '</span>' +
                   '<div class="user-actions">' + action + '</div>' +
@@ -13279,23 +13281,23 @@
         const meta = [p.category, p.country].filter(Boolean).join(' · ');
         const name = escapeHtml(p.name || '(unnamed)');
         const note = (p.note || '').trim();
-        return '<label class="browse-row" data-idx="' + i + '" style="display:flex;align-items:flex-start;gap:0.6rem;padding:0.45rem 0;border-bottom:1px solid var(--border);cursor:pointer">' +
-          '<input type="checkbox" class="ui-check cat-pick" data-idx="' + i + '" style="margin-top:0.2rem">' +
+        return '<label class="browse-row" data-idx="' + i + '" style="display:flex;align-items:flex-start;gap:var(--ui-space-2);padding:var(--ui-space-2) 0;border-bottom:1px solid var(--border);cursor:pointer">' +
+          '<input type="checkbox" class="ui-check cat-pick" data-idx="' + i + '" style="margin-top:var(--ui-space-1)">' +
           '<span style="flex:1;min-width:0">' +
             '<span title="' + name + '" style="display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</span>' +
-            (meta ? '<span style="display:block;font-size:0.72rem;color:var(--muted)">' + escapeHtml(meta) + '</span>' : '') +
+            (meta ? '<span style="display:block;font-size:var(--ui-text-xs);color:var(--muted)">' + escapeHtml(meta) + '</span>' : '') +
             (note ? '<span class="row-note">' + escapeHtml(note) + '</span>' : '') +
           '</span>' +
         '</label>';
       }).join('');
       openModal(
         modalHeaderHtml('Add to catalog') +
-        '<input type="text" id="cat-filter" placeholder="Filter…" style="margin-bottom:0.5rem">' +
+        '<input type="text" id="cat-filter" placeholder="Filter…" style="margin-bottom:var(--ui-space-2)">' +
         '<div id="cat-list">' + rows + '</div>' +
         modalErrorHtml('add-error') +
         '<div class="ui-dialog-actions">' +
           '<button type="button" class="ui-button ui-button-quiet" id="cat-notes-toggle">Show notes</button>' +
-          '<span id="cat-status" style="font-size:0.75rem;color:var(--muted);flex:1"></span>' +
+          '<span id="cat-status" style="font-size:var(--ui-text-xs);color:var(--muted);flex:1"></span>' +
           '<button type="button" class="ui-button" id="cat-select-all">Select all</button>' +
           '<button type="button" class="ui-button ui-button-primary" id="cat-submit" disabled>Add selected</button>' +
         '</div>',
@@ -14966,7 +14968,7 @@
 
       function browseFormHtml() {
         return '<div id="browse-body">' +
-          '<div style="font-size:0.78rem;color:var(--muted);padding:0.5rem 0">Loading catalogue&hellip;</div>' +
+          '<div style="font-size:var(--ui-text-xs);color:var(--muted);padding:var(--ui-space-2) 0">Loading catalogue&hellip;</div>' +
           '</div>';
       }
 
@@ -15008,7 +15010,7 @@
           });
           if (!entries.length) {
             const allHidden = (rawEntries || []).length > 0;
-            body.innerHTML = '<div style="font-size:0.78rem;color:var(--muted);padding:0.5rem 0">' +
+            body.innerHTML = '<div style="font-size:var(--ui-text-xs);color:var(--muted);padding:var(--ui-space-2) 0">' +
               (allHidden
                 ? "You've imported everything in the catalogue."
                 : 'No catalogue entries available yet. An admin can add some from Settings &rsaquo; Admin &rsaquo; Catalog.') +
@@ -15023,14 +15025,14 @@
             const sourceLink = firstSource
               ? '<a href="' + escapeHtml(firstSource) + '" target="_blank" rel="noopener" class="row-src">Source</a>'
               : '';
-            return '<label class="browse-row" data-idx="' + i + '" style="display:flex;align-items:flex-start;gap:0.6rem;padding:0.45rem 0;border-bottom:1px solid var(--border);cursor:pointer">' +
-              '<input type="checkbox" class="ui-check browse-pick" data-idx="' + i + '" style="margin-top:0.2rem">' +
+            return '<label class="browse-row" data-idx="' + i + '" style="display:flex;align-items:flex-start;gap:var(--ui-space-2);padding:var(--ui-space-2) 0;border-bottom:1px solid var(--border);cursor:pointer">' +
+              '<input type="checkbox" class="ui-check browse-pick" data-idx="' + i + '" style="margin-top:var(--ui-space-1)">' +
               '<span style="flex:1;min-width:0;display:block">' +
-                '<span style="display:flex;align-items:center;gap:0.5rem;width:100%">' +
+                '<span style="display:flex;align-items:center;gap:var(--ui-space-2);width:100%">' +
                   '<span title="' + name + '" style="flex:1;min-width:0;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + name + '</span>' +
                   sourceLink +
                 '</span>' +
-                (meta ? '<span style="display:block;font-size:0.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(meta) + '</span>' : '') +
+                (meta ? '<span style="display:block;font-size:var(--ui-text-xs);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(meta) + '</span>' : '') +
                 (note ? '<span class="row-note">' + escapeHtml(note) + '</span>' : '') +
               '</span>' +
             '</label>';
@@ -15046,7 +15048,7 @@
           const fTags = collectTags(entries);
           const hasFilters = fCats.length > 1 || fCountries.length > 1 || fTags.length > 0;
           body.innerHTML =
-            '<div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem" id="browse-controls">' +
+            '<div style="display:flex;gap:var(--ui-space-2);align-items:center;margin-bottom:var(--ui-space-2)" id="browse-controls">' +
               '<input type="text" id="browse-filter" placeholder="Filter&hellip;" style="flex:1;margin:0">' +
               (hasFilters ?
                 '<div class="filter-dropdown">' +
@@ -15070,7 +15072,7 @@
             '</div>' +
             '<div id="browse-list" style="max-height:50vh;overflow-y:auto">' + rows + '</div>' +
             modalErrorHtml('add-error') +
-            '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
+            '<div class="modal-actions" style="display:flex;align-items:center;gap:var(--ui-space-2)">' +
               '<button type="button" class="ui-button ui-button-quiet" id="browse-notes-toggle">Show notes</button>' +
               '<button type="button" class="ui-button ui-button-quiet" id="browse-select-all">Select all</button>' +
               '<span class="action-spacer"></span>' +
