@@ -5515,17 +5515,17 @@
       return {
         'OpenTopoMap': L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
           maxZoom: 17, subdomains: 'abc',
-          attribution: 'Map: <a href="https://opentopomap.org">OpenTopoMap</a> &middot; Data: <a href="https://openstreetmap.org">OSM</a>',
+          attribution: 'Map data: &copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
         }),
         // OpenStreetMap's tiles drawn dark by the .tiles-dark filter: CARTO's
         // dark tiles now need a key, and Esri's terms do not cover Leaflet.
         'Dark': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19, className: 'tiles-dark',
-          attribution: '<a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+          attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }),
         'OpenStreetMap': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
-          attribution: '<a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+          attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }),
       };
     }
