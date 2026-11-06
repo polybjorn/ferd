@@ -109,6 +109,44 @@ class IndexLayers(unittest.TestCase):
                   "document.getElementById('webview-notice').hidden = false;", INDEX)
 
 
+def relative_luminance(colour):
+  channels = [int(colour[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+  r, g, b = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in channels]
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast(a, b):
+  lighter, darker = sorted((relative_luminance(a), relative_luminance(b)), reverse=True)
+  return (lighter + 0.05) / (darker + 0.05)
+
+
+class ThemeContrast(unittest.TestCase):
+  """WCAG AA for normal text, the floor docs/architecture.md sets for every theme."""
+
+  def themes(self):
+    found = {}
+    for selector, body in re.findall(
+        r'(:root|\[data-theme="[\w-]+"\]\[data-mode="\w+"\])\s*\{(.*?)\}', INDEX, re.S):
+      tokens = dict(re.findall(r"--([\w-]+):\s*(#[0-9a-fA-F]{6})\b", body))
+      if "muted" in tokens:
+        found[selector] = tokens
+    return found
+
+  def test_every_theme_is_measured(self):
+    self.assertEqual(len(self.themes()), 15)
+
+  def test_text_and_muted_meet_aa_on_every_surface(self):
+    for selector, tokens in self.themes().items():
+      for fg in ("text", "muted"):
+        for bg in ("bg", "surface", "surface2"):
+          ratio = contrast(tokens[fg], tokens[bg])
+          self.assertGreaterEqual(ratio, 4.5, "%s %s on %s" % (selector, fg, bg))
+
+  def test_placeholders_use_the_measured_colour(self):
+    self.assertRegex(INDEX, r"\n\s*::placeholder \{ color: var\(--muted\); opacity: 1; \}")
+    self.assertRegex(UI_CSS, r"\.ui-field ::placeholder \{\s*color: var\(--ui-muted\);\s*opacity: 1;")
+
+
 class Labels(unittest.TestCase):
   def test_required_is_marked_instead_of_optional(self):
     self.assertNotIn("(optional", INDEX)

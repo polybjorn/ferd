@@ -38,7 +38,7 @@
       --border:       #4c566a;
       --border-hover: #5e6779;
       --text:         #eceff4;
-      --muted:        #9ba4b4;
+      --muted:        #b5bcc8;
       --accent:       #88c0d0;
       --red:          #bf616a;
       --green:        #a3be8c;
@@ -62,7 +62,7 @@
       --border:       #4c566a;
       --border-hover: #5e6779;
       --text:         #eceff4;
-      --muted:        #9ba4b4;
+      --muted:        #b5bcc8;
       --accent:       #88c0d0;
       --red:          #bf616a;
       --green:        #a3be8c;
@@ -107,7 +107,7 @@
       --border:       #586e75;
       --border-hover: #657b83;
       --text:         #93a1a1;
-      --muted:        #839496;
+      --muted:        #91a0a0;
       --accent:       #268bd2;
       --red:          #dc322f;
       --green:        #859900;
@@ -129,7 +129,7 @@
       --border:       #d8d3bd;
       --border-hover: #93a1a1;
       --text:         #073642;
-      --muted:        #657b83;
+      --muted:        #526d76;
       --accent:       #268bd2;
       --red:          #dc322f;
       --green:        #859900;
@@ -152,7 +152,7 @@
       --border:       #665c54;
       --border-hover: #7c6f64;
       --text:         #ebdbb2;
-      --muted:        #a89984;
+      --muted:        #c7b89a;
       --accent:       #fe8019;
       --red:          #fb4934;
       --green:        #b8bb26;
@@ -174,7 +174,7 @@
       --border:       #d5c4a1;
       --border-hover: #bdae93;
       --text:         #3c3836;
-      --muted:        #7c6f64;
+      --muted:        #695f57;
       --accent:       #d65d0e;
       --red:          #cc241d;
       --green:        #79740e;
@@ -197,7 +197,7 @@
       --border:       #585b70;
       --border-hover: #6c7086;
       --text:         #cdd6f4;
-      --muted:        #a6adc8;
+      --muted:        #aeb6d1;
       --accent:       #cba6f7;
       --red:          #f38ba8;
       --green:        #a6e3a1;
@@ -219,7 +219,7 @@
       --border:       #ccd0da;
       --border-hover: #9ca0b0;
       --text:         #4c4f69;
-      --muted:        #6c6f85;
+      --muted:        #64677e;
       --accent:       #8839ef;
       --red:          #d20f39;
       --green:        #40a02b;
@@ -264,7 +264,7 @@
       --border:       #3b4261;
       --border-hover: #414868;
       --text:         #c0caf5;
-      --muted:        #737aa2;
+      --muted:        #8c94bd;
       --accent:       #7aa2f7;
       --red:          #f7768e;
       --green:        #9ece6a;
@@ -309,7 +309,7 @@
       --border:       #6272a4;
       --border-hover: #7d8aba;
       --text:         #f8f8f2;
-      --muted:        #6272a4;
+      --muted:        #aeb6cc;
       --accent:       #bd93f9;
       --red:          #ff5555;
       --green:        #50fa7b;
@@ -331,7 +331,7 @@
       --border:       #b8b8c8;
       --border-hover: #9090a0;
       --text:         #1f1f1f;
-      --muted:        #635d87;
+      --muted:        #5a5579;
       --accent:       #644ac9;
       --red:          #cb3a2a;
       --green:        #14710a;
@@ -354,7 +354,7 @@
       --border:       #dfdad9;
       --border-hover: #cecacd;
       --text:         #575279;
-      --muted:        #797593;
+      --muted:        #6b6688;
       --accent:       #907aa9;
       --red:          #b4637a;
       --green:        #56949f;
@@ -384,6 +384,8 @@
     [data-tile-filter="grayscale"] .leaflet-tile-container { filter: grayscale(1); }
     [data-tile-filter="sepia"] .leaflet-tile-container { filter: sepia(0.7); }
     [data-tile-filter="contrast"] .leaflet-tile-container { filter: contrast(1.15) saturate(1.1); }
+
+    ::placeholder { color: var(--muted); opacity: 1; }
 
     html, body {
       height: 100%;
@@ -615,7 +617,6 @@
       outline: none;
       transition: border-color 0.15s;
     }
-    .index-controls input[type="text"]::placeholder { color: var(--muted); }
     .index-controls input[type="text"]:focus { border-color: var(--accent); }
     /* Live result count pinned inside the search box: total when unfiltered,
        the matching count once a search/filter narrows the list. */
@@ -1069,7 +1070,6 @@
       outline: none;
       transition: border-color 0.15s;
     }
-    .panel-search input::placeholder { color: var(--muted); }
     .panel-search input:focus { border-color: var(--accent); }
 
     .map-search-results {

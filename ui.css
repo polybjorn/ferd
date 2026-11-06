@@ -153,6 +153,12 @@
     border-radius: var(--ui-radius);
   }
   .ui-field textarea { padding-block: var(--ui-space-2); resize: vertical; }
+  /* Browsers default to one fixed grey, whatever the surface behind it. */
+  .ui-field ::placeholder {
+    color: var(--ui-muted);
+    opacity: 1;
+  }
+
   /* Two gradients, so the chevron follows --ui-muted in every theme. */
   .ui-field select:not([multiple]) {
     appearance: none;
