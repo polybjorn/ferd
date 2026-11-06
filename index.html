@@ -49,8 +49,8 @@
 
       --completed:    #2ea043;
       --planned:      #d23f3f;
-      --status-completed: #61d276;
-      --status-planned:   #ecacac;
+      --status-completed: #32af49;
+      --status-planned:   #ff6b6b;
 
       --attribution-bg: var(--attribution-bg);
       --cluster-fill:   rgba(136, 192, 208, 0.6);
@@ -395,11 +395,12 @@
        Same specificity as the theme blocks but placed after them, so it wins.
        Danger/error keep --danger and success keeps --green. */
     [data-theme][data-mode] { --planned: #d23f3f; --completed: #2ea043; }
-    /* Route lines sit on map tiles and keep the pair above. Dots, legend lines
-       and status text sit on theme surfaces, where one fixed pair cannot reach
-       4.5:1 in both modes. */
-    [data-theme][data-mode="dark"] { --status-planned: #ecacac; --status-completed: #61d276; }
-    [data-theme][data-mode="light"] { --status-planned: #a42626; --status-completed: #1d642a; }
+    /* Route lines sit on map tiles and keep the pair above. Dots and legend
+       lines sit on theme surfaces, where one fixed pair cannot reach 3:1 in
+       both modes. Never use these for text: a red that reaches 4.5:1 on the
+       lighter dark panels reads as pink. */
+    [data-theme][data-mode="dark"] { --status-planned: #ff6b6b; --status-completed: #32af49; }
+    [data-theme][data-mode="light"] { --status-planned: #d32f2f; --status-completed: #258236; }
 
     .leaflet-div-icon { background: transparent; border: none; }
     /* Selector targets .leaflet-tile-container so it applies to both the
@@ -6467,7 +6468,7 @@
       html += tagPopupHtml(p.tags);
       html += '<div class="popup-meta">' +
         '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(displayCategory(p.category)) + '</span>' +
-        '<span style="grid-column:3;color:' + (p.visited ? 'var(--status-completed)' : 'var(--status-planned)') + '">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
+        '<span style="grid-column:3">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
       '</div>';
       return html;
     }
@@ -6873,7 +6874,7 @@
       }).catch(err => console.warn('[ferd] visited countries:', err.message));
     }
     function areaStatusHtml(visited) {
-      return '<span class="popup-area-status" style="grid-column:3;color:' + (visited ? 'var(--status-completed)' : 'var(--status-planned)') + '">' + (visited ? 'Visited' : 'Want to visit') + '</span>';
+      return '<span class="popup-area-status" style="grid-column:3">' + (visited ? 'Visited' : 'Want to visit') + '</span>';
     }
     function areaPopupHtml(a, visited) {
       const catStyle = '--c:' + state.categoryColors[a.category] + ';--cl:' + state.categoryColorsLight[a.category];

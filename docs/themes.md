@@ -39,7 +39,7 @@ Everything theme-related lives in `index.html`. Find by name:
 - `themeLabels` object: display names for the Settings dropdown.
 - `applyTheme(theme, mode)`: sets the two HTML attributes, resolves "system" via `matchMedia`, and invalidates the route-color cache.
 - `COLORS` / `COLORS_LIGHT`: category palette. Each category's index is stored alongside its label in `category-labels.json`; see [Category palette](#category-palette).
-- `routeStatusColor(completed)`: returns the resolved `--completed` / `--planned` color for the active theme. Cached after the first read and invalidated in `applyTheme`, so a `getComputedStyle` runs once per theme change instead of once per polyline. Legend dots, search-result lines and status text use `--status-completed` / `--status-planned` instead, since they sit on theme surfaces rather than map tiles.
+- `routeStatusColor(completed)`: returns the resolved `--completed` / `--planned` color for the active theme. Cached after the first read and invalidated in `applyTheme`, so a `getComputedStyle` runs once per theme change instead of once per polyline. Status dots, legend lines and search-result lines use `--status-completed` / `--status-planned` instead, since they sit on theme surfaces rather than map tiles. Status labels use the normal text colour.
 
 ### CSS variable contract
 
@@ -68,7 +68,7 @@ Each `[data-theme][data-mode]` block must define:
 
 \* `--shadow` is conventionally the same in every theme: `rgba(0, 0, 0, 0.4)` in dark blocks, `rgba(0, 0, 0, 0.12)` in light blocks. It varies by mode, not by theme. New themes should match those values unless there's a specific reason to deviate.
 
-`--status-planned` and `--status-completed` live in one rule per mode, not in the theme blocks, and reach 4.5:1 on every theme's surfaces in that mode. A new theme whose surfaces fall short of them fails `tests/test_ui_css.py`.
+`--status-planned` and `--status-completed` live in one rule per mode, not in the theme blocks, and reach 3:1 on every theme's surfaces in that mode. They are for dots and lines only, never text. A new theme whose surfaces fall short of them fails `tests/test_ui_css.py`.
 
 Two more variables live outside the per-theme blocks:
 

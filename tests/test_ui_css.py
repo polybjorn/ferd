@@ -126,7 +126,7 @@ class ThemeContrast(unittest.TestCase):
           ratio = contrast(tokens[fg], tokens[bg])
           self.assertGreaterEqual(ratio, 4.5, "%s %s on %s" % (selector, fg, bg))
 
-  def test_status_colours_meet_aa_on_every_surface(self):
+  def test_status_colours_reach_3_to_1_on_every_surface(self):
     pairs = {mode: dict(re.findall(r"--status-(\w+): (#[0-9a-f]{6})", rule)) for mode, rule in
              re.findall(r'\[data-theme\]\[data-mode="(\w+)"\] \{([^}]*)\}', INDEX)}
     self.assertEqual(sorted(pairs), ["dark", "light"])
@@ -136,7 +136,10 @@ class ThemeContrast(unittest.TestCase):
       for name, colour in pair.items():
         for bg in ("bg", "surface", "surface2"):
           ratio = contrast(colour, tokens[bg])
-          self.assertGreaterEqual(ratio, 4.5, "%s %s on %s" % (selector, name, bg))
+          self.assertGreaterEqual(ratio, 3, "%s %s on %s" % (selector, name, bg))
+
+  def test_status_colours_never_paint_text(self):
+    self.assertNotRegex(INDEX, r"(?<![-\w])color:[^;}\n]*--status-")
 
   def test_only_route_lines_read_the_tile_colours(self):
     self.assertNotRegex(INDEX, r"var\(--(planned|completed)\)")
