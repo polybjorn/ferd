@@ -91,11 +91,11 @@ class IndexLayers(unittest.TestCase):
   def test_no_vendor_stylesheet_links(self):
     head = INDEX.split("</head>", 1)[0]
     links = re.findall(r'<link rel="stylesheet" href="([^"]+)">', head)
-    self.assertEqual(links, ["/ui.css"])
+    self.assertEqual(links, ["/ui.css?v=__FERD_CACHE_VERSION__"])
 
   def test_ui_css_loads_after_the_app_rules(self):
     head = INDEX.split("</head>", 1)[0]
-    self.assertGreater(head.index('href="/ui.css"'), head.index("} /* @layer app */"))
+    self.assertGreater(head.index('href="/ui.css?'), head.index("} /* @layer app */"))
 
   def test_only_the_webview_notice_is_unlayered(self):
     styles = head_styles(INDEX)
@@ -107,6 +107,15 @@ class IndexLayers(unittest.TestCase):
     self.assertIn('<div id="webview-notice" role="alert" hidden>', INDEX)
     self.assertIn("if (!('CSSLayerBlockRule' in window)) "
                   "document.getElementById('webview-notice').hidden = false;", INDEX)
+
+
+class Shipping(unittest.TestCase):
+  def test_android_bundles_the_stylesheet(self):
+    gradle = (ROOT / "android" / "app" / "build.gradle.kts").read_text(encoding="utf-8")
+    self.assertIn('"ui.css"', gradle)
+
+  def test_service_worker_serves_it_offline(self):
+    self.assertIn("url.pathname === '/ui.css'", SW)
 
 
 class AddForm(unittest.TestCase):

@@ -1283,9 +1283,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
       version = get_sw_version(base)
       data = data.replace(SW_VERSION_PLACEHOLDER.encode(),
                           version.encode())
-    elif rel == "index.html" and APP_VERSION_PLACEHOLDER.encode() in data:
+    elif rel == "index.html":
       data = data.replace(APP_VERSION_PLACEHOLDER.encode(),
                           get_app_version().encode())
+      # The stylesheet link carries it: nginx serves ui.css with no cache
+      # header, so a browser can keep the old file under a new page.
+      data = data.replace(SW_VERSION_PLACEHOLDER.encode(),
+                          get_sw_version(base).encode())
     self.send_response(HTTPStatus.OK)
     self.send_header("Content-Type", ctype)
     self.send_header("Content-Length", str(len(data)))

@@ -80,7 +80,10 @@ const TILE_HOSTS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL_ASSETS))
+    // A plain fetch here could store a file the HTTP cache kept from an older
+    // version, and the offline shell would then mismatch its page.
+    caches.open(SHELL_CACHE).then((cache) =>
+      cache.addAll(SHELL_ASSETS.map((asset) => new Request(asset, { cache: 'reload' }))))
   );
 });
 
@@ -133,6 +136,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  if (url.pathname === '/ui.css') {
+    event.respondWith(networkThenShell(req));
+    return;
+  }
+
   if (
     url.pathname.startsWith('/vendor/') ||
     url.pathname.startsWith('/icons/')
@@ -162,6 +170,16 @@ async function cacheFirst(req, cacheName) {
     return res;
   } catch (err) {
     return cached || Response.error();
+  }
+}
+
+// The link's version query is not part of the precached key.
+async function networkThenShell(req) {
+  try {
+    return await fetch(req);
+  } catch (err) {
+    const cache = await caches.open(SHELL_CACHE);
+    return (await cache.match(req, { ignoreSearch: true })) || Response.error();
   }
 }
 

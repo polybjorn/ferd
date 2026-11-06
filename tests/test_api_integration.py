@@ -1708,6 +1708,13 @@ class TestStaticPWAHeaders(unittest.TestCase):
     # Must not be cached by HTTP cache, so SW updates can roll out.
     self.assertEqual(headers.get("Cache-Control"), "no-cache")
 
+  def test_index_stylesheet_link_gets_the_cache_version(self):
+    (_server.data_dir / "index.html").write_text(
+      '<link href="/ui.css?v=__FERD_CACHE_VERSION__">', encoding="utf-8")
+    with urllib.request.urlopen(_server.base_url + "/index.html") as r:
+      body = r.read().decode("utf-8")
+    self.assertRegex(body, r'/ui\.css\?v=ferd-[0-9a-f]{10}"')
+
 
 class TestCrossOrigin(unittest.TestCase):
   """Bearer-token auth and CORS for cross-origin / native clients."""
