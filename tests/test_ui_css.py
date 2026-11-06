@@ -198,6 +198,16 @@ class ControlEdges(unittest.TestCase):
       if "var(--border-hover)" in body:
         self.assertRegex(selector, r"card|settings-h", selector.strip())
 
+  def test_hover_leaves_a_filled_button_label_alone(self):
+    for selector, body in self.rules():
+      for part in selector.split(","):
+        if ":hover" not in part or ":not(.primary)" in part:
+          continue
+        if ".primary" in part:
+          self.assertNotRegex(body, r"(?:^|[\s;])(?:color|opacity):", part.strip())
+        else:
+          self.assertNotRegex(part.strip(), r"^\.modal button:not\(\.modal-close\):hover")
+
 
 class Labels(unittest.TestCase):
   def test_required_is_marked_instead_of_optional(self):

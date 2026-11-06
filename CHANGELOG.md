@@ -14,6 +14,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places carry a `country_code` (ISO 3166-1 alpha-2) that the server sets from the Country field on every save. Existing places get one when the server starts.
 
 ### Fixed
+- A filled button in a dialog keeps its label readable on hover in every theme, and shows hover with an inner ring instead of fading.
 - A public map opened with a doubled slash in its address, such as `//u/name/`, shows the map instead of the sign-in prompt.
 - On phones, the map fits the visible screen, so its zoom buttons no longer slide under the header.
 - A place's popup opens just above its pin instead of covering the top of it.
