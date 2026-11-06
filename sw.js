@@ -78,6 +78,38 @@ const TILE_HOSTS = [
   'd.basemaps.cartocdn.com',
 ];
 
+// OVERLAY-HOSTS-BEGIN (tests/js/overlays.test.js runs this block)
+// Hosts of the overlays in site-config.json, so their tiles cache offline
+// like the base maps' do. {s} expands to each subdomain, Leaflet's default
+// being abc; any other {placeholder} cannot sit in a hostname.
+function overlayHosts(cfg) {
+  const hosts = new Set();
+  const list = cfg && Array.isArray(cfg.overlays) ? cfg.overlays : [];
+  for (const o of list) {
+    if (!o || typeof o.url !== 'string') continue;
+    const subs = typeof o.subdomains === 'string' && o.subdomains ? o.subdomains : 'abc';
+    const urls = o.url.includes('{s}') ? Array.from(subs, (c) => o.url.split('{s}').join(c)) : [o.url];
+    for (const u of urls) {
+      let parsed;
+      try { parsed = new URL(u.replace(/\{[^}]*\}/g, '0')); } catch (e) { continue; }
+      if (parsed.protocol === 'https:' || parsed.protocol === 'http:') hosts.add(parsed.hostname);
+    }
+  }
+  return Array.from(hosts);
+}
+// OVERLAY-HOSTS-END
+
+// Read once per worker start, from the copy the page already cached when it
+// can be. A tile requested before this settles is fetched uncached.
+let overlayHostSet = new Set();
+(async () => {
+  try {
+    const url = new URL('site-config.json', self.registration.scope).href;
+    const res = (await caches.match(url)) || (await fetch(url));
+    if (res && res.ok) overlayHostSet = new Set(overlayHosts(await res.json()));
+  } catch (e) {}
+})();
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     // A plain fetch here could store a file the HTTP cache kept from an older
@@ -113,7 +145,7 @@ self.addEventListener('fetch', (event) => {
 
   // Cross-origin: tiles get cached, everything else passes through.
   if (url.origin !== self.location.origin) {
-    if (TILE_HOSTS.includes(url.hostname)) {
+    if (TILE_HOSTS.includes(url.hostname) || overlayHostSet.has(url.hostname)) {
       event.respondWith(tileCacheFirst(req));
     }
     return;

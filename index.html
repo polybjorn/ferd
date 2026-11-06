@@ -1804,6 +1804,19 @@
     .leaflet-control-layers-toggle { width: 36px !important; height: 36px !important; padding: 6px !important; background-size: 24px 24px !important; }
     .leaflet-control-layers label { color: var(--text); }
     .leaflet-control-layers-separator { border-color: var(--border) !important; }
+    .leaflet-control-layers-list { padding: 6px 10px 8px; }
+    .leaflet-control-layers label { margin: 0; }
+    .leaflet-control-layers label > span { display: flex; align-items: center; gap: 8px; min-height: 28px; }
+    .leaflet-control-layers-selector { appearance: none; position: relative; top: 0; flex: none; width: 16px; height: 16px; margin: 0; background: var(--surface2); border: 1px solid var(--muted); border-radius: 50%; cursor: pointer; }
+    .leaflet-control-layers-selector:checked { background: var(--accent); border-color: var(--accent); }
+    .leaflet-control-layers-selector:checked::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--surface); }
+    .leaflet-control-layers-selector:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    /* The slider alone turns an overlay on and off, so a tap on the name must
+       not reach the hidden checkbox, which would turn it on at 0. */
+    .leaflet-control-layers-overlays label { pointer-events: none; }
+    .leaflet-control-layers-overlays .leaflet-control-layers-selector { display: none; }
+    .leaflet-control-layers-overlays label > span { min-height: 20px; }
+    .leaflet-control-layers .overlay-opacity { display: block; width: 100%; min-width: 7rem; height: 24px; margin: 0 0 2px; accent-color: var(--accent); }
 
     /* Pointer cursor over the route "near-tap" zone, so hovering near a
        polyline reads as interactive even when not directly on the stroke. */
@@ -5483,14 +5496,137 @@
       };
     }
 
+    // OVERLAY-CFG-BEGIN (tests/js/overlays.test.js runs this block)
+    // Overlays from site-config.json `overlays`. An entry without a name or an
+    // http(s) URL, a repeated name, an unknown type, or a WMS entry without
+    // `layers` is dropped rather than failing the map.
+    function parseOverlays(list) {
+      if (!Array.isArray(list)) return [];
+      const out = [];
+      const seen = new Set();
+      for (const o of list) {
+        if (!o || typeof o !== 'object') continue;
+        const name = typeof o.name === 'string' ? o.name.trim() : '';
+        const url = typeof o.url === 'string' ? o.url.trim() : '';
+        const type = o.type == null ? 'xyz' : String(o.type).toLowerCase();
+        if (!name || seen.has(name) || !/^https?:\/\/[^/]/i.test(url)) continue;
+        if (type !== 'xyz' && type !== 'wms') continue;
+        if (type === 'wms' && !(typeof o.layers === 'string' && o.layers.trim())) continue;
+        const ov = {
+          name, type, url,
+          attribution: typeof o.attribution === 'string' ? o.attribution : '',
+        };
+        if (Number.isInteger(o.max_zoom) && o.max_zoom > 0) ov.maxZoom = o.max_zoom;
+        if (type === 'xyz' && typeof o.subdomains === 'string' && o.subdomains) ov.subdomains = o.subdomains;
+        if (type === 'wms') {
+          ov.layers = o.layers.trim();
+          ov.format = typeof o.format === 'string' && o.format ? o.format : 'image/png';
+          ov.styles = typeof o.styles === 'string' ? o.styles : '';
+          ov.version = typeof o.version === 'string' && o.version ? o.version : '1.1.1';
+          ov.transparent = o.transparent !== false;
+        }
+        seen.add(name);
+        out.push(ov);
+      }
+      return out;
+    }
+    // OVERLAY-CFG-END
+
+    // Each overlay requests tiles from a third party, so none is on at load.
+    // One the user turns on keeps its level across map rebuilds for this page
+    // load. Keyed by overlay name, with no entry meaning off.
+    state.overlayLevels = new Map();
+    function createOverlayLayers() {
+      const out = {};
+      for (const ov of parseOverlays(state.config && state.config.overlays)) {
+        const opts = {
+          attribution: ov.attribution,
+          opacity: state.overlayLevels.get(ov.name) || 0,
+          // Above every base layer, including one the picker adds later.
+          zIndex: 10,
+        };
+        if (ov.maxZoom) opts.maxZoom = ov.maxZoom;
+        let layer;
+        if (ov.type === 'wms') {
+          layer = L.tileLayer.wms(ov.url, Object.assign(opts, {
+            layers: ov.layers, format: ov.format, styles: ov.styles,
+            version: ov.version, transparent: ov.transparent,
+          }));
+        } else {
+          if (ov.subdomains) opts.subdomains = ov.subdomains;
+          layer = L.tileLayer(ov.url, opts);
+        }
+        layer._ferdOverlay = ov.name;
+        out[escapeHtml(ov.name)] = layer;
+      }
+      return out;
+    }
+
+    // The layers control with an opacity slider under each overlay, where 0 is
+    // off. The control already stops touch and click from reaching the map.
+    let OverlayLayersControl = null;
+    function overlayLayersControlClass() {
+      if (OverlayLayersControl) return OverlayLayersControl;
+      return OverlayLayersControl = L.Control.Layers.extend({
+        _addItem(obj) {
+          const label = L.Control.Layers.prototype._addItem.call(this, obj);
+          const name = obj.overlay && obj.layer._ferdOverlay;
+          if (!name) return label;
+          const range = document.createElement('input');
+          range.type = 'range';
+          range.min = '0';
+          range.max = '100';
+          range.step = '5';
+          range.className = 'overlay-opacity';
+          range.value = String(Math.round(obj.layer.options.opacity * 100));
+          range.setAttribute('aria-label', name + ' opacity');
+          range.title = 'Opacity';
+          const input = label.querySelector('input');
+          input._ferdRange = range;
+          range.addEventListener('input', function() {
+            const v = Number(range.value) / 100;
+            obj.layer.setOpacity(v);
+            if (v > 0) state.overlayLevels.set(name, v);
+            else state.overlayLevels.delete(name);
+            // Through the checkbox, since adding the layer directly makes
+            // Leaflet rebuild the list and drop the slider mid-drag.
+            if ((v > 0) !== input.checked) input.click();
+          });
+          label.parentNode.insertBefore(range, label.nextSibling);
+          return label;
+        },
+        // Leaflet disables an overlay's checkbox past the layer's zoom range,
+        // and a click on it then does nothing.
+        _checkDisabledLayers() {
+          L.Control.Layers.prototype._checkDisabledLayers.call(this);
+          for (const input of this._layerControlInputs) {
+            if (input._ferdRange) input._ferdRange.disabled = input.disabled;
+          }
+        },
+      });
+    }
+
+    function addTilePicker(map) {
+      const overlays = state.tilePickerOverlays;
+      const Ctrl = overlayLayersControlClass();
+      return new Ctrl(state.tilePickerLayers,
+        overlays && Object.keys(overlays).length ? overlays : null,
+        { position: 'topright' }).addTo(map);
+    }
+
     function addTileLayersToMap(map) {
       const layers = createTileLayers();
       const def = getDefaultTileLayer();
       (layers[def] || layers['Satellite']).addTo(map);
+      const overlays = createOverlayLayers();
+      for (const key in overlays) {
+        if (state.overlayLevels.has(overlays[key]._ferdOverlay)) overlays[key].addTo(map);
+      }
       state.tilePickerLayers = layers;
+      state.tilePickerOverlays = overlays;
       state.tilePickerCtrl = null;
       if (getShowTilePicker()) {
-        state.tilePickerCtrl = L.control.layers(layers, null, { position: 'topright' }).addTo(map);
+        state.tilePickerCtrl = addTilePicker(map);
       }
     }
 
@@ -5511,6 +5647,7 @@
       }
       state.tilePickerCtrl = null;
       state.tilePickerLayers = null;
+      state.tilePickerOverlays = null;
       state._placeRecords = null;
       state._placeClusterGroup = null;
       state._areaGroup = null;
@@ -11484,7 +11621,7 @@
               if (key === 'tile-picker') {
                 if (state.currentMap && state.tilePickerLayers) {
                   if (this.checked && !state.tilePickerCtrl) {
-                    const ctrl = L.control.layers(state.tilePickerLayers, null, { position: 'topright' }).addTo(state.currentMap);
+                    const ctrl = addTilePicker(state.currentMap);
                     state.tilePickerCtrl = ctrl;
                     playEnter(ctrl.getContainer(), 'tile-pick-enter');
                   } else if (!this.checked && state.tilePickerCtrl) {

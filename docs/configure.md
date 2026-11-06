@@ -2,7 +2,7 @@
 
 Two config files. Both are gitignored; copy the `.example` versions to start.
 
-- `site-config.json`: read by the browser. Brand, default map view, API base path.
+- `site-config.json`: read by the browser. Brand, default map view, API base path, map overlays.
 - `tools/config.json`: read by the API server. Listen address, paths, password/cookie/body-size policy, optional pre-seeded admin credentials.
 
 Every key in `tools/config.json` can also be set via an `FERD_<UPPER>` environment variable. Env wins over the file.
@@ -16,6 +16,43 @@ Every key in `tools/config.json` can also be set via an `FERD_<UPPER>` environme
 | `default_view` | `{ "center": [45, 10], "zoom": 4 }` | Initial map center and zoom for the unified view. |
 | `default_view_routes` | `{ "center": [59.5, 6.5], "zoom": 10 }` | Initial center/zoom used by the route detail view before the GPX bounds are known. |
 | `api_base` | `"/api"` | Path prefix the frontend calls. The server itself always answers on `/api/*`, so change this only when a reverse proxy rewrites the prefix back. |
+| `overlays` | `[]` | Map layers drawn over the base map, such as topo, hillshade or protected areas. See [Overlays](#overlays). |
+
+### Overlays
+
+Each entry in `overlays` adds an opacity slider to the map's layer picker, where 0 is off. Every slider starts at 0 on each page load, because turning an overlay on sends tile requests to its host.
+
+```json
+"overlays": [
+  {
+    "name": "Topo (Kartverket)",
+    "url": "https://cache.kartverket.no/v1/wmts/1.0.0/topo/default/webmercator/{z}/{y}/{x}.png",
+    "attribution": "&copy; Kartverket"
+  },
+  {
+    "name": "Hillshade",
+    "type": "wms",
+    "url": "https://wms.geonorge.no/skwms1/wms.terrengmodell",
+    "layers": "relieff",
+    "attribution": "&copy; Kartverket"
+  }
+]
+```
+
+| Field | Default | Notes |
+|---|---|---|
+| `name` | required | Label in the layer picker. Must be unique. |
+| `url` | required | `http(s)` tile URL. For `xyz`, a template with `{z}`, `{x}`, `{y}` and optionally `{s}`. For `wms`, the service endpoint without a query string. |
+| `type` | `"xyz"` | `"xyz"` or `"wms"`. |
+| `attribution` | `""` | Credit shown in the map corner while the overlay is on. HTML is allowed. |
+| `max_zoom` | none | Highest zoom the host serves. |
+| `subdomains` | `"abc"` | `xyz` only: the letters `{s}` expands to. |
+| `layers` | required for `wms` | Comma-separated WMS layer names. |
+| `format`, `styles`, `version`, `transparent` | `"image/png"`, `""`, `"1.1.1"`, `true` | `wms` only: passed through to the WMS request. |
+
+An entry with no name, a repeated name, a non-http URL, an unknown type, or a WMS entry without `layers` is skipped. The picker shows only when "Tile picker" is on in Settings.
+
+The service worker reads the same list and caches overlay tiles for offline use like base map tiles. If your reverse proxy sets a Content-Security-Policy, add each overlay host to `img-src`.
 
 ## `tools/config.json`
 
