@@ -7094,10 +7094,7 @@
         const restoredView = !state._navByHash && !!(prevView || storedView);
         setTimeout(function() {
           if (restoredView) {
-            L.popup({ closeButton: false })
-              .setLatLng([focusPlace.lat, focusPlace.lon])
-              .setContent(placePopupHtml(focusPlace))
-              .openOn(map);
+            openPlacePopup(map, focusPlace);
           } else {
             revealPlaceMarker(map, focusPlace);
           }
@@ -7478,16 +7475,25 @@
         if (b.isValid()) map.fitBounds(b, { padding: [40, 40] });
       }
     }
+    function placeMarkerRadius(size) { return Math.max(3, (size / 2) - 2); }
+    // Pins are canvas drawings with no Leaflet marker to anchor to, so the popup
+    // has to clear the pin itself. A tag starts at its coordinate, the others
+    // are centred on it.
+    function openPlacePopup(map, place) {
+      const lift = getPinStyle() === 'tag' ? 0 : placeMarkerRadius(getMarkerSize());
+      const offsetY = L.Popup.prototype.options.offset[1] - lift;
+      return L.popup({ closeButton: false, offset: [0, offsetY] })
+        .setLatLng([place.lat, place.lon])
+        .setContent(placePopupHtml(place))
+        .openOn(map);
+    }
     function revealPlaceMarker(map, place) {
       const cg = state._placeClusterGroup;
       if (cg && typeof cg.revealPlace === 'function') {
         cg.revealPlace(place);
       } else {
         map.setView([place.lat, place.lon], Math.max(map.getZoom(), 12));
-        L.popup({ closeButton: false })
-          .setLatLng([place.lat, place.lon])
-          .setContent(placePopupHtml(place))
-          .openOn(map);
+        openPlacePopup(map, place);
       }
     }
 
@@ -7735,10 +7741,7 @@
           }
         }
         const open = () => {
-          L.popup({ closeButton: false })
-            .setLatLng([place.lat, place.lon])
-            .setContent(placePopupHtml(place))
-            .openOn(map);
+          openPlacePopup(map, place);
           if (typeof onShown === 'function') onShown();
         };
         if (Math.floor(map.getZoom()) !== targetZoom) {
@@ -7974,7 +7977,7 @@
       },
 
       _drawMarker: function(ctx, pt, place, color, size, style) {
-        const r = Math.max(3, (size / 2) - 2);
+        const r = placeMarkerRadius(size);
         const visited = !!place.visited;
         if (style === 'dot') {
           ctx.beginPath();
@@ -8082,10 +8085,7 @@
         } else {
           const place = target.properties.place;
           history.replaceState(null, '', focusHash('place', place._slug || place.name));
-          L.popup({ closeButton: false })
-            .setLatLng([place.lat, place.lon])
-            .setContent(placePopupHtml(place))
-            .openOn(this._map);
+          openPlacePopup(this._map, place);
         }
       },
 
@@ -12784,10 +12784,7 @@
     function openMapPlaceContextMenu(place, oe, map) {
       const items = [];
       items.push({ label: 'Open', onClick: function() {
-        L.popup({ closeButton: false })
-          .setLatLng([place.lat, place.lon])
-          .setContent(placePopupHtml(place))
-          .openOn(map);
+        openPlacePopup(map, place);
         history.replaceState(null, '', focusHash('place', place._slug || place.name));
       } });
       if (Array.isArray(place.sources) && place.sources.length) {
