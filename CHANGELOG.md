@@ -39,6 +39,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The base maps credit their providers: OpenTopoMap names OpenStreetMap, SRTM and its CC-BY-SA licence, and OpenStreetMap and Dark credit OpenStreetMap.
 - On phones, Settings fits the screen: every tab and every option in a segmented row shows in full, and the dialog no longer scrolls sideways.
 - On a phone the map search panel sits above the map credit, so the credit no longer runs across its Places and Routes row.
+- On a phone or small tablet the map shows the update banner under the top bar, so it no longer covers the search panel. There it stays hidden while offline.
 
 ### Changed
 - Text is 0.75rem or larger everywhere, and sizes, spacing, corners, animation speeds and stacking follow the scales in `ui.css`. Spacing moves slightly in places, and a long category in a map popup wraps instead of pushing the status out.

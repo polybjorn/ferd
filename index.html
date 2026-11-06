@@ -3016,6 +3016,14 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.18);
       z-index: var(--ui-z-toast);
     }
+    /* On a narrow screen a bottom toast lands on the map's search panel, and the
+       update banner stays until the user reloads. Only the map moves it: the top
+       of a list page holds its search and filters. Up there it shares the offline
+       bar's spot, and an update can wait until the app is back online. */
+    @media (max-width: 900px) {
+      body:has(#map-panel) .pwa-update-toast { top: calc(50px + var(--ui-space-2)); bottom: auto; width: max-content; }
+      body:has(#map-panel) #pwa-offline-banner.visible ~ #pwa-update-banner { display: none; }
+    }
     .pwa-update-toast.visible {
       display: flex;
       animation: pwa-update-toast-in var(--ui-duration-base) ease-out;
