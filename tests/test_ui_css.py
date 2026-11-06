@@ -118,12 +118,47 @@ class ThemeContrast(unittest.TestCase):
           ratio = contrast(tokens[fg], tokens[bg])
           self.assertGreaterEqual(ratio, 4.5, "%s %s on %s" % (selector, fg, bg))
 
-  def test_danger_meets_aa_on_the_form_surfaces(self):
+  def test_coloured_text_meets_aa_on_every_surface(self):
     self.assertIn("--ui-danger:  var(--danger);", INDEX)
     for selector, tokens in self.themes().items():
-      for bg in ("surface", "surface2"):
-        ratio = contrast(tokens["danger"], tokens[bg])
-        self.assertGreaterEqual(ratio, 4.5, "%s danger on %s" % (selector, bg))
+      for fg in ("accent", "danger", "green"):
+        for bg in ("bg", "surface", "surface2"):
+          ratio = contrast(tokens[fg], tokens[bg])
+          self.assertGreaterEqual(ratio, 4.5, "%s %s on %s" % (selector, fg, bg))
+
+  def test_status_colours_meet_aa_on_every_surface(self):
+    pairs = {mode: dict(re.findall(r"--status-(\w+): (#[0-9a-f]{6})", rule)) for mode, rule in
+             re.findall(r'\[data-theme\]\[data-mode="(\w+)"\] \{([^}]*)\}', INDEX)}
+    self.assertEqual(sorted(pairs), ["dark", "light"])
+    for selector, tokens in self.themes().items():
+      pair = pairs["light" if "light" in selector else "dark"]
+      self.assertEqual(sorted(pair), ["completed", "planned"])
+      for name, colour in pair.items():
+        for bg in ("bg", "surface", "surface2"):
+          ratio = contrast(colour, tokens[bg])
+          self.assertGreaterEqual(ratio, 4.5, "%s %s on %s" % (selector, name, bg))
+
+  def test_only_route_lines_read_the_tile_colours(self):
+    self.assertNotRegex(INDEX, r"var\(--(planned|completed)\)")
+
+  def test_text_on_an_accent_fill_meets_aa(self):
+    for selector, tokens in self.themes().items():
+      for fg in ("fab-text", "bg", "surface"):
+        ratio = contrast(tokens[fg], tokens["accent"])
+        self.assertGreaterEqual(ratio, 4.5, "%s %s on accent" % (selector, fg))
+
+  def test_control_edge_reaches_3_to_1_on_every_surface(self):
+    self.assertIn("--ui-border:  var(--control-border);", INDEX)
+    for selector, tokens in self.themes().items():
+      for bg in ("bg", "surface", "surface2"):
+        ratio = contrast(tokens["control-border"], tokens[bg])
+        self.assertGreaterEqual(ratio, 3, "%s control edge on %s" % (selector, bg))
+
+  def test_a_tint_of_a_colour_carries_body_text(self):
+    # The colour measured on a surface falls short on a tint of itself.
+    for rule in (r"\.modal \.modal-success-box \{", r"\.modal \.user-flag\.on \{",
+                 r"\.modal \.danger-btn:not\(h2 \.modal-close\):hover:not\(:disabled\) \{"):
+      self.assertRegex(INDEX, rule + r"[^}]*\n\s*color: var\(--text\);")
 
   def test_settings_hints_use_the_measured_colour(self):
     self.assertRegex(INDEX, r"\.modal \.hint \{[^}]*color: var\(--muted\);")
@@ -132,6 +167,36 @@ class ThemeContrast(unittest.TestCase):
   def test_placeholders_use_the_measured_colour(self):
     self.assertRegex(INDEX, r"\n\s*::placeholder \{ color: var\(--muted\); opacity: 1; \}")
     self.assertRegex(UI_CSS, r"\.ui-field ::placeholder \{\s*color: var\(--ui-muted\);\s*opacity: 1;")
+
+
+class ControlEdges(unittest.TestCase):
+  """--border is for panels and dividers: under 3:1, it cannot mark out a control."""
+
+  CONTROLS = (".view-tabs", ".filter-ms-btn", ".select-option-multi::before", ".group-toggle",
+              ".status-chip", ".radio-pills > label", ".radio-segmented", ".feature-pill",
+              ".public-maps-item", ".row-src", ".cat-color-dot")
+
+  def rules(self):
+    stmts = top_level_statements(head_styles(INDEX)[0])
+    app = next(s for s in stmts if s.startswith("@layer app {"))
+    return re.findall(r"([^{}]+)\{([^{}]*)\}", app)
+
+  def test_every_control_uses_the_measured_edge(self):
+    for selector, body in self.rules():
+      if re.search(r"(?:^|[\s;])border:[^;]*var\(--border\)", body):
+        named = any(control in selector for control in self.CONTROLS)
+        element = re.search(r"(?<![\w-])(input|select|textarea|button)(?![\w-])", selector)
+        self.assertFalse(named or element, selector.strip())
+
+  def test_the_named_controls_exist(self):
+    selectors = " ".join(selector for selector, _ in self.rules())
+    for control in self.CONTROLS:
+      self.assertIn(control, selectors)
+
+  def test_hover_is_stronger_than_the_resting_edge(self):
+    for selector, body in self.rules():
+      if "var(--border-hover)" in body:
+        self.assertRegex(selector, r"card|settings-h", selector.strip())
 
 
 class Labels(unittest.TestCase):
