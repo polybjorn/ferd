@@ -6403,7 +6403,7 @@
     function areaLocalNameHtml(prefix, value) {
       return getShowField('local-name') ?
         '<label for="' + prefix + '-local-name">Local name (optional)</label>' +
-        '<input type="text" id="' + prefix + '-local-name" maxlength="200" placeholder="e.g. 広島県" value="' + escapeHtml(value || '') + '">'
+        '<input type="text" id="' + prefix + '-local-name" maxlength="200" placeholder="In the local language" value="' + escapeHtml(value || '') + '">'
       : '';
     }
     function areaFieldsHtml(prefix, area) {
@@ -6583,7 +6583,7 @@
           '<input type="text" id="tm-name" required maxlength="64" value="' + escapeHtml(route.name) + '">' +
           (getShowField('local-name') ?
             '<label for="tm-local-name">Local name (optional)</label>' +
-            '<input type="text" id="tm-local-name" placeholder="e.g. 金閣寺路" value="' + escapeHtml(route.local_name || '') + '">'
+            '<input type="text" id="tm-local-name" placeholder="In the local language" value="' + escapeHtml(route.local_name || '') + '">'
           : '') +
           '<label for="tm-region">Region</label>' +
           '<select id="tm-region">' + regionOptions + '</select>' +
@@ -7340,7 +7340,7 @@
           '<input type="text" id="e-name" required value="' + escapeHtml(place.name) + '">' +
           (getShowField('local-name') ?
             '<label for="e-local-name">Local name (optional)</label>' +
-            '<input type="text" id="e-local-name" placeholder="e.g. 東京" value="' + escapeHtml(place.local_name || '') + '">'
+            '<input type="text" id="e-local-name" placeholder="In the local language" value="' + escapeHtml(place.local_name || '') + '">'
           : '') +
           '<div class="row">' +
             '<div><label for="e-lat">Latitude</label><input type="number" id="e-lat" step="any" required value="' + place.lat + '"></div>' +
@@ -13656,10 +13656,10 @@
         const sourcesText = (d.sources || []).join('\n');
         return '<form id="place-form">' +
           '<label for="p-name">Name</label>' +
-          '<input type="text" id="p-name" required placeholder="e.g. Acropolis" value="' + escapeHtml(d.name || '') + '">' +
+          '<input type="text" id="p-name" required value="' + escapeHtml(d.name || '') + '">' +
           (getShowField('local-name') ?
             '<label for="p-local-name">Local name (optional)</label>' +
-            '<input type="text" id="p-local-name" placeholder="e.g. Ακρόπολη" value="' + escapeHtml(d.local_name || '') + '">'
+            '<input type="text" id="p-local-name" placeholder="In the local language" value="' + escapeHtml(d.local_name || '') + '">'
           : '') +
           '<label>Coordinates</label>' +
           '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem">' +
@@ -13723,7 +13723,7 @@
           '<input type="text" id="g-name" required placeholder="e.g. Summit Loop">' +
           (getShowField('local-name') ?
             '<label for="g-local-name">Local name (optional)</label>' +
-            '<input type="text" id="g-local-name" placeholder="e.g. 金閣寺路">'
+            '<input type="text" id="g-local-name" placeholder="In the local language">'
           : '') +
           '<label>GPX file</label>' +
           '<div class="file-picker">' +
@@ -13870,7 +13870,7 @@
           '</div>' +
           '<div id="a-name-row">' +
             '<label for="a-name">Name</label>' +
-            '<input type="text" id="a-name" required maxlength="200" placeholder="e.g. Jotunheimen">' +
+            '<input type="text" id="a-name" required maxlength="200">' +
             areaLocalNameHtml('a', '') +
           '</div>' +
           areaFieldsHtml('a', null) +
@@ -14040,7 +14040,7 @@
             creditEl.hidden = !found.length;
             moreEl.hidden = true;
             animateResultsHeight(fromHeight, resultsEl.offsetHeight);
-            if (!found.length) showModalError('No boundary found. Try a fuller name, such as Hiroshima Prefecture.');
+            if (!found.length) showModalError('No boundary found. Try the full name, or add the region or country.');
             else if (found.length === 1) pickResult(found[0], resultsEl.firstChild);
           }).catch(() => {
             showModalError('The search failed. Check your connection, or use a file.');
