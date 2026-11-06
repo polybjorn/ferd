@@ -331,6 +331,9 @@ class ModalHeight(unittest.TestCase):
     # count the space behind a phone browser's toolbar.
     self.assertRegex(INDEX, r"\.modal:is\([^{}]*\) \{ inset-block: 3rem; \}")
 
+  def test_a_scrolling_list_keeps_a_floor(self):
+    self.assertRegex(INDEX, r"#catalog-bulk-list\) \{\s+flex: 1 1 auto;\s+min-height: 4rem")
+
 
 class AddForm(unittest.TestCase):
   def test_forms_use_the_blocks_without_inline_styles(self):

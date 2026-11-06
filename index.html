@@ -2416,14 +2416,16 @@
     /* A note dragged taller or a longer tab brings the scrollbar in, and the
        fields must not narrow when it does. */
     .modal .ui-dialog-body:has(#add-body, textarea) { scrollbar-gutter: stable; }
-    /* A list scrolls inside the body, so the filter or form above it stays put. */
+    /* A list scrolls inside the body, so the filter or form above it stays put.
+       The floor keeps its rows reachable in a modal too short to fit it, which
+       the body scrolls instead. */
     .modal .ui-dialog-body:has(> :is(#cat-rows, #rgn-rows, #cat-list, #cat-mgr-list, #catalog-bulk-list)) {
       display: flex;
       flex-direction: column;
     }
     .modal .ui-dialog-body > :is(#cat-rows, #rgn-rows, #cat-list, #cat-mgr-list, #catalog-bulk-list) {
       flex: 1 1 auto;
-      min-height: 0;
+      min-height: 4rem;
       max-height: none;
       overflow-y: auto;
       scrollbar-gutter: stable;
