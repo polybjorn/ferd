@@ -14038,12 +14038,18 @@
       window.visualViewport.addEventListener('scroll', fitModalsToKeyboard);
     }
 
+    function requestCloseTopModal() {
+      const top = modalStack[modalStack.length - 1];
+      if (!top) return false;
+      top.onClose();
+      return true;
+    }
+    // The Android app owns the back gesture, so the dialog's cancel event never
+    // fires there. MainActivity calls this first, and goes back or exits on false.
+    window.ferdCloseTopModal = requestCloseTopModal;
     function escClose(e) {
       if (e.key !== 'Escape') return;
-      const top = modalStack[modalStack.length - 1];
-      if (!top) return;
-      e.preventDefault();
-      top.onClose();
+      if (requestCloseTopModal()) e.preventDefault();
     }
     // The box sits at the end of the scrolling body, and a form saved from a
     // pinned action row may be scrolled well above it.

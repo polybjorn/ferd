@@ -1,5 +1,6 @@
 'use strict';
-// Runs the real closeOnBackdropClick and showErrorBox out of index.html.
+// Runs the real closeOnBackdropClick, showErrorBox and requestCloseTopModal out
+// of index.html.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -12,10 +13,10 @@ function fn(name) {
   assert.ok(m, `${name} not found in index.html`);
   return m[1];
 }
-const ctx = {};
+const ctx = { modalStack: [] };
 vm.createContext(ctx);
-vm.runInContext(`${fn('closeOnBackdropClick')}\n${fn('showErrorBox')}\nglobalThis.__g = { closeOnBackdropClick, showErrorBox };`, ctx);
-const { closeOnBackdropClick, showErrorBox } = ctx.__g;
+vm.runInContext(`${fn('closeOnBackdropClick')}\n${fn('showErrorBox')}\n${fn('requestCloseTopModal')}\nglobalThis.__g = { requestCloseTopModal, closeOnBackdropClick, showErrorBox };`, ctx);
+const { closeOnBackdropClick, showErrorBox, requestCloseTopModal } = ctx.__g;
 
 function dialog() {
   const d = { closes: 0, on: {}, addEventListener(type, f) { this.on[type] = f; } };
@@ -63,4 +64,23 @@ test('an error box shows its message and scrolls into view', () => {
   showErrorBox(el, 'Save failed');
   assert.equal(el.textContent, 'Save failed');
   assert.deepEqual(calls, ['visible', 'nearest']);
+});
+
+test('a close request goes to the top modal and reports that it did', () => {
+  const closed = [];
+  ctx.modalStack.push({ onClose: () => closed.push('below') }, { onClose: () => closed.push('top') });
+  assert.equal(requestCloseTopModal(), true);
+  assert.deepEqual(closed, ['top']);
+  ctx.modalStack.length = 0;
+});
+
+test('a close request with no modal open reports false, so the app can go back', () => {
+  assert.equal(requestCloseTopModal(), false);
+});
+
+test('the Android app calls the name the page exposes', () => {
+  const activity = fs.readFileSync(path.join(__dirname, '..', '..',
+    'android/app/src/main/java/io/github/polybjorn/ferd/MainActivity.kt'), 'utf8');
+  assert.match(html, /window\.ferdCloseTopModal = requestCloseTopModal;/);
+  assert.match(activity, /window\.ferdCloseTopModal\(\)/);
 });

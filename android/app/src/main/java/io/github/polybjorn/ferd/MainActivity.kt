@@ -149,7 +149,12 @@ class MainActivity : AppCompatActivity() {
 
     onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
       override fun handleOnBackPressed() {
-        if (webView.canGoBack()) webView.goBack() else finish()
+        // Anything but "true", such as a page still loading, falls through.
+        webView.evaluateJavascript("window.ferdCloseTopModal && window.ferdCloseTopModal()") { closed ->
+          if (closed != "true") {
+            if (webView.canGoBack()) webView.goBack() else finish()
+          }
+        }
       }
     })
   }

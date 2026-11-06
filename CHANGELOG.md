@@ -15,6 +15,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - A place's popup has an Edit button, so editing no longer depends on finding the right-click or long-press menu. It shows when you're signed in, and never on a public map.
 
 ### Fixed
+- In the Android app, the back gesture closes an open modal instead of leaving the page or the app.
 - Category names and local names in popups are readable on every theme, with the category colour moved to a dot beside the name. Uncategorized entries now follow a theme or mode change straight away.
 - Every control is at least 24px each way and shows a visible focus ring, including text fields, selects and filled buttons. A switch now toggles from anywhere on its row, the colour palette fits a narrow window, and hidden file inputs, closed palettes and collapsed sections no longer take a keyboard stop.
 - A filled button in a dialog keeps its label readable on hover in every theme, and shows hover with an inner ring instead of fading.
