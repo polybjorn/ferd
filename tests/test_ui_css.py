@@ -268,9 +268,8 @@ class TargetsAndFocus(unittest.TestCase):
     self.assertNotIn("min-width", self.body("button"))
 
   def test_a_toggle_row_is_one_target(self):
-    body = self.body(".settings-inline-row:has(> .settings-toggle) > label::before")
-    self.assertIn("inset: 0", body)
-    self.assertNotRegex(INDEX, r"""<div style="[^"]*">' \+\s*'<input type="checkbox" class="settings-toggle\"""")
+    self.assertIn("""'<label class="ui-toggle-row\"""", INDEX)
+    self.assertNotIn("settings-toggle", INDEX)
 
   def test_the_start_marker_reaches_the_minimum(self):
     self.assertRegex(INDEX, r"className: 'marker-start'.*iconSize: \[24, 24\]")
@@ -334,6 +333,32 @@ class AddForm(unittest.TestCase):
       self.assertNotIn("settings-toggle", form, name)
 
 
+class EditForms(unittest.TestCase):
+  def test_forms_use_the_blocks_without_inline_styles(self):
+    for name, end in (("openEditPlaceModal", "modalErrorHtml('edit-error')"),
+                      ("openEditTrailMetadataModal", "modalErrorHtml('tm-error')"),
+                      ("openEditAreaModal", "modalErrorHtml('edit-area-error')"),
+                      ("signInFormHtml", "modalErrorHtml('auth-error')")):
+      start = INDEX.index("function %s(" % name)
+      form = INDEX[start:INDEX.index(end, start)]
+      self.assertIn("uiFieldHtml(", form, name)
+      self.assertNotIn("style=", form, name)
+      self.assertNotIn("settings-toggle", form, name)
+      self.assertNotIn("<label for=", form, name)
+
+  def test_settings_uses_the_blocks(self):
+    settings = INDEX[INDEX.index("function openSettingsModal("):INDEX.index("getElementById('settings-pw-form')")]
+    self.assertIn("uiFieldHtml(", settings)
+    self.assertIn("uiToggleHtml(", settings)
+    self.assertNotRegex(settings, r"settings-toggle|settings-inline-row|settings-grid-2|<label for=")
+
+  def test_area_fields_use_the_blocks(self):
+    start = INDEX.index("function areaLocalNameHtml(")
+    fields = INDEX[start:INDEX.index("function openEditAreaModal(")]
+    self.assertNotIn("<label for=", fields)
+    self.assertNotIn("style=", fields)
+
+
 class PopupMeta(unittest.TestCase):
   def test_status_keeps_its_width_beside_the_label(self):
     # At the text floor a 20 character category outgrows Leaflet's 300px popup.
@@ -349,9 +374,6 @@ class PopupMeta(unittest.TestCase):
 
 class PhoneWidth(unittest.TestCase):
   """Settings fits a phone: nothing is clipped and the dialog never scrolls sideways."""
-  def test_a_segmented_bar_takes_the_whole_row(self):
-    self.assertRegex(INDEX, r"\.settings-inline-row:has\(> \.radio-segmented\) \{ grid-template-columns: 1fr; \}")
-
   def test_a_segmented_label_can_wrap(self):
     self.assertRegex(INDEX, r"\.radio-row\.radio-segmented > label \{[^}]*white-space: normal")
 

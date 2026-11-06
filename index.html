@@ -2156,43 +2156,6 @@
       margin-top: 0;
     }
 
-    /* Toggle switch: stylized checkbox with a sliding knob.
-       Markup: <input type="checkbox" class="settings-toggle"> */
-    .modal input[type="checkbox"].settings-toggle {
-      appearance: none;
-      -webkit-appearance: none;
-      position: relative;
-      width: 36px;
-      height: 20px;
-      margin: 0;
-      background: transparent;
-      border: 1px solid var(--muted);
-      border-radius: var(--ui-radius-full);
-      cursor: pointer;
-      transition: background var(--ui-duration-fast), border-color var(--ui-duration-fast);
-      flex: 0 0 auto;
-    }
-    .modal input[type="checkbox"].settings-toggle::after {
-      content: '';
-      position: absolute;
-      top: 1px;
-      left: 1px;
-      width: 16px;
-      height: 16px;
-      background: var(--muted);
-      border-radius: 50%;
-      transition: transform var(--ui-duration-fast), background var(--ui-duration-fast);
-    }
-    .modal input[type="checkbox"].settings-toggle:checked {
-      background: var(--accent);
-      border-color: var(--accent);
-    }
-    .modal input[type="checkbox"].settings-toggle:checked::after {
-      transform: translateX(16px);
-      background: var(--surface);
-    }
-    .settings-inline-row > .settings-toggle { justify-self: start; }
-
     .session-list {
       list-style: none;
       padding: 0;
@@ -2327,67 +2290,12 @@
       column-gap: var(--ui-space-4);
       flex-wrap: wrap;
     }
-    /* Two-column row pairing two selects (or two columns of settings) side-by-side. */
-    .settings-grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0 var(--ui-space-4);
-      align-items: end;
-    }
-    .settings-grid-2 > * { margin: 0; }
-    .settings-grid-2 > label { margin-top: var(--ui-space-3); margin-bottom: var(--ui-space-1); }
-    /* Inline label + control row: label left (fixed width), control fills the rest. */
-    .settings-inline-row {
-      display: grid;
-      /* Fixed label column so the control side starts at the same x in every
-         row — pill groups line up across rows. Width is tuned to fit "Route
-         line thickness" while leaving enough room for 3 pill-style options. */
-      grid-template-columns: 9rem 1fr;
-      gap: var(--ui-space-2) var(--ui-space-3);
-      align-items: center;
-      margin-top: var(--ui-space-3);
-    }
-    /* Out-specifies the later `.modal label { margin-top/bottom: ... }` rule. */
-    .modal .settings-inline-row > label { margin: 0; }
-    .settings-inline-row > .radio-row { margin: 0; column-gap: var(--ui-space-3); }
-    .settings-inline-row > select { width: 100%; }
-    .settings-inline-row.token-row { grid-template-columns: 5rem 1fr; margin-top: var(--ui-space-2); }
-    /* Rows whose right-hand control is a slide toggle: switch from grid to
-       flex so the toggle can sit immediately to the left of the label. */
-    .settings-inline-row:has(> .settings-toggle) {
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: var(--ui-space-3);
-      min-height: 24px;
-    }
-    .settings-inline-row:has(> .settings-toggle) > .settings-toggle {
-      order: -1;
-      flex: 0 0 auto;
-    }
-    /* The 20px switch is under the 24px target minimum, so its label reaches
-       across the whole row. */
-    .settings-inline-row:has(> .settings-toggle) > label::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      cursor: pointer;
-    }
-    .settings-inline-row:has(> .settings-toggle) > label {
-      flex: 1;
-      display: inline-flex;
-      align-items: center;
-      min-height: 20px;
-      line-height: 1;
-    }
     /* Two-column wrapper for stacking related toggles side by side. */
     .toggle-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: var(--ui-space-2) var(--ui-space-4);
-      margin-top: var(--ui-space-2);
+      column-gap: var(--ui-space-4);
     }
-    .toggle-grid > .settings-inline-row { margin-top: 0; }
     .radio-row label {
       display: inline-flex;
       align-items: center;
@@ -2458,7 +2366,6 @@
        clips no option. Settings has up to five tabs, wider than a phone: one
        that doesn't fit starts a second row instead of scrolling the dialog. */
     @media (max-width: 600px) {
-      .settings-inline-row:has(> .radio-segmented) { grid-template-columns: 1fr; }
       .radio-row.radio-segmented > label { flex-basis: auto; padding-inline: var(--ui-space-2); white-space: normal; }
       #settings-tabs { flex-wrap: wrap; }
       #settings-tabs button { flex: 1 1 auto; letter-spacing: 0; padding-inline: var(--ui-space-1); }
@@ -2556,10 +2463,15 @@
     }
     #add-body { overflow: hidden; transition: height var(--ui-duration-slow) ease; }
     .modal .modal-desc { font-size: var(--ui-text-sm); color: var(--text); margin-top: var(--ui-space-2); }
+    .signin-page .modal .modal-desc { margin-bottom: var(--ui-space-2); }
     .modal .confirm-row { align-items: center; display: flex; gap: var(--ui-space-3); margin-top: var(--ui-space-3); }
     .modal .confirm-row .modal-desc { flex: 1; margin-top: 0; min-width: 0; overflow-wrap: anywhere; }
     .modal .confirm-row button { flex: none; margin-left: auto; }
     .modal .file-picker { display: flex; align-items: center; gap: var(--ui-space-2); margin-top: var(--ui-space-2); }
+    /* Choose file, its name and Import overrun a phone, so Import takes a second row. */
+    .settings-file-row { flex-wrap: wrap; }
+    .settings-file-row > .file-picker { flex: 1; margin: 0; }
+    .ui-control-row > .ui-hint { flex: 1; }
     .modal .area-search-label {
       align-items: center;
       display: flex;
@@ -7010,32 +6922,33 @@
     }
     function areaLocalNameHtml(prefix, value) {
       return getShowField('local-name') ?
-        '<label for="' + prefix + '-local-name">Local name</label>' +
-        '<input type="text" id="' + prefix + '-local-name" maxlength="200" placeholder="In the local language" value="' + escapeHtml(value || '') + '">'
+        uiFieldHtml(prefix + '-local-name', 'Local name',
+          '<input type="text" id="' + prefix + '-local-name" maxlength="200" placeholder="In the local language" value="' + escapeHtml(value || '') + '">')
       : '';
     }
     function areaFieldsHtml(prefix, area) {
       const cats = sortedCategorySlugs(Object.keys(state.categoryColors).filter(c => c !== ''));
-      return '<label for="' + prefix + '-category">Category</label>' +
-        selectOrNewHtml(prefix + '-category', cats, (area && area.category) || null, displayCategory, '', 'New category name') +
+      return uiFieldHtml(prefix + '-category', 'Category',
+          selectOrNewHtml(prefix + '-category', cats, (area && area.category) || null, displayCategory, '', 'New category name')) +
         (getShowField('note') ?
-          '<label for="' + prefix + '-note">Note</label>' +
-          '<textarea id="' + prefix + '-note" style="min-height:40px">' + escapeHtml((area && area.note) || '') + '</textarea>'
+          uiFieldHtml(prefix + '-note', 'Note',
+            '<textarea id="' + prefix + '-note">' + escapeHtml((area && area.note) || '') + '</textarea>')
         : '') +
-        '<div class="settings-inline-row" style="margin-top:var(--ui-space-3)">' +
-          '<input type="checkbox" class="settings-toggle" id="' + prefix + '-visited"' + (area && area.visited ? ' checked' : '') + '>' +
-          '<label for="' + prefix + '-visited">I&rsquo;ve visited this area</label>' +
-        '</div>' +
-        '<div class="hint">A visited place or completed route inside also makes it visited.</div>';
+        '<div>' +
+          uiToggleHtml(prefix + '-visited', 'I&rsquo;ve visited this area', { checked: area && area.visited }) +
+          '<p class="ui-hint">A visited place or completed route inside also makes it visited.</p>' +
+        '</div>';
     }
     function openEditAreaModal(area) {
       openModal(
         modalHeaderHtml('Edit area') +
         '<form id="edit-area-form">' +
-          '<label for="ea-name" class="ui-required">Name</label>' +
-          '<input type="text" id="ea-name" required maxlength="200" value="' + escapeHtml(area.name) + '">' +
-          areaLocalNameHtml('ea', area.local_name) +
-          areaFieldsHtml('ea', area) +
+          '<div class="ui-section">' +
+            uiFieldHtml('ea-name', 'Name',
+              '<input type="text" id="ea-name" required maxlength="200" value="' + escapeHtml(area.name) + '">', { required: true }) +
+            areaLocalNameHtml('ea', area.local_name) +
+            areaFieldsHtml('ea', area) +
+          '</div>' +
           modalErrorHtml('edit-area-error') +
           '<div class="ui-dialog-actions">' +
             '<button type="button" class="ui-button ui-button-danger" id="ea-delete">Delete</button>' +
@@ -7189,45 +7102,48 @@
       openModal(
         modalHeaderHtml('Edit route') +
         '<form id="route-meta-form">' +
-          '<label for="tm-name" class="ui-required">Name</label>' +
-          '<input type="text" id="tm-name" required maxlength="64" value="' + escapeHtml(route.name) + '">' +
-          (getShowField('local-name') ?
-            '<label for="tm-local-name">Local name</label>' +
-            '<input type="text" id="tm-local-name" placeholder="In the local language" value="' + escapeHtml(route.local_name || '') + '">'
-          : '') +
-          '<label for="tm-region">Region</label>' +
-          '<select id="tm-region">' + regionOptions + '</select>' +
-          '<input type="text" id="tm-region-new" placeholder="New region name" maxlength="64" hidden>' +
-          '<label for="tm-difficulty">Difficulty</label>' +
-          radioPillsHtml('tm-difficulty', [['', 'None'], ['easy', 'Easy'], ['moderate', 'Moderate'], ['hard', 'Hard'], ['expert', 'Expert']], route.difficulty || '') +
-          (getShowField('tags') ?
-            '<label for="tm-tags">Tags (comma-separated)</label>' +
-            '<input type="text" id="tm-tags" value="' + escapeHtml((route.tags || []).join(', ')) + '" placeholder="summit, panorama, via-ferrata">'
-          : '') +
-          (getShowField('note') ?
-            '<label for="tm-notes">Notes</label>' +
-            '<textarea id="tm-notes" maxlength="2000">' + escapeHtml(route.notes || '') + '</textarea>'
-          : '') +
-          '<label for="tm-source">Source URL</label>' +
-          '<input type="url" id="tm-source" value="' + escapeHtml(route.source || '') + '" placeholder="https://example.com/route">' +
-          '<div class="settings-inline-row" style="margin-top:var(--ui-space-3)">' +
-            '<input type="checkbox" class="settings-toggle" id="tm-completed"' + (route.completed ? ' checked' : '') + '>' +
-            '<label for="tm-completed">I&rsquo;ve completed this route</label>' +
+          '<div class="ui-section">' +
+            uiFieldHtml('tm-name', 'Name',
+              '<input type="text" id="tm-name" required maxlength="64" value="' + escapeHtml(route.name) + '">', { required: true }) +
+            (getShowField('local-name') ?
+              uiFieldHtml('tm-local-name', 'Local name',
+                '<input type="text" id="tm-local-name" placeholder="In the local language" value="' + escapeHtml(route.local_name || '') + '">')
+            : '') +
+            uiFieldHtml('tm-region', 'Region',
+              '<select id="tm-region">' + regionOptions + '</select>' +
+              '<input type="text" id="tm-region-new" placeholder="New region name" maxlength="64" hidden>') +
+            uiFieldHtml(null, 'Difficulty',
+              radioPillsHtml('tm-difficulty', [['', 'None'], ['easy', 'Easy'], ['moderate', 'Moderate'], ['hard', 'Hard'], ['expert', 'Expert']], route.difficulty || '')) +
+            (getShowField('tags') ?
+              uiFieldHtml('tm-tags', 'Tags (comma-separated)',
+                '<input type="text" id="tm-tags" value="' + escapeHtml((route.tags || []).join(', ')) + '" placeholder="summit, panorama, via-ferrata">')
+            : '') +
+            (getShowField('note') ?
+              uiFieldHtml('tm-notes', 'Notes',
+                '<textarea id="tm-notes" maxlength="2000">' + escapeHtml(route.notes || '') + '</textarea>')
+            : '') +
+            uiFieldHtml('tm-source', 'Source URL',
+              '<input type="url" id="tm-source" value="' + escapeHtml(route.source || '') + '" placeholder="https://example.com/route">') +
+            '<div>' +
+              uiToggleHtml('tm-completed', 'I&rsquo;ve completed this route', { checked: route.completed }) +
+              ((getShowField('date') || getShowField('rating')) ?
+                '<div class="collapsible' + (route.completed ? ' expanded' : '') + '" id="tm-completed-extras">' +
+                  '<div class="collapsible-inner">' +
+                    '<div class="ui-section">' +
+                      (getShowField('date') ?
+                        uiFieldHtml('tm-date', 'Date completed',
+                          '<input type="date" id="tm-date" value="' + escapeHtml(route.date_completed || '') + '">')
+                      : '') +
+                      (getShowField('rating') ?
+                        uiFieldHtml(null, 'Rating',
+                          starRatingHtml('tm-rating', route.rating || ''))
+                      : '') +
+                    '</div>' +
+                  '</div>' +
+                '</div>'
+              : '') +
+            '</div>' +
           '</div>' +
-          ((getShowField('date') || getShowField('rating')) ?
-            '<div class="collapsible' + (route.completed ? ' expanded' : '') + '" id="tm-completed-extras">' +
-              '<div class="collapsible-inner">' +
-                (getShowField('date') ?
-                  '<label for="tm-date">Date completed</label>' +
-                  '<input type="date" id="tm-date" value="' + escapeHtml(route.date_completed || '') + '">'
-                : '') +
-                (getShowField('rating') ?
-                  '<label for="tm-rating">Rating</label>' +
-                  starRatingHtml('tm-rating', route.rating || '')
-                : '') +
-              '</div>' +
-            '</div>'
-          : '') +
           modalErrorHtml('tm-error') +
           '<div class="ui-dialog-actions">' +
             '<button type="button" class="ui-button ui-button-danger" id="tm-delete">Delete</button>' +
@@ -7944,53 +7860,56 @@
       openModal(
         modalHeaderHtml('Edit place') +
         '<form id="edit-place-form">' +
-          '<label for="e-name" class="ui-required">Name</label>' +
-          '<input type="text" id="e-name" required value="' + escapeHtml(place.name) + '">' +
-          (getShowField('local-name') ?
-            '<label for="e-local-name">Local name</label>' +
-            '<input type="text" id="e-local-name" placeholder="In the local language" value="' + escapeHtml(place.local_name || '') + '">'
-          : '') +
-          '<div class="row">' +
-            '<div><label for="e-lat" class="ui-required">Latitude</label><input type="number" id="e-lat" step="any" required value="' + place.lat + '"></div>' +
-            '<div><label for="e-lon" class="ui-required">Longitude</label><input type="number" id="e-lon" step="any" required value="' + place.lon + '"></div>' +
+          '<div class="ui-section">' +
+            uiFieldHtml('e-name', 'Name',
+              '<input type="text" id="e-name" required value="' + escapeHtml(place.name) + '">', { required: true }) +
+            (getShowField('local-name') ?
+              uiFieldHtml('e-local-name', 'Local name',
+                '<input type="text" id="e-local-name" placeholder="In the local language" value="' + escapeHtml(place.local_name || '') + '">')
+            : '') +
+            '<div class="ui-field-row">' +
+              uiFieldHtml('e-lat', 'Latitude', '<input type="number" id="e-lat" step="any" required value="' + place.lat + '">', { required: true }) +
+              uiFieldHtml('e-lon', 'Longitude', '<input type="number" id="e-lon" step="any" required value="' + place.lon + '">', { required: true }) +
+            '</div>' +
+            '<div class="ui-control-row"><button type="button" class="primary" id="e-pick-on-map">Pick on map</button></div>' +
+            uiFieldHtml('e-category', 'Category',
+              selectOrNewHtml('e-category', cats, place.category, displayCategory, '', 'New category name')) +
+            uiFieldHtml('e-country', 'Country',
+              '<input type="text" id="e-country" value="' + escapeHtml(place.country || '') + '">') +
+            (getShowField('tags') ?
+              uiFieldHtml('e-tags', 'Tags (comma-separated)',
+                '<input type="text" id="e-tags" value="' + escapeHtml((place.tags || []).join(', ')) + '" placeholder="UNESCO, free-entry">')
+            : '') +
+            (getShowField('note') ?
+              uiFieldHtml('e-note', 'Note',
+                '<textarea id="e-note">' + escapeHtml(place.note || '') + '</textarea>')
+            : '') +
+            (getShowField('image') ?
+              uiFieldHtml('e-image', 'Image URL',
+                '<input type="url" id="e-image" value="' + escapeHtml(place.image || '') + '" placeholder="https://example.com/photo.jpg">')
+            : '') +
+            uiFieldHtml('e-sources', 'Sources',
+              '<textarea id="e-sources" placeholder="One URL per line">' + escapeHtml(sourcesText) + '</textarea>') +
+            '<div>' +
+              uiToggleHtml('e-visited', 'I&rsquo;ve visited this place', { checked: place.visited }) +
+              ((getShowField('date') || getShowField('rating')) ?
+                '<div class="collapsible' + (place.visited ? ' expanded' : '') + '" id="e-visited-extras">' +
+                  '<div class="collapsible-inner">' +
+                    '<div class="ui-section">' +
+                      (getShowField('date') ?
+                        uiFieldHtml('e-date-visited', 'Date visited',
+                          '<input type="date" id="e-date-visited" value="' + escapeHtml(place.date_visited || '') + '">')
+                      : '') +
+                      (getShowField('rating') ?
+                        uiFieldHtml(null, 'Rating',
+                          starRatingHtml('e-rating', place.rating || ''))
+                      : '') +
+                    '</div>' +
+                  '</div>' +
+                '</div>'
+              : '') +
+            '</div>' +
           '</div>' +
-          '<div style="margin-top:var(--ui-space-1);text-align:right"><button type="button" class="primary" id="e-pick-on-map">Pick on map</button></div>' +
-          '<label for="e-category">Category</label>' +
-          selectOrNewHtml('e-category', cats, place.category, displayCategory, '', 'New category name') +
-          '<label for="e-country">Country</label>' +
-          '<input type="text" id="e-country" value="' + escapeHtml(place.country || '') + '">' +
-          (getShowField('tags') ?
-            '<label for="e-tags">Tags (comma-separated)</label>' +
-            '<input type="text" id="e-tags" value="' + escapeHtml((place.tags || []).join(', ')) + '" placeholder="UNESCO, free-entry">'
-          : '') +
-          (getShowField('note') ?
-            '<label for="e-note">Note</label>' +
-            '<textarea id="e-note" style="min-height:40px">' + escapeHtml(place.note || '') + '</textarea>'
-          : '') +
-          (getShowField('image') ?
-            '<label for="e-image">Image URL</label>' +
-            '<input type="url" id="e-image" value="' + escapeHtml(place.image || '') + '" placeholder="https://example.com/photo.jpg">'
-          : '') +
-          '<label for="e-sources">Sources</label>' +
-          '<textarea id="e-sources" placeholder="One URL per line" style="min-height:40px">' + escapeHtml(sourcesText) + '</textarea>' +
-          '<div class="settings-inline-row" style="margin-top:var(--ui-space-3)">' +
-            '<input type="checkbox" class="settings-toggle" id="e-visited"' + (place.visited ? ' checked' : '') + '>' +
-            '<label for="e-visited">I&rsquo;ve visited this place</label>' +
-          '</div>' +
-          ((getShowField('date') || getShowField('rating')) ?
-            '<div class="collapsible' + (place.visited ? ' expanded' : '') + '" id="e-visited-extras">' +
-              '<div class="collapsible-inner">' +
-                (getShowField('date') ?
-                  '<label for="e-date-visited">Date visited</label>' +
-                  '<input type="date" id="e-date-visited" value="' + escapeHtml(place.date_visited || '') + '">'
-                : '') +
-                (getShowField('rating') ?
-                  '<label for="e-rating">Rating</label>' +
-                  starRatingHtml('e-rating', place.rating || '')
-                : '') +
-              '</div>' +
-            '</div>'
-          : '') +
           modalErrorHtml('edit-error') +
           '<div class="ui-dialog-actions">' +
             '<button type="button" class="ui-button ui-button-danger" id="e-delete">Delete</button>' +
@@ -11554,20 +11473,20 @@
         '<h3 class="settings-h">Units</h3>' +
         radioPillsHtml('units', [['imperial', 'Imperial (mi, ft)'], ['metric', 'Metric (km, m)']], getUnits(), 'radio-segmented') +
         '<h3 class="settings-h">Language</h3>' +
-        '<select id="s-language" disabled>' +
+        '<div class="ui-field"><select id="s-language" aria-label="Language" disabled>' +
           '<option value="en" selected>English</option>' +
-        '</select>' +
+        '</select></div>' +
         (placesAvailable() && !isReadOnly() ?
           '<h3 class="settings-h">Categories</h3>' +
-          '<div style="display:flex;align-items:center;gap:var(--ui-space-4)">' +
-            '<div class="modal-desc" style="flex:1;margin:0">Group your places on the map and in the list.</div>' +
+          '<div class="ui-control-row">' +
+            '<p class="ui-hint">Group your places on the map and in the list.</p>' +
             '<button type="button" class="primary" id="s-manage-cats">Manage</button>' +
           '</div>'
         : '') +
         (routesAvailable() && !isReadOnly() ?
           '<h3 class="settings-h">Regions</h3>' +
-          '<div style="display:flex;align-items:center;gap:var(--ui-space-4)">' +
-            '<div class="modal-desc" style="flex:1;margin:0">Group your routes on the map and in the list.</div>' +
+          '<div class="ui-control-row">' +
+            '<p class="ui-hint">Group your routes on the map and in the list.</p>' +
             '<button type="button" class="primary" id="s-manage-regions">Manage</button>' +
           '</div>'
         : '') +
@@ -11575,19 +11494,20 @@
         (local ?
           '<div data-panel="backup" hidden>' +
           '<h3 class="settings-h">Export</h3>' +
-          '<div style="display:flex;align-items:center;gap:var(--ui-space-4)">' +
-            '<div class="modal-desc" style="flex:1;margin:0">Download your data as a zip.</div>' +
+          '<div class="ui-control-row">' +
+            '<p class="ui-hint">Download your data as a zip.</p>' +
             '<button type="button" class="primary" id="s-local-export">Export</button>' +
           '</div>' +
           modalErrorHtml('s-local-export-error') +
           '<h3 class="settings-h">Import</h3>' +
-          '<div class="modal-desc" style="margin:0">Restore from a previous export.</div>' +
-          '<div class="radio-row radio-segmented" style="margin-top:var(--ui-space-2)">' +
+        '<div class="ui-section">' +
+        '<p class="ui-hint">Restore from a previous export.</p>' +
+        '<div class="radio-row radio-segmented">' +
             '<label><input type="radio" name="local-import-mode" value="merge" checked>Merge</label>' +
             '<label><input type="radio" name="local-import-mode" value="replace">Replace all</label>' +
           '</div>' +
-          '<div style="display:flex;align-items:center;gap:var(--ui-space-4);margin-top:var(--ui-space-3)">' +
-            '<div class="file-picker" style="flex:1;margin:0">' +
+          '<div class="ui-control-row settings-file-row">' +
+            '<div class="file-picker">' +
               '<input type="file" id="s-local-import-file" tabindex="-1" accept=".zip,application/zip" class="file-input-hidden">' +
               '<button type="button" class="primary" id="s-local-import-pick">Choose file</button>' +
               '<span class="file-name" id="s-local-import-name">No file selected</span>' +
@@ -11596,119 +11516,103 @@
           '</div>' +
           modalErrorHtml('s-local-import-error') +
           '<div class="modal-success-box" id="s-local-import-success" hidden></div>' +
+          '</div>' +
           '</div>'
           : '') +
         '<div data-panel="appearance" hidden>' +
-        '<div class="settings-grid-2">' +
-          '<label for="s-theme">Theme</label>' +
-          '<label for="s-mode">Mode</label>' +
-          '<select id="s-theme">' +
+        '<div class="ui-field-row">' +
+          uiFieldHtml('s-theme', 'Theme', '<select id="s-theme">' +
             THEMES.map(v =>
               '<option value="' + v + '"' + (theme === v ? ' selected' : '') + '>' + (themeLabels[v] || v) + '</option>'
             ).join('') +
-          '</select>' +
-          '<select id="s-mode">' +
+          '</select>') +
+          uiFieldHtml('s-mode', 'Mode', '<select id="s-mode">' +
             MODES.map(v =>
               '<option value="' + v + '"' + (mode === v ? ' selected' : '') + '>' + v.charAt(0).toUpperCase() + v.slice(1) + '</option>'
             ).join('') +
-          '</select>' +
+          '</select>') +
         '</div>' +
         '<h3 class="settings-h">Markers and routes</h3>' +
-        '<div class="settings-inline-row"><label for="s-pin-style">Pin style</label>' +
-          '<select id="s-pin-style">' +
+        '<div class="ui-section">' +
+          uiFieldHtml('s-pin-style', 'Pin style', '<select id="s-pin-style">' +
             [['dot', 'Dot'], ['tag', 'Flag'], ['pin', 'Pin'], ['ring', 'Ring']].map(([v, l]) =>
               '<option value="' + v + '"' + (pinStyle === v ? ' selected' : '') + '>' + l + '</option>'
             ).join('') +
-          '</select>' +
+          '</select>') +
+          uiFieldHtml(null, 'Marker size', radioPillsHtml('marker-size', [['small', 'Small'], ['default', 'Default'], ['large', 'Large']], markerSize, 'radio-segmented')) +
+          uiFieldHtml(null, 'Route line thickness', radioPillsHtml('route-weight', [['thin', 'Thin'], ['default', 'Default'], ['thick', 'Thick']], routeWeight, 'radio-segmented')) +
+          (placesAvailable() ? uiToggleHtml('s-cluster', 'Cluster places', { checked: getClusterPlaces() }) : '') +
         '</div>' +
-        '<div class="settings-inline-row"><label>Marker size</label>' +
-          radioPillsHtml('marker-size', [['small', 'Small'], ['default', 'Default'], ['large', 'Large']], markerSize, 'radio-segmented') +
-        '</div>' +
-        '<div class="settings-inline-row"><label>Route line thickness</label>' +
-          radioPillsHtml('route-weight', [['thin', 'Thin'], ['default', 'Default'], ['thick', 'Thick']], routeWeight, 'radio-segmented') +
-        '</div>' +
-        (placesAvailable() ?
-          '<div class="settings-inline-row"><label for="s-cluster">Cluster places</label>' +
-            '<input type="checkbox" class="settings-toggle" id="s-cluster"' + (getClusterPlaces() ? ' checked' : '') + '>' +
-          '</div>'
-          : '') +
         '<h3 class="settings-h">Default map visibility</h3>' +
         '<div class="toggle-grid">' +
-          '<div class="settings-inline-row"><label for="s-def-visited">Visited places</label><input type="checkbox" class="settings-toggle" id="s-def-visited"' + (getDefaultShow('visited') ? ' checked' : '') + '></div>' +
-          '<div class="settings-inline-row"><label for="s-def-want">Planned places</label><input type="checkbox" class="settings-toggle" id="s-def-want"' + (getDefaultShow('want') ? ' checked' : '') + '></div>' +
-          '<div class="settings-inline-row"><label for="s-def-completed">Completed routes</label><input type="checkbox" class="settings-toggle" id="s-def-completed"' + (getDefaultShow('completed') ? ' checked' : '') + '></div>' +
-          '<div class="settings-inline-row"><label for="s-def-planned">Planned routes</label><input type="checkbox" class="settings-toggle" id="s-def-planned"' + (getDefaultShow('planned') ? ' checked' : '') + '></div>' +
+          uiToggleHtml('s-def-visited', 'Visited places', { checked: getDefaultShow('visited') }) +
+          uiToggleHtml('s-def-want', 'Planned places', { checked: getDefaultShow('want') }) +
+          uiToggleHtml('s-def-completed', 'Completed routes', { checked: getDefaultShow('completed') }) +
+          uiToggleHtml('s-def-planned', 'Planned routes', { checked: getDefaultShow('planned') }) +
         '</div>' +
         '<h3 class="settings-h">Map</h3>' +
-        '<div class="settings-grid-2">' +
-          '<label for="s-tile">Default tile layer</label>' +
-          '<label for="s-tile-filter">Tile style</label>' +
-          '<select id="s-tile">' +
-            BASE_LAYER_NAMES.slice().sort().map(n =>
+        '<div class="ui-section">' +
+          '<div class="ui-field-row">' +
+            uiFieldHtml('s-tile', 'Default tile layer', '<select id="s-tile">' +
+              BASE_LAYER_NAMES.slice().sort().map(n =>
               '<option value="' + n + '"' + (getDefaultTileLayer() === n ? ' selected' : '') + '>' + n + '</option>'
             ).join('') +
-          '</select>' +
-          '<select id="s-tile-filter">' +
-            [['none', 'None'], ['contrast', 'Contrast'], ['grayscale', 'Grayscale'], ['muted', 'Muted'], ['sepia', 'Sepia']].map(([v, l]) =>
+            '</select>') +
+            uiFieldHtml('s-tile-filter', 'Tile style', '<select id="s-tile-filter">' +
+              [['none', 'None'], ['contrast', 'Contrast'], ['grayscale', 'Grayscale'], ['muted', 'Muted'], ['sepia', 'Sepia']].map(([v, l]) =>
               '<option value="' + v + '"' + (tileFilter === v ? ' selected' : '') + '>' + l + '</option>'
             ).join('') +
-          '</select>' +
-        '</div>' +
-        '<div class="settings-inline-row"><label for="s-remember-view">Remember last view</label>' +
-          '<input type="checkbox" class="settings-toggle" id="s-remember-view"' + (getRememberView() ? ' checked' : '') + '>' +
+            '</select>') +
+          '</div>' +
+          uiToggleHtml('s-remember-view', 'Remember last view', { checked: getRememberView() }) +
         '</div>' +
         '<h3 class="settings-h">On-map controls</h3>' +
         '<div class="toggle-grid">' +
-          '<div class="settings-inline-row"><label for="s-tile-picker">Tile-layer picker</label>' +
-            '<input type="checkbox" class="settings-toggle" id="s-tile-picker"' + (getShowTilePicker() ? ' checked' : '') + '>' +
-          '</div>' +
-          '<div class="settings-inline-row"><label for="s-map-filter">Filter panel</label>' +
-            '<input type="checkbox" class="settings-toggle" id="s-map-filter"' + (getShowFilterPanel() ? ' checked' : '') + '>' +
-          '</div>' +
-          '<div class="settings-inline-row"><label for="s-map-zoom">Zoom buttons</label>' +
-            '<input type="checkbox" class="settings-toggle" id="s-map-zoom"' + (getShowZoomControls() ? ' checked' : '') + '>' +
-          '</div>' +
-          '<div class="settings-inline-row"><label for="s-map-expand">Expand button</label>' +
-            '<input type="checkbox" class="settings-toggle" id="s-map-expand"' + (getShowExpandButton() ? ' checked' : '') + '>' +
-          '</div>' +
+          uiToggleHtml('s-tile-picker', 'Tile-layer picker', { checked: getShowTilePicker() }) +
+          uiToggleHtml('s-map-filter', 'Filter panel', { checked: getShowFilterPanel() }) +
+          uiToggleHtml('s-map-zoom', 'Zoom buttons', { checked: getShowZoomControls() }) +
+          uiToggleHtml('s-map-expand', 'Expand button', { checked: getShowExpandButton() }) +
         '</div>' +
         '</div>' +
         '<div data-panel="account" hidden>' +
         ((state.auth.publishing_open || isAdmin) ?
           '<h3 class="settings-h">Public sharing</h3>' +
-          '<div class="settings-inline-row" style="margin-top:var(--ui-space-2)">' +
-            '<input type="checkbox" class="settings-toggle" id="s-publish"' + (state.auth.published ? ' checked' : '') + '>' +
-            '<label for="s-publish">Make my map public</label>' +
-          '</div>' +
-          '<div id="s-publish-link" class="collapsible' + (state.auth.published ? ' expanded' : '') + '">' +
-            '<div class="collapsible-inner">' +
-              '<div class="modal-desc" style="margin-top:var(--ui-space-2)">Anyone with the link gets read-only access.</div>' +
-              '<div style="display:flex;align-items:center;gap:var(--ui-space-2);margin-top:var(--ui-space-2)">' +
-                '<input type="text" id="s-publish-url" readonly value="' + escapeHtml(location.origin + '/u/' + (state.auth.username || '') + '/') + '" style="flex:1;font-size:var(--ui-text-xs)">' +
-                '<button type="button" class="primary" id="s-publish-copy" style="flex:0 0 auto">Copy</button>' +
+          '<div>' +
+            uiToggleHtml('s-publish', 'Make my map public', { checked: state.auth.published }) +
+            '<div id="s-publish-link" class="collapsible' + (state.auth.published ? ' expanded' : '') + '">' +
+              '<div class="collapsible-inner">' +
+                uiFieldHtml('s-publish-url', 'Public link',
+                  '<div class="ui-control-row">' +
+                    '<input type="text" id="s-publish-url" readonly value="' + escapeHtml(location.origin + '/u/' + (state.auth.username || '') + '/') + '">' +
+                    '<button type="button" class="primary" id="s-publish-copy">Copy</button>' +
+                  '</div>' +
+                  '<p class="ui-hint">Anyone with the link gets read-only access.</p>') +
               '</div>' +
             '</div>' +
           '</div>'
         : '') +
         '<h3 class="settings-h">Export</h3>' +
-        '<div class="radio-row radio-segmented" style="margin-bottom:var(--ui-space-2)">' +
+        '<div class="ui-section">' +
+        '<div class="radio-row radio-segmented">' +
           '<label><input type="radio" name="export-format" value="zip" checked>Zip</label>' +
           '<label><input type="radio" name="export-format" value="geojson">GeoJSON</label>' +
         '</div>' +
-        '<div style="display:flex;align-items:center;gap:var(--ui-space-4)">' +
-          '<div class="modal-desc" id="s-export-desc" style="flex:1;margin:0">' + EXPORT_FORMATS.zip.desc + '</div>' +
+        '<div class="ui-control-row">' +
+            '<p class="ui-hint" id="s-export-desc">' + EXPORT_FORMATS.zip.desc + '</p>' +
           '<button type="button" class="primary" id="s-export">Export</button>' +
         '</div>' +
         modalErrorHtml('s-export-error') +
+        '</div>' +
         '<h3 class="settings-h">Import</h3>' +
-        '<div class="modal-desc" style="margin:0">Restore from a previous export.</div>' +
-        '<div class="radio-row radio-segmented" style="margin-top:var(--ui-space-2)">' +
+        '<div class="ui-section">' +
+        '<p class="ui-hint">Restore from a previous export.</p>' +
+        '<div class="radio-row radio-segmented">' +
           '<label><input type="radio" name="import-mode" value="merge" checked>Merge</label>' +
           '<label><input type="radio" name="import-mode" value="replace">Replace all</label>' +
           '<label><input type="radio" name="import-mode" value="prefs">Preferences only</label>' +
         '</div>' +
-        '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--ui-space-4);margin-top:var(--ui-space-3)">' +
-          '<div class="file-picker" style="flex:1;margin:0">' +
+        '<div class="ui-control-row settings-file-row">' +
+            '<div class="file-picker">' +
             '<input type="file" id="s-import-file" tabindex="-1" accept=".zip,application/zip" class="file-input-hidden">' +
             '<button type="button" class="primary" id="s-import-pick">Choose file</button>' +
             '<span class="file-name" id="s-import-name">No file selected</span>' +
@@ -11717,14 +11621,14 @@
         '</div>' +
         modalErrorHtml('s-import-error') +
         '<div id="s-import-success" class="modal-success-box" hidden></div>' +
+        '</div>' +
         '<h3 class="settings-h">Password</h3>' +
-        '<form id="settings-pw-form">' +
-          '<label for="s-current">Current password</label>' +
-          '<input type="password" id="s-current" autocomplete="current-password" required>' +
-          '<label for="s-new">New password</label>' +
-          '<input type="password" id="s-new" autocomplete="new-password" required>' +
-          '<div style="display:flex;align-items:flex-start;gap:var(--ui-space-4);margin-top:var(--ui-space-2)">' +
-            '<div class="modal-desc" style="flex:1;margin:0">At least 12 characters.</div>' +
+        '<form id="settings-pw-form" class="ui-section">' +
+          uiFieldHtml('s-current', 'Current password', '<input type="password" id="s-current" autocomplete="current-password" required>') +
+          uiFieldHtml('s-new', 'New password',
+            '<input type="password" id="s-new" autocomplete="new-password" required>' +
+            '<p class="ui-hint">At least 12 characters.</p>') +
+          '<div class="ui-control-row">' +
             '<button type="submit" class="primary" id="s-submit">Change password</button>' +
           '</div>' +
           modalErrorHtml('s-error') +
@@ -11735,19 +11639,12 @@
         '<h3 class="settings-h sessions-h">Active sessions<button type="button" class="sessions-revoke-others" id="s-revoke-others" hidden>Sign out others</button></h3>' +
         '<div id="s-sessions">Loading&hellip;</div>' +
         '<h3 class="settings-h">API tokens</h3>' +
-        '<div class="modal-desc">Bearer tokens for scripts and non-browser clients.</div>' +
-        '<form id="s-token-form" style="margin-top:var(--ui-space-2)">' +
-          '<label for="s-token-name">Name</label>' +
-          '<input type="text" id="s-token-name" maxlength="100" placeholder="e.g. backup script" required>' +
-          '<div class="settings-inline-row token-row">' +
-            '<label>Scope</label>' +
-            radioPillsHtml('s-token-scope', [['full', 'Full access'], ['readonly', 'Read-only']], 'full', 'radio-segmented') +
-          '</div>' +
-          '<div class="settings-inline-row token-row">' +
-            '<label>Expires</label>' +
-            radioPillsHtml('s-token-expiry', [['30', '30 days'], ['90', '90 days'], ['365', '1 year'], ['', 'Never']], '365', 'radio-segmented') +
-          '</div>' +
-          '<div style="display:flex;justify-content:flex-end;margin-top:var(--ui-space-3)">' +
+        '<form id="s-token-form" class="ui-section">' +
+          '<p class="ui-hint">Bearer tokens for scripts and non-browser clients.</p>' +
+          uiFieldHtml('s-token-name', 'Name', '<input type="text" id="s-token-name" maxlength="100" placeholder="e.g. backup script" required>') +
+          uiFieldHtml(null, 'Scope', radioPillsHtml('s-token-scope', [['full', 'Full access'], ['readonly', 'Read-only']], 'full', 'radio-segmented')) +
+          uiFieldHtml(null, 'Expires', radioPillsHtml('s-token-expiry', [['30', '30 days'], ['90', '90 days'], ['365', '1 year'], ['', 'Never']], '365', 'radio-segmented')) +
+          '<div class="ui-control-row">' +
             '<button type="submit" class="primary" id="s-token-create">Create token</button>' +
           '</div>' +
           modalErrorHtml('s-token-error') +
@@ -11761,19 +11658,10 @@
           '<h3 class="settings-h">Instance</h3>' +
           '<div class="stats-grid" id="s-admin-stats"><div class="hint" style="grid-column:1/-1">Loading&hellip;</div></div>' +
           '<h3 class="settings-h">Access</h3>' +
-          '<div class="settings-inline-row">' +
-            '<input type="checkbox" class="settings-toggle" id="s-reg"' + (regOpen ? ' checked' : '') + '>' +
-            '<label for="s-reg">Allow new users to register</label>' +
-          '</div>' +
-          '<div class="settings-inline-row">' +
-            '<input type="checkbox" class="settings-toggle" id="s-publishing"' + (state.auth.publishing_open ? ' checked' : '') + '>' +
-            '<label for="s-publishing">Allow users to publish public maps</label>' +
-          '</div>' +
+          uiToggleHtml('s-reg', 'Allow new users to register', { checked: regOpen }) +
+          uiToggleHtml('s-publishing', 'Allow users to publish public maps', { checked: state.auth.publishing_open }) +
           '<h3 class="settings-h">Catalog</h3>' +
-          '<div class="settings-inline-row">' +
-            '<input type="checkbox" class="settings-toggle" id="s-catalog-baseline"' + (state.auth.catalog_baseline_open ? ' checked' : '') + '>' +
-            '<label for="s-catalog-baseline">Include shipped catalog</label>' +
-          '</div>' +
+          uiToggleHtml('s-catalog-baseline', 'Include shipped catalog', { checked: state.auth.catalog_baseline_open }) +
           '<div id="s-admin-catalog"><div class="hint">Loading&hellip;</div></div>' +
           '<h3 class="settings-h">Users</h3>' +
           '<div id="s-admin-users"><div class="hint">Loading&hellip;</div></div>' +
@@ -14099,16 +13987,18 @@
             '</div>'
           : '') +
         '<form id="auth-form">' +
-          '<label for="auth-username">Username</label>' +
-          '<input type="text" id="auth-username" autocomplete="username" required>' +
-          '<label for="auth-password">Password</label>' +
-          '<input type="password" id="auth-password" autocomplete="current-password" required>' +
-          '<div id="setup-token-row" hidden>' +
-            '<label for="auth-setup-token">Setup token</label>' +
-            '<input type="text" id="auth-setup-token" autocomplete="off">' +
-            '<div class="hint">Required for first registration. Check the API server logs.</div>' +
+          '<div class="ui-section">' +
+            uiFieldHtml('auth-username', 'Username',
+              '<input type="text" id="auth-username" autocomplete="username" required>') +
+            uiFieldHtml('auth-password', 'Password',
+              '<input type="password" id="auth-password" autocomplete="current-password" required>' +
+              '<p class="ui-hint" id="auth-hint"></p>') +
+            '<div id="setup-token-row" hidden>' +
+              uiFieldHtml('auth-setup-token', 'Setup token',
+                '<input type="text" id="auth-setup-token" autocomplete="off">' +
+                '<p class="ui-hint">Required for first registration. Check the API server logs.</p>') +
+            '</div>' +
           '</div>' +
-          '<div class="hint" id="auth-hint"></div>' +
           modalErrorHtml('auth-error') +
           '<div class="' + (includeClose ? 'ui-dialog-actions' : 'modal-actions') + '">' +
             '<button type="submit" class="ui-button ui-button-primary" id="auth-submit">Sign in</button>' +
@@ -14136,7 +14026,9 @@
         document.getElementById('modal-title').textContent = m === 'register' ? 'Register' : 'Sign in';
         document.getElementById('auth-submit').textContent = m === 'register' ? 'Register' : 'Sign in';
         document.getElementById('auth-password').setAttribute('autocomplete', m === 'register' ? 'new-password' : 'current-password');
-        document.getElementById('auth-hint').textContent = m === 'register' ? 'Password must be at least 12 characters.' : '';
+        const hint = document.getElementById('auth-hint');
+        hint.textContent = m === 'register' ? 'Password must be at least 12 characters.' : '';
+        hint.hidden = m !== 'register';
         const tokenRow = document.getElementById('setup-token-row');
         const tokenInput = document.getElementById('auth-setup-token');
         const needsToken = m === 'register' && state.auth.requires_setup_token;
@@ -14201,8 +14093,8 @@
             '<h2>Connect to a server</h2>' +
             '<div class="modal-desc">Enter the address of your Ferd server.</div>' +
             '<div class="modal-error' + (opts.error ? ' visible' : '') + '" id="srv-error">' + escapeHtml(opts.error || '') + '</div>' +
-            '<label for="srv-url">Server address</label>' +
-            '<input type="url" id="srv-url" inputmode="url" autocomplete="url" placeholder="https://ferd.example.com" value="' + escapeHtml(current) + '">' +
+            uiFieldHtml('srv-url', 'Server address',
+              '<input type="url" id="srv-url" inputmode="url" autocomplete="url" placeholder="https://ferd.example.com" value="' + escapeHtml(current) + '">') +
             '<div class="srv-warn" id="srv-warn" hidden>Unencrypted connection (http). Your sign-in token will be sent in clear text. Only connect over a network you trust.</div>' +
             '<div class="modal-actions">' +
               '<button type="button" class="primary" id="srv-connect">Connect</button>' +

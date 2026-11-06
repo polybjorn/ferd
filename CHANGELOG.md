@@ -43,6 +43,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The OpenStreetMap and Dark base maps no longer keep tiles for offline use, since OpenStreetMap's tile policy does not permit it; the browser's normal cache still serves recently viewed tiles. OpenTopoMap still works offline. Tiles cached before this update are cleared once.
 - The Android app identifies itself to tile servers as `Ferd/<version>` instead of the WebView default.
 - The Add form's switches sit at the right of their row, and tapping anywhere on the row flips them.
+- The edit place, route and area forms, Settings and the sign-in form use the same fields as the Add form, with switches at the right of the row and labels above their controls. Pick on map, Change password and Create token sit at the left, and the public link and language picker now have labels for screen readers.
 - Forms mark required fields with an asterisk instead of labelling the rest as optional.
 - Placeholder and secondary text meet WCAG AA contrast in every theme, so several themes' muted text is lighter or darker than before.
 - The hint under a form field with an error meets WCAG AA contrast in every theme, so in 11 themes it is a lighter or darker red than before.
