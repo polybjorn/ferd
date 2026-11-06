@@ -679,7 +679,7 @@
         "click": ".map-search-result[data-type=area]"
       },
       {
-        "click": ".popup-area-edit"
+        "click": ".popup-edit"
       },
       {
         "wait": ".modal h2:has-text(\"Edit area\")"

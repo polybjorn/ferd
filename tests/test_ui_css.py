@@ -261,7 +261,7 @@ class TargetsAndFocus(unittest.TestCase):
     self.assertIn("min-height: 24px", self.body("button"))
 
   def test_narrow_controls_reach_the_minimum_width(self):
-    body = self.body(":is(.modal-close, .popup-area-edit, .catalog-mark)")
+    body = self.body(":is(.modal-close, .popup-edit, .catalog-mark)")
     self.assertIn("min-width: 24px", body)
 
   def test_a_button_width_floor_stays_off_flex_items(self):

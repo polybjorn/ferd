@@ -12,6 +12,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Visited countries. Turn on Settings > Visible features > Visited countries to shade every country that holds a visited place. It is off by default and set per browser, and the outlines (about 650 KB) download only once it is on, then stay cached for offline use. The shading shows at zoom 6 and further out, and fades as you zoom past that. Borders are Natural Earth's de facto lines. A note under the switch says it shows when zoomed out.
 - The Country field on the place forms is now a searchable list, so a name always matches. It finds common alternatives too, such as Norge or USA. An older place keeps its existing name until you change it.
 - Places carry a `country_code` (ISO 3166-1 alpha-2) that the server sets from the Country field on every save. Existing places get one when the server starts.
+- A place's popup has an Edit button, so editing no longer depends on finding the right-click or long-press menu. It shows when you're signed in, and never on a public map.
 
 ### Fixed
 - Every control is at least 24px each way and shows a visible focus ring, including text fields, selects and filled buttons. A switch now toggles from anywhere on its row, the colour palette fits a narrow window, and hidden file inputs, closed palettes and collapsed sections no longer take a keyboard stop.

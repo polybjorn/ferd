@@ -29,7 +29,7 @@
     /* WCAG 2.2 target size minimum. Width is set per control, since a min-width
        here would let a flex item shrink below its label. */
     button { min-height: 24px; }
-    :is(.modal-close, .popup-area-edit, .catalog-mark) { min-width: 24px; }
+    :is(.modal-close, .popup-edit, .catalog-mark) { min-width: 24px; }
 
     :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     /* Drawn inside the box, since scrolling panels and the map clip whatever
@@ -1777,7 +1777,7 @@
       margin-top: 0.3rem;
     }
     .leaflet-popup-content .popup-area-count,
-    .leaflet-popup-content .popup-area-edit,
+    .leaflet-popup-content .popup-edit,
     .leaflet-popup-content .popup-area-item {
       background: none;
       border: 0;
@@ -1786,12 +1786,12 @@
       padding: 0;
     }
     .leaflet-popup-content .popup-area-count,
-    .leaflet-popup-content .popup-area-edit { color: var(--accent); }
+    .leaflet-popup-content .popup-edit { color: var(--accent); }
     .leaflet-popup-content .popup-area-count:hover,
     .leaflet-popup-content .popup-area-count[aria-expanded="true"],
-    .leaflet-popup-content .popup-area-edit:hover,
+    .leaflet-popup-content .popup-edit:hover,
     .leaflet-popup-content .popup-area-item:hover { text-decoration: underline; }
-    .leaflet-popup-content .popup-area-edit { font-size: 0.7rem; letter-spacing: normal; text-transform: none; }
+    .leaflet-popup-content .popup-edit { font-size: 0.7rem; letter-spacing: normal; text-transform: none; }
     .leaflet-popup-content .popup-area-list {
       display: flex;
       flex-direction: column;
@@ -3394,9 +3394,15 @@
       return apiUrl('/gpx/' + file);
     }
 
+    // POPUP-EDIT-BEGIN (tests/js/popup-edit.test.js runs this block)
     function isReadOnly() {
       return !!(state.viewer && state.viewer.mode === 'public');
     }
+    function popupEditHtml() {
+      const canEdit = !isReadOnly() && state.auth && state.auth.authenticated;
+      return canEdit ? '<button type="button" class="popup-edit">Edit</button>' : '';
+    }
+    // POPUP-EDIT-END
 
     let _routeColorCache = null;
     function routeStatusColor(completed) {
@@ -6501,6 +6507,7 @@
       html += tagPopupHtml(p.tags);
       html += '<div class="popup-meta">' +
         '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(displayCategory(p.category)) + '</span>' +
+        popupEditHtml() +
         '<span style="grid-column:3">' + (p.visited ? 'Visited' : 'Want to visit') + '</span>' +
       '</div>';
       return html;
@@ -6919,7 +6926,7 @@
         '<div class="popup-area-list" hidden></div>' +
         '<div class="popup-meta">' +
           '<span class="cat-text" style="' + catStyle + '">' + escapeHtml(displayCategory(a.category)) + '</span>' +
-          (isReadOnly() ? '' : '<button type="button" class="popup-area-edit">Edit</button>') +
+          popupEditHtml() +
           areaStatusHtml(visited) +
         '</div>';
       return html;
@@ -6955,7 +6962,7 @@
       const content = document.createElement('div');
       content.innerHTML = areaPopupHtml(area, entry ? entry.visited : !!area.visited);
       const popup = L.popup({ closeButton: false }).setLatLng(latlng).setContent(content).openOn(map);
-      const edit = content.querySelector('.popup-area-edit');
+      const edit = content.querySelector('.popup-edit');
       if (edit) edit.addEventListener('click', function() { map.closePopup(); openEditAreaModal(area); });
       const list = content.querySelector('.popup-area-list');
       // Items are {label, done, go}. No items leaves plain text: nothing to open.
@@ -7135,7 +7142,7 @@
         Math.abs((p.lat || 0) - ll.lat) < 1e-6 && Math.abs((p.lon || 0) - ll.lng) < 1e-6
       );
       if (!place) return;
-      map._popup.setContent(placePopupHtml(place));
+      map._popup.setContent(placePopupContent(map, place));
     }
 
     const DIFFICULTY_LABELS = { easy: 'Easy', moderate: 'Moderate', hard: 'Hard', expert: 'Expert' };
@@ -8146,12 +8153,21 @@
     // Pins are canvas drawings with no Leaflet marker to anchor to, so the popup
     // has to clear the pin itself. A tag starts at its coordinate, the others
     // are centred on it.
+    // An element, not a string: update() would rewrite a string from scratch,
+    // dropping the listener.
+    function placePopupContent(map, place) {
+      const content = document.createElement('div');
+      content.innerHTML = placePopupHtml(place);
+      const edit = content.querySelector('.popup-edit');
+      if (edit) edit.addEventListener('click', function() { map.closePopup(); openEditPlaceModal(place); });
+      return content;
+    }
     function openPlacePopup(map, place) {
       const lift = getPinStyle() === 'tag' ? 0 : placeMarkerRadius(getMarkerSize());
       const offsetY = L.Popup.prototype.options.offset[1] - lift;
       return L.popup({ closeButton: false, offset: [0, offsetY] })
         .setLatLng([place.lat, place.lon])
-        .setContent(placePopupHtml(place))
+        .setContent(placePopupContent(map, place))
         .openOn(map);
     }
     function revealPlaceMarker(map, place) {
