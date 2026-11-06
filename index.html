@@ -2404,11 +2404,15 @@
 
     /* Tall modals keep 3rem clear above and below. The insets size the dialog
        to the visible screen, where 100vh would count the space behind a phone
-       browser's toolbar. Settings, Add and the catalog lists also fill that
-       height, so switching a tab or filtering moves no edge. */
+       browser's toolbar. Settings, Add and the catalog lists fit their content
+       up to that height, held at the top edge so the tabs and filter box stay
+       put when a tab or a filter result is shorter. */
     .modal:is(:has(#settings-tabs), :has(#add-tabs), :has(#add-body), :has(#cat-rows), :has(#rgn-rows),
               :has(#cat-list), :has(#cat-mgr-list), :has(#catalog-bulk-list)) { inset-block: 3rem; }
-    .modal:is(:has(#settings-tabs), :has(#add-tabs), :has(#cat-list), :has(#cat-mgr-list)) { block-size: auto; }
+    .modal:is(:has(#settings-tabs), :has(#add-tabs), :has(#cat-list), :has(#cat-mgr-list)) {
+      inset-block: 3rem auto;
+      --ui-dialog-max-height: calc(100% - 6rem);
+    }
     /* A note dragged taller or a longer tab brings the scrollbar in, and the
        fields must not narrow when it does. */
     .modal .ui-dialog-body:has(#add-body, textarea) { scrollbar-gutter: stable; }

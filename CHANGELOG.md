@@ -53,6 +53,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Switching tabs on the Add form is instant, so the submit button no longer slides into view.
 - The map credit has no box on any theme, and the spacebar or a long-press hides it with the other map controls. About lists the map credits.
 - Dark comes last in the map's layer list and in Settings > Map.
+- Add, Settings and the catalog lists are only as tall as their content, up to the height of the screen. Their top edge stays put, so the tabs and filter box don't move.
 
 ### Removed
 - The CyclOSM base map. Its host's conditions cover public, non-profit sites, which Ferd cannot vouch for on every install, so it is now a documented overlay example in `docs/configure.md` that an install can add if it fits them. A map that defaulted to CyclOSM now opens on OpenTopoMap.

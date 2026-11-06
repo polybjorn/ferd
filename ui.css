@@ -1,4 +1,4 @@
-/* ui.css 1.5.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.6.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -27,8 +27,9 @@
         motion    --ui-duration-fast, -base, -slow
         stacking  --ui-z-raised, -sticky, -dropdown, -modal, -popover, -toast,
                   in that order from the page up
-        dialog    --ui-dialog-width, --ui-dialog-border, --ui-backdrop,
-                  --ui-shadow; a host sets --ui-dialog-width on a dialog's own
+        dialog    --ui-dialog-width, --ui-dialog-max-height,
+                  --ui-dialog-border, --ui-backdrop, --ui-shadow; a host sets
+                  --ui-dialog-width or --ui-dialog-max-height on a dialog's own
                   class to size that one. --ui-dialog-border draws the frame
                   and the lines around the head and actions, and follows
                   --ui-border until a host maps it, because a control's border
@@ -88,6 +89,7 @@
     --ui-z-toast: 5000;
 
     --ui-dialog-width: 28rem;
+    --ui-dialog-max-height: calc(100% - 2 * var(--ui-space-4));
     --ui-dialog-border: var(--ui-border);
     --ui-backdrop: rgb(0 0 0 / 50%);
     --ui-shadow: 0 10px 40px rgb(0 0 0 / 30%);
@@ -430,7 +432,7 @@
     box-sizing: border-box;
     inline-size: var(--ui-dialog-width);
     max-inline-size: calc(100% - 2 * var(--ui-space-4));
-    max-block-size: calc(100% - 2 * var(--ui-space-4));
+    max-block-size: var(--ui-dialog-max-height);
     margin: auto;
     padding: 0;
     overflow: hidden;
