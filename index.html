@@ -12475,10 +12475,10 @@
             const display = newDisplay.value.trim();
             const err = document.getElementById('cat-error');
             err.classList.remove('visible');
-            if (!display) { err.textContent = 'Display label required'; err.classList.add('visible'); return; }
+            if (!display) { showErrorBox(err, 'Display label required'); return; }
             const slug = slugifyCategory(display);
-            if (!slug) { err.textContent = 'Display label has no usable letters or digits for a slug'; err.classList.add('visible'); return; }
-            if (rows.some(r => r.slug === slug)) { err.textContent = 'A category with slug "' + slug + '" already exists'; err.classList.add('visible'); return; }
+            if (!slug) { showErrorBox(err, 'Display label has no usable letters or digits for a slug'); return; }
+            if (rows.some(r => r.slug === slug)) { showErrorBox(err, 'A category with slug "' + slug + '" already exists'); return; }
             rows.push({ slug, display, original: '', color: 0, originalColor: 0, originalOrder: rows.length, count: 0 });
             newDisplay.value = '';
             slugPreview.hidden = true;
@@ -12531,9 +12531,7 @@
               })
               .catch(err => {
                 submit.disabled = false;
-                const e = document.getElementById('cat-error');
-                e.textContent = err.message;
-                e.classList.add('visible');
+                showErrorBox(document.getElementById('cat-error'), err.message);
               });
             };
             // Removing a category that places still use clears it from them on
@@ -12684,16 +12682,14 @@
             const renames = [];
             const seen = new Set(rows.map(r => r.name.trim().toLowerCase()));
             if (seen.size !== rows.length) {
-              err.textContent = 'Two regions have the same name.';
-              err.classList.add('visible');
+              showErrorBox(err, 'Two regions have the same name.');
               submit.disabled = false;
               return;
             }
             for (const r of rows) {
               const trimmed = r.name.trim();
               if (!trimmed) {
-                err.textContent = 'Region name cannot be empty.';
-                err.classList.add('visible');
+                showErrorBox(err, 'Region name cannot be empty.');
                 submit.disabled = false;
                 return;
               }
@@ -12713,8 +12709,7 @@
               .then(() => { wrappedRouter(); closeTopModal(); })
               .catch(e => {
                 submit.disabled = false;
-                err.textContent = e.message;
-                err.classList.add('visible');
+                showErrorBox(err, e.message);
               });
           });
         }
@@ -13272,7 +13267,7 @@
                 status.textContent = '';
                 updateBtns();
                 const e = document.getElementById('add-error');
-                if (e) { e.textContent = err.message; e.classList.add('visible'); }
+                if (e) showErrorBox(e, err.message);
               });
           }
           submit.addEventListener('click', function() {
@@ -13881,6 +13876,15 @@
       box.insertBefore(body, actions);
     }
 
+    // A press on the backdrop lands on the dialog itself, since its head, body
+    // and actions fill it. A drag between two of those also clicks the dialog,
+    // their nearest shared ancestor, so the press has to have started there.
+    function closeOnBackdropClick(dialog, close) {
+      let pressedBackdrop = false;
+      dialog.addEventListener('pointerdown', e => { pressedBackdrop = e.target === dialog; });
+      dialog.addEventListener('click', e => { if (e.target === dialog && pressedBackdrop) close(); });
+    }
+
     function openModal(html, onMount, onClose) {
       const root = document.getElementById('modal-root');
       const dialog = document.createElement('dialog');
@@ -13895,9 +13899,7 @@
         ? () => onClose()
         : () => closeTopModal();
       modalStack.push(entry);
-      // A press on the backdrop lands on the dialog itself, since its head,
-      // body and actions fill it.
-      dialog.addEventListener('click', e => { if (e.target === dialog) entry.onClose(); });
+      closeOnBackdropClick(dialog, () => entry.onClose());
       dialog.querySelectorAll('.modal-close').forEach(el => el.addEventListener('click', () => entry.onClose()));
       // Escape is handled on keydown (escClose), where preventDefault keeps the
       // browser from closing the dialog itself. Any other close request, such
@@ -13975,9 +13977,17 @@
       e.preventDefault();
       top.onClose();
     }
+    // The box sits at the end of the scrolling body, and a form saved from a
+    // pinned action row may be scrolled well above it.
+    function showErrorBox(el, msg) {
+      el.textContent = msg;
+      el.classList.add('visible');
+      el.scrollIntoView({ block: 'nearest' });
+    }
+
     function showModalError(msg) {
       const el = document.querySelector('.modal-error');
-      if (el) { el.textContent = msg; el.classList.add('visible'); }
+      if (el) showErrorBox(el, msg);
     }
 
     // ----- Sign-in / register modal -----
