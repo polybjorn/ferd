@@ -13,6 +13,12 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const m = /MAP-SCHEDULER-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ MAP-SCHEDULER-END/.exec(html);
 assert.ok(m, 'MAP-SCHEDULER markers not found in index.html');
 
+function functionSource(name) {
+  const fn = new RegExp('\\n    function ' + name + '\\([^\\n]*\\n[\\s\\S]*?\\n    \\}\\n').exec(html);
+  assert.ok(fn, name + ' not found in index.html');
+  return fn[0];
+}
+
 function makeEnv() {
   let now = 0, nextId = 1;
   const pending = new Map(); // id -> { at, fn }
@@ -21,6 +27,10 @@ function makeEnv() {
     clearTimeout: (id) => { pending.delete(id); },
     requestAnimationFrame: (fn) => { const id = nextId++; pending.set(id, { at: now + 16, fn: () => fn(now) }); return id; },
     cancelAnimationFrame: (id) => { pending.delete(id); },
+    performance: { now: () => now },
+    window: { matchMedia: () => ({ matches: false }) },
+    strokeAdjusts: 0,
+    adjustTrailStrokes: () => { env.strokeAdjusts++; },
   };
   env.advance = (ms) => {
     const end = now + ms;
@@ -35,16 +45,20 @@ function makeEnv() {
     now = end;
   };
   vm.createContext(env);
-  vm.runInContext(m[1] + '\nglobalThis.mapScheduler = mapScheduler;', env);
+  vm.runInContext(m[1] + '\n' + functionSource('bindTrailStrokeMotion') +
+    '\nglobalThis.mapScheduler = mapScheduler;\nglobalThis.bindTrailStrokeMotion = bindTrailStrokeMotion;', env);
   return env;
 }
 
 function makeMap(env) {
-  const handlers = {};
+  const handlers = {}, listeners = {};
   const map = {
     _mapPane: { _leaflet_pos: { x: 0, y: 0 } },
     _animatingZoom: false,
     once(type, fn) { (handlers[type] = handlers[type] || []).push(fn); return this; },
+    on(types, fn) { types.split(' ').forEach((t) => (listeners[t] = listeners[t] || []).push(fn)); return this; },
+    emit(type) { (listeners[type] || []).forEach((fn) => fn()); },
+    getZoom() { return 5; },
     fire(type) { const fns = handlers[type] || []; delete handlers[type]; fns.forEach((fn) => fn()); },
     panePos() { return this._mapPane._leaflet_pos; }, // throws once removed, as Leaflet does
     // Leaflet's _animateZoom: an untracked timeout ends the animation and moves.
@@ -114,6 +128,26 @@ test("removing a map mid-zoom cancels Leaflet's zoom transition end", () => {
   map.animateZoom();
   map.remove();
   assert.doesNotThrow(() => env.advance(1000));
+});
+
+test('removing a map mid-zoom stops its stroke adjust frames', () => {
+  const env = makeEnv();
+  const map = makeMap(env);
+  env.bindTrailStrokeMotion(map);
+  map.emit('zoomanim');
+  env.advance(40);
+  const before = env.strokeAdjusts;
+  assert.ok(before > 0);
+  map.remove();
+  env.advance(1000);
+  assert.equal(env.strokeAdjusts, before);
+});
+
+test('the route detail map has a scheduler and no frames outside it', () => {
+  // A map without one keeps Leaflet's zoom transition end alive past removal.
+  const detail = functionSource('renderTrailDetail');
+  assert.match(detail, /mapScheduler\(map\)/);
+  assert.doesNotMatch(detail, /requestAnimationFrame/);
 });
 
 test('the vendored Leaflet still gates its zoom transition end on _animatingZoom', () => {

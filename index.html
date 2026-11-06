@@ -6338,6 +6338,7 @@
         adjustTrailStrokes();
       });
       if (coarse) return;
+      const sched = mapScheduler(map);
       map.on('move', function () {
         const z = map.getZoom();
         if (z === lastZoom) return;
@@ -6349,11 +6350,10 @@
       map.on('zoomanim', function () {
         const start = performance.now();
         const tick = () => {
-          if (!state.currentMap) return;
           adjustTrailStrokes();
-          if (performance.now() - start < 270) requestAnimationFrame(tick);
+          if (performance.now() - start < 270) sched.frame(tick);
         };
-        requestAnimationFrame(tick);
+        sched.frame(tick);
       });
     }
 
@@ -10572,6 +10572,7 @@
       }
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
+      const sched = mapScheduler(map);
       applyCoverMinZoom(map);
       // Map container shrinks asynchronously as the elevation chart and
       // other detail-view widgets settle. Sync Leaflet's known size and
@@ -10642,9 +10643,9 @@
               const start = performance.now();
               const tick = function(now) {
                 map.invalidateSize({ animate: false, pan: false });
-                if (now - start < 320) requestAnimationFrame(tick);
+                if (now - start < 320) sched.frame(tick);
               };
-              requestAnimationFrame(tick);
+              sched.frame(tick);
             }
           });
           return btn;
