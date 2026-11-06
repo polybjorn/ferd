@@ -66,7 +66,7 @@ EOX's Sentinel-2 cloudless mosaic is free for non-commercial use; commercial use
 | `name` | required | Label in the layer picker. Must be unique. |
 | `url` | required | `http(s)` tile URL. For `xyz`, a template with `{z}`, `{x}`, `{y}` and optionally `{s}`. For `wms`, the service endpoint without a query string. |
 | `type` | `"xyz"` | `"xyz"` or `"wms"`. |
-| `attribution` | `""` | Credit shown in the map corner while the overlay is on. HTML is allowed. |
+| `attribution` | `""` | Credit shown in the map corner while the overlay is on, and always in About. HTML is allowed. |
 | `max_zoom` | none | Highest zoom the host serves. |
 | `subdomains` | `"abc"` | `xyz` only: the letters `{s}` expands to. |
 | `layers` | required for `wms` | Comma-separated WMS layer names. |

@@ -69,7 +69,6 @@
       --status-completed: #32af49;
       --status-planned:   #ff6b6b;
 
-      --attribution-bg: var(--attribution-bg);
       --cluster-fill:   rgba(136, 192, 208, 0.6);
       --cluster-halo:   rgba(136, 192, 208, 0.25);
       --shadow:         rgba(0, 0, 0, 0.4);
@@ -116,7 +115,6 @@
       --completed:    #6f8b5d;
       --planned:      #a04149;
 
-      --attribution-bg: rgba(255, 255, 255, 0.9);
       --cluster-fill:   rgba(94, 129, 172, 0.65);
       --cluster-halo:   rgba(94, 129, 172, 0.25);
       --shadow:         rgba(0, 0, 0, 0.12);
@@ -163,7 +161,6 @@
       --completed:    #859900;
       --planned:      #dc322f;
 
-      --attribution-bg: rgba(255, 255, 255, 0.9);
       --cluster-fill:   rgba(38, 139, 210, 0.65);
       --cluster-halo:   rgba(38, 139, 210, 0.25);
       --shadow:         rgba(0, 0, 0, 0.12);
@@ -210,7 +207,6 @@
       --completed:    #79740e;
       --planned:      #cc241d;
 
-      --attribution-bg: rgba(251, 241, 199, 0.9);
       --cluster-fill:   rgba(214, 93, 14, 0.65);
       --cluster-halo:   rgba(214, 93, 14, 0.25);
       --shadow:         rgba(0, 0, 0, 0.12);
@@ -257,7 +253,6 @@
       --completed:    #40a02b;
       --planned:      #d20f39;
 
-      --attribution-bg: rgba(255, 255, 255, 0.9);
       --cluster-fill:   rgba(136, 57, 239, 0.65);
       --cluster-halo:   rgba(136, 57, 239, 0.25);
       --shadow:         rgba(0, 0, 0, 0.12);
@@ -327,7 +322,6 @@
       --completed:    #587539;
       --planned:      #f52a65;
 
-      --attribution-bg: rgba(225, 226, 231, 0.9);
       --cluster-fill:   rgba(46, 125, 233, 0.65);
       --cluster-halo:   rgba(46, 125, 233, 0.25);
       --shadow:         rgba(0, 0, 0, 0.12);
@@ -374,7 +368,6 @@
       --completed:    #14710a;
       --planned:      #cb3a2a;
 
-      --attribution-bg: rgba(255, 255, 255, 0.9);
       --cluster-fill:   rgba(100, 74, 201, 0.65);
       --cluster-halo:   rgba(100, 74, 201, 0.25);
       --shadow:         rgba(0, 0, 0, 0.12);
@@ -398,7 +391,6 @@
       --completed:    #56949f;
       --planned:      #b4637a;
 
-      --attribution-bg: rgba(255, 250, 243, 0.9);
       --cluster-fill:   rgba(144, 122, 169, 0.65);
       --cluster-halo:   rgba(144, 122, 169, 0.25);
       --shadow:         rgba(0, 0, 0, 0.12);
@@ -1700,12 +1692,15 @@
 
     .leaflet-top .leaflet-control, .leaflet-bottom .leaflet-control { margin: 5px !important; }
     .leaflet-control-attribution {
-      background: var(--attribution-bg) !important;
-      color: var(--muted) !important;
+      background: none !important;
+      color: var(--text) !important;
       font-size: var(--ui-text-xs) !important;
-      border-radius: var(--radius) !important;
+      /* With no box behind it, the halo keeps the credit readable on any tile,
+         which OpenStreetMap's guidelines ask of it. The text has to contrast
+         with the halo, or it smears where a tile matches the halo's colour. */
+      text-shadow: 0 0 1px var(--bg), 0 0 1px var(--bg), 0 0 3px var(--bg);
     }
-    .leaflet-control-attribution a { color: var(--accent) !important; }
+    .leaflet-control-attribution a { color: inherit !important; text-decoration: underline !important; }
 
     .leaflet-tooltip {
       background: var(--surface) !important;
@@ -2076,8 +2071,9 @@
       margin-bottom: var(--ui-space-4);
     }
     .about-links { font-size: var(--ui-text-xs); color: var(--muted); }
-    .about-links a { color: var(--accent); text-decoration: none; }
-    .about-links a:hover { text-decoration: underline; }
+    .about-credits { margin-top: var(--ui-space-2); font-size: var(--ui-text-xs); color: var(--muted); }
+    :is(.about-links, .about-credits) a { color: var(--accent); text-decoration: none; }
+    :is(.about-links, .about-credits) a:hover { text-decoration: underline; }
     .about-sep { margin: 0 var(--ui-space-2); }
 
     /* Tile-picker (Leaflet layers control) enter/leave animation */
@@ -2091,10 +2087,10 @@
       opacity: 0;
     }
 
-    /* Spacebar / long-press hides map UI but leaves the tile attribution
-       visible - OSM / OpenTopoMap terms require attribution to
-       remain on screen while their tiles are. */
-    body.map-chrome-hidden .leaflet-control-container .leaflet-control:not(.leaflet-control-attribution),
+    /* Spacebar / long-press hides the credit with the rest of the map UI. The
+       viewer asks for that and About still lists it, the two conditions
+       OpenStreetMap's guidelines set for hiding one. */
+    body.map-chrome-hidden .leaflet-control-container .leaflet-control,
     body.map-chrome-hidden .map-panel { display: none !important; }
     /* Per-control persistent toggles (Settings > Appearance > On-map controls).
        Animate opacity/transform rather than display:none so the toggle is
@@ -5428,21 +5424,25 @@
       });
     }
 
+    const OSM_CREDIT = '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>';
+    const TOPO_CREDIT = OSM_CREDIT + ', SRTM | &copy; <a href="https://opentopomap.org">OpenTopoMap</a> ' +
+      '(<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)';
+
     function createTileLayers() {
       return {
         'OpenTopoMap': L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
           maxZoom: 17, subdomains: 'abc',
-          attribution: 'Map data: &copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+          attribution: TOPO_CREDIT,
         }),
         // OpenStreetMap's tiles drawn dark by the .tiles-dark filter: CARTO's
         // dark tiles now need a key, and Esri's terms do not cover Leaflet.
         'Dark': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19, className: 'tiles-dark',
-          attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          attribution: OSM_CREDIT,
         }),
         'OpenStreetMap': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
-          attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          attribution: OSM_CREDIT,
         }),
       };
     }
@@ -6441,10 +6441,6 @@
       syncCountryPane();
       syncAreasOnMap();
     }
-    // ODbL wants the credit wherever the boundary shows, and not every tile
-    // layer carries it. Same text as the OpenStreetMap tile
-    // layer, so Leaflet shows it once there.
-    const AREA_OSM_CREDIT = '<a href="https://openstreetmap.org/copyright">OpenStreetMap</a>';
     function areaStyle(a, visited) {
       const color = state.categoryColors[a.category] || state.categoryColors[''];
       return visited
@@ -6506,7 +6502,6 @@
             pane: 'areasPane',
             className: 'area-shape',
             interactive: false,
-            attribution: area.source === 'osm' ? AREA_OSM_CREDIT : undefined,
             style: areaStyle(area, visited),
           }),
         };
@@ -11340,6 +11335,8 @@
         if (plus >= 0) buildLabel = 'build ' + appVersion.slice(plus + 1);
       }
       const brand = (state.config && state.config.brand) || 'Ferd';
+      const overlayCredits = parseOverlays(state.config && state.config.overlays)
+        .map(ov => ov.attribution).filter(Boolean);
       openModal(
         modalHeaderHtml('About') +
         '<div class="about-body">' +
@@ -11355,6 +11352,7 @@
             '<span class="about-sep">&middot;</span>' +
             '<a href="https://github.com/polybjorn/ferd/blob/main/vendor/NOTICES.md" target="_blank" rel="noopener">Third-party notices</a>' +
           '</div>' +
+          '<div class="about-credits">' + [TOPO_CREDIT].concat(overlayCredits).join('<br>') + '</div>' +
         '</div>',
         function(backdrop) {
           backdrop.classList.add('narrow-dialog');

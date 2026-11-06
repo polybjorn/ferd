@@ -35,7 +35,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Leaving a route's page while its elevation chart is still loading no longer logs errors from the removed map.
 - The Dark base map works again. CARTO began stamping its dark tiles with "API KEY REQUIRED", so Dark now shows OpenStreetMap's map in dark colours and no longer contacts CARTO.
 - The Docker image's licence label says GPL-3.0 instead of MIT.
-- The base maps give their providers' full credits: OpenTopoMap names OpenStreetMap contributors, SRTM and its CC-BY-SA licence, and OpenStreetMap and Dark credit OpenStreetMap contributors.
+- The base maps credit their providers: OpenTopoMap names OpenStreetMap, SRTM and its CC-BY-SA licence, and OpenStreetMap and Dark credit OpenStreetMap.
 - On phones, Settings fits the screen: every tab and every option in a segmented row shows in full, and the dialog no longer scrolls sideways.
 
 ### Changed
@@ -51,6 +51,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Name fields no longer show example names, and the local name field says what goes in it.
 - Dialogs keep their title and buttons in view while the rest scrolls, and the page behind an open dialog can no longer be reached with the keyboard or a screen reader. Settings, Add and the catalog lists keep one height, so switching a tab no longer moves the dialog.
 - Switching tabs on the Add form is instant, so the submit button no longer slides into view.
+- The map credit has no box on any theme, and the spacebar or a long-press hides it with the other map controls. About lists the map credits.
 
 ### Removed
 - The CyclOSM base map. Its host's conditions cover public, non-profit sites, which Ferd cannot vouch for on every install, so it is now a documented overlay example in `docs/configure.md` that an install can add if it fits them. A map that defaulted to CyclOSM now opens on OpenTopoMap.

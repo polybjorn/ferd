@@ -73,7 +73,6 @@ Each `[data-theme][data-mode]` block must define:
 Two more variables live outside the per-theme blocks:
 
 - `--radius` is defined once in `:root` (6px). Theme blocks don't override it.
-- `--attribution-bg` only appears in light blocks. Light themes need a different translucent fill behind the tile attribution so it stays legible on bright tiles. Dark themes inherit the `:root` placeholder.
 
 ### Mode switching
 
@@ -92,10 +91,10 @@ The two arrays must stay the same length (a runtime check warns on mismatch).
 ### Adding a new theme
 
 1. Pick a key (lowercase, hyphenated), e.g. `my-theme`.
-2. In `index.html`, add two CSS blocks (dark first, then light), each filling out the full variable contract above. Light blocks also need `--attribution-bg`.
+2. In `index.html`, add two CSS blocks (dark first, then light), each filling out the full variable contract above.
    ```css
    [data-theme="my-theme"][data-mode="dark"]  { --bg: #...; /* ... */ }
-   [data-theme="my-theme"][data-mode="light"] { --bg: #...; /* ...; --attribution-bg: rgba(...); */ }
+   [data-theme="my-theme"][data-mode="light"] { --bg: #...; /* ... */ }
    ```
 3. Append the key to the `THEMES` array.
 4. Add a display label to `themeLabels`.

@@ -256,6 +256,11 @@ class TargetsAndFocus(unittest.TestCase):
     body = self.body(".modal .ui-dialog-body:has(#add-body, textarea)")
     self.assertIn("scrollbar-gutter: stable", body)
 
+  def test_the_map_credit_reads_without_a_box(self):
+    body = self.body(".leaflet-control-attribution")
+    self.assertIn("background: none", body)
+    self.assertIn("text-shadow", body)
+
   def test_a_closed_section_takes_no_keyboard_stop(self):
     for closed, opened in ((".cat-swatches", ".cat-swatches.open"), (".collapsible", ".collapsible.expanded")):
       self.assertIn("visibility: hidden", self.body(closed))
