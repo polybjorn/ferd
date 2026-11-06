@@ -2058,7 +2058,7 @@
     }
 
     /* Spacebar / long-press hides map UI but leaves the tile attribution
-       visible - Esri / OSM / OpenTopoMap terms require attribution to
+       visible - OSM / OpenTopoMap terms require attribution to
        remain on screen while their tiles are. */
     body.map-chrome-hidden .leaflet-control-container .leaflet-control:not(.leaflet-control-attribution),
     body.map-chrome-hidden .map-panel { display: none !important; }
@@ -5111,7 +5111,14 @@
         });
       });
     }
-    function getDefaultTileLayer() { return getPref('tile-layer', 'Satellite'); }
+    // Base map names, in the order the layer picker lists them. A saved name
+    // that is no longer here (Satellite, removed for Esri's terms) falls back
+    // to the first, so the map and the Settings select agree.
+    const BASE_LAYER_NAMES = ['OpenTopoMap', 'CyclOSM', 'Dark', 'OpenStreetMap'];
+    function getDefaultTileLayer() {
+      const v = getPref('tile-layer', BASE_LAYER_NAMES[0]);
+      return BASE_LAYER_NAMES.includes(v) ? v : BASE_LAYER_NAMES[0];
+    }
     function getShowTilePicker() { return getPref('tile-picker', 'true') !== 'false'; }
     function getShowFilterPanel() { return getPref('map-filter', 'true') !== 'false'; }
     function getShowZoomControls() { return getPref('map-zoom', 'true') !== 'false'; }
@@ -5513,10 +5520,6 @@
           maxZoom: 20, subdomains: 'abc',
           attribution: '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases">CyclOSM</a> &middot; <a href="https://openstreetmap.org">OSM</a>',
         }),
-        'Satellite': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-          maxZoom: 19,
-          attribution: '<a href="https://www.esri.com">Esri</a>',
-        }),
         // OpenStreetMap's tiles drawn dark by the .tiles-dark filter: CARTO's
         // dark tiles now need a key, and Esri's terms do not cover Leaflet.
         'Dark': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -5651,7 +5654,7 @@
     function addTileLayersToMap(map) {
       const layers = createTileLayers();
       const def = getDefaultTileLayer();
-      (layers[def] || layers['Satellite']).addTo(map);
+      (layers[def] || layers[BASE_LAYER_NAMES[0]]).addTo(map);
       const overlays = createOverlayLayers();
       for (const key in overlays) {
         if (state.overlayLevels.has(overlays[key]._ferdOverlay)) overlays[key].addTo(map);
@@ -6469,7 +6472,7 @@
       syncAreasOnMap();
     }
     // ODbL wants the credit wherever the boundary shows, and not every tile
-    // layer carries it: Esri's has none. Same text as the OpenStreetMap tile
+    // layer carries it. Same text as the OpenStreetMap tile
     // layer, so Leaflet shows it once there.
     const AREA_OSM_CREDIT = '<a href="https://openstreetmap.org/copyright">OpenStreetMap</a>';
     function areaStyle(a, visited) {
@@ -11575,7 +11578,7 @@
           '<label for="s-tile">Default tile layer</label>' +
           '<label for="s-tile-filter">Tile style</label>' +
           '<select id="s-tile">' +
-            ['CyclOSM', 'Dark', 'OpenStreetMap', 'OpenTopoMap', 'Satellite'].map(n =>
+            BASE_LAYER_NAMES.slice().sort().map(n =>
               '<option value="' + n + '"' + (getDefaultTileLayer() === n ? ' selected' : '') + '>' + n + '</option>'
             ).join('') +
           '</select>' +

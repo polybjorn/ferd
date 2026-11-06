@@ -32,6 +32,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The hint under a form field with an error meets WCAG AA contrast in every theme, so in 11 themes it is a lighter or darker red than before.
 - Ferd needs Chrome 99 or newer, or Android System WebView 99 in the Android app. An older one shows a notice asking to update it instead of a broken page.
 
+### Removed
+- The Satellite base map. Its imagery's terms do not allow it in an app like Ferd, or its offline caching, so it is gone until a free imagery source with fitting terms turns up. A map that defaulted to Satellite now opens on OpenTopoMap, and the default can be changed in Settings > Map.
+
 ## [1.5.0] - 2026-11-05
 
 ### Added
