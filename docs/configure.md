@@ -51,6 +51,36 @@ Each entry in `overlays` adds an opacity slider to the map's layer picker, where
     "name": "Sentinel-2 (EOX)",
     "url": "https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg",
     "attribution": "<a href=\"https://cloudless.eox.at\">EOxCloudless</a> by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)"
+  },
+  {
+    "name": "Hiking routes",
+    "url": "https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png",
+    "max_zoom": 18,
+    "attribution": "<a href=\"https://waymarkedtrails.org\">Waymarked Trails</a> (<a href=\"https://creativecommons.org/licenses/by-sa/3.0/de/deed.en\">CC-BY-SA</a>)"
+  },
+  {
+    "name": "Cycling routes",
+    "url": "https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png",
+    "max_zoom": 18,
+    "attribution": "<a href=\"https://waymarkedtrails.org\">Waymarked Trails</a> (<a href=\"https://creativecommons.org/licenses/by-sa/3.0/de/deed.en\">CC-BY-SA</a>)"
+  },
+  {
+    "name": "Sea chart (Kartverket)",
+    "url": "https://cache.kartverket.no/v1/wmts/1.0.0/sjokartraster/default/webmercator/{z}/{y}/{x}.png",
+    "attribution": "&copy; Kartverket"
+  },
+  {
+    "name": "Seamarks",
+    "url": "https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png",
+    "max_zoom": 18,
+    "attribution": "<a href=\"https://www.openseamap.org\">OpenSeaMap</a> (<a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>)"
+  },
+  {
+    "name": "Protected areas",
+    "type": "wms",
+    "url": "https://kart.miljodirektoratet.no/arcgis/services/vern/MapServer/WMSServer",
+    "layers": "naturvern_omrade",
+    "attribution": "&copy; Milj&oslash;direktoratet (<a href=\"https://data.norge.no/nlod/en\">NLOD</a>)"
   }
 ]
 ```
@@ -60,6 +90,14 @@ Both Kartverket layers cover Norway only. From zoom 12 to 20 they hold Geovekst 
 CyclOSM is hosted by OSM France, whose [usage conditions](https://www.openstreetmap.fr/usage/) cover public, non-profit sites with moderate traffic. Check that your install fits them before adding it, and leave `offline` off: [cyclosm.org](https://www.cyclosm.org/) allows caching its tiles for a few hours at most.
 
 EOX's Sentinel-2 cloudless mosaic is free for non-commercial use; commercial use needs a licence from [EOX](https://cloudless.eox.at). Leave `offline` off for it too, since its terms do not cover caching tiles.
+
+Waymarked Trails draws hiking and cycling routes worldwide on a transparent layer. Its [usage policy](https://hiking.waymarkedtrails.org/#help?page=legal) covers open-source, non-commercial sites with moderate traffic, which rules out a site earning from ads or affiliate links, so check that your install fits. Ferd's source is open, but the income and traffic conditions are yours to answer for. Leave `offline` off.
+
+Kartverket's sea chart covers Norway only, on the same terms as its topo layers above. OpenSeaMap's seamarks are worldwide, CC BY-SA 2.0 with data under ODbL, and its terms don't mention caching tiles, so leave `offline` off for both.
+
+Miljødirektoratet's protected areas cover Norway only, under the [NLOD](https://data.norge.no/nlod/en) licence.
+
+The Waymarked Trails and OpenSeaMap credits leave out OpenStreetMap because every base map already names it.
 
 | Field | Default | Notes |
 |---|---|---|
