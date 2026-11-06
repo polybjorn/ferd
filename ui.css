@@ -1,4 +1,4 @@
-/* ui.css 1.1.2: shared building blocks for menus, modals and forms.
+/* ui.css 1.4.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -16,63 +16,36 @@
    2. Map the colours in a host layer. The defaults below are system colours,
       only good enough to stay legible:
         --ui-text, --ui-muted, --ui-surface, --ui-control-surface,
-        --ui-border, --ui-accent, --ui-danger
+        --ui-border, --ui-accent, --ui-on-accent, --ui-danger
+      --ui-on-accent is the text on an accent fill.
    3. Override any size token in a host layer. The names are shared; the
-      values are per app.
+      values are per app. Each scale is a short list for the host's own CSS
+      to move onto, as well as what the blocks use:
+        type      --ui-text-xs to --ui-text-xl; the defaults start at 0.75rem
+        spacing   --ui-space-1 to --ui-space-8
+        radius    --ui-radius-sm, --ui-radius, --ui-radius-lg, --ui-radius-full
+        motion    --ui-duration-fast, -base, -slow
+        stacking  --ui-z-raised, -sticky, -dropdown, -modal, -popover, -toast,
+                  in that order from the page up
+        dialog    --ui-dialog-width, --ui-backdrop, --ui-shadow; a host sets
+                  --ui-dialog-width on a dialog's own class to size that one
 
    Markup contract: classes and plain HTML only, with no on*= or style=
-   attributes, so a page with a strict CSP can use it.
+   attributes, so a page with a strict CSP can use it. specimen.html in
+   bjorn/ui-foundation has the markup for every block, in each of its states.
+   Two classes carry a state: .ui-field-invalid on a field, with
+   aria-invalid="true" on its control, shows an error and turns a .ui-hint
+   inside it into the error text; .ui-required on a label marks a field that
+   must be filled in.
 
-   Section
-     <fieldset class="ui-section">
-       <legend class="ui-section-title">Map</legend>
-       ...fields, toggle rows, choice lists...
-     </fieldset>
-   A <section class="ui-section"> with an <h3 class="ui-section-title"> works
-   the same way, and a <div class="ui-section"> with no title just stacks the
-   blocks inside it.
-
-   Field
-     <div class="ui-field">
-       <label class="ui-field-label" for="f-name">Name</label>
-       <input id="f-name" type="text" aria-describedby="f-name-hint">
-       <p class="ui-hint" id="f-name-hint">Shown on the map.</p>
-     </div>
-   Add .ui-field-invalid to the field, and aria-invalid="true" to the control,
-   to show an error; a .ui-hint inside it then reads as the error text.
-   Add .ui-required to the label of a field that must be filled in.
-
-   Field row: two short fields side by side.
-     <div class="ui-field-row">
-       <div class="ui-field">...</div>
-       <div class="ui-field">...</div>
-     </div>
-
-   Control row: a control with a button or a short status beside it.
-     <div class="ui-control-row">
-       <button type="button">Choose file</button>
-       <span class="ui-control-text">No file selected</span>
-     </div>
-
-   Checkbox: for picking rows from a list, where a switch would be too heavy.
-     <input type="checkbox" class="ui-check">
-
-   Toggle row: a checkbox drawn as a switch.
-     <label class="ui-toggle-row">
-       <span class="ui-toggle-text">Show labels
-         <span class="ui-hint">Names next to each marker.</span></span>
-       <input type="checkbox">
-     </label>
-
-   Choice list
-     <fieldset class="ui-choice-list">
-       <legend class="ui-field-label">Units</legend>
-       <label class="ui-choice"><input type="radio" name="u" value="km"> Kilometres</label>
-       <label class="ui-choice"><input type="radio" name="u" value="mi"> Miles</label>
-     </fieldset>
-
-   Hint
-     <p class="ui-hint">...</p>, inside any block or on its own. */
+   Dialog contract: open a .ui-dialog with showModal(), never show() or the
+   open attribute, because only showModal() gives the top layer and an inert
+   page behind. Opening and closing stay the host's code; autofocus on a
+   control decides where focus lands, and without it the first focusable
+   element takes it. The top layer covers everything outside the dialog, so a
+   popover or menu opened from a dialog must mount inside it, with
+   position: fixed so the scrolling body does not clip it. A <form> that holds
+   the body and the actions can sit directly inside the dialog. */
 
 @layer ui-tokens {
   :root {
@@ -82,16 +55,37 @@
     --ui-space-4: 1rem;
     --ui-space-5: 1.5rem;
     --ui-space-6: 2rem;
+    --ui-space-7: 3rem;
+    --ui-space-8: 4rem;
 
     --ui-text-xs: 0.75rem;
     --ui-text-sm: 0.85rem;
     --ui-text-md: 1rem;
     --ui-text-lg: 1.15rem;
+    --ui-text-xl: 1.4rem;
 
     --ui-text-weight: 400;
     --ui-label-weight: 500;
     --ui-control-height: 2.25rem;
+    --ui-radius-sm: 4px;
     --ui-radius: 6px;
+    --ui-radius-lg: 8px;
+    --ui-radius-full: 999px;
+
+    --ui-duration-fast: 150ms;
+    --ui-duration-base: 200ms;
+    --ui-duration-slow: 250ms;
+
+    --ui-z-raised: 1;
+    --ui-z-sticky: 100;
+    --ui-z-dropdown: 1000;
+    --ui-z-modal: 2000;
+    --ui-z-popover: 3000;
+    --ui-z-toast: 5000;
+
+    --ui-dialog-width: 28rem;
+    --ui-backdrop: rgb(0 0 0 / 50%);
+    --ui-shadow: 0 10px 40px rgb(0 0 0 / 30%);
 
     --ui-text: CanvasText;
     --ui-muted: GrayText;
@@ -99,6 +93,7 @@
     --ui-control-surface: Canvas;
     --ui-border: GrayText;
     --ui-accent: LinkText;
+    --ui-on-accent: Canvas;
     --ui-danger: #c62828;
   }
 }
@@ -145,9 +140,12 @@
     font-weight: var(--ui-label-weight);
     color: var(--ui-text);
   }
-  /* :where keeps this at the weight of the field rules below, which override it. */
+  /* :where keeps this at the weight of the field rules below, which override it.
+     border-box keeps a full-width control inside its field on a host with no
+     box-sizing reset. */
   .ui-field :is(input:where(:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"])), select, textarea) {
     font: inherit;
+    box-sizing: border-box;
     inline-size: 100%;
     min-block-size: var(--ui-control-height);
     margin: 0;
@@ -187,6 +185,11 @@
     outline-offset: -2px;
   }
   .ui-field-invalid :is(input, select, textarea) { border-color: var(--ui-danger); }
+  .ui-field :is(input, select, textarea):disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .ui-field:has(:is(input, select, textarea):disabled) .ui-field-label { color: var(--ui-muted); }
   .ui-field-invalid .ui-hint { color: var(--ui-danger); }
 
   .ui-field-row {
@@ -203,7 +206,7 @@
     min-inline-size: 0;
     min-block-size: var(--ui-control-height);
   }
-  .ui-control-row > button { flex: none; }
+  .ui-control-row > :is(button, .ui-button) { flex: none; }
   .ui-field .ui-control-row > input { flex: 1; inline-size: auto; min-inline-size: 0; }
   .ui-control-text {
     min-inline-size: 0;
@@ -248,6 +251,7 @@
      the unchecked one too. */
   .ui-check {
     appearance: none;
+    box-sizing: border-box;
     position: relative;
     flex: none;
     inline-size: 16px;
@@ -255,7 +259,7 @@
     margin: 0;
     background: var(--ui-control-surface);
     border: 1px solid var(--ui-muted);
-    border-radius: 4px;
+    border-radius: var(--ui-radius-sm);
     cursor: pointer;
   }
   .ui-check:checked {
@@ -285,14 +289,15 @@
   }
   .ui-toggle-row > input[type="checkbox"] {
     appearance: none;
+    box-sizing: border-box;
     position: relative;
     inline-size: 36px;
     block-size: 20px;
     background: transparent;
     border: 1px solid var(--ui-muted);
-    border-radius: 999px;
+    border-radius: var(--ui-radius-full);
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition: background var(--ui-duration-fast), border-color var(--ui-duration-fast);
   }
   .ui-toggle-row > input[type="checkbox"]::after {
     content: '';
@@ -303,7 +308,7 @@
     block-size: 16px;
     background: var(--ui-muted);
     border-radius: 50%;
-    transition: transform 0.15s, background 0.15s;
+    transition: transform var(--ui-duration-fast), background var(--ui-duration-fast);
   }
   .ui-toggle-row > input[type="checkbox"]:checked {
     background: var(--ui-accent);
@@ -349,5 +354,186 @@
   :is(.ui-toggle-row, .ui-choice) > input:focus-visible {
     outline: 2px solid var(--ui-accent);
     outline-offset: 2px;
+  }
+
+  /* appearance: none takes the browser's own disabled look away, so the
+     controls and their rows draw it here. */
+  .ui-check:disabled,
+  :is(.ui-toggle-row, .ui-choice):has(> input:disabled) {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  :is(.ui-toggle-row, .ui-choice) > input:disabled { cursor: not-allowed; }
+
+  /* Hover draws a ring instead of changing the fill or opacity, either of
+     which would take the label below its contrast floor on some hosts. */
+  .ui-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ui-space-2);
+    box-sizing: border-box;
+    min-block-size: var(--ui-control-height);
+    margin: 0;
+    padding: var(--ui-space-1) var(--ui-space-3);
+    font: inherit;
+    font-size: var(--ui-text-sm);
+    font-weight: var(--ui-label-weight);
+    color: var(--ui-text);
+    text-decoration: none;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    transition: box-shadow var(--ui-duration-fast), color var(--ui-duration-fast);
+  }
+  .ui-button-primary {
+    color: var(--ui-on-accent);
+    background: var(--ui-accent);
+    border-color: var(--ui-accent);
+  }
+  .ui-button-danger {
+    color: var(--ui-danger);
+    border-color: var(--ui-danger);
+  }
+  .ui-button-quiet {
+    color: var(--ui-muted);
+    border-color: transparent;
+  }
+  .ui-button:where(:not(:disabled, [aria-disabled="true"])):hover {
+    box-shadow: inset 0 0 0 1px currentColor;
+  }
+  .ui-button-quiet:where(:not(:disabled, [aria-disabled="true"])):hover {
+    color: var(--ui-text);
+    box-shadow: none;
+  }
+  .ui-button:focus-visible {
+    outline: 2px solid var(--ui-accent);
+    outline-offset: 2px;
+  }
+  /* A link has no disabled state of its own, so it takes aria-disabled and
+     loses its href. */
+  .ui-button:is(:disabled, [aria-disabled="true"]) {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* display sits on [open] alone, because a display on .ui-dialog would show
+     a closed dialog. overflow stays hidden so the corners clip the scrolling
+     body, which is why a popover inside has to be position: fixed. */
+  .ui-dialog {
+    box-sizing: border-box;
+    inline-size: var(--ui-dialog-width);
+    max-inline-size: calc(100% - 2 * var(--ui-space-4));
+    max-block-size: calc(100% - 2 * var(--ui-space-4));
+    margin: auto;
+    padding: 0;
+    overflow: hidden;
+    color: var(--ui-text);
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-lg);
+    box-shadow: var(--ui-shadow);
+  }
+  .ui-dialog[open] {
+    display: flex;
+    flex-direction: column;
+    animation: ui-dialog-in var(--ui-duration-fast) ease-out;
+  }
+  /* Before Chrome 122 and Firefox 120 ::backdrop inherits no custom
+     properties, so the colour needs a fallback. A missing duration only drops
+     the fade. */
+  .ui-dialog::backdrop {
+    background: var(--ui-backdrop, rgb(0 0 0 / 50%));
+    animation: ui-dialog-backdrop-in var(--ui-duration-fast) ease-out;
+  }
+  /* No @starting-style, which is newer than the oldest browser a host
+     supports. Keyframes run when display leaves none, and leave no transform
+     behind that would capture a fixed popover. */
+  @keyframes ui-dialog-in {
+    from { opacity: 0; transform: translateY(var(--ui-space-2)); }
+  }
+  @keyframes ui-dialog-backdrop-in {
+    from { opacity: 0; }
+  }
+  /* showModal() leaves the page behind scrollable. Its own rule, because a
+     browser without :has or :modal drops the whole rule, and there the page
+     only scrolls behind the dialog. */
+  :root:has(.ui-dialog:modal) { overflow: hidden; }
+  .ui-dialog > form { display: contents; }
+  .ui-dialog-head {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-3);
+    padding: var(--ui-space-2) var(--ui-space-4);
+    border-block-end: 1px solid var(--ui-border);
+  }
+  .ui-dialog-title {
+    min-inline-size: 0;
+    margin: 0;
+    font-size: var(--ui-text-md);
+    font-weight: var(--ui-label-weight);
+    overflow-wrap: anywhere;
+  }
+  /* Sits on a .ui-button-quiet, so it keeps that block's states. */
+  .ui-dialog-close {
+    flex: none;
+    inline-size: var(--ui-control-height);
+    padding: 0;
+  }
+  .ui-dialog-body {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    padding: var(--ui-space-4);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .ui-dialog-actions {
+    display: flex;
+    flex: none;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--ui-space-2);
+    padding: var(--ui-space-3) var(--ui-space-4);
+    border-block-start: 1px solid var(--ui-border);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ui-button { transition: none; }
+    .ui-dialog[open],
+    .ui-dialog::backdrop { animation: none; }
+    .ui-toggle-row > input[type="checkbox"],
+    .ui-toggle-row > input[type="checkbox"]::after { transition: none; }
+  }
+
+  /* Forced colours replace every background, which would leave the switch
+     thumb and the checked fill invisible, so these two controls opt out and
+     draw their states in system colours instead. */
+  @media (forced-colors: active) {
+    .ui-check,
+    .ui-toggle-row > input[type="checkbox"] {
+      forced-color-adjust: none;
+      background: Canvas;
+      border-color: CanvasText;
+    }
+    .ui-toggle-row > input[type="checkbox"]::after { background: CanvasText; }
+    .ui-check:checked,
+    .ui-toggle-row > input[type="checkbox"]:checked {
+      background: Highlight;
+      border-color: Highlight;
+    }
+    .ui-check:checked::after { border-color: HighlightText; }
+    .ui-toggle-row > input[type="checkbox"]:checked::after { background: HighlightText; }
+    .ui-check:disabled,
+    .ui-toggle-row > input[type="checkbox"]:disabled { border-color: GrayText; }
+    .ui-toggle-row > input[type="checkbox"]:disabled::after { background: GrayText; }
+    .ui-check:checked:disabled,
+    .ui-toggle-row > input[type="checkbox"]:checked:disabled { background: GrayText; }
+    .ui-toggle-row > input[type="checkbox"]:checked:disabled::after { background: Canvas; }
+    :is(.ui-check, .ui-toggle-row > input[type="checkbox"]):focus-visible { outline-color: Highlight; }
+    /* Forced colours drop box-shadow, which is all a hover draws. */
+    .ui-button:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: Highlight; }
   }
 }

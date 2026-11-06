@@ -2474,114 +2474,37 @@
     .star-rating .star-clear:hover { color: var(--text); }
     .star-rating[data-value=""] .star-clear { visibility: hidden; }
 
-    /* Modal */
-    /* 100vh counts the space behind a phone browser's toolbar, which ran tall
-       modals down to the bottom edge of the screen. */
-    .modal-backdrop { --modal-room: 100vh; }
-    @supports (height: 100dvh) { .modal-backdrop { --modal-room: 100dvh; } }
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: var(--backdrop);
-      z-index: 2000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-      animation: modal-backdrop-in 120ms ease-out;
-    }
-    .modal-backdrop > .modal { animation: modal-in 140ms ease-out; }
-    .modal-backdrop.closing { animation: modal-backdrop-out 100ms ease-in forwards; pointer-events: none; }
-    .modal-backdrop.closing > .modal { animation: modal-out 100ms ease-in forwards; }
-    @keyframes modal-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes modal-backdrop-out { to { opacity: 0; } }
-    @keyframes modal-in {
-      from { opacity: 0; transform: scale(0.96); }
-      to { opacity: 1; transform: none; }
-    }
-    @keyframes modal-out {
-      to { opacity: 0; transform: scale(0.97); }
-    }
-    .modal [data-panel]:not([hidden]) { animation: tab-fade-in 160ms ease-out; }
-    @keyframes tab-fade-in {
-      from { opacity: 0; transform: translateY(2px); }
-      to { opacity: 1; transform: none; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .modal-backdrop, .modal-backdrop > .modal,
-      .modal-backdrop.closing, .modal-backdrop.closing > .modal,
-      .modal [data-panel]:not([hidden]) { animation: none !important; transition: none !important; }
-    }
-    .modal {
-      position: relative;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      width: 100%;
-      max-width: 440px;
-      max-height: calc(var(--modal-room) - 2rem);
-      overflow-y: auto;
-      padding: 1.25rem 1.5rem;
-      box-shadow: 0 10px 40px var(--shadow);
-    }
-    .modal .modal-close-floating {
-      position: absolute;
-      top: 1.25rem;
-      right: 1.5rem;
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      font-size: 1.2rem;
-      line-height: 1;
-      cursor: pointer;
-      padding: 0.2rem;
-      z-index: 1;
-    }
-    .modal .modal-close-floating:hover { color: var(--text); }
-    .modal h2 {
-      font-size: 0.95rem;
-      font-weight: 400;
-      letter-spacing: 0.05em;
-      color: var(--text);
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .modal h2 .modal-close {
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      font-size: 1.2rem;
-      cursor: pointer;
-      line-height: 1;
-      padding: 0.2rem;
-    }
-    .modal h2 .modal-close:hover { color: var(--text); }
-    .modal-tabs {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 1rem;
-    }
-    .modal-backdrop:has(#settings-tabs),
-    .modal-backdrop:has(#cat-rows),
-    .modal-backdrop:has(#cat-list),
-    .modal-backdrop:has(#cat-mgr-list),
-    .modal-backdrop:has(#browse-list),
-    .modal-backdrop:has(#catalog-bulk-list),
-    .modal-backdrop:has(#rgn-rows) { align-items: flex-start; padding-top: 3rem; padding-bottom: 3rem; }
-    .modal-backdrop:has(#settings-tabs) .modal { max-height: calc(var(--modal-room) - 6rem); }
+    /* Modal: a ui.css dialog. The shell, head, body and action row come
+       from ui.css; these rules size particular modals and fit Ferd's own
+       content into them. */
+    .modal.narrow-dialog { --ui-dialog-width: 380px; }
+    .modal .ui-dialog-title { letter-spacing: 0.05em; }
+    .modal .ui-dialog-actions { align-items: center; }
+    .modal .action-spacer { flex: 1; }
+    .modal .modal-title-count { color: var(--muted); margin-left: 0.4rem; }
+    /* The Add modal's tabs are its head. */
+    .modal .ui-dialog-head > .modal-tabs { flex: 1; min-width: 0; margin: 0 0 calc(-1 * var(--ui-space-2) - 1px); border-bottom: 0; }
 
-    /* Bulk catalog-update review: fills the modal like Settings, with the list
-       scrolling internally so the title and action row stay pinned. */
-    .modal-backdrop:has(#catalog-bulk-list) .modal {
-      max-height: calc(var(--modal-room) - 6rem);
-      display: flex; flex-direction: column; overflow: hidden;
+    /* Tall modals keep 3rem clear above and below. The insets size the dialog
+       to the visible screen, where 100vh would count the space behind a phone
+       browser's toolbar. Settings, Add and the catalog lists also fill that
+       height, so switching a tab or filtering moves no edge. */
+    .modal:is(:has(#settings-tabs), :has(#add-tabs), :has(#add-body), :has(#cat-rows), :has(#rgn-rows),
+              :has(#cat-list), :has(#cat-mgr-list), :has(#catalog-bulk-list)) { inset-block: 3rem; }
+    .modal:is(:has(#settings-tabs), :has(#add-tabs), :has(#cat-list), :has(#cat-mgr-list)) { block-size: auto; }
+    /* A list scrolls inside the body, so the filter or form above it stays put. */
+    .modal .ui-dialog-body:has(> :is(#cat-rows, #rgn-rows, #cat-list, #cat-mgr-list, #catalog-bulk-list)) {
+      display: flex;
+      flex-direction: column;
     }
-    /* Scrollbar flush to the modal's right edge (cancel the 1.5rem modal
-       padding, then re-add it inside) so content stays symmetric, matching the
-       Manage categories list. */
-    #catalog-bulk-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-top: 0.5rem; margin-right: -1.5rem; padding-right: 1.5rem; scrollbar-gutter: stable; }
+    .modal .ui-dialog-body > :is(#cat-rows, #rgn-rows, #cat-list, #cat-mgr-list, #catalog-bulk-list) {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: none;
+      overflow-y: auto;
+      scrollbar-gutter: stable;
+    }
+    #catalog-bulk-list { margin-top: 0.5rem; }
     .catalog-bulk-place { margin-bottom: 1rem; }
     .catalog-bulk-place:last-child { margin-bottom: 0; }
 
@@ -2590,24 +2513,34 @@
     .filter-dropdown .filter-btn.catalog-update-chip { border-color: var(--accent); color: var(--accent); }
     /* Desktop-only chip; on phones the action moves into the Menu instead. */
     @media (max-width: 600px) { .catalog-update-chip-wrap { display: none; } }
-    .modal-backdrop:has(#cat-rows) .modal,
-    .modal-backdrop:has(#rgn-rows) .modal { display: flex; flex-direction: column; max-height: calc(var(--modal-room) - 6rem); }
-    .modal-backdrop:has(#cat-rows) #cat-rows,
-    .modal-backdrop:has(#rgn-rows) #rgn-rows { flex: 1; min-height: 0; overflow-y: auto; margin-right: -1.5rem; padding-right: 1.5rem; scrollbar-gutter: stable; }
-    /* For the catalog list/manager: fixed height (not just max) so the modal
-       always takes the same tall area instead of shrinking with content. The
-       list flex-grows to fill the available space. */
-    .modal-backdrop:has(#cat-list) .modal,
-    .modal-backdrop:has(#cat-mgr-list) .modal { display: flex; flex-direction: column; height: calc(var(--modal-room) - 6rem); }
-    .modal-backdrop:has(#cat-list) #cat-list,
-    .modal-backdrop:has(#cat-mgr-list) #cat-mgr-list { flex: 1; min-height: 0; max-height: none; }
-    .modal-backdrop:has(#cat-list) #cat-list,
-    .modal-backdrop:has(#cat-mgr-list) #cat-mgr-list { flex: 1; min-height: 0; max-height: none; }
-    /* Pin the Add modal to the top so switching Place <-> Route (different
-       form heights) doesn't shift the modal vertically. The body itself
-       animates height between renders. */
-    .modal-backdrop:has(#add-tabs) { align-items: flex-start; padding-top: 4rem; padding-bottom: 4rem; }
-    .modal-backdrop:has(#add-tabs) .modal { max-height: calc(var(--modal-room) - 8rem); scrollbar-gutter: stable; }
+    .modal [data-panel]:not([hidden]) { animation: tab-fade-in 160ms ease-out; }
+    @keyframes tab-fade-in {
+      from { opacity: 0; transform: translateY(2px); }
+      to { opacity: 1; transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .modal [data-panel]:not([hidden]) { animation: none !important; transition: none !important; }
+    }
+    /* The sign-in page draws its form as a card, outside any dialog. */
+    .signin-page .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      padding: 1.25rem 1.5rem;
+    }
+    .signin-page .modal h2 {
+      font-size: 0.95rem;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+    .modal-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1rem;
+    }
     #add-body { overflow: hidden; transition: height 0.25s ease; }
     .modal .modal-desc { font-size: 0.85rem; color: var(--text); margin-top: 0.4rem; }
     .modal .confirm-row { align-items: center; display: flex; gap: 0.75rem; margin-top: 0.75rem; }
@@ -3203,8 +3136,13 @@
       --ui-control-surface: var(--surface2);
       --ui-border:  var(--control-border);
       --ui-accent:  var(--accent);
+      --ui-on-accent: var(--fab-text);
       --ui-danger:  var(--danger);
       --ui-radius:  var(--radius);
+      --ui-radius-lg: var(--radius);
+      --ui-backdrop: var(--backdrop);
+      --ui-shadow:  0 10px 40px var(--shadow);
+      --ui-dialog-width: 440px;
       --ui-text-xs: 0.7rem;
       --ui-text-sm: 0.8rem;
       --ui-text-weight: 300;
@@ -6829,7 +6767,7 @@
       // scrollIntoView would pan the whole page, map included, since a modal
       // is fixed to the viewport. Only the modal's own scroll moves here.
       const lift = () => {
-        const modal = input.closest('.modal');
+        const modal = input.closest('.ui-dialog-body');
         modal.scrollTop += input.getBoundingClientRect().top - modal.getBoundingClientRect().top - 40;
       };
       input.addEventListener('focus', () => { if (_selectCoarsePointer) lift(); });
@@ -7088,10 +7026,10 @@
           areaLocalNameHtml('ea', area.local_name) +
           areaFieldsHtml('ea', area) +
           modalErrorHtml('edit-area-error') +
-          '<div class="modal-actions">' +
-            '<button type="button" class="session-revoke" id="ea-delete">Delete</button>' +
-            '<span style="flex:1"></span>' +
-            '<button type="submit" class="primary" id="ea-submit">Save</button>' +
+          '<div class="ui-dialog-actions">' +
+            '<button type="button" class="ui-button ui-button-danger" id="ea-delete">Delete</button>' +
+            '<span class="action-spacer"></span>' +
+            '<button type="submit" class="ui-button ui-button-primary" id="ea-submit">Save</button>' +
           '</div>' +
         '</form>',
         function() {
@@ -7280,10 +7218,10 @@
             '</div>'
           : '') +
           modalErrorHtml('tm-error') +
-          '<div class="modal-actions">' +
-            '<button type="button" class="session-revoke" id="tm-delete">Delete</button>' +
-            '<span style="flex:1"></span>' +
-            '<button type="submit" class="primary" id="tm-submit">Save</button>' +
+          '<div class="ui-dialog-actions">' +
+            '<button type="button" class="ui-button ui-button-danger" id="tm-delete">Delete</button>' +
+            '<span class="action-spacer"></span>' +
+            '<button type="submit" class="ui-button ui-button-primary" id="tm-submit">Save</button>' +
           '</div>' +
         '</form>',
         function() {
@@ -8043,10 +7981,10 @@
             '</div>'
           : '') +
           modalErrorHtml('edit-error') +
-          '<div class="modal-actions">' +
-            '<button type="button" class="session-revoke" id="e-delete">Delete</button>' +
-            '<span style="flex:1"></span>' +
-            '<button type="submit" class="primary" id="e-submit">Save</button>' +
+          '<div class="ui-dialog-actions">' +
+            '<button type="button" class="ui-button ui-button-danger" id="e-delete">Delete</button>' +
+            '<span class="action-spacer"></span>' +
+            '<button type="submit" class="ui-button ui-button-primary" id="e-submit">Save</button>' +
           '</div>' +
         '</form>',
         function() {
@@ -9274,9 +9212,10 @@
       openModal(
         modalHeaderHtml('Catalog updates (' + pending.length + ')') +
         '<div id="catalog-bulk-list">' + sections + '</div>' +
-        '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
-          '<button type="button" class="primary" id="catalog-bulk-toggle-all">Check all</button>' +
-          '<button type="button" class="primary" id="catalog-bulk-apply" style="margin-left:auto" disabled>Apply</button>' +
+        '<div class="ui-dialog-actions">' +
+          '<button type="button" class="ui-button" id="catalog-bulk-toggle-all">Check all</button>' +
+          '<span class="action-spacer"></span>' +
+          '<button type="button" class="ui-button ui-button-primary" id="catalog-bulk-apply" disabled>Apply</button>' +
         '</div>',
         function(backdrop) {
           const list = document.getElementById('catalog-bulk-list');
@@ -9372,9 +9311,10 @@
       openModal(
         modalHeaderHtml('Update from catalog') +
         renderCatalogDiff(changes, { selectable: true, place, entry }) +
-        '<div class="modal-actions">' +
-          '<button type="button" class="primary" id="catalog-update-skip" style="margin-right:auto">Keep all</button>' +
-          '<button type="button" class="primary" id="catalog-update-confirm">' +
+        '<div class="ui-dialog-actions">' +
+          '<button type="button" class="ui-button ui-button-primary" id="catalog-update-skip">Keep all</button>' +
+          '<span class="action-spacer"></span>' +
+          '<button type="button" class="ui-button ui-button-primary" id="catalog-update-confirm">' +
             '<span class="lbl-default">Apply all</span>' +
             '<span class="lbl-alt">Apply</span>' +
           '</button>' +
@@ -9391,9 +9331,9 @@
           }
           function syncButtons() {
             const any = selectedFields().size > 0;
-            applyBtn.classList.add('primary');
+            applyBtn.classList.add('ui-button-primary');
             applyBtn.classList.toggle('has-selection', any);
-            skipBtn.classList.toggle('primary', !any);
+            skipBtn.classList.toggle('ui-button-primary', !any);
             skipBtn.disabled = any;
           }
           backdrop.querySelectorAll('.catalog-diff-check').forEach(cb => cb.addEventListener('change', syncButtons));
@@ -11484,8 +11424,7 @@
           '</div>' +
         '</div>',
         function(backdrop) {
-          const modal = backdrop.querySelector('.modal');
-          if (modal) modal.style.maxWidth = '380px';
+          backdrop.classList.add('narrow-dialog');
         }
       );
     }
@@ -12366,9 +12305,10 @@
         '<h3 class="settings-h" style="margin-top:1.25rem;display:flex;align-items:baseline;gap:0.6rem">Categories' +
           '<span id="cat-clear-warning" class="action-warning" style="margin-left:auto;text-align:right" hidden></span></h3>' +
         '<div id="cat-rows"></div>' +
-        '<div class="modal-actions" style="margin-top:1rem;display:flex;align-items:center;gap:0.6rem">' +
-          '<button type="button" class="row-notes-toggle" id="cat-reset-colors" style="margin-right:auto">Reset colors</button>' +
-          '<button type="button" class="primary" id="cat-save" hidden>Save</button>' +
+        '<div class="ui-dialog-actions">' +
+          '<button type="button" class="ui-button ui-button-quiet" id="cat-reset-colors">Reset colors</button>' +
+          '<span class="action-spacer"></span>' +
+          '<span id="cat-save-slot" hidden><button type="button" class="ui-button ui-button-primary" id="cat-save">Save</button></span>' +
         '</div>',
         function() {
           const inUse = new Set(slugsFromPlaces);
@@ -12389,8 +12329,9 @@
           }
           let openSwatchIdx = -1;
           function refreshSaveBtn() {
-            const btn = document.getElementById('cat-save');
-            if (btn) btn.hidden = !hasChanges();
+            // The slot hides it: .ui-button's display beats the hidden attribute.
+            const slot = document.getElementById('cat-save-slot');
+            if (slot) slot.hidden = !hasChanges();
           }
           function refreshClearWarning() {
             const banner = document.getElementById('cat-clear-warning');
@@ -12729,8 +12670,8 @@
         '<div id="rgn-rows"></div>' +
         '<div id="rgn-empty" class="hint" hidden>No regions yet. Upload a route with a region to create one.</div>' +
         modalErrorHtml('rgn-error') +
-        '<div class="modal-actions" style="margin-top:1rem">' +
-          '<button type="button" class="primary" id="rgn-save" hidden>Save</button>' +
+        '<div class="ui-dialog-actions">' +
+          '<span id="rgn-save-slot" hidden><button type="button" class="ui-button ui-button-primary" id="rgn-save">Save</button></span>' +
         '</div>',
         function() {
           function hasChanges() {
@@ -12739,8 +12680,9 @@
             return false;
           }
           function refreshSaveBtn() {
-            const btn = document.getElementById('rgn-save');
-            if (btn) btn.hidden = !hasChanges();
+            // The slot hides it: .ui-button's display beats the hidden attribute.
+            const slot = document.getElementById('rgn-save-slot');
+            if (slot) slot.hidden = !hasChanges();
           }
           function refreshClearWarning() {
             const banner = document.getElementById('rgn-clear-warning');
@@ -13197,13 +13139,13 @@
 
     function openCatalogManager() {
       openModal(
-        modalHeaderHtml(null, {floating:true}) +
-        '<h2><span>Manage catalog<span id="cat-mgr-count" style="color:var(--muted);font-weight:400;margin-left:0.4rem"></span></span></h2>' +
+        modalHeaderHtml(null, {titleHtml: 'Manage catalog<span id="cat-mgr-count" class="modal-title-count"></span>'}) +
         '<input type="text" id="cat-mgr-filter" placeholder="Filter…" style="margin-bottom:0.5rem">' +
-        '<div id="cat-mgr-list" style="overflow-y:auto"></div>' +
-        '<div class="log-toolbar" style="justify-content:space-between">' +
-          '<button type="button" class="row-notes-toggle" id="cat-mgr-notes-toggle">Show notes</button>' +
-          '<button type="button" id="cat-mgr-clear" class="danger-btn">Remove all</button>' +
+        '<div id="cat-mgr-list"></div>' +
+        '<div class="ui-dialog-actions">' +
+          '<button type="button" class="ui-button ui-button-quiet" id="cat-mgr-notes-toggle">Show notes</button>' +
+          '<span class="action-spacer"></span>' +
+          '<button type="button" id="cat-mgr-clear" class="ui-button ui-button-danger">Remove all</button>' +
         '</div>',
         function() {
           const filter = document.getElementById('cat-mgr-filter');
@@ -13347,16 +13289,15 @@
         '</label>';
       }).join('');
       openModal(
-        modalHeaderHtml(null, {floating:true}) +
-        '<h2>Add to catalog</h2>' +
+        modalHeaderHtml('Add to catalog') +
         '<input type="text" id="cat-filter" placeholder="Filter…" style="margin-bottom:0.5rem">' +
-        '<div id="cat-list" style="overflow-y:auto">' + rows + '</div>' +
+        '<div id="cat-list">' + rows + '</div>' +
         modalErrorHtml('add-error') +
-        '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
-          '<button type="button" class="row-notes-toggle" id="cat-notes-toggle">Show notes</button>' +
+        '<div class="ui-dialog-actions">' +
+          '<button type="button" class="ui-button ui-button-quiet" id="cat-notes-toggle">Show notes</button>' +
           '<span id="cat-status" style="font-size:0.75rem;color:var(--muted);flex:1"></span>' +
-          '<button type="button" id="cat-select-all">Select all</button>' +
-          '<button type="button" class="primary" id="cat-submit" disabled>Add selected</button>' +
+          '<button type="button" class="ui-button" id="cat-select-all">Select all</button>' +
+          '<button type="button" class="ui-button ui-button-primary" id="cat-submit" disabled>Add selected</button>' +
         '</div>',
         function() {
           const filter = document.getElementById('cat-filter');
@@ -13599,7 +13540,7 @@
         });
         menu.appendChild(btn);
       }
-      document.body.appendChild(menu);
+      popoverHost().appendChild(menu);
       // Clamp to viewport (measure after mount).
       const vw = window.innerWidth;
       const vh = window.innerHeight;
@@ -13819,7 +13760,7 @@
         pop.appendChild(el);
         optEls.push(el);
       });
-      document.body.appendChild(pop);
+      popoverHost().appendChild(pop);
       positionSelectPopover(pop, anchor);
       if (optEls[0]) optEls[0].classList.add('active');
       anchor.setAttribute('aria-expanded', 'true');
@@ -13872,7 +13813,7 @@
         optEls.push(el);
       });
 
-      document.body.appendChild(pop);
+      popoverHost().appendChild(pop);
       positionSelectPopover(pop, sel);
 
       optEls[activeIdx()].classList.add('active');
@@ -13904,14 +13845,19 @@
       armSelectPopover(pop, sel, onKey);
     }
 
-    // Standard modal title row: <h2>Title + close X</h2>. With {floating:true}
-    // returns just the corner close button used by modals whose tabs sit at the
-    // top (Add, catalog manager/picker). Title is escaped (all callers pass
-    // literals today; this keeps it safe if a dynamic one appears).
+    // Every modal's head row: the title, or the Add modal's tabs, and the
+    // close button. The title is escaped; opts.titleHtml is markup for a title
+    // that carries more than text (the catalog manager's count).
     function modalHeaderHtml(title, opts) {
-      if (opts && opts.floating) return '<button class="modal-close modal-close-floating" aria-label="Close">&times;</button>';
-      return '<h2>' + escapeHtml(title) + '<button class="modal-close">&times;</button></h2>';
+      const o = opts || {};
+      const lead = o.tabsHtml
+        ? o.tabsHtml
+        : '<h2 class="ui-dialog-title">' + (o.titleHtml != null ? o.titleHtml : escapeHtml(title)) + '</h2>';
+      return '<div class="ui-dialog-head">' + lead +
+        '<button type="button" class="ui-button ui-button-quiet ui-dialog-close modal-close" aria-label="Close">&times;</button>' +
+      '</div>';
     }
+
     // The empty error box every form modal toggles via `.visible`.
     function modalErrorHtml(id) {
       return '<div class="modal-error" id="' + id + '"></div>';
@@ -13949,11 +13895,10 @@
           modalHeaderHtml(title) +
           '<div class="confirm-row">' +
             (body ? '<div class="modal-desc">' + escapeHtml(body) + '</div>' : '') +
-            '<button type="button" class="' + (danger ? 'danger-btn' : 'primary') + '" data-role="ok">' + escapeHtml(confirmLabel || 'Confirm') + '</button>' +
+            '<button type="button" class="ui-button ' + (danger ? 'ui-button-danger' : 'ui-button-primary') + '" data-role="ok">' + escapeHtml(confirmLabel || 'Confirm') + '</button>' +
           '</div>';
         openModal(html, backdrop => {
-          const modal = backdrop.querySelector('.modal');
-          if (modal) modal.style.maxWidth = '380px';
+          backdrop.classList.add('narrow-dialog');
           backdrop.querySelector('[data-role="ok"]').addEventListener('click', () => finish(true));
           // Enter to confirm: only while this confirm is the topmost modal.
           onEnter = e => {
@@ -14005,51 +13950,89 @@
     }
 
     // ----- Modal infrastructure -----
-    // Modals form a stack: each open call appends a new backdrop, each close
-    // removes the topmost. This avoids the race that the innerHTML-replace
-    // approach had (closeModal in-flight while openModal mounts the next one)
-    // and lets confirm dialogs sit on top of an existing modal without
-    // wiping its listeners.
-    const MODAL_CLOSE_MS = 100;
+    // Each modal is a ui.css dialog opened with showModal(), so the browser
+    // puts it in the top layer and makes the page behind it inert. Modals form
+    // a stack: each open call appends a dialog, each close removes the
+    // topmost, which lets a confirm sit on top of an open modal without wiping
+    // its listeners.
     const modalStack = [];
+
+    // A dialog is a head, a body that scrolls and an action row that stays in
+    // view. The markup gives the head (modalHeaderHtml) and the action row
+    // (.ui-dialog-actions, last); everything between them goes into the body
+    // here. When that is a single <form>, the body goes inside it, so the
+    // submit button stays in the form.
+    function wrapDialogBody(dialog) {
+      const rest = [...dialog.children].filter(c => !c.classList.contains('ui-dialog-head'));
+      const box = rest.length === 1 && rest[0].tagName === 'FORM' ? rest[0] : dialog;
+      const body = document.createElement('div');
+      body.className = 'ui-dialog-body';
+      const last = box.lastElementChild;
+      const actions = last && last.classList.contains('ui-dialog-actions') ? last : null;
+      [...box.childNodes].forEach(n => {
+        if (n === actions || (n.classList && n.classList.contains('ui-dialog-head'))) return;
+        body.appendChild(n);
+      });
+      box.insertBefore(body, actions);
+    }
 
     function openModal(html, onMount, onClose) {
       const root = document.getElementById('modal-root');
-      const wrap = document.createElement('div');
-      wrap.innerHTML = '<div class="modal-backdrop"><div class="modal">' + html + '</div></div>';
-      const backdrop = wrap.firstElementChild;
-      // Each modal lives a notch above the one below it so stacking is
-      // explicit (the .modal-backdrop CSS rule has z-index: 2000).
-      backdrop.style.zIndex = 2000 + modalStack.length * 10;
-      root.appendChild(backdrop);
-      const entry = { backdrop, onClose: null };
-      // Default close behavior: tear down this backdrop. onClose overrides
+      const dialog = document.createElement('dialog');
+      dialog.className = 'ui-dialog modal';
+      dialog.innerHTML = html;
+      wrapDialogBody(dialog);
+      root.appendChild(dialog);
+      const entry = { backdrop: dialog, onClose: null };
+      // Default close behavior: tear down this dialog. onClose overrides
       // run instead and may call closeModal()/closeTopModal() themselves.
       entry.onClose = onClose
         ? () => onClose()
         : () => closeTopModal();
       modalStack.push(entry);
-      backdrop.addEventListener('click', e => { if (e.target === backdrop) entry.onClose(); });
-      backdrop.querySelectorAll('.modal-close').forEach(el => el.addEventListener('click', () => entry.onClose()));
+      // A press on the backdrop lands on the dialog itself, since its head,
+      // body and actions fill it.
+      dialog.addEventListener('click', e => { if (e.target === dialog) entry.onClose(); });
+      dialog.querySelectorAll('.modal-close').forEach(el => el.addEventListener('click', () => entry.onClose()));
+      // Escape is handled on keydown (escClose), where preventDefault keeps the
+      // browser from closing the dialog itself. Any other close request, such
+      // as Android's back gesture, arrives as cancel.
+      dialog.addEventListener('cancel', e => { e.preventDefault(); entry.onClose(); });
+      // A close request the page could not cancel still closes the dialog;
+      // drop it from the stack so the next close takes the right one.
+      dialog.addEventListener('close', () => {
+        const i = modalStack.indexOf(entry);
+        if (i === -1) return;
+        modalStack.splice(i, 1);
+        dialog.remove();
+        if (modalStack.length === 0) document.removeEventListener('keydown', escClose);
+      });
       if (modalStack.length === 1) document.addEventListener('keydown', escClose);
-      if (onMount) onMount(backdrop);
-      enhanceSelectsIn(backdrop);
-      return backdrop;
+      // Open before onMount, which measures and focuses inside the dialog.
+      dialog.showModal();
+      if (onMount) onMount(dialog);
+      enhanceSelectsIn(dialog);
+      return dialog;
     }
 
     function closeTopModal() {
       closeSelectPopover();
       const entry = modalStack.pop();
       if (!entry) return;
-      entry.backdrop.classList.add('closing');
-      setTimeout(() => {
-        if (entry.backdrop.parentElement) entry.backdrop.parentElement.removeChild(entry.backdrop);
-      }, MODAL_CLOSE_MS);
       if (modalStack.length === 0) document.removeEventListener('keydown', escClose);
+      if (entry.backdrop.open) entry.backdrop.close();
+      entry.backdrop.remove();
     }
 
     // Public alias preserved for the many callers in this file.
     function closeModal() { closeTopModal(); }
+
+    // Popovers and menus opened from a modal mount inside it, because the top
+    // layer covers everything outside the open dialog.
+    function popoverHost() {
+      const top = modalStack[modalStack.length - 1];
+      return top ? top.backdrop : document.body;
+    }
 
     // A phone keyboard covers the page without resizing it, which leaves a
     // modal's scroll end behind the keys. Capping modals at the part still
@@ -14059,22 +14042,20 @@
       const vv = window.visualViewport;
       // A pinch also shrinks the visual viewport, but only a keyboard does so at scale 1.
       const covered = vv.scale < 1.01 && document.documentElement.clientHeight - vv.height > 120;
-      document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-        const modal = backdrop.querySelector('.modal');
-        if (!modal) return;
+      modalStack.forEach(({ backdrop: dialog }) => {
         if (!covered) {
-          ['top', 'bottom', 'height', 'alignItems', 'paddingTop'].forEach(p => { backdrop.style[p] = ''; });
-          modal.style.maxHeight = '';
+          ['top', 'bottom', 'marginTop', 'maxHeight'].forEach(prop => { dialog.style[prop] = ''; });
+          delete dialog.dataset.keyboardTop;
           return;
         }
-        if (!backdrop.style.height) {
-          backdrop.style.paddingTop = Math.min(modal.getBoundingClientRect().top, 64) + 'px';
-          backdrop.style.alignItems = 'flex-start';
-          backdrop.style.bottom = 'auto';
+        if (!dialog.dataset.keyboardTop) {
+          dialog.dataset.keyboardTop = Math.min(dialog.getBoundingClientRect().top, 64);
         }
-        backdrop.style.top = vv.offsetTop + 'px';
-        backdrop.style.height = vv.height + 'px';
-        modal.style.maxHeight = 'calc(' + vv.height + 'px - ' + backdrop.style.paddingTop + ' - 0.5rem)';
+        const gap = Number(dialog.dataset.keyboardTop);
+        dialog.style.top = (vv.offsetTop + gap) + 'px';
+        dialog.style.bottom = 'auto';
+        dialog.style.marginTop = '0';
+        dialog.style.maxHeight = (vv.height - gap - 8) + 'px';
       });
     }
     if (window.visualViewport) {
@@ -14085,7 +14066,9 @@
     function escClose(e) {
       if (e.key !== 'Escape') return;
       const top = modalStack[modalStack.length - 1];
-      if (top) top.onClose();
+      if (!top) return;
+      e.preventDefault();
+      top.onClose();
     }
     function showModalError(msg) {
       const el = document.querySelector('.modal-error');
@@ -14095,9 +14078,9 @@
     // ----- Sign-in / register modal -----
     function signInFormHtml(includeClose) {
       const canRegister = state.auth.registration_open;
-      return '<h2><span id="modal-title">Sign in</span>' +
-          (includeClose ? '<button class="modal-close">&times;</button>' : '') +
-        '</h2>' +
+      return (includeClose
+          ? modalHeaderHtml(null, {titleHtml: '<span id="modal-title">Sign in</span>'})
+          : '<h2><span id="modal-title">Sign in</span></h2>') +
         (canRegister
           ? '<div class="modal-tabs" id="auth-tabs">' +
               '<button data-mode="login" class="active">Sign in</button>' +
@@ -14116,8 +14099,8 @@
           '</div>' +
           '<div class="hint" id="auth-hint"></div>' +
           modalErrorHtml('auth-error') +
-          '<div class="modal-actions">' +
-            '<button type="submit" class="primary" id="auth-submit">Sign in</button>' +
+          '<div class="' + (includeClose ? 'ui-dialog-actions' : 'modal-actions') + '">' +
+            '<button type="submit" class="ui-button ui-button-primary" id="auth-submit">Sign in</button>' +
           '</div>' +
         '</form>';
     }
@@ -14359,13 +14342,14 @@
       }
       let tab = tabs[0];
       const tabLabels = { place: 'Place', route: 'Route', area: 'Area', browse: 'Browse' };
+      // With one tab there is no tab row, so the head names the form instead.
+      const singleTabTitle = 'Add ' + tabLabels[tab].toLowerCase();
       openModal(
-        modalHeaderHtml(null, {floating:true}) +
-        (tabs.length > 1 ?
+        modalHeaderHtml(singleTabTitle, {tabsHtml: tabs.length > 1 ?
           '<div class="modal-tabs" id="add-tabs">' +
             tabs.map(t => '<button data-tab="' + t + '"' + (t === tab ? ' class="active"' : '') + '>' + tabLabels[t] + '</button>').join('') +
           '</div>'
-          : '') +
+          : ''}) +
         '<div id="add-body"></div>',
         function() {
           document.querySelectorAll('#add-tabs button[data-tab]').forEach(b => {
@@ -14486,7 +14470,7 @@
           '</div>' +
           modalErrorHtml('add-error') +
           '<div class="modal-actions">' +
-            '<button type="submit" class="primary" id="place-submit">Add place</button>' +
+            '<button type="submit" class="ui-button ui-button-primary" id="place-submit">Add place</button>' +
           '</div>' +
         '</form>';
       }
@@ -14543,7 +14527,7 @@
           '</div>' +
           modalErrorHtml('add-error') +
           '<div class="modal-actions">' +
-            '<button type="submit" class="primary" id="gpx-submit">Upload route</button>' +
+            '<button type="submit" class="ui-button ui-button-primary" id="gpx-submit">Upload route</button>' +
           '</div>' +
         '</form>';
       }
@@ -14665,7 +14649,7 @@
           '</div>' +
           modalErrorHtml('area-error') +
           '<div class="modal-actions">' +
-            '<button type="submit" class="primary" id="area-submit">Add area</button>' +
+            '<button type="submit" class="ui-button ui-button-primary" id="area-submit">Add area</button>' +
           '</div>' +
         '</form>';
       }
@@ -15087,9 +15071,10 @@
             '<div id="browse-list" style="max-height:50vh;overflow-y:auto">' + rows + '</div>' +
             modalErrorHtml('add-error') +
             '<div class="modal-actions" style="display:flex;align-items:center;gap:0.6rem">' +
-              '<button type="button" class="row-notes-toggle" id="browse-notes-toggle">Show notes</button>' +
-              '<button type="button" class="row-notes-toggle" id="browse-select-all">Select all</button>' +
-              '<button type="button" class="primary" id="browse-add" disabled style="margin-left:auto">Add selected</button>' +
+              '<button type="button" class="ui-button ui-button-quiet" id="browse-notes-toggle">Show notes</button>' +
+              '<button type="button" class="ui-button ui-button-quiet" id="browse-select-all">Select all</button>' +
+              '<span class="action-spacer"></span>' +
+              '<button type="button" class="ui-button ui-button-primary" id="browse-add" disabled>Add selected</button>' +
             '</div>';
 
           const searchInput = document.getElementById('browse-filter');

@@ -409,7 +409,7 @@
         "click": "#s-catalog-manage"
       },
       {
-        "wait": ".modal-backdrop + .modal-backdrop .modal"
+        "wait": ".modal h2:has-text(\"Manage catalog\")"
       }
     ]
   },
@@ -451,7 +451,7 @@
         "click": "#s-catalog-add"
       },
       {
-        "wait": ".modal-backdrop + .modal-backdrop .modal"
+        "wait": ".modal h2:has-text(\"Add to catalog\")"
       }
     ]
   },

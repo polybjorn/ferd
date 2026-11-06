@@ -319,7 +319,9 @@ class Shipping(unittest.TestCase):
 class ModalHeight(unittest.TestCase):
   def test_modals_size_to_the_visible_screen(self):
     self.assertNotRegex(INDEX, r"\.modal[^{}]*\{[^{}]*height: calc\(100vh")
-    self.assertIn("@supports (height: 100dvh) { .modal-backdrop { --modal-room: 100dvh; } }", INDEX)
+    # Insets on the fixed dialog follow the visible screen, where 100vh would
+    # count the space behind a phone browser's toolbar.
+    self.assertRegex(INDEX, r"\.modal:is\([^{}]*\) \{ inset-block: 3rem; \}")
 
 
 class AddForm(unittest.TestCase):
