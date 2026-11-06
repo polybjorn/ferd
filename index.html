@@ -5664,6 +5664,41 @@
       }
     }
 
+    // MAP-SCHEDULER-BEGIN
+    // Timers and animation frames scheduled against one map. Removing the map
+    // deletes its panes, after which Leaflet throws on any position read, so
+    // its 'unload' cancels everything still pending and refuses new work.
+    function mapScheduler(map) {
+      const timers = new Set(), frames = new Set();
+      let removed = false;
+      map.once('unload', function () {
+        removed = true;
+        timers.forEach(function (id) { clearTimeout(id); });
+        frames.forEach(function (id) { cancelAnimationFrame(id); });
+        timers.clear(); frames.clear();
+        // Leaflet 1.9 ends a zoom animation from an untracked 250ms timeout
+        // that only runs while this flag is set, so clearing it cancels that.
+        map._animatingZoom = false;
+      });
+      return {
+        timeout: function (fn, ms) {
+          if (removed) return 0;
+          const id = setTimeout(function () { timers.delete(id); fn(); }, ms);
+          timers.add(id);
+          return id;
+        },
+        clearTimeout: function (id) { timers.delete(id); clearTimeout(id); },
+        frame: function (fn) {
+          if (removed) return 0;
+          const id = requestAnimationFrame(function (t) { frames.delete(id); fn(t); });
+          frames.add(id);
+          return id;
+        },
+        cancelFrame: function (id) { frames.delete(id); cancelAnimationFrame(id); },
+      };
+    }
+    // MAP-SCHEDULER-END
+
     function cleanupMap() {
       if (state.currentElevation) {
         const controls = Array.isArray(state.currentElevation) ? state.currentElevation : [state.currentElevation];
@@ -5695,6 +5730,9 @@
       state._routeRenderer = null;
       state._detailPolylines = null;
       state._detailRenderer = null;
+      state._glRoutesDirty = null;
+      state._glRoutesRebuild = null;
+      state._glRoutesDraw = null;
     }
 
     // Thousand-separated number formatting (en-US grouping: 7,340.9 / 101,424).
@@ -6053,8 +6091,9 @@
       const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
       if (!coarse) return; // desktop keeps SVG + per-frame reprojection (no WebGL dependency)
 
-      let gl, program, buffer, vertCount = 0, originRef = null, raf = 0;
+      let gl, program, buffer, vertCount = 0, originRef = null;
       const loc = {};
+      const sched = mapScheduler(map);
       const canvas = document.createElement('canvas');
       canvas.className = 'gl-routes';
       canvas.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;';
@@ -6205,7 +6244,6 @@
       // the routes track the tiles through the 250ms release zoom animation
       // (move/zoom don't fire during it), the same way the place canvas does.
       function drawAt(zoom, center) {
-        raf = 0;
         if (!gl) return;
         // Keep the canvas pinned to the viewport (counter the map-pane pan offset).
         L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint([0, 0]));
@@ -6243,7 +6281,7 @@
       // along Leaflet's tile easing and redraw each frame so the routes track the
       // tiles at constant width instead of freezing then snapping (the drift).
       let zoomAnimRaf = 0;
-      function stopZoomAnim() { if (zoomAnimRaf) { cancelAnimationFrame(zoomAnimRaf); zoomAnimRaf = 0; } }
+      function stopZoomAnim() { if (zoomAnimRaf) { sched.cancelFrame(zoomAnimRaf); zoomAnimRaf = 0; } }
       function onZoomAnim(e) {
         stopZoomAnim();
         const startZoom = map.getZoom(), startCenter = map.getCenter();
@@ -6260,14 +6298,14 @@
             startCenter.lng + (targetCenter.lng - startCenter.lng) * eased
           );
           drawAt(interpZoom, interpCenter);
-          zoomAnimRaf = (t < 1) ? requestAnimationFrame(tick) : 0;
+          zoomAnimRaf = (t < 1) ? sched.frame(tick) : 0;
         };
-        zoomAnimRaf = requestAnimationFrame(tick);
+        zoomAnimRaf = sched.frame(tick);
       }
       let rebuildTimer = 0;
       function rebuildSoon() {
         if (rebuildTimer) return;
-        rebuildTimer = setTimeout(function () { rebuildTimer = 0; rebuild(); draw(); }, 150);
+        rebuildTimer = sched.timeout(function () { rebuildTimer = 0; rebuild(); draw(); }, 150);
       }
 
       if (!init()) { canvas.remove(); return; } // no WebGL: keep SVG routes (fallback)
@@ -7322,6 +7360,7 @@
       enableWheelZoom(map);
       L.control.attribution({ prefix: false }).addTo(map);
       state.currentMap = map;
+      const sched = mapScheduler(map);
       applyCoverMinZoom(map);
       map.on('resize', function() { applyCoverMinZoom(map); });
       // Keep route stroke widths constant through zoom (desktop) and settle at
@@ -7617,8 +7656,8 @@
       }
       let _routeEvalTimer = null;
       function scheduleTrailEval() {
-        if (_routeEvalTimer) clearTimeout(_routeEvalTimer);
-        _routeEvalTimer = setTimeout(evaluateVisibleRoutes, 150);
+        if (_routeEvalTimer) sched.clearTimeout(_routeEvalTimer);
+        _routeEvalTimer = sched.timeout(evaluateVisibleRoutes, 150);
       }
       map.on('moveend', scheduleTrailEval);
       // Kick an initial evaluation: when the map opens at a stored or
@@ -7667,7 +7706,7 @@
         // search) is a "take me there" intent, so center on the pin even when a
         // view is remembered.
         const restoredView = !state._navByHash && !!(prevView || storedView);
-        setTimeout(function() {
+        sched.timeout(function() {
           if (restoredView) {
             openPlacePopup(map, focusPlace);
           } else {

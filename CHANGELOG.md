@@ -23,6 +23,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The cursor in the Note and Sources fields sits level with the other form fields.
 - On phones, tall forms and lists keep their margin at the bottom of the screen instead of running down to the edge.
 - Switches that are off are easier to see in every theme: an outlined track with a solid knob instead of a faint filled one.
+- Redrawing the map while it is still zooming, such as at sign-in, no longer leaves the old map's pending redraws running and logging errors.
 - The Dark base map works again. CARTO began stamping its dark tiles with "API KEY REQUIRED", so Dark now shows OpenStreetMap's map in dark colours and no longer contacts CARTO.
 - The Docker image's licence label says GPL-3.0 instead of MIT.
 
