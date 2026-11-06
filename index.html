@@ -11470,7 +11470,9 @@
               (placesEnabled() ?
                 '<label class="feature-pill' + (featureVisible('countries') ? ' active' : '') + '"><input type="checkbox" id="s-feat-countries"' + (featureVisible('countries') ? ' checked' : '') + '>Visited countries</label>'
                 : '') +
-            '</div>'
+            '</div>' +
+            // The fill fades out past COUNTRY_MAX_ZOOM, so say why it can look off.
+            (placesEnabled() ? '<div class="hint">Visited countries show when zoomed out.</div>' : '')
           : '')
         : '') +
         (!isReadOnly() ?

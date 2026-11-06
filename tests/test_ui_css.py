@@ -125,6 +125,10 @@ class ThemeContrast(unittest.TestCase):
         ratio = contrast(tokens["danger"], tokens[bg])
         self.assertGreaterEqual(ratio, 4.5, "%s danger on %s" % (selector, bg))
 
+  def test_settings_hints_use_the_measured_colour(self):
+    self.assertRegex(INDEX, r"\.modal \.hint \{[^}]*color: var\(--muted\);")
+    self.assertIn('<div class="hint">Visited countries show when zoomed out.</div>', INDEX)
+
   def test_placeholders_use_the_measured_colour(self):
     self.assertRegex(INDEX, r"\n\s*::placeholder \{ color: var\(--muted\); opacity: 1; \}")
     self.assertRegex(UI_CSS, r"\.ui-field ::placeholder \{\s*color: var\(--ui-muted\);\s*opacity: 1;")
