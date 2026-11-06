@@ -5029,7 +5029,7 @@
     // that is no longer here (Satellite, removed for Esri's terms, or CyclOSM,
     // whose host's conditions an install must meet itself) falls back to the
     // first, so the map and the Settings select agree.
-    const BASE_LAYER_NAMES = ['OpenTopoMap', 'Dark', 'OpenStreetMap'];
+    const BASE_LAYER_NAMES = ['OpenTopoMap', 'OpenStreetMap', 'Dark'];
     function getDefaultTileLayer() {
       const v = getPref('tile-layer', BASE_LAYER_NAMES[0]);
       return BASE_LAYER_NAMES.includes(v) ? v : BASE_LAYER_NAMES[0];
@@ -5435,14 +5435,14 @@
           maxZoom: 17, subdomains: 'abc',
           attribution: TOPO_CREDIT,
         }),
+        'OpenStreetMap': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: OSM_CREDIT,
+        }),
         // OpenStreetMap's tiles drawn dark by the .tiles-dark filter: CARTO's
         // dark tiles now need a key, and Esri's terms do not cover Leaflet.
         'Dark': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19, className: 'tiles-dark',
-          attribution: OSM_CREDIT,
-        }),
-        'OpenStreetMap': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
           attribution: OSM_CREDIT,
         }),
       };
@@ -11556,7 +11556,7 @@
         '<div class="ui-section">' +
           '<div class="ui-field-row">' +
             uiFieldHtml('s-tile', 'Default tile layer', '<select id="s-tile">' +
-              BASE_LAYER_NAMES.slice().sort().map(n =>
+              BASE_LAYER_NAMES.map(n =>
               '<option value="' + n + '"' + (getDefaultTileLayer() === n ? ' selected' : '') + '>' + n + '</option>'
             ).join('') +
             '</select>') +
