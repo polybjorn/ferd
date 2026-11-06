@@ -56,6 +56,7 @@ Each `[data-theme][data-mode]` block must define:
 | `--muted` | Secondary text, captions |
 | `--accent` | Links, focus rings, interactive accent |
 | `--red` | "Want to visit", errors, planned status |
+| `--danger` | Error text on form fields; `--red` moved lighter or darker until it reads at 4.5:1 |
 | `--green` | "Visited", completed status, success |
 | `--completed` | Completed route polylines |
 | `--planned` | Planned route polylines |
@@ -102,6 +103,7 @@ Sanity checks before shipping:
 
 - Body text on `--bg` and `--surface` hits at least 4.5:1 contrast (WCAG AA); aim for 7:1 (AAA).
 - `--muted` hits at least 4.5:1 on `--surface`.
+- `--danger` hits at least 4.5:1 on `--surface` and `--surface2`. Where `--red` already does, use the same value.
 - `--accent` on `--bg` is legible as a link color.
 - `--green` and `--red` are distinguishable to the most common forms of color blindness (check in a simulator).
 - The marker cluster halo is visible against both light and dark tile layers.

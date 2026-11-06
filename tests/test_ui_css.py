@@ -118,6 +118,13 @@ class ThemeContrast(unittest.TestCase):
           ratio = contrast(tokens[fg], tokens[bg])
           self.assertGreaterEqual(ratio, 4.5, "%s %s on %s" % (selector, fg, bg))
 
+  def test_danger_meets_aa_on_the_form_surfaces(self):
+    self.assertIn("--ui-danger:  var(--danger);", INDEX)
+    for selector, tokens in self.themes().items():
+      for bg in ("surface", "surface2"):
+        ratio = contrast(tokens["danger"], tokens[bg])
+        self.assertGreaterEqual(ratio, 4.5, "%s danger on %s" % (selector, bg))
+
   def test_placeholders_use_the_measured_colour(self):
     self.assertRegex(INDEX, r"\n\s*::placeholder \{ color: var\(--muted\); opacity: 1; \}")
     self.assertRegex(UI_CSS, r"\.ui-field ::placeholder \{\s*color: var\(--ui-muted\);\s*opacity: 1;")

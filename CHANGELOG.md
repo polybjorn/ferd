@@ -28,6 +28,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The Add form's switches sit at the right of their row, and tapping anywhere on the row flips them.
 - Forms mark required fields with an asterisk instead of labelling the rest as optional.
 - Placeholder and secondary text meet WCAG AA contrast in every theme, so several themes' muted text is lighter or darker than before.
+- The hint under a form field with an error meets WCAG AA contrast in every theme, so in 11 themes it is a lighter or darker red than before.
 - Ferd needs Chrome 99 or newer, or Android System WebView 99 in the Android app. An older one shows a notice asking to update it instead of a broken page.
 
 ## [1.5.0] - 2026-11-05
