@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 
 # Lower these as one-off styles move out. Never raise them.
-MAX_INLINE_STYLES = 131
+MAX_INLINE_STYLES = 127
 MAX_IMPORTANT = 73
 MAX_HARDCODED_COLOURS = 12
 

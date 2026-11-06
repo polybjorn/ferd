@@ -14,6 +14,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places carry a `country_code` (ISO 3166-1 alpha-2) that the server sets from the Country field on every save. Existing places get one when the server starts.
 
 ### Fixed
+- Every control is at least 24px each way and shows a visible focus ring, including text fields, selects and filled buttons. A switch now toggles from anywhere on its row, the colour palette fits a narrow window, and hidden file inputs, closed palettes and collapsed sections no longer take a keyboard stop.
 - A filled button in a dialog keeps its label readable on hover in every theme, and shows hover with an inner ring instead of fading.
 - A public map opened with a doubled slash in its address, such as `//u/name/`, shows the map instead of the sign-in prompt.
 - On phones, the map fits the visible screen, so its zoom buttons no longer slide under the header.

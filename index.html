@@ -26,6 +26,23 @@
     }
 
     @layer app {
+    /* WCAG 2.2 target size minimum. Width is set per control, since a min-width
+       here would let a flex item shrink below its label. */
+    button { min-height: 24px; }
+    :is(.modal-close, .popup-area-edit, .catalog-mark) { min-width: 24px; }
+
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    /* Drawn inside the box, since scrolling panels and the map clip whatever
+       sticks out of it. */
+    :is(input:not([type="checkbox"], [type="radio"]), select, textarea, button, [role="button"], .view-tabs a, .leaflet-container):focus-visible {
+      outline-offset: -2px;
+    }
+    /* An accent ring vanishes on an accent fill, and a swatch can be any colour. */
+    :is(button.primary, button.nav-action-btn, .view-tabs a.active):focus-visible { outline-color: currentColor; }
+    button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
+    /* These clip what sticks out, and a checkbox ring sits outside the box. */
+    #add-body, #browse-list, #cat-list { margin-inline: -4px; padding-inline: 4px; }
+
     /* Tell native controls (date picker, radios, scrollbars) which palette to
        follow. The data-mode attribute is set by applyTheme(). */
     [data-mode="dark"] { color-scheme: dark; }
@@ -461,7 +478,7 @@
       justify-self: start;
     }
     .nav-brand a { color: var(--text); text-decoration: none; }
-    #nav-home { white-space: nowrap; }
+    #nav-home { display: inline-block; line-height: 24px; white-space: nowrap; }
     #nav-crumb { color: var(--muted); white-space: nowrap; }
     /* List-page crumbs only show where the nav tabs are hidden (mobile). */
     #nav-crumb.crumb-mobile-only { display: none; }
@@ -644,7 +661,6 @@
       font-size: 0.85rem;
       font-weight: 300;
       font-family: inherit;
-      outline: none;
       transition: border-color 0.15s;
     }
     .index-controls input[type="text"]:focus { border-color: var(--accent); }
@@ -667,7 +683,6 @@
       font-size: 0.8rem;
       font-family: inherit;
       cursor: pointer;
-      outline: none;
       transition: border-color 0.15s;
     }
     .index-controls select:focus { border-color: var(--accent); }
@@ -730,7 +745,7 @@
     .filter-popover .view-option { display: block; width: 100%; text-align: left; background: transparent; border: none; border-radius: var(--radius); color: var(--text); font-family: inherit; font-size: 0.85rem; padding: 0.45rem 0.6rem; cursor: pointer; }
     .filter-popover .view-option:hover { background: var(--surface2); }
     .filter-popover .view-option.active { color: var(--accent); font-weight: 600; }
-    .filter-popover select { width: 100%; padding: 0.45rem 0.6rem; background: var(--surface2); border: 1px solid var(--control-border); border-radius: var(--radius); color: var(--text); font-size: 0.85rem; font-family: inherit; cursor: pointer; outline: none; }
+    .filter-popover select { width: 100%; padding: 0.45rem 0.6rem; background: var(--surface2); border: 1px solid var(--control-border); border-radius: var(--radius); color: var(--text); font-size: 0.85rem; font-family: inherit; cursor: pointer; }
     .filter-popover select:focus { border-color: var(--accent); }
     .filter-popover .filter-clear {
       width: 100%;
@@ -872,7 +887,7 @@
     .place-card .catalog-mark {
       position: relative;
       flex: 0 0 auto; color: var(--muted); display: inline-flex;
-      align-items: center; align-self: center; margin-left: 0.5rem;
+      align-items: center; justify-content: center; align-self: center; margin-left: 0.5rem;
       background: transparent; border: none; padding: 0.2rem; cursor: pointer;
     }
     .place-card .catalog-mark:hover { color: var(--text); }
@@ -1106,7 +1121,6 @@
       font-size: 0.7rem;
       font-weight: 300;
       font-family: inherit;
-      outline: none;
       transition: border-color 0.15s;
     }
     .panel-search input:focus { border-color: var(--accent); }
@@ -1853,12 +1867,11 @@
     .leaflet-control-layers-selector { appearance: none; position: relative; top: 0; flex: none; width: 16px; height: 16px; margin: 0; background: var(--surface2); border: 1px solid var(--muted); border-radius: 50%; cursor: pointer; }
     .leaflet-control-layers-selector:checked { background: var(--accent); border-color: var(--accent); }
     .leaflet-control-layers-selector:checked::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--surface); }
-    .leaflet-control-layers-selector:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     /* The slider alone turns an overlay on and off, so a tap on the name must
        not reach the hidden checkbox, which would turn it on at 0. */
     .leaflet-control-layers-overlays label { pointer-events: none; }
     .leaflet-control-layers-overlays .leaflet-control-layers-selector { display: none; }
-    .leaflet-control-layers-overlays label > span { min-height: 20px; }
+    .leaflet-control-layers-overlays label > span { min-height: 24px; }
     .leaflet-control-layers .overlay-opacity { display: block; width: 100%; min-width: 7rem; height: 24px; margin: 0 0 2px; accent-color: var(--accent); }
 
     /* Pointer cursor over the route "near-tap" zone, so hovering near a
@@ -1883,6 +1896,7 @@
     .elevation-control .close-button, .elevation-control .elevation-toggle-icon, .elevation-detached .leaflet-close { display: none !important; }
     .leaflet-overlay-pane .leaflet-interactive { filter: drop-shadow(0 0 3px rgba(0,0,0,0.5)); }
     .marker-start, .marker-end { background: none !important; border: none !important; }
+    .marker-start { display: flex; align-items: center; justify-content: center; }
     .gpx-waypoint-icon {
       background: var(--surface);
       border: 1.5px solid var(--text);
@@ -2172,10 +2186,6 @@
       transform: translateX(16px);
       background: var(--surface);
     }
-    .modal input[type="checkbox"].settings-toggle:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
     .settings-inline-row > .settings-toggle { justify-self: start; }
 
     .session-list {
@@ -2340,13 +2350,23 @@
     /* Rows whose right-hand control is a slide toggle: switch from grid to
        flex so the toggle can sit immediately to the left of the label. */
     .settings-inline-row:has(> .settings-toggle) {
+      position: relative;
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      min-height: 24px;
     }
     .settings-inline-row:has(> .settings-toggle) > .settings-toggle {
       order: -1;
       flex: 0 0 auto;
+    }
+    /* The 20px switch is under the 24px target minimum, so its label reaches
+       across the whole row. */
+    .settings-inline-row:has(> .settings-toggle) > label::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
     }
     .settings-inline-row:has(> .settings-toggle) > label {
       flex: 1;
@@ -2672,11 +2692,13 @@
       display: grid;
       grid-template-rows: 0fr;
       opacity: 0;
-      transition: grid-template-rows 0.25s ease, opacity 0.25s ease;
+      visibility: hidden;
+      transition: grid-template-rows 0.25s ease, opacity 0.25s ease, visibility 0.25s;
     }
-    .collapsible.expanded { grid-template-rows: 1fr; opacity: 1; }
+    .collapsible.expanded { grid-template-rows: 1fr; opacity: 1; visibility: visible; }
     .collapsible > .collapsible-inner { overflow: hidden; min-height: 0; }
     .modal input[type="file"].file-input-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+    #p-coords-manual { line-height: 24px; }
     .modal .backup-sub { font-size: 0.78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
     .modal .modal-success { font-size: 0.85rem; color: var(--green, #6db26d); margin-top: 0.5rem; }
     .modal h3.sessions-h { display: flex; align-items: baseline; gap: 0.75rem; }
@@ -2721,7 +2743,6 @@
       font-size: 0.8rem;
       font-weight: 300;
       font-family: inherit;
-      outline: none;
       transition: border-color 0.15s;
     }
     /* Take the select off native rendering so its fill is exactly var(--surface2);
@@ -2954,16 +2975,18 @@
     .cat-swatches {
       display: grid; grid-template-columns: repeat(10, auto);
       justify-content: center; gap: 0.4rem;
-      max-height: 0; opacity: 0; overflow: hidden;
+      max-height: 0; opacity: 0; overflow: hidden; visibility: hidden;
       padding: 0;
-      transition: max-height 220ms ease, opacity 140ms ease, padding 220ms ease;
+      transition: max-height 220ms ease, opacity 140ms ease, padding 220ms ease, visibility 220ms;
     }
-    .cat-swatches.open { max-height: 12rem; opacity: 1; padding: 0.5rem 0 0.25rem; }
+    .cat-swatches.open { max-height: 12rem; opacity: 1; padding: 0.5rem 0.25rem 0.25rem; visibility: visible; }
     .cat-swatch {
       width: 1.75rem; height: 1.75rem; border-radius: 50%; padding: 0;
       border: 2px solid transparent; cursor: pointer;
     }
     .cat-swatch.active { border-color: var(--text); }
+    /* Ten swatches overflow a narrow dialog. */
+    @media (max-width: 600px) { .cat-swatches { grid-template-columns: repeat(5, auto); } }
     /* On touch devices, bump tap targets to comfortable sizes. */
     @media (pointer: coarse) {
       .cat-color-dot { width: 2rem; height: 2rem; }
@@ -7034,9 +7057,9 @@
           '<label for="' + prefix + '-note">Note</label>' +
           '<textarea id="' + prefix + '-note" style="min-height:40px">' + escapeHtml((area && area.note) || '') + '</textarea>'
         : '') +
-        '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
+        '<div class="settings-inline-row" style="margin-top:0.75rem">' +
           '<input type="checkbox" class="settings-toggle" id="' + prefix + '-visited"' + (area && area.visited ? ' checked' : '') + '>' +
-          '<label for="' + prefix + '-visited" style="margin:0">I&rsquo;ve visited this area</label>' +
+          '<label for="' + prefix + '-visited">I&rsquo;ve visited this area</label>' +
         '</div>' +
         '<div class="hint">A visited place or completed route inside also makes it visited.</div>';
     }
@@ -7222,9 +7245,9 @@
           : '') +
           '<label for="tm-source">Source URL</label>' +
           '<input type="url" id="tm-source" value="' + escapeHtml(route.source || '') + '" placeholder="https://example.com/route">' +
-          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
+          '<div class="settings-inline-row" style="margin-top:0.75rem">' +
             '<input type="checkbox" class="settings-toggle" id="tm-completed"' + (route.completed ? ' checked' : '') + '>' +
-            '<label for="tm-completed" style="margin:0">I&rsquo;ve completed this route</label>' +
+            '<label for="tm-completed">I&rsquo;ve completed this route</label>' +
           '</div>' +
           ((getShowField('date') || getShowField('rating')) ?
             '<div class="collapsible' + (route.completed ? ' expanded' : '') + '" id="tm-completed-extras">' +
@@ -7332,7 +7355,7 @@
     }
 
     function addStartEndMarkers(map, startLatLng, endLatLng) {
-      const startIcon = L.divIcon({ className: 'marker-start', html: '<svg viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="6" fill="#00e05a" stroke="#fff" stroke-width="2"/></svg>', iconSize: [16, 16], iconAnchor: [8, 8] });
+      const startIcon = L.divIcon({ className: 'marker-start', html: '<svg viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="6" fill="#00e05a" stroke="#fff" stroke-width="2"/></svg>', iconSize: [24, 24], iconAnchor: [12, 12] });
       const endIcon = L.divIcon({ className: 'marker-end', html: '<svg viewBox="0 0 32 32" width="32" height="32"><rect x="4" y="2" width="2" height="28" rx="1" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><path d="M6 3h12c1 0 1.5.5 1 1.5L17 8l2 3.5c.5 1 0 1.5-1 1.5H6V3z" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><rect x="7" y="4" width="4.5" height="4" fill="#2d333b"/><rect x="11.5" y="4" width="4.5" height="4" fill="#fff"/><rect x="7" y="8" width="4.5" height="4" fill="#fff"/><rect x="11.5" y="8" width="4.5" height="4" fill="#2d333b"/></svg>', iconSize: [32, 32], iconAnchor: [5, 30] });
       L.marker(startLatLng, { icon: startIcon }).bindPopup('Start').addTo(map);
       L.marker(endLatLng, { icon: endIcon }).bindPopup('End').addTo(map);
@@ -7985,9 +8008,9 @@
           : '') +
           '<label for="e-sources">Sources</label>' +
           '<textarea id="e-sources" placeholder="One URL per line" style="min-height:40px">' + escapeHtml(sourcesText) + '</textarea>' +
-          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
+          '<div class="settings-inline-row" style="margin-top:0.75rem">' +
             '<input type="checkbox" class="settings-toggle" id="e-visited"' + (place.visited ? ' checked' : '') + '>' +
-            '<label for="e-visited" style="margin:0">I&rsquo;ve visited this place</label>' +
+            '<label for="e-visited">I&rsquo;ve visited this place</label>' +
           '</div>' +
           ((getShowField('date') || getShowField('rating')) ?
             '<div class="collapsible' + (place.visited ? ' expanded' : '') + '" id="e-visited-extras">' +
@@ -11592,7 +11615,7 @@
           '</div>' +
           '<div style="display:flex;align-items:center;gap:1rem;margin-top:0.75rem">' +
             '<div class="file-picker" style="flex:1;margin:0">' +
-              '<input type="file" id="s-local-import-file" accept=".zip,application/zip" class="file-input-hidden">' +
+              '<input type="file" id="s-local-import-file" tabindex="-1" accept=".zip,application/zip" class="file-input-hidden">' +
               '<button type="button" class="primary" id="s-local-import-pick">Choose file</button>' +
               '<span class="file-name" id="s-local-import-name">No file selected</span>' +
             '</div>' +
@@ -11680,9 +11703,9 @@
         '<div data-panel="account" hidden>' +
         ((state.auth.publishing_open || isAdmin) ?
           '<h3 class="settings-h">Public sharing</h3>' +
-          '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.5rem">' +
+          '<div class="settings-inline-row" style="margin-top:0.5rem">' +
             '<input type="checkbox" class="settings-toggle" id="s-publish"' + (state.auth.published ? ' checked' : '') + '>' +
-            '<label for="s-publish" style="margin:0">Make my map public</label>' +
+            '<label for="s-publish">Make my map public</label>' +
           '</div>' +
           '<div id="s-publish-link" class="collapsible' + (state.auth.published ? ' expanded' : '') + '">' +
             '<div class="collapsible-inner">' +
@@ -11713,7 +11736,7 @@
         '</div>' +
         '<div style="display:flex;align-items:center;gap:1rem;margin-top:0.75rem">' +
           '<div class="file-picker" style="flex:1;margin:0">' +
-            '<input type="file" id="s-import-file" accept=".zip,application/zip" class="file-input-hidden">' +
+            '<input type="file" id="s-import-file" tabindex="-1" accept=".zip,application/zip" class="file-input-hidden">' +
             '<button type="button" class="primary" id="s-import-pick">Choose file</button>' +
             '<span class="file-name" id="s-import-name">No file selected</span>' +
           '</div>' +
@@ -14458,7 +14481,7 @@
             : '') +
             uiFieldHtml(null, 'GPX file',
               '<div class="ui-control-row">' +
-                '<input type="file" id="g-file" accept=".gpx,application/gpx+xml,text/xml" class="file-input-hidden" required>' +
+                '<input type="file" id="g-file" tabindex="-1" accept=".gpx,application/gpx+xml,text/xml" class="file-input-hidden" required>' +
                 '<button type="button" class="primary" id="g-file-pick">Choose file</button>' +
                 '<span class="ui-control-text" id="g-file-name">No file selected</span>' +
               '</div>', { required: true }) +
@@ -14590,7 +14613,7 @@
             '</div>' +
             uiFieldHtml(null, 'Or use a GeoJSON file',
               '<div class="ui-control-row">' +
-                '<input type="file" id="a-file" accept=".geojson,.json,application/geo+json,application/json" class="file-input-hidden">' +
+                '<input type="file" id="a-file" tabindex="-1" accept=".geojson,.json,application/geo+json,application/json" class="file-input-hidden">' +
                 '<button type="button" class="primary" id="a-file-pick">Choose file</button>' +
                 '<span class="ui-control-text" id="a-file-name">No file selected</span>' +
               '</div>' +

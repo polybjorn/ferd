@@ -223,6 +223,65 @@ class ControlEdges(unittest.TestCase):
           self.assertNotRegex(part.strip(), r"^\.modal button:not\(\.modal-close\):hover")
 
 
+class TargetsAndFocus(unittest.TestCase):
+  """WCAG 2.2 target size minimum, and a focus ring that nothing removes or hides."""
+
+  rules = ControlEdges.rules
+
+  def body(self, wanted):
+    return next(body for selector, body in self.rules() if selector.strip() == wanted)
+
+  def test_nothing_removes_the_focus_outline(self):
+    for selector, body in self.rules():
+      self.assertNotRegex(body, r"(?:^|[\s;])outline:\s*(?:none|0)", selector.strip())
+
+  def test_every_focusable_element_gets_the_ring(self):
+    self.assertIn("outline: 2px solid var(--accent)", self.body(":focus-visible"))
+
+  def test_a_filled_control_rings_in_its_label_colour(self):
+    selectors = " ".join(s for s, body in self.rules() if "outline-color: currentColor" in body)
+    for filled in ("button.primary", "button.nav-action-btn", ".view-tabs a.active"):
+      self.assertIn(filled, selectors)
+
+  def test_a_swatch_ring_sits_outside_its_colour(self):
+    body = self.body('button:is(.cat-swatch, .cat-color-dot):focus-visible')
+    self.assertIn("outline-offset: 2px", body)
+
+  def test_clipping_panels_leave_room_for_a_ring(self):
+    body = self.body("#add-body, #browse-list, #cat-list")
+    self.assertIn("margin-inline: -4px", body)
+    self.assertIn("padding-inline: 4px", body)
+
+  def test_a_closed_section_takes_no_keyboard_stop(self):
+    for closed, opened in ((".cat-swatches", ".cat-swatches.open"), (".collapsible", ".collapsible.expanded")):
+      self.assertIn("visibility: hidden", self.body(closed))
+      self.assertIn("visibility: visible", self.body(opened))
+
+  def test_buttons_reach_the_minimum_height(self):
+    self.assertIn("min-height: 24px", self.body("button"))
+
+  def test_narrow_controls_reach_the_minimum_width(self):
+    body = self.body(":is(.modal-close, .popup-area-edit, .catalog-mark)")
+    self.assertIn("min-width: 24px", body)
+
+  def test_a_button_width_floor_stays_off_flex_items(self):
+    self.assertNotIn("min-width", self.body("button"))
+
+  def test_a_toggle_row_is_one_target(self):
+    body = self.body(".settings-inline-row:has(> .settings-toggle) > label::before")
+    self.assertIn("inset: 0", body)
+    self.assertNotRegex(INDEX, r"""<div style="[^"]*">' \+\s*'<input type="checkbox" class="settings-toggle\"""")
+
+  def test_the_start_marker_reaches_the_minimum(self):
+    self.assertRegex(INDEX, r"className: 'marker-start'.*iconSize: \[24, 24\]")
+
+  def test_hidden_file_inputs_leave_the_tab_order(self):
+    inputs = re.findall(r"<input[^>]*file-input-hidden[^>]*>", INDEX)
+    self.assertTrue(inputs)
+    for tag in inputs:
+      self.assertIn('tabindex="-1"', tag)
+
+
 class Labels(unittest.TestCase):
   def test_required_is_marked_instead_of_optional(self):
     self.assertNotIn("(optional", INDEX)
