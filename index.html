@@ -780,8 +780,11 @@
     .leaflet-countries-pane.zoomed-past { opacity: 0; }
     @media (prefers-reduced-motion: reduce) {
       .leaflet-countries-pane { transition: none; }
+      .country-list:not([hidden]) { animation: none; }
     }
     .country-list { position: static; margin-top: 0.25rem; max-height: 12rem; box-shadow: none; }
+    .country-list:not([hidden]) { animation: country-list-in 140ms ease-out; }
+    @keyframes country-list-in { from { opacity: 0; transform: translateY(-4px); } }
 
     .group-toggle {
       display: flex;
@@ -6653,10 +6656,9 @@
         }
         return el;
       };
-      const render = () => {
+      const render = browse => {
         const typed = input.value.trim().toLowerCase();
-        // A saved name would filter the list down to itself; show every choice.
-        rows = input.value.trim() === accepted ? countries : countryMatches(input.value, countries, names);
+        rows = browse ? countries : countryMatches(input.value, countries, names);
         active = -1;
         input.removeAttribute('aria-activedescendant');
         if (rows.length) {
@@ -6668,10 +6670,13 @@
           list.replaceChildren(none);
         }
       };
-      const open = () => {
-        render();
+      const open = browse => {
+        const opening = list.hidden;
+        render(browse);
         list.hidden = false;
         input.setAttribute('aria-expanded', 'true');
+        if (!_selectCoarsePointer) list.scrollIntoView({ block: 'nearest' });
+        else if (opening) lift();
       };
       const close = () => {
         list.hidden = true;
@@ -6697,11 +6702,7 @@
         const modal = input.closest('.modal');
         modal.scrollTop += input.getBoundingClientRect().top - modal.getBoundingClientRect().top - 40;
       };
-      input.addEventListener('focus', () => {
-        if (list.hidden) open();
-        if (_selectCoarsePointer) lift();
-        else list.scrollIntoView({ block: 'nearest' });
-      });
+      input.addEventListener('focus', () => { if (_selectCoarsePointer) lift(); });
       // The browser's own focus pans the page to reveal a field the keyboard
       // will cover. Lifting the field first leaves it nothing to reveal.
       let touchY = 0;
@@ -6711,13 +6712,17 @@
         e.preventDefault();
         input.focus({ preventScroll: true });
       });
-      input.addEventListener('click', () => { if (list.hidden) open(); });
-      input.addEventListener('input', e => { if (e.isTrusted) open(); });
+      input.addEventListener('input', e => {
+        if (!e.isTrusted) return;
+        if (input.value.trim()) open(false);
+        else close();
+      });
       input.addEventListener('blur', () => { commit(); close(); });
       input.addEventListener('keydown', e => {
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
           e.preventDefault();
-          if (list.hidden) open();
+          // A saved name would filter the list down to itself; show every choice.
+          if (list.hidden) open(input.value.trim() === accepted);
           if (rows.length) setActive((active + (e.key === 'ArrowDown' ? 1 : rows.length - 1 + (active < 0 ? 1 : 0))) % rows.length);
         } else if (e.key === 'Escape' && !list.hidden) {
           e.preventDefault();
@@ -6739,7 +6744,7 @@
         accept(rows[Number(el.dataset.index)].name);
         close();
       });
-      if (document.activeElement === input) open();
+      if (document.activeElement === input && input.value.trim()) open(false);
     }
     function loadCountryData() {
       if (!state._countryData) {
