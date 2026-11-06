@@ -66,6 +66,8 @@ function makeMap(env) {
       this._animatingZoom = true;
       env.setTimeout(() => { if (this._animatingZoom) { this._animatingZoom = false; this.panePos(); } }, 250);
     },
+    // Leaflet's guard checks _loaded, which remove() leaves set.
+    invalidateSize() { this.panePos(); return this; },
     remove() { this.fire('unload'); delete this._mapPane; },
   };
   return map;
@@ -178,6 +180,28 @@ test('every GPX load on the route detail map goes through live()', () => {
     assert.equal((src.match(/\.on\('(?:loaded|addline)', /g) || []).length,
       (src.match(/\.on\('(?:loaded|addline)', sched\.live\(/g) || []).length, name);
   }
+});
+
+test('a late invalidateSize on a removed map does nothing', () => {
+  // leaflet-elevation's _initChart resizes the map once its chart module has
+  // loaded, which can land after the route page removed the map.
+  const env = makeEnv();
+  const map = makeMap(env);
+  env.mapScheduler(map);
+  map.invalidateSize();
+  map.remove();
+  assert.doesNotThrow(() => map.invalidateSize());
+  assert.equal(map.invalidateSize(), map);
+});
+
+test('the vendored Leaflet and leaflet-elevation still need the invalidateSize guard', () => {
+  // If either changes, the override in mapScheduler's unload may be moot.
+  const leaflet = fs.readFileSync(path.join(root, 'vendor', 'leaflet', 'leaflet.js'), 'utf8');
+  assert.match(leaflet, /invalidateSize:function\(t\)\{if\(!this\._loaded\)return this;/);
+  const elev = fs.readFileSync(path.join(root, 'vendor', 'leaflet-elevation', 'leaflet-elevation.js'), 'utf8');
+  const init = /\n    _initChart\(container\) \{[\s\S]*?\n    \},\n/.exec(elev);
+  assert.ok(init, '_initChart not found in leaflet-elevation.js');
+  assert.match(init[0], /\.then\([\s\S]*map\.invalidateSize\(\);/);
 });
 
 test('the vendored Leaflet still gates its zoom transition end on _animatingZoom', () => {

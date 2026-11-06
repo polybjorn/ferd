@@ -5703,6 +5703,10 @@
         // Leaflet 1.9 ends a zoom animation from an untracked 250ms timeout
         // that only runs while this flag is set, so clearing it cancels that.
         map._animatingZoom = false;
+        // remove() leaves _loaded set, so Leaflet's own guard lets a late
+        // invalidateSize read the deleted panes. leaflet-elevation calls it from
+        // promise continuations that live() can't reach, such as _initChart's.
+        map.invalidateSize = function () { return map; };
       });
       return {
         timeout: function (fn, ms) {

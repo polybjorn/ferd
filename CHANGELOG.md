@@ -29,6 +29,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Redrawing the map while it is still zooming, such as at sign-in, no longer leaves the old map's pending redraws running and logging errors.
 - Leaving a route's page while its map is zooming or expanding no longer logs errors from the removed map.
 - Leaving a route's page before its track has loaded no longer logs errors from the removed map.
+- Leaving a route's page while its elevation chart is still loading no longer logs errors from the removed map.
 - The Dark base map works again. CARTO began stamping its dark tiles with "API KEY REQUIRED", so Dark now shows OpenStreetMap's map in dark colours and no longer contacts CARTO.
 - The Docker image's licence label says GPL-3.0 instead of MIT.
 - The base maps give their providers' full credits: OpenTopoMap names OpenStreetMap contributors, SRTM and its CC-BY-SA licence, and OpenStreetMap and Dark credit OpenStreetMap contributors.
