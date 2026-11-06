@@ -574,6 +574,46 @@
     ]
   },
   {
+    "name": "edit-place",
+    "page": "index.html",
+    "label": "Edit place",
+    "steps": [
+      {
+        "fill": "#auth-username",
+        "value": "demo"
+      },
+      {
+        "fill": "#auth-password",
+        "value": "demo-password-1"
+      },
+      {
+        "click": "#auth-submit"
+      },
+      {
+        "wait": "#auth-menu-btn"
+      },
+      {
+        "click": "#tab-places:visible, #auth-menu-btn"
+      },
+      {
+        "click": "#tab-places:visible, #auth-menu [data-action=nav-places]"
+      },
+      {
+        "wait": ".place-card"
+      },
+      {
+        "click": ".place-card .name",
+        "button": "right"
+      },
+      {
+        "click": ".context-menu button:text-is(\"Edit\")"
+      },
+      {
+        "wait": ".modal h2:has-text(\"Edit place\")"
+      }
+    ]
+  },
+  {
     "name": "edit-route",
     "page": "index.html",
     "label": "Edit route",

@@ -52,7 +52,7 @@ python3 .site-sheet/serve.py 8097 &
 site-sheet capture "" / /tmp/ferd-sheet --states .site-sheet/states.json --origin http://127.0.0.1:8097
 ```
 
-A new modal needs a state here; `tests/test_site_sheet.py` fails on a modal title no state waits for. Edit place is the one gap: only a right-click menu opens it, and `site-sheet` has no right-click step yet.
+A new modal needs a state here; `tests/test_site_sheet.py` fails on a modal title no state waits for.
 
 To verify the static side end to end, run the dev server above, sign in, and do all of: add a place from the map ("Pick on map" then form), edit a place from its popup, delete a place, upload a GPX, delete a route, switch themes, change your password, revoke a session.
 

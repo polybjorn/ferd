@@ -18,6 +18,9 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 SHEET = REPO / ".site-sheet"
 ACTIONS = ("click", "fill", "press", "wait")
+# Keys a step may carry beside its action, as site-sheet allows them.
+EXTRAS = {"click": {"button"}, "fill": {"value"}}
+BUTTONS = ("left", "right", "middle")
 
 
 def free_port():
@@ -41,8 +44,9 @@ class TestStatesFile(unittest.TestCase):
       for step in st["steps"]:
         acts = [k for k in step if k in ACTIONS]
         self.assertEqual(len(acts), 1, step)
-        self.assertEqual(set(step) - {acts[0], "value"}, set(), step)
+        self.assertEqual(set(step) - {acts[0]} - EXTRAS.get(acts[0], set()), set(), step)
         self.assertEqual("value" in step, acts[0] == "fill", step)
+        self.assertIn(step.get("button", "left"), BUTTONS, step)
 
   def test_every_modal_title_has_a_state(self):
     """A new modalHeaderHtml('Title') with no state waiting on it fails here."""
@@ -50,9 +54,7 @@ class TestStatesFile(unittest.TestCase):
     titles = set(re.findall(r"modalHeaderHtml\('([^'(]+)", html))
     titles |= set(re.findall(r'id="modal-title">([^<\']+)', html))
     states = (SHEET / "states.json").read_text()
-    # Edit place opens only from a right-click menu, which site-sheet's steps
-    # cannot send yet.
-    missing = {t for t in titles if 'has-text(\\"%s' % t.strip() not in states} - {"Edit place"}
+    missing = {t for t in titles if 'has-text(\\"%s' % t.strip() not in states}
     self.assertEqual(missing, set())
 
 
