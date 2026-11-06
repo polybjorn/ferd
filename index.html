@@ -3076,15 +3076,14 @@
       letter-spacing: 0.05em;
       transition: opacity 0.15s;
     }
-    button.primary:hover:not(:disabled) { opacity: 0.9; }
+    button.primary:hover:not(:disabled) { box-shadow: inset 0 0 0 1px var(--fab-text); }
     button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
     .modal button.primary:not(h2 .modal-close) {
       background: var(--accent);
       color: var(--fab-text);
       border-color: var(--accent);
     }
-    .modal button:not(.modal-close):hover:not(:disabled) { color: var(--text); border-color: var(--muted); }
-    .modal button.primary:hover { opacity: 0.9; color: var(--fab-text); }
+    .modal button:not(.modal-close):not(.primary):hover:not(:disabled) { color: var(--text); border-color: var(--muted); }
     .modal button:not(.modal-close):disabled { opacity: 0.4; cursor: not-allowed; }
     .modal .hint {
       font-size: 0.7rem;
