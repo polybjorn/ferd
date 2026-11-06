@@ -1,4 +1,4 @@
-/* ui.css 1.4.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.5.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -27,8 +27,12 @@
         motion    --ui-duration-fast, -base, -slow
         stacking  --ui-z-raised, -sticky, -dropdown, -modal, -popover, -toast,
                   in that order from the page up
-        dialog    --ui-dialog-width, --ui-backdrop, --ui-shadow; a host sets
-                  --ui-dialog-width on a dialog's own class to size that one
+        dialog    --ui-dialog-width, --ui-dialog-border, --ui-backdrop,
+                  --ui-shadow; a host sets --ui-dialog-width on a dialog's own
+                  class to size that one. --ui-dialog-border draws the frame
+                  and the lines around the head and actions, and follows
+                  --ui-border until a host maps it, because a control's border
+                  has to stand out against its surface and a frame does not
 
    Markup contract: classes and plain HTML only, with no on*= or style=
    attributes, so a page with a strict CSP can use it. specimen.html in
@@ -84,6 +88,7 @@
     --ui-z-toast: 5000;
 
     --ui-dialog-width: 28rem;
+    --ui-dialog-border: var(--ui-border);
     --ui-backdrop: rgb(0 0 0 / 50%);
     --ui-shadow: 0 10px 40px rgb(0 0 0 / 30%);
 
@@ -431,7 +436,7 @@
     overflow: hidden;
     color: var(--ui-text);
     background: var(--ui-surface);
-    border: 1px solid var(--ui-border);
+    border: 1px solid var(--ui-dialog-border);
     border-radius: var(--ui-radius-lg);
     box-shadow: var(--ui-shadow);
   }
@@ -468,7 +473,7 @@
     justify-content: space-between;
     gap: var(--ui-space-3);
     padding: var(--ui-space-2) var(--ui-space-4);
-    border-block-end: 1px solid var(--ui-border);
+    border-block-end: 1px solid var(--ui-dialog-border);
   }
   .ui-dialog-title {
     min-inline-size: 0;
@@ -497,7 +502,7 @@
     justify-content: flex-end;
     gap: var(--ui-space-2);
     padding: var(--ui-space-3) var(--ui-space-4);
-    border-block-start: 1px solid var(--ui-border);
+    border-block-start: 1px solid var(--ui-dialog-border);
   }
 
   @media (prefers-reduced-motion: reduce) {

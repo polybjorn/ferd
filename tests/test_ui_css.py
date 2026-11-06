@@ -248,7 +248,7 @@ class TargetsAndFocus(unittest.TestCase):
     self.assertIn("outline-offset: 2px", body)
 
   def test_clipping_panels_leave_room_for_a_ring(self):
-    body = self.body("#add-body, #browse-list, #cat-list")
+    body = self.body("#browse-list, #cat-list")
     self.assertIn("margin-inline: -4px", body)
     self.assertIn("padding-inline: 4px", body)
 

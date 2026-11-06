@@ -50,6 +50,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Ferd needs Chrome 99 or newer, or Android System WebView 99 in the Android app. An older one shows a notice asking to update it instead of a broken page.
 - Name fields no longer show example names, and the local name field says what goes in it.
 - Dialogs keep their title and buttons in view while the rest scrolls, and the page behind an open dialog can no longer be reached with the keyboard or a screen reader. Settings, Add and the catalog lists keep one height, so switching a tab no longer moves the dialog.
+- Switching tabs on the Add form is instant, so the submit button no longer slides into view.
 
 ### Removed
 - The CyclOSM base map. Its host's conditions cover public, non-profit sites, which Ferd cannot vouch for on every install, so it is now a documented overlay example in `docs/configure.md` that an install can add if it fits them. A map that defaulted to CyclOSM now opens on OpenTopoMap.

@@ -41,7 +41,7 @@
     :is(button.primary, button.nav-action-btn, .view-tabs a.active):focus-visible { outline-color: currentColor; }
     button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
     /* These clip what sticks out, and a checkbox ring sits outside the box. */
-    #add-body, #browse-list, #cat-list { margin-inline: -4px; padding-inline: 4px; }
+    #browse-list, #cat-list { margin-inline: -4px; padding-inline: 4px; }
 
     /* Tell native controls (date picker, radios, scrollbars) which palette to
        follow. The data-mode attribute is set by applyTheme(). */
@@ -2461,7 +2461,6 @@
       border-bottom: 1px solid var(--border);
       margin-bottom: var(--ui-space-4);
     }
-    #add-body { overflow: hidden; transition: height var(--ui-duration-slow) ease; }
     .modal .modal-desc { font-size: var(--ui-text-sm); color: var(--text); margin-top: var(--ui-space-2); }
     .signin-page .modal .modal-desc { margin-bottom: var(--ui-space-2); }
     .modal .confirm-row { align-items: center; display: flex; gap: var(--ui-space-3); margin-top: var(--ui-space-3); }
@@ -3068,6 +3067,7 @@
       --ui-backdrop: var(--backdrop);
       --ui-shadow:  0 10px 40px var(--shadow);
       --ui-dialog-width: 440px;
+      --ui-dialog-border: var(--border);
       --ui-text-weight: 300;
       --ui-label-weight: 300;
     }
@@ -14268,8 +14268,6 @@
 
       function renderTab() {
         const body = document.getElementById('add-body');
-        const firstRender = body.dataset.rendered !== '1';
-        const oldH = firstRender ? 0 : body.offsetHeight;
         body.innerHTML = tab === 'place' ? placeFormHtml()
           : tab === 'route' ? gpxFormHtml()
           : tab === 'area' ? areaFormHtml()
@@ -14279,29 +14277,6 @@
         else if (tab === 'area') wireAreaForm();
         else wireBrowseForm();
         enhanceSelectsIn(body);
-        body.dataset.rendered = '1';
-        if (firstRender) return;
-        if (tab === 'browse') {
-          // Browse content is async (loads after the catalog fetch lands), so
-          // animating to the "Loading..." height first and snapping to the
-          // list afterwards looks twitchy. Skip the height transition here.
-          body.style.height = 'auto';
-          return;
-        }
-        // Measure the new content size, then animate from old to new height.
-        // After the transition completes, release back to auto so the form can
-        // grow naturally (e.g. when the Completed extras expand).
-        body.style.height = 'auto';
-        const newH = body.offsetHeight;
-        body.style.height = oldH + 'px';
-        body.offsetHeight;  // force reflow so the transition catches the change
-        body.style.height = newH + 'px';
-        const onEnd = function(e) {
-          if (e.target !== body || e.propertyName !== 'height') return;
-          body.style.height = 'auto';
-          body.removeEventListener('transitionend', onEnd);
-        };
-        body.addEventListener('transitionend', onEnd);
       }
 
       function placeFormHtml() {
