@@ -2417,6 +2417,10 @@
     .star-rating[data-value=""] .star-clear { visibility: hidden; }
 
     /* Modal */
+    /* 100vh counts the space behind a phone browser's toolbar, which ran tall
+       modals down to the bottom edge of the screen. */
+    .modal-backdrop { --modal-room: 100vh; }
+    @supports (height: 100dvh) { .modal-backdrop { --modal-room: 100dvh; } }
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -2457,7 +2461,7 @@
       border-radius: var(--radius);
       width: 100%;
       max-width: 440px;
-      max-height: calc(100vh - 2rem);
+      max-height: calc(var(--modal-room) - 2rem);
       overflow-y: auto;
       padding: 1.25rem 1.5rem;
       box-shadow: 0 10px 40px var(--shadow);
@@ -2508,12 +2512,12 @@
     .modal-backdrop:has(#browse-list),
     .modal-backdrop:has(#catalog-bulk-list),
     .modal-backdrop:has(#rgn-rows) { align-items: flex-start; padding-top: 3rem; padding-bottom: 3rem; }
-    .modal-backdrop:has(#settings-tabs) .modal { max-height: calc(100vh - 6rem); }
+    .modal-backdrop:has(#settings-tabs) .modal { max-height: calc(var(--modal-room) - 6rem); }
 
     /* Bulk catalog-update review: fills the modal like Settings, with the list
        scrolling internally so the title and action row stay pinned. */
     .modal-backdrop:has(#catalog-bulk-list) .modal {
-      max-height: calc(100vh - 6rem);
+      max-height: calc(var(--modal-room) - 6rem);
       display: flex; flex-direction: column; overflow: hidden;
     }
     /* Scrollbar flush to the modal's right edge (cancel the 1.5rem modal
@@ -2529,14 +2533,14 @@
     /* Desktop-only chip; on phones the action moves into the Menu instead. */
     @media (max-width: 600px) { .catalog-update-chip-wrap { display: none; } }
     .modal-backdrop:has(#cat-rows) .modal,
-    .modal-backdrop:has(#rgn-rows) .modal { display: flex; flex-direction: column; max-height: calc(100vh - 6rem); }
+    .modal-backdrop:has(#rgn-rows) .modal { display: flex; flex-direction: column; max-height: calc(var(--modal-room) - 6rem); }
     .modal-backdrop:has(#cat-rows) #cat-rows,
     .modal-backdrop:has(#rgn-rows) #rgn-rows { flex: 1; min-height: 0; overflow-y: auto; margin-right: -1.5rem; padding-right: 1.5rem; scrollbar-gutter: stable; }
     /* For the catalog list/manager: fixed height (not just max) so the modal
        always takes the same tall area instead of shrinking with content. The
        list flex-grows to fill the available space. */
     .modal-backdrop:has(#cat-list) .modal,
-    .modal-backdrop:has(#cat-mgr-list) .modal { display: flex; flex-direction: column; height: calc(100vh - 6rem); }
+    .modal-backdrop:has(#cat-mgr-list) .modal { display: flex; flex-direction: column; height: calc(var(--modal-room) - 6rem); }
     .modal-backdrop:has(#cat-list) #cat-list,
     .modal-backdrop:has(#cat-mgr-list) #cat-mgr-list { flex: 1; min-height: 0; max-height: none; }
     .modal-backdrop:has(#cat-list) #cat-list,
@@ -2545,7 +2549,7 @@
        form heights) doesn't shift the modal vertically. The body itself
        animates height between renders. */
     .modal-backdrop:has(#add-tabs) { align-items: flex-start; padding-top: 4rem; padding-bottom: 4rem; }
-    .modal-backdrop:has(#add-tabs) .modal { max-height: calc(100vh - 8rem); scrollbar-gutter: stable; }
+    .modal-backdrop:has(#add-tabs) .modal { max-height: calc(var(--modal-room) - 8rem); scrollbar-gutter: stable; }
     #add-body { overflow: hidden; transition: height 0.25s ease; }
     .modal .modal-desc { font-size: 0.85rem; color: var(--text); margin-top: 0.4rem; }
     .modal .confirm-row { align-items: center; display: flex; gap: 0.75rem; margin-top: 0.75rem; }

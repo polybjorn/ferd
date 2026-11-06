@@ -141,6 +141,12 @@ class Shipping(unittest.TestCase):
     self.assertIn("url.pathname === '/ui.css'", SW)
 
 
+class ModalHeight(unittest.TestCase):
+  def test_modals_size_to_the_visible_screen(self):
+    self.assertNotRegex(INDEX, r"\.modal[^{}]*\{[^{}]*height: calc\(100vh")
+    self.assertIn("@supports (height: 100dvh) { .modal-backdrop { --modal-room: 100dvh; } }", INDEX)
+
+
 class AddForm(unittest.TestCase):
   def test_forms_use_the_blocks_without_inline_styles(self):
     for name, end in (("placeFormHtml", "gpxFormHtml"), ("gpxFormHtml", "wirePlaceForm"),
