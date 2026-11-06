@@ -5676,6 +5676,7 @@
     // Timers and animation frames scheduled against one map. Removing the map
     // deletes its panes, after which Leaflet throws on any position read, so
     // its 'unload' cancels everything still pending and refuses new work.
+    // A promise can't be cancelled, so live() wraps its continuation instead.
     function mapScheduler(map) {
       const timers = new Set(), frames = new Set();
       let removed = false;
@@ -5703,6 +5704,9 @@
           return id;
         },
         cancelFrame: function (id) { frames.delete(id); cancelAnimationFrame(id); },
+        live: function (fn) {
+          return function () { if (!removed) return fn.apply(this, arguments); };
+        },
       };
     }
     // MAP-SCHEDULER-END
@@ -10662,24 +10666,24 @@
       map.addControl(new ExpandControl());
 
       if (route.plannedFile && route.completed) {
-        fetchGpxText(gpxUrlFor(route.plannedFile)).then(function(plannedText) {
+        fetchGpxText(gpxUrlFor(route.plannedFile)).then(sched.live(function(plannedText) {
           const plannedLayer = new L.GPX(plannedText, {
             async: true,
             polyline_options: { color: ROUTE_COLOR, opacity: 0.35, weight: 4 * getTrailWeightFactor(), dashArray: '8 6' },
             markers: { startIcon: null, endIcon: null, wptIcons: { '': WAYPOINT_PLACEHOLDER_ICON } },
           });
           attachWaypointHandlers(plannedLayer);
-          plannedLayer.on('loaded', function(e) {
+          plannedLayer.on('loaded', sched.live(function(e) {
             applyNonScalingStroke(e.target);
-          }).addTo(map);
-        }).catch(function() {});
+          })).addTo(map);
+        })).catch(function() {});
       }
 
-      if (isMultiTrack) renderMultiTrack(map, route);
-      else renderSingleTrack(map, route, color);
+      if (isMultiTrack) renderMultiTrack(map, route, sched);
+      else renderSingleTrack(map, route, color, sched);
     }
 
-    function renderSingleTrack(map, route, color) {
+    function renderSingleTrack(map, route, color, sched) {
       // Collapsible graph title, mirroring the multi-segment view: clicking it
       // hides the chart and the map grows to fill the space.
       const sTitle = document.getElementById('single-elev-title');
@@ -10713,14 +10717,14 @@
       // Pre-fetch the GPX text (auth-aware, SW-cached) rather than handing
       // L.GPX a URL: its internal XHR can't carry the bearer token a
       // cross-origin client needs.
-      fetchGpxText(gpxUrlFor(route.file)).then(function(gpxText) {
+      fetchGpxText(gpxUrlFor(route.file)).then(sched.live(function(gpxText) {
       const singleGpx = new L.GPX(gpxText, {
         async: true,
         polyline_options: { color: color, opacity: 0.9, weight: 5 * getTrailWeightFactor() },
         markers: { startIcon: null, endIcon: null, wptIcons: { '': WAYPOINT_PLACEHOLDER_ICON } },
       });
       attachWaypointHandlers(singleGpx);
-      singleGpx.on('loaded', function(e) {
+      singleGpx.on('loaded', sched.live(function(e) {
         const gpx = e.target;
         const bounds = gpx.getBounds();
         if (bounds.isValid() && !state._lastTrailBounds) {
@@ -10781,7 +10785,7 @@
           sStatsEl.innerHTML = '<span class="seg-dist">' + formatDistance(stats.dist) + '</span>'
             + (stats.gain != null ? '<span class="seg-gain">+' + formatElevation(stats.gain) + '</span>' : '');
         }
-      }).on('addline', function(e) {
+      })).on('addline', sched.live(function(e) {
         if (!elevationControl) return;
         // For a very large track, stride the elevation series the same way the
         // multi-segment view does, so the chart stays cheap. leaflet-gpx
@@ -10793,13 +10797,13 @@
         // line's latlngs for thinned copies that carry no meta.ele.
         const coords = flat.map(function(ll) { return [ll.lng, ll.lat, (ll.meta && ll.meta.ele != null) ? ll.meta.ele : 0]; });
         elevationControl.addData({ type: 'Feature', geometry: { type: 'LineString', coordinates: flat.length > MAX_ELEV_POINTS ? decimateCoords(coords, MAX_ELEV_POINTS) : coords }, properties: {} });
-      }).addTo(map);
-      }).catch(function(err) { console.warn('[ferd] gpx load failed', err); });
+      })).addTo(map);
+      })).catch(function(err) { console.warn('[ferd] gpx load failed', err); });
     }
 
-    function renderMultiTrack(map, route) {
+    function renderMultiTrack(map, route, sched) {
       fetchGpxText(gpxUrlFor(route.file))
-        .then(function(xmlText) {
+        .then(sched.live(function(xmlText) {
           const tracks = parseGpxTracks(xmlText);
           if (tracks.length === 0) return;
           {
@@ -11018,7 +11022,7 @@
             const ep = lastTrack.points[lastTrack.points.length - 1];
             addStartEndMarkers(map, L.latLng(sp.lat, sp.lon), L.latLng(ep.lat, ep.lon));
           }
-        });
+        }));
     }
 
     // ----- Router -----
