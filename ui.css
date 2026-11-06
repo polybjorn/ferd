@@ -1,4 +1,4 @@
-/* ui.css 1.1.1: shared building blocks for menus, modals and forms.
+/* ui.css 1.1.2: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -288,8 +288,8 @@
     position: relative;
     inline-size: 36px;
     block-size: 20px;
-    background: var(--ui-border);
-    border: 1px solid var(--ui-border);
+    background: transparent;
+    border: 1px solid var(--ui-muted);
     border-radius: 999px;
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
@@ -301,15 +301,18 @@
     inset-inline-start: 1px;
     inline-size: 16px;
     block-size: 16px;
-    background: var(--ui-surface);
+    background: var(--ui-muted);
     border-radius: 50%;
-    transition: transform 0.15s;
+    transition: transform 0.15s, background 0.15s;
   }
   .ui-toggle-row > input[type="checkbox"]:checked {
     background: var(--ui-accent);
     border-color: var(--ui-accent);
   }
-  .ui-toggle-row > input[type="checkbox"]:checked::after { transform: translateX(16px); }
+  .ui-toggle-row > input[type="checkbox"]:checked::after {
+    background: var(--ui-surface);
+    transform: translateX(16px);
+  }
 
   .ui-choice-list {
     font: inherit;
