@@ -2806,21 +2806,6 @@
       border-radius: var(--radius);
       background: var(--surface2);
     }
-    .modal .log-toolbar {
-      position: sticky;
-      bottom: -1.25rem;
-      display: flex;
-      justify-content: center;
-      margin: var(--ui-space-2) -1.5rem -1.5rem;
-      padding: var(--ui-space-2) var(--ui-space-5);
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      z-index: var(--ui-z-raised);
-    }
-    .modal .log-toolbar button {
-      padding: var(--ui-space-1) var(--ui-space-3);
-      font-size: var(--ui-text-xs);
-    }
     .modal .log-row {
       padding: var(--ui-space-2) var(--ui-space-3);
       border-bottom: 1px solid var(--border);
@@ -12154,7 +12139,7 @@
       openModal(
         modalHeaderHtml(title) +
         '<div id="s-admin-logs"><div class="hint">Loading&hellip;</div></div>' +
-        '<div class="log-toolbar"><button type="button" id="s-logs-clear" class="danger-btn">Clear all</button></div>',
+        '<div class="ui-dialog-actions"><button type="button" id="s-logs-clear" class="ui-button ui-button-danger">Clear all</button></div>',
         function() {
           renderAdminLogs();
           const clearBtn = document.getElementById('s-logs-clear');
