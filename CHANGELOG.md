@@ -24,6 +24,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - On phones, tall forms and lists keep their margin at the bottom of the screen instead of running down to the edge.
 - Switches that are off are easier to see in every theme: an outlined track with a solid knob instead of a faint filled one.
 - The Dark base map works again. CARTO began stamping its dark tiles with "API KEY REQUIRED", so Dark now shows OpenStreetMap's map in dark colours and no longer contacts CARTO.
+- The Docker image's licence label says GPL-3.0 instead of MIT.
 
 ### Changed
 - The Add form's switches sit at the right of their row, and tapping anywhere on the row flips them.
@@ -31,6 +32,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Placeholder and secondary text meet WCAG AA contrast in every theme, so several themes' muted text is lighter or darker than before.
 - The hint under a form field with an error meets WCAG AA contrast in every theme, so in 11 themes it is a lighter or darker red than before.
 - Ferd needs Chrome 99 or newer, or Android System WebView 99 in the Android app. An older one shows a notice asking to update it instead of a broken page.
+- Name fields no longer show example names, and the local name field says what goes in it.
 
 ### Removed
 - The Satellite base map. Its imagery's terms do not allow it in an app like Ferd, or its offline caching, so it is gone until a free imagery source with fitting terms turns up. A map that defaulted to Satellite now opens on OpenTopoMap, and the default can be changed in Settings > Map.
