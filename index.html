@@ -4909,6 +4909,27 @@
         panelTabsHtml();
     }
 
+    // A credit too long for the space beside the filter panel would sit on top
+    // of its controls, and fitting it there leaves a small phone too little width
+    // to wrap "OpenStreetMap", so the panel moves up instead. The credit's length
+    // follows the base map and overlays, so this runs whenever it changes.
+    function keepPanelAboveCredit(map) {
+      const container = map.getContainer();
+      const panel = document.getElementById('map-panel');
+      const credit = container.querySelector('.leaflet-control-attribution');
+      const corner = panel.parentElement;
+      const fit = function() {
+        // Offsets, not the panel's rect: hide-map-filter scales it, and the S
+        // key can bring it back with nothing here resizing.
+        const panelRight = corner.getBoundingClientRect().left + panel.offsetLeft + panel.offsetWidth;
+        const box = credit.getBoundingClientRect();
+        corner.style.bottom = box.height && box.left < panelRight ? box.height + 'px' : '';
+      };
+      const observer = new ResizeObserver(fit);
+      [container, credit, panel].forEach(function(el) { observer.observe(el); });
+      map.on('unload', function() { observer.disconnect(); });
+    }
+
     // Rebuild the filter panel DOM in place after a feature is toggled, so the
     // tab row reflects which features are enabled. Falls back to a full map
     // re-render if the panel isn't present yet (e.g. enabling from none).
@@ -7674,6 +7695,7 @@
       });
       if (placesEnabled() || routesEnabled()) {
         map.addControl(new PanelControl());
+        keepPanelAboveCredit(map);
         bindFilterPanel();
         refreshFilterPanel();
         initUnifiedSearch(map);
