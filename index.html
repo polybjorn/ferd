@@ -1693,12 +1693,13 @@
     .leaflet-top .leaflet-control, .leaflet-bottom .leaflet-control { margin: 5px !important; }
     .leaflet-control-attribution {
       background: none !important;
-      color: var(--text) !important;
-      font-size: var(--ui-text-xs) !important;
       /* With no box behind it, the halo keeps the credit readable on any tile,
-         which OpenStreetMap's guidelines ask of it. The text has to contrast
-         with the halo, or it smears where a tile matches the halo's colour. */
-      text-shadow: 0 0 1px var(--bg), 0 0 1px var(--bg), 0 0 3px var(--bg);
+         which OpenStreetMap's guidelines ask of it. Tiles don't follow the
+         theme, so neither do these colours: dark text on a light halo
+         disappears over deep ocean in a light theme. */
+      color: white !important;
+      font-size: var(--ui-text-xs) !important;
+      text-shadow: 0 0 1px black, 0 0 1px black, 0 0 3px black;
     }
     .leaflet-control-attribution a { color: inherit !important; text-decoration: underline !important; }
 
