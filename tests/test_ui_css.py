@@ -109,6 +109,12 @@ class IndexLayers(unittest.TestCase):
                   "document.getElementById('webview-notice').hidden = false;", INDEX)
 
 
+class Labels(unittest.TestCase):
+  def test_required_is_marked_instead_of_optional(self):
+    self.assertNotIn("(optional", INDEX)
+    self.assertIn(".ui-required::after", UI_CSS)
+
+
 class Shipping(unittest.TestCase):
   def test_android_bundles_the_stylesheet(self):
     gradle = (ROOT / "android" / "app" / "build.gradle.kts").read_text(encoding="utf-8")

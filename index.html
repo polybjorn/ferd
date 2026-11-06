@@ -6517,7 +6517,7 @@
     }
     function areaLocalNameHtml(prefix, value) {
       return getShowField('local-name') ?
-        '<label for="' + prefix + '-local-name">Local name (optional)</label>' +
+        '<label for="' + prefix + '-local-name">Local name</label>' +
         '<input type="text" id="' + prefix + '-local-name" maxlength="200" placeholder="In the local language" value="' + escapeHtml(value || '') + '">'
       : '';
     }
@@ -6526,7 +6526,7 @@
       return '<label for="' + prefix + '-category">Category</label>' +
         selectOrNewHtml(prefix + '-category', cats, (area && area.category) || null, displayCategory, '', 'New category name') +
         (getShowField('note') ?
-          '<label for="' + prefix + '-note">Note (optional)</label>' +
+          '<label for="' + prefix + '-note">Note</label>' +
           '<textarea id="' + prefix + '-note" style="min-height:40px">' + escapeHtml((area && area.note) || '') + '</textarea>'
         : '') +
         '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
@@ -6539,7 +6539,7 @@
       openModal(
         modalHeaderHtml('Edit area') +
         '<form id="edit-area-form">' +
-          '<label for="ea-name">Name</label>' +
+          '<label for="ea-name" class="ui-required">Name</label>' +
           '<input type="text" id="ea-name" required maxlength="200" value="' + escapeHtml(area.name) + '">' +
           areaLocalNameHtml('ea', area.local_name) +
           areaFieldsHtml('ea', area) +
@@ -6696,10 +6696,10 @@
       openModal(
         modalHeaderHtml('Edit route') +
         '<form id="route-meta-form">' +
-          '<label for="tm-name">Name</label>' +
+          '<label for="tm-name" class="ui-required">Name</label>' +
           '<input type="text" id="tm-name" required maxlength="64" value="' + escapeHtml(route.name) + '">' +
           (getShowField('local-name') ?
-            '<label for="tm-local-name">Local name (optional)</label>' +
+            '<label for="tm-local-name">Local name</label>' +
             '<input type="text" id="tm-local-name" placeholder="In the local language" value="' + escapeHtml(route.local_name || '') + '">'
           : '') +
           '<label for="tm-region">Region</label>' +
@@ -6715,7 +6715,7 @@
             '<label for="tm-notes">Notes</label>' +
             '<textarea id="tm-notes" maxlength="2000">' + escapeHtml(route.notes || '') + '</textarea>'
           : '') +
-          '<label for="tm-source">Source URL (optional)</label>' +
+          '<label for="tm-source">Source URL</label>' +
           '<input type="url" id="tm-source" value="' + escapeHtml(route.source || '') + '" placeholder="https://example.com/route">' +
           '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
             '<input type="checkbox" class="settings-toggle" id="tm-completed"' + (route.completed ? ' checked' : '') + '>' +
@@ -7450,35 +7450,35 @@
       openModal(
         modalHeaderHtml('Edit place') +
         '<form id="edit-place-form">' +
-          '<label for="e-name">Name</label>' +
+          '<label for="e-name" class="ui-required">Name</label>' +
           '<input type="text" id="e-name" required value="' + escapeHtml(place.name) + '">' +
           (getShowField('local-name') ?
-            '<label for="e-local-name">Local name (optional)</label>' +
+            '<label for="e-local-name">Local name</label>' +
             '<input type="text" id="e-local-name" placeholder="In the local language" value="' + escapeHtml(place.local_name || '') + '">'
           : '') +
           '<div class="row">' +
-            '<div><label for="e-lat">Latitude</label><input type="number" id="e-lat" step="any" required value="' + place.lat + '"></div>' +
-            '<div><label for="e-lon">Longitude</label><input type="number" id="e-lon" step="any" required value="' + place.lon + '"></div>' +
+            '<div><label for="e-lat" class="ui-required">Latitude</label><input type="number" id="e-lat" step="any" required value="' + place.lat + '"></div>' +
+            '<div><label for="e-lon" class="ui-required">Longitude</label><input type="number" id="e-lon" step="any" required value="' + place.lon + '"></div>' +
           '</div>' +
           '<div style="margin-top:0.25rem;text-align:right"><button type="button" class="primary" id="e-pick-on-map">Pick on map</button></div>' +
           '<label for="e-category">Category</label>' +
           selectOrNewHtml('e-category', cats, place.category, displayCategory, '', 'New category name') +
-          '<label for="e-country">Country (optional)</label>' +
+          '<label for="e-country">Country</label>' +
           '<input type="text" id="e-country" value="' + escapeHtml(place.country || '') + '">' +
           (getShowField('tags') ?
             '<label for="e-tags">Tags (comma-separated)</label>' +
             '<input type="text" id="e-tags" value="' + escapeHtml((place.tags || []).join(', ')) + '" placeholder="UNESCO, free-entry">'
           : '') +
           (getShowField('note') ?
-            '<label for="e-note">Note (optional)</label>' +
+            '<label for="e-note">Note</label>' +
             '<textarea id="e-note" style="min-height:40px">' + escapeHtml(place.note || '') + '</textarea>'
           : '') +
           (getShowField('image') ?
-            '<label for="e-image">Image URL (optional)</label>' +
+            '<label for="e-image">Image URL</label>' +
             '<input type="url" id="e-image" value="' + escapeHtml(place.image || '') + '" placeholder="https://example.com/photo.jpg">'
           : '') +
-          '<label for="e-sources">Sources (optional, one URL per line)</label>' +
-          '<textarea id="e-sources" style="min-height:40px">' + escapeHtml(sourcesText) + '</textarea>' +
+          '<label for="e-sources">Sources</label>' +
+          '<textarea id="e-sources" placeholder="One URL per line" style="min-height:40px">' + escapeHtml(sourcesText) + '</textarea>' +
           '<div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.75rem">' +
             '<input type="checkbox" class="settings-toggle" id="e-visited"' + (place.visited ? ' checked' : '') + '>' +
             '<label for="e-visited" style="margin:0">I&rsquo;ve visited this place</label>' +
@@ -13334,10 +13334,11 @@
     }
 
     // A null id labels a group of controls, which a <label for> can't point at.
-    function uiFieldHtml(id, label, control) {
+    function uiFieldHtml(id, label, control, opts) {
+      const labelClass = 'ui-field-label' + (opts && opts.required ? ' ui-required' : '');
       const labelHtml = id
-        ? '<label class="ui-field-label" for="' + id + '">' + label + '</label>'
-        : '<span class="ui-field-label">' + label + '</span>';
+        ? '<label class="' + labelClass + '" for="' + id + '">' + label + '</label>'
+        : '<span class="' + labelClass + '">' + label + '</span>';
       return '<div class="ui-field">' + labelHtml + control + '</div>';
     }
 
@@ -13813,9 +13814,9 @@
         return '<form id="place-form">' +
           '<div class="ui-section">' +
             uiFieldHtml('p-name', 'Name',
-              '<input type="text" id="p-name" required value="' + escapeHtml(d.name || '') + '">') +
+              '<input type="text" id="p-name" required value="' + escapeHtml(d.name || '') + '">', { required: true }) +
             (getShowField('local-name') ?
-              uiFieldHtml('p-local-name', 'Local name (optional)',
+              uiFieldHtml('p-local-name', 'Local name',
                 '<input type="text" id="p-local-name" placeholder="In the local language" value="' + escapeHtml(d.local_name || '') + '">')
             : '') +
             '<div>' +
@@ -13825,7 +13826,7 @@
                   (c
                     ? '<span class="ui-control-text" id="p-coords-display">' + c.lat.toFixed(5) + ', ' + c.lng.toFixed(5) + '</span>'
                     : '<a href="#" class="ui-hint" id="p-coords-manual">or enter manually</a>') +
-                '</div>') +
+                '</div>', { required: true }) +
               '<div class="collapsible" id="p-coords-fields">' +
                 '<div class="collapsible-inner">' +
                   '<div class="ui-field-row">' +
@@ -13837,18 +13838,18 @@
             '</div>' +
             uiFieldHtml('p-category', 'Category',
               selectOrNewHtml('p-category', cats, d.category || null, displayCategory, '', 'New category name')) +
-            uiFieldHtml('p-country', 'Country (optional)',
+            uiFieldHtml('p-country', 'Country',
               '<input type="text" id="p-country" value="' + escapeHtml(d.country || '') + '">') +
             (getShowField('note') ?
-              uiFieldHtml('p-note', 'Note (optional)',
+              uiFieldHtml('p-note', 'Note',
                 '<textarea id="p-note">' + escapeHtml(d.note || '') + '</textarea>')
             : '') +
             (getShowField('image') ?
-              uiFieldHtml('p-image', 'Image URL (optional)',
+              uiFieldHtml('p-image', 'Image URL',
                 '<input type="url" id="p-image" placeholder="https://example.com/photo.jpg" value="' + escapeHtml(d.image || '') + '">')
             : '') +
-            uiFieldHtml('p-sources', 'Sources (optional, one URL per line)',
-              '<textarea id="p-sources" placeholder="https://example.com/source">' + escapeHtml(sourcesText) + '</textarea>') +
+            uiFieldHtml('p-sources', 'Sources',
+              '<textarea id="p-sources" placeholder="One URL per line">' + escapeHtml(sourcesText) + '</textarea>') +
             '<div>' +
               uiToggleHtml('p-visited', 'I&rsquo;ve visited this place', { checked: d.visited }) +
               ((getShowField('date') || getShowField('rating')) ?
@@ -13881,9 +13882,9 @@
         return '<form id="gpx-form">' +
           '<div class="ui-section">' +
             uiFieldHtml('g-name', 'Name',
-              '<input type="text" id="g-name" required placeholder="e.g. Summit Loop">') +
+              '<input type="text" id="g-name" required placeholder="e.g. Summit Loop">', { required: true }) +
             (getShowField('local-name') ?
-              uiFieldHtml('g-local-name', 'Local name (optional)',
+              uiFieldHtml('g-local-name', 'Local name',
                 '<input type="text" id="g-local-name" placeholder="In the local language">')
             : '') +
             uiFieldHtml(null, 'GPX file',
@@ -13891,7 +13892,7 @@
                 '<input type="file" id="g-file" accept=".gpx,application/gpx+xml,text/xml" class="file-input-hidden" required>' +
                 '<button type="button" class="primary" id="g-file-pick">Choose file</button>' +
                 '<span class="ui-control-text" id="g-file-name">No file selected</span>' +
-              '</div>') +
+              '</div>', { required: true }) +
             uiFieldHtml('g-region', 'Region',
               selectOrNewHtml('g-region', regions, null, null, '', 'New region name')) +
             uiFieldHtml(null, 'Difficulty',
@@ -13901,10 +13902,10 @@
                 '<input type="text" id="g-tags" placeholder="summit, panorama, via-ferrata">')
             : '') +
             (getShowField('note') ?
-              uiFieldHtml('g-notes', 'Notes (optional)',
+              uiFieldHtml('g-notes', 'Notes',
                 '<textarea id="g-notes" maxlength="2000"></textarea>')
             : '') +
-            uiFieldHtml('g-source', 'Source URL (optional)',
+            uiFieldHtml('g-source', 'Source URL',
               '<input type="url" id="g-source" placeholder="https://example.com/route">') +
             uiToggleHtml('g-strip-pii', 'Strip personal data from GPX', { title: 'Removes timestamps, author, and creator from the GPX file' }) +
             '<div>' +
@@ -14001,7 +14002,7 @@
           '<div class="ui-section">' +
             '<div class="ui-field">' +
               '<div class="area-search-label">' +
-                '<label class="ui-field-label" for="a-search">Find a boundary</label>' +
+                '<label class="ui-field-label ui-required" for="a-search">Find a boundary</label>' +
                 '<button type="button" class="area-search-info" id="a-search-info" aria-label="About this search" aria-expanded="false" aria-controls="a-search-note">' +
                   '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>' +
                 '</button>' +
@@ -14029,9 +14030,9 @@
             '</div>' +
             '<div id="a-name-row">' +
               '<div class="ui-section">' +
-                uiFieldHtml('a-name', 'Name', '<input type="text" id="a-name" required maxlength="200">') +
+                uiFieldHtml('a-name', 'Name', '<input type="text" id="a-name" required maxlength="200">', { required: true }) +
                 (getShowField('local-name') ?
-                  uiFieldHtml('a-local-name', 'Local name (optional)',
+                  uiFieldHtml('a-local-name', 'Local name',
                     '<input type="text" id="a-local-name" maxlength="200" placeholder="In the local language">')
                 : '') +
               '</div>' +
@@ -14039,7 +14040,7 @@
             uiFieldHtml('a-category', 'Category',
               selectOrNewHtml('a-category', cats, null, displayCategory, '', 'New category name')) +
             (getShowField('note') ?
-              uiFieldHtml('a-note', 'Note (optional)', '<textarea id="a-note"></textarea>')
+              uiFieldHtml('a-note', 'Note', '<textarea id="a-note"></textarea>')
             : '') +
             '<div>' +
               uiToggleHtml('a-visited', 'I&rsquo;ve visited this area') +

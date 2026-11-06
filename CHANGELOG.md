@@ -17,6 +17,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Changed
 - The Add form's switches sit at the right of their row, and tapping anywhere on the row flips them.
+- Forms mark required fields with an asterisk instead of labelling the rest as optional.
 - Ferd needs Chrome 99 or newer, or Android System WebView 99 in the Android app. An older one shows a notice asking to update it instead of a broken page.
 
 ## [1.5.0] - 2026-11-05

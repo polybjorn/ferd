@@ -38,6 +38,7 @@
      </div>
    Add .ui-field-invalid to the field, and aria-invalid="true" to the control,
    to show an error; a .ui-hint inside it then reads as the error text.
+   Add .ui-required to the label of a field that must be filled in.
 
    Field row: two short fields side by side.
      <div class="ui-field-row">
@@ -194,6 +195,11 @@
     color: var(--ui-text);
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .ui-required::after {
+    content: " *";
+    color: var(--ui-muted);
   }
 
   .ui-hint {
