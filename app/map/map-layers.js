@@ -1,5 +1,57 @@
-import { escapeHtml, state } from './core.js';
-import { BASE_LAYER_NAMES, getDefaultTileLayer, getShowTilePicker } from './prefs.js';
+import { escapeHtml, state } from '../core.js';
+import { BASE_LAYER_NAMES, getDefaultTileLayer, getShowTilePicker } from '../prefs.js';
+
+// Skip tile loads during zoom animations. Default true is wasteful:
+// each zoom level transition requests its own batch of tiles while
+// the gesture is still in flight, competing with the animation.
+if (window.L && L.TileLayer && L.TileLayer.mergeOptions) {
+  // NoGap (dumpToCanvas) fixes Android tile seams, which the 2D transform
+  // below does not on a real device, but causes a small visible reshuffle
+  // at zoomend on desktop. So touch gets the canvas and desktop the transform.
+  const _isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  L.TileLayer.mergeOptions({
+    // On touch, load tiles during the pinch so the new level is painted
+    // before the integer-snap at release (otherwise the snap reloads tiles
+    // and briefly flashes seams). Desktop smooth-wheel keeps it off to avoid
+    // requesting a batch per fractional level mid-gesture.
+    updateWhenZooming: _isTouch,
+    dumpToCanvas: _isTouch,
+  });
+
+  // Leaflet 1.9 places each tile with translate3d, which gives it its own
+  // compositor layer. Those layers' antialiased edges show as light lines
+  // between tiles at fractional pixel ratios and zooms. With a 2D transform
+  // a level's tiles paint into one layer, which is Leaflet 2's fix.
+  if (!_isTouch) {
+    const addTile = L.GridLayer.prototype._addTile;
+    L.GridLayer.include({
+      _addTile(coords, container) {
+        addTile.call(this, coords, container);
+        const tile = this._tiles[this._tileCoordsToKey(coords)].el;
+        const pos = L.DomUtil.getPosition(tile);
+        tile.style.transform = `translate(${pos.x}px,${pos.y}px)`;
+      },
+    });
+  } else {
+    // NoGap copies a tile to the canvas only after its fade, and until then
+    // the tiles show the same lines as plain Leaflet. Copying on load skips that.
+    const tileReady = L.TileLayer.prototype._tileReady;
+    const onOpaqueTile = L.TileLayer.prototype._onOpaqueTile;
+    L.TileLayer.include({
+      _tileReady(coords, err, el) {
+        tileReady.call(this, coords, err, el);
+        const tile = this._map && this._tiles[this._tileCoordsToKey(coords)];
+        if (tile && !err) this._onOpaqueTile(tile);
+      },
+      _onOpaqueTile(tile) {
+        if (tile.dumped) return;
+        tile.dumped = true;
+        onOpaqueTile.call(this, tile);
+      },
+    });
+  }
+}
+
 
 const OSM_CREDIT = '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>';
 export const TOPO_CREDIT = OSM_CREDIT + ', SRTM | &copy; <a href="https://opentopomap.org">OpenTopoMap</a> ' +
@@ -229,7 +281,7 @@ export function cleanupMap() {
   state._selectedRouteKey = null;
   state._routeGroupCompleted = null;
   state._routeGroupPlanned = null;
-  state._removeRouteFromMap = null;
+  state._syncRoutesOnMap = null;
   state._routeRenderer = null;
   state._detailPolylines = null;
   state._detailRenderer = null;

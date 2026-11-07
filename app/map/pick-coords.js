@@ -1,6 +1,5 @@
-import { state } from './core.js';
-import { router } from './router.js';
-import { openAddModal } from './add.js';
+import { state } from '../core.js';
+import { openAddModal } from '../add.js';
 import { openSearchView } from './map-phone.js';
 
 // onPick is called with the chosen latlng. If omitted, the default
@@ -35,21 +34,6 @@ export function enterPickCoordsMode(onPick) {
   map.getContainer().style.cursor = 'crosshair';
   map.once('click', onClick);
 }
-
-// Kept as a thin wrapper: callers use wrappedRouter() to re-render the
-// current view. The map's Add action now lives in the nav (renderUnifiedMap
-// populates #nav-actions), so there's no floating button to re-mount.
-const _origRouter = typeof router !== 'undefined' ? router : null;
-export function wrappedRouter() {
-  if (_origRouter) _origRouter(); else router();
-}
-// Flag in-app hash navigations (clicks) vs the initial load (reload), so a
-// place focus from a click centers the map on the pin, while a reload at a
-// place URL keeps the user's prior/remembered view.
-window.addEventListener('hashchange', function() {
-  state._navByHash = true;
-  try { wrappedRouter(); } finally { state._navByHash = false; }
-});
 
 // Spacebar: toggle map chrome (filter panel, leaflet controls).
 document.addEventListener('keydown', function(e) {

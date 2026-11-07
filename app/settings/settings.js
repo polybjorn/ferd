@@ -1,6 +1,9 @@
 import { state } from '../core.js';
 import { applyAuth, hasServer, isReadOnly } from '../server.js';
-import { rebuildMapFilterPanel } from '../map-panel.js';
+import {
+  refreshMapFeatures, refreshOpenPlacePopup, refreshPlaceMarkerIcons, refreshTrailWeights, setTilePicker, swapPlaceClusterGroup,
+  syncCountriesOnMap,
+} from '../map/index.js';
 import {
   BASE_LAYER_NAMES, applyControlVisibility, featureVisible, getClusterPlaces,
   getDefaultShow, getDefaultTileLayer, getRememberView, getShowExpandButton, getShowField,
@@ -8,13 +11,6 @@ import {
   placesAvailable, placesEnabled, refreshTabVisibility, routesAvailable, routesEnabled,
   setFeatureHidden, setFeatureVisible, setPref, zoomControlsKey,
 } from '../prefs.js';
-import { addTilePicker } from '../map-layers.js';
-import { refreshPlaceMarkerIcons } from '../map-markers.js';
-import { refreshTrailWeights } from '../route-layer.js';
-import { syncCountriesOnMap } from '../countries.js';
-import { refreshOpenPlacePopup } from '../route-meta.js';
-import { playEnter, playLeave } from '../map-actions.js';
-import { applyMapFilters, swapPlaceClusterGroup } from '../place-layer.js';
 import { reloadCatalogCache } from '../places-list.js';
 import {
   MODES, THEMES, applyTheme, applyTileFilter, getMarkerSizeKey, getPinStyle, getStoredMode,
@@ -33,7 +29,7 @@ import { sync } from '../store.js';
 import {
   CopyButton, DialogHead, ErrorBox, Field, RadioPills, Toggle, html, openViewModal, useRef, useState,
 } from '../view.js';
-import { wrappedRouter } from '../pick-coords.js';
+import { wrappedRouter } from '../router.js';
 
 /** @param {string | null | undefined} ua */
 export function deviceLabel(ua) {
@@ -199,8 +195,7 @@ function setMainFeature(feat, on) {
   refreshTabVisibility();
   // Keeps the menu's phone Places/Routes section in sync.
   renderAuthWidget();
-  if (state.currentMap) { applyMapFilters(); rebuildMapFilterPanel(); }
-  else wrappedRouter();
+  if (!refreshMapFeatures()) wrappedRouter();
 }
 
 // Menu items and the Add modal's Browse tab, none of which touch the map.
@@ -283,8 +278,6 @@ function GeneralPanel({ env }) {
  * @param {boolean} on
  */
 function setSwitchPref(key, on) {
-  // Map-layers.js owns these two fields and adds them at runtime.
-  const st = /** @type {any} */ (state);
   setPref(key, on ? 'true' : 'false');
   if (key === 'remember-view') {
     // Read on the next navigation only.
@@ -298,17 +291,7 @@ function setSwitchPref(key, on) {
     return;
   }
   if (key === 'tile-picker') {
-    if (state.currentMap && st.tilePickerLayers) {
-      if (on && !st.tilePickerCtrl) {
-        const ctrl = addTilePicker(state.currentMap);
-        st.tilePickerCtrl = ctrl;
-        playEnter(ctrl.getContainer(), 'tile-pick-enter');
-      } else if (!on && st.tilePickerCtrl) {
-        const ctrl = st.tilePickerCtrl;
-        st.tilePickerCtrl = null;
-        playLeave(ctrl.getContainer(), 'tile-pick-leave', () => state.currentMap.removeControl(ctrl));
-      }
-    }
+    setTilePicker(on);
     return;
   }
   // The filter panel, zoom and expand controls hide through body classes.

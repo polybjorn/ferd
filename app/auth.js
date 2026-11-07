@@ -1,21 +1,20 @@
 import { escapeHtml, state } from './core.js';
 import { applyAuth, hasServer, isReadOnly, serverBase, setBearerToken, setServerless } from './server.js';
-
 import { clearRecentPicks, logsEnabled } from './prefs.js';
-import { TOPO_CREDIT, parseOverlays } from './map-layers.js';
-import { closeTransientOverlays } from './map-actions.js';
+import { closeTransientOverlays, parseOverlays, TOPO_CREDIT } from './map/index.js';
 import { openCatalogBulkUpdateModal, placesWithCatalogUpdates } from './places-list.js';
 import { openSettingsModal } from './settings/settings.js';
 import { openLogsModal } from './settings/logs.js';
 import { modalHeaderHtml, openConfirmModal } from './select.js';
+import { openSheetModal } from './modal.js';
+import { openSignInModal } from './sign-in.js';
+
 
 /**
  * An Error thrown by an API call: `status` and `body` from a non-2xx reply,
  * `offline` when the request never reached the server.
  * @typedef {Error & { status?: number, body?: any, offline?: boolean }} ApiError
  */
-import { openSheetModal } from './modal.js';
-import { openSignInModal } from './sign-in.js';
 
 export function apiUrl(path) {
   const apiBase = (state.config.api_base || '/api').replace(/\/$/, '');

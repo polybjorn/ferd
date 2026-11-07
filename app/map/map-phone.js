@@ -1,8 +1,8 @@
-import { closeModal, openModal, openSheetModal } from './modal.js';
-import { bindFilterSheet, filterSheetHtml, refreshFilterPanel, syncFilterDot } from './map.js';
+import { closeModal, openModal, openSheetModal } from '../modal.js';
+import { bindFilterSheet, filterSheetHtml, refreshFilterPanel, syncFilterDot } from './home-map.js';
 import { goToSearchResult, recentResultsHtml, searchMatches, searchResultsHtml } from './place-layer.js';
-import { addRecentPick, clearRecentPicks, getRecentPicks, placesEnabled, routesEnabled } from './prefs.js';
-import { state } from './core.js';
+import { addRecentPick, clearRecentPicks, getRecentPicks, placesEnabled, routesEnabled } from '../prefs.js';
+import { state } from '../core.js';
 
 const FILTER_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5h20"/><path d="M6 12h12"/><path d="M9 19h6"/></svg>';
 

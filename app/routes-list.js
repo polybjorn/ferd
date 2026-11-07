@@ -1,12 +1,9 @@
 import { addButtonHtml, displayRegion, escapeHtml, setActiveTab, setCrumb, state } from './core.js';
 import { gpxUrlFor, isReadOnly } from './server.js';
 import { collectTags, tagsIncludeAll } from './tags.js';
-import { wireFilterPopover } from './map-panel.js';
+import { cleanupMap, deleteRouteItem, fetchGpxText, wireFilterPopover } from './map/index.js';
 import { setPref, setResultCount } from './prefs.js';
-import { cleanupMap } from './map-layers.js';
-import { fetchGpxText } from './route-layer.js';
 import { findRouteByKey, openEditTrailMetadataModal } from './route-meta.js';
-import { deleteRouteItem } from './map-actions.js';
 import { groupAndSort, letterBucket } from './places-list.js';
 import {
   drawRouteSilhouette, listView, listViewPopoverHtml, wireListViewPopover,

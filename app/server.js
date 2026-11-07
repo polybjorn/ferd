@@ -116,9 +116,9 @@ export function gpxUrlFor(file) {
 export function isReadOnly() {
   return !!(state.viewer && state.viewer.mode === 'public');
 }
-export function popupEditHtml() {
-  const canEdit = !isReadOnly() && state.auth && state.auth.authenticated;
-  return canEdit ? '<button type="button" class="popup-edit">Edit</button>' : '';
+// Edit on a map popup: the owner, signed in (local mode signs in as one).
+export function canEditPopup() {
+  return !isReadOnly() && !!(state.auth && state.auth.authenticated);
 }
 // POPUP-EDIT-END
 

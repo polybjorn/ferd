@@ -1,10 +1,11 @@
-import { escapeHtml, state } from './core.js';
+import { escapeHtml, state } from '../core.js';
 import { easeLeaflet } from './map-layers.js';
-import { getClusterPlaces, placesEnabled, routesEnabled } from './prefs.js';
-import { MAP_FADE_MS, applyAreaFilters, reduceMotion, revealArea } from './areas.js';
+import { getClusterPlaces, placesEnabled, routesEnabled } from '../prefs.js';
+import { applyAreaFilters, MAP_FADE_MS, revealArea } from './area-layer.js';
+import { reduceMotion } from '../areas.js';
 import { goToPlace, goToRoute, openPlacePopup, placeMarkerRadius } from './map-actions.js';
-import { focusHash } from './router.js';
-import { getMarkerSize, getPinStyle } from './theme.js';
+import { focusHash } from '../router.js';
+import { getMarkerSize, getPinStyle } from '../theme.js';
 
 // Canvas-rendered place layer. Owns clustering via supercluster, draws
 // all places and clusters to a single <canvas>, hit-tests clicks and

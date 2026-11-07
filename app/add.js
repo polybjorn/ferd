@@ -9,9 +9,10 @@ import {
   selectOrNewHtml, starRatingHtml, wireSelectOrNew, wireStarRating,
 } from './form-fields.js';
 import { collectTags, tagsInclude } from './tags.js';
-import { wireFilterPopover } from './map-panel.js';
+import {
+  enterPickCoordsMode, fitAddedAreas, refreshPlacesPresentation, wireFilterPopover,
+} from './map/index.js';
 import { catalogEnabled, getShowField, placesEnabled, routesEnabled } from './prefs.js';
-import { refreshPlacesPresentation, syncPlacesOnMap } from './map-popups.js';
 import { readAreaFormFields, readAreaLocalName, reduceMotion } from './areas.js';
 import { wireCountryPicker } from './countries.js';
 import { fetchCatalog } from './places-list.js';
@@ -21,7 +22,6 @@ import {
   uiFieldHtml, uiToggleHtml,
 } from './select.js';
 import { closeModal, openFullScreenModal, showModalError } from './modal.js';
-import { enterPickCoordsMode } from './pick-coords.js';
 
 export function openAddModal(prefillCoords, initialTab, draft) {
   const showPlaces = placesEnabled();
@@ -270,9 +270,8 @@ export function openAddModal(prefillCoords, initialTab, draft) {
       if (r.error) { showModalError(r.error); return; }
       const submitBtn = /** @type {HTMLButtonElement} */ (document.getElementById('place-submit'));
       submitBtn.disabled = true;
-      const prevColors = Object.assign({}, state.categoryColors);
       dataLayer.createPlace(r.payload)
-        .then(() => { closeModal(); syncPlacesOnMap(prevColors); refreshPlacesPresentation(); })
+        .then(() => { closeModal(); refreshPlacesPresentation(); })
         .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
     });
   }
@@ -572,12 +571,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
         .then(() => {
           closeModal();
           refreshPlacesPresentation();
-          const map = state.currentMap;
-          const added = (state._areaLayers || []).filter(x => !before.has(x.area.id));
-          if (!map || !added.length) return;
-          const bounds = L.latLngBounds();
-          for (const x of added) bounds.extend(x.layer.getBounds());
-          if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
+          fitAddedAreas(before);
         })
         .catch(err => { submit.disabled = false; showModalError(err.message); });
     });
@@ -843,13 +837,11 @@ export function openAddModal(prefillCoords, initialTab, draft) {
         if (!picked.length) return;
         function runImport() {
           addBtn.disabled = true;
-          const prevColors = Object.assign({}, state.categoryColors);
           let done = 0;
           const errors = [];
           (function next() {
             if (done >= picked.length) {
               Promise.resolve().then(() => {
-                syncPlacesOnMap(prevColors);
                 refreshPlacesPresentation();
                 if (errors.length) {
                   updateBtn();

@@ -1,6 +1,6 @@
-import { state } from './core.js';
-import { getMarkerSize, getPinStyle } from './theme.js';
-import { wrappedRouter } from './pick-coords.js';
+import { state } from '../core.js';
+import { getMarkerSize, getPinStyle } from '../theme.js';
+import { wrappedRouter } from '../router.js';
 
 function createMarkerIcon(color, visited) {
   const size = getMarkerSize(), cx = size / 2, cy = size / 2;

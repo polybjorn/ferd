@@ -1,12 +1,13 @@
-import { displayRegion, state } from './core.js';
-import { dataLayer } from './store.js';
-import { placePopupHtml } from './map-popups.js';
-import { manifestRoutes } from './areas.js';
-import { openEditPlaceModal } from './edit-place.js';
-import { renderPlaceList } from './places-list.js';
-import { focusHash } from './router.js';
-import { getMarkerSize, getPinStyle } from './theme.js';
-import { openConfirmModal } from './select.js';
+import { displayRegion, state } from '../core.js';
+import { dataLayer } from '../store.js';
+import { html } from '../view.js';
+import { PlacePopup, popupElement } from './popups.js';
+import { manifestRoutes } from '../areas.js';
+import { openEditPlaceModal } from '../edit-place.js';
+import { renderPlaceList } from '../places-list.js';
+import { focusHash } from '../router.js';
+import { getMarkerSize, getPinStyle } from '../theme.js';
+import { openConfirmModal } from '../select.js';
 
 // Pan/zoom to a place marker and open its popup. With clustering on, a plain
 // setView+openPopup leaves the marker buried inside an unexpanded cluster;
@@ -46,11 +47,8 @@ export function placeMarkerRadius(size) { return Math.max(3, (size / 2) - 2); }
 // An element, not a string: update() would rewrite a string from scratch,
 // dropping the listener.
 export function placePopupContent(map, place) {
-  const content = document.createElement('div');
-  content.innerHTML = placePopupHtml(place);
-  const edit = content.querySelector('.popup-edit');
-  if (edit) edit.addEventListener('click', function() { map.closePopup(); openEditPlaceModal(place); });
-  return content;
+  return popupElement(html`<${PlacePopup} place=${place}
+    onEdit=${() => { map.closePopup(); openEditPlaceModal(place); }} />`);
 }
 export function openPlacePopup(map, place) {
   const lift = getPinStyle() === 'tag' ? 0 : placeMarkerRadius(getMarkerSize());
@@ -133,7 +131,7 @@ function deletePlaceNow(place, { animate, deleted, after, onError }) {
       return Promise.all([layer ? layer.fadeOutPlace(place) : null]);
     })
     .then(() => anim)
-    .then(() => after(prevColors))
+    .then(() => { if (after) after(prevColors); })
     .catch(err => {
       failed = true;
       if (animate && document.getElementById('place-list')) renderPlaceList();

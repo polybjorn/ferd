@@ -34,11 +34,6 @@ export function normalizePlaceTags(place) {
   }
   return place;
 }
-// Inline "#a #b" line for map popups.
-export function tagPopupHtml(tags) {
-  return (getShowField('tags') && Array.isArray(tags) && tags.length)
-    ? '<div class="popup-tags">' + tags.map(t => '#' + escapeHtml(t)).join(' ') + '</div>' : '';
-}
 // Pill badges for list cards; cls is the wrapper class (place-tags / route-meta-tags).
 export function tagPillsHtml(tags, cls) {
   return (getShowField('tags') && Array.isArray(tags) && tags.length)

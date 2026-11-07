@@ -1,10 +1,10 @@
-import { state } from './core.js';
-import { placesEnabled, routesEnabled } from './prefs.js';
-import { bindFilterPanel, refreshFilterPanel } from './map.js';
+import { state } from '../core.js';
+import { placesEnabled, routesEnabled } from '../prefs.js';
+import { bindFilterPanel, refreshFilterPanel } from './home-map.js';
 import { closeTransientOverlays } from './map-actions.js';
 import { initUnifiedSearch } from './place-layer.js';
-import { _selPopover, closeSelectPopover, openMultiSelectList } from './select.js';
-import { wrappedRouter } from './pick-coords.js';
+import { _selPopover, closeSelectPopover, openMultiSelectList } from '../select.js';
+import { wrappedRouter } from '../router.js';
 
 // Toggle a popover open/closed; close on outside click or when another
 // transient overlay opens. Clicks inside are swallowed so selecting a control

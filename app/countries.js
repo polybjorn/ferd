@@ -9,7 +9,7 @@ import { _selectCoarsePointer } from './select.js';
 // place's own country field, never from where its pin falls.
 const COUNTRY_DATA_URL = '/vendor/natural-earth/';
 export const COUNTRY_MAX_ZOOM = 6;
-function countriesEnabled() { return placesEnabled() && featureVisible('countries'); }
+export function countriesEnabled() { return placesEnabled() && featureVisible('countries'); }
 // COUNTRY-MATCH-BEGIN
 // Mirrors normalise_country_name in tools/ferd_api/places.py.
 function normCountryName(name) {
@@ -200,7 +200,7 @@ function mountCountryPicker(input, { countries, names }) {
   });
   if (document.activeElement === input && input.value.trim()) open(false);
 }
-function loadCountryData() {
+export function loadCountryData() {
   if (!state._countryData) {
     state._countryData = Promise.all(['countries.geo.json', 'country-names.json'].map(fetchCountryFile))
       .then(([shapes, names]) => ({ shapes, names }));
@@ -210,40 +210,6 @@ function loadCountryData() {
 }
 // The server stores country_code; the name lookup covers local mode and
 // edits still queued offline, which have not been through the server.
-function placeCountryCode(p, names) {
+export function placeCountryCode(p, names) {
   return p.country_code || (p.country ? names[normCountryName(p.country)] : null) || null;
-}
-export function syncCountriesOnMap() {
-  const group = state._countryGroup;
-  if (!group) return;
-  if (!countriesEnabled()) {
-    group.clearLayers();
-    group._key = null;
-    return;
-  }
-  loadCountryData().then(({ shapes, names }) => {
-    if (state._countryGroup !== group || !countriesEnabled()) return;
-    const codes = new Set();
-    for (const p of state.places || []) {
-      if (!p.visited) continue;
-      const code = placeCountryCode(p, names);
-      if (code) codes.add(code);
-    }
-    const color = getComputedStyle(document.body).getPropertyValue('--completed').trim() || '#2ea043';
-    const key = color + '|' + [...codes].sort().join(',');
-    if (group._key === key) return;
-    group._key = key;
-    group.clearLayers();
-    if (!codes.size) return;
-    group.addLayer(L.geoJSON(shapes, {
-      renderer: state._countryRenderer,
-      pane: 'countriesPane',
-      interactive: false,
-      filter: f => codes.has(f.properties.code),
-      // No outline: a fill scales with the pinch correctly, but an SVG stroke
-      // thickens and shakes through it, and the GL layer that holds route and
-      // area widths would have to carry every country's coast.
-      style: { stroke: false, fillColor: color, fillOpacity: 0.28 },
-    }));
-  }).catch(err => console.warn('[ferd] visited countries:', err.message));
 }

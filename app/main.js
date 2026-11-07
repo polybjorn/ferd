@@ -17,28 +17,19 @@ import {
 } from './theme.js';
 import { apiUrl, renderAuthWidget } from './auth.js';
 import { bindStoreToState } from './select.js';
+import { bindMapToStore } from './map/index.js';
 import { renderServerPicker, renderSignInPage } from './sign-in.js';
-import { wrappedRouter } from './pick-coords.js';
+import { wrappedRouter } from './router.js';
 import './backup.js';
 import './area-geo.js';
 import './form-fields.js';
 import './tags.js';
-import './map-panel.js';
-import './map-wheel.js';
-import './map-layers.js';
-import './map-markers.js';
-import './route-layer.js';
-import './map-popups.js';
 import './areas.js';
 import './countries.js';
 import './route-meta.js';
-import './map.js';
 import './edit-place.js';
-import './map-actions.js';
-import './place-layer.js';
 import './history.js';
 import './routes-list.js';
-import './route-detail.js';
 import './router.js';
 import { saveDownload } from './settings/settings.js';
 import './settings/logs.js';
@@ -238,6 +229,7 @@ function startup() {
 }
 
 bindStoreToState();
+bindMapToStore();
 // Changes pulled from the server redraw the page on show; edits made here
 // redraw through their own call sites.
 onRemoteChange(() => { if (!document.body.classList.contains('app-booting')) wrappedRouter(); });

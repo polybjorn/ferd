@@ -150,6 +150,9 @@ export const state = {
   _selectedRouteKey: null,   // index-map: highlighted route (click-to-distinguish overlaps)
   _routeGroupCompleted: null,
   _routeGroupPlanned: null,
+  _syncRoutesOnMap: /** @type {(() => void) | null} */ (null), // index-map: applies the routes signal (home-map.js)
+  _areaGroup: /** @type {any} */ (null),
+  _areaLayers: /** @type {any[] | null} */ (null), // [{ area, visited, layer }]
 };
 
 export function escapeHtml(str) {

@@ -1,14 +1,13 @@
 import { GPX_NS, addButtonHtml, escapeHtml, setActiveTab, setCrumb, state } from './core.js';
 import { gpxUrlFor, isReadOnly } from './server.js';
-import { wireFilterPopover, wirePopover } from './map-panel.js';
+import {
+  cleanupMap, deletePlaceItem, deleteRouteItem, fetchGpxText, wireFilterPopover, wirePopover,
+} from './map/index.js';
 import {
   getPref, getShowField, placesEnabled, routesEnabled, setPref, setResultCount,
 } from './prefs.js';
-import { cleanupMap } from './map-layers.js';
-import { fetchGpxText } from './route-layer.js';
 import { findRouteByKey, openEditTrailMetadataModal, ratingStarsText } from './route-meta.js';
 import { openEditPlaceModal } from './edit-place.js';
-import { deletePlaceItem, deleteRouteItem } from './map-actions.js';
 import { NAME_COLLATOR, findCatalogUpdate, openCatalogUpdateModal } from './places-list.js';
 import { focusHash } from './router.js';
 import { attachContextMenu } from './context-menu.js';

@@ -4,21 +4,18 @@ import {
 import { fetchJson, hasServer, isReadOnly } from './server.js';
 import { dataLayer } from './store.js';
 import { collectTags, tagPillsHtml, tagsIncludeAll } from './tags.js';
-import { wireFilterPopover } from './map-panel.js';
+import {
+  cleanupMap, deletePlaceItem, refreshOpenPlacePopup, redrawPlaces, refreshPlacesPresentation, resyncPlaceCardSlugs, wireFilterPopover,
+} from './map/index.js';
 import { getShowField, setPref, setResultCount } from './prefs.js';
-import { cleanupMap } from './map-layers.js';
-import { refreshPlacesPresentation, syncPlacesOnMap } from './map-popups.js';
-import { refreshOpenPlacePopup } from './route-meta.js';
 import { openEditPlaceModal } from './edit-place.js';
-import { deletePlaceItem, resyncPlaceCardSlugs } from './map-actions.js';
 import { listView, listViewPopoverHtml, wireListViewPopover } from './history.js';
-import { focusHash } from './router.js';
+import { focusHash, wrappedRouter } from './router.js';
 import { api } from './auth.js';
 import { attachContextMenu } from './context-menu.js';
 import { enhanceSelectsIn, modalHeaderHtml } from './select.js';
 import { closeModal, openFullScreenModal } from './modal.js';
 import { openAddModal } from './add.js';
-import { wrappedRouter } from './pick-coords.js';
 
 // Fields the catalog "owns" - personal status (visited / date_visited /
 // rating / from_catalog / runtime annotations) is preserved on refresh.
@@ -468,7 +465,7 @@ export function openCatalogUpdateModal(place) {
             } else {
               updatePlaceCardAfterCatalogChange(fresh);
             }
-            if (state._placeClusterGroup) state._placeClusterGroup.redraw();
+            redrawPlaces();
             refreshOpenPlacePopup();
           })
           .catch(err => { btn.disabled = false; alert('Failed: ' + err.message); });
@@ -776,7 +773,7 @@ export function renderPlaceList(query) {
       if (!isReadOnly() && state.auth && state.auth.authenticated) {
         items.push(null);
         items.push({ label: 'Delete', danger: true, onClick: function() {
-          deletePlaceItem(place, { animate: true, after: function(prevColors) { syncPlacesOnMap(prevColors); resyncPlaceCardSlugs(); } });
+          deletePlaceItem(place, { animate: true, after: resyncPlaceCardSlugs });
         }});
       }
       return items;

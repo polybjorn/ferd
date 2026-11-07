@@ -1,9 +1,8 @@
 import { state } from './core.js';
 import { isReadOnly } from './server.js';
-import { syncPlacesOnMap } from './map-popups.js';
+import { deletePlaceItem, deleteRouteItem, openPlacePopup } from './map/index.js';
 import { afterRouteDeleted, openEditTrailMetadataModal } from './route-meta.js';
 import { openEditPlaceModal } from './edit-place.js';
-import { deletePlaceItem, deleteRouteItem, openPlacePopup } from './map-actions.js';
 import { findCatalogUpdate, openCatalogUpdateModal } from './places-list.js';
 import { focusHash } from './router.js';
 import { popoverHost } from './modal.js';
@@ -45,7 +44,7 @@ export function openMapPlaceContextMenu(place, oe, map) {
   if (!isReadOnly() && state.auth && state.auth.authenticated) {
     items.push(null);
     items.push({ label: 'Delete', danger: true, onClick: function() {
-      deletePlaceItem(place, { after: syncPlacesOnMap });
+      deletePlaceItem(place, {});
     }});
   }
   openContextMenu({ x: oe.clientX, y: oe.clientY, items });
@@ -68,7 +67,7 @@ export function openMapRouteContextMenu(route, regionName, oe, map) {
   if (!isReadOnly() && state.auth && state.auth.authenticated) {
     items.push(null);
     items.push({ label: 'Delete', danger: true, onClick: function() {
-      deleteRouteItem(route, regionName, function() { afterRouteDeleted(route.key); });
+      deleteRouteItem(route, regionName, function() { afterRouteDeleted(); });
     }});
   }
   openContextMenu({ x: oe.clientX, y: oe.clientY, items });

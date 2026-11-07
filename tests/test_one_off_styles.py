@@ -16,7 +16,7 @@ FRONTEND = "\n".join(p.read_text(encoding="utf-8")
                      for p in [ROOT / "index.html", *sorted((ROOT / "app").rglob("*"))] if p.is_file())
 
 # Lower these as one-off styles move out. Never raise them.
-MAX_INLINE_STYLES = 72
+MAX_INLINE_STYLES = 70
 MAX_IMPORTANT = 71
 MAX_HARDCODED_COLOURS = 12
 

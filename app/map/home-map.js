@@ -1,27 +1,28 @@
 import {
   addButtonHtml, displayCategory, displayRegion, escapeHtml, setActiveTab, setCrumb, sortedCategorySlugs, state,
-} from './core.js';
-import { gpxUrlFor, isReadOnly, routeStatusColor } from './server.js';
-import { applyCoverMinZoom } from './form-fields.js';
+} from '../core.js';
+import { gpxUrlFor, isReadOnly, routeStatusColor } from '../server.js';
+import { applyCoverMinZoom } from '../form-fields.js';
 import { collapseCreditOnPhone, panelInnerHtml } from './map-panel.js';
 import { addPhoneMapButtons } from './map-phone.js';
 import {
   DEFAULT_CONFIG, getRememberView, loadStoredView, placesEnabled, routesEnabled, saveStoredView,
-} from './prefs.js';
+} from '../prefs.js';
 import { enableWheelZoom } from './map-wheel.js';
 import { addTileLayersToMap, cleanupMap, mapScheduler } from './map-layers.js';
 import {
   adjustTrailStrokes, applyNonScalingStroke, applyRouteHighlight, attachGLRoutes,
   bindTrailStrokeMotion, fetchGpxText, setSelectedRoute, simplifyRouteForZoom,
 } from './route-layer.js';
-import { fadeOutRoute, initAreaLayers, openAreaPopupAt } from './areas.js';
-import { routePopupHtml } from './route-meta.js';
+import { fadeOutRoute, initAreaLayers, openAreaPopupAt } from './area-layer.js';
+import { html } from '../view.js';
+import { popupElement, RoutePopup } from './popups.js';
 import { openPlacePopup, pulseChip, revealPlaceMarker } from './map-actions.js';
 import { applyMapFilters, createPlaceLayerGroup, initUnifiedSearch, placeShown, routeShown } from './place-layer.js';
-import { focusHash } from './router.js';
-import { getTrailWeightFactor } from './theme.js';
-import { openMapPlaceContextMenu, openMapRouteContextMenu } from './context-menu.js';
-import { openAddModal } from './add.js';
+import { focusHash } from '../router.js';
+import { getTrailWeightFactor } from '../theme.js';
+import { openMapPlaceContextMenu, openMapRouteContextMenu } from '../context-menu.js';
+import { openAddModal } from '../add.js';
 
 export function renderUnifiedMap(focus) {
   setActiveTab('map');
@@ -147,16 +148,25 @@ export function renderUnifiedMap(focus) {
   // manifest's per-route bbox is still used synchronously for initial
   // fit, so the map opens at the right area without waiting on any
   // GPX fetch.
+  /** @type {any[]} */
   const routeDescriptors = [];
   const loadedRouteKeys = new Set();
   const pendingRouteKeys = new Set();
+  // The signature covers everything the line and its popup are drawn from,
+  // so an edited route is loaded again rather than kept stale.
+  const routeDescriptor = function(route, region) {
+    return {
+      route, region,
+      color: routeStatusColor(route.completed),
+      parent: route.completed ? groupCompleted : groupPlanned,
+      gpxUrl: gpxUrlFor(route.file),
+      sig: region.name + '\n' + JSON.stringify(route),
+    };
+  };
   if (state.manifest) {
     for (const region of state.manifest.regions) {
       for (const route of region.routes) {
-        const color = routeStatusColor(route.completed);
-        const parent = route.completed ? groupCompleted : groupPlanned;
-        const gpxUrl = gpxUrlFor(route.file);
-        routeDescriptors.push({ route, region, color, parent, gpxUrl });
+        routeDescriptors.push(routeDescriptor(route, region));
         const visibleStatus = route.completed ? state.showCompleted : state.showPlanned;
         if (route.bbox && route.bbox.length === 4
             && !state.hiddenRegions.has(region.name)
@@ -322,7 +332,7 @@ export function renderUnifiedMap(focus) {
         console.warn('[ferd] gpx parse failed for', desc.gpxUrl, e && e.err);
         try { desc.parent.removeLayer(gpxLayer); } catch (_) {}
       }).bindPopup(
-        routePopupHtml(desc.route, desc.region, desc.color),
+        () => popupElement(html`<${RoutePopup} route=${desc.route} region=${desc.region} color=${desc.color} />`),
         { closeButton: false }
       ).on('click', (function(slug, key) {
         return function(ev) {
@@ -383,17 +393,16 @@ export function renderUnifiedMap(focus) {
 
   applyMapFilters();
 
-  // Remove a single route from this map in place (after a delete) without a
-  // full rebuild. Prunes the lazy-load bookkeeping too, so a later pan can't
-  // refetch the now-deleted GPX from the SW cache and resurrect it. Returns
-  // true if the route was known to this map.
-  state._removeRouteFromMap = function(key) {
+  // Drop one route from this map in place, pruning the lazy-load
+  // bookkeeping too, so a later pan can't refetch a deleted GPX from the SW
+  // cache and resurrect it. Returns the layer if it was loaded.
+  function dropRoute(key) {
     for (let i = routeDescriptors.length - 1; i >= 0; i--) {
       if (routeDescriptors[i].route.key === key) routeDescriptors.splice(i, 1);
     }
     loadedRouteKeys.delete(key);
     pendingRouteKeys.delete(key);
-    let found = false;
+    let found = null;
     for (let i = routeLayers.length - 1; i >= 0; i--) {
       if (routeLayers[i].route.key !== key) continue;
       const layer = routeLayers[i].layer;
@@ -401,15 +410,36 @@ export function renderUnifiedMap(focus) {
       routeLayers.splice(i, 1);
       found = layer;
     }
-    if (state._selectedRouteKey === key) state._selectedRouteKey = null;
-    // applyMapFilters clears + re-adds the status groups from routeLayers,
-    // so the spliced layer leaves the map; applyRouteHighlight re-strokes
-    // the survivors (SVG) and rebuilds the GL buffer (touch).
-    const wasShown = found && map.hasLayer(found);
+    return found;
+  }
+
+  // Brings this map in line with the routes signal without a rebuild (a
+  // blink and a refit): a route gone from the manifest fades out, a new one
+  // waits for the next viewport check, and an edited one is loaded again.
+  state._syncRoutesOnMap = function() {
+    const next = new Map();
+    for (const region of (state.manifest && state.manifest.regions) || []) {
+      for (const route of region.routes) next.set(route.key, routeDescriptor(route, region));
+    }
+    const fades = [];
+    let changed = false;
+    for (const desc of routeDescriptors.slice()) {
+      const now = next.get(desc.route.key);
+      if (now && now.sig === desc.sig) { next.delete(desc.route.key); continue; }
+      const layer = dropRoute(desc.route.key);
+      if (!now && layer && map.hasLayer(layer)) fades.push(layer);
+      if (!now && state._selectedRouteKey === desc.route.key) state._selectedRouteKey = null;
+      changed = true;
+    }
+    for (const desc of next.values()) { routeDescriptors.push(desc); changed = true; }
+    if (!changed) return;
+    // applyMapFilters clears and re-adds the status groups from routeLayers,
+    // so a dropped layer leaves the map; applyRouteHighlight re-strokes the
+    // survivors (SVG) and rebuilds the GL buffer (touch).
     applyMapFilters();
     applyRouteHighlight();
-    if (wasShown) fadeOutRoute(map, found);
-    return !!found;
+    for (const layer of fades) fadeOutRoute(map, layer);
+    scheduleTrailEval();
   };
 
   // Initial bounds: places + routes, prefer focus

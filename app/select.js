@@ -1,11 +1,10 @@
 import {
   assignCategoryColors, assignPlaceSlugs, assignTrailSlugs, escapeHtml, state,
 } from './core.js';
+import { areaHasGeometry } from './area-geo.js';
+import { closeTopModal, modalStack, openSheetModal, popoverHost } from './modal.js';
 import { effect, untracked } from '@preact/signals';
 import * as store from './store.js';
-import { areaHasGeometry } from './area-geo.js';
-import { syncAreasOnMap } from './areas.js';
-import { closeTopModal, modalStack, openSheetModal, popoverHost } from './modal.js';
 
 // The native option list is OS-rendered and can't take the app's theme, so
 // we keep the real <select> as the trigger and render our own listbox over
@@ -338,8 +337,6 @@ export function bindStoreToState() {
       state.areas = data.filter(areaHasGeometry);
       for (const a of state.areas) { if (a.category == null) a.category = ''; }
       recolor();
-      // The layers hold the area objects, so they are rebuilt from the new ones.
-      syncAreasOnMap();
     });
   });
   effect(() => {
@@ -349,7 +346,6 @@ export function bindStoreToState() {
       data.regions.sort((a, b) => a.name.localeCompare(b.name));
       state.manifest = data;
       assignTrailSlugs(state.manifest);
-      syncAreasOnMap();
     });
   });
 }

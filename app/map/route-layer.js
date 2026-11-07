@@ -1,12 +1,12 @@
-import { state } from './core.js';
-import { applyAuth, routeStatusColor } from './server.js';
-import { gpxText } from './store.js';
-
-import { _geometryPolygons } from './area-geo.js';
+import { state } from '../core.js';
+import { applyAuth, routeStatusColor } from '../server.js';
+import { gpxText } from '../store.js';
+import { _geometryPolygons } from '../area-geo.js';
 import { easeLeaflet, mapScheduler } from './map-layers.js';
-import { areaStyle } from './areas.js';
-import { getTrailWeightFactor } from './theme.js';
-import { wrappedRouter } from './pick-coords.js';
+import { areaStyle } from './area-layer.js';
+import { getTrailWeightFactor } from '../theme.js';
+import { wrappedRouter } from '../router.js';
+
 
 // Concurrency-limited GPX text fetcher. The index map can have dozens
 // of routes, and bursting that many parallel XHRs caused leaflet-gpx

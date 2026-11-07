@@ -4,15 +4,13 @@ import {
   readPlaceFormFields, selectOrNewHtml, starRatingHtml, wireSelectOrNew, wireStarRating,
 } from './form-fields.js';
 import { getShowField } from './prefs.js';
-import { syncPlacesOnMap } from './map-popups.js';
+import { deletePlaceItem, enterPickCoordsMode, resyncPlaceCardSlugs } from './map/index.js';
 import { wireCountryPicker } from './countries.js';
-import { deletePlaceItem, resyncPlaceCardSlugs } from './map-actions.js';
 import { renderPlaceList, updatePlaceCardAfterEdit } from './places-list.js';
 import {
   modalErrorHtml, modalHeaderHtml, uiFieldHtml, uiToggleHtml,
 } from './select.js';
 import { closeModal, openFullScreenModal, showModalError } from './modal.js';
-import { enterPickCoordsMode } from './pick-coords.js';
 
 export function openEditPlaceModal(place) {
   // Exclude the uncategorized bucket ('') from the picker — "no category"
@@ -108,7 +106,7 @@ export function openEditPlaceModal(place) {
         deletePlaceItem(place, {
           animate: true,
           deleted: closeModal,
-          after: function(prevColors) { syncPlacesOnMap(prevColors); resyncPlaceCardSlugs(); },
+          after: resyncPlaceCardSlugs,
           onError: function(err) { showModalError(err.message); },
         });
       });
@@ -137,11 +135,9 @@ export function openEditPlaceModal(place) {
         }
         const submit = /** @type {HTMLButtonElement} */ (document.getElementById('e-submit'));
         submit.disabled = true;
-        const prevColors = Object.assign({}, state.categoryColors);
         dataLayer.updatePlace({ id: place.id, place: r.payload })
           .then(() => {
             closeModal();
-            syncPlacesOnMap(prevColors);
             // Patch the card in place when the edit doesn't move/reorder it
             // (e.g. toggling visited), so the list doesn't flash; otherwise
             // fall back to a full re-render.

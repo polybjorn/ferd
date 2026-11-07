@@ -2,7 +2,7 @@ import { state } from '../core.js';
 import { dataLayer } from '../store.js';
 import { t } from '../i18n.js';
 import { closeTopModal } from '../modal.js';
-import { wrappedRouter } from '../pick-coords.js';
+import { wrappedRouter } from '../router.js';
 import { DialogHead, ErrorBox, HideToggle, RowTag, html, openViewModal, useState } from '../view.js';
 
 function RegionRow({ index, region, edited, onName, onRemove }) {

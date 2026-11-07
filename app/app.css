@@ -2121,6 +2121,9 @@ body.signin-only #app {
 .leaflet-popup-content .popup-meta > :first-child { white-space: inherit; overflow-wrap: anywhere; }
 .leaflet-popup-content .popup-meta > :nth-child(2) { justify-self: center; }
 .leaflet-popup-content .popup-meta > :last-child { justify-self: end; }
+/* The status keeps the third column when there is no Edit button in the second. */
+.leaflet-popup-content .popup-meta .popup-status { grid-column: 3; }
+.leaflet-popup-content .popup-stars-dim { opacity: 0.35; }
 .leaflet-popup-content .popup-meta a { color: inherit; cursor: pointer; text-transform: none; letter-spacing: normal; font-size: var(--ui-text-xs); }
 .leaflet-popup-content .popup-meta a:hover { color: var(--accent); }
 

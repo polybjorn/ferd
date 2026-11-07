@@ -1,12 +1,12 @@
 import {
   GPX_NS, ROUTE_COLOR, TRACK_COLORS, displayRegion, domainFromUrl, escapeHtml, formatDistance,
   formatElevation, setActiveTab, setCrumb, state,
-} from './core.js';
-import { gpxUrlFor, isReadOnly } from './server.js';
-import { applyCoverMinZoom } from './form-fields.js';
-import { tagPillsHtml } from './tags.js';
+} from '../core.js';
+import { gpxUrlFor, isReadOnly } from '../server.js';
+import { applyCoverMinZoom } from '../form-fields.js';
+import { tagPillsHtml } from '../tags.js';
 import { collapseCreditOnPhone } from './map-panel.js';
-import { DEFAULT_CONFIG, getShowField, isImperial } from './prefs.js';
+import { DEFAULT_CONFIG, getShowField, isImperial } from '../prefs.js';
 import { enableWheelZoom } from './map-wheel.js';
 import { addTileLayersToMap, cleanupMap, mapScheduler } from './map-layers.js';
 import {
@@ -17,10 +17,8 @@ import {
   decimateCoords, fetchGpxText, simplifyRouteForZoom,
 } from './route-layer.js';
 import { EXTERNAL_ICON_SVG } from './map-popups.js';
-import {
-  DIFFICULTY_LABELS, addStartEndMarkers, openEditTrailMetadataModal, ratingStarsText,
-} from './route-meta.js';
-import { getTrailWeightFactor } from './theme.js';
+import { DIFFICULTY_LABELS, openEditTrailMetadataModal, ratingStarsText } from '../route-meta.js';
+import { getTrailWeightFactor } from '../theme.js';
 
 export function parseGpxTracks(xmlText) {
   const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
@@ -685,4 +683,11 @@ function renderMultiTrack(map, route, sched) {
         addStartEndMarkers(map, L.latLng(sp.lat, sp.lon), L.latLng(ep.lat, ep.lon));
       }
     }));
+}
+
+export function addStartEndMarkers(map, startLatLng, endLatLng) {
+  const startIcon = L.divIcon({ className: 'marker-start', html: '<svg viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="6" fill="#00e05a" stroke="#fff" stroke-width="2"/></svg>', iconSize: [24, 24], iconAnchor: [12, 12] });
+  const endIcon = L.divIcon({ className: 'marker-end', html: '<svg viewBox="0 0 32 32" width="32" height="32"><rect x="4" y="2" width="2" height="28" rx="1" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><path d="M6 3h12c1 0 1.5.5 1 1.5L17 8l2 3.5c.5 1 0 1.5-1 1.5H6V3z" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><rect x="7" y="4" width="4.5" height="4" fill="#2d333b"/><rect x="11.5" y="4" width="4.5" height="4" fill="#fff"/><rect x="7" y="8" width="4.5" height="4" fill="#fff"/><rect x="11.5" y="8" width="4.5" height="4" fill="#2d333b"/></svg>', iconSize: [32, 32], iconAnchor: [5, 30] });
+  L.marker(startLatLng, { icon: startIcon }).bindPopup('Start').addTo(map);
+  L.marker(endLatLng, { icon: endIcon }).bindPopup('End').addTo(map);
 }

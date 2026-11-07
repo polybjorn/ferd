@@ -1,7 +1,7 @@
 import { COLORS, state } from '../core.js';
 import { dataLayer } from '../store.js';
 import { t, tx } from '../i18n.js';
-import { refreshPlacesPresentation } from '../map-popups.js';
+import { refreshPlacesPresentation } from '../map/index.js';
 import { openConfirmModal } from '../select.js';
 import { closeTopModal } from '../modal.js';
 import {

@@ -1,10 +1,9 @@
 import { state } from './core.js';
 import { historyEnabled, placesEnabled, routesEnabled } from './prefs.js';
-import { renderUnifiedMap } from './map.js';
+import { renderTrailDetail, renderUnifiedMap } from './map/index.js';
 import { renderPlacesIndex } from './places-list.js';
 import { renderHistoryIndex } from './history.js';
 import { renderTrailsIndex } from './routes-list.js';
-import { renderTrailDetail } from './route-detail.js';
 
 export function focusHash(type, slug) { return '#/' + type + '/' + slug; }
 
@@ -65,3 +64,15 @@ export function router() {
   }
   renderUnifiedMap(null);
 }
+
+// Kept as a thin wrapper: callers use wrappedRouter() to re-render the
+// current view. The map's Add action now lives in the nav (renderUnifiedMap
+// populates #nav-actions), so there's no floating button to re-mount.
+export function wrappedRouter() { router(); }
+// Flag in-app hash navigations (clicks) vs the initial load (reload), so a
+// place focus from a click centers the map on the pin, while a reload at a
+// place URL keeps the user's prior/remembered view.
+window.addEventListener('hashchange', function() {
+  state._navByHash = true;
+  try { wrappedRouter(); } finally { state._navByHash = false; }
+});

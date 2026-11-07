@@ -1,34 +1,15 @@
-import { displayRegion, escapeHtml, state } from './core.js';
+import { escapeHtml, state } from './core.js';
 import { dataLayer } from './store.js';
 import {
   radioPillsHtml, readRouteMetaFields, readStarRating, starRatingHtml, wireStarRating,
 } from './form-fields.js';
-import { tagPopupHtml } from './tags.js';
 import { getShowField } from './prefs.js';
-import { EXTERNAL_ICON_SVG } from './map-popups.js';
-import { deleteRouteItem, placePopupContent } from './map-actions.js';
+import { deleteRouteItem, homeMapMounted } from './map/index.js';
 import {
   modalErrorHtml, modalHeaderHtml, uiFieldHtml, uiToggleHtml,
 } from './select.js';
 import { closeModal, openFullScreenModal, showModalError } from './modal.js';
-import { wrappedRouter } from './pick-coords.js';
-
-// If a place popup is currently open on the home map, re-render its
-// content from the latest state. Without this the popup keeps showing
-// stale data (old image, old note, old anchor) after an edit save until
-// the user manually closes and reopens it.
-export function refreshOpenPlacePopup() {
-  const map = state.currentMap;
-  if (!map || !map._popup || !map._popup.isOpen || !map._popup.isOpen()) return;
-  const ll = map._popup.getLatLng();
-  if (!ll) return;
-  const places = state.places || [];
-  const place = places.find(p =>
-    Math.abs((p.lat || 0) - ll.lat) < 1e-6 && Math.abs((p.lon || 0) - ll.lng) < 1e-6
-  );
-  if (!place) return;
-  map._popup.setContent(placePopupContent(map, place));
-}
+import { wrappedRouter } from './router.js';
 
 export const DIFFICULTY_LABELS = { easy: 'Easy', moderate: 'Moderate', hard: 'Hard', expert: 'Expert' };
 
@@ -52,43 +33,10 @@ export function ratingStarsText(rating) {
   return filled + '<span style="opacity:0.35">' + '★'.repeat(empty) + '</span>';
 }
 
-export function routePopupHtml(route, region, color) {
-  const regionName = region.name;
-  let html = '';
-  if (route.source) {
-    html += '<a class="popup-source-link" href="' + escapeHtml(route.source) + '" target="_blank" rel="noopener noreferrer" title="Go to source" aria-label="Go to source">' + EXTERNAL_ICON_SVG + '</a>';
-  }
-  const showLocal = getShowField('local-name');
-  html += '<a class="popup-name popup-name-link" href="#/routes/route/' + encodeURIComponent(route.key) + '">' + escapeHtml(route.name) + (showLocal && route.local_name ? ' <span class="popup-local">' + escapeHtml(route.local_name) + '</span>' : '') + '</a>';
-  // First meta line: difficulty / rating / date arranged left / center / right.
-  // Render each slot even if empty so the columns hold their position.
-  const diffSlot = route.difficulty ? escapeHtml(DIFFICULTY_LABELS[route.difficulty] || route.difficulty) : '';
-  const rateSlot = (route.rating && getShowField('rating')) ? '<span title="' + route.rating + '/5">' + ratingStarsText(route.rating) + '</span>' : '';
-  const dateSlot = (route.date_completed && getShowField('date')) ? escapeHtml(route.date_completed) : '';
-  if (diffSlot || rateSlot || dateSlot) {
-    html += '<div class="popup-summary">' +
-      '<span>' + diffSlot + '</span>' +
-      '<span>' + rateSlot + '</span>' +
-      '<span>' + dateSlot + '</span>' +
-    '</div>';
-  }
-  html += tagPopupHtml(route.tags);
-  if (route.notes && getShowField('note')) html += '<div class="popup-note">' + escapeHtml(route.notes) + '</div>';
-  html += '<div class="popup-meta">' +
-    '<span style="color:' + color + '">' + (route.completed ? 'Completed' : 'Planned') + '</span>' +
-    '<span>' + escapeHtml(displayRegion(regionName)) + '</span>' +
-    '</div>';
-  return html;
-}
-
-// After a route delete, drop it from the live index map in place so the map
-// doesn't fully rebuild (blink + refit). state._removeRouteFromMap is a
-// per-render closure installed by renderHomeMap (it owns the lazy-load
-// bookkeeping); when no index map is mounted (list, history, detail) fall
-// back to a router re-render.
-export function afterRouteDeleted(key) {
-  if (state._removeRouteFromMap && state._removeRouteFromMap(key)) return;
-  if (typeof wrappedRouter === 'function') wrappedRouter();
+// After a route delete. The index map drops the route itself when the
+// store's routes signal changes; any other page re-renders.
+export function afterRouteDeleted() {
+  if (!homeMapMounted()) wrappedRouter();
 }
 
 export function findRouteByKey(key) {
@@ -182,7 +130,7 @@ export function openEditTrailMetadataModal(route, regionName) {
         });
       }
       document.getElementById('tm-delete').addEventListener('click', function() {
-        deleteRouteItem(route, regionName, function() { closeModal(); afterRouteDeleted(route.key); });
+        deleteRouteItem(route, regionName, function() { closeModal(); afterRouteDeleted(); });
       });
       document.getElementById('route-meta-form').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -246,11 +194,4 @@ export function openEditTrailMetadataModal(route, regionName) {
       });
     }
   );
-}
-
-export function addStartEndMarkers(map, startLatLng, endLatLng) {
-  const startIcon = L.divIcon({ className: 'marker-start', html: '<svg viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="6" fill="#00e05a" stroke="#fff" stroke-width="2"/></svg>', iconSize: [24, 24], iconAnchor: [12, 12] });
-  const endIcon = L.divIcon({ className: 'marker-end', html: '<svg viewBox="0 0 32 32" width="32" height="32"><rect x="4" y="2" width="2" height="28" rx="1" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><path d="M6 3h12c1 0 1.5.5 1 1.5L17 8l2 3.5c.5 1 0 1.5-1 1.5H6V3z" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><rect x="7" y="4" width="4.5" height="4" fill="#2d333b"/><rect x="11.5" y="4" width="4.5" height="4" fill="#fff"/><rect x="7" y="8" width="4.5" height="4" fill="#fff"/><rect x="11.5" y="8" width="4.5" height="4" fill="#2d333b"/></svg>', iconSize: [32, 32], iconAnchor: [5, 30] });
-  L.marker(startLatLng, { icon: startIcon }).bindPopup('Start').addTo(map);
-  L.marker(endLatLng, { icon: endIcon }).bindPopup('End').addTo(map);
 }

@@ -1,4 +1,3 @@
-1	app/add.js	TS2339	Property '_areaLayers' does not exist on type '{...}'.
 4	app/add.js	TS2339	Property '_catalogCache' does not exist on type '{...}'.
 1	app/add.js	TS2339	Property 'date_completed' does not exist on type '{...}'.
 1	app/add.js	TS2339	Property 'rating' does not exist on type '{...}'.
@@ -27,7 +26,7 @@
 1	app/add.js	TS7006	Parameter 'sum' implicitly has an 'any' type.
 1	app/add.js	TS7006	Parameter 'text' implicitly has an 'any' type.
 1	app/add.js	TS7006	Parameter 'to' implicitly has an 'any' type.
-4	app/add.js	TS7006	Parameter 'x' implicitly has an 'any' type.
+3	app/add.js	TS7006	Parameter 'x' implicitly has an 'any' type.
 1	app/add.js	TS7034	Variable 'autoOption' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/add.js	TS7034	Variable 'errors' implicitly has type 'any[]' in some locations where its type cannot be determined.
 1	app/add.js	TS7034	Variable 'parsed' implicitly has type 'any' in some locations where its type cannot be determined.
@@ -66,47 +65,15 @@
 1	app/area-geo.js	TS7006	Parameter 'tracks' implicitly has an 'any' type.
 1	app/area-geo.js	TS7006	Parameter 'x' implicitly has an 'any' type.
 1	app/area-geo.js	TS7006	Parameter 'y' implicitly has an 'any' type.
-5	app/areas.js	TS2339	Property '_areaGroup' does not exist on type '{...}'.
-7	app/areas.js	TS2339	Property '_areaLayers' does not exist on type '{...}'.
-6	app/areas.js	TS2339	Property '_areaRenderer' does not exist on type '{...}'.
-2	app/areas.js	TS2339	Property '_countryGroup' does not exist on type '{...}'.
-1	app/areas.js	TS2339	Property '_countryRenderer' does not exist on type '{...}'.
-2	app/areas.js	TS2339	Property '_glRoutesDirty' does not exist on type '{...}'.
 1	app/areas.js	TS2339	Property 'category' does not exist on type '{...}'.
 1	app/areas.js	TS2339	Property 'local_name' does not exist on type '{ visited: boolean; } & { name: string; geometry: any; }'.
 1	app/areas.js	TS2339	Property 'note' does not exist on type '{ visited: boolean; } & { name: string; geometry: any; }'.
 1	app/areas.js	TS2339	Property 'note' does not exist on type '{...}'.
 1	app/areas.js	TS2339	Property 'source' does not exist on type '{ visited: boolean; } & { name: string; geometry: any; }'.
-1	app/areas.js	TS7006	Parameter '_' implicitly has an 'any' type.
-3	app/areas.js	TS7006	Parameter 'a' implicitly has an 'any' type.
-6	app/areas.js	TS7006	Parameter 'area' implicitly has an 'any' type.
-1	app/areas.js	TS7006	Parameter 'b' implicitly has an 'any' type.
-2	app/areas.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/areas.js	TS7006	Parameter 'i' implicitly has an 'any' type.
-1	app/areas.js	TS7006	Parameter 'id' implicitly has an 'any' type.
-1	app/areas.js	TS7006	Parameter 'item' implicitly has an 'any' type.
-1	app/areas.js	TS7006	Parameter 'items' implicitly has an 'any' type.
+2	app/areas.js	TS7006	Parameter 'area' implicitly has an 'any' type.
 1	app/areas.js	TS7006	Parameter 'kept' implicitly has an 'any' type.
-1	app/areas.js	TS7006	Parameter 'latlng' implicitly has an 'any' type.
-1	app/areas.js	TS7006	Parameter 'layer' implicitly has an 'any' type.
-6	app/areas.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-3	app/areas.js	TS7006	Parameter 'p' implicitly has an 'any' type.
-2	app/areas.js	TS7006	Parameter 'part' implicitly has an 'any' type.
 4	app/areas.js	TS7006	Parameter 'prefix' implicitly has an 'any' type.
-2	app/areas.js	TS7006	Parameter 'r' implicitly has an 'any' type.
-3	app/areas.js	TS7006	Parameter 'route' implicitly has an 'any' type.
-1	app/areas.js	TS7006	Parameter 'routes' implicitly has an 'any' type.
-1	app/areas.js	TS7006	Parameter 'shape' implicitly has an 'any' type.
-1	app/areas.js	TS7006	Parameter 'slot' implicitly has an 'any' type.
-1	app/areas.js	TS7006	Parameter 'text' implicitly has an 'any' type.
 1	app/areas.js	TS7006	Parameter 'value' implicitly has an 'any' type.
-4	app/areas.js	TS7006	Parameter 'visited' implicitly has an 'any' type.
-5	app/areas.js	TS7006	Parameter 'x' implicitly has an 'any' type.
-1	app/areas.js	TS7006	Parameter 'y' implicitly has an 'any' type.
-1	app/areas.js	TS7031	Binding element 'area' implicitly has an 'any' type.
-1	app/areas.js	TS7031	Binding element 'layer' implicitly has an 'any' type.
-1	app/areas.js	TS7053	Element implicitly has an 'any' type because expression of type '""' can't be used to index type '{...}'.
-1	app/areas.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
 1	app/auth.js	TS2339	Property 'overlays' does not exist on type '{...}'.
 1	app/auth.js	TS7006	Parameter 'backdrop' implicitly has an 'any' type.
 1	app/auth.js	TS7006	Parameter 'body' implicitly has an 'any' type.
@@ -171,9 +138,7 @@
 5	app/core.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
 14	app/core.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 5	app/countries.js	TS2339	Property '_countryData' does not exist on type '{...}'.
-2	app/countries.js	TS2339	Property '_countryGroup' does not exist on type '{...}'.
 5	app/countries.js	TS2339	Property '_countryPick' does not exist on type '{...}'.
-1	app/countries.js	TS2339	Property '_countryRenderer' does not exist on type '{...}'.
 4	app/countries.js	TS7005	Variable 'rows' implicitly has an 'any[]' type.
 1	app/countries.js	TS7006	Parameter 'a' implicitly has an 'any' type.
 1	app/countries.js	TS7006	Parameter 'b' implicitly has an 'any' type.
@@ -182,8 +147,8 @@
 1	app/countries.js	TS7006	Parameter 'code' implicitly has an 'any' type.
 2	app/countries.js	TS7006	Parameter 'countries' implicitly has an 'any' type.
 4	app/countries.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-2	app/countries.js	TS7006	Parameter 'err' implicitly has an 'any' type.
-2	app/countries.js	TS7006	Parameter 'f' implicitly has an 'any' type.
+1	app/countries.js	TS7006	Parameter 'err' implicitly has an 'any' type.
+1	app/countries.js	TS7006	Parameter 'f' implicitly has an 'any' type.
 3	app/countries.js	TS7006	Parameter 'i' implicitly has an 'any' type.
 1	app/countries.js	TS7006	Parameter 'id' implicitly has an 'any' type.
 1	app/countries.js	TS7006	Parameter 'input' implicitly has an 'any' type.
@@ -196,8 +161,7 @@
 1	app/countries.js	TS7006	Parameter 'typed' implicitly has an 'any' type.
 1	app/countries.js	TS7006	Parameter 'value' implicitly has an 'any' type.
 1	app/countries.js	TS7031	Binding element 'countries' implicitly has an 'any' type.
-2	app/countries.js	TS7031	Binding element 'names' implicitly has an 'any' type.
-1	app/countries.js	TS7031	Binding element 'shapes' implicitly has an 'any' type.
+1	app/countries.js	TS7031	Binding element 'names' implicitly has an 'any' type.
 1	app/countries.js	TS7034	Variable 'rows' implicitly has type 'any[]' in some locations where its type cannot be determined.
 1	app/edit-place.js	TS2339	Property 'date_visited' does not exist on type '{...}'.
 1	app/edit-place.js	TS2339	Property 'from_catalog' does not exist on type '{...}'.
@@ -210,7 +174,6 @@
 1	app/edit-place.js	TS7006	Parameter 'err' implicitly has an 'any' type.
 1	app/edit-place.js	TS7006	Parameter 'latlng' implicitly has an 'any' type.
 1	app/edit-place.js	TS7006	Parameter 'place' implicitly has an 'any' type.
-1	app/edit-place.js	TS7006	Parameter 'prevColors' implicitly has an 'any' type.
 1	app/form-fields.js	TS2339	Property 'category' does not exist on type '{...}'.
 1	app/form-fields.js	TS2339	Property 'country' does not exist on type '{...}'.
 1	app/form-fields.js	TS2339	Property 'date_visited' does not exist on type '{...}'.
@@ -262,139 +225,331 @@
 1	app/main.js	TS7006	Parameter 'timeoutMs' implicitly has an 'any' type.
 1	app/main.js	TS7011	Function expression, which lacks return-type annotation, implicitly has an 'any' return type.
 1	app/main.js	TS7034	Variable 'pendingReg' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map-actions.js	TS7005	Variable 'layers' implicitly has an 'any[]' type.
-1	app/map-actions.js	TS7006	Parameter 'after' implicitly has an 'any' type.
-2	app/map-actions.js	TS7006	Parameter 'cls' implicitly has an 'any' type.
-1	app/map-actions.js	TS7006	Parameter 'done' implicitly has an 'any' type.
-1	app/map-actions.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-4	app/map-actions.js	TS7006	Parameter 'el' implicitly has an 'any' type.
-1	app/map-actions.js	TS7006	Parameter 'fallbackMs' implicitly has an 'any' type.
-1	app/map-actions.js	TS7006	Parameter 'keepEl' implicitly has an 'any' type.
-1	app/map-actions.js	TS7006	Parameter 'key' implicitly has an 'any' type.
-1	app/map-actions.js	TS7006	Parameter 'l' implicitly has an 'any' type.
-5	app/map-actions.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-1	app/map-actions.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
-6	app/map-actions.js	TS7006	Parameter 'place' implicitly has an 'any' type.
-1	app/map-actions.js	TS7006	Parameter 'regionName' implicitly has an 'any' type.
-1	app/map-actions.js	TS7006	Parameter 'route' implicitly has an 'any' type.
-1	app/map-actions.js	TS7006	Parameter 'size' implicitly has an 'any' type.
-2	app/map-actions.js	TS7006	Parameter 'slug' implicitly has an 'any' type.
-1	app/map-actions.js	TS7006	Parameter 't' implicitly has an 'any' type.
-1	app/map-actions.js	TS7006	Parameter 'wasVisited' implicitly has an 'any' type.
-1	app/map-actions.js	TS7031	Binding element 'after' implicitly has an 'any' type.
-1	app/map-actions.js	TS7031	Binding element 'animate' implicitly has an 'any' type.
-1	app/map-actions.js	TS7031	Binding element 'deleted' implicitly has an 'any' type.
-1	app/map-actions.js	TS7031	Binding element 'onError' implicitly has an 'any' type.
-1	app/map-actions.js	TS7034	Variable 'layers' implicitly has type 'any[]' in some locations where its type cannot be determined.
-2	app/map-actions.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
-1	app/map-layers.js	TS2339	Property '_areaGroup' does not exist on type '{...}'.
-1	app/map-layers.js	TS2339	Property '_areaLayers' does not exist on type '{...}'.
-1	app/map-layers.js	TS2339	Property '_areaRenderer' does not exist on type '{...}'.
-3	app/map-layers.js	TS2339	Property '_currentMapResizeObserver' does not exist on type '{...}'.
-1	app/map-layers.js	TS2339	Property '_detailPolylines' does not exist on type '{...}'.
-1	app/map-layers.js	TS2339	Property '_detailRenderer' does not exist on type '{...}'.
-1	app/map-layers.js	TS2339	Property '_glRoutesDirty' does not exist on type '{...}'.
-1	app/map-layers.js	TS2339	Property '_glRoutesDraw' does not exist on type '{...}'.
-1	app/map-layers.js	TS2339	Property '_glRoutesRebuild' does not exist on type '{...}'.
-1	app/map-layers.js	TS2339	Property '_lastTrailBounds' does not exist on type '{...}'.
-1	app/map-layers.js	TS2339	Property '_removeRouteFromMap' does not exist on type '{...}'.
-1	app/map-layers.js	TS2339	Property '_routeRenderer' does not exist on type '{...}'.
-2	app/map-layers.js	TS2339	Property 'format' does not exist on type '{...}'.
-2	app/map-layers.js	TS2339	Property 'layers' does not exist on type '{...}'.
-4	app/map-layers.js	TS2339	Property 'maxZoom' does not exist on type '{...}'.
-1	app/map-layers.js	TS2339	Property 'overlays' does not exist on type '{...}'.
-2	app/map-layers.js	TS2339	Property 'styles' does not exist on type '{...}'.
-4	app/map-layers.js	TS2339	Property 'subdomains' does not exist on type '{...}'.
-3	app/map-layers.js	TS2339	Property 'tilePickerCtrl' does not exist on type '{...}'.
-3	app/map-layers.js	TS2339	Property 'tilePickerLayers' does not exist on type '{...}'.
-3	app/map-layers.js	TS2339	Property 'tilePickerOverlays' does not exist on type '{...}'.
-2	app/map-layers.js	TS2339	Property 'transparent' does not exist on type '{...}'.
-2	app/map-layers.js	TS2339	Property 'version' does not exist on type '{...}'.
-2	app/map-layers.js	TS7005	Variable 'OverlayLayersControl' implicitly has an 'any' type.
-3	app/map-layers.js	TS7006	Parameter 'fn' implicitly has an 'any' type.
-2	app/map-layers.js	TS7006	Parameter 'id' implicitly has an 'any' type.
-1	app/map-layers.js	TS7006	Parameter 'list' implicitly has an 'any' type.
-3	app/map-layers.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-1	app/map-layers.js	TS7006	Parameter 'ms' implicitly has an 'any' type.
-1	app/map-layers.js	TS7006	Parameter 'obj' implicitly has an 'any' type.
-1	app/map-layers.js	TS7034	Variable 'OverlayLayersControl' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map-layers.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-4	app/map-layers.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
-1	app/map-markers.js	TS7006	Parameter 'color' implicitly has an 'any' type.
-1	app/map-markers.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/map-markers.js	TS7006	Parameter 'gpxLayer' implicitly has an 'any' type.
-1	app/map-markers.js	TS7006	Parameter 'visited' implicitly has an 'any' type.
-1	app/map-panel.js	TS7006	Parameter 'acc' implicitly has an 'any' type.
-1	app/map-panel.js	TS7006	Parameter 'arr' implicitly has an 'any' type.
-1	app/map-panel.js	TS7006	Parameter 'btn' implicitly has an 'any' type.
-4	app/map-panel.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/map-panel.js	TS7006	Parameter 'id' implicitly has an 'any' type.
-1	app/map-panel.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-1	app/map-panel.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
-1	app/map-panel.js	TS7006	Parameter 'pop' implicitly has an 'any' type.
-5	app/map-panel.js	TS7006	Parameter 's' implicitly has an 'any' type.
-4	app/map-phone.js	TS2339	Property '_pendingSearchResult' does not exist on type '{...}'.
-2	app/map-phone.js	TS7006	Parameter 'dialog' implicitly has an 'any' type.
-1	app/map-phone.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/map-phone.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-1	app/map-popups.js	TS7006	Parameter '_prevColors' implicitly has an 'any' type.
-1	app/map-popups.js	TS7006	Parameter 'category' implicitly has an 'any' type.
-1	app/map-popups.js	TS7006	Parameter 'p' implicitly has an 'any' type.
-2	app/map-popups.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-1	app/map-wheel.js	TS7005	Variable 'anchorLatLng' implicitly has an 'any' type.
-1	app/map-wheel.js	TS7005	Variable 'anchorOffset' implicitly has an 'any' type.
-5	app/map-wheel.js	TS7005	Variable 'goalZoom' implicitly has an 'any' type.
-1	app/map-wheel.js	TS7005	Variable 'lastFrame' implicitly has an 'any' type.
-1	app/map-wheel.js	TS7005	Variable 'lastWheel' implicitly has an 'any' type.
-1	app/map-wheel.js	TS7005	Variable 'ownCenter' implicitly has an 'any' type.
-1	app/map-wheel.js	TS7005	Variable 'ownZoom' implicitly has an 'any' type.
-3	app/map-wheel.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/map-wheel.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-1	app/map-wheel.js	TS7006	Parameter 'now' implicitly has an 'any' type.
-1	app/map-wheel.js	TS7034	Variable 'anchorLatLng' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map-wheel.js	TS7034	Variable 'anchorOffset' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map-wheel.js	TS7034	Variable 'goalZoom' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map-wheel.js	TS7034	Variable 'lastFrame' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map-wheel.js	TS7034	Variable 'lastWheel' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map-wheel.js	TS7034	Variable 'ownCenter' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map-wheel.js	TS7034	Variable 'ownZoom' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map.js	TS2339	Property '_areaGroup' does not exist on type '{...}'.
-2	app/map.js	TS2339	Property '_navByHash' does not exist on type '{...}'.
-1	app/map.js	TS2339	Property '_removeRouteFromMap' does not exist on type '{...}'.
-2	app/map.js	TS2339	Property '_routeRenderer' does not exist on type '{...}'.
-2	app/map.js	TS7005	Variable '_routeEvalTimer' implicitly has an 'any' type.
-1	app/map.js	TS7005	Variable 'found' implicitly has an 'any' type.
-3	app/map.js	TS7005	Variable 'routeDescriptors' implicitly has an 'any[]' type.
-4	app/map.js	TS7005	Variable 'routeLayers' implicitly has an 'any[]' type.
-1	app/map.js	TS7006	Parameter 'a' implicitly has an 'any' type.
-1	app/map.js	TS7006	Parameter 'attr' implicitly has an 'any' type.
-1	app/map.js	TS7006	Parameter 'b' implicitly has an 'any' type.
-1	app/map.js	TS7006	Parameter 'cat' implicitly has an 'any' type.
-2	app/map.js	TS7006	Parameter 'containerPt' implicitly has an 'any' type.
-2	app/map.js	TS7006	Parameter 'desc' implicitly has an 'any' type.
-1	app/map.js	TS7006	Parameter 'dialog' implicitly has an 'any' type.
-7	app/map.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/map.js	TS7006	Parameter 'el' implicitly has an 'any' type.
-1	app/map.js	TS7006	Parameter 'ev' implicitly has an 'any' type.
-1	app/map.js	TS7006	Parameter 'focus' implicitly has an 'any' type.
-2	app/map.js	TS7006	Parameter 'id' implicitly has an 'any' type.
-2	app/map.js	TS7006	Parameter 'key' implicitly has an 'any' type.
-1	app/map.js	TS7006	Parameter 'label' implicitly has an 'any' type.
-2	app/map.js	TS7006	Parameter 'layer' implicitly has an 'any' type.
-1	app/map.js	TS7006	Parameter 'mapZoom' implicitly has an 'any' type.
-1	app/map.js	TS7006	Parameter 'mark' implicitly has an 'any' type.
-1	app/map.js	TS7006	Parameter 'on' implicitly has an 'any' type.
-1	app/map.js	TS7006	Parameter 'p' implicitly has an 'any' type.
-1	app/map.js	TS7006	Parameter 'paddedBounds' implicitly has an 'any' type.
-2	app/map.js	TS7006	Parameter 'record' implicitly has an 'any' type.
-1	app/map.js	TS7006	Parameter 'section' implicitly has an 'any' type.
-2	app/map.js	TS7006	Parameter 'sub' implicitly has an 'any' type.
-1	app/map.js	TS7034	Variable '_routeEvalTimer' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map.js	TS7034	Variable 'found' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map.js	TS7034	Variable 'routeDescriptors' implicitly has type 'any[]' in some locations where its type cannot be determined.
-1	app/map.js	TS7034	Variable 'routeLayers' implicitly has type 'any[]' in some locations where its type cannot be determined.
-1	app/map.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-1	app/map.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
+6	app/map/area-layer.js	TS2339	Property '_areaRenderer' does not exist on type '{...}'.
+2	app/map/area-layer.js	TS2339	Property '_countryGroup' does not exist on type '{...}'.
+1	app/map/area-layer.js	TS2339	Property '_countryRenderer' does not exist on type '{...}'.
+2	app/map/area-layer.js	TS2339	Property '_glRoutesDirty' does not exist on type '{...}'.
+1	app/map/area-layer.js	TS7006	Parameter '_' implicitly has an 'any' type.
+1	app/map/area-layer.js	TS7006	Parameter 'a' implicitly has an 'any' type.
+4	app/map/area-layer.js	TS7006	Parameter 'area' implicitly has an 'any' type.
+2	app/map/area-layer.js	TS7006	Parameter 'e' implicitly has an 'any' type.
+1	app/map/area-layer.js	TS7006	Parameter 'i' implicitly has an 'any' type.
+1	app/map/area-layer.js	TS7006	Parameter 'id' implicitly has an 'any' type.
+1	app/map/area-layer.js	TS7006	Parameter 'layer' implicitly has an 'any' type.
+5	app/map/area-layer.js	TS7006	Parameter 'map' implicitly has an 'any' type.
+2	app/map/area-layer.js	TS7006	Parameter 'p' implicitly has an 'any' type.
+2	app/map/area-layer.js	TS7006	Parameter 'part' implicitly has an 'any' type.
+1	app/map/area-layer.js	TS7006	Parameter 'r' implicitly has an 'any' type.
+3	app/map/area-layer.js	TS7006	Parameter 'route' implicitly has an 'any' type.
+1	app/map/area-layer.js	TS7006	Parameter 'routes' implicitly has an 'any' type.
+1	app/map/area-layer.js	TS7006	Parameter 'shape' implicitly has an 'any' type.
+2	app/map/area-layer.js	TS7006	Parameter 'visited' implicitly has an 'any' type.
+1	app/map/area-layer.js	TS7006	Parameter 'x' implicitly has an 'any' type.
+1	app/map/area-layer.js	TS7006	Parameter 'y' implicitly has an 'any' type.
+1	app/map/area-layer.js	TS7053	Element implicitly has an 'any' type because expression of type '""' can't be used to index type '{...}'.
+1	app/map/area-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+2	app/map/country-layer.js	TS2339	Property '_countryGroup' does not exist on type '{...}'.
+1	app/map/country-layer.js	TS2339	Property '_countryRenderer' does not exist on type '{...}'.
+1	app/map/country-layer.js	TS7006	Parameter 'err' implicitly has an 'any' type.
+1	app/map/country-layer.js	TS7006	Parameter 'f' implicitly has an 'any' type.
+1	app/map/country-layer.js	TS7031	Binding element 'names' implicitly has an 'any' type.
+1	app/map/country-layer.js	TS7031	Binding element 'shapes' implicitly has an 'any' type.
+2	app/map/home-map.js	TS2339	Property '_navByHash' does not exist on type '{...}'.
+2	app/map/home-map.js	TS2339	Property '_routeRenderer' does not exist on type '{...}'.
+2	app/map/home-map.js	TS7005	Variable '_routeEvalTimer' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7005	Variable 'found' implicitly has an 'any' type.
+4	app/map/home-map.js	TS7005	Variable 'routeLayers' implicitly has an 'any[]' type.
+1	app/map/home-map.js	TS7006	Parameter 'a' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'attr' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'b' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'cat' implicitly has an 'any' type.
+2	app/map/home-map.js	TS7006	Parameter 'containerPt' implicitly has an 'any' type.
+2	app/map/home-map.js	TS7006	Parameter 'desc' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'dialog' implicitly has an 'any' type.
+7	app/map/home-map.js	TS7006	Parameter 'e' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'el' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'ev' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'focus' implicitly has an 'any' type.
+2	app/map/home-map.js	TS7006	Parameter 'id' implicitly has an 'any' type.
+2	app/map/home-map.js	TS7006	Parameter 'key' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'label' implicitly has an 'any' type.
+2	app/map/home-map.js	TS7006	Parameter 'layer' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'mapZoom' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'mark' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'on' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'p' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'paddedBounds' implicitly has an 'any' type.
+2	app/map/home-map.js	TS7006	Parameter 'record' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'region' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'route' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7006	Parameter 'section' implicitly has an 'any' type.
+2	app/map/home-map.js	TS7006	Parameter 'sub' implicitly has an 'any' type.
+1	app/map/home-map.js	TS7034	Variable '_routeEvalTimer' implicitly has type 'any' in some locations where its type cannot be determined.
+1	app/map/home-map.js	TS7034	Variable 'found' implicitly has type 'any' in some locations where its type cannot be determined.
+1	app/map/home-map.js	TS7034	Variable 'routeLayers' implicitly has type 'any[]' in some locations where its type cannot be determined.
+1	app/map/home-map.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+1	app/map/home-map.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
+5	app/map/index.js	TS2339	Property 'tilePickerCtrl' does not exist on type '{...}'.
+1	app/map/index.js	TS2339	Property 'tilePickerLayers' does not exist on type '{...}'.
+1	app/map/map-actions.js	TS7005	Variable 'layers' implicitly has an 'any[]' type.
+1	app/map/map-actions.js	TS7006	Parameter 'after' implicitly has an 'any' type.
+2	app/map/map-actions.js	TS7006	Parameter 'cls' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7006	Parameter 'done' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7006	Parameter 'e' implicitly has an 'any' type.
+4	app/map/map-actions.js	TS7006	Parameter 'el' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7006	Parameter 'fallbackMs' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7006	Parameter 'keepEl' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7006	Parameter 'key' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7006	Parameter 'l' implicitly has an 'any' type.
+5	app/map/map-actions.js	TS7006	Parameter 'map' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
+6	app/map/map-actions.js	TS7006	Parameter 'place' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7006	Parameter 'regionName' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7006	Parameter 'route' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7006	Parameter 'size' implicitly has an 'any' type.
+2	app/map/map-actions.js	TS7006	Parameter 'slug' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7006	Parameter 't' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7006	Parameter 'wasVisited' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7031	Binding element 'after' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7031	Binding element 'animate' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7031	Binding element 'deleted' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7031	Binding element 'onError' implicitly has an 'any' type.
+1	app/map/map-actions.js	TS7034	Variable 'layers' implicitly has type 'any[]' in some locations where its type cannot be determined.
+2	app/map/map-actions.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
+1	app/map/map-layers.js	TS2339	Property '_areaRenderer' does not exist on type '{...}'.
+3	app/map/map-layers.js	TS2339	Property '_currentMapResizeObserver' does not exist on type '{...}'.
+1	app/map/map-layers.js	TS2339	Property '_detailPolylines' does not exist on type '{...}'.
+1	app/map/map-layers.js	TS2339	Property '_detailRenderer' does not exist on type '{...}'.
+1	app/map/map-layers.js	TS2339	Property '_glRoutesDirty' does not exist on type '{...}'.
+1	app/map/map-layers.js	TS2339	Property '_glRoutesDraw' does not exist on type '{...}'.
+1	app/map/map-layers.js	TS2339	Property '_glRoutesRebuild' does not exist on type '{...}'.
+1	app/map/map-layers.js	TS2339	Property '_lastTrailBounds' does not exist on type '{...}'.
+1	app/map/map-layers.js	TS2339	Property '_routeRenderer' does not exist on type '{...}'.
+2	app/map/map-layers.js	TS2339	Property 'format' does not exist on type '{...}'.
+2	app/map/map-layers.js	TS2339	Property 'layers' does not exist on type '{...}'.
+4	app/map/map-layers.js	TS2339	Property 'maxZoom' does not exist on type '{...}'.
+1	app/map/map-layers.js	TS2339	Property 'overlays' does not exist on type '{...}'.
+2	app/map/map-layers.js	TS2339	Property 'styles' does not exist on type '{...}'.
+4	app/map/map-layers.js	TS2339	Property 'subdomains' does not exist on type '{...}'.
+3	app/map/map-layers.js	TS2339	Property 'tilePickerCtrl' does not exist on type '{...}'.
+3	app/map/map-layers.js	TS2339	Property 'tilePickerLayers' does not exist on type '{...}'.
+3	app/map/map-layers.js	TS2339	Property 'tilePickerOverlays' does not exist on type '{...}'.
+2	app/map/map-layers.js	TS2339	Property 'transparent' does not exist on type '{...}'.
+2	app/map/map-layers.js	TS2339	Property 'version' does not exist on type '{...}'.
+2	app/map/map-layers.js	TS7005	Variable 'OverlayLayersControl' implicitly has an 'any' type.
+1	app/map/map-layers.js	TS7006	Parameter 'container' implicitly has an 'any' type.
+2	app/map/map-layers.js	TS7006	Parameter 'coords' implicitly has an 'any' type.
+1	app/map/map-layers.js	TS7006	Parameter 'el' implicitly has an 'any' type.
+1	app/map/map-layers.js	TS7006	Parameter 'err' implicitly has an 'any' type.
+3	app/map/map-layers.js	TS7006	Parameter 'fn' implicitly has an 'any' type.
+2	app/map/map-layers.js	TS7006	Parameter 'id' implicitly has an 'any' type.
+1	app/map/map-layers.js	TS7006	Parameter 'list' implicitly has an 'any' type.
+3	app/map/map-layers.js	TS7006	Parameter 'map' implicitly has an 'any' type.
+1	app/map/map-layers.js	TS7006	Parameter 'ms' implicitly has an 'any' type.
+1	app/map/map-layers.js	TS7006	Parameter 'obj' implicitly has an 'any' type.
+1	app/map/map-layers.js	TS7006	Parameter 'tile' implicitly has an 'any' type.
+1	app/map/map-layers.js	TS7034	Variable 'OverlayLayersControl' implicitly has type 'any' in some locations where its type cannot be determined.
+1	app/map/map-layers.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+4	app/map/map-layers.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
+1	app/map/map-markers.js	TS7006	Parameter 'color' implicitly has an 'any' type.
+1	app/map/map-markers.js	TS7006	Parameter 'e' implicitly has an 'any' type.
+1	app/map/map-markers.js	TS7006	Parameter 'gpxLayer' implicitly has an 'any' type.
+1	app/map/map-markers.js	TS7006	Parameter 'visited' implicitly has an 'any' type.
+1	app/map/map-panel.js	TS7006	Parameter 'acc' implicitly has an 'any' type.
+1	app/map/map-panel.js	TS7006	Parameter 'arr' implicitly has an 'any' type.
+1	app/map/map-panel.js	TS7006	Parameter 'btn' implicitly has an 'any' type.
+4	app/map/map-panel.js	TS7006	Parameter 'e' implicitly has an 'any' type.
+1	app/map/map-panel.js	TS7006	Parameter 'id' implicitly has an 'any' type.
+1	app/map/map-panel.js	TS7006	Parameter 'map' implicitly has an 'any' type.
+1	app/map/map-panel.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
+1	app/map/map-panel.js	TS7006	Parameter 'pop' implicitly has an 'any' type.
+5	app/map/map-panel.js	TS7006	Parameter 's' implicitly has an 'any' type.
+4	app/map/map-phone.js	TS2339	Property '_pendingSearchResult' does not exist on type '{...}'.
+2	app/map/map-phone.js	TS7006	Parameter 'dialog' implicitly has an 'any' type.
+1	app/map/map-phone.js	TS7006	Parameter 'e' implicitly has an 'any' type.
+1	app/map/map-phone.js	TS7006	Parameter 'map' implicitly has an 'any' type.
+1	app/map/map-wheel.js	TS7005	Variable 'anchorLatLng' implicitly has an 'any' type.
+1	app/map/map-wheel.js	TS7005	Variable 'anchorOffset' implicitly has an 'any' type.
+5	app/map/map-wheel.js	TS7005	Variable 'goalZoom' implicitly has an 'any' type.
+1	app/map/map-wheel.js	TS7005	Variable 'lastFrame' implicitly has an 'any' type.
+1	app/map/map-wheel.js	TS7005	Variable 'lastWheel' implicitly has an 'any' type.
+1	app/map/map-wheel.js	TS7005	Variable 'ownCenter' implicitly has an 'any' type.
+1	app/map/map-wheel.js	TS7005	Variable 'ownZoom' implicitly has an 'any' type.
+3	app/map/map-wheel.js	TS7006	Parameter 'e' implicitly has an 'any' type.
+1	app/map/map-wheel.js	TS7006	Parameter 'map' implicitly has an 'any' type.
+1	app/map/map-wheel.js	TS7006	Parameter 'now' implicitly has an 'any' type.
+1	app/map/map-wheel.js	TS7034	Variable 'anchorLatLng' implicitly has type 'any' in some locations where its type cannot be determined.
+1	app/map/map-wheel.js	TS7034	Variable 'anchorOffset' implicitly has type 'any' in some locations where its type cannot be determined.
+1	app/map/map-wheel.js	TS7034	Variable 'goalZoom' implicitly has type 'any' in some locations where its type cannot be determined.
+1	app/map/map-wheel.js	TS7034	Variable 'lastFrame' implicitly has type 'any' in some locations where its type cannot be determined.
+1	app/map/map-wheel.js	TS7034	Variable 'lastWheel' implicitly has type 'any' in some locations where its type cannot be determined.
+1	app/map/map-wheel.js	TS7034	Variable 'ownCenter' implicitly has type 'any' in some locations where its type cannot be determined.
+1	app/map/map-wheel.js	TS7034	Variable 'ownZoom' implicitly has type 'any' in some locations where its type cannot be determined.
+1	app/map/pick-coords.js	TS7006	Parameter 'e' implicitly has an 'any' type.
+2	app/map/pick-coords.js	TS7006	Parameter 'ev' implicitly has an 'any' type.
+1	app/map/pick-coords.js	TS7006	Parameter 'onPick' implicitly has an 'any' type.
+2	app/map/place-layer.js	TS2339	Property '_searchDocClickBound' does not exist on type '{...}'.
+1	app/map/place-layer.js	TS7006	Parameter 'a' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'alpha' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'category' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'center' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'color' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'count' implicitly has an 'any' type.
+2	app/map/place-layer.js	TS7006	Parameter 'ctx' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'data' implicitly has an 'any' type.
+3	app/map/place-layer.js	TS7006	Parameter 'e' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'f' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'headed' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'hex' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'i' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'l' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'm' implicitly has an 'any' type.
+4	app/map/place-layer.js	TS7006	Parameter 'map' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'marker' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'meta' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'name' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'now' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'onShown' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'options' implicitly has an 'any' type.
+6	app/map/place-layer.js	TS7006	Parameter 'p' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'picks' implicitly has an 'any' type.
+3	app/map/place-layer.js	TS7006	Parameter 'place' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'places' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'point' implicitly has an 'any' type.
+2	app/map/place-layer.js	TS7006	Parameter 'pt' implicitly has an 'any' type.
+2	app/map/place-layer.js	TS7006	Parameter 'q' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'r' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'region' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'route' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'row' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'rows' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'size' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'style' implicitly has an 'any' type.
+2	app/map/place-layer.js	TS7006	Parameter 't' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'title' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'useClusters' implicitly has an 'any' type.
+1	app/map/place-layer.js	TS7006	Parameter 'zoom' implicitly has an 'any' type.
+2	app/map/place-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+1	app/map/route-detail.js	TS2339	Property '_currentMapResizeObserver' does not exist on type '{...}'.
+2	app/map/route-detail.js	TS2339	Property '_detailPolylines' does not exist on type '{...}'.
+3	app/map/route-detail.js	TS2339	Property '_detailRenderer' does not exist on type '{...}'.
+5	app/map/route-detail.js	TS2339	Property '_lastTrailBounds' does not exist on type '{...}'.
+2	app/map/route-detail.js	TS2339	Property '_routeSourceDomain' does not exist on type '{...}'.
+1	app/map/route-detail.js	TS2339	Property '_routeSourceHref' does not exist on type '{...}'.
+3	app/map/route-detail.js	TS2339	Property 'gain' does not exist on type '{...}'.
+2	app/map/route-detail.js	TS7005	Variable 'activeSeg' implicitly has an 'any' type.
+4	app/map/route-detail.js	TS7005	Variable 'detailPolylines' implicitly has an 'any[]' type.
+1	app/map/route-detail.js	TS7005	Variable 'layers' implicitly has an 'any[]' type.
+1	app/map/route-detail.js	TS7006	Parameter 'active' implicitly has an 'any' type.
+2	app/map/route-detail.js	TS7006	Parameter 'color' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7006	Parameter 'divSel' implicitly has an 'any' type.
+5	app/map/route-detail.js	TS7006	Parameter 'e' implicitly has an 'any' type.
+2	app/map/route-detail.js	TS7006	Parameter 'endLatLng' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7006	Parameter 'feat' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7006	Parameter 'gpxText' implicitly has an 'any' type.
+2	app/map/route-detail.js	TS7006	Parameter 'i' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7006	Parameter 'idx' implicitly has an 'any' type.
+4	app/map/route-detail.js	TS7006	Parameter 'l' implicitly has an 'any' type.
+2	app/map/route-detail.js	TS7006	Parameter 'layer' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7006	Parameter 'll' implicitly has an 'any' type.
+4	app/map/route-detail.js	TS7006	Parameter 'map' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7006	Parameter 'now' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7006	Parameter 'p' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7006	Parameter 'plannedText' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7006	Parameter 'points' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7006	Parameter 'raw' implicitly has an 'any' type.
+2	app/map/route-detail.js	TS7006	Parameter 'route' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7006	Parameter 'routeKey' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7006	Parameter 's' implicitly has an 'any' type.
+2	app/map/route-detail.js	TS7006	Parameter 'sched' implicitly has an 'any' type.
+2	app/map/route-detail.js	TS7006	Parameter 'startLatLng' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7006	Parameter 'title' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7006	Parameter 'track' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7006	Parameter 'waypoints' implicitly has an 'any' type.
+3	app/map/route-detail.js	TS7006	Parameter 'xmlText' implicitly has an 'any' type.
+1	app/map/route-detail.js	TS7034	Variable 'activeSeg' implicitly has type 'any' in some locations where its type cannot be determined.
+1	app/map/route-detail.js	TS7034	Variable 'detailPolylines' implicitly has type 'any[]' in some locations where its type cannot be determined.
+1	app/map/route-detail.js	TS7034	Variable 'layers' implicitly has type 'any[]' in some locations where its type cannot be determined.
+2	app/map/route-layer.js	TS2339	Property '_areaRenderer' does not exist on type '{...}'.
+2	app/map/route-layer.js	TS2339	Property '_detailPolylines' does not exist on type '{...}'.
+3	app/map/route-layer.js	TS2339	Property '_detailRenderer' does not exist on type '{...}'.
+1	app/map/route-layer.js	TS2339	Property '_glRoutesDirty' does not exist on type '{...}'.
+3	app/map/route-layer.js	TS2339	Property '_glRoutesDraw' does not exist on type '{...}'.
+5	app/map/route-layer.js	TS2339	Property '_glRoutesRebuild' does not exist on type '{...}'.
+5	app/map/route-layer.js	TS2339	Property '_hlFrom' does not exist on type '{...}'.
+6	app/map/route-layer.js	TS2339	Property '_hlT' does not exist on type '{...}'.
+5	app/map/route-layer.js	TS2339	Property '_hlTo' does not exist on type '{...}'.
+3	app/map/route-layer.js	TS2339	Property '_routeRenderer' does not exist on type '{...}'.
+2	app/map/route-layer.js	TS2339	Property 'aColor' does not exist on type '{...}'.
+2	app/map/route-layer.js	TS2339	Property 'aDist' does not exist on type '{...}'.
+2	app/map/route-layer.js	TS2339	Property 'aEnd' does not exist on type '{...}'.
+2	app/map/route-layer.js	TS2339	Property 'aOpFrom' does not exist on type '{...}'.
+2	app/map/route-layer.js	TS2339	Property 'aOpTo' does not exist on type '{...}'.
+2	app/map/route-layer.js	TS2339	Property 'aSegA' does not exist on type '{...}'.
+2	app/map/route-layer.js	TS2339	Property 'aSegB' does not exist on type '{...}'.
+2	app/map/route-layer.js	TS2339	Property 'aSide' does not exist on type '{...}'.
+2	app/map/route-layer.js	TS2339	Property 'aWFrom' does not exist on type '{...}'.
+2	app/map/route-layer.js	TS2339	Property 'aWTo' does not exist on type '{...}'.
+1	app/map/route-layer.js	TS2339	Property 'uHalfSize' does not exist on type '{...}'.
+1	app/map/route-layer.js	TS2339	Property 'uHlT' does not exist on type '{...}'.
+1	app/map/route-layer.js	TS2339	Property 'uOriginDelta' does not exist on type '{...}'.
+1	app/map/route-layer.js	TS2339	Property 'uScale' does not exist on type '{...}'.
+1	app/map/route-layer.js	TS2339	Property 'uViewport' does not exist on type '{...}'.
+1	app/map/route-layer.js	TS7005	Variable '_gpxQueue' implicitly has an 'any[]' type.
+2	app/map/route-layer.js	TS7005	Variable 'areaArr' implicitly has an 'any[]' type.
+2	app/map/route-layer.js	TS7005	Variable 'baseArr' implicitly has an 'any[]' type.
+2	app/map/route-layer.js	TS7005	Variable 'buffer' implicitly has an 'any' type.
+59	app/map/route-layer.js	TS7005	Variable 'gl' implicitly has an 'any' type.
+7	app/map/route-layer.js	TS7005	Variable 'originRef' implicitly has an 'any' type.
+3	app/map/route-layer.js	TS7005	Variable 'program' implicitly has an 'any' type.
+2	app/map/route-layer.js	TS7005	Variable 'topArr' implicitly has an 'any[]' type.
+1	app/map/route-layer.js	TS7006	Parameter 'area' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'arr' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'ax' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'ay' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'base' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'bx' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'by' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'c' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'center' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'coords' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'e' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'fromKey' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'key' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'latlngs' implicitly has an 'any' type.
+4	app/map/route-layer.js	TS7006	Parameter 'layer' implicitly has an 'any' type.
+2	app/map/route-layer.js	TS7006	Parameter 'map' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'max' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'now' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'opF' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'opT' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'options' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'p' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'record' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'rgb' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'routeKey' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'selKey' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'src' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'sub' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 't' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'toKey' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'type' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'url' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'visited' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'wF' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'wT' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7006	Parameter 'xml' implicitly has an 'any' type.
+3	app/map/route-layer.js	TS7006	Parameter 'zoom' implicitly has an 'any' type.
+1	app/map/route-layer.js	TS7034	Variable '_gpxQueue' implicitly has type 'any[]' in some locations where its type cannot be determined.
+1	app/map/route-layer.js	TS7034	Variable 'areaArr' implicitly has type 'any[]' in some locations where its type cannot be determined.
+1	app/map/route-layer.js	TS7034	Variable 'baseArr' implicitly has type 'any[]' in some locations where its type cannot be determined.
+1	app/map/route-layer.js	TS7034	Variable 'buffer' implicitly has type 'any' in some locations where its type cannot be determined.
+1	app/map/route-layer.js	TS7034	Variable 'gl' implicitly has type 'any' in some locations where its type cannot be determined.
+1	app/map/route-layer.js	TS7034	Variable 'originRef' implicitly has type 'any' in some locations where its type cannot be determined.
+1	app/map/route-layer.js	TS7034	Variable 'program' implicitly has type 'any' in some locations where its type cannot be determined.
+1	app/map/route-layer.js	TS7034	Variable 'topArr' implicitly has type 'any[]' in some locations where its type cannot be determined.
+3	app/map/route-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+2	app/map/route-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/modal.js	TS7005	Variable 'modalStack' implicitly has an 'any[]' type.
 9	app/modal.js	TS7005	Variable 'start' implicitly has an 'any' type.
 2	app/modal.js	TS7006	Parameter 'close' implicitly has an 'any' type.
@@ -410,52 +565,6 @@
 1	app/modal.js	TS7018	Object literal's property 'onClose' implicitly has an 'any' type.
 1	app/modal.js	TS7034	Variable 'start' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/modal.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-2	app/pick-coords.js	TS2339	Property '_navByHash' does not exist on type '{...}'.
-1	app/pick-coords.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-2	app/pick-coords.js	TS7006	Parameter 'ev' implicitly has an 'any' type.
-1	app/pick-coords.js	TS7006	Parameter 'onPick' implicitly has an 'any' type.
-2	app/place-layer.js	TS2339	Property '_searchDocClickBound' does not exist on type '{...}'.
-1	app/place-layer.js	TS7006	Parameter 'a' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'alpha' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'category' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'center' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'color' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'count' implicitly has an 'any' type.
-2	app/place-layer.js	TS7006	Parameter 'ctx' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'data' implicitly has an 'any' type.
-3	app/place-layer.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'f' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'headed' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'hex' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'i' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'l' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'm' implicitly has an 'any' type.
-4	app/place-layer.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'marker' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'meta' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'name' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'now' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'onShown' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'options' implicitly has an 'any' type.
-6	app/place-layer.js	TS7006	Parameter 'p' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'picks' implicitly has an 'any' type.
-3	app/place-layer.js	TS7006	Parameter 'place' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'places' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'point' implicitly has an 'any' type.
-2	app/place-layer.js	TS7006	Parameter 'pt' implicitly has an 'any' type.
-2	app/place-layer.js	TS7006	Parameter 'q' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'r' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'region' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'route' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'row' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'rows' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'size' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'style' implicitly has an 'any' type.
-2	app/place-layer.js	TS7006	Parameter 't' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'title' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'useClusters' implicitly has an 'any' type.
-1	app/place-layer.js	TS7006	Parameter 'zoom' implicitly has an 'any' type.
-2	app/place-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
 6	app/places-list.js	TS2339	Property '_catalogCache' does not exist on type '{...}'.
 3	app/places-list.js	TS7005	Variable '_placeHeaderObserver' implicitly has an 'any' type.
 1	app/places-list.js	TS7005	Variable 'errors' implicitly has an 'any[]' type.
@@ -482,7 +591,6 @@
 1	app/places-list.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
 3	app/places-list.js	TS7006	Parameter 'p' implicitly has an 'any' type.
 6	app/places-list.js	TS7006	Parameter 'place' implicitly has an 'any' type.
-1	app/places-list.js	TS7006	Parameter 'prevColors' implicitly has an 'any' type.
 1	app/places-list.js	TS7006	Parameter 'query' implicitly has an 'any' type.
 2	app/places-list.js	TS7006	Parameter 'sec' implicitly has an 'any' type.
 1	app/places-list.js	TS7006	Parameter 'sortKeyFn' implicitly has an 'any' type.
@@ -494,11 +602,7 @@
 1	app/places-list.js	TS7034	Variable 'pads' implicitly has type 'any[]' in some locations where its type cannot be determined.
 5	app/places-list.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
 7	app/places-list.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
-1	app/prefs.js	TS7006	Parameter 'container' implicitly has an 'any' type.
-2	app/prefs.js	TS7006	Parameter 'coords' implicitly has an 'any' type.
 1	app/prefs.js	TS7006	Parameter 'def' implicitly has an 'any' type.
-1	app/prefs.js	TS7006	Parameter 'el' implicitly has an 'any' type.
-1	app/prefs.js	TS7006	Parameter 'err' implicitly has an 'any' type.
 2	app/prefs.js	TS7006	Parameter 'hidden' implicitly has an 'any' type.
 2	app/prefs.js	TS7006	Parameter 'id' implicitly has an 'any' type.
 7	app/prefs.js	TS7006	Parameter 'key' implicitly has an 'any' type.
@@ -508,147 +612,18 @@
 1	app/prefs.js	TS7006	Parameter 'pick' implicitly has an 'any' type.
 1	app/prefs.js	TS7006	Parameter 'prefKey' implicitly has an 'any' type.
 1	app/prefs.js	TS7006	Parameter 'status' implicitly has an 'any' type.
-1	app/prefs.js	TS7006	Parameter 'tile' implicitly has an 'any' type.
 1	app/prefs.js	TS7006	Parameter 'val' implicitly has an 'any' type.
 1	app/prefs.js	TS7006	Parameter 'view' implicitly has an 'any' type.
 1	app/prefs.js	TS7006	Parameter 'visible' implicitly has an 'any' type.
 1	app/prefs.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
-1	app/route-detail.js	TS2339	Property '_currentMapResizeObserver' does not exist on type '{...}'.
-2	app/route-detail.js	TS2339	Property '_detailPolylines' does not exist on type '{...}'.
-3	app/route-detail.js	TS2339	Property '_detailRenderer' does not exist on type '{...}'.
-5	app/route-detail.js	TS2339	Property '_lastTrailBounds' does not exist on type '{...}'.
-2	app/route-detail.js	TS2339	Property '_routeSourceDomain' does not exist on type '{...}'.
-1	app/route-detail.js	TS2339	Property '_routeSourceHref' does not exist on type '{...}'.
-3	app/route-detail.js	TS2339	Property 'gain' does not exist on type '{...}'.
-2	app/route-detail.js	TS7005	Variable 'activeSeg' implicitly has an 'any' type.
-4	app/route-detail.js	TS7005	Variable 'detailPolylines' implicitly has an 'any[]' type.
-1	app/route-detail.js	TS7005	Variable 'layers' implicitly has an 'any[]' type.
-1	app/route-detail.js	TS7006	Parameter 'active' implicitly has an 'any' type.
-2	app/route-detail.js	TS7006	Parameter 'color' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'divSel' implicitly has an 'any' type.
-5	app/route-detail.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'endLatLng' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'feat' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'gpxText' implicitly has an 'any' type.
-2	app/route-detail.js	TS7006	Parameter 'i' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'idx' implicitly has an 'any' type.
-4	app/route-detail.js	TS7006	Parameter 'l' implicitly has an 'any' type.
-2	app/route-detail.js	TS7006	Parameter 'layer' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'll' implicitly has an 'any' type.
-3	app/route-detail.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'now' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'p' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'plannedText' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'points' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'raw' implicitly has an 'any' type.
-2	app/route-detail.js	TS7006	Parameter 'route' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'routeKey' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 's' implicitly has an 'any' type.
-2	app/route-detail.js	TS7006	Parameter 'sched' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'startLatLng' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'title' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'track' implicitly has an 'any' type.
-1	app/route-detail.js	TS7006	Parameter 'waypoints' implicitly has an 'any' type.
-3	app/route-detail.js	TS7006	Parameter 'xmlText' implicitly has an 'any' type.
-1	app/route-detail.js	TS7034	Variable 'activeSeg' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/route-detail.js	TS7034	Variable 'detailPolylines' implicitly has type 'any[]' in some locations where its type cannot be determined.
-1	app/route-detail.js	TS7034	Variable 'layers' implicitly has type 'any[]' in some locations where its type cannot be determined.
-3	app/route-layer.js	TS2339	Property '_areaGroup' does not exist on type '{...}'.
-1	app/route-layer.js	TS2339	Property '_areaLayers' does not exist on type '{...}'.
-2	app/route-layer.js	TS2339	Property '_areaRenderer' does not exist on type '{...}'.
-2	app/route-layer.js	TS2339	Property '_detailPolylines' does not exist on type '{...}'.
-3	app/route-layer.js	TS2339	Property '_detailRenderer' does not exist on type '{...}'.
-1	app/route-layer.js	TS2339	Property '_glRoutesDirty' does not exist on type '{...}'.
-3	app/route-layer.js	TS2339	Property '_glRoutesDraw' does not exist on type '{...}'.
-5	app/route-layer.js	TS2339	Property '_glRoutesRebuild' does not exist on type '{...}'.
-5	app/route-layer.js	TS2339	Property '_hlFrom' does not exist on type '{...}'.
-6	app/route-layer.js	TS2339	Property '_hlT' does not exist on type '{...}'.
-5	app/route-layer.js	TS2339	Property '_hlTo' does not exist on type '{...}'.
-3	app/route-layer.js	TS2339	Property '_routeRenderer' does not exist on type '{...}'.
-2	app/route-layer.js	TS2339	Property 'aColor' does not exist on type '{...}'.
-2	app/route-layer.js	TS2339	Property 'aDist' does not exist on type '{...}'.
-2	app/route-layer.js	TS2339	Property 'aEnd' does not exist on type '{...}'.
-2	app/route-layer.js	TS2339	Property 'aOpFrom' does not exist on type '{...}'.
-2	app/route-layer.js	TS2339	Property 'aOpTo' does not exist on type '{...}'.
-2	app/route-layer.js	TS2339	Property 'aSegA' does not exist on type '{...}'.
-2	app/route-layer.js	TS2339	Property 'aSegB' does not exist on type '{...}'.
-2	app/route-layer.js	TS2339	Property 'aSide' does not exist on type '{...}'.
-2	app/route-layer.js	TS2339	Property 'aWFrom' does not exist on type '{...}'.
-2	app/route-layer.js	TS2339	Property 'aWTo' does not exist on type '{...}'.
-1	app/route-layer.js	TS2339	Property 'uHalfSize' does not exist on type '{...}'.
-1	app/route-layer.js	TS2339	Property 'uHlT' does not exist on type '{...}'.
-1	app/route-layer.js	TS2339	Property 'uOriginDelta' does not exist on type '{...}'.
-1	app/route-layer.js	TS2339	Property 'uScale' does not exist on type '{...}'.
-1	app/route-layer.js	TS2339	Property 'uViewport' does not exist on type '{...}'.
-1	app/route-layer.js	TS7005	Variable '_gpxQueue' implicitly has an 'any[]' type.
-2	app/route-layer.js	TS7005	Variable 'areaArr' implicitly has an 'any[]' type.
-2	app/route-layer.js	TS7005	Variable 'baseArr' implicitly has an 'any[]' type.
-2	app/route-layer.js	TS7005	Variable 'buffer' implicitly has an 'any' type.
-59	app/route-layer.js	TS7005	Variable 'gl' implicitly has an 'any' type.
-7	app/route-layer.js	TS7005	Variable 'originRef' implicitly has an 'any' type.
-3	app/route-layer.js	TS7005	Variable 'program' implicitly has an 'any' type.
-2	app/route-layer.js	TS7005	Variable 'topArr' implicitly has an 'any[]' type.
-1	app/route-layer.js	TS7006	Parameter 'area' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'arr' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'ax' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'ay' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'base' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'bx' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'by' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'c' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'center' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'coords' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'fromKey' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'key' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'latlngs' implicitly has an 'any' type.
-4	app/route-layer.js	TS7006	Parameter 'layer' implicitly has an 'any' type.
-2	app/route-layer.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'max' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'now' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'opF' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'opT' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'options' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'p' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'record' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'rgb' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'routeKey' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'selKey' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'src' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'sub' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 't' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'toKey' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'type' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'url' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'visited' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'wF' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'wT' implicitly has an 'any' type.
-1	app/route-layer.js	TS7006	Parameter 'xml' implicitly has an 'any' type.
-3	app/route-layer.js	TS7006	Parameter 'zoom' implicitly has an 'any' type.
-1	app/route-layer.js	TS7034	Variable '_gpxQueue' implicitly has type 'any[]' in some locations where its type cannot be determined.
-1	app/route-layer.js	TS7034	Variable 'areaArr' implicitly has type 'any[]' in some locations where its type cannot be determined.
-1	app/route-layer.js	TS7034	Variable 'baseArr' implicitly has type 'any[]' in some locations where its type cannot be determined.
-1	app/route-layer.js	TS7034	Variable 'buffer' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/route-layer.js	TS7034	Variable 'gl' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/route-layer.js	TS7034	Variable 'originRef' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/route-layer.js	TS7034	Variable 'program' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/route-layer.js	TS7034	Variable 'topArr' implicitly has type 'any[]' in some locations where its type cannot be determined.
-3	app/route-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-2	app/route-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
-2	app/route-meta.js	TS2339	Property '_removeRouteFromMap' does not exist on type '{...}'.
 2	app/route-meta.js	TS2339	Property 'date_completed' does not exist on type '{...}'.
 2	app/route-meta.js	TS2339	Property 'rating' does not exist on type '{...}'.
-1	app/route-meta.js	TS7006	Parameter 'color' implicitly has an 'any' type.
-1	app/route-meta.js	TS7006	Parameter 'endLatLng' implicitly has an 'any' type.
 1	app/route-meta.js	TS7006	Parameter 'id' implicitly has an 'any' type.
-2	app/route-meta.js	TS7006	Parameter 'key' implicitly has an 'any' type.
-1	app/route-meta.js	TS7006	Parameter 'map' implicitly has an 'any' type.
+1	app/route-meta.js	TS7006	Parameter 'key' implicitly has an 'any' type.
 1	app/route-meta.js	TS7006	Parameter 'rating' implicitly has an 'any' type.
-1	app/route-meta.js	TS7006	Parameter 'region' implicitly has an 'any' type.
 2	app/route-meta.js	TS7006	Parameter 'regionName' implicitly has an 'any' type.
-3	app/route-meta.js	TS7006	Parameter 'route' implicitly has an 'any' type.
-1	app/route-meta.js	TS7006	Parameter 'startLatLng' implicitly has an 'any' type.
-1	app/route-meta.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+2	app/route-meta.js	TS7006	Parameter 'route' implicitly has an 'any' type.
+2	app/router.js	TS2339	Property '_navByHash' does not exist on type '{...}'.
 1	app/router.js	TS7006	Parameter 'hash' implicitly has an 'any' type.
 1	app/router.js	TS7006	Parameter 'slug' implicitly has an 'any' type.
 1	app/router.js	TS7006	Parameter 'type' implicitly has an 'any' type.
@@ -821,7 +796,7 @@
 1	app/tags.js	TS7006	Parameter 'place' implicitly has an 'any' type.
 1	app/tags.js	TS7006	Parameter 's' implicitly has an 'any' type.
 1	app/tags.js	TS7006	Parameter 'str' implicitly has an 'any' type.
-5	app/tags.js	TS7006	Parameter 'tags' implicitly has an 'any' type.
+4	app/tags.js	TS7006	Parameter 'tags' implicitly has an 'any' type.
 1	app/tags.js	TS7006	Parameter 'want' implicitly has an 'any' type.
 1	app/tags.js	TS7006	Parameter 'wants' implicitly has an 'any' type.
 1	app/theme.js	TS7006	Parameter 'mode' implicitly has an 'any' type.

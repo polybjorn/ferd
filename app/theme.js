@@ -1,5 +1,5 @@
 import { clearRouteColorCache } from './server.js';
-import { refreshCategoryColors } from './map-popups.js';
+import { refreshCategoryColors } from './map/index.js';
 
 export const THEMES = ['catppuccin', 'dracula', 'gruvbox', 'nord', 'rose-pine', 'solarized', 'tokyo-night'];
 export const MODES = ['dark', 'light', 'system'];

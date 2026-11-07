@@ -8,6 +8,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const app = require('./app-source');
+const { loadPopupViews } = require('./popup-views');
 function source(re, name) {
   const m = re.exec(app);
   assert.ok(m, `${name} not found in app/`);
@@ -87,23 +88,20 @@ test('nothing runs before the places have loaded', () => {
   assert.equal(state.categoryColors, undefined);
 });
 
-function popups(category) {
-  const ctx = {
+async function popups(category) {
+  const r = await loadPopupViews({
     state: { categoryColors: { nature: '#123456' }, categoryColorsLight: { nature: '#654321' } },
-    escapeHtml: s => String(s),
     getShowField: f => f === 'local-name',
-    tagPopupHtml: () => '',
     displayCategory: s => s || 'Uncategorized',
-    popupEditHtml: () => '',
-    areaStatusHtml: () => '',
-  };
-  run(`${fn('popupCategoryHtml')}\n${fn('placePopupHtml')}\n${fn('areaPopupHtml')}\nglobalThis.__g = { placePopupHtml, areaPopupHtml };`, ctx);
+    canEditPopup: () => false,
+    areaStatText: n => String(n),
+  });
   const entry = { name: 'Lake', local_name: 'Vatn', category };
-  return [ctx.__g.placePopupHtml(entry), ctx.__g.areaPopupHtml(entry, false)];
+  return [r.place(entry), r.area(entry, false)];
 }
 
-test('a category colour reaches only the dot', () => {
-  for (const popup of popups('nature')) {
+test('a category colour reaches only the dot', async () => {
+  for (const popup of await popups('nature')) {
     const styled = [...popup.matchAll(/<(\w+)([^>]*) style="[^"]*--c:[^"]*"/g)];
     assert.equal(styled.length, 1);
     assert.match(styled[0][2], /class="popup-category-dot"/);
@@ -112,8 +110,8 @@ test('a category colour reaches only the dot', () => {
   }
 });
 
-test('an uncategorized dot has no colour of its own, so it stays on the theme', () => {
-  for (const popup of popups('')) {
+test('an uncategorized dot has no colour of its own, so it stays on the theme', async () => {
+  for (const popup of await popups('')) {
     assert.match(popup, /<span class="popup-category-dot"><\/span>Uncategorized/);
     assert.doesNotMatch(popup, /--c:/);
   }
