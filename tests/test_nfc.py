@@ -42,7 +42,7 @@ class NfcCase(unittest.TestCase):
     self.gpx.mkdir(parents=True)
     self.conn = db_connect(str(root / "t.db"))
     db_init(self.conn)
-    self.uid = create_user(self.conn, "bob", "correct-horse-battery", fresh=False)
+    self.uid = create_user(self.conn, "bob", "correct-horse-battery")
     self.assertNotEqual(NFC_NAME, NFD_NAME)
     self.assertNotEqual(NFC_REGION, NFD_REGION)
 

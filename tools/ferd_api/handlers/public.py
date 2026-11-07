@@ -37,15 +37,11 @@ class PublicMixin:
       udir = user_dir(self.cfg, username)
     except ValidationError:
       return None
-    if not self._ensure_store(row["id"], username):
-      return False
     return row["id"], udir
 
   def _public_rows(self, username: str, read):
     """Send read(user id) as JSON for a published user; 404 otherwise."""
     found = self._public_user(username)
-    if found is False:
-      return
     if found is None:
       return self._error(HTTPStatus.NOT_FOUND, "not found")
     self._send_json(HTTPStatus.OK, read(found[0]))
@@ -67,16 +63,12 @@ class PublicMixin:
 
   def _h_public_geojson(self, username: str):
     found = self._public_user(username)
-    if found is False:
-      return
     if found is None:
       return self._error(HTTPStatus.NOT_FOUND, "not found")
     self._send_geojson(found[1], found[0], username)
 
   def _h_public_gpx(self, username: str, region: str, fname: str):
     found = self._public_user(username)
-    if found is False:
-      return
     if found is None:
       return self._error(HTTPStatus.NOT_FOUND, "not found")
     self._serve_gpx(found[1], region, fname)

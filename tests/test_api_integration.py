@@ -115,24 +115,6 @@ def tearDownModule() -> None:
     _server.close()
 
 
-class TestStartupWithBadFile(unittest.TestCase):
-  def test_non_utf8_file_does_not_stop_startup_and_is_named(self):
-    def prepare(data_dir: Path) -> None:
-      (data_dir / "users" / SEED_USER).mkdir(parents=True)
-      (data_dir / "users" / SEED_USER / "places.json").write_bytes(b"[\xff\xfe]")
-
-    server = _Server(prepare=prepare)
-    try:
-      c = Client(server.base_url)
-      self.assertEqual(c.login(SEED_USER, SEED_PW)[0], 200)
-      status, body = c.request("GET", "/api/places")
-      self.assertEqual(status, 500)
-      self.assertIn(f"{SEED_USER}/places.json", body["error"])
-      self.assertIn("UTF-8", body["error"])
-    finally:
-      server.close()
-
-
 class Client:
   """Tiny JSON+cookie client tied to a single API server."""
 
@@ -433,7 +415,8 @@ class TestOwnerItemWritesRemoved(unittest.TestCase):
     c = admin_client()
     for method, path in (("POST", "/api/places"), ("PUT", "/api/places"), ("DELETE", "/api/places"),
                          ("POST", "/api/areas"), ("PUT", "/api/areas"), ("DELETE", "/api/areas"),
-                         ("PUT", "/api/me/prefs"), ("PUT", "/api/me/category-labels")):
+                         ("PUT", "/api/me/prefs"), ("PUT", "/api/me/category-labels"),
+                         ("POST", "/api/places/clear-category"), ("PUT", "/api/metadata")):
       with self.subTest(method=method, path=path):
         self.assertEqual(c.request(method, path, {})[0], 404)
 
@@ -474,23 +457,6 @@ class TestPlaces(unittest.TestCase):
                    put("place", "bbbbbbb2", {"name": "Blank", "lat": 0, "lon": 0, "category": ""})])
     self.assertEqual([("category" in p) for p in stored("place")], [False, False])
 
-  def test_clear_category_bulk(self):
-    fresh_places([{"name": n, "lat": 0, "lon": 0, "category": "beach"} for n in ("A", "B", "C")]
-                 + [{"name": "Keep", "lat": 0, "lon": 0, "category": "castle"}])
-    status, body = self.c.request("POST", "/api/places/clear-category",
-                                  {"category": "beach"})
-    self.assertEqual(status, 200)
-    self.assertEqual(body["cleared"], 3)
-    on_disk = stored("place")
-    by_name = {p["name"]: p for p in on_disk}
-    self.assertNotIn("category", by_name["A"])
-    self.assertNotIn("category", by_name["B"])
-    self.assertNotIn("category", by_name["C"])
-    self.assertEqual(by_name["Keep"]["category"], "castle")
-
-  def test_clear_category_missing_arg(self):
-    status, _ = self.c.request("POST", "/api/places/clear-category", {})
-    self.assertEqual(status, 400)
 
 
 SQUARE = {"type": "Polygon", "coordinates": [[[5, 60], [6, 60], [6, 61], [5, 61], [5, 60]]]}
@@ -553,15 +519,6 @@ class TestAreas(unittest.TestCase):
       self.assertEqual(pub, body)
     finally:
       self.c.request("POST", "/api/me/publish", {"published": False})
-
-  def test_clear_category_reaches_areas(self):
-    fresh_places([{"name": "P", "lat": 1, "lon": 2, "category": "gone"}])
-    batch(self.c, [put("area", "a0000001", {"name": "A", "geometry": SQUARE, "category": "gone"})])
-    status, body = self.c.request("POST", "/api/places/clear-category", {"category": "gone"})
-    self.assertEqual((status, body["cleared"]), (200, 2))
-    _, listed = self.c.request("GET", "/api/areas")
-    self.assertNotIn("category", listed[0])
-
 
 class TestCategoryLabels(unittest.TestCase):
   def test_anon_blocked(self):
@@ -712,7 +669,7 @@ class TestGpxDeleteMetadata(unittest.TestCase):
 
   def test_delete_drops_metadata_and_a_new_upload_starts_blank(self):
     self._upload("MetaDel", "gone")
-    self.c.request("PUT", "/api/metadata", {"key": "MetaDel/gone", "metadata": {"notes": "old", "rating": 4}})
+    batch(self.c, [put("metadata", "MetaDel/gone", {"notes": "old", "rating": 4})])
     self._delete("MetaDel", "gone")
     self.assertNotIn("MetaDel/gone", stored("metadata"))
     self._upload("MetaDel", "gone")
@@ -762,8 +719,7 @@ class TestRegions(unittest.TestCase):
     # Upload one route under Old, then rename to New.
     self.c.request("POST", "/api/gpx?region=Old&name=t",
                    raw_body=GPX_BODY, content_type="application/gpx+xml")
-    self.c.request("PUT", "/api/metadata",
-                   {"key": "Old/t", "metadata": {"rating": 4}})
+    batch(self.c, [put("metadata", "Old/t", {"rating": 4})])
     status, body = self.c.request("POST", "/api/regions/rename",
                                   {"from": "Old", "to": "New"})
     self.assertEqual(status, 200)
@@ -809,8 +765,7 @@ class TestRegions(unittest.TestCase):
                    raw_body=GPX_BODY, content_type="application/gpx+xml")
     self.c.request("POST", "/api/gpx?region=Drop&name=b",
                    raw_body=GPX_BODY, content_type="application/gpx+xml")
-    self.c.request("PUT", "/api/metadata",
-                   {"key": "Drop/a", "metadata": {"rating": 3}})
+    batch(self.c, [put("metadata", "Drop/a", {"rating": 3})])
     status, body = self.c.request("POST", "/api/regions/clear", {"name": "Drop"})
     self.assertEqual(status, 200)
     self.assertEqual(body["routes"], 2)
@@ -844,8 +799,7 @@ class TestGpxMove(unittest.TestCase):
   def test_region_to_region(self):
     self.c.request("POST", "/api/gpx?region=From&name=t",
                    raw_body=GPX_BODY, content_type="application/gpx+xml")
-    self.c.request("PUT", "/api/metadata",
-                   {"key": "From/t", "metadata": {"rating": 4}})
+    batch(self.c, [put("metadata", "From/t", {"rating": 4})])
     status, body = self.c.request("POST", "/api/gpx/move",
                                   {"key": "From/t", "new_region": "To"})
     self.assertEqual(status, 200)
@@ -904,8 +858,7 @@ class TestGpxMove(unittest.TestCase):
   def test_rename_only(self):
     self.c.request("POST", "/api/gpx?region=R&name=Old",
                    raw_body=GPX_BODY, content_type="application/gpx+xml")
-    self.c.request("PUT", "/api/metadata",
-                   {"key": "R/Old", "metadata": {"rating": 5}})
+    batch(self.c, [put("metadata", "R/Old", {"rating": 5})])
     status, body = self.c.request("POST", "/api/gpx/move",
                                   {"key": "R/Old", "new_region": "R", "new_name": "New"})
     self.assertEqual(status, 200)
@@ -998,11 +951,11 @@ class TestTrailMetadata(unittest.TestCase):
     reset_kind("metadata")
 
   def _put(self, metadata):
-    return self.c.request("PUT", "/api/metadata", {"key": self.KEY, "metadata": metadata})
+    return batch(self.c, [put("metadata", self.KEY, metadata)])
 
   def test_anon_blocked(self):
     c = Client(_server.base_url)  # type: ignore[union-attr]
-    status, _ = c.request("PUT", "/api/metadata", {"key": self.KEY, "metadata": {"rating": 4}})
+    status, _ = batch(c, [put("metadata", self.KEY, {"rating": 4})])
     self.assertEqual(status, 401)
 
   def test_full_roundtrip(self):
@@ -1014,18 +967,16 @@ class TestTrailMetadata(unittest.TestCase):
       "tags": ["summit", "panorama"],
       "difficulty": "moderate",
     }
-    status, body = self._put(payload)
+    status, _ = self._put(payload)
     self.assertEqual(status, 200)
-    self.assertEqual(body["metadata"], payload)
     status, all_meta = self.c.request("GET", "/api/metadata")
     self.assertEqual(status, 200)
     self.assertEqual(all_meta[self.KEY], payload)
 
   def test_empty_metadata_deletes_key(self):
     self._put({"rating": 3})
-    status, body = self._put({})
+    status, _ = self._put({})
     self.assertEqual(status, 200)
-    self.assertEqual(body["metadata"], {})
     status, all_meta = self.c.request("GET", "/api/metadata")
     self.assertNotIn(self.KEY, all_meta)
 
@@ -1059,12 +1010,11 @@ class TestTrailMetadata(unittest.TestCase):
 
   def test_root_level_key_accepted(self):
     # No-region routes use a 1-part key (no slash).
-    status, _ = self.c.request("PUT", "/api/metadata", {"key": "no-slash", "metadata": {"rating": 3}})
+    status, _ = batch(self.c, [put("metadata", "no-slash", {"rating": 3})])
     self.assertEqual(status, 200)
 
   def test_too_many_parts_rejected(self):
-    status, _ = self.c.request("PUT", "/api/metadata",
-                               {"key": "a/b/c", "metadata": {"rating": 3}})
+    status, _ = batch(self.c, [put("metadata", "a/b/c", {"rating": 3})])
     self.assertEqual(status, 400)
 
 
@@ -1288,21 +1238,6 @@ class TestNfcNames(unittest.TestCase):
     q = urllib.parse.urlencode({"region": NFC_ROUTE, "name": NFC_ROUTE})
     self.assertEqual(self.c.request("POST", f"/api/gpx?{q}", raw_body=GPX_BODY, content_type="application/gpx+xml")[0], 201)
     self.assertEqual(self.names(), [f"{NFC_ROUTE}/{NFC_ROUTE}.gpx"])
-
-  def test_metadata_key_is_stored_composed(self):
-    status, body = self.c.request("PUT", "/api/metadata", {"key": f"R/{NFD_ROUTE}", "metadata": {"rating": 4}})
-    self.assertEqual(status, 200, body)
-    self.assertEqual(body["key"], f"R/{NFC_ROUTE}")
-    self.assertEqual(stored("metadata"), {f"R/{NFC_ROUTE}": {"rating": 4}})
-
-  def test_metadata_for_a_route_still_stored_decomposed_keeps_its_key(self):
-    conn = store_conn()
-    self.addCleanup(conn.close)
-    store.put_item(conn, user_id(), "route", NFD_ROUTE, {"region": "", "key": NFD_ROUTE, "name": NFD_ROUTE})
-    self.addCleanup(store.delete_item, conn, user_id(), "route", NFD_ROUTE)
-    status, body = self.c.request("PUT", "/api/metadata", {"key": NFD_ROUTE, "metadata": {"rating": 2}})
-    self.assertEqual(status, 200, body)
-    self.assertEqual(stored("metadata"), {NFD_ROUTE: {"rating": 2}})
 
   def test_sync_batch_stores_a_decomposed_metadata_id_composed(self):
     status, body = self.c.request("POST", "/api/sync/batch", {"changes": [
@@ -1709,7 +1644,7 @@ class TestAdmin(unittest.TestCase):
     self.assertFalse(bob_dir.exists())
     conn = store_conn()
     try:
-      for table in ("store_items", "store_revs", "store_migrated"):
+      for table in ("store_items", "store_revs"):
         self.assertEqual(conn.execute(f"SELECT COUNT(*) FROM {table} WHERE user_id=?", (bob_id,)).fetchone()[0], 0, table)
     finally:
       conn.close()

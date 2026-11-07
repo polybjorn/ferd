@@ -3271,8 +3271,6 @@ button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
 .sync-issues li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--ui-space-2); }
 .sync-issues .sync-issue-error { color: var(--muted); font-size: var(--ui-text-sm); overflow-wrap: anywhere; }
 .sync-issue-actions { display: flex; gap: var(--ui-space-2); }
-.upgrade-failed { flex-direction: column; gap: var(--ui-space-3); height: auto; padding: var(--ui-space-6) var(--ui-space-4); text-align: center; }
-.upgrade-failed p { max-width: 36rem; margin: 0; }
 /* Floating "Update available" toast: detached from the sticky stack,
    centered with side padding so it doesn't reach edges, and slides
    down on appear. */

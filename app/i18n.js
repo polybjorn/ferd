@@ -21,10 +21,6 @@ const STRINGS = {
   'common.hiddenByDefault': 'Hidden by default on the map',
   'common.shownByDefault': 'Shown by default on the map',
 
-  'upgrade.failed': "Ferd couldn't update the data saved on this device. Nothing has been lost: the saved data is untouched, and nothing can be edited until the update works. Export it to keep a copy.",
-  'upgrade.retry': 'Try again',
-  'upgrade.export': 'Export saved data',
-
   'syncIssues.title': 'Changes waiting to sync',
   'syncIssues.bannerStuck.one': "{count} change can't sync.",
   'syncIssues.bannerStuck.other': "{count} changes can't sync.",

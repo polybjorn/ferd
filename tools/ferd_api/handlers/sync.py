@@ -39,8 +39,8 @@ def _clean_metadata_key(key: str) -> str:
 
 
 def _metadata_key(conn, user_id: int, key: str) -> str:
-  """The key a metadata write lands under: composed, as PUT /api/metadata
-  stores it, unless the key as sent is a route still stored decomposed."""
+  """The key a metadata write lands under: composed, unless the key as sent
+  is a route still stored decomposed."""
   key = _clean_metadata_key(key)
   if store.get_item(conn, user_id, "route", key) is None:
     key = nfc_route_key(key)

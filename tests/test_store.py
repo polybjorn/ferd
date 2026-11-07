@@ -1,16 +1,14 @@
-"""Tests for the SQLite item store and the one-time JSON migration.
+"""Tests for the SQLite item store.
 
 Run with: python3 -m unittest discover -s tests
 """
 
-import hashlib
 import json
 import os
 import sqlite3
 import subprocess
 import sys
 import tempfile
-import time
 import unittest
 from unittest import mock
 from pathlib import Path
@@ -18,15 +16,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
 from ferd_api import store  # noqa: E402
-from ferd_api.common import ValidationError  # noqa: E402
 from ferd_api.db import db_connect, db_init, db_migrate  # noqa: E402
-from ferd_api.migrate import edited_after_migration, ensure_migrated, migrate_user  # noqa: E402
 from ferd_api.transfer import ImportPayload, import_replace  # noqa: E402
 from ferd_api.users import create_user  # noqa: E402
-
-
-def _hashes(udir: Path) -> dict:
-  return {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(udir.glob("*.json"))}
 
 
 class StoreCase(unittest.TestCase):
@@ -38,127 +30,13 @@ class StoreCase(unittest.TestCase):
     self.udir.mkdir()
     self.conn = db_connect(str(self.root / "t.db"))
     db_init(self.conn)
-    self.uid = create_user(self.conn, "bob", "correct-horse-battery", fresh=False)
+    self.uid = create_user(self.conn, "bob", "correct-horse-battery")
 
   def epoch(self):
     return store.get_epoch(self.conn, self.uid)
 
   def write(self, name, data):
     (self.udir / name).write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-
-class TestMigration(StoreCase):
-  def seed(self):
-    self.write("places.json", [
-      {"id": "aaaaaaaa", "name": "One", "lat": 1, "lon": 2},
-      {"name": "No id", "lat": 3, "lon": 4},
-      {"id": "aaaaaaaa", "name": "Dup id", "lat": 5, "lon": 6},
-    ])
-    self.write("areas.json", [{"name": "Park", "geometry": {"type": "Polygon", "coordinates": []}}])
-    self.write("metadata.json", {"R/t": {"rating": 4}, "u": {"notes": "n"}})
-    self.write("prefs.json", {"theme": "dark"})
-    self.write("category-labels.json", {"hut": {"label": "Hut"}})
-    self.write("routes.json", {"regions": [{"name": "R", "routes": [{"key": "R/t", "name": "t", "file": "gpx/R/t.gpx", "points": 3}]}]})
-
-  def test_rows_match_json(self):
-    self.seed()
-    self.assertTrue(migrate_user(self.conn, self.uid, self.udir))
-    places = store.list_items(self.conn, self.uid, "place")
-    self.assertEqual([p["name"] for p in places], ["One", "No id", "Dup id"])
-    self.assertEqual(len({p["id"] for p in places}), 3)
-    self.assertEqual(places[0]["id"], "aaaaaaaa")
-    self.assertEqual(len(store.list_items(self.conn, self.uid, "area")), 1)
-    self.assertEqual(store.get_map(self.conn, self.uid, "metadata"), {"R/t": {"rating": 4}, "u": {"notes": "n"}})
-    self.assertEqual(store.get_map(self.conn, self.uid, "pref"), {"theme": "dark"})
-    self.assertEqual(store.get_map(self.conn, self.uid, "label"), {"hut": {"label": "Hut"}})
-    routes = store.routes_manifest(self.conn, self.uid)
-    self.assertEqual(routes["regions"][0]["routes"][0]["name"], "t")
-    self.assertEqual(routes["regions"][0]["routes"][0]["rating"], 4)
-
-  def test_json_left_untouched(self):
-    self.seed()
-    before = _hashes(self.udir)
-    migrate_user(self.conn, self.uid, self.udir)
-    self.assertEqual(_hashes(self.udir), before)
-
-  def test_idempotent(self):
-    self.seed()
-    self.assertTrue(migrate_user(self.conn, self.uid, self.udir))
-    rows = self.conn.execute("SELECT kind, id, rev, data FROM store_items ORDER BY kind, id").fetchall()
-    head = store.head_rev(self.conn, self.uid)
-    self.assertFalse(migrate_user(self.conn, self.uid, self.udir))
-    self.write("places.json", [{"id": "bbbbbbbb", "name": "Later", "lat": 0, "lon": 0}])
-    self.assertFalse(migrate_user(self.conn, self.uid, self.udir))
-    self.assertEqual(self.conn.execute("SELECT kind, id, rev, data FROM store_items ORDER BY kind, id").fetchall(), rows)
-    self.assertEqual(store.head_rev(self.conn, self.uid), head)
-
-  def test_unreadable_file_leaves_nothing_and_recovers(self):
-    self.seed()
-    (self.udir / "metadata.json").write_text("{not json", encoding="utf-8")
-    with self.assertRaises(ValidationError):
-      migrate_user(self.conn, self.uid, self.udir)
-    self.assertEqual(self.conn.execute("SELECT COUNT(*) FROM store_items").fetchone()[0], 0)
-    self.assertIsNone(self.conn.execute("SELECT 1 FROM store_migrated").fetchone())
-    self.write("metadata.json", {"R/t": {"rating": 4}})
-    ensure_migrated(self.conn, self.uid, self.udir)
-    self.assertEqual(store.count_items(self.conn, self.uid, "place"), 3)
-
-  def test_missing_user_folder_defers(self):
-    gone = self.root / "missing"
-    with self.assertRaises(ValidationError):
-      migrate_user(self.conn, self.uid, gone)
-    self.assertIsNone(self.conn.execute("SELECT 1 FROM store_migrated").fetchone())
-    self.assertFalse(gone.exists())
-    gone.mkdir()
-    self.assertTrue(migrate_user(self.conn, self.uid, gone))
-
-  def test_new_user_is_born_migrated(self):
-    other = create_user(self.conn, "amy", "correct-horse-battery")
-    self.assertFalse(migrate_user(self.conn, other, self.root / "no-such-folder"))
-
-  def test_non_utf8_file_is_a_validation_error_naming_it(self):
-    (self.udir / "places.json").write_bytes(b"[\xff\xfe]")
-    with self.assertRaises(ValidationError) as ctx:
-      migrate_user(self.conn, self.uid, self.udir)
-    self.assertIn("user/places.json", str(ctx.exception))
-    self.assertIn("UTF-8", str(ctx.exception))
-    self.assertIsNone(self.conn.execute("SELECT 1 FROM store_migrated").fetchone())
-
-  def test_counts_per_kind(self):
-    self.seed()
-    counts = migrate_user(self.conn, self.uid, self.udir)
-    self.assertEqual(counts, {"places": 3, "areas": 1, "metadata": 2, "routes": 1, "prefs": 1, "labels": 1})
-
-  def test_edits_after_migration_are_reported(self):
-    self.seed()
-    migrate_user(self.conn, self.uid, self.udir)
-    self.assertEqual(edited_after_migration(self.conn, self.uid, self.udir), [])
-    later = time.time() + 60
-    os.utime(self.udir / "places.json", (later, later))
-    os.utime(self.udir / "routes.json", (later, later))
-    self.assertEqual(edited_after_migration(self.conn, self.uid, self.udir), ["places.json"])
-
-  def test_rows_without_marker_are_completed(self):
-    # One transaction rules out a crash leaving this state, but a hand-restored
-    # database could; the insert must neither duplicate nor fail.
-    self.seed()
-    store.put_item(self.conn, self.uid, "pref", "theme", "dark")
-    self.assertTrue(migrate_user(self.conn, self.uid, self.udir))
-    self.assertEqual(store.count_items(self.conn, self.uid, "place"), 3)
-    self.assertEqual(store.get_map(self.conn, self.uid, "pref"), {"theme": "dark"})
-
-  def test_empty_dir_migrates_to_nothing(self):
-    self.assertTrue(migrate_user(self.conn, self.uid, self.udir))
-    self.assertEqual(store.head_rev(self.conn, self.uid), 0)
-    self.assertEqual(store.list_items(self.conn, self.uid, "place"), [])
-
-  def test_changes_feed_covers_migrated_rows(self):
-    self.seed()
-    migrate_user(self.conn, self.uid, self.udir)
-    feed = store.changes_since(self.conn, self.uid, 0, 1000)
-    kinds = {c["kind"] for c in feed["changes"]}
-    self.assertEqual(kinds, {"place", "area", "metadata", "pref", "label", "route"})
-    self.assertEqual(feed["rev"], store.head_rev(self.conn, self.uid))
 
 
 class TestPublicUserFolder(StoreCase):
@@ -168,7 +46,6 @@ class TestPublicUserFolder(StoreCase):
 
     db_migrate(self.conn)
     self.conn.execute("UPDATE users SET published=1")
-    self.conn.execute("INSERT INTO store_migrated(user_id, migrated_at) VALUES (?, 0)", (self.uid,))
     conn, cfg = self.conn, {"data_dir": str(self.root)}
 
     class Stub(PublicMixin, RequestMixin):
@@ -275,7 +152,7 @@ class TestRouteManifest(StoreCase):
     routes = [{"key": k, "name": k.split("/")[-1], "points": 2} for k in keys]
     return {"regions": [{"name": "R", "routes": routes}]}
 
-  def test_script_ignores_the_frozen_metadata_file(self):
+  def test_script_ignores_an_old_metadata_file(self):
     (self.udir / "gpx" / "R").mkdir(parents=True)
     (self.udir / "gpx" / "R" / "t.gpx").write_text(
       '<gpx xmlns="http://www.topografix.com/GPX/1/1"><trk><name>t</name><trkseg>'

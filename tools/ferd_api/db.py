@@ -121,10 +121,6 @@ def db_init(conn: sqlite3.Connection) -> None:
       PRIMARY KEY (user_id, kind, id)
     ) WITHOUT ROWID;
     CREATE INDEX IF NOT EXISTS idx_store_items_rev ON store_items(user_id, rev);
-    CREATE TABLE IF NOT EXISTS store_migrated (
-      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      migrated_at INTEGER NOT NULL
-    );
   """)
 
 

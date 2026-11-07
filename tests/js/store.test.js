@@ -1,9 +1,8 @@
 'use strict';
 // Runs the store's core (between the STORE-CORE markers in app/store.js) in
-// vm, with IndexedDB and the API replaced by in-memory stand-ins: the v5
-// migration, the manifest round trip, local edits against pulled changes,
-// the push queue and the GPX call queue, GPX file operations and category
-// labels.
+// vm, with IndexedDB and the API replaced by in-memory stand-ins: the
+// manifest round trip, local edits against pulled changes, the push queue
+// and the GPX call queue, GPX file operations and category labels.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
@@ -12,7 +11,7 @@ const app = require('./app-source');
 const m = /STORE-CORE-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ STORE-CORE-END/.exec(app);
 assert.ok(m, 'STORE-CORE markers not found in app/');
 const source = m[1] + `
-globalThis.__s = { emptyMem, buildManifest, manifestItems, migrateV5, applyChanges, applyPull,
+globalThis.__s = { emptyMem, buildManifest, manifestItems, applyChanges, applyPull,
   pushPending, nextBatch, drainGpxOps, labelChanges, ROUTE_OPS, pkey, stripUi, opScope, scopesOverlap };
 globalThis.__setMem = v => { mem = v; };`;
 
@@ -54,56 +53,6 @@ function makeEnv(overrides = {}) {
 }
 const plain = v => JSON.parse(JSON.stringify(v));
 const memOf = (ctx, kind) => plain([...vm.runInContext('mem', ctx)[kind].entries()]);
-
-test('migrateV5 moves local stores, cached reads and the outbox', () => {
-  const { s } = makeEnv();
-  const ns = 'https://ferd.test::own:bjorn';
-  const out = plain(s.migrateV5({
-    places: [['aaaaaaa1', { id: 'aaaaaaa1', name: 'Hut' }]],
-    areas: [['bbbbbbb1', { id: 'bbbbbbb1', name: 'Lake', geometry: {} }]],
-    kv: [['local:metadata', { 'West/Ridge': { rating: 4 } }], ['local:category-labels', { hut: { label: 'Huts', color: 2 } }]],
-    gpx: [
-      ['West/Ridge.gpx', { file: 'West/Ridge.gpx', region: 'West', name: 'Ridge', planned: false, text: '<gpx/>', hasElevation: true }],
-      ['West/Ridge.planned.gpx', { file: 'West/Ridge.planned.gpx', region: 'West', name: 'Ridge', planned: true, text: '<gpx p/>' }],
-    ],
-    cache: [
-      ['auth::https://ferd.test', { data: { authenticated: true, username: 'bjorn' } }],
-      ['data::' + ns + '::places', { data: [{ id: 'c0ffee01', name: 'Cafe' }, { id: 'local1', name: 'New' }] }],
-      ['data::' + ns + '::routes', { data: { regions: [{ name: '', routes: [{ key: 'Loop', file: 'Loop.gpx', name: 'Loop', completed: true, notes: 'n' }] }] } }],
-      ['data::' + ns + '::category-labels', { data: { category_labels: { cafe: { label: 'Cafes' } } } }],
-    ],
-    outbox: [
-      [1, { id: 1, ns, method: 'createPlace', args: { name: 'New' }, localId: 'local1', ts: 0 }],
-      [2, { id: 2, ns, method: 'uploadGpx', args: { region: '', name: 'Loop' }, file: 'Loop.gpx', ts: 0 }],
-      [3, { id: 3, ns, method: 'putMetadata', args: { key: 'Loop', metadata: { notes: 'n' } }, ts: 0 }],
-    ],
-    pending_gpx: [['Loop.gpx', { file: 'Loop.gpx', text: '<gpx loop/>' }]],
-  }));
-  const local = out.items.filter(i => i.ns === 'local');
-  assert.deepEqual(local.filter(i => i.kind === 'place').map(i => i.id), ['aaaaaaa1']);
-  assert.deepEqual(local.find(i => i.kind === 'label').data, { label: 'Huts', color: 2 });
-  const ridge = local.find(i => i.kind === 'route');
-  assert.equal(ridge.id, 'West/Ridge');
-  assert.equal(ridge.data.region, 'West');
-  assert.equal(ridge.data.completed, true);
-  assert.equal(ridge.data.plannedFile, 'West/Ridge.planned.gpx');
-  assert.deepEqual(local.find(i => i.kind === 'metadata').data, { rating: 4 });
-  assert.equal(out.gpx.filter(g => g.ns === 'local').length, 2);
-
-  const server = out.items.filter(i => i.ns === ns);
-  const placeIds = server.filter(i => i.kind === 'place').map(i => i.id);
-  assert.ok(placeIds.includes('c0ffee01'));
-  const fresh = placeIds.find(id => id !== 'c0ffee01');
-  assert.match(fresh, /^[0-9a-f]{8}$/, 'an offline id that the server would refuse is replaced');
-  assert.deepEqual(server.find(i => i.kind === 'metadata').data, { notes: 'n' });
-  assert.equal(server.find(i => i.kind === 'route').data.notes, undefined, 'metadata leaves the route row');
-
-  assert.deepEqual(out.pending.map(p => [p.kind, p.id, p.op]), [['place', fresh, 'put']]);
-  assert.equal(out.pending[0].data.id, fresh);
-  assert.deepEqual(out.ops.map(o => o.method), ['uploadGpx', 'putMetadata']);
-  assert.deepEqual(out.gpx.filter(g => g.ns === ns), [{ ns, file: 'Loop.gpx', text: '<gpx loop/>' }]);
-  assert.deepEqual(out.meta, [['auth::https://ferd.test', { authenticated: true, username: 'bjorn' }]]);
-});
 
 test('a manifest survives the split into items and back', () => {
   const { s } = makeEnv();
@@ -358,8 +307,7 @@ test('call scopes overlap on a shared route or region', () => {
   const up = s.opScope({ method: 'uploadGpx', args: { region: 'West', name: 'A' } });
   assert.equal(s.scopesOverlap(up, s.opScope({ method: 'deleteRegion', args: { name: 'West' } })), true);
   assert.equal(s.scopesOverlap(up, s.opScope({ method: 'setGpxCompleted', args: { key: 'West/B' } })), false);
-  assert.equal(s.scopesOverlap(s.opScope({ method: 'clearRegion', args: { name: 'East' } }), s.opScope({ method: 'putMetadata', args: { key: 'Loop' } })), true, 'clearing a region moves routes into No region');
-  assert.equal(s.scopesOverlap(up, s.opScope({ method: 'clearCategory', args: { category: 'x' } })), false);
+  assert.equal(s.scopesOverlap(s.opScope({ method: 'clearRegion', args: { name: 'East' } }), s.opScope({ method: 'setGpxCompleted', args: { key: 'Loop' } })), true, 'clearing a region moves routes into No region');
 });
 
 test('a refused upload is kept on the device to save, and the toast names it', async () => {
@@ -394,42 +342,6 @@ test('drainGpxOps stops on a network error', async () => {
   });
   assert.deepEqual(plain(await env.s.drainGpxOps('n')), { synced: 0, skipped: 0, stopped: true, held: [], kept: [] });
   assert.equal(env.writes.length, 0);
-});
-
-test('migrateV5 replays metadata edits and category clears as calls, in queue order', () => {
-  const { s } = makeEnv();
-  const ns = 'https://ferd.test::own:bjorn';
-  const route = (key, extra) => Object.assign({ key, file: key + '.gpx', name: key.split('/').pop(), completed: true }, extra);
-  const out = plain(s.migrateV5({
-    // As the v5 code left the cache: the move and rename applied, and the
-    // removed region's routes gone from it (the server moves them instead).
-    kv: [['local:metadata', {}]],
-    gpx: [['North/Bay.gpx', { file: 'North/Bay.gpx', region: 'North', name: 'Bay', planned: false, text: '<gpx local only/>' }]],
-    cache: [
-      ['data::' + ns + '::places', { data: [{ id: 'c0ffee01', name: 'Cafe' }] }],
-      ['data::' + ns + '::routes', { data: { regions: [
-        { name: 'North', routes: [route('North/Ridge', { notes: 'edited' }), route('North/Bay')] },
-      ] } }],
-    ],
-    outbox: [
-      [1, { id: 1, ns, method: 'putMetadata', args: { key: 'West/Ridge', metadata: { notes: 'edited' } } }],
-      [2, { id: 2, ns, method: 'moveGpx', args: { key: 'West/Ridge', new_region: 'North' } }],
-      [3, { id: 3, ns, method: 'putMetadata', args: { key: 'Old/Peak', metadata: { notes: 'kept' } } }],
-      [4, { id: 4, ns, method: 'clearRegion', args: { name: 'Old' } }],
-      [5, { id: 5, ns, method: 'clearCategory', args: { category: 'hut' } }],
-      [6, { id: 6, ns, method: 'uploadGpx', args: { region: 'South', name: 'Bay' }, file: 'South/Bay.gpx' }],
-      [7, { id: 7, ns, method: 'moveGpx', args: { key: 'South/Bay', new_region: 'North' } }],
-    ],
-    // The v5 code renamed offline GPX text along with each move.
-    pending_gpx: [['North/Bay.gpx', { file: 'North/Bay.gpx', text: '<gpx bay/>' }]],
-  }));
-  assert.deepEqual(out.pending, [], 'no metadata delete or place re-save is queued');
-  assert.deepEqual(out.ops.map(o => [o.method, o.args.key || o.args.name || o.args.category]), [
-    ['putMetadata', 'West/Ridge'], ['moveGpx', 'West/Ridge'], ['putMetadata', 'Old/Peak'], ['clearRegion', 'Old'],
-    ['clearCategory', 'hut'], ['uploadGpx', 'Bay'], ['moveGpx', 'South/Bay'],
-  ]);
-  assert.deepEqual(out.gpx.filter(g => g.ns === ns), [{ ns, file: 'North/Bay.gpx', text: '<gpx bay/>' }], 'offline text under a moved name is kept');
-  assert.deepEqual(out.gpx.filter(g => g.ns === 'local'), [{ ns: 'local', file: 'North/Bay.gpx', text: '<gpx local only/>' }], "local mode's file of the same name is left alone");
 });
 
 test('pushPending treats a 404 as a missing endpoint, not a refusal', async () => {

@@ -12,7 +12,6 @@ from .. import store
 from ..common import BodyTooLarge, ConflictError, NotFoundError, ValidationError, atomic_write_bytes, nfc_component, nfc_route_key, resolve_under, safe_path_component, with_file_lock
 from ..manifest import regenerate_manifest
 from ..gpx import GPX_MAX_BYTES, apply_gpx_move, parse_gpx_move, plan_gpx_move, prune_route_metadata, strip_gpx_pii, validate_gpx
-from ..routes import validate_route_metadata
 
 
 class RoutesMixin:
@@ -409,52 +408,6 @@ class RoutesMixin:
     if user is None:
       return
     self._send_json(HTTPStatus.OK, store.get_map(self.conn, user["id"], "metadata"))
-
-  def _h_metadata_put(self):
-    """Upsert metadata for one route. Body: {key, metadata}. Empty metadata
-    deletes the key. The manifest is not regenerated: metadata rows are laid
-    over the route rows when it is served."""
-    user = self._require_user()
-    if user is None:
-      return
-    body = self._read_body_or_400()
-    if body is None:
-      return
-    key = (body.get("key") or "").strip()
-    if not key:
-      return self._error(HTTPStatus.BAD_REQUEST, "key required")
-    if len(key) > 256:
-      return self._error(HTTPStatus.BAD_REQUEST, "key too long")
-    # Key shape: "Region/Route" for regioned routes, or just "Route" for
-    # root-level (no region). Defense in depth; the value never touches the
-    # filesystem on this path, but rejecting weird input keeps stored keys clean.
-    parts = key.split("/")
-    if len(parts) not in (1, 2):
-      return self._error(HTTPStatus.BAD_REQUEST, "key must be 'Region/Route name' or 'Route name'")
-    try:
-      for p in parts:
-        safe_path_component(p)
-    except ValidationError as e:
-      return self._error(HTTPStatus.BAD_REQUEST, f"invalid key: {e}")
-    # Composed, like every name the server stores, unless the key as sent is
-    # a route that is still stored decomposed (one the merge left alone).
-    if store.get_item(self.conn, user["id"], "route", key) is None:
-      key = nfc_route_key(key)
-    try:
-      entry = validate_route_metadata(body.get("metadata") or {})
-    except ValidationError as e:
-      return self._error(HTTPStatus.BAD_REQUEST, str(e))
-
-    def do_write():
-      if entry:
-        store.put_item(self.conn, user["id"], "metadata", key, entry)
-      else:
-        store.delete_item(self.conn, user["id"], "metadata", key)
-
-    ok, _ = self._store_write(do_write)
-    if not ok:
-      return
-    self._send_json(HTTPStatus.OK, {"ok": True, "key": key, "metadata": entry})
 
   def _h_gpx_get(self, region: str, fname: str):
     """Serve an owned GPX file. Path components are validated."""

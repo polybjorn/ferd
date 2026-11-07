@@ -17,7 +17,7 @@ Two stores: SQLite (`tools/app.db`) and files on disk. SQLite holds auth and run
 
 Items live in one table, `store_items(user_id, kind, id, pos, data, rev, updated_at, deleted)`, one row per item. Each user has a revision counter (`store_revs`) that goes up by one for every item written, and the item takes that number as its `rev`. A delete keeps the row as a tombstone (`deleted=1`, no data) so a client that was offline learns about it; tombstones are not purged. `pos` keeps list order. The sync endpoints read this table (see [api.md](api.md#sync)), so a local-first client can ask for everything after a revision. Route rows hold only what the server derives from the GPX files (`routes.json` from `gpx-manifest.sh` is ingested after each regeneration); the metadata rows are laid over them when the manifest is served.
 
-On the first start after upgrading, each user's JSON files are copied into rows in one transaction, and places and areas lacking an `id` get one. The JSON files are only read, never changed, and stay as a backup of the state at migration; later edits live in `app.db` only. The zip export still writes the same JSON file names, built from rows.
+Ferd 1.x kept these items in per-user JSON files, which 2.0 does not read: 1.x data comes over through a zip export and import. The zip export still writes the same JSON file names, built from rows.
 
 See [configure.md](configure.md#data-files) for the full file-by-file table.
 
@@ -75,7 +75,7 @@ tools/
     config.py              # defaults and config-file/env loading
     db.py                  # SQLite schema, migrations, audit log, site settings
     auth.py                # password hashing, sessions, API tokens, login rate limit
-    users.py               # accounts, per-user data dirs, publish flags, legacy migration
+    users.py               # accounts, per-user data dirs, publish flags
     common.py              # exceptions, path-safety and atomic file helpers
     places.py, areas.py    # place and area validation, country codes
     routes.py, gpx.py      # route metadata validation; GPX parsing, moves, GeoJSON

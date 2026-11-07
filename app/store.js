@@ -86,16 +86,12 @@ function dbOpen() {
   if (_dbPromise) return _dbPromise;
   _dbPromise = new Promise((resolve, reject) => {
     /** @type {IDBOpenDBRequest} */
-    let r, migrating = false;
+    let r;
     try { r = indexedDB.open(DB_NAME, DB_VERSION); } catch (e) { reject(e); return; }
-    r.onupgradeneeded = e => {
-      migrating = e.oldVersion > 0 && !r.result.objectStoreNames.contains('items');
-      upgrade(r.result, /** @type {IDBTransaction} */ (r.transaction), e.oldVersion);
-    };
+    r.onupgradeneeded = () => upgrade(r.result);
     // A tab still on an older version holds the database open, and code
     // from before v6 never lets go of it, so the upgrade waits until that
-    // tab closes. Waiting is right (local-mode edits have nowhere else to
-    // go), but the boot screen says why.
+    // tab closes. The boot screen says why.
     r.onblocked = () => {
       const el = document.querySelector('#app .loading');
       if (el) el.textContent = 'Ferd is open in another tab. Close it to finish updating.';
@@ -114,62 +110,30 @@ function dbOpen() {
     };
     // Not cached, so a later call tries again (after an upgrade failed, or
     // once the blocking tab is gone).
-    // A failed upgrade from v5 leaves the old stores as they were, and the
-    // app stops on a screen that says so rather than running without them.
     r.onerror = () => {
       _dbPromise = null;
-      reject(migrating ? Object.assign(new Error('The data saved on this device could not be updated'), { migration: true, cause: r.error }) : r.error);
+      reject(r.error);
     };
   });
   return _dbPromise;
 }
 
-// v1 to v5 held a cache of server reads, separate local-mode stores and an
-// offline outbox of REST calls. v6 is one item store for every namespace;
-// the old stores are read inside the upgrade, rewritten by migrateV5 and
-// dropped. 'log' (the local-mode activity log) carries over unchanged.
-/** @param {IDBDatabase} db @param {IDBTransaction} tx @param {number} oldVersion */
-function upgrade(db, tx, oldVersion) {
+// v1 to v5 (Ferd 1.x) held a cache of server reads, separate local-mode
+// stores and an offline outbox of REST calls. v6 is one item store for every
+// namespace. The old stores are dropped unread: 1.x data comes over by
+// export and import. 'log' (the local-mode activity log) carries over.
+/** @param {IDBDatabase} db */
+function upgrade(db) {
   if (db.objectStoreNames.contains('items')) return;
-  const OLD = ['cache', 'places', 'areas', 'gpx', 'kv', 'outbox', 'pending_gpx'];
-  const present = (oldVersion > 0) ? OLD.filter(n => db.objectStoreNames.contains(n)) : [];
-  /** @type {Record<string, Array<[any, any]>>} */
-  const old = {};
-  const build = () => {
-    // Migrate before dropping anything: a failure aborts the upgrade, so the
-    // v5 stores stay as they were rather than being lost.
-    let out;
-    try { out = migrateV5(old); } catch (e) { console.error('[store] v5 migration failed, upgrade aborted', e); tx.abort(); return; }
-    for (const name of OLD) if (db.objectStoreNames.contains(name)) db.deleteObjectStore(name);
-    db.createObjectStore('items', { keyPath: ['ns', 'kind', 'id'] }).createIndex('ns', 'ns');
-    db.createObjectStore('pending', { keyPath: ['ns', 'kind', 'id'] }).createIndex('ns', 'ns');
-    db.createObjectStore('gpx', { keyPath: ['ns', 'file'] }).createIndex('ns', 'ns');
-    db.createObjectStore('gpx_ops', { keyPath: 'id', autoIncrement: true }).createIndex('ns', 'ns');
-    if (!db.objectStoreNames.contains('meta')) db.createObjectStore('meta');
-    if (!db.objectStoreNames.contains('log')) db.createObjectStore('log', { keyPath: 'id', autoIncrement: true });
-    for (const rec of out.items) tx.objectStore('items').put(rec);
-    for (const rec of out.pending) tx.objectStore('pending').put(rec);
-    for (const rec of out.gpx) tx.objectStore('gpx').put(rec);
-    for (const rec of out.ops) tx.objectStore('gpx_ops').put(rec);
-    for (const [k, v] of out.meta) tx.objectStore('meta').put(v, k);
-  };
-  if (!present.length) { build(); return; }
-  // Plain request callbacks, not promises, so build() runs inside a success
-  // event while the upgrade transaction is still active.
-  let left = present.length * 2;
-  /** @type {Record<string, { keys: any[], vals: any[] }>} */
-  const raw = {};
-  const step = () => {
-    if (--left) return;
-    for (const n of present) old[n] = raw[n].keys.map((k, i) => [k, raw[n].vals[i]]);
-    build();
-  };
-  for (const name of present) {
-    const st = tx.objectStore(name), slot = raw[name] = { keys: /** @type {any[]} */ ([]), vals: /** @type {any[]} */ ([]) };
-    const k = st.getAllKeys(), v = st.getAll();
-    k.onsuccess = () => { slot.keys = k.result; step(); };
-    v.onsuccess = () => { slot.vals = v.result; step(); };
+  for (const name of ['cache', 'places', 'areas', 'gpx', 'kv', 'outbox', 'pending_gpx']) {
+    if (db.objectStoreNames.contains(name)) db.deleteObjectStore(name);
   }
+  db.createObjectStore('items', { keyPath: ['ns', 'kind', 'id'] }).createIndex('ns', 'ns');
+  db.createObjectStore('pending', { keyPath: ['ns', 'kind', 'id'] }).createIndex('ns', 'ns');
+  db.createObjectStore('gpx', { keyPath: ['ns', 'file'] }).createIndex('ns', 'ns');
+  db.createObjectStore('gpx_ops', { keyPath: 'id', autoIncrement: true }).createIndex('ns', 'ns');
+  if (!db.objectStoreNames.contains('meta')) db.createObjectStore('meta');
+  if (!db.objectStoreNames.contains('log')) db.createObjectStore('log', { keyPath: 'id', autoIncrement: true });
 }
 
 /** @param {DbWrite} w */
@@ -229,9 +193,7 @@ export function metaGet(key) { return dbOpen().then(db => req(db.transaction('me
 /** @param {string} key @param {any} val */
 export function metaSet(key, val) { return dbWrite({ meta: [[key, val]] }).catch(() => {}); }
 
-// The namespace the signals show. Cache keys before v6 used the same
-// "<origin>::own:<user>" / "<origin>::pub:<user>" shape, which the
-// migration relies on.
+// The namespace the signals show.
 export function _serverBase() {
   return (localStorage.getItem('ferd-server') || location.origin).replace(/\/+$/, '');
 }
@@ -325,120 +287,6 @@ function manifestItems(manifest) {
   return out;
 }
 
-// Rewrite a v5 database (read into `old` as [key, value] pairs per store)
-// into v6 records. Local-mode stores become namespace 'local'; each cached
-// server read becomes items of its own namespace; queued offline writes
-// become pending item changes or GPX operations, so nothing queued is lost.
-/** @param {Record<string, Array<[any, any]>>} old */
-function migrateV5(old) {
-  /** @type {ItemRec[]} */
-  const items = [];
-  /** @type {PendingRec[]} */
-  const pending = [];
-  /** @type {GpxRec[]} */
-  const gpx = [];
-  /** @type {GpxOpRec[]} */
-  const ops = [];
-  /** @type {Array<[string, any]>} */
-  const meta = [];
-  const vals = (/** @type {string} */ name) => (old[name] || []).map(kv => kv[1]);
-  /** @type {Record<string, Record<string, Map<string, any>>>} */
-  const byNs = {};
-  /** @param {string} ns @param {string} kind @param {string} id @param {any} data */
-  const add = (ns, kind, id, data) => {
-    const m = (byNs[ns] = byNs[ns] || {});
-    (m[kind] = m[kind] || new Map()).set(id, data);
-  };
-  /** @param {string} ns @param {any} manifest */
-  const addManifest = (ns, manifest) => { for (const c of manifestItems(manifest)) add(ns, c.kind, c.id, c.data); };
-
-  // Local mode.
-  for (const p of vals('places')) if (p && p.id) add('local', 'place', p.id, p);
-  for (const a of vals('areas')) if (a && a.id) add('local', 'area', a.id, a);
-  /** @type {Record<string, any>} */
-  const kv = {};
-  for (const [k, v] of old.kv || []) kv[k] = v;
-  const localMeta = kv['local:metadata'] || {};
-  const localLabels = kv['local:category-labels'] || {};
-  const localGpx = vals('gpx').filter(r => r && r.file);
-  for (const k in localLabels) add('local', 'label', k, localLabels[k]);
-  if (localGpx.length) {
-    for (const r of localGpx) gpx.push({ ns: 'local', file: r.file, text: r.text });
-    addManifest('local', localManifestFromGpx(localGpx));
-  }
-  for (const k in localMeta) if (localMeta[k] && Object.keys(localMeta[k]).length) add('local', 'metadata', k, localMeta[k]);
-
-  // Cached server reads: "data::<origin>::<who>::<kind>" and "auth::<origin>".
-  for (const [key, rec] of old.cache || []) {
-    if (typeof key !== 'string' || !rec) continue;
-    if (key.indexOf('auth::') === 0) { meta.push([key, rec.data]); continue; }
-    if (key.indexOf('data::') !== 0) continue;
-    const cut = key.lastIndexOf('::');
-    const ns = key.slice(6, cut), kind = key.slice(cut + 2), data = rec.data;
-    if (kind === 'places' && Array.isArray(data)) { for (const p of data) if (p && p.id) add(ns, 'place', p.id, p); }
-    else if (kind === 'areas' && Array.isArray(data)) { for (const a of data) if (a && a.id) add(ns, 'area', a.id, a); }
-    else if (kind === 'routes') addManifest(ns, data);
-    else if (kind === 'category-labels' && data && data.category_labels) { for (const s in data.category_labels) add(ns, 'label', s, data.category_labels[s]); }
-  }
-
-  // Queued writes. Item edits already sit in the cached copy, so each one
-  // marks the item it touched as pending. GPX calls stay calls, and so do
-  // two that depend on them or on state the copy no longer shows: a
-  // metadata edit (a queued move or region change after it rekeys it on the
-  // server) and clearing a category (which items it cleared).
-  /** @type {Record<string, string>} */
-  const pendingGpxNs = {};
-  let seq = 1;
-  const outbox = vals('outbox').filter(r => r && r.ns && r.method).sort((a, b) => a.id - b.id);
-  /** @param {string} ns @param {string} kind @param {string} id */
-  const mark = (ns, kind, id) => {
-    const cur = byNs[ns] && byNs[ns][kind] && byNs[ns][kind].get(id);
-    const i = pending.findIndex(p => p.ns === ns && p.kind === kind && p.id === id);
-    if (i >= 0) pending.splice(i, 1);
-    pending.push(cur ? { ns, kind, id, op: 'put', data: cur, seq: seq++ } : { ns, kind, id, op: 'delete', seq: seq++ });
-  };
-  for (const row of outbox) {
-    const a = row.args || {}, ns = row.ns;
-    switch (row.method) {
-      case 'createPlace': if (row.localId) mark(ns, 'place', row.localId); break;
-      case 'createArea': if (row.localId) mark(ns, 'area', row.localId); break;
-      case 'updatePlace': case 'deletePlace': if (a.id) mark(ns, 'place', a.id); break;
-      case 'updateArea': case 'deleteArea': if (a.id) mark(ns, 'area', a.id); break;
-      case 'putCategoryLabels': for (const s in (a.category_labels || {})) mark(ns, 'label', s); break;
-      default:
-        ops.push({ ns, method: row.method, args: a, ts: row.ts || 0, file: row.file });
-        if (row.file) pendingGpxNs[row.file] = ns;
-    }
-  }
-  // Offline GPX text sits under its file's latest name, which a queued move
-  // may have changed since the upload was queued. Only namespaces with a
-  // queue can hold it; local mode's files are its own.
-  const queued = new Set(outbox.map(r => r.ns));
-  for (const ns of queued) {
-    const rm = byNs[ns] && byNs[ns].route;
-    if (rm) for (const d of rm.values()) for (const f of [d.file, d.plannedFile]) if (f && !pendingGpxNs[f]) pendingGpxNs[f] = ns;
-  }
-  for (const r of vals('pending_gpx')) if (r && pendingGpxNs[r.file]) gpx.push({ ns: pendingGpxNs[r.file], file: r.file, text: r.text });
-  // Places created offline got ids that are not 8 hex characters; the
-  // server would refuse them, so they take a fresh id here.
-  for (const ns in byNs) {
-    for (const kind of ['place', 'area']) {
-      const m = byNs[ns][kind];
-      if (!m) continue;
-      for (const [id, d] of [...m]) {
-        if (/^[0-9a-f]{8}$/.test(id)) continue;
-        const nid = _genId();
-        m.delete(id); m.set(nid, Object.assign({}, d, { id: nid }));
-        for (const p of pending) if (p.ns === ns && p.kind === kind && p.id === id) { p.id = nid; if (p.data) p.data = Object.assign({}, p.data, { id: nid }); }
-      }
-    }
-    for (const kind in byNs[ns]) {
-      let pos = 0;
-      for (const [id, data] of byNs[ns][kind]) items.push({ ns, kind, id, data, pos: ++pos });
-    }
-  }
-  return { items, pending, gpx, ops, meta };
-}
 // Local-mode GPX records (one per file) to a manifest, grouping a walked
 // and a planned file of one route as scripts/gpx-manifest.sh does.
 /** @param {any[]} recs */
@@ -829,7 +677,7 @@ function opScope(row) {
   switch (row.method) {
     case 'uploadGpx': return { keys: [at(a.region || '', String(a.name).replace(/\.planned$/, ''))], regions: [] };
     case 'deleteGpx': return { keys: [at(a.region || '', String(a.name || '').replace(/\.gpx$/i, ''))], regions: [] };
-    case 'setGpxCompleted': case 'putMetadata': return { keys: [a.key], regions: [] };
+    case 'setGpxCompleted': return { keys: [a.key], regions: [] };
     case 'moveGpx': return { keys: [a.key, at(a.new_region || '', String(a.new_name || _splitKey(a.key).name).trim())], regions: [] };
     case 'renameRegion': return { keys: [], regions: [a.from || '', a.to || ''] };
     case 'deleteRegion': return { keys: [], regions: [a.name || ''] };
@@ -862,7 +710,6 @@ function opName(o) {
     case 'deleteGpx': return a.name || '';
     case 'renameRegion': return a.from || '';
     case 'deleteRegion': case 'clearRegion': return a.name || '';
-    case 'clearCategory': return a.category || '';
     default: return _splitKey(a.key || '').name;
   }
 }
@@ -918,7 +765,6 @@ export async function open() {
     if (r.sync) syncState = r.sync;
     had = r.items.length > 0 || !!r.sync;
   } catch (e) {
-    if (e && /** @type {any} */ (e).migration) throw e;
     console.warn('[store] IndexedDB unavailable', e);
   }
   publish(new Set(KINDS));
@@ -1023,9 +869,6 @@ const GPX_REST = {
   renameRegion: a => api('POST', '/regions/rename', a),
   deleteRegion: a => api('POST', '/regions/delete', a),
   clearRegion: a => api('POST', '/regions/clear', a),
-  // Only from a v5 offline queue; both are item edits now.
-  clearCategory: a => api('POST', '/places/clear-category', a),
-  putMetadata: a => api('PUT', '/metadata', a),
 };
 // Apply a GPX operation to the route items here, moving any GPX text held on
 // the device with it, and carry pending metadata edits along to the new key.
@@ -1136,27 +979,6 @@ export async function issueText(it) {
   if (row.args.text != null) return row.args.text;
   const copies = await uploadCopies(NS, row);
   return copies[0] ? copies[0].text : null;
-}
-// The database as it stands before a failed upgrade, every store as
-// [key, value] pairs, for the owner to keep while the upgrade cannot run.
-export function exportOldData() {
-  return new Promise((resolve, reject) => {
-    const r = indexedDB.open(DB_NAME);
-    r.onerror = () => reject(r.error);
-    r.onsuccess = () => {
-      const db = r.result, names = [...db.objectStoreNames];
-      /** @type {Record<string, Array<[any, any]>>} */
-      const stores = {};
-      const done = () => { db.close(); resolve(new Blob([JSON.stringify({ version: db.version, stores })], { type: 'application/json' })); };
-      if (!names.length) { done(); return; }
-      const tx = db.transaction(names);
-      const reads = names.map(n => { const st = tx.objectStore(n); return { n, k: st.getAllKeys(), v: st.getAll() }; });
-      txDone(tx).then(() => {
-        for (const { n, k, v } of reads) stores[n] = k.result.map((key, i) => [key, v.result[i]]);
-        done();
-      }, e => { db.close(); reject(e); });
-    };
-  });
 }
 /** GPX text kept on this device: every file with no server, and offline uploads on one. @param {string} file */
 export function gpxText(file) { return dbGpx(NS, file).then(r => r ? r.text : null, () => /** @type {string | null} */ (null)); }

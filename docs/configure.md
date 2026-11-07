@@ -139,14 +139,14 @@ These are not config but the API and frontend assume they exist at these paths. 
 
 | Path (relative to `data_dir`) | Used by | Notes |
 |---|---|---|
-| `users/<u>/places.json`, `areas.json`, `metadata.json`, `prefs.json`, `category-labels.json` | Migration only | Places, areas, route metadata, preferences and category labels live in `app.db`. These files are read once at the first start after upgrading and then left alone as a backup; edits after that are not written back. |
+| `users/<u>/places.json`, `areas.json`, `metadata.json`, `prefs.json`, `category-labels.json` | Not read | Left by Ferd 1.x. Places, areas, route metadata, preferences and category labels live in `app.db`; 1.x data comes over by exporting a zip from 1.x and importing it. |
 | `users/<u>/gpx/<Region>/<Route>.gpx` | API read+write (`/api/gpx/...`, `/api/u/<u>/gpx/...`) | Per-region directory of GPX files. `<Route>.planned.gpx` siblings are rendered as dashed overlays. Region is optional: a GPX at `users/<u>/gpx/<Route>.gpx` (no region subdir) is served at `/api/gpx/<Route>.gpx` and listed under the "No region" group. |
 | `users/<u>/routes.json` | Written by `gpx-manifest.sh`, read back by the API | Generated after each GPX upload/delete and copied into `app.db`. Never edit by hand. |
-| Route metadata (`/api/metadata`, in `app.db`) | API read+write | Per-route overrides keyed by `Region/Route name` (or just `Route name` for no-region routes). Each entry may include `source` (URL), `date_completed` (YYYY-MM-DD), `rating` (1-5), `notes`, `tags` (array), `difficulty` (easy / moderate / hard / expert), `local_name` (native form of the route name). Edited from the route Edit modal in the UI. |
+| Route metadata (`/api/metadata`, in `app.db`) | API read; written through `/api/sync/batch` | Per-route overrides keyed by `Region/Route name` (or just `Route name` for no-region routes). Each entry may include `source` (URL), `date_completed` (YYYY-MM-DD), `rating` (1-5), `notes`, `tags` (array), `difficulty` (easy / moderate / hard / expert), `local_name` (native form of the route name). Edited from the route Edit modal in the UI. |
 | Preferences (`/api/me/prefs`, in `app.db`) | API | Per-user UI preferences that should follow the account across browsers. |
 | Category labels (`/api/me/category-labels`, `/api/u/<u>/category-labels`, in `app.db`) | API | Per-user category map, `{slug: {label, color?, order?}}`: display label, palette index, and position in Manage categories. Edited from Settings -> General -> Categories. |
 | `catalog.local.json` | API (`/api/catalog`, `/api/admin/catalog/*`) | This instance's own catalog additions, merged with the shipped `catalog.json` at read time. Admin-managed from Manage catalog; see [catalog.md](catalog.md). |
-| `site-config.json` | Browser (fetched at boot) | Site-wide config: brand, feature flags, default view. The API only touches it for a one-time migration of legacy category labels. |
+| `site-config.json` | Browser (fetched at boot) | Site-wide config: brand, feature flags, default view. |
 
 For the place object and route metadata schemas (what fields are valid in a place and in route metadata), see [api.md > Common shapes](api.md#common-shapes).
 

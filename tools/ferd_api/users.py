@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 
 from .auth import hash_password
-from .common import ValidationError, atomic_write_bytes, resolve_under, safe_path_component, write_json_file
+from .common import resolve_under, safe_path_component
 from .db import setting_get, setting_set
 
 
@@ -24,21 +24,12 @@ def registration_open(conn: sqlite3.Connection) -> bool:
   return setting_get(conn, "registration", "closed") == "open"
 
 
-def create_user(conn: sqlite3.Connection, username: str, password: str, is_admin: bool = False, fresh: bool = True) -> int:
-  """Insert a user. A fresh user has no JSON files to copy, so the migrated
-  marker is written here; without it the first request would migrate from a
-  folder that may not exist yet. `fresh=False` leaves the user to the startup
-  migration, for a seeded user whose data may already sit on disk."""
+def create_user(conn: sqlite3.Connection, username: str, password: str, is_admin: bool = False) -> int:
   salt, digest = hash_password(password)
   cur = conn.execute(
     "INSERT INTO users(username, pw_salt, pw_hash, is_admin, created_at) VALUES (?, ?, ?, ?, ?)",
     (username, salt, digest, 1 if is_admin else 0, int(time.time())),
   )
-  if fresh:
-    conn.execute(
-      "INSERT OR IGNORE INTO store_migrated(user_id, migrated_at) VALUES (?, ?)",
-      (cur.lastrowid, int(time.time())),
-    )
   return cur.lastrowid
 
 
@@ -53,7 +44,7 @@ def seed_initial_user(conn: sqlite3.Connection, cfg: dict) -> None:
   if not user or not pw:
     return
   if user_count(conn) == 0:
-    create_user(conn, user, pw, is_admin=True, fresh=False)
+    create_user(conn, user, pw, is_admin=True)
     print(f"[api] seeded initial admin '{user}'", file=sys.stderr)
 
 
@@ -169,68 +160,3 @@ def count_user_routes(udir: Path) -> int:
   if not gpx_root.exists():
     return 0
   return sum(1 for _ in gpx_root.rglob("*.gpx") if _.is_file())
-
-
-def migrate_legacy_data(conn: sqlite3.Connection, cfg: dict) -> None:
-  """One-shot: move legacy shared `places.json` + `gpx/` + `metadata.json` +
-  `routes.json` into the first admin's folder. For each file: skipped if
-  the source doesn't exist or a non-empty destination is already there
-  (so an already-migrated install or a user with their own data is left
-  alone). Run before ensure_user_dir so the freshly-created empty
-  per-user folder doesn't block the move."""
-  data_dir = Path(cfg["data_dir"]).resolve()
-  row = conn.execute(
-    "SELECT username FROM users WHERE is_admin=1 ORDER BY id LIMIT 1"
-  ).fetchone()
-  if not row:
-    return
-  admin = row["username"]
-  try:
-    dest = user_dir(cfg, admin)
-  except ValidationError:
-    return
-  dest.mkdir(parents=True, exist_ok=True)
-  candidates = ["places.json", "routes.json", "metadata.json", "gpx"]
-  moved = []
-  for name in candidates:
-    src = data_dir / name
-    dst = dest / name
-    if not src.exists() and not src.is_symlink():
-      continue
-    if dst.exists():
-      # Treat an empty directory as absent so a freshly seeded user folder
-      # doesn't block the gpx tree from being migrated.
-      if dst.is_dir() and not any(dst.iterdir()):
-        dst.rmdir()
-      else:
-        continue
-    src.rename(dst)
-    moved.append(name)
-  if moved:
-    print(f"[api] migrated legacy {moved} -> users/{admin}/", file=sys.stderr)
-
-  # One-shot: move site-config's `category_labels` into the admin's per-user
-  # file (where labels live since 2026-05-22). Skipped if the admin already has
-  # a labels file or if site-config doesn't carry any.
-  site_cfg_path = data_dir / "site-config.json"
-  if site_cfg_path.exists():
-    try:
-      cfg_data = json.loads(site_cfg_path.read_text("utf-8"))
-    except (OSError, json.JSONDecodeError) as e:
-      print(f"[api] migration: could not read site-config.json: {e}", file=sys.stderr)
-      return
-    legacy_labels = cfg_data.get("category_labels") if isinstance(cfg_data, dict) else None
-    if isinstance(legacy_labels, dict) and legacy_labels:
-      dst_labels = dest / "category-labels.json"
-      if not dst_labels.exists():
-        try:
-          write_json_file(dst_labels, legacy_labels)
-        except OSError as e:
-          print(f"[api] migration: could not write {dst_labels}: {e}", file=sys.stderr)
-          return
-      try:
-        cfg_data.pop("category_labels", None)
-        atomic_write_bytes(site_cfg_path, (json.dumps(cfg_data, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
-        print(f"[api] migrated site-config category_labels -> users/{admin}/category-labels.json", file=sys.stderr)
-      except OSError as e:
-        print(f"[api] migration: copied labels but could not strip from site-config: {e}", file=sys.stderr)

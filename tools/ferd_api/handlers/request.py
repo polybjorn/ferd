@@ -13,9 +13,8 @@ from urllib.parse import urlparse
 
 from ..auth import READONLY_POST_ALLOW, SESSION_DAYS, api_token_lookup, hash_token, session_lookup, session_touch
 from ..common import BodyTooLarge, NotFoundError, ValidationError
-from ..migrate import ensure_migrated
 from ..store import transaction
-from ..users import ensure_user_dir, user_dir
+from ..users import ensure_user_dir
 
 
 class RequestMixin:
@@ -165,20 +164,7 @@ class RequestMixin:
     if not user:
       self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
       return None
-    if not self._ensure_store(user["id"], user["username"]):
-      return None
     return user
-
-  def _ensure_store(self, uid: int, username: str) -> bool:
-    """Make sure the user's JSON files have been copied into rows. The startup
-    pass normally did; this covers a user created since and one whose files
-    were unreadable then. Sends a 500 and returns False if they still are."""
-    try:
-      ensure_migrated(self.conn, uid, user_dir(self.cfg, username))
-    except (ValidationError, OSError, sqlite3.Error) as e:
-      self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"user data not migrated: {e}")
-      return False
-    return True
 
   def _user_dir(self, username: str) -> Path:
     """Get + ensure the per-user data dir."""

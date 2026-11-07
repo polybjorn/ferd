@@ -127,7 +127,7 @@ docker compose pull
 docker compose up -d
 ```
 
-`./data/` is untouched and schema migrations run on the next start. If you've switched to `build: .` for contributing, swap `pull` for `build`.
+`./data/` is untouched and schema migrations run on the next start. From 1.x to 2.0, have each user export their data zip before updating and import it afterwards: 2.0 does not read the JSON files 1.x kept places, areas and route metadata in. If you've switched to `build: .` for contributing, swap `pull` for `build`.
 
 ## Uninstall
 

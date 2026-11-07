@@ -70,7 +70,7 @@ sudo systemctl restart ferd-api.service
 curl -fs http://127.0.0.1:8091/api/health   # smoke check; prints {"status":"ok",...}
 ```
 
-Your config and data are never touched. If you deleted the source clone after install, just clone it again anywhere and run `install.sh` from there.
+Your config and data are never touched. From 1.x to 2.0, have each user export their data zip before updating and import it afterwards: 2.0 does not read the JSON files 1.x kept places, areas and route metadata in. If you deleted the source clone after install, just clone it again anywhere and run `install.sh` from there.
 
 ## Backups
 
@@ -105,9 +105,3 @@ sudo -u ferd sqlite3 /srv/ferd/tools/app.db "UPDATE store_revs SET epoch = lower
 ```
 
 Each signed-in user can also download a per-user zip export from Settings.
-
-## A user's data will not load
-
-Startup moves each user's JSON files into `app.db` once. If a file cannot be read (not valid JSON, not UTF-8, the wrong shape, or the user folder is missing), that user is skipped and the log says which: `startup work for <name> skipped: ... <name>/<file>: <reason>`. Every request for that user then answers `500 user data not migrated: <name>/<file>: <reason>`, while other users are unaffected. Nothing is half-migrated. Fix the file, or move it out of the folder, then restart the service. A missing user folder means `data_dir` points to the wrong place or the restore lost `users/`.
-
-If the log warns that a JSON file changed after the user was migrated, an older version ran against this data and its edits are not in `app.db`. Export from that version and import here.

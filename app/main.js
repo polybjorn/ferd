@@ -2,7 +2,7 @@ import { DATA_FILES, state } from './core.js';
 import { applyAuth, fetchJson, hasServer, isReadOnly, serverBase, serverFileUrl } from './server.js';
 import { effect } from '@preact/signals';
 import {
-  authCacheKey, discardOp, dismissKept, exportOldData, issueText, loadPublic, metaGet, metaSet,
+  authCacheKey, discardOp, dismissKept, issueText, loadPublic, metaGet, metaSet,
   open as openStore, sync, syncIssues, synced as storeSynced, updateOfflineBanner,
 } from './store.js';
 import { DialogHead, html, openViewModal, useState } from './view.js';
@@ -71,36 +71,9 @@ function loadData() {
   });
 }
 
-// The data saved by an older version could not be brought up to date. It
-// is untouched, so nothing is lost, but the app cannot run on it: editing
-// would start a second copy that the next attempt overwrites.
-function showUpgradeFailed() {
-  document.body.classList.remove('app-booting', 'signin-only');
-  const app = document.getElementById('app');
-  app.innerHTML = '<div class="loading upgrade-failed">'
-    + '<p>' + t('upgrade.failed') + '</p>'
-    + '<div class="sync-issue-actions"><button type="button" class="primary" id="upgrade-retry">' + t('upgrade.retry') + '</button>'
-    + '<button type="button" id="upgrade-export">' + t('upgrade.export') + '</button></div>'
-    + '<p class="modal-error" id="upgrade-error"></p></div>';
-  app.querySelector('#upgrade-retry').addEventListener('click', () => location.reload());
-  app.querySelector('#upgrade-export').addEventListener('click', () => {
-    exportOldData()
-      .then(blob => saveDownload(blob, 'ferd-saved-data.json', 'application/json'))
-      .catch(e => {
-        const el = app.querySelector('#upgrade-error');
-        el.textContent = t('common.failed', { message: (e && e.message) || String(e) });
-        el.classList.add('visible');
-      });
-  });
-}
-
 export function loadDataAndRender() {
   const v = state.viewer;
-  return loadData().catch(e => {
-    if (e && e.migration) { showUpgradeFailed(); return 'upgrade-failed'; }
-    throw e;
-  }).then(function(loaded) {
-    if (loaded === 'upgrade-failed') return;
+  return loadData().then(function(loaded) {
     loadSyncedPrefs();
     refreshTabVisibility();
     if (!loaded) {
