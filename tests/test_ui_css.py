@@ -13,7 +13,7 @@ UI_CSS = (ROOT / "ui.css").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP_CSS = (ROOT / "app" / "app.css").read_text(encoding="utf-8")
 FRONTEND = "\n".join(p.read_text(encoding="utf-8")
-                     for p in [ROOT / "index.html", *sorted((ROOT / "app").iterdir())])
+                     for p in [ROOT / "index.html", *sorted((ROOT / "app").rglob("*"))] if p.is_file())
 SW = (ROOT / "sw.js").read_text(encoding="utf-8")
 
 
@@ -180,7 +180,7 @@ class ThemeContrast(unittest.TestCase):
 
   def test_settings_hints_use_the_measured_colour(self):
     self.assertRegex(FRONTEND, r"\.modal \.hint \{[^}]*color: var\(--muted\);")
-    self.assertIn('<div class="hint">Visited countries show when zoomed out.</div>', FRONTEND)
+    self.assertIn('<div class="hint">${t(\'settings.general.countriesHint\')}</div>', FRONTEND)
 
   def test_placeholders_use_the_measured_colour(self):
     self.assertRegex(FRONTEND, r"\n\s*::placeholder \{ color: var\(--muted\); opacity: 1; \}")
@@ -370,10 +370,10 @@ class EditForms(unittest.TestCase):
     view = (ROOT / "app" / "view.js").read_text(encoding="utf-8")
     self.assertIn('class="ui-field"', view)
     self.assertIn('class="ui-toggle-row"', view)
-    for name in ("settings.js", "settings-account.js"):
-      settings = (ROOT / "app" / name).read_text(encoding="utf-8")
+    for name in ("settings.js", "account.js"):
+      settings = (ROOT / "app" / "settings" / name).read_text(encoding="utf-8")
       self.assertNotRegex(settings, r"settings-toggle|settings-inline-row|settings-grid-2|<label for=", name)
-    settings = (ROOT / "app" / "settings.js").read_text(encoding="utf-8")
+    settings = (ROOT / "app" / "settings" / "settings.js").read_text(encoding="utf-8")
     self.assertIn("<${Field}", settings)
     self.assertIn("<${Toggle}", settings)
 
@@ -446,10 +446,11 @@ if __name__ == "__main__":
 class ModuleLists(unittest.TestCase):
   def test_every_module_is_precached(self):
     # A module left out still works online, then breaks the whole app offline.
-    for path in sorted((ROOT / "app").iterdir()):
-      self.assertIn(f"'/app/{path.name}',", SW)
+    for path in sorted((ROOT / "app").rglob("*")):
+      if path.is_file():
+        self.assertIn(f"'/app/{path.relative_to(ROOT / 'app')}',", SW)
 
   def test_every_module_is_preloaded(self):
     # A module left out still works, one network round trip slower per level.
-    for path in sorted((ROOT / "app").glob("*.js")):
-      self.assertIn(f'<link rel="modulepreload" href="/app/{path.name}">', INDEX)
+    for path in sorted((ROOT / "app").rglob("*.js")):
+      self.assertIn(f'<link rel="modulepreload" href="/app/{path.relative_to(ROOT / "app")}">', INDEX)

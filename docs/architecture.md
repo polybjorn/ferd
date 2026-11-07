@@ -115,21 +115,21 @@ If you're proposing a change that breaks one of these, lead the PR with the why.
 
 ## Views
 
-Settings, Account and Admin run on Preact components written as htm tagged templates, which the browser loads as plain ES modules. The pilot weighed this against Vite with TypeScript and Svelte or Preact; the no-build option covered everything Settings needed, so the toolchain stays out.
+Settings, Account, Admin and the dialogs Settings opens (catalog, categories, regions, logs) run on Preact components written as htm tagged templates, which the browser loads as plain ES modules. The pilot weighed this against Vite with TypeScript and Svelte or Preact; the no-build option covered everything these screens needed, so the toolchain stays out.
 
 - Text is escaped by default, so a component has no `escapeHtml` and no `innerHTML`.
 - Each checkbox, radio and text field keeps its own state, because Preact compares `checked` and `value` with the live element on every render. A save that fails puts the control back through that state.
 - `openViewModal(view, opts)` in `app/view.js` renders a component into a dialog and unmounts it on close. The view renders its own `.ui-dialog-head` and `.ui-dialog-body`. `app/view.js` also holds the shared pieces: field, toggle, radio pills, error box, copy button and `useFetch`.
 - Selects stay uncontrolled (`selected` on the initial option), since `enhanceSelectsIn` drives the native element.
 - The import map sits above the module preloads in `index.html`, because Firefox ignores one that comes after a preload has started.
+- The modules live in `app/settings/`. Every user-visible string goes through `t(key, vars)` from `app/i18n.js`, a flat English table with `{name}` slots, keys grouped by view and `.one`/`.other` variants picked by a numeric `count`. `tx` returns the pieces instead of a string, for text that wraps a slot in an element. `tests/js/i18n.test.js` fails on a key a view asks for that the table lacks, and on a key nothing uses.
 - Leaflet popups and the map code stay plain strings and DOM, since Leaflet takes those directly.
 
 The remaining screens are worth converting, in this order:
 
-1. The dialogs Settings opens: catalog, categories, regions and logs. They finish the Settings area and reuse its pieces.
-2. The edit forms: place, area and route metadata, with the shared fields in `form-fields.js`. Forms carry most of the escaping and the control state.
-3. The Add dialog (`add.js`), the largest, once the form pieces from step 2 exist.
-4. Lists and panels (places, routes, history, route detail), when a change touches them anyway. They mostly render read-only rows.
+1. The edit forms: place, area and route metadata, with the shared fields in `form-fields.js`. Forms carry most of the escaping and the control state.
+2. The Add dialog (`add.js`), the largest, once the form pieces from step 1 exist.
+3. Lists and panels (places, routes, history, route detail), when a change touches them anyway. They mostly render read-only rows.
 
 ## Platform targets
 
@@ -144,7 +144,7 @@ Minimums for any change to the frontend. Don't drop below them without a real re
 - **Accessibility:** required. Semantic HTML, labels on every input, Esc closes modals, `prefers-reduced-motion` is respected, WCAG AA contrast on every theme. Coloured text (`--text`, `--muted`, `--accent`, `--danger`, `--green`) reaches 4.5:1 on `--bg`, `--surface` and `--surface2`, and so does text on an accent fill. A control's edge reaches 3:1 against those surfaces through `--control-border` or its fill; `--border` is for panels and dividers. Route status dots and lines (`--status-planned`, `--status-completed`) reach 3:1 and never colour text. Place status is filled or hollow in `--text`, since colour on a place means its category. A category's colour sits in a dot beside its name, and the name itself uses `--muted`. Text on a tint of its own colour uses `--text`. Every target is at least 24px each way, and every focusable element shows a 2px `:focus-visible` ring, drawn inside fields, buttons and the map because panels clip what sticks out. `tests/test_ui_css.py` holds these in every theme.
 - **Network:** edits work offline. They apply on-device immediately and sync to the server on reconnect; server-only actions (publishing, sessions, account management) still need network and fail loudly. Reads are offline-capable through a hand-rolled service worker (`sw.js`) that precaches the app shell and vendored deps, runs `stale-while-revalidate` on JSON data, and cache-firsts map tiles with an LRU cap. See [pwa.md](pwa.md).
 - **Performance:** soft target under 1s first paint on a 5-year-old laptop, under 500 KB of JS+CSS+HTML on first load (tiles and GPX excluded).
-- **i18n:** English UI today. Keep the language `<select>` in place so localization can be added later. Data round-trips arbitrary Unicode.
+- **i18n:** English UI today. Converted views take their text from `app/i18n.js`, so a language is another table there; the language `<select>` stays in place. Data round-trips arbitrary Unicode.
 - **Privacy:** no third-party at runtime except map tile providers and the boundary search in Add > Area, which calls OpenStreetMap's Nominatim only when you press Search. No analytics, no third-party fonts, no other external APIs from the page.
 
 ## Code style

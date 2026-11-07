@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const dir = path.join(__dirname, '..', '..', 'app');
-module.exports = fs.readdirSync(dir).filter(f => f.endsWith('.js')).sort()
+module.exports = fs.readdirSync(dir, { recursive: true }).filter(f => f.endsWith('.js')).sort()
   .map(f => fs.readFileSync(path.join(dir, f), 'utf8'))
   .join('\n')
   .replace(/^import [\s\S]*?;$/gm, '')

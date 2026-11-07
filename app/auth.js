@@ -5,8 +5,8 @@ import { clearRecentPicks, logsEnabled } from './prefs.js';
 import { TOPO_CREDIT, parseOverlays } from './map-layers.js';
 import { closeTransientOverlays } from './map-actions.js';
 import { openCatalogBulkUpdateModal, placesWithCatalogUpdates } from './places-list.js';
-import { openSettingsModal } from './settings.js';
-import { openLogsModal } from './settings-logs.js';
+import { openSettingsModal } from './settings/settings.js';
+import { openLogsModal } from './settings/logs.js';
 import { modalHeaderHtml, openConfirmModal } from './select.js';
 
 /**

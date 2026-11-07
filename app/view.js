@@ -2,6 +2,8 @@ import { h, render, Fragment } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import htm from 'htm';
 import { openModal } from './modal.js';
+import { t } from './i18n.js';
+import { isDefaultHidden, setDefaultHidden } from './prefs.js';
 
 // The view layer: Preact components written as htm templates, so there is no
 // build step. index.html maps the bare names to vendor/.
@@ -23,7 +25,7 @@ export function openViewModal(view, opts) {
 export function DialogHead({ title, lead }) {
   return html`<div class="ui-dialog-head">
     ${lead || html`<h2 class="ui-dialog-title">${title}</h2>`}
-    <button type="button" class="ui-button ui-button-quiet ui-dialog-close modal-close" aria-label="Close">×</button>
+    <button type="button" class="ui-button ui-button-quiet ui-dialog-close modal-close" aria-label=${t('common.close')}>×</button>
   </div>`;
 }
 
@@ -35,7 +37,11 @@ export function Field({ id, label, children }) {
 }
 
 export function ErrorBox({ id, msg }) {
-  return html`<div class=${'modal-error' + (msg ? ' visible' : '')} id=${id}>${msg || ''}</div>`;
+  const ref = useRef(null);
+  useEffect(() => {
+    if (msg) ref.current.scrollIntoView({ block: 'nearest' });
+  }, [msg]);
+  return html`<div class=${'modal-error' + (msg ? ' visible' : '')} id=${id} ref=${ref}>${msg || ''}</div>`;
 }
 
 // Preact checks `checked` against the live element on every render, so a
@@ -100,5 +106,36 @@ export function CopyButton({ target, ...rest }) {
       done();
     });
   };
-  return html`<button type="button" class="primary" ...${rest} onClick=${copy}>${copied ? 'Copied' : 'Copy'}</button>`;
+  return html`<button type="button" class="primary" ...${rest} onClick=${copy}>${copied ? t('common.copied') : t('common.copy')}</button>`;
+}
+
+const EYE_SHOWN = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const EYE_HIDDEN = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.4 10.4 0 0 1 12 5c7 0 10 7 10 7a13.2 13.2 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>`;
+
+// The span keeps the SVG from being a direct flex child of the button, where
+// it collapses to no width.
+export function EyeIcon({ hidden }) {
+  return html`<span class="eye-wrap">${hidden ? EYE_HIDDEN : EYE_SHOWN}</span>`;
+}
+
+// The eye on a category or region row: whether it starts hidden on the map.
+// It saves on its own, apart from the dialog's Save, and updates the
+// session's set so the next map navigation follows it. `attrs` carries the
+// row's data attribute.
+export function HideToggle({ prefKey, id, hiddenSet, className, attrs }) {
+  const [hidden, setHidden] = useState(() => isDefaultHidden(prefKey, id));
+  const toggle = () => {
+    const now = !hidden;
+    setDefaultHidden(prefKey, id, now);
+    if (now) hiddenSet.add(id); else hiddenSet.delete(id);
+    setHidden(now);
+  };
+  return html`<button type="button" ...${attrs} class=${className + ' btn-x' + (hidden ? ' is-hidden' : '')} aria-label=${t('common.defaultVisibility')}
+    title=${hidden ? t('common.hiddenByDefault') : t('common.shownByDefault')} style="flex:0 0 auto" onClick=${toggle}><${EyeIcon} hidden=${hidden} /></button>`;
+}
+
+// The small tag at the end of an editable row: "edited", or a note on its
+// state such as "unused". Empty text hides it through :empty.
+export function RowTag({ text, dirty, inInput }) {
+  return html`<span class=${'row-tag' + (inInput ? ' in-input' : '') + (dirty ? ' dirty' : '')}>${text}</span>`;
 }
