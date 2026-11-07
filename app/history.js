@@ -156,7 +156,7 @@ function HistoryCard({ e, view, show }) {
       </div>
       ${(date || stars) && html`<div class="history-meta">
         ${date && html`<span>${e.date}</span>`}
-        ${stars && html`<span class="history-stars" title=${e.rating + '/5'}>${ratingStarsText(e.rating)}</span>`}
+        ${stars && html`<span class="history-stars" title=${e.rating + '/5'} dangerouslySetInnerHTML=${{ __html: ratingStarsText(e.rating) }}></span>`}
       </div>`}
       ${!!e.note && show.note && html`<div class="history-note">${e.note}</div>`}
     </div>
