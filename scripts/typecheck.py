@@ -9,13 +9,19 @@ the baseline has to come down with it, in the same commit.
 
     python3 scripts/typecheck.py tsc.out            # check
     python3 scripts/typecheck.py tsc.out --update   # rewrite the baseline
+
+--baseline PATH holds a second run to its own file: CI checks
+tsconfig.strict.json against types/tsc-strict-baseline.txt, so the strict
+flags come on one at a time without failing the default check.
 """
 import re
 import sys
 from collections import Counter
 from pathlib import Path
 
-BASELINE = Path(__file__).resolve().parent.parent / 'types' / 'tsc-baseline.txt'
+TYPES = Path(__file__).resolve().parent.parent / 'types'
+BASELINE = TYPES / 'tsc-baseline.txt'
+STRICT_BASELINE = TYPES / 'tsc-strict-baseline.txt'
 FILE_ERROR = re.compile(r'^(?P<file>.+?)\(\d+,\d+\): error (?P<code>TS\d+): (?P<msg>.*)$')
 GLOBAL_ERROR = re.compile(r'^error (?P<code>TS\d+): (?P<msg>.*)$')
 
@@ -49,6 +55,14 @@ def read_baseline(path):
 
 def main(argv):
     args = [a for a in argv if a != '--update']
+    baseline_path = BASELINE
+    if '--baseline' in args:
+        i = args.index('--baseline')
+        if i + 1 >= len(args):
+            print(__doc__.strip(), file=sys.stderr)
+            return 2
+        baseline_path = Path(args[i + 1])
+        del args[i:i + 2]
     if len(args) != 1:
         print(__doc__.strip(), file=sys.stderr)
         return 2
@@ -57,15 +71,15 @@ def main(argv):
     except ValueError as e:
         print(e, file=sys.stderr)
         return 1
-    if not current and read_baseline(BASELINE):
+    if not current and read_baseline(baseline_path):
         print('No errors read: check that tsc ran (see the log above), or delete the '
               'baseline once the last error is fixed.', file=sys.stderr)
         return 1
     if '--update' in argv:
-        BASELINE.write_text(format_baseline(current))
-        print(f'{sum(current.values())} errors written to {BASELINE.name}')
+        baseline_path.write_text(format_baseline(current))
+        print(f'{sum(current.values())} errors written to {baseline_path.name}')
         return 0
-    baseline = read_baseline(BASELINE)
+    baseline = read_baseline(baseline_path)
     added = current - baseline
     gone = baseline - current
     for (f, c, msg), n in sorted(added.items()):

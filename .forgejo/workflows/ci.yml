@@ -74,6 +74,13 @@ jobs:
           out="${RUNNER_TEMP:-/tmp}/tsc.out"
           npx --yes -p typescript@5.9.3 tsc -p . --pretty false > "$out" || true
           python3 scripts/typecheck.py "$out"
+      # The strict flags, staged in tsconfig.strict.json, against their own
+      # baseline. The next flag goes on once types/tsc-strict-baseline.txt is empty.
+      - name: Type-check the frontend, strict
+        run: |
+          out="${RUNNER_TEMP:-/tmp}/tsc-strict.out"
+          npx --yes -p typescript@5.9.3 tsc -p tsconfig.strict.json --pretty false > "$out" || true
+          python3 scripts/typecheck.py "$out" --baseline types/tsc-strict-baseline.txt
       # Cloned like ci-actions, for the same reason. The tag comes from the first
       # line of ui.css, so vendoring a new copy moves the tools in the same commit.
       - name: Fetch ui-foundation

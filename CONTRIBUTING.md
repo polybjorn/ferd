@@ -48,6 +48,13 @@ npx -p typescript@5.9.3 tsc -p . --pretty false > /tmp/tsc.out
 python3 scripts/typecheck.py /tmp/tsc.out            # add --update after fixing errors
 ```
 
+A second run turns the strict flags on one at a time. `tsconfig.strict.json` extends `tsconfig.json` with the flags staged so far (`noImplicitAny` first, then `strictNullChecks`, then `strict`), and its errors are held to `types/tsc-strict-baseline.txt` the same way. Messages that quote a large inferred type change when that type does, so an edit to shared state can move many lines of this baseline at once; rerun with `--update` and commit the result when the counts did not go up. The next flag goes on once this baseline is empty.
+
+```sh
+npx -p typescript@5.9.3 tsc -p tsconfig.strict.json --pretty false > /tmp/tsc-strict.out
+python3 scripts/typecheck.py /tmp/tsc-strict.out --baseline types/tsc-strict-baseline.txt
+```
+
 Type API responses and shared state with JSDoc `@typedef` where they are defined (`AuthState` in `app/core.js` is the pattern). Globals from the classic scripts and the Android bridge are declared in `types/globals.d.ts`.
 
 Stdlib only, no deps. Two layers: unit tests for pure helpers and file utilities in `tools/ferd_api/`, and integration tests that launch the API in a subprocess and hit endpoints over HTTP. Run before opening a PR. If your change touches the API surface or one of the helpers, add a case.

@@ -38,6 +38,25 @@ class ParseTest(unittest.TestCase):
         # Empty once the last error went; it must still read without raising.
         self.assertIsInstance(typecheck.read_baseline(typecheck.BASELINE), Counter)
 
+    def test_committed_strict_baseline_parses(self):
+        self.assertIsInstance(typecheck.read_baseline(typecheck.STRICT_BASELINE), Counter)
+
+
+class MainTest(unittest.TestCase):
+    def test_baseline_option_reads_and_writes_the_named_file(self):
+        with tempfile.TemporaryDirectory() as d:
+            out = Path(d) / "tsc.out"
+            out.write_text(LINE + "\n")
+            base = Path(d) / "strict.txt"
+            self.assertEqual(typecheck.main([str(out), "--baseline", str(base), "--update"]), 0)
+            self.assertEqual(typecheck.read_baseline(base), Counter({KEY: 1}))
+            self.assertEqual(typecheck.main([str(out), "--baseline", str(base)]), 0)
+            out.write_text(LINE + "\n" + LINE + "\n")
+            self.assertEqual(typecheck.main([str(out), "--baseline", str(base)]), 1)
+
+    def test_baseline_option_without_a_path_is_a_usage_error(self):
+        self.assertEqual(typecheck.main(["tsc.out", "--baseline"]), 2)
+
 
 if __name__ == "__main__":
     unittest.main()
