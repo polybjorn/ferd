@@ -2,7 +2,7 @@ import { escapeHtml, state } from './core.js';
 import { applyAuth, isReadOnly, serverBase, setBearerToken } from './server.js';
 import { isLocalMode, setLocalMode } from './local-mode.js';
 import { localBackup } from './backup.js';
-import { logsEnabled } from './prefs.js';
+import { clearRecentPicks, logsEnabled } from './prefs.js';
 import { TOPO_CREDIT, parseOverlays } from './map-layers.js';
 import { closeTransientOverlays } from './map-actions.js';
 import { openCatalogBulkUpdateModal, placesWithCatalogUpdates } from './places-list.js';
@@ -70,6 +70,8 @@ export function renderAuthWidget() {
         : '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>') +
       '<button class="auth-menu-mobile" data-action="catalog-updates" id="menu-catalog-updates" hidden>Review updates</button>' +
       '<button data-action="settings">Settings</button>' +
+      (local ? '' : '<button data-action="account">Account</button>') +
+      (state.auth.is_admin ? '<button data-action="admin">Admin</button>' : '') +
       (logsEnabled() ? '<button data-action="logs">Logs</button>' : '') +
       '<button data-action="about">About</button>' +
       (local
@@ -114,7 +116,9 @@ export function renderAuthWidget() {
     closeMenu();
     switch (action.dataset.action) {
       case 'catalog-updates': openCatalogBulkUpdateModal(); break;
-      case 'settings': openSettingsModal(); break;
+      case 'settings': openSettingsModal('settings'); break;
+      case 'account':  openSettingsModal('account'); break;
+      case 'admin':    openSettingsModal('admin'); break;
       case 'logs':     openLogsModal(); break;
       case 'about':    openAboutModal(); break;
       case 'signout':  confirmSignOut(); break;
@@ -131,7 +135,7 @@ function confirmSignOut() {
     danger: true,
   }).then(ok => {
     if (!ok) return;
-    const done = function() { setBearerToken(''); location.reload(); };
+    const done = function() { setBearerToken(''); clearRecentPicks(); location.reload(); };
     api('POST', '/logout').then(done, done);
   });
 }

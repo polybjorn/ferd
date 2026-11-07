@@ -170,6 +170,25 @@ export function loadStoredView() {
 export function saveStoredView(view) {
   try { localStorage.setItem('last-view', JSON.stringify(view)); } catch {}
 }
+// Picks from Search, newest first, each the result row's data-* fields.
+// Kept on the device rather than synced, and cleared on sign out, because
+// a shared browser would otherwise show one user's picks to the next.
+const RECENT_PICKS_KEY = 'search-recent';
+const RECENT_PICKS_MAX = 5;
+export function getRecentPicks() {
+  try {
+    const v = JSON.parse(localStorage.getItem(RECENT_PICKS_KEY));
+    return Array.isArray(v) ? v : [];
+  } catch { return []; }
+}
+export function addRecentPick(pick) {
+  const id = JSON.stringify(pick);
+  const list = [pick].concat(getRecentPicks().filter(p => JSON.stringify(p) !== id)).slice(0, RECENT_PICKS_MAX);
+  try { localStorage.setItem(RECENT_PICKS_KEY, JSON.stringify(list)); } catch {}
+}
+export function clearRecentPicks() {
+  try { localStorage.removeItem(RECENT_PICKS_KEY); } catch {}
+}
 
 export function refreshTabVisibility() {
   const tabPlaces = document.getElementById('tab-places');

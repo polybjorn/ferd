@@ -1,4 +1,4 @@
-/* ui.css 1.8.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.8.1: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -517,11 +517,14 @@
     font-weight: var(--ui-label-weight);
     overflow-wrap: anywhere;
   }
-  /* Sits on a .ui-button-quiet, so it keeps that block's states. */
+  /* Sits on a .ui-button-quiet, so it keeps that block's states. The glyph
+     takes the largest text step: at body size a × is a few pixels across. */
   .ui-dialog-close {
     flex: none;
     inline-size: var(--ui-control-height);
     padding: 0;
+    font-size: var(--ui-text-xl);
+    line-height: 1;
   }
   .ui-dialog-body {
     flex: 1 1 auto;

@@ -533,30 +533,57 @@ export function searchMatches(q) {
   return { places, areas, routes };
 }
 
-// Rows for searchMatches' result, or '' when nothing matched.
-export function searchResultsHtml(m) {
-  let html = '';
-  for (const p of m.places) {
-    const color = state.categoryColors[p.category];
-    html += '<div class="map-search-result" data-type="place" data-name="' + escapeHtml(p.name) + '">';
-    html += '<span class="result-dot" style="background:' + color + '"></span>';
-    html += escapeHtml(p.name);
-    html += '<span class="result-meta">' + escapeHtml(p.country || '') + '</span></div>';
-  }
-  for (const a of m.areas) {
-    html += '<div class="map-search-result" data-type="area" data-id="' + escapeHtml(a.id) + '">';
-    html += '<span class="result-dot" style="background:' + state.categoryColors[a.category] + '"></span>';
-    html += escapeHtml(a.name);
-    html += '<span class="result-meta">Area</span></div>';
-  }
-  for (const t of m.routes) {
-    const statusClass = t.route.completed ? 'completed' : 'planned';
-    html += '<div class="map-search-result" data-type="route" data-key="' + escapeHtml(t.route.key) + '">';
-    html += '<span class="result-line ' + statusClass + '"></span>';
-    html += escapeHtml(t.route.name);
-    html += '<span class="result-meta">' + escapeHtml(t.region) + '</span></div>';
-  }
-  return html;
+function resultRow(data, marker, name, meta) {
+  return '<div class="map-search-result" ' + data + '>' + marker +
+    '<span class="result-name">' + escapeHtml(name) + '</span>' +
+    '<span class="result-meta">' + escapeHtml(meta) + '</span></div>';
+}
+function dotMarker(category) {
+  return '<span class="result-dot" style="background:' + state.categoryColors[category] + '"></span>';
+}
+function placeRow(p) {
+  return resultRow('data-type="place" data-name="' + escapeHtml(p.name) + '"', dotMarker(p.category), p.name, p.country || '');
+}
+function areaRow(a) {
+  return resultRow('data-type="area" data-id="' + escapeHtml(a.id) + '"', dotMarker(a.category), a.name, 'Area');
+}
+function routeRow(route, region) {
+  const marker = '<span class="result-line ' + (route.completed ? 'completed' : 'planned') + '"></span>';
+  return resultRow('data-type="route" data-key="' + escapeHtml(route.key) + '"', marker, route.name, region);
+}
+
+// Rows for searchMatches' result, or '' when nothing matched. The phone's
+// search view passes headed, as it has the room to name each group.
+export function searchResultsHtml(m, headed) {
+  const group = function(title, rows) {
+    if (!rows.length) return '';
+    return (headed ? '<h3 class="map-search-heading">' + title + '</h3>' : '') + rows.join('');
+  };
+  return group('Places', m.places.map(placeRow)) +
+    group('Areas', m.areas.map(areaRow)) +
+    group('Routes', m.routes.map(t => routeRow(t.route, t.region)));
+}
+
+// Rows for remembered picks in pick order, leaving out any that were deleted
+// or hidden since.
+export function recentResultsHtml(picks) {
+  return picks.map(function(r) {
+    if (r.type === 'place') {
+      const p = (state.places || []).find(x => x.name === r.name);
+      return p ? placeRow(p) : '';
+    }
+    if (r.type === 'area' && placesEnabled()) {
+      const a = (state.areas || []).find(x => String(x.id) === r.id);
+      return a ? areaRow(a) : '';
+    }
+    if (r.type === 'route' && state.manifest) {
+      for (const g of state.manifest.regions) {
+        const route = g.routes.find(x => x.key === r.key);
+        if (route) return routeRow(route, g.name);
+      }
+    }
+    return '';
+  }).join('');
 }
 
 export function goToSearchResult(map, row) {

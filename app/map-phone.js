@@ -1,7 +1,7 @@
 import { closeModal, openFullScreenModal, openSheetModal } from './modal.js';
 import { bindFilterSheet, filterSheetHtml, refreshFilterPanel, syncFilterDot } from './map.js';
-import { goToSearchResult, searchMatches, searchResultsHtml } from './place-layer.js';
-import { placesEnabled, routesEnabled } from './prefs.js';
+import { goToSearchResult, recentResultsHtml, searchMatches, searchResultsHtml } from './place-layer.js';
+import { addRecentPick, clearRecentPicks, getRecentPicks, placesEnabled, routesEnabled } from './prefs.js';
 import { state } from './core.js';
 
 const FILTER_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5h20"/><path d="M6 12h12"/><path d="M9 19h6"/></svg>';
@@ -48,14 +48,30 @@ export function openSearchView() {
     function(dialog) {
       const input = dialog.querySelector('#map-search-view-input');
       const list = dialog.querySelector('#map-search-view-list');
-      input.addEventListener('input', function() {
-        const q = this.value.trim();
-        const html = q ? searchResultsHtml(searchMatches(q)) : '';
-        list.innerHTML = html || (q ? '<p class="map-search-empty">No matches</p>' : '');
-      });
+      const render = function() {
+        const q = input.value.trim();
+        if (q) {
+          list.innerHTML = searchResultsHtml(searchMatches(q), true) || '<p class="map-search-empty">No matches</p>';
+          return;
+        }
+        const recent = recentResultsHtml(getRecentPicks());
+        list.innerHTML = recent
+          ? '<div class="map-search-heading-row"><h3 class="map-search-heading">Recent</h3>' +
+            '<button type="button" class="map-search-clear" data-clear-recent>Clear</button></div>' + recent
+          : '<p class="map-search-empty">Find a place, area or route by name</p>';
+      };
+      input.addEventListener('input', render);
+      render();
       list.addEventListener('click', function(e) {
+        if (e.target.closest('[data-clear-recent]')) {
+          clearRecentPicks();
+          render();
+          input.focus();
+          return;
+        }
         const row = e.target.closest('.map-search-result');
         if (!row) return;
+        addRecentPick({ ...row.dataset });
         closeModal();
         if (state.currentMap && document.getElementById('map-phone-buttons')) {
           goToSearchResult(state.currentMap, row);

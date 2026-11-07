@@ -359,7 +359,7 @@ function handleAdminUserAction(btn) {
     openConfirmModal({
       title: (promote ? 'Promote ' : 'Demote ') + uname,
       body: promote
-        ? uname + ' will get full admin access, including this Admin tab and the ability to delete other users.'
+        ? uname + ' will get full admin access, including Admin in the menu and the ability to delete other users.'
         : uname + ' will lose admin access on their next request.',
       confirmLabel: promote ? 'Promote' : 'Demote',
     }).then(ok => {

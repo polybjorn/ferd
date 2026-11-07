@@ -1281,13 +1281,43 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   .map-phone-buttons { display: flex; }
 }
 .map-search-head .map-search-field { flex: 1; }
-.map-search-list .map-search-result {
-  padding: var(--ui-space-3) var(--ui-space-1);
+.map-search-list { padding: 0 var(--ui-space-4) var(--ui-space-4); }
+.map-search-heading-row { display: flex; align-items: baseline; justify-content: space-between; }
+.map-search-heading {
+  margin: var(--ui-space-4) 0 var(--ui-space-1);
+  font-size: var(--ui-text-xs);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* Outranks `.modal button:not(.modal-close)`, which would draw it as a button. */
+.modal button.map-search-clear:not(.modal-close) {
+  padding: var(--ui-space-2) 0;
   font-size: var(--ui-text-sm);
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+}
+.modal button.map-search-clear:not(.modal-close):hover { color: var(--text); }
+/* Name over meta, beside a marker that centres on both lines. */
+.map-search-list .map-search-result {
+  display: grid;
+  grid-template-columns: var(--ui-space-4) minmax(0, 1fr);
+  column-gap: var(--ui-space-3);
+  padding: var(--ui-space-2) 0;
+  font-size: var(--ui-text-md);
   border-bottom: 1px solid var(--border);
 }
-.map-search-list .map-search-result .result-meta { font-size: var(--ui-text-xs); }
-.map-search-empty { margin: var(--ui-space-5) 0; text-align: center; color: var(--muted); font-size: var(--ui-text-sm); }
+.map-search-list .map-search-result > :first-child { grid-row: 1 / span 2; justify-self: center; }
+.map-search-list .result-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.map-search-list .map-search-result .result-meta { grid-column: 2; margin: 0; font-size: var(--ui-text-xs); }
+.map-search-list .map-search-result .result-meta:empty { display: none; }
+.map-search-list .result-dot { width: 10px; height: 10px; }
+.map-search-list .result-line { width: 14px; height: 3px; }
+.map-search-empty { margin: var(--ui-space-6) 0; text-align: center; color: var(--muted); font-size: var(--ui-text-sm); }
 /* The handle and the head are where a sheet drags shut (modal.js). */
 .ui-dialog-sheet :is(.ui-dialog-handle, .ui-dialog-head) { touch-action: none; }
 .filter-sheet { display: flex; flex-direction: column; padding-bottom: var(--ui-space-2); }
@@ -2184,6 +2214,7 @@ body.signin-only #app {
   /* Hug the widest item (e.g. "Connect to server") so padding is even on
      both sides, capped so a long username can't blow it out. */
   width: max-content;
+  min-width: 11rem;
   max-width: 16rem;
   z-index: var(--ui-z-dropdown);
   padding: var(--ui-space-1);
@@ -2203,7 +2234,7 @@ body.signin-only #app {
   font-weight: 400;
   text-transform: none;
   letter-spacing: 0;
-  font-size: var(--ui-text-sm);
+  font-size: var(--ui-text-md);
   display: block;
   margin-top: var(--ui-space-1);
 }
@@ -2214,11 +2245,12 @@ body.signin-only #app {
   border: none;
   color: var(--text);
   font-family: inherit;
-  font-size: var(--ui-text-xs);
+  font-size: var(--ui-text-sm);
   text-align: left;
   padding: var(--ui-space-2) var(--ui-space-3);
   border-radius: var(--ui-radius-sm);
   cursor: pointer;
+  align-items: center;
   justify-content: flex-start;
   white-space: nowrap;
 }
@@ -2228,7 +2260,8 @@ body.signin-only #app {
   border-color: transparent;
 }
 .auth-menu button.auth-menu-foot {
-  margin-top: var(--ui-space-1);
+  /* Sign out ends the session, so a gap keeps a tap meant for About off it. */
+  margin-top: var(--ui-space-3);
   padding-top: var(--ui-space-2);
   border-top: 1px solid var(--border);
   color: var(--muted);
@@ -2570,8 +2603,8 @@ body.force-show-map-filter .map-panel {
 }
 .radio-row.radio-segmented input { display: none; }
 /* A segmented bar never wraps, so a phone gives it the whole row and it
-   clips no option. Settings has up to five tabs, wider than a phone: one
-   that doesn't fit starts a second row instead of scrolling the dialog. */
+   clips no option. Settings tabs share the head with Close: one that doesn't
+   fit starts a second row instead of scrolling the dialog. */
 @media (max-width: 600px) {
   .radio-row.radio-segmented > label { flex-basis: auto; padding-inline: var(--ui-space-2); white-space: normal; }
   #settings-tabs { flex-wrap: wrap; }
@@ -2617,9 +2650,9 @@ body.force-show-map-filter .map-panel {
    browser's toolbar. Settings, Add and the catalog lists fit their content
    up to that height, held at the top edge so the tabs and filter box stay
    put when a tab or a filter result is shorter. */
-.modal:not(.ui-dialog-fullscreen):is(:has(#settings-tabs), :has(#add-tabs), :has(#add-body), :has(#cat-rows),
+.modal:not(.ui-dialog-fullscreen):is(:has([data-panel="general"]), :has(#add-tabs), :has(#add-body), :has(#cat-rows),
           :has(#rgn-rows), :has(#cat-list), :has(#cat-mgr-list), :has(#catalog-bulk-list)) { inset-block: 3rem; }
-.modal:not(.ui-dialog-fullscreen):is(:has(#settings-tabs), :has(#add-tabs), :has(#cat-list), :has(#cat-mgr-list)) {
+.modal:not(.ui-dialog-fullscreen):is(:has([data-panel="general"]), :has(#add-tabs), :has(#cat-list), :has(#cat-mgr-list)) {
   inset-block: 3rem auto;
   --ui-dialog-max-height: calc(100% - 6rem);
 }
@@ -2785,7 +2818,7 @@ body.force-show-map-filter .map-panel {
   border-radius: 0;
   color: var(--muted);
   font-family: inherit;
-  font-size: var(--ui-text-xs);
+  font-size: var(--ui-text-sm);
   padding: var(--ui-space-2) var(--ui-space-3);
   cursor: pointer;
   letter-spacing: 0.05em;
@@ -2923,7 +2956,7 @@ body.force-show-map-filter .map-panel {
   font-size: var(--ui-text-sm);
 }
 
-/* Admin tab: stats grid + users list */
+/* Admin: stats grid + users list */
 .modal .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -3054,6 +3087,9 @@ body.force-show-map-filter .map-panel {
   .cat-swatches.open { max-height: 16rem; }
   .select-popover { font-size: var(--ui-text-sm); }
   .select-popover .select-option { padding: var(--ui-space-3) var(--ui-space-3); }
+  .auth-menu { min-width: 14rem; }
+  .modal .modal-tabs button:not(.modal-close) { min-height: var(--ui-touch-target); font-size: var(--ui-text-md); }
+  .auth-menu button { min-height: var(--ui-touch-target); font-size: var(--ui-text-md); }
 }
 .row-note {
   display: block; max-height: 0; opacity: 0; overflow: hidden; margin-top: 0;

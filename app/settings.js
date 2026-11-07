@@ -72,9 +72,33 @@ const EXPORT_FORMATS = {
   },
 };
 
-export function openSettingsModal(initialTab) {
+// Settings, Account and Admin are separate menu items, each showing only its
+// own tabs. Every panel is still built, so the wiring below finds the
+// elements it expects whichever item opened the dialog.
+const SETTINGS_GROUPS = {
+  settings: ['general', 'appearance', 'backup'],
+  account: ['account', 'security'],
+  admin: ['admin'],
+};
+const SETTINGS_TAB_LABELS = {
+  general: 'General', appearance: 'Appearance', backup: 'Backup',
+  account: 'Account', security: 'Security', admin: 'Admin',
+};
+
+export function openSettingsModal(group) {
   const isAdmin = state.auth.is_admin;
   const local = isLocalMode();
+  // Backup is the only durable copy without a server; Account and Security
+  // need a server account.
+  const offered = { backup: local, account: !local, security: !local, admin: !!isAdmin };
+  const tabs = SETTINGS_GROUPS[group || 'settings'].filter(t => offered[t] !== false);
+  const panel = name => '<div data-panel="' + name + '"' + (name === tabs[0] ? '' : ' hidden') + '>';
+  // The menu item already named the dialog, so tabs take the title's place.
+  const head = tabs.length > 1
+    ? modalHeaderHtml('', { tabsHtml: '<div class="modal-tabs" id="settings-tabs">' +
+        tabs.map((t, i) => '<button data-tab="' + t + '"' + (i ? '' : ' class="active"') + '>' + SETTINGS_TAB_LABELS[t] + '</button>').join('') +
+      '</div>' })
+    : modalHeaderHtml(SETTINGS_TAB_LABELS[tabs[0]]);
   const regOpen = state.auth.registration_open;
   const theme = getStoredTheme();
   const mode = getStoredMode();
@@ -92,20 +116,8 @@ export function openSettingsModal(initialTab) {
     dracula: 'Dracula'
   };
   openFullScreenModal(
-    modalHeaderHtml('Settings') +
-    '<div class="modal-tabs" id="settings-tabs">' +
-      '<button data-tab="general" class="active">General</button>' +
-      '<button data-tab="appearance">Appearance</button>' +
-      // Backup lives on its own tab in local-only mode (no server to publish
-      // to, so the map's only durable copy is the export zip).
-      (local ? '<button data-tab="backup">Backup</button>' : '') +
-      // Account (publish/sharing) and Security (sessions/tokens) require a
-      // server account; hidden in local-only mode.
-      (local ? '' : '<button data-tab="account">Account</button>') +
-      (local ? '' : '<button data-tab="security">Security</button>') +
-      (isAdmin ? '<button data-tab="admin">Admin</button>' : '') +
-    '</div>' +
-    '<div data-panel="general">' +
+    head +
+    panel('general') +
     ((placesAvailable() || routesAvailable()) ?
       '<h3 class="settings-h">Visible features</h3>' +
       '<div class="feature-pills">' +
@@ -167,7 +179,7 @@ export function openSettingsModal(initialTab) {
     : '') +
     '</div>' +
     (local ?
-      '<div data-panel="backup" hidden>' +
+      panel('backup') +
       '<h3 class="settings-h">Export</h3>' +
       '<div class="ui-control-row">' +
         '<p class="ui-hint">Download your data as a zip.</p>' +
@@ -194,7 +206,7 @@ export function openSettingsModal(initialTab) {
       '</div>' +
       '</div>'
       : '') +
-    '<div data-panel="appearance" hidden>' +
+    panel('appearance') +
     '<div class="ui-field-row">' +
       uiFieldHtml('s-theme', 'Theme', '<select id="s-theme">' +
         THEMES.map(v =>
@@ -249,7 +261,7 @@ export function openSettingsModal(initialTab) {
       uiToggleHtml('s-map-expand', 'Expand button', { checked: getShowExpandButton() }) +
     '</div>' +
     '</div>' +
-    '<div data-panel="account" hidden>' +
+    panel('account') +
     ((state.auth.publishing_open || isAdmin) ?
       '<h3 class="settings-h">Public sharing</h3>' +
       '<div>' +
@@ -310,7 +322,7 @@ export function openSettingsModal(initialTab) {
       '<div class="modal-success" id="s-pw-success" hidden></div>' +
     '</form>' +
     '</div>' +
-    '<div data-panel="security" hidden>' +
+    panel('security') +
     '<h3 class="settings-h sessions-h">Active sessions<button type="button" class="sessions-revoke-others" id="s-revoke-others" hidden>Sign out others</button></h3>' +
     '<div id="s-sessions">Loading&hellip;</div>' +
     '<h3 class="settings-h">API tokens</h3>' +
@@ -329,7 +341,7 @@ export function openSettingsModal(initialTab) {
     '<div id="s-tokens">Loading&hellip;</div>' +
     '</div>' +
     (isAdmin ?
-      '<div data-panel="admin" hidden>' +
+      panel('admin') +
       '<h3 class="settings-h">Instance</h3>' +
       '<div class="stats-grid" id="s-admin-stats"><div class="hint" style="grid-column:1/-1">Loading&hellip;</div></div>' +
       '<h3 class="settings-h">Access</h3>' +
@@ -787,10 +799,6 @@ export function openSettingsModal(initialTab) {
           });
         });
       });
-      if (initialTab) {
-        const target = document.querySelector('#settings-tabs button[data-tab="' + initialTab + '"]');
-        if (target) target.click();
-      }
     }
   );
 }
