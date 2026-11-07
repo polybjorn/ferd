@@ -23,6 +23,15 @@ class ParseTest(unittest.TestCase):
     def test_skips_continuation_lines(self):
         self.assertEqual(typecheck.parse(LINE + "\n  Did you mean 'x'?\n"), Counter({KEY: 1}))
 
+    def test_object_types_in_a_message_do_not_key_the_error(self):
+        before = "app/a.js(1,1): error TS2339: Property 'x' does not exist on type '{ a: string; }'."
+        after = "app/a.js(9,1): error TS2339: Property 'x' does not exist on type '{ a: string; b: number; }'."
+        listed = "app/a.js(2,1): error TS7006: Type '{ a: { b: string; }; }[]' is not '{ 'c-d': string; }'."
+        self.assertEqual(typecheck.parse(before + "\n" + after + "\n" + listed + "\n"), Counter({
+            ("app/a.js", "TS2339", "Property 'x' does not exist on type '{...}'."): 2,
+            ("app/a.js", "TS7006", "Type '{...}[]' is not '{...}'."): 1,
+        }))
+
     def test_refuses_output_that_is_not_tsc(self):
         with self.assertRaises(ValueError):
             typecheck.parse("npm ERR! network request failed\n")

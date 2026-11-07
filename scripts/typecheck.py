@@ -26,6 +26,35 @@ FILE_ERROR = re.compile(r'^(?P<file>.+?)\(\d+,\d+\): error (?P<code>TS\d+): (?P<
 GLOBAL_ERROR = re.compile(r'^error (?P<code>TS\d+): (?P<msg>.*)$')
 
 
+def shorten_object_types(msg):
+    """Replace each quoted object type with '{...}'.
+
+    A message quoting an object type spells the whole type out, so adding one
+    property to the shared state, or one key to the i18n table, would rewrite
+    every line that names it. The braces are matched rather than the quotes,
+    since keys such as 'rose-pine' are quoted inside the type."""
+    out, i = [], 0
+    while True:
+        start = msg.find("'{", i)
+        if start < 0:
+            return ''.join(out) + msg[i:]
+        depth, j = 0, start + 1
+        while j < len(msg):
+            depth += {'{': 1, '}': -1}.get(msg[j], 0)
+            j += 1
+            if depth == 0:
+                break
+        suffix = j
+        while msg.startswith('[]', suffix):
+            suffix += 2
+        if depth or not msg.startswith("'", suffix):
+            out.append(msg[i:start + 2])
+            i = start + 2
+            continue
+        out.append(msg[i:start] + "'{...}" + msg[j:suffix + 1])
+        i = suffix + 1
+
+
 def parse(text):
     """Count errors by (file, code, message). Raise on a line tsc would not print."""
     counts = Counter()
@@ -36,7 +65,8 @@ def parse(text):
         if not m:
             # npm failing to fetch tsc, or tsc crashing, must not read as zero errors.
             raise ValueError('not a tsc error line: ' + line)
-        counts[(m.groupdict().get('file') or '-', m['code'], m['msg'])] += 1
+        msg = shorten_object_types(m['msg'])
+        counts[(m.groupdict().get('file') or '-', m['code'], msg)] += 1
     return counts
 
 

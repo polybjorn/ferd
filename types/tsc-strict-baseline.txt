@@ -1,7 +1,7 @@
-1	app/add.js	TS2339	Property '_areaLayers' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-4	app/add.js	TS2339	Property '_catalogCache' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/add.js	TS2339	Property 'date_completed' does not exist on type '{ source: string; notes: string; local_name: string; difficulty: string; tags: any; }'.
-1	app/add.js	TS2339	Property 'rating' does not exist on type '{ source: string; notes: string; local_name: string; difficulty: string; tags: any; }'.
+1	app/add.js	TS2339	Property '_areaLayers' does not exist on type '{...}'.
+4	app/add.js	TS2339	Property '_catalogCache' does not exist on type '{...}'.
+1	app/add.js	TS2339	Property 'date_completed' does not exist on type '{...}'.
+1	app/add.js	TS2339	Property 'rating' does not exist on type '{...}'.
 2	app/add.js	TS7005	Variable 'autoOption' implicitly has an 'any' type.
 1	app/add.js	TS7005	Variable 'errors' implicitly has an 'any[]' type.
 8	app/add.js	TS7005	Variable 'parsed' implicitly has an 'any' type.
@@ -31,7 +31,7 @@
 1	app/add.js	TS7034	Variable 'autoOption' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/add.js	TS7034	Variable 'errors' implicitly has type 'any[]' in some locations where its type cannot be determined.
 1	app/add.js	TS7034	Variable 'parsed' implicitly has type 'any' in some locations where its type cannot be determined.
-2	app/add.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ place: string; route: string; area: string; browse: string; }'.
+2	app/add.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/area-geo.js	TS7006	Parameter '_' implicitly has an 'any' type.
 2	app/area-geo.js	TS7006	Parameter 'a' implicitly has an 'any' type.
 1	app/area-geo.js	TS7006	Parameter 'area' implicitly has an 'any' type.
@@ -66,16 +66,16 @@
 1	app/area-geo.js	TS7006	Parameter 'tracks' implicitly has an 'any' type.
 1	app/area-geo.js	TS7006	Parameter 'x' implicitly has an 'any' type.
 1	app/area-geo.js	TS7006	Parameter 'y' implicitly has an 'any' type.
-5	app/areas.js	TS2339	Property '_areaGroup' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-7	app/areas.js	TS2339	Property '_areaLayers' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-6	app/areas.js	TS2339	Property '_areaRenderer' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-2	app/areas.js	TS2339	Property '_countryGroup' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/areas.js	TS2339	Property '_countryRenderer' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-2	app/areas.js	TS2339	Property '_glRoutesDirty' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/areas.js	TS2339	Property 'category' does not exist on type '{ visited: boolean; }'.
+5	app/areas.js	TS2339	Property '_areaGroup' does not exist on type '{...}'.
+7	app/areas.js	TS2339	Property '_areaLayers' does not exist on type '{...}'.
+6	app/areas.js	TS2339	Property '_areaRenderer' does not exist on type '{...}'.
+2	app/areas.js	TS2339	Property '_countryGroup' does not exist on type '{...}'.
+1	app/areas.js	TS2339	Property '_countryRenderer' does not exist on type '{...}'.
+2	app/areas.js	TS2339	Property '_glRoutesDirty' does not exist on type '{...}'.
+1	app/areas.js	TS2339	Property 'category' does not exist on type '{...}'.
 1	app/areas.js	TS2339	Property 'local_name' does not exist on type '{ visited: boolean; } & { name: string; geometry: any; }'.
 1	app/areas.js	TS2339	Property 'note' does not exist on type '{ visited: boolean; } & { name: string; geometry: any; }'.
-1	app/areas.js	TS2339	Property 'note' does not exist on type '{ visited: boolean; }'.
+1	app/areas.js	TS2339	Property 'note' does not exist on type '{...}'.
 1	app/areas.js	TS2339	Property 'source' does not exist on type '{ visited: boolean; } & { name: string; geometry: any; }'.
 1	app/areas.js	TS7006	Parameter '_' implicitly has an 'any' type.
 3	app/areas.js	TS7006	Parameter 'a' implicitly has an 'any' type.
@@ -106,9 +106,9 @@
 1	app/areas.js	TS7006	Parameter 'y' implicitly has an 'any' type.
 1	app/areas.js	TS7031	Binding element 'area' implicitly has an 'any' type.
 1	app/areas.js	TS7031	Binding element 'layer' implicitly has an 'any' type.
-1	app/areas.js	TS7053	Element implicitly has an 'any' type because expression of type '""' can't be used to index type '{}'.
-1	app/areas.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-1	app/auth.js	TS2339	Property 'overlays' does not exist on type '{ brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }'.
+1	app/areas.js	TS7053	Element implicitly has an 'any' type because expression of type '""' can't be used to index type '{...}'.
+1	app/areas.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+1	app/auth.js	TS2339	Property 'overlays' does not exist on type '{...}'.
 1	app/auth.js	TS7006	Parameter 'backdrop' implicitly has an 'any' type.
 1	app/auth.js	TS7006	Parameter 'body' implicitly has an 'any' type.
 1	app/auth.js	TS7006	Parameter 'ev' implicitly has an 'any' type.
@@ -125,8 +125,8 @@
 3	app/backup.js	TS7006	Parameter 'n' implicitly has an 'any' type.
 1	app/backup.js	TS7006	Parameter 'o' implicitly has an 'any' type.
 1	app/backup.js	TS7006	Parameter 'rel' implicitly has an 'any' type.
-3	app/backup.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-1	app/backup.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+3	app/backup.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+1	app/backup.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 4	app/context-menu.js	TS7005	Variable '_ctxMenuEl' implicitly has an 'any' type.
 2	app/context-menu.js	TS7005	Variable 'pressTimer' implicitly has an 'any' type.
 1	app/context-menu.js	TS7006	Parameter 'buildItems' implicitly has an 'any' type.
@@ -144,7 +144,7 @@
 1	app/context-menu.js	TS7031	Binding element 'y' implicitly has an 'any' type.
 1	app/context-menu.js	TS7034	Variable '_ctxMenuEl' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/context-menu.js	TS7034	Variable 'pressTimer' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/core.js	TS2339	Property 'order' does not exist on type '{ label: any; color: any; }'.
+1	app/core.js	TS2339	Property 'order' does not exist on type '{...}'.
 1	app/core.js	TS7006	Parameter 'alwaysShow' implicitly has an 'any' type.
 1	app/core.js	TS7006	Parameter 'c' implicitly has an 'any' type.
 1	app/core.js	TS7006	Parameter 'cat' implicitly has an 'any' type.
@@ -176,13 +176,12 @@
 1	app/core.js	TS7018	Object literal's property 'currentElevation' implicitly has an 'any' type.
 1	app/core.js	TS7018	Object literal's property 'currentMap' implicitly has an 'any' type.
 2	app/core.js	TS7018	Object literal's property 'tags' implicitly has an 'any[]' type.
-2	app/core.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ '': string; }'.
-3	app/core.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-14	app/core.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
-5	app/countries.js	TS2339	Property '_countryData' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-2	app/countries.js	TS2339	Property '_countryGroup' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-5	app/countries.js	TS2339	Property '_countryPick' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/countries.js	TS2339	Property '_countryRenderer' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
+5	app/core.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+14	app/core.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
+5	app/countries.js	TS2339	Property '_countryData' does not exist on type '{...}'.
+2	app/countries.js	TS2339	Property '_countryGroup' does not exist on type '{...}'.
+5	app/countries.js	TS2339	Property '_countryPick' does not exist on type '{...}'.
+1	app/countries.js	TS2339	Property '_countryRenderer' does not exist on type '{...}'.
 4	app/countries.js	TS7005	Variable 'rows' implicitly has an 'any[]' type.
 1	app/countries.js	TS7006	Parameter 'a' implicitly has an 'any' type.
 1	app/countries.js	TS7006	Parameter 'b' implicitly has an 'any' type.
@@ -231,27 +230,27 @@
 1	app/device-cache.js	TS7018	Object literal's property 'logs' implicitly has an 'any[]' type.
 1	app/device-cache.js	TS7018	Object literal's property 'next_before_id' implicitly has an 'any' type.
 1	app/device-cache.js	TS7034	Variable '_idbPromise' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/edit-place.js	TS2339	Property 'date_visited' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
-1	app/edit-place.js	TS2339	Property 'from_catalog' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
-2	app/edit-place.js	TS2339	Property 'image' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
-1	app/edit-place.js	TS2339	Property 'image_focus' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
-1	app/edit-place.js	TS2339	Property 'local_name' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
-1	app/edit-place.js	TS2339	Property 'note' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
-1	app/edit-place.js	TS2339	Property 'rating' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
-1	app/edit-place.js	TS2339	Property 'tags' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
+1	app/edit-place.js	TS2339	Property 'date_visited' does not exist on type '{...}'.
+1	app/edit-place.js	TS2339	Property 'from_catalog' does not exist on type '{...}'.
+2	app/edit-place.js	TS2339	Property 'image' does not exist on type '{...}'.
+1	app/edit-place.js	TS2339	Property 'image_focus' does not exist on type '{...}'.
+1	app/edit-place.js	TS2339	Property 'local_name' does not exist on type '{...}'.
+1	app/edit-place.js	TS2339	Property 'note' does not exist on type '{...}'.
+1	app/edit-place.js	TS2339	Property 'rating' does not exist on type '{...}'.
+1	app/edit-place.js	TS2339	Property 'tags' does not exist on type '{...}'.
 2	app/edit-place.js	TS7006	Parameter 'err' implicitly has an 'any' type.
 1	app/edit-place.js	TS7006	Parameter 'latlng' implicitly has an 'any' type.
 1	app/edit-place.js	TS7006	Parameter 'place' implicitly has an 'any' type.
 1	app/edit-place.js	TS7006	Parameter 'prevColors' implicitly has an 'any' type.
-1	app/form-fields.js	TS2339	Property 'category' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
-1	app/form-fields.js	TS2339	Property 'country' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
-1	app/form-fields.js	TS2339	Property 'date_visited' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
-1	app/form-fields.js	TS2339	Property 'image' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
-1	app/form-fields.js	TS2339	Property 'local_name' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
-1	app/form-fields.js	TS2339	Property 'note' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
-1	app/form-fields.js	TS2339	Property 'rating' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
-1	app/form-fields.js	TS2339	Property 'sources' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
-1	app/form-fields.js	TS2339	Property 'tags' does not exist on type '{ name: string; lat: number; lon: number; visited: boolean; }'.
+1	app/form-fields.js	TS2339	Property 'category' does not exist on type '{...}'.
+1	app/form-fields.js	TS2339	Property 'country' does not exist on type '{...}'.
+1	app/form-fields.js	TS2339	Property 'date_visited' does not exist on type '{...}'.
+1	app/form-fields.js	TS2339	Property 'image' does not exist on type '{...}'.
+1	app/form-fields.js	TS2339	Property 'local_name' does not exist on type '{...}'.
+1	app/form-fields.js	TS2339	Property 'note' does not exist on type '{...}'.
+1	app/form-fields.js	TS2339	Property 'rating' does not exist on type '{...}'.
+1	app/form-fields.js	TS2339	Property 'sources' does not exist on type '{...}'.
+1	app/form-fields.js	TS2339	Property 'tags' does not exist on type '{...}'.
 2	app/form-fields.js	TS7006	Parameter 'current' implicitly has an 'any' type.
 1	app/form-fields.js	TS7006	Parameter 'emptyLabel' implicitly has an 'any' type.
 6	app/form-fields.js	TS7006	Parameter 'id' implicitly has an 'any' type.
@@ -285,11 +284,11 @@
 3	app/i18n.js	TS7006	Parameter 'key' implicitly has an 'any' type.
 2	app/i18n.js	TS7006	Parameter 'piece' implicitly has an 'any' type.
 3	app/i18n.js	TS7006	Parameter 'vars' implicitly has an 'any' type.
-1	app/i18n.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ 'common.close': string; 'common.copy': string; 'common.copied': string; 'common.loading': string; 'common.failed': string; 'common.add': string; 'common.save': string; 'common.remove': string; 'common.manage': string; ... 311 more ...; 'logs.otherBy': string; }'.
-1	app/local-mode.js	TS2339	Property 'bbox' does not exist on type '{ key: any; file: any; name: any; hasElevation: boolean; completed: boolean; }'.
-1	app/local-mode.js	TS2339	Property 'plannedFile' does not exist on type '{ key: any; file: any; name: any; hasElevation: boolean; completed: boolean; }'.
-1	app/local-mode.js	TS2339	Property 'trackCount' does not exist on type '{ key: any; file: any; name: any; hasElevation: boolean; completed: boolean; }'.
-1	app/local-mode.js	TS2339	Property 'trackNames' does not exist on type '{ key: any; file: any; name: any; hasElevation: boolean; completed: boolean; }'.
+1	app/i18n.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+1	app/local-mode.js	TS2339	Property 'bbox' does not exist on type '{...}'.
+1	app/local-mode.js	TS2339	Property 'plannedFile' does not exist on type '{...}'.
+1	app/local-mode.js	TS2339	Property 'trackCount' does not exist on type '{...}'.
+1	app/local-mode.js	TS2339	Property 'trackNames' does not exist on type '{...}'.
 1	app/local-mode.js	TS7006	Parameter '_body' implicitly has an 'any' type.
 7	app/local-mode.js	TS7006	Parameter 'a' implicitly has an 'any' type.
 1	app/local-mode.js	TS7006	Parameter 'b' implicitly has an 'any' type.
@@ -320,10 +319,9 @@
 1	app/local-mode.js	TS7031	Binding element 'name' implicitly has an 'any' type.
 1	app/local-mode.js	TS7031	Binding element 'region' implicitly has an 'any' type.
 1	app/local-mode.js	TS7031	Binding element 'stripPii' implicitly has an 'any' type.
-7	app/local-mode.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-1	app/local-mode.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ key: any; file: any; name: any; hasElevation: boolean; completed: boolean; }'.
-3	app/local-mode.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
-2	app/main.js	TS2339	Property '_catalogCache' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
+7	app/local-mode.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+4	app/local-mode.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
+2	app/main.js	TS2339	Property '_catalogCache' does not exist on type '{...}'.
 3	app/main.js	TS7005	Variable 'pendingReg' implicitly has an 'any' type.
 2	app/main.js	TS7006	Parameter 'a' implicitly has an 'any' type.
 2	app/main.js	TS7006	Parameter 'b' implicitly has an 'any' type.
@@ -361,32 +359,30 @@
 1	app/map-actions.js	TS7031	Binding element 'deleted' implicitly has an 'any' type.
 1	app/map-actions.js	TS7031	Binding element 'onError' implicitly has an 'any' type.
 1	app/map-actions.js	TS7034	Variable 'layers' implicitly has type 'any[]' in some locations where its type cannot be determined.
-2	app/map-actions.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
-1	app/map-layers.js	TS2339	Property '_areaGroup' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/map-layers.js	TS2339	Property '_areaLayers' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/map-layers.js	TS2339	Property '_areaRenderer' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-3	app/map-layers.js	TS2339	Property '_currentMapResizeObserver' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/map-layers.js	TS2339	Property '_detailPolylines' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/map-layers.js	TS2339	Property '_detailRenderer' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/map-layers.js	TS2339	Property '_glRoutesDirty' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/map-layers.js	TS2339	Property '_glRoutesDraw' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/map-layers.js	TS2339	Property '_glRoutesRebuild' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/map-layers.js	TS2339	Property '_lastTrailBounds' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/map-layers.js	TS2339	Property '_removeRouteFromMap' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/map-layers.js	TS2339	Property '_routeRenderer' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-2	app/map-layers.js	TS2339	Property 'format' does not exist on type '{ name: any; type: string; url: any; attribution: any; }'.
-2	app/map-layers.js	TS2339	Property 'layers' does not exist on type '{ name: any; type: string; url: any; attribution: any; }'.
-1	app/map-layers.js	TS2339	Property 'maxZoom' does not exist on type '{ attribution: any; opacity: any; zIndex: number; }'.
-3	app/map-layers.js	TS2339	Property 'maxZoom' does not exist on type '{ name: any; type: string; url: any; attribution: any; }'.
-1	app/map-layers.js	TS2339	Property 'overlays' does not exist on type '{ brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }'.
-2	app/map-layers.js	TS2339	Property 'styles' does not exist on type '{ name: any; type: string; url: any; attribution: any; }'.
-1	app/map-layers.js	TS2339	Property 'subdomains' does not exist on type '{ attribution: any; opacity: any; zIndex: number; }'.
-3	app/map-layers.js	TS2339	Property 'subdomains' does not exist on type '{ name: any; type: string; url: any; attribution: any; }'.
-3	app/map-layers.js	TS2339	Property 'tilePickerCtrl' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-3	app/map-layers.js	TS2339	Property 'tilePickerLayers' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-3	app/map-layers.js	TS2339	Property 'tilePickerOverlays' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-2	app/map-layers.js	TS2339	Property 'transparent' does not exist on type '{ name: any; type: string; url: any; attribution: any; }'.
-2	app/map-layers.js	TS2339	Property 'version' does not exist on type '{ name: any; type: string; url: any; attribution: any; }'.
+2	app/map-actions.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
+1	app/map-layers.js	TS2339	Property '_areaGroup' does not exist on type '{...}'.
+1	app/map-layers.js	TS2339	Property '_areaLayers' does not exist on type '{...}'.
+1	app/map-layers.js	TS2339	Property '_areaRenderer' does not exist on type '{...}'.
+3	app/map-layers.js	TS2339	Property '_currentMapResizeObserver' does not exist on type '{...}'.
+1	app/map-layers.js	TS2339	Property '_detailPolylines' does not exist on type '{...}'.
+1	app/map-layers.js	TS2339	Property '_detailRenderer' does not exist on type '{...}'.
+1	app/map-layers.js	TS2339	Property '_glRoutesDirty' does not exist on type '{...}'.
+1	app/map-layers.js	TS2339	Property '_glRoutesDraw' does not exist on type '{...}'.
+1	app/map-layers.js	TS2339	Property '_glRoutesRebuild' does not exist on type '{...}'.
+1	app/map-layers.js	TS2339	Property '_lastTrailBounds' does not exist on type '{...}'.
+1	app/map-layers.js	TS2339	Property '_removeRouteFromMap' does not exist on type '{...}'.
+1	app/map-layers.js	TS2339	Property '_routeRenderer' does not exist on type '{...}'.
+2	app/map-layers.js	TS2339	Property 'format' does not exist on type '{...}'.
+2	app/map-layers.js	TS2339	Property 'layers' does not exist on type '{...}'.
+4	app/map-layers.js	TS2339	Property 'maxZoom' does not exist on type '{...}'.
+1	app/map-layers.js	TS2339	Property 'overlays' does not exist on type '{...}'.
+2	app/map-layers.js	TS2339	Property 'styles' does not exist on type '{...}'.
+4	app/map-layers.js	TS2339	Property 'subdomains' does not exist on type '{...}'.
+3	app/map-layers.js	TS2339	Property 'tilePickerCtrl' does not exist on type '{...}'.
+3	app/map-layers.js	TS2339	Property 'tilePickerLayers' does not exist on type '{...}'.
+3	app/map-layers.js	TS2339	Property 'tilePickerOverlays' does not exist on type '{...}'.
+2	app/map-layers.js	TS2339	Property 'transparent' does not exist on type '{...}'.
+2	app/map-layers.js	TS2339	Property 'version' does not exist on type '{...}'.
 2	app/map-layers.js	TS7005	Variable 'OverlayLayersControl' implicitly has an 'any' type.
 3	app/map-layers.js	TS7006	Parameter 'fn' implicitly has an 'any' type.
 2	app/map-layers.js	TS7006	Parameter 'id' implicitly has an 'any' type.
@@ -395,9 +391,8 @@
 1	app/map-layers.js	TS7006	Parameter 'ms' implicitly has an 'any' type.
 1	app/map-layers.js	TS7006	Parameter 'obj' implicitly has an 'any' type.
 1	app/map-layers.js	TS7034	Variable 'OverlayLayersControl' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map-layers.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ OpenTopoMap: any; OpenStreetMap: any; Dark: any; }'.
-1	app/map-layers.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ OpenTopoMap: any; OpenStreetMap: any; Dark: any; }'.
-3	app/map-layers.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+1	app/map-layers.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+4	app/map-layers.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/map-markers.js	TS7006	Parameter 'color' implicitly has an 'any' type.
 1	app/map-markers.js	TS7006	Parameter 'e' implicitly has an 'any' type.
 1	app/map-markers.js	TS7006	Parameter 'gpxLayer' implicitly has an 'any' type.
@@ -411,14 +406,14 @@
 1	app/map-panel.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
 1	app/map-panel.js	TS7006	Parameter 'pop' implicitly has an 'any' type.
 5	app/map-panel.js	TS7006	Parameter 's' implicitly has an 'any' type.
-4	app/map-phone.js	TS2339	Property '_pendingSearchResult' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
+4	app/map-phone.js	TS2339	Property '_pendingSearchResult' does not exist on type '{...}'.
 2	app/map-phone.js	TS7006	Parameter 'dialog' implicitly has an 'any' type.
 1	app/map-phone.js	TS7006	Parameter 'e' implicitly has an 'any' type.
 1	app/map-phone.js	TS7006	Parameter 'map' implicitly has an 'any' type.
 1	app/map-popups.js	TS7006	Parameter '_prevColors' implicitly has an 'any' type.
 1	app/map-popups.js	TS7006	Parameter 'category' implicitly has an 'any' type.
 1	app/map-popups.js	TS7006	Parameter 'p' implicitly has an 'any' type.
-2	app/map-popups.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+2	app/map-popups.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
 1	app/map-wheel.js	TS7005	Variable 'anchorLatLng' implicitly has an 'any' type.
 1	app/map-wheel.js	TS7005	Variable 'anchorOffset' implicitly has an 'any' type.
 5	app/map-wheel.js	TS7005	Variable 'goalZoom' implicitly has an 'any' type.
@@ -436,10 +431,10 @@
 1	app/map-wheel.js	TS7034	Variable 'lastWheel' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/map-wheel.js	TS7034	Variable 'ownCenter' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/map-wheel.js	TS7034	Variable 'ownZoom' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map.js	TS2339	Property '_areaGroup' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-2	app/map.js	TS2339	Property '_navByHash' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/map.js	TS2339	Property '_removeRouteFromMap' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-2	app/map.js	TS2339	Property '_routeRenderer' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
+1	app/map.js	TS2339	Property '_areaGroup' does not exist on type '{...}'.
+2	app/map.js	TS2339	Property '_navByHash' does not exist on type '{...}'.
+1	app/map.js	TS2339	Property '_removeRouteFromMap' does not exist on type '{...}'.
+2	app/map.js	TS2339	Property '_routeRenderer' does not exist on type '{...}'.
 2	app/map.js	TS7005	Variable '_routeEvalTimer' implicitly has an 'any' type.
 1	app/map.js	TS7005	Variable 'found' implicitly has an 'any' type.
 3	app/map.js	TS7005	Variable 'routeDescriptors' implicitly has an 'any[]' type.
@@ -473,8 +468,8 @@
 1	app/map.js	TS7034	Variable 'found' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/map.js	TS7034	Variable 'routeDescriptors' implicitly has type 'any[]' in some locations where its type cannot be determined.
 1	app/map.js	TS7034	Variable 'routeLayers' implicitly has type 'any[]' in some locations where its type cannot be determined.
-1	app/map.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-1	app/map.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ places: any[]; routes: number[]; }'.
+1	app/map.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+1	app/map.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/modal.js	TS7005	Variable 'modalStack' implicitly has an 'any[]' type.
 9	app/modal.js	TS7005	Variable 'start' implicitly has an 'any' type.
 2	app/modal.js	TS7006	Parameter 'close' implicitly has an 'any' type.
@@ -489,9 +484,9 @@
 1	app/modal.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
 1	app/modal.js	TS7018	Object literal's property 'onClose' implicitly has an 'any' type.
 1	app/modal.js	TS7034	Variable 'start' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/modal.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ sheet: string; fullscreen: string; top: string; }'.
-1	app/offline-queue.js	TS2339	Property 'file' does not exist on type '{ ns: string; method: any; args: any; ts: number; }'.
-2	app/offline-queue.js	TS2339	Property 'localId' does not exist on type '{ ns: string; method: any; args: any; ts: number; }'.
+1	app/modal.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+1	app/offline-queue.js	TS2339	Property 'file' does not exist on type '{...}'.
+2	app/offline-queue.js	TS2339	Property 'localId' does not exist on type '{...}'.
 2	app/offline-queue.js	TS7005	Variable '_syncToastTimer' implicitly has an 'any' type.
 22	app/offline-queue.js	TS7006	Parameter 'a' implicitly has an 'any' type.
 3	app/offline-queue.js	TS7006	Parameter 'args' implicitly has an 'any' type.
@@ -529,13 +524,12 @@
 1	app/offline-queue.js	TS7011	Function expression, which lacks return-type annotation, implicitly has an 'any' return type.
 1	app/offline-queue.js	TS7011	Function expression, which lacks return-type annotation, implicitly has an 'any[]' return type.
 1	app/offline-queue.js	TS7034	Variable '_syncToastTimer' implicitly has type 'any' in some locations where its type cannot be determined.
-4	app/offline-queue.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ createPlace: { replay: (a: any) => Promise<any>; apply: (payload: any) => any; }; updatePlace: { replay: (a: any) => Promise<any>; apply: (body: any) => any; }; deletePlace: { ...; }; ... 12 more ...; putCategoryLabels: { ...; }; }'.
-1	app/offline-queue.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-2	app/pick-coords.js	TS2339	Property '_navByHash' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
+5	app/offline-queue.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+2	app/pick-coords.js	TS2339	Property '_navByHash' does not exist on type '{...}'.
 1	app/pick-coords.js	TS7006	Parameter 'e' implicitly has an 'any' type.
 2	app/pick-coords.js	TS7006	Parameter 'ev' implicitly has an 'any' type.
 1	app/pick-coords.js	TS7006	Parameter 'onPick' implicitly has an 'any' type.
-2	app/place-layer.js	TS2339	Property '_searchDocClickBound' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
+2	app/place-layer.js	TS2339	Property '_searchDocClickBound' does not exist on type '{...}'.
 1	app/place-layer.js	TS7006	Parameter 'a' implicitly has an 'any' type.
 1	app/place-layer.js	TS7006	Parameter 'alpha' implicitly has an 'any' type.
 1	app/place-layer.js	TS7006	Parameter 'category' implicitly has an 'any' type.
@@ -576,8 +570,8 @@
 1	app/place-layer.js	TS7006	Parameter 'title' implicitly has an 'any' type.
 1	app/place-layer.js	TS7006	Parameter 'useClusters' implicitly has an 'any' type.
 1	app/place-layer.js	TS7006	Parameter 'zoom' implicitly has an 'any' type.
-2	app/place-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-6	app/places-list.js	TS2339	Property '_catalogCache' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
+2	app/place-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+6	app/places-list.js	TS2339	Property '_catalogCache' does not exist on type '{...}'.
 3	app/places-list.js	TS7005	Variable '_placeHeaderObserver' implicitly has an 'any' type.
 1	app/places-list.js	TS7005	Variable 'errors' implicitly has an 'any[]' type.
 1	app/places-list.js	TS7005	Variable 'pads' implicitly has an 'any[]' type.
@@ -614,10 +608,8 @@
 1	app/places-list.js	TS7034	Variable '_placeHeaderObserver' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/places-list.js	TS7034	Variable 'errors' implicitly has type 'any[]' in some locations where its type cannot be determined.
 1	app/places-list.js	TS7034	Variable 'pads' implicitly has type 'any[]' in some locations where its type cannot be determined.
-1	app/places-list.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ name: string; lat: string; lon: string; category: string; country: string; local_name: string; note: string; image: string; image_focus: string; sources: string; tags: string; }'.
-4	app/places-list.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-2	app/places-list.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ visited: boolean; date_visited: any; rating: any; from_catalog: any; catalog_skip: {}; }'.
-5	app/places-list.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+5	app/places-list.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+7	app/places-list.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/prefs.js	TS7006	Parameter 'container' implicitly has an 'any' type.
 2	app/prefs.js	TS7006	Parameter 'coords' implicitly has an 'any' type.
 1	app/prefs.js	TS7006	Parameter 'def' implicitly has an 'any' type.
@@ -636,15 +628,15 @@
 1	app/prefs.js	TS7006	Parameter 'val' implicitly has an 'any' type.
 1	app/prefs.js	TS7006	Parameter 'view' implicitly has an 'any' type.
 1	app/prefs.js	TS7006	Parameter 'visible' implicitly has an 'any' type.
-1	app/prefs.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-1	app/prefs.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ places: boolean; routes: boolean; history: boolean; }'.
-1	app/route-detail.js	TS2339	Property '_currentMapResizeObserver' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-2	app/route-detail.js	TS2339	Property '_detailPolylines' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-3	app/route-detail.js	TS2339	Property '_detailRenderer' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-5	app/route-detail.js	TS2339	Property '_lastTrailBounds' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-2	app/route-detail.js	TS2339	Property '_routeSourceDomain' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/route-detail.js	TS2339	Property '_routeSourceHref' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-3	app/route-detail.js	TS2339	Property 'gain' does not exist on type '{ dist: any; status: string; completed: any; region: any; }'.
+1	app/prefs.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+1	app/prefs.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
+1	app/route-detail.js	TS2339	Property '_currentMapResizeObserver' does not exist on type '{...}'.
+2	app/route-detail.js	TS2339	Property '_detailPolylines' does not exist on type '{...}'.
+3	app/route-detail.js	TS2339	Property '_detailRenderer' does not exist on type '{...}'.
+5	app/route-detail.js	TS2339	Property '_lastTrailBounds' does not exist on type '{...}'.
+2	app/route-detail.js	TS2339	Property '_routeSourceDomain' does not exist on type '{...}'.
+1	app/route-detail.js	TS2339	Property '_routeSourceHref' does not exist on type '{...}'.
+3	app/route-detail.js	TS2339	Property 'gain' does not exist on type '{...}'.
 2	app/route-detail.js	TS7005	Variable 'activeSeg' implicitly has an 'any' type.
 4	app/route-detail.js	TS7005	Variable 'detailPolylines' implicitly has an 'any[]' type.
 1	app/route-detail.js	TS7005	Variable 'layers' implicitly has an 'any[]' type.
@@ -679,33 +671,33 @@
 1	app/route-detail.js	TS7034	Variable 'activeSeg' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/route-detail.js	TS7034	Variable 'detailPolylines' implicitly has type 'any[]' in some locations where its type cannot be determined.
 1	app/route-detail.js	TS7034	Variable 'layers' implicitly has type 'any[]' in some locations where its type cannot be determined.
-3	app/route-layer.js	TS2339	Property '_areaGroup' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/route-layer.js	TS2339	Property '_areaLayers' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-2	app/route-layer.js	TS2339	Property '_areaRenderer' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-2	app/route-layer.js	TS2339	Property '_detailPolylines' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-3	app/route-layer.js	TS2339	Property '_detailRenderer' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/route-layer.js	TS2339	Property '_glRoutesDirty' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-3	app/route-layer.js	TS2339	Property '_glRoutesDraw' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-5	app/route-layer.js	TS2339	Property '_glRoutesRebuild' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-5	app/route-layer.js	TS2339	Property '_hlFrom' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-6	app/route-layer.js	TS2339	Property '_hlT' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-5	app/route-layer.js	TS2339	Property '_hlTo' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-3	app/route-layer.js	TS2339	Property '_routeRenderer' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-2	app/route-layer.js	TS2339	Property 'aColor' does not exist on type '{}'.
-2	app/route-layer.js	TS2339	Property 'aDist' does not exist on type '{}'.
-2	app/route-layer.js	TS2339	Property 'aEnd' does not exist on type '{}'.
-2	app/route-layer.js	TS2339	Property 'aOpFrom' does not exist on type '{}'.
-2	app/route-layer.js	TS2339	Property 'aOpTo' does not exist on type '{}'.
-2	app/route-layer.js	TS2339	Property 'aSegA' does not exist on type '{}'.
-2	app/route-layer.js	TS2339	Property 'aSegB' does not exist on type '{}'.
-2	app/route-layer.js	TS2339	Property 'aSide' does not exist on type '{}'.
-2	app/route-layer.js	TS2339	Property 'aWFrom' does not exist on type '{}'.
-2	app/route-layer.js	TS2339	Property 'aWTo' does not exist on type '{}'.
-1	app/route-layer.js	TS2339	Property 'uHalfSize' does not exist on type '{}'.
-1	app/route-layer.js	TS2339	Property 'uHlT' does not exist on type '{}'.
-1	app/route-layer.js	TS2339	Property 'uOriginDelta' does not exist on type '{}'.
-1	app/route-layer.js	TS2339	Property 'uScale' does not exist on type '{}'.
-1	app/route-layer.js	TS2339	Property 'uViewport' does not exist on type '{}'.
+3	app/route-layer.js	TS2339	Property '_areaGroup' does not exist on type '{...}'.
+1	app/route-layer.js	TS2339	Property '_areaLayers' does not exist on type '{...}'.
+2	app/route-layer.js	TS2339	Property '_areaRenderer' does not exist on type '{...}'.
+2	app/route-layer.js	TS2339	Property '_detailPolylines' does not exist on type '{...}'.
+3	app/route-layer.js	TS2339	Property '_detailRenderer' does not exist on type '{...}'.
+1	app/route-layer.js	TS2339	Property '_glRoutesDirty' does not exist on type '{...}'.
+3	app/route-layer.js	TS2339	Property '_glRoutesDraw' does not exist on type '{...}'.
+5	app/route-layer.js	TS2339	Property '_glRoutesRebuild' does not exist on type '{...}'.
+5	app/route-layer.js	TS2339	Property '_hlFrom' does not exist on type '{...}'.
+6	app/route-layer.js	TS2339	Property '_hlT' does not exist on type '{...}'.
+5	app/route-layer.js	TS2339	Property '_hlTo' does not exist on type '{...}'.
+3	app/route-layer.js	TS2339	Property '_routeRenderer' does not exist on type '{...}'.
+2	app/route-layer.js	TS2339	Property 'aColor' does not exist on type '{...}'.
+2	app/route-layer.js	TS2339	Property 'aDist' does not exist on type '{...}'.
+2	app/route-layer.js	TS2339	Property 'aEnd' does not exist on type '{...}'.
+2	app/route-layer.js	TS2339	Property 'aOpFrom' does not exist on type '{...}'.
+2	app/route-layer.js	TS2339	Property 'aOpTo' does not exist on type '{...}'.
+2	app/route-layer.js	TS2339	Property 'aSegA' does not exist on type '{...}'.
+2	app/route-layer.js	TS2339	Property 'aSegB' does not exist on type '{...}'.
+2	app/route-layer.js	TS2339	Property 'aSide' does not exist on type '{...}'.
+2	app/route-layer.js	TS2339	Property 'aWFrom' does not exist on type '{...}'.
+2	app/route-layer.js	TS2339	Property 'aWTo' does not exist on type '{...}'.
+1	app/route-layer.js	TS2339	Property 'uHalfSize' does not exist on type '{...}'.
+1	app/route-layer.js	TS2339	Property 'uHlT' does not exist on type '{...}'.
+1	app/route-layer.js	TS2339	Property 'uOriginDelta' does not exist on type '{...}'.
+1	app/route-layer.js	TS2339	Property 'uScale' does not exist on type '{...}'.
+1	app/route-layer.js	TS2339	Property 'uViewport' does not exist on type '{...}'.
 1	app/route-layer.js	TS7005	Variable '_gpxQueue' implicitly has an 'any[]' type.
 2	app/route-layer.js	TS7005	Variable 'areaArr' implicitly has an 'any[]' type.
 2	app/route-layer.js	TS7005	Variable 'baseArr' implicitly has an 'any[]' type.
@@ -761,11 +753,11 @@
 1	app/route-layer.js	TS7034	Variable 'originRef' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/route-layer.js	TS7034	Variable 'program' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/route-layer.js	TS7034	Variable 'topArr' implicitly has type 'any[]' in some locations where its type cannot be determined.
-3	app/route-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-2	app/route-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
-2	app/route-meta.js	TS2339	Property '_removeRouteFromMap' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-2	app/route-meta.js	TS2339	Property 'date_completed' does not exist on type '{ source: string; notes: string; local_name: string; difficulty: string; tags: any; }'.
-2	app/route-meta.js	TS2339	Property 'rating' does not exist on type '{ source: string; notes: string; local_name: string; difficulty: string; tags: any; }'.
+3	app/route-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+2	app/route-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
+2	app/route-meta.js	TS2339	Property '_removeRouteFromMap' does not exist on type '{...}'.
+2	app/route-meta.js	TS2339	Property 'date_completed' does not exist on type '{...}'.
+2	app/route-meta.js	TS2339	Property 'rating' does not exist on type '{...}'.
 1	app/route-meta.js	TS7006	Parameter 'color' implicitly has an 'any' type.
 1	app/route-meta.js	TS7006	Parameter 'endLatLng' implicitly has an 'any' type.
 1	app/route-meta.js	TS7006	Parameter 'id' implicitly has an 'any' type.
@@ -777,7 +769,7 @@
 2	app/route-meta.js	TS7006	Parameter 'regionName' implicitly has an 'any' type.
 3	app/route-meta.js	TS7006	Parameter 'route' implicitly has an 'any' type.
 1	app/route-meta.js	TS7006	Parameter 'startLatLng' implicitly has an 'any' type.
-1	app/route-meta.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ easy: string; moderate: string; hard: string; expert: string; }'.
+1	app/route-meta.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
 1	app/router.js	TS7006	Parameter 'hash' implicitly has an 'any' type.
 1	app/router.js	TS7006	Parameter 'slug' implicitly has an 'any' type.
 1	app/router.js	TS7006	Parameter 'type' implicitly has an 'any' type.
@@ -791,7 +783,7 @@
 1	app/routes-list.js	TS7006	Parameter 'wantRegion' implicitly has an 'any' type.
 1	app/routes-list.js	TS7006	Parameter 'wantStatus' implicitly has an 'any' type.
 1	app/routes-list.js	TS7006	Parameter 'wantTags' implicitly has an 'any' type.
-1	app/routes-list.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+1	app/routes-list.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/select.js	TS7005	Variable '_selPopover' implicitly has an 'any' type.
 2	app/select.js	TS7005	Variable '_selPopoverTeardown' implicitly has an 'any' type.
 2	app/select.js	TS7005	Variable 'onEnter' implicitly has an 'any' type.
@@ -858,8 +850,8 @@
 1	app/settings/account.js	TS7031	Binding element 'u' implicitly has an 'any' type.
 4	app/settings/account.js	TS7031	Binding element 'version' implicitly has an 'any' type.
 1	app/settings/account.js	TS7034	Variable 'reloadAdminCatalog' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/settings/account.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ unpublish: (u: any) => { title: any; body: any; confirmLabel: any; run: () => Promise<any>; }; revoke: (u: any) => { title: any; body: any; confirmLabel: any; run: () => Promise<any>; }; role: (u: any) => { ...; }; delete: (u: any) => { ...; }; }'.
-1	app/settings/catalog.js	TS2339	Property '_catalogCache' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
+1	app/settings/account.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+1	app/settings/catalog.js	TS2339	Property '_catalogCache' does not exist on type '{...}'.
 1	app/settings/catalog.js	TS7006	Parameter '_' implicitly has an 'any' type.
 1	app/settings/catalog.js	TS7006	Parameter 'a' implicitly has an 'any' type.
 1	app/settings/catalog.js	TS7006	Parameter 'b' implicitly has an 'any' type.
@@ -881,7 +873,7 @@
 1	app/settings/catalog.js	TS7031	Binding element 'p' implicitly has an 'any' type.
 1	app/settings/catalog.js	TS7031	Binding element 'places' implicitly has an 'any' type.
 2	app/settings/catalog.js	TS7031	Binding element 'shown' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+1	app/settings/catalog.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/settings/categories.js	TS7006	Parameter 'ci' implicitly has an 'any' type.
 1	app/settings/categories.js	TS7006	Parameter 'commit' implicitly has an 'any' type.
 1	app/settings/categories.js	TS7006	Parameter 'container' implicitly has an 'any' type.
@@ -909,8 +901,8 @@
 1	app/settings/categories.js	TS7031	Binding element 'onToggleSwatches' implicitly has an 'any' type.
 1	app/settings/categories.js	TS7031	Binding element 'open' implicitly has an 'any' type.
 1	app/settings/categories.js	TS7031	Binding element 'r' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
-15	app/settings/categories.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+1	app/settings/categories.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+15	app/settings/categories.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/settings/logs.js	TS7006	Parameter 'beforeId' implicitly has an 'any' type.
 1	app/settings/logs.js	TS7006	Parameter 'data' implicitly has an 'any' type.
 1	app/settings/logs.js	TS7006	Parameter 'err' implicitly has an 'any' type.
@@ -940,10 +932,10 @@
 1	app/settings/regions.js	TS7031	Binding element 'region' implicitly has an 'any' type.
 1	app/settings/regions.js	TS7031	Binding element 'regions' implicitly has an 'any' type.
 1	app/settings/regions.js	TS7034	Variable 'renames' implicitly has type 'any[]' in some locations where its type cannot be determined.
-1	app/settings/settings.js	TS2339	Property '_catalogCache' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/settings/settings.js	TS2339	Property 'expires_in_days' does not exist on type '{ name: any; scope: any; }'.
-5	app/settings/settings.js	TS2339	Property 'tilePickerCtrl' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/settings/settings.js	TS2339	Property 'tilePickerLayers' does not exist on type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
+1	app/settings/settings.js	TS2339	Property '_catalogCache' does not exist on type '{...}'.
+1	app/settings/settings.js	TS2339	Property 'expires_in_days' does not exist on type '{...}'.
+5	app/settings/settings.js	TS2339	Property 'tilePickerCtrl' does not exist on type '{...}'.
+1	app/settings/settings.js	TS2339	Property 'tilePickerLayers' does not exist on type '{...}'.
 1	app/settings/settings.js	TS7006	Parameter 'blob' implicitly has an 'any' type.
 1	app/settings/settings.js	TS7006	Parameter 'body' implicitly has an 'any' type.
 5	app/settings/settings.js	TS7006	Parameter 'e' implicitly has an 'any' type.
@@ -991,15 +983,10 @@
 1	app/settings/settings.js	TS7031	Binding element 'sessionsVersion' implicitly has an 'any' type.
 1	app/settings/settings.js	TS7031	Binding element 'tabs' implicitly has an 'any' type.
 1	app/settings/settings.js	TS7031	Binding element 'v' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ backup: boolean; account: boolean; security: boolean; admin: boolean; }'.
-2	app/settings/settings.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ general: string; appearance: string; backup: string; account: string; security: string; admin: string; }'.
-1	app/settings/settings.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ settings: string[]; account: string[]; admin: string[]; }'.
-2	app/settings/settings.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ zip: { path: string; fallbackName: string; mimeType: string; desc: string; }; geojson: { path: string; fallbackName: string; mimeType: string; desc: string; }; }'.
-1	app/settings/settings.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ config: { brand: string; features: { places: boolean; routes: boolean; }; default_view: { center: number[]; zoom: number; }; default_view_routes: { center: number[]; zoom: number; }; category_labels: {}; api_base: string; }; ... 29 more ...; _routeGroupPlanned: any; }'.
-1	app/settings/settings.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ dark: string; light: string; system: string; }'.
-1	app/settings/settings.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ nord: string; solarized: string; gruvbox: string; catppuccin: string; 'rose-pine': string; 'tokyo-night': string; dracula: string; }'.
-1	app/sign-in.js	TS2339	Property 'setup_token' does not exist on type '{ username: string; password: string; }'.
-1	app/sign-in.js	TS2339	Property 'token' does not exist on type '{ username: string; password: string; }'.
+6	app/settings/settings.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
+3	app/settings/settings.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
+1	app/sign-in.js	TS2339	Property 'setup_token' does not exist on type '{...}'.
+1	app/sign-in.js	TS2339	Property 'token' does not exist on type '{...}'.
 1	app/sign-in.js	TS7006	Parameter 'includeClose' implicitly has an 'any' type.
 1	app/sign-in.js	TS7006	Parameter 'm' implicitly has an 'any' type.
 1	app/sign-in.js	TS7006	Parameter 'msg' implicitly has an 'any' type.
@@ -1017,8 +1004,7 @@
 1	app/theme.js	TS7006	Parameter 'mode' implicitly has an 'any' type.
 1	app/theme.js	TS7006	Parameter 'theme' implicitly has an 'any' type.
 1	app/theme.js	TS7006	Parameter 'v' implicitly has an 'any' type.
-2	app/theme.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ small: number; default: number; large: number; }'.
-2	app/theme.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ thin: number; default: number; thick: number; }'.
+4	app/theme.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/view.js	TS7006	Parameter 'data' implicitly has an 'any' type.
 1	app/view.js	TS7006	Parameter 'deps' implicitly has an 'any' type.
 1	app/view.js	TS7006	Parameter 'dialog' implicitly has an 'any' type.
