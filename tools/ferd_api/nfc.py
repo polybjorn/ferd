@@ -129,15 +129,21 @@ def _apply(conn: sqlite3.Connection, uid: int, gpx_root: Path, plan) -> None:
       src = files.get(suffix)
       if src is None or src == target:
         continue
-      if target.exists():
+      # On a filesystem that ignores normalization (APFS) the decomposed name
+      # opens the composed one, so `target` exists and is this same file.
+      if target.exists() and not src.samefile(target):
         src.unlink()
       else:
         src.rename(target)
       if src.parent != gpx_root:
         emptied.add(src.parent)
   for d in emptied:
+    if d == target_dir:
+      continue
     try:
-      if d != target_dir and not any(d.iterdir()):
+      if d.samefile(target_dir):
+        d.rename(target_dir)
+      elif not any(d.iterdir()):
         d.rmdir()
     except OSError:
       pass

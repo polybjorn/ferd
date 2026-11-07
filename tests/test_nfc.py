@@ -4,6 +4,7 @@ Run with: python3 -m unittest discover -s tests
 """
 
 import json
+import os
 import sys
 import tempfile
 import unicodedata
@@ -133,7 +134,7 @@ class TestMergePass(NfcCase):
     self.meta(f"{NFD_REGION}/{NFD_NAME}", {"rating": 5})
     merge_nfd_routes(self.conn, self.uid, self.udir)
     self.assertEqual(self.files(), [f"{NFC_REGION}/{NFC_NAME}.gpx"])
-    self.assertFalse((self.gpx / NFD_REGION).exists())
+    self.assertEqual(os.listdir(self.gpx), [NFC_REGION])
     self.assertEqual(self.metadata(), {f"{NFC_REGION}/{NFC_NAME}": {"rating": 5}})
 
   @both_spellings
