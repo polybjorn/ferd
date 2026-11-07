@@ -18,10 +18,11 @@ from .handlers.places import PlacesMixin
 from .handlers.routes import RoutesMixin
 from .handlers.account import AccountMixin
 from .handlers.public import PublicMixin
+from .handlers.sync import SyncMixin
 
 
 class Handler(RequestMixin, StaticMixin, SessionMixin, AdminMixin, CatalogMixin, PlacesMixin,
-              RoutesMixin, AccountMixin, PublicMixin, http.server.BaseHTTPRequestHandler):
+              RoutesMixin, AccountMixin, PublicMixin, SyncMixin, http.server.BaseHTTPRequestHandler):
   cfg: dict = None
   login_limiter: RateLimiter = None
   # Serializes register-and-create_user (and similar read-then-write critical
@@ -54,6 +55,7 @@ class Handler(RequestMixin, StaticMixin, SessionMixin, AdminMixin, CatalogMixin,
       "/api/me/export": "_h_export_get",
       "/api/me/export.geojson": "_h_export_geojson_get",
       "/api/me/tokens": "_h_tokens_list",
+      "/api/sync/changes": "_h_sync_changes",
       "/api/public-maps": "_h_public_maps",
       "/api/catalog": "_h_catalog_get",
       "/api/admin/users": "_h_admin_users_list",
@@ -77,6 +79,7 @@ class Handler(RequestMixin, StaticMixin, SessionMixin, AdminMixin, CatalogMixin,
       "/api/regions/clear": "_h_region_clear",
       "/api/me/publish": "_h_publish_post",
       "/api/me/import": "_h_import_post",
+      "/api/sync/batch": "_h_sync_batch",
       "/api/me/tokens": "_h_tokens_create",
       "/api/me/tokens/revoke": "_h_tokens_revoke",
       "/api/sessions/revoke": "_h_sessions_revoke",

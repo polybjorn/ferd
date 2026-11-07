@@ -5,7 +5,7 @@ If you'd rather run it as a plain Python process, see [python.md](python.md).
 ## What you get
 
 - A single `ferd` container running the API on port 8090.
-- A `./data/` folder on the host that holds everything: the SQLite database, per-user folders (places, GPX files, preferences), and `site-config.json`. Nothing important lives inside the container itself, so pulling a new image never touches your data.
+- A `./data/` folder on the host that holds everything: the SQLite database, per-user folders (places, GPX files, preferences), and `site-config.json`. Places, route metadata and preferences are rows in `app.db`; GPX files are under `users/`. Nothing important lives inside the container itself, so pulling a new image never touches your data.
 
 ## Quickstart
 
@@ -106,11 +106,18 @@ For a full-server backup (all users, the database, and `site-config.json`), ever
 tar -czf backup-$(date +%F).tar.gz data/
 ```
 
-For a guaranteed-consistent snapshot, stop the container first. Or use SQLite's online backup, which works while the server is running:
+`app.db` holds every user's places, so a copy of it has to be consistent: stop the container first, or use SQLite's online backup, which works while the server is running. Keep the resulting `app.db.bak`, not the live file:
 
 ```sh
 docker compose exec ferd python3 -c \
   "import sqlite3; sqlite3.connect('/data/app.db').backup(sqlite3.connect('/data/app.db.bak'))"
+```
+
+After restoring a backup, rotate the sync epoch so clients that keep their own copy fetch everything again (see [api.md](api.md#sync)):
+
+```sh
+docker compose exec ferd python3 -c \
+  "import sqlite3; c = sqlite3.connect('/data/app.db'); c.execute(\"UPDATE store_revs SET epoch = lower(hex(randomblob(8)))\"); c.commit()"
 ```
 
 ## Updating

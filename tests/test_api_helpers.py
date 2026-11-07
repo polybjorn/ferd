@@ -5,6 +5,7 @@ Run with: python3 -m unittest discover -s tests
 
 import io
 import json
+import sqlite3
 import sys
 import tempfile
 import tracemalloc
@@ -15,7 +16,17 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
 import ferd_api as api  # noqa: E402
-from ferd_api.handlers import account, request  # noqa: E402
+from ferd_api import store  # noqa: E402
+from ferd_api.db import db_connect, db_init  # noqa: E402
+from ferd_api.users import create_user  # noqa: E402
+
+
+def _db(tmp: str):
+  """A fresh database with one user, returning (conn, uid)."""
+  conn = db_connect(str(Path(tmp) / "t.db"))
+  db_init(conn)
+  uid = create_user(conn, "bob", "correct-horse-battery")
+  return conn, uid
 
 
 GPX_NS = "http://www.topografix.com/GPX/1/1"
@@ -43,15 +54,15 @@ class TestGeoJsonExport(unittest.TestCase):
   def test_build_geojson(self):
     with tempfile.TemporaryDirectory() as tmp:
       udir = Path(tmp)
-      (udir / "places.json").write_text(json.dumps([
+      places = [
         {"name": "Hut", "lat": 60, "lon": 5, "visited": True, "category": "hut"},
         {"name": "Broken", "lat": "x", "lon": 5},
-      ]))
+      ]
       ring = [[5, 60], [6, 60], [6, 61], [5, 60]]
-      (udir / "areas.json").write_text(json.dumps([
+      areas = [
         {"name": "Park", "geometry": {"type": "Polygon", "coordinates": [ring]}, "visited": False},
-      ]))
-      (udir / "metadata.json").write_text(json.dumps({"Alps/Ridge": {"rating": 4, "notes": "windy"}}))
+      ]
+      metadata = {"Alps/Ridge": {"rating": 4, "notes": "windy"}}
       track = '<trk><trkseg><trkpt lat="46" lon="7"/><trkpt lat="46.1" lon="7.1"/></trkseg></trk>'
       two = track.replace("</trk>", '<trkseg><trkpt lat="47" lon="8"/><trkpt lat="47.1" lon="8.1"/></trkseg></trk>')
       (udir / "gpx" / "Alps").mkdir(parents=True)
@@ -60,7 +71,7 @@ class TestGeoJsonExport(unittest.TestCase):
       (udir / "gpx" / "Loop.planned.gpx").write_bytes(_gpx(two))
       (udir / "gpx" / "Bad.gpx").write_bytes(b"not xml")
 
-      doc = api.build_geojson(udir)
+      doc = api.build_geojson(udir, places, areas, metadata)
       self.assertEqual(doc["type"], "FeatureCollection")
       by_name = {f["properties"]["name"]: f for f in doc["features"]}
       self.assertEqual(sorted(by_name), ["Hut", "Loop", "Park", "Ridge"])
@@ -88,7 +99,7 @@ class TestGeoJsonExport(unittest.TestCase):
 
   def test_empty_user_dir(self):
     with tempfile.TemporaryDirectory() as tmp:
-      self.assertEqual(api.build_geojson(Path(tmp)), {"type": "FeatureCollection", "features": []})
+      self.assertEqual(api.build_geojson(Path(tmp), [], [], {}), {"type": "FeatureCollection", "features": []})
 
 
 class TestValidateArea(unittest.TestCase):
@@ -561,27 +572,28 @@ class TestCountryCode(unittest.TestCase):
 
   def test_backfill(self):
     with tempfile.TemporaryDirectory() as d:
-      udir = Path(d)
+      conn, uid = _db(d)
       places = [
         {"name": "A", "lat": 1.0, "lon": 2.0, "visited": True, "country": "Norway", "note": "n"},
         {"name": "B", "lat": 1.0, "lon": 2.0, "country": "Narnia", "country_code": "NO"},
         {"name": "C", "lat": 1.0, "lon": 2.0, "country": "Sweden", "country_code": "SE"},
         {"name": "D", "lat": 1.0, "lon": 2.0},
       ]
-      api.write_json_file(udir / "places.json", places)
-      self.assertEqual(api.backfill_country_codes(udir), 2)
-      out = json.loads((udir / "places.json").read_text("utf-8"))
+      store.replace_list(conn, uid, "place", places)
+      self.assertEqual(api.backfill_country_codes(conn, uid), 2)
+      out = [{k: v for k, v in p.items() if k != "id"} for p in store.list_items(conn, uid, "place")]
       self.assertEqual(list(out[0]), ["name", "lat", "lon", "visited", "country", "country_code", "note"])
       self.assertEqual(out[0]["country_code"], "NO")
       self.assertNotIn("country_code", out[1])
       self.assertEqual(out[2:], places[2:])
-      mtime = (udir / "places.json").stat().st_mtime_ns
-      self.assertEqual(api.backfill_country_codes(udir), 0)
-      self.assertEqual((udir / "places.json").stat().st_mtime_ns, mtime)
+      head = store.head_rev(conn, uid)
+      self.assertEqual(api.backfill_country_codes(conn, uid), 0)
+      self.assertEqual(store.head_rev(conn, uid), head)
 
-  def test_backfill_without_places_file(self):
+  def test_backfill_without_places(self):
     with tempfile.TemporaryDirectory() as d:
-      self.assertEqual(api.backfill_country_codes(Path(d)), 0)
+      conn, uid = _db(d)
+      self.assertEqual(api.backfill_country_codes(conn, uid), 0)
 
   def test_names_table_matches_boundaries(self):
     base = Path(api.COUNTRY_NAMES_PATH).parent
@@ -726,6 +738,7 @@ class TestImportWriters(unittest.TestCase):
     self.root = Path(self.tmp.name)
     self.udir = self.root / "user"
     self.udir.mkdir()
+    self.conn, self.uid = _db(self.tmp.name)
 
   def tearDown(self):
     self.tmp.cleanup()
@@ -735,7 +748,7 @@ class TestImportWriters(unittest.TestCase):
     payload = api.ImportPayload(gpx={"gpx/../../evil.gpx": b"<gpx/>"})
     for mode in ("replace", "merge"):
       with self.assertRaises(api.ValidationError):
-        api.IMPORT_WRITERS[mode](self.udir, payload)
+        api.IMPORT_WRITERS[mode](self.conn, self.uid, self.udir, payload)
       self.assertFalse((self.root / "evil.gpx").exists())
 
   def test_merge_writes_through_symlinked_gpx_root(self):
@@ -743,7 +756,7 @@ class TestImportWriters(unittest.TestCase):
     external.mkdir()
     (self.udir / "gpx").symlink_to(external)
     payload = api.ImportPayload(gpx={"gpx/r/t.gpx": b"<gpx/>"})
-    api.IMPORT_WRITERS["merge"](self.udir, payload)
+    api.IMPORT_WRITERS["merge"](self.conn, self.uid, self.udir, payload)
     self.assertEqual((external / "r" / "t.gpx").read_bytes(), b"<gpx/>")
 
 
@@ -907,84 +920,6 @@ class TestRouting(unittest.TestCase):
     self.assertEqual(self.dispatch("GET", "/api/places", readonly=True), [("_h_places_get",)])
 
 
-class TestPrefsPutLocking(unittest.TestCase):
-  """prefs PUT must serialize on the per-user lock like the other JSON mutations."""
-
-  def test_write_happens_under_prefs_lock(self):
-    with tempfile.TemporaryDirectory() as tmp:
-      udir = Path(tmp)
-      events = []
-
-      class H(api.Handler):
-        def __init__(self):
-          pass
-
-      h = H()
-      h._require_user = lambda: {"username": "bob"}
-      h._read_body_or_400 = lambda: {"theme": "dark"}
-      h._user_dir = lambda username: udir
-      h._send_json = lambda status, payload: events.append(("sent", payload))
-      h._error = lambda status, msg: events.append(("error", msg))
-
-      real_lock, real_write = request.with_file_lock, account.write_json_file
-
-      def spy_lock(lock_path, fn):
-        events.append(("lock", lock_path.name))
-        return real_lock(lock_path, fn)
-
-      def spy_write(path, data):
-        events.append(("write", path.name))
-        return real_write(path, data)
-
-      request.with_file_lock, account.write_json_file = spy_lock, spy_write
-      try:
-        h._h_prefs_put()
-      finally:
-        request.with_file_lock, account.write_json_file = real_lock, real_write
-
-      self.assertEqual(events, [("lock", ".prefs.lock"), ("write", "prefs.json"), ("sent", {"ok": True})])
-      self.assertEqual(json.loads((udir / "prefs.json").read_text()), {"theme": "dark"})
-
-
-class TestSendUserJson(unittest.TestCase):
-  """A missing or empty per-user file reads as the endpoint's empty shape."""
-
-  def _send(self, filename, expected_type, content=None, **kw):
-    with tempfile.TemporaryDirectory() as tmp:
-      udir = Path(tmp)
-      if content is not None:
-        (udir / filename).write_text(content)
-      sent = []
-
-      class H(api.Handler):
-        def __init__(self):
-          pass
-
-      h = H()
-      h._send_json = lambda status, payload: sent.append(("ok", payload))
-      h._error = lambda status, msg: sent.append((int(status), msg))
-      h._send_user_json(udir, filename, expected_type, **kw)
-      return sent[0]
-
-  def test_missing_file_uses_the_default(self):
-    self.assertEqual(self._send("routes.json", dict, default={"regions": []}), ("ok", {"regions": []}))
-    self.assertEqual(self._send("prefs.json", dict, default={}), ("ok", {}))
-
-  def test_missing_places_file_is_an_empty_list(self):
-    self.assertEqual(self._send("places.json", list), ("ok", []))
-
-  def test_key_wraps_the_value(self):
-    self.assertEqual(self._send("category-labels.json", dict, default={}, key="category_labels"),
-                     ("ok", {"category_labels": {}}))
-    self.assertEqual(self._send("category-labels.json", dict, '{"a": {"label": "A"}}', default={}, key="category_labels"),
-                     ("ok", {"category_labels": {"a": {"label": "A"}}}))
-
-  def test_invalid_file_is_a_500_naming_the_file(self):
-    status, msg = self._send("prefs.json", dict, "[]", default={})
-    self.assertEqual(status, 500)
-    self.assertIn("prefs.json", msg)
-
-
 class TestPasswordHash(unittest.TestCase):
   """Minimal round-trip only; PBKDF2 is slow (~300ms per call)."""
 
@@ -1114,14 +1049,15 @@ class TestGpxMovePlan(unittest.TestCase):
   def test_apply_moves_both_variants_rekeys_metadata_and_prunes(self):
     self._touch("From/t.gpx")
     self._touch("From/t.planned.gpx")
-    (self.udir / "metadata.json").write_text(json.dumps({"From/t": {"rating": 4}}))
+    conn, uid = _db(self._tmp.name)
+    store.put_item(conn, uid, "metadata", "From/t", {"rating": 4})
     req = api.parse_gpx_move({"key": "From/t", "new_region": "To", "new_name": "u"})
     pairs = api.plan_gpx_move(self.gpx, req)
-    self.assertEqual(api.apply_gpx_move(self.udir, req, pairs), 2)
+    self.assertEqual(api.apply_gpx_move(conn, uid, req, pairs), 2)
     self.assertTrue((self.gpx / "To" / "u.gpx").is_file())
     self.assertTrue((self.gpx / "To" / "u.planned.gpx").is_file())
     self.assertFalse((self.gpx / "From").exists())
-    self.assertEqual(json.loads((self.udir / "metadata.json").read_text()), {"To/u": {"rating": 4}})
+    self.assertEqual(store.get_map(conn, uid, "metadata"), {"To/u": {"rating": 4}})
 
 
 if __name__ == "__main__":

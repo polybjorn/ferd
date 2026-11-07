@@ -11,9 +11,10 @@ from http import HTTPStatus
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+from .. import store
 from ..common import ValidationError
 from ..db import log_event, setting_set
-from ..users import admin_count, count_user_places, count_user_routes, dir_size_bytes, set_user_published, user_count, user_dir
+from ..users import admin_count, count_user_routes, dir_size_bytes, set_user_published, user_count, user_dir
 
 
 class AdminMixin:
@@ -73,7 +74,7 @@ class AdminMixin:
       "published": bool(row["published"]),
       "created_at": row["created_at"],
       "sessions": sessions,
-      "places": count_user_places(udir),
+      "places": store.count_items(self.conn, row["id"], "place"),
       "routes": count_user_routes(udir),
     }
 
@@ -95,13 +96,14 @@ class AdminMixin:
     ).fetchone()["n"]
     data_dir = Path(self.cfg["data_dir"]).resolve()
     users_root = data_dir / "users"
-    places_total = 0
+    places_total = self.conn.execute(
+      "SELECT COUNT(*) AS n FROM store_items WHERE kind='place' AND deleted=0"
+    ).fetchone()["n"]
     routes_total = 0
     if users_root.exists():
       for child in users_root.iterdir():
         if not child.is_dir():
           continue
-        places_total += count_user_places(child)
         routes_total += count_user_routes(child)
     db_path = Path(self.cfg["db_path"]).resolve()
     try:

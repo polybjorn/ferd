@@ -17,6 +17,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import unittest
 import urllib.error
@@ -26,6 +27,10 @@ from http.cookiejar import CookieJar
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO_ROOT / "tools"))
+
+from ferd_api import store  # noqa: E402
+
 API_SCRIPT = REPO_ROOT / "tools" / "api.py"
 
 SEED_USER = "admin"
@@ -41,9 +46,11 @@ def _free_port() -> int:
 class _Server:
   """A subprocess-backed API server with its own tempdir + sqlite."""
 
-  def __init__(self, extra_cfg: dict | None = None) -> None:
+  def __init__(self, extra_cfg: dict | None = None, prepare=None) -> None:
     self.tmp = tempfile.TemporaryDirectory()
     self.data_dir = Path(self.tmp.name)
+    if prepare:
+      prepare(self.data_dir)
     self.port = _free_port()
     self.base_url = f"http://127.0.0.1:{self.port}"
     cfg = {
@@ -104,6 +111,24 @@ def tearDownModule() -> None:
     _server.close()
 
 
+class TestStartupWithBadFile(unittest.TestCase):
+  def test_non_utf8_file_does_not_stop_startup_and_is_named(self):
+    def prepare(data_dir: Path) -> None:
+      (data_dir / "users" / SEED_USER).mkdir(parents=True)
+      (data_dir / "users" / SEED_USER / "places.json").write_bytes(b"[\xff\xfe]")
+
+    server = _Server(prepare=prepare)
+    try:
+      c = Client(server.base_url)
+      self.assertEqual(c.login(SEED_USER, SEED_PW)[0], 200)
+      status, body = c.request("GET", "/api/places")
+      self.assertEqual(status, 500)
+      self.assertIn(f"{SEED_USER}/places.json", body["error"])
+      self.assertIn("UTF-8", body["error"])
+    finally:
+      server.close()
+
+
 class Client:
   """Tiny JSON+cookie client tied to a single API server."""
 
@@ -153,14 +178,50 @@ def admin_dir() -> Path:
   return _server.data_dir / "users" / SEED_USER  # type: ignore[union-attr]
 
 
+def store_conn() -> sqlite3.Connection:
+  """A connection to the test server's database, for setting up and checking rows."""
+  conn = sqlite3.connect(_server.data_dir / "test.db", isolation_level=None, timeout=10)  # type: ignore[union-attr]
+  conn.row_factory = sqlite3.Row
+  conn.execute("PRAGMA foreign_keys=ON")
+  return conn
+
+
+def user_id(username: str = SEED_USER) -> int:
+  conn = store_conn()
+  try:
+    return conn.execute("SELECT id FROM users WHERE username=?", (username,)).fetchone()["id"]
+  finally:
+    conn.close()
+
+
+def stored(kind: str, username: str = SEED_USER):
+  """The live rows of a kind as the API would list them: a list for places and
+  areas, a dict for the keyed kinds."""
+  conn = store_conn()
+  try:
+    uid = user_id(username)
+    if kind in ("place", "area", "route"):
+      return store.list_items(conn, uid, kind)
+    return store.get_map(conn, uid, kind)
+  finally:
+    conn.close()
+
+
+def reset_kind(kind: str, items=None, username: str = SEED_USER) -> None:
+  """Replace a kind's live rows so tests can assume a known state."""
+  conn = store_conn()
+  try:
+    uid = user_id(username)
+    if kind in ("place", "area"):
+      store.replace_list(conn, uid, kind, items or [])
+    else:
+      store.replace_map(conn, uid, kind, items or {})
+  finally:
+    conn.close()
+
+
 def fresh_places(items: list | None = None) -> None:
-  """Replace the admin's places.json on disk so tests can assume a known state."""
-  d = admin_dir()
-  d.mkdir(parents=True, exist_ok=True)
-  (d / "places.json").write_text(
-    json.dumps(items or [], ensure_ascii=False, indent=2) + "\n",
-    encoding="utf-8",
-  )
+  reset_kind("place", items)
 
 
 # ---------- tests ----------
@@ -386,7 +447,7 @@ class TestPlacesCRUD(unittest.TestCase):
     self.assertEqual(status, 201)
     self.assertTrue(body["ok"])
     self.assertEqual(body["total_places"], 1)
-    on_disk = json.loads((admin_dir() / "places.json").read_text())
+    on_disk = stored("place")
     self.assertEqual(len(on_disk), 1)
     self.assertEqual(on_disk[0]["name"], "P1")
 
@@ -404,7 +465,7 @@ class TestPlacesCRUD(unittest.TestCase):
                                {"id": pid,
                                 "place": {"name": "New", "lat": 0, "lon": 0, "category": "cat"}})
     self.assertEqual(status, 200)
-    on_disk = json.loads((admin_dir() / "places.json").read_text())
+    on_disk = stored("place")
     self.assertEqual(on_disk[0]["name"], "New")
     self.assertEqual(on_disk[0]["id"], pid)
 
@@ -418,7 +479,7 @@ class TestPlacesCRUD(unittest.TestCase):
                                {"id": b["place"]["id"],
                                 "place": {"name": "Dup", "lat": 9, "lon": 9, "category": "cat"}})
     self.assertEqual(status, 200)
-    on_disk = json.loads((admin_dir() / "places.json").read_text())
+    on_disk = stored("place")
     by_id = {p["id"]: p for p in on_disk}
     self.assertEqual(by_id[a["place"]["id"]]["lat"], 1)
     self.assertEqual(by_id[b["place"]["id"]]["lat"], 9)
@@ -444,7 +505,7 @@ class TestPlacesCRUD(unittest.TestCase):
     status, body = self.c.request("DELETE", "/api/places", {"id": a["place"]["id"]})
     self.assertEqual(status, 200)
     self.assertEqual(body["total_places"], 1)
-    on_disk = json.loads((admin_dir() / "places.json").read_text())
+    on_disk = stored("place")
     self.assertEqual(on_disk[0]["id"], b["place"]["id"])
 
   def test_delete_not_found(self):
@@ -456,7 +517,7 @@ class TestPlacesCRUD(unittest.TestCase):
     status, _ = self.c.request("POST", "/api/places",
                                {"name": "NoCat", "lat": 0, "lon": 0})
     self.assertEqual(status, 201)
-    on_disk = json.loads((admin_dir() / "places.json").read_text())
+    on_disk = stored("place")
     self.assertEqual(on_disk[0]["name"], "NoCat")
     self.assertNotIn("category", on_disk[0])
 
@@ -464,7 +525,7 @@ class TestPlacesCRUD(unittest.TestCase):
     status, _ = self.c.request("POST", "/api/places",
                                {"name": "Blank", "lat": 0, "lon": 0, "category": ""})
     self.assertEqual(status, 201)
-    on_disk = json.loads((admin_dir() / "places.json").read_text())
+    on_disk = stored("place")
     self.assertNotIn("category", on_disk[0])
 
   def test_clear_category_bulk(self):
@@ -477,7 +538,7 @@ class TestPlacesCRUD(unittest.TestCase):
                                   {"category": "beach"})
     self.assertEqual(status, 200)
     self.assertEqual(body["cleared"], 3)
-    on_disk = json.loads((admin_dir() / "places.json").read_text())
+    on_disk = stored("place")
     by_name = {p["name"]: p for p in on_disk}
     self.assertNotIn("category", by_name["A"])
     self.assertNotIn("category", by_name["B"])
@@ -495,7 +556,7 @@ SQUARE = {"type": "Polygon", "coordinates": [[[5, 60], [6, 60], [6, 61], [5, 61]
 class TestAreas(unittest.TestCase):
   def setUp(self):
     self.c = admin_client()
-    (admin_dir() / "areas.json").unlink(missing_ok=True)
+    reset_kind("area")
 
   def test_list_is_empty_before_first_write(self):
     self.assertEqual(self.c.request("GET", "/api/areas"), (200, []))
@@ -593,7 +654,7 @@ class TestCategoryLabels(unittest.TestCase):
     self.assertEqual(status, 200)
     self.assertEqual(body["category_labels"],
                      {"food": {"label": "Food"}, "hike": {"label": "Hiking"}})
-    on_disk = json.loads((admin_dir() / "category-labels.json").read_text())
+    on_disk = stored("label")
     self.assertEqual(on_disk["food"], {"label": "Food"})
     status, body = c.request("GET", "/api/me/category-labels")
     self.assertEqual(status, 200)
@@ -662,6 +723,23 @@ class TestCategoryLabels(unittest.TestCase):
     anon = Client(_server.base_url)  # type: ignore[union-attr]
     status, _ = anon.request("GET", f"/api/u/{SEED_USER}/category-labels")
     self.assertEqual(status, 404)
+
+  def test_public_url_with_other_letter_case_creates_no_folder(self):
+    c = admin_client()
+    c.request("PUT", "/api/me/category-labels", {"category_labels": {"beach": {"label": "Beaches", "color": 4}}})
+    c.request("POST", "/api/me/publish", {"published": True})
+    other = SEED_USER.upper() if SEED_USER.upper() != SEED_USER else SEED_USER.lower()
+    users = _server.data_dir / "users"  # type: ignore[union-attr]
+    before = sorted(p.name for p in users.iterdir())
+    anon = Client(_server.base_url)  # type: ignore[union-attr]
+    try:
+      status, body = anon.request("GET", f"/api/u/{other}/category-labels")
+      self.assertEqual(status, 200)
+      self.assertEqual(body["category_labels"]["beach"], {"label": "Beaches", "color": 4})
+      self.assertEqual(anon.request("GET", f"/api/u/{other}/places")[0], 200)
+      self.assertEqual(sorted(p.name for p in users.iterdir()), before)
+    finally:
+      c.request("POST", "/api/me/publish", {"published": False})
 
 
 GPX_BODY = (
@@ -758,7 +836,7 @@ class TestRegions(unittest.TestCase):
     self.assertEqual(body["metadata"], 1)
     self.assertFalse((admin_dir() / "gpx" / "Old").exists())
     self.assertTrue((admin_dir() / "gpx" / "New" / "t.gpx").exists())
-    meta = json.loads((admin_dir() / "metadata.json").read_text())
+    meta = stored("metadata")
     self.assertIn("New/t", meta)
     self.assertNotIn("Old/t", meta)
 
@@ -804,7 +882,7 @@ class TestRegions(unittest.TestCase):
     self.assertFalse((admin_dir() / "gpx" / "Drop").exists())
     self.assertTrue((admin_dir() / "gpx" / "a.gpx").exists())
     self.assertTrue((admin_dir() / "gpx" / "b.gpx").exists())
-    meta = json.loads((admin_dir() / "metadata.json").read_text())
+    meta = stored("metadata")
     self.assertIn("a", meta)
     self.assertNotIn("Drop/a", meta)
 
@@ -826,9 +904,7 @@ class TestGpxMove(unittest.TestCase):
     gpx_root = admin_dir() / "gpx"
     if gpx_root.exists():
       shutil.rmtree(gpx_root)
-    meta_path = admin_dir() / "metadata.json"
-    if meta_path.exists():
-      meta_path.unlink()
+    reset_kind("metadata")
 
   def test_region_to_region(self):
     self.c.request("POST", "/api/gpx?region=From&name=t",
@@ -842,7 +918,7 @@ class TestGpxMove(unittest.TestCase):
     self.assertEqual(body["moved"], 1)
     self.assertFalse((admin_dir() / "gpx" / "From").exists())
     self.assertTrue((admin_dir() / "gpx" / "To" / "t.gpx").exists())
-    meta = json.loads((admin_dir() / "metadata.json").read_text())
+    meta = stored("metadata")
     self.assertIn("To/t", meta)
     self.assertNotIn("From/t", meta)
 
@@ -901,7 +977,7 @@ class TestGpxMove(unittest.TestCase):
     self.assertEqual(body["new_key"], "R/New")
     self.assertTrue((admin_dir() / "gpx" / "R" / "New.gpx").exists())
     self.assertFalse((admin_dir() / "gpx" / "R" / "Old.gpx").exists())
-    meta = json.loads((admin_dir() / "metadata.json").read_text())
+    meta = stored("metadata")
     self.assertIn("R/New", meta)
     self.assertNotIn("R/Old", meta)
 
@@ -984,9 +1060,7 @@ class TestTrailMetadata(unittest.TestCase):
   def setUp(self):
     self.c = admin_client()
     # Clear any prior state from a previous test in this same session.
-    meta_path = admin_dir() / "metadata.json"
-    if meta_path.exists():
-      meta_path.unlink()
+    reset_kind("metadata")
 
   def _put(self, metadata):
     return self.c.request("PUT", "/api/metadata", {"key": self.KEY, "metadata": metadata})
@@ -1281,7 +1355,7 @@ class TestImport(unittest.TestCase):
     fresh_places([])
 
   def test_areas_round_trip_through_export(self):
-    (admin_dir() / "areas.json").unlink(missing_ok=True)
+    reset_kind("area")
     self.c.request("POST", "/api/areas", {"name": "Kept", "geometry": SQUARE})
     with self.c.opener.open(_server.base_url + "/api/me/export") as r:  # type: ignore[union-attr]
       exported = zipfile.ZipFile(io.BytesIO(r.read()))
@@ -1453,8 +1527,8 @@ class TestImport(unittest.TestCase):
       fresh_places([])
       status, body = self._post_zip(self.c, mode, self._make_zip({"places.json": json.dumps([raw]).encode("utf-8")}))
       self.assertEqual(status, 200, body)
-      stored = json.loads((admin_dir() / "places.json").read_text("utf-8"))
-      self.assertEqual(stored, [want], mode)
+      rows = [{k: v for k, v in r.items() if k != "id"} for r in stored("place")]
+      self.assertEqual(rows, [want], mode)
 
   def test_merge_dedupes_on_normalized_name(self):
     fresh_places([{"name": "Keep", "lat": 1.0, "lon": 2.0, "visited": False}])
@@ -1473,8 +1547,7 @@ class TestImport(unittest.TestCase):
     status, body = self._post_zip(self.c, "prefs", payload)
     self.assertEqual(status, 200, body)
     self.assertEqual(body["imported"], {"places": 0, "areas": 0, "gpx": 0, "metadata": 0, "prefs": body["imported"]["prefs"]})
-    stored = json.loads((admin_dir() / "places.json").read_text("utf-8"))
-    self.assertEqual([p["name"] for p in stored], ["Keep"])
+    self.assertEqual([p["name"] for p in stored("place")], ["Keep"])
     self.assertFalse((admin_dir() / "gpx" / "skip").exists())
 
 
@@ -1600,10 +1673,16 @@ class TestAdmin(unittest.TestCase):
     bob_id = self._bob_id()
     bob_dir = _server.data_dir / "users" / "bob"  # type: ignore[union-attr]
     bob_dir.mkdir(parents=True, exist_ok=True)
-    (bob_dir / "places.json").write_text("[]", "utf-8")
+    reset_kind("place", [{"name": "Bobs", "lat": 1, "lon": 2}], "bob")
     status, _ = self.c.request("DELETE", f"/api/admin/users/{bob_id}")
     self.assertEqual(status, 200)
     self.assertFalse(bob_dir.exists())
+    conn = store_conn()
+    try:
+      for table in ("store_items", "store_revs", "store_migrated"):
+        self.assertEqual(conn.execute(f"SELECT COUNT(*) FROM {table} WHERE user_id=?", (bob_id,)).fetchone()[0], 0, table)
+    finally:
+      conn.close()
     names = {u["username"] for u in self.c.request("GET", "/api/admin/users")[1]["users"]}
     self.assertNotIn("bob", names)
 
@@ -1819,6 +1898,196 @@ class TestCrossOrigin(unittest.TestCase):
     self.assertEqual(headers.get("Access-Control-Allow-Origin"), "*")
     # Bearer-only cross-origin: never advertise credential support.
     self.assertIsNone(headers.get("Access-Control-Allow-Credentials"))
+
+
+class TestSync(unittest.TestCase):
+  def setUp(self):
+    self.c = admin_client()
+    fresh_places([])
+    reset_kind("metadata")
+    reset_kind("pref")
+    reset_kind("label")
+
+  def _epoch(self):
+    return self.c.request("GET", "/api/sync/changes?since=0&limit=1")[1]["epoch"]
+
+  def _changes(self, since=0, **qs):
+    qs.setdefault("epoch", self._epoch())
+    extra = "".join(f"&{k}={v}" for k, v in qs.items() if v is not None)
+    return self.c.request("GET", f"/api/sync/changes?since={since}{extra}")
+
+  def _batch(self, changes):
+    return self.c.request("POST", "/api/sync/batch", {"changes": changes})
+
+  def test_requires_login(self):
+    anon = Client(_server.base_url)  # type: ignore[union-attr]
+    self.assertEqual(anon.request("GET", "/api/sync/changes")[0], 401)
+    self.assertEqual(anon.request("POST", "/api/sync/batch", {"changes": []})[0], 401)
+
+  def test_rest_writes_show_up_in_the_feed(self):
+    head = self._changes()[1]["rev"]
+    _, created = self.c.request("POST", "/api/places", {"name": "Feed", "lat": 1, "lon": 2})
+    status, body = self._changes(head)
+    self.assertEqual(status, 200)
+    self.assertEqual([(c["kind"], c["deleted"]) for c in body["changes"]], [("place", False)])
+    pid = created["place"]["id"]
+    self.assertEqual(body["changes"][0]["id"], pid)
+    self.c.request("DELETE", "/api/places", {"id": pid})
+    body = self._changes(body["rev"])[1]
+    self.assertEqual([(c["id"], c["deleted"]) for c in body["changes"]], [(pid, True)])
+    self.assertNotIn("data", body["changes"][0])
+    self.assertTrue(created["ok"])
+
+  def test_batch_put_update_delete(self):
+    status, body = self._batch([{"kind": "place", "op": "put", "id": "abcdef01",
+                                 "data": {"name": "Local", "lat": 1, "lon": 2}}])
+    self.assertEqual(status, 200, body)
+    self.assertEqual(body["results"][0]["status"], "applied")
+    first_rev = body["results"][0]["rev"]
+    self.assertEqual([p["id"] for p in self.c.request("GET", "/api/places")[1]], ["abcdef01"])
+    again = self._batch([{"kind": "place", "op": "put", "id": "abcdef01",
+                          "data": {"name": "Local", "lat": 1, "lon": 2}}])[1]
+    self.assertEqual((again["results"][0]["status"], again["results"][0]["rev"]), ("noop", first_rev))
+    gone = self._batch([{"kind": "place", "op": "delete", "id": "abcdef01"}])[1]
+    self.assertEqual(gone["results"][0]["status"], "applied")
+    self.assertEqual(self.c.request("GET", "/api/places")[1], [])
+    self.assertEqual(self._batch([{"kind": "place", "op": "delete", "id": "abcdef01"}])[1]["results"][0]["status"], "noop")
+
+  def test_last_writer_wins_in_arrival_order(self):
+    status, body = self._batch([
+      {"kind": "place", "op": "put", "id": "abcdef02", "data": {"name": "First", "lat": 1, "lon": 2}},
+      {"kind": "place", "op": "put", "id": "abcdef02", "data": {"name": "Second", "lat": 1, "lon": 2}},
+      {"kind": "pref", "op": "put", "id": "theme", "data": "dark"},
+    ])
+    self.assertEqual(status, 200, body)
+    self.assertEqual([p["name"] for p in self.c.request("GET", "/api/places")[1]], ["Second"])
+    self.assertEqual(self.c.request("GET", "/api/me/prefs")[1]["theme"], "dark")
+    self.assertEqual(body["rev"], max(r["rev"] for r in body["results"]))
+
+  def test_batch_is_all_or_nothing(self):
+    head = self._changes()[1]["rev"]
+    status, body = self._batch([
+      {"kind": "place", "op": "put", "id": "abcdef03", "data": {"name": "Ok", "lat": 1, "lon": 2}},
+      {"kind": "place", "op": "put", "id": "abcdef04", "data": {"name": "Bad", "lat": 999, "lon": 2}},
+    ])
+    self.assertEqual(status, 400)
+    self.assertIn("changes[1]", body["error"])
+    self.assertEqual(self.c.request("GET", "/api/places")[1], [])
+    self.assertEqual(self._changes()[1]["rev"], head)
+
+  def test_batch_rejects_routes_and_unknown_kinds(self):
+    for change in ({"kind": "route", "op": "put", "id": "R/a", "data": {}},
+                   {"kind": "nope", "op": "put", "id": "x", "data": 1},
+                   {"kind": "pref", "op": "merge", "id": "x"},
+                   {"kind": "place", "op": "put", "id": "not-hex", "data": {"name": "x", "lat": 0, "lon": 0}},
+                   "text"):
+      with self.subTest(change=change):
+        self.assertEqual(self._batch([change])[0], 400)
+    self.assertEqual(self.c.request("POST", "/api/sync/batch", {"changes": "x"})[0], 400)
+
+  def test_metadata_through_batch_matches_rest(self):
+    self._batch([{"kind": "metadata", "op": "put", "id": "Reg/Trail", "data": {"rating": 4}}])
+    self.assertEqual(self.c.request("GET", "/api/metadata")[1]["Reg/Trail"], {"rating": 4})
+    self._batch([{"kind": "metadata", "op": "put", "id": "Reg/Trail", "data": {}}])
+    self.assertNotIn("Reg/Trail", self.c.request("GET", "/api/metadata")[1])
+
+  def test_bad_query_values(self):
+    self.assertEqual(self._changes("x")[0], 400)
+    self.assertEqual(self.c.request("GET", "/api/sync/changes?since=0&limit=0")[0], 400)
+
+  def test_concurrent_creates_get_unique_ids(self):
+    n = 16
+    results = []
+
+    def create(i):
+      status, body = admin_client().request("POST", "/api/places", {"name": f"Par {i}", "lat": i, "lon": 1})
+      results.append((status, body["place"]["id"] if status == 201 or status == 200 else None))
+
+    threads = [threading.Thread(target=create, args=(i,)) for i in range(n)]
+    for t in threads:
+      t.start()
+    for t in threads:
+      t.join()
+    ids = [pid for status, pid in results]
+    self.assertEqual(len(results), n)
+    self.assertNotIn(None, ids, results)
+    self.assertEqual(len(set(ids)), n)
+    self.assertEqual(len(self.c.request("GET", "/api/places")[1]), n)
+
+  def test_epoch_mismatch_or_absence_resets(self):
+    self._batch([{"kind": "pref", "op": "put", "id": "k", "data": 1}])
+    head = self._changes()[1]["rev"]
+    self.assertFalse(self._changes(head)[1]["reset"])
+    for epoch in ("stale", None):
+      body = self._changes(head, epoch=epoch)[1]
+      self.assertTrue(body["reset"], epoch)
+      self.assertIn("k", [c["id"] for c in body["changes"]])
+    self.assertEqual(self._batch([])[1]["epoch"], self._epoch())
+
+  def test_since_is_bounded(self):
+    self.assertEqual(self._changes(2**63)[0], 400)
+    self.assertEqual(self._changes(-1)[0], 400)
+    self.assertEqual(self._changes(2**63 - 1)[0], 200)
+
+  def test_feed_has_pos(self):
+    self._batch([{"kind": "place", "op": "put", "id": "abcdef01", "data": {"name": "P", "lat": 1, "lon": 2}}])
+    self.assertEqual(self._changes()[1]["changes"][0]["pos"], 1)
+
+  def test_batch_enforces_whole_set_limits(self):
+    labels = [{"kind": "label", "op": "put", "id": f"l{i}", "data": {"label": "L"}} for i in range(201)]
+    for chunk in (labels[:200], ):
+      self.assertEqual(self._batch(chunk)[0], 200)
+    status, _ = self._batch(labels[200:])
+    self.assertEqual(status, 409)
+    self.assertEqual(len(self.c.request("GET", "/api/me/category-labels")[1]["category_labels"]), 200)
+    big = "x" * 600_000
+    self.assertEqual(self._batch([{"kind": "pref", "op": "put", "id": "a", "data": big}])[0], 200)
+    status, _ = self._batch([{"kind": "pref", "op": "put", "id": "b", "data": big}])
+    self.assertEqual(status, 409)
+    self.assertNotIn("b", self.c.request("GET", "/api/me/prefs")[1])
+
+  def test_metadata_ids_are_stripped_like_rest(self):
+    self._batch([{"kind": "metadata", "op": "put", "id": " Reg/Trail ", "data": {"rating": 4}}])
+    self.assertEqual(list(self.c.request("GET", "/api/metadata")[1]), ["Reg/Trail"])
+
+  def test_paging_with_limit(self):
+    self._batch([{"kind": "pref", "op": "put", "id": f"k{i}", "data": i} for i in range(4)])
+    first = self._changes(0, limit=3)[1]
+    self.assertTrue(first["more"])
+    self.assertEqual(len(first["changes"]), 3)
+    second = self._changes(first["next"])[1]
+    self.assertFalse(second["more"])
+
+  def test_read_only_token_cannot_push(self):
+    status, body = self.c.request("POST", "/api/me/tokens", {"name": "ro", "scope": "readonly"})
+    self.assertEqual(status, 200, body)
+    auth = {"Authorization": "Bearer " + body["token"]}
+    anon = Client(_server.base_url)  # type: ignore[union-attr]
+    self.assertEqual(anon.request("POST", "/api/sync/batch", {"changes": []}, headers=auth)[0], 403)
+    self.assertEqual(anon.request("GET", "/api/sync/changes", headers=auth)[0], 200)
+
+
+class TestExportImportRoundTrip(unittest.TestCase):
+  def test_export_then_replace_restores_everything(self):
+    c = admin_client()
+    fresh_places([])
+    reset_kind("area")
+    reset_kind("metadata")
+    c.request("POST", "/api/places", {"name": "Round", "lat": 1, "lon": 2, "tags": ["x"]})
+    c.request("POST", "/api/areas", {"name": "Trip", "geometry": SQUARE})
+    c.request("PUT", "/api/metadata", {"key": "Reg/Trail", "metadata": {"rating": 3}})
+    with c.opener.open(_server.base_url + "/api/me/export") as r:  # type: ignore[union-attr]
+      archive = r.read()
+    names = zipfile.ZipFile(io.BytesIO(archive)).namelist()
+    self.assertTrue({"places.json", "areas.json", "metadata.json"} <= set(names))
+    before = {k: stored(k) for k in ("place", "area", "metadata")}
+    fresh_places([])
+    reset_kind("area")
+    reset_kind("metadata")
+    status, body = c.request("POST", "/api/me/import?mode=replace", raw_body=archive,
+                             content_type="application/zip")
+    self.assertEqual(status, 200, body)
+    self.assertEqual({k: stored(k) for k in ("place", "area", "metadata")}, before)
 
 
 if __name__ == "__main__":

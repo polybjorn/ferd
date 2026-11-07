@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import sqlite3
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from .common import ConflictError, NotFoundError, ValidationError, load_json_file, resolve_under, safe_path_component, write_json_file
+from . import store
+from .common import ConflictError, NotFoundError, ValidationError, resolve_under, safe_path_component
 from .routes import ROUTE_META_FIELDS
 from .users import _walk_follow_symlinks
 
@@ -70,7 +72,7 @@ def plan_gpx_move(gpx_root: Path, req: dict) -> list:
   return pairs
 
 
-def apply_gpx_move(udir: Path, req: dict, pairs: list) -> int:
+def apply_gpx_move(conn: sqlite3.Connection, uid: int, req: dict, pairs: list) -> int:
   """Rename the planned pairs, re-key the metadata entry and prune the old
   region dir if it emptied. Caller holds the .gpx.lock. Returns files moved."""
   if req["new_region"]:
@@ -79,12 +81,7 @@ def apply_gpx_move(udir: Path, req: dict, pairs: list) -> int:
   for src, dst in pairs:
     src.rename(dst)
     moved += 1
-  meta_path = udir / "metadata.json"
-  if meta_path.exists():
-    existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
-    if req["old_key"] in existing:
-      existing[req["new_key"]] = existing.pop(req["old_key"])
-      write_json_file(meta_path, existing)
+  store.rekey_metadata(conn, uid, {req["old_key"]: req["new_key"]})
   # Best-effort prune of an empty old region dir (no-region root never pruned).
   if req["old_region"]:
     src_dir = pairs[0][0].parent
@@ -259,14 +256,14 @@ def _route_files(gpx_root: Path) -> dict[str, dict]:
   return routes
 
 
-def build_geojson(udir: Path) -> dict:
+def build_geojson(udir: Path, places: list, areas: list, metadata: dict) -> dict:
   """A FeatureCollection of a user's places (Point), areas (Polygon or
-  MultiPolygon) and routes (LineString or MultiLineString). Every feature has
+  MultiPolygon) and routes (LineString or MultiLineString). Places, areas and
+  route metadata come in as rows; routes are the GPX files under `udir`. Every feature has
   a `kind` and a `name` property; the rest are the stored fields. Route
   geometry is coordinates and elevation only, so GPX timestamps, author and
   creator never reach the output."""
   features = []
-  places = load_json_file(udir / "places.json", expected_type=list, required=False, label="places.json")
   for p in places:
     if not isinstance(p, dict):
       continue
@@ -277,7 +274,6 @@ def build_geojson(udir: Path) -> dict:
     props.update((k, v) for k, v in p.items() if k not in ("lat", "lon"))
     features.append({"type": "Feature", "geometry": {"type": "Point", "coordinates": [lon, lat]}, "properties": props})
 
-  areas = load_json_file(udir / "areas.json", expected_type=list, required=False, label="areas.json")
   for a in areas:
     if not isinstance(a, dict) or not isinstance(a.get("geometry"), dict):
       continue
@@ -285,7 +281,6 @@ def build_geojson(udir: Path) -> dict:
     props.update((k, v) for k, v in a.items() if k != "geometry")
     features.append({"type": "Feature", "geometry": a["geometry"], "properties": props})
 
-  metadata = load_json_file(udir / "metadata.json", expected_type=dict, required=False, label="metadata.json")
   for key, r in sorted(_route_files(udir / "gpx").items()):
     try:
       lines = gpx_lines(r["path"].read_bytes())

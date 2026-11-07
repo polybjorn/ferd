@@ -12,11 +12,11 @@ import time
 from pathlib import Path
 
 from .auth import RATE_LIMIT_MAX_FAILS, RATE_LIMIT_WINDOW, RateLimiter, new_setup_token
-from .common import ValidationError
 from .config import load_config, parse_trusted_proxies
 from .db import db_connect, db_init, db_migrate
+from .migrate import edited_after_migration, migrate_user
 from .places import backfill_country_codes
-from .users import ensure_user_dir, migrate_legacy_data, seed_initial_user, user_count
+from .users import ensure_user_dir, migrate_legacy_data, seed_initial_user, user_count, user_dir
 from .handler import Handler
 
 
@@ -41,18 +41,24 @@ def main() -> int:
   db_migrate(conn)
   seed_initial_user(conn, cfg)
   migrate_legacy_data(conn, cfg)
-  # Ensure every existing user has a data dir (no-op for already-set-up ones).
-  for r in conn.execute("SELECT username FROM users").fetchall():
+  for r in conn.execute("SELECT id, username FROM users").fetchall():
+    name = r["username"]
     try:
-      udir = ensure_user_dir(cfg, r["username"])
-    except ValidationError:
-      continue
-    try:
-      n = backfill_country_codes(udir)
+      udir = user_dir(cfg, name)
+      counts = migrate_user(conn, r["id"], udir)
+      if counts:
+        print(f"[api] moved {name} into the database: " + ", ".join(f"{n} {k}" for k, n in counts.items()), file=sys.stderr)
+      # Only after migration: a folder created earlier would hide a wrong data_dir.
+      ensure_user_dir(cfg, name)
+      for stale in edited_after_migration(conn, r["id"], udir):
+        print(f"[api] WARNING: users/{name}/{stale} changed after {name} was migrated; "
+              "that edit is not in the database (an older version ran here?). "
+              "Export from that version and import here to recover it", file=sys.stderr)
+      n = backfill_country_codes(conn, r["id"])
       if n:
-        print(f"[api] set country_code on {n} places for {r['username']}", file=sys.stderr)
-    except (ValidationError, OSError) as e:
-      print(f"[api] country_code backfill skipped for {r['username']}: {e}", file=sys.stderr)
+        print(f"[api] set country_code on {n} places for {name}", file=sys.stderr)
+    except Exception as e:  # one user's trouble must not stop the server for the others
+      print(f"[api] startup work for {name} skipped: {type(e).__name__}: {e}", file=sys.stderr)
   # Setup token: if enabled and no users exist yet, generate one and require it
   # on /api/register. Print to stderr only; the admin copies it from logs.
   # Must run before conn.close() below - user_count needs the boot connection.

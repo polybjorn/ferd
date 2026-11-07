@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import json
 import re
+import sqlite3
 import sys
 import unicodedata
 from pathlib import Path
 from urllib.parse import urlparse
 
-from .common import ValidationError, _OMIT, _check_date, _check_rating, load_json_file, normalize_tags, with_file_lock, write_json_file
+from .common import ValidationError, _OMIT, _check_date, _check_rating, normalize_tags
+from .store import put_item, transaction
 
 
 PLACE_REQUIRED = {"name", "lat", "lon"}
@@ -242,37 +244,28 @@ def validate_place(p: object) -> dict:
   return out
 
 
-def backfill_country_codes(udir: Path) -> int:
-  """Set or refresh country_code on every place in a user's places.json from
-  its free-text country. Runs at startup, so places written before the field
-  existed get one, and a name the table learns in a later release gets
-  matched. Returns how many places changed."""
-  path = udir / "places.json"
-  if not path.exists():
-    return 0
-
-  def run():
-    places = load_json_file(path, expected_type=list, required=False, label="places.json")
-    changed = 0
-    for i, p in enumerate(places):
+def backfill_country_codes(conn: sqlite3.Connection, uid: int) -> int:
+  """Set or refresh country_code on every place of a user from its free-text
+  country. Runs at startup, so places written before the field existed get
+  one, and a name the table learns in a later release gets matched. Returns
+  how many places changed."""
+  changed = 0
+  with transaction(conn):
+    for row in conn.execute(
+      "SELECT id, data FROM store_items WHERE user_id=? AND kind='place' AND deleted=0", (uid,)
+    ).fetchall():
+      p = json.loads(row["data"])
       if not isinstance(p, dict):
         continue
       code = country_code_for(p.get("country"))
       if p.get("country_code") == code:
         continue
-      changed += 1
       rest = {k: v for k, v in p.items() if k != "country_code"}
-      if code is None:
-        places[i] = rest
-        continue
       out = {}
       for k, v in rest.items():
         out[k] = v
-        if k == "country":
+        if k == "country" and code is not None:
           out["country_code"] = code
-      places[i] = out
-    if changed:
-      write_json_file(path, places)
-    return changed
-
-  return with_file_lock(udir / ".places.lock", run)
+      put_item(conn, uid, "place", row["id"], out)
+      changed += 1
+  return changed

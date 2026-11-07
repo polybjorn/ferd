@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import secrets
 from http import HTTPStatus
 
+from .. import store
 from ..areas import validate_area
-from ..common import ValidationError, find_place_idx, load_json_file, write_json_file
+from ..common import NotFoundError, ValidationError
 from ..labels import clean_category_labels
 from ..places import PLACE_ID_RE, validate_place
 
@@ -16,8 +16,7 @@ class PlacesMixin:
     user = self._require_user()
     if user is None:
       return
-    udir = self._user_dir(user["username"])
-    self._send_user_json(udir, "category-labels.json", dict, default={}, key="category_labels")
+    self._send_json(HTTPStatus.OK, {"category_labels": store.get_map(self.conn, user["id"], "label")})
 
   def _h_me_category_labels_put(self):
     user = self._require_user()
@@ -31,28 +30,27 @@ class PlacesMixin:
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    labels_path = self._user_dir(user["username"]) / "category-labels.json"
     merged: dict[str, dict] = {}
 
     def do_update():
       # Preserve previously-assigned colors when the caller (e.g. Manage
       # Categories, which only knows about labels) omits color for a slug
       # that already had one. Keeps auto-assigned colors stable across edits.
-      existing = load_json_file(labels_path, expected_type=dict, required=False, label="category-labels.json")
+      existing = store.get_map(self.conn, user["id"], "label")
       for slug, entry in cleaned.items():
-        prior = existing.get(slug) if isinstance(existing, dict) else None
+        prior = existing.get(slug)
         if "color" not in entry and isinstance(prior, dict) and "color" in prior:
           entry = dict(entry)
           entry["color"] = prior["color"]
         merged[slug] = entry
-      write_json_file(labels_path, merged)
+      store.replace_map(self.conn, user["id"], "label", merged)
 
-    ok, _ = self._locked_write(user, "category-labels.json", do_update)
+    ok, _ = self._store_write(do_update)
     if not ok:
       return
     self._send_json(HTTPStatus.OK, {"ok": True, "category_labels": merged})
 
-  def _h_places_create(self):
+  def _create_item(self, kind: str, validate, status_key: str, total_key: str):
     user = self._require_user()
     if user is None:
       return
@@ -64,27 +62,43 @@ class PlacesMixin:
     if isinstance(body, dict):
       body.pop("id", None)
     try:
-      place = validate_place(body)
+      item = validate(body)
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    places_path = self._user_dir(user["username"]) / "places.json"
-
     def do_append():
-      existing = load_json_file(places_path, expected_type=list, required=False, label="places.json")
-      seen = {p["id"] for p in existing if isinstance(p, dict) and isinstance(p.get("id"), str)}
-      new_id = secrets.token_hex(4)
-      while new_id in seen:
-        new_id = secrets.token_hex(4)
-      place["id"] = new_id
-      existing.append(place)
-      write_json_file(places_path, existing)
-      return len(existing)
+      item["id"] = store.new_id(self.conn, user["id"], kind)
+      store.put_item(self.conn, user["id"], kind, item["id"], item)
+      return store.count_items(self.conn, user["id"], kind)
 
-    ok, total = self._locked_write(user, "places.json", do_append)
+    ok, total = self._store_write(do_append)
     if not ok:
       return
-    self._send_json(HTTPStatus.CREATED, {"ok": True, "total_places": total, "place": place})
+    self._send_json(HTTPStatus.CREATED, {"ok": True, total_key: total, status_key: item})
+
+  def _delete_item(self, kind: str, total_key: str):
+    user = self._require_user()
+    if user is None:
+      return
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    target_id = (body.get("id") or "").strip()
+    if not target_id or not PLACE_ID_RE.match(target_id):
+      return self._error(HTTPStatus.BAD_REQUEST, "id required (8-char hex)")
+
+    def do_delete():
+      if store.delete_item(self.conn, user["id"], kind, target_id) is None:
+        raise NotFoundError(f"{kind} not found: {target_id}")
+      return store.count_items(self.conn, user["id"], kind)
+
+    ok, total = self._store_write(do_delete)
+    if not ok:
+      return
+    self._send_json(HTTPStatus.OK, {"ok": True, total_key: total})
+
+  def _h_places_create(self):
+    self._create_item("place", validate_place, "place", "total_places")
 
   def _h_places_update(self):
     user = self._require_user()
@@ -109,20 +123,18 @@ class PlacesMixin:
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    places_path = self._user_dir(user["username"]) / "places.json"
-
     def do_update():
-      existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
-      idx = find_place_idx(existing, target_id)
+      current = store.get_item(self.conn, user["id"], "place", target_id)
+      if current is None:
+        raise NotFoundError(f"place not found: {target_id}")
       # Drop stale image_focus when image changes and the caller didn't
       # explicitly set a new focus. Focus is tied to a specific image's
       # framing; an image swap invalidates the old anchor.
-      if not focus_in_payload and existing[idx].get("image") != validated.get("image"):
+      if not focus_in_payload and current.get("image") != validated.get("image"):
         validated.pop("image_focus", None)
-      existing[idx] = validated
-      write_json_file(places_path, existing)
+      store.put_item(self.conn, user["id"], "place", target_id, validated)
 
-    ok, _ = self._locked_write(user, "places.json", do_update)
+    ok, _ = self._store_write(do_update)
     if not ok:
       return
     self._send_json(HTTPStatus.OK, {"ok": True, "place": validated})
@@ -142,88 +154,26 @@ class PlacesMixin:
       return self._error(HTTPStatus.BAD_REQUEST, "category required")
     target = target.strip()
 
-    udir = self._user_dir(user["username"])
-
-    def clear_in(filename: str):
-      path = udir / filename
-
-      def do_clear():
-        existing = load_json_file(path, expected_type=list, required=False, label=filename)
-        cleared = 0
-        for p in existing:
-          if isinstance(p, dict) and p.get("category") == target:
-            p.pop("category", None)
+    def do_clear():
+      cleared = 0
+      for kind in ("place", "area"):
+        for item in store.list_items(self.conn, user["id"], kind):
+          if isinstance(item, dict) and item.get("category") == target:
+            item.pop("category", None)
+            store.put_item(self.conn, user["id"], kind, item["id"], item)
             cleared += 1
-        if cleared:
-          write_json_file(path, existing)
-        return cleared
+      return cleared
 
-      return self._locked_write(user, filename, do_clear)
-
-    ok, cleared = clear_in("places.json")
+    ok, cleared = self._store_write(do_clear)
     if not ok:
       return
-    ok, cleared_areas = clear_in("areas.json")
-    if not ok:
-      return
-    self._send_json(HTTPStatus.OK, {"ok": True, "cleared": cleared + cleared_areas})
+    self._send_json(HTTPStatus.OK, {"ok": True, "cleared": cleared})
 
   def _h_places_delete(self):
-    user = self._require_user()
-    if user is None:
-      return
-    body = self._read_body_or_400()
-    if body is None:
-      return
-    target_id = (body.get("id") or "").strip()
-    if not target_id or not PLACE_ID_RE.match(target_id):
-      return self._error(HTTPStatus.BAD_REQUEST, "id required (8-char hex)")
-
-    places_path = self._user_dir(user["username"]) / "places.json"
-
-    def do_delete():
-      existing = load_json_file(places_path, expected_type=list, required=True, label="places.json")
-      idx = find_place_idx(existing, target_id)
-      del existing[idx]
-      write_json_file(places_path, existing)
-      return len(existing)
-
-    ok, total = self._locked_write(user, "places.json", do_delete)
-    if not ok:
-      return
-    self._send_json(HTTPStatus.OK, {"ok": True, "total_places": total})
+    self._delete_item("place", "total_places")
 
   def _h_areas_create(self):
-    user = self._require_user()
-    if user is None:
-      return
-    body = self._read_body_or_400()
-    if body is None:
-      return
-    if isinstance(body, dict):
-      body.pop("id", None)
-    try:
-      area = validate_area(body)
-    except ValidationError as e:
-      return self._error(HTTPStatus.BAD_REQUEST, str(e))
-
-    areas_path = self._user_dir(user["username"]) / "areas.json"
-
-    def do_append():
-      existing = load_json_file(areas_path, expected_type=list, required=False, label="areas.json")
-      seen = {a["id"] for a in existing if isinstance(a, dict) and isinstance(a.get("id"), str)}
-      new_id = secrets.token_hex(4)
-      while new_id in seen:
-        new_id = secrets.token_hex(4)
-      area["id"] = new_id
-      existing.append(area)
-      write_json_file(areas_path, existing)
-      return len(existing)
-
-    ok, total = self._locked_write(user, "areas.json", do_append)
-    if not ok:
-      return
-    self._send_json(HTTPStatus.CREATED, {"ok": True, "total_areas": total, "area": area})
+    self._create_item("area", validate_area, "area", "total_areas")
 
   def _h_areas_update(self):
     user = self._require_user()
@@ -243,51 +193,27 @@ class PlacesMixin:
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    areas_path = self._user_dir(user["username"]) / "areas.json"
-
     def do_update():
-      existing = load_json_file(areas_path, expected_type=list, required=False, label="areas.json")
-      existing[find_place_idx(existing, target_id, "area")] = validated
-      write_json_file(areas_path, existing)
+      if store.get_item(self.conn, user["id"], "area", target_id) is None:
+        raise NotFoundError(f"area not found: {target_id}")
+      store.put_item(self.conn, user["id"], "area", target_id, validated)
 
-    ok, _ = self._locked_write(user, "areas.json", do_update)
+    ok, _ = self._store_write(do_update)
     if not ok:
       return
     self._send_json(HTTPStatus.OK, {"ok": True, "area": validated})
 
   def _h_areas_delete(self):
-    user = self._require_user()
-    if user is None:
-      return
-    body = self._read_body_or_400()
-    if body is None:
-      return
-    target_id = (body.get("id") or "").strip()
-    if not target_id or not PLACE_ID_RE.match(target_id):
-      return self._error(HTTPStatus.BAD_REQUEST, "id required (8-char hex)")
-
-    areas_path = self._user_dir(user["username"]) / "areas.json"
-
-    def do_delete():
-      existing = load_json_file(areas_path, expected_type=list, required=False, label="areas.json")
-      del existing[find_place_idx(existing, target_id, "area")]
-      write_json_file(areas_path, existing)
-      return len(existing)
-
-    ok, total = self._locked_write(user, "areas.json", do_delete)
-    if not ok:
-      return
-    self._send_json(HTTPStatus.OK, {"ok": True, "total_areas": total})
+    self._delete_item("area", "total_areas")
 
   def _h_places_get(self):
     user = self._require_user()
     if user is None:
       return
-    udir = self._user_dir(user["username"])
-    self._send_user_json(udir, "places.json", list)
+    self._send_json(HTTPStatus.OK, store.list_items(self.conn, user["id"], "place"))
 
   def _h_areas_get(self):
     user = self._require_user()
     if user is None:
       return
-    self._send_user_json(self._user_dir(user["username"]), "areas.json", list)
+    self._send_json(HTTPStatus.OK, store.list_items(self.conn, user["id"], "area"))

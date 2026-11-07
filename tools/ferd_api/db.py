@@ -57,6 +57,10 @@ def db_migrate(conn: sqlite3.Connection) -> None:
   # legacy plaintext rows (token_urlsafe(32) is 43 chars) so they fail lookup
   # cleanly instead of lingering; affected users just log in again once.
   conn.execute("DELETE FROM sessions WHERE length(token) <> 64")
+  rev_cols = {r["name"] for r in conn.execute("PRAGMA table_info(store_revs)")}
+  if rev_cols and "epoch" not in rev_cols:
+    conn.execute("ALTER TABLE store_revs ADD COLUMN epoch TEXT NOT NULL DEFAULT ''")
+  conn.execute("UPDATE store_revs SET epoch = lower(hex(randomblob(8))) WHERE epoch = ''")
 
 
 def db_init(conn: sqlite3.Connection) -> None:
@@ -100,6 +104,27 @@ def db_init(conn: sqlite3.Connection) -> None:
       details TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_audit_log_id_desc ON audit_log(id DESC);
+    CREATE TABLE IF NOT EXISTS store_revs (
+      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      rev INTEGER NOT NULL,
+      epoch TEXT NOT NULL DEFAULT ''
+    );
+    CREATE TABLE IF NOT EXISTS store_items (
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      kind TEXT NOT NULL,
+      id TEXT NOT NULL,
+      pos INTEGER NOT NULL,
+      data TEXT,
+      rev INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      deleted INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (user_id, kind, id)
+    ) WITHOUT ROWID;
+    CREATE INDEX IF NOT EXISTS idx_store_items_rev ON store_items(user_id, rev);
+    CREATE TABLE IF NOT EXISTS store_migrated (
+      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      migrated_at INTEGER NOT NULL
+    );
   """)
 
 

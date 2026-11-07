@@ -4,16 +4,18 @@ from __future__ import annotations
 
 import io
 import json
+import sqlite3
 import sys
 import zipfile
 from http import HTTPStatus
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from ..common import BodyTooLarge, ImportTooLarge, ValidationError, with_file_lock, write_json_file
+from .. import store
+from ..common import BodyTooLarge, ImportTooLarge, ValidationError, with_file_lock
 from ..db import log_event
 from ..gpx import build_geojson
-from ..transfer import IMPORT_MAX_BYTES, IMPORT_WRITERS, parse_payloads, stage_archive
+from ..transfer import IMPORT_MAX_BYTES, IMPORT_TOP_FILES, IMPORT_WRITERS, parse_payloads, stage_archive
 from ..users import _is_export_junk, _walk_follow_symlinks, publishing_open, set_user_published
 
 
@@ -22,8 +24,7 @@ class AccountMixin:
     user = self._require_user()
     if user is None:
       return
-    udir = self._user_dir(user["username"])
-    self._send_user_json(udir, "prefs.json", dict, default={})
+    self._send_json(HTTPStatus.OK, store.get_map(self.conn, user["id"], "pref"))
 
   def _h_prefs_put(self):
     user = self._require_user()
@@ -34,8 +35,7 @@ class AccountMixin:
       return
     if not isinstance(body, dict):
       return self._error(HTTPStatus.BAD_REQUEST, "prefs must be an object")
-    udir = self._user_dir(user["username"])
-    ok, _ = self._locked_write(user, "prefs.json", lambda: write_json_file(udir / "prefs.json", body))
+    ok, _ = self._store_write(lambda: store.replace_map(self.conn, user["id"], "pref", body))
     if not ok:
       return
     self._send_json(HTTPStatus.OK, {"ok": True})
@@ -67,6 +67,10 @@ class AccountMixin:
     udir = self._user_dir(user["username"])
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+      # The JSON files come from rows; the copies on disk are the migration
+      # backup, and routes.json is regenerated, so none of them is zipped as is.
+      for arcname, data in store.export_files(self.conn, user["id"]).items():
+        zf.writestr(arcname, data)
       # Follow symlinks so a symlinked gpx/ dir (the documented dev pattern)
       # is included. Path.rglob silently skips into symlinked directories.
       for root, files in _walk_follow_symlinks(udir):
@@ -76,6 +80,8 @@ class AccountMixin:
             continue  # locks (dotfiles), OS noise (.DS_Store, etc.)
           if _is_export_junk(fname):
             continue  # editor/maintenance backups, OS metadata (see import)
+          if root_p == udir and fname in IMPORT_TOP_FILES:
+            continue
           path = root_p / fname
           try:
             zf.write(path, arcname=str(path.relative_to(udir)))
@@ -94,11 +100,12 @@ class AccountMixin:
     self.end_headers()
     self.wfile.write(payload)
 
-  def _send_geojson(self, udir: Path, username: str) -> None:
-    try:
-      body = json.dumps(build_geojson(udir), ensure_ascii=False).encode("utf-8")
-    except ValidationError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
+  def _send_geojson(self, udir: Path, uid: int, username: str) -> None:
+    with store.snapshot(self.conn):
+      places = store.list_items(self.conn, uid, "place")
+      areas = store.list_items(self.conn, uid, "area")
+      metadata = store.get_map(self.conn, uid, "metadata")
+    body = json.dumps(build_geojson(udir, places, areas, metadata), ensure_ascii=False).encode("utf-8")
     self.send_response(HTTPStatus.OK)
     self.send_header("Content-Type", "application/geo+json")
     self.send_header("Content-Length", str(len(body)))
@@ -113,7 +120,7 @@ class AccountMixin:
     user = self._require_user()
     if user is None:
       return
-    self._send_geojson(self._user_dir(user["username"]), user["username"])
+    self._send_geojson(self._user_dir(user["username"]), user["id"], user["username"])
 
   def _h_import_post(self):
     user = self._require_user()
@@ -147,10 +154,10 @@ class AccountMixin:
 
     udir = self._user_dir(user["username"])
     try:
-      result = with_file_lock(udir / ".import.lock", lambda: IMPORT_WRITERS[mode](udir, payload))
+      result = with_file_lock(udir / ".import.lock", lambda: IMPORT_WRITERS[mode](self.conn, user["id"], udir, payload))
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
-    except OSError as e:
+    except (OSError, sqlite3.Error) as e:
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"import failed: {e}")
 
     log_event(self.conn, actor=user["username"], action="user.import", details={

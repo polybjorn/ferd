@@ -76,10 +76,12 @@ Your config and data are never touched. If you deleted the source clone after in
 
 Two paths matter:
 
-- `users/` (everyone's places, routes, prefs, and uploaded GPX files)
-- `tools/app.db*` (users, sessions, publish flags, site-wide settings - SQLite database plus its `-shm` and `-wal` siblings)
+- `tools/app.db*` (users, sessions, publish flags, site-wide settings, and every user's places, areas, route metadata, prefs and category labels - SQLite database plus its `-shm` and `-wal` siblings)
+- `users/` (uploaded GPX files, plus the JSON files from before the SQLite store, which are only a stale copy)
 
-Lose the first and you lose data. Lose the second and accounts are gone but data survives.
+Lose `app.db` and you lose accounts and places. Lose `users/` and you lose the GPX files.
+
+Copy `app.db` only with the service stopped or with SQLite's `.backup`. A plain `cp` or `rsync` of a running database can capture the main file without the `-wal` changes, or half of a write.
 
 Simplest recipe: stop the service and tar the lot.
 
@@ -89,11 +91,23 @@ sudo tar -czf ferd-$(date +%F).tar.gz -C /srv/ferd users tools/app.db tools/app.
 sudo systemctl start ferd-api.service
 ```
 
-For an online backup without stopping the service, use SQLite's `.backup` for the DB and `rsync` for `users/`:
+For an online backup without stopping the service, use SQLite's `.backup` for the DB and `rsync` for `users/` (take the DB first, so it never refers to a GPX file the copy lacks):
 
 ```sh
 sudo -u ferd python3 -c "import sqlite3; sqlite3.connect('/srv/ferd/tools/app.db').backup(sqlite3.connect('/srv/ferd/tools/app.db.bak'))"
 sudo rsync -a /srv/ferd/users/ /backup/ferd-users/
 ```
 
+After restoring `app.db` from a backup, rotate the sync epoch so clients that kept their own copy fetch everything again instead of trusting a revision number that went backwards or stayed behind:
+
+```sh
+sudo -u ferd sqlite3 /srv/ferd/tools/app.db "UPDATE store_revs SET epoch = lower(hex(randomblob(8)))"
+```
+
 Each signed-in user can also download a per-user zip export from Settings.
+
+## A user's data will not load
+
+Startup moves each user's JSON files into `app.db` once. If a file cannot be read (not valid JSON, not UTF-8, the wrong shape, or the user folder is missing), that user is skipped and the log says which: `startup work for <name> skipped: ... <name>/<file>: <reason>`. Every request for that user then answers `500 user data not migrated: <name>/<file>: <reason>`, while other users are unaffected. Nothing is half-migrated. Fix the file, or move it out of the folder, then restart the service. A missing user folder means `data_dir` points to the wrong place or the restore lost `users/`.
+
+If the log warns that a JSON file changed after the user was migrated, an older version ran against this data and its edits are not in `app.db`. Export from that version and import here.

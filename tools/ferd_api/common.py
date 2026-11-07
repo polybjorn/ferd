@@ -117,6 +117,8 @@ def load_json_file(path: Path, *, expected_type: type, required: bool, label: st
     loaded = json.loads(path.read_text(encoding="utf-8"))
   except json.JSONDecodeError as e:
     raise ValidationError(f"existing {label} is not valid JSON: {e}")
+  except UnicodeDecodeError as e:
+    raise ValidationError(f"existing {label} is not valid UTF-8: {e}")
   if not isinstance(loaded, expected_type):
     kind = "a JSON array" if expected_type is list else "a JSON object"
     raise ValidationError(f"{label} must be {kind}")

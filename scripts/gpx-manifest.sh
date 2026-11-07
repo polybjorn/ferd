@@ -8,13 +8,7 @@ python3 - <<'PYEOF'
 import json, os, xml.etree.ElementTree as ET
 
 GPX_DIR = "gpx"
-METADATA_FILE = "metadata.json"
 OUTPUT_FILE = "routes.json"
-
-metadata = {}
-if os.path.exists(METADATA_FILE):
-    with open(METADATA_FILE) as f:
-        metadata = json.load(f)
 
 def has_elevation(path):
     try:
@@ -91,7 +85,7 @@ for root, _, files in os.walk(GPX_DIR):
         else:
             routes[base]["walkedFile"] = rel
 
-for key, route in routes.items():
+for route in routes.values():
     walked = route.get("walkedFile")
     planned = route.get("plannedFile")
     route["completed"] = walked is not None
@@ -107,11 +101,6 @@ for key, route in routes.items():
     if track_count > 1:
         route["trackCount"] = track_count
         route["trackNames"] = track_names
-
-    meta = metadata.get(key, {})
-    for f in ("source", "date_completed", "rating", "notes", "tags", "difficulty", "local_name"):
-        if f in meta:
-            route[f] = meta[f]
 
 REGION_NAMES = {
     "Tyrkia": "Turkey",
@@ -132,9 +121,6 @@ for route in routes.values():
     if "trackCount" in route:
         entry["trackCount"] = route["trackCount"]
         entry["trackNames"] = route["trackNames"]
-    for f in ("source", "date_completed", "rating", "notes", "tags", "difficulty", "local_name"):
-        if f in route:
-            entry[f] = route[f]
     regions[rname]["routes"].append(entry)
 
 # Sort regions alphabetically, but push the no-region group ("") to the end

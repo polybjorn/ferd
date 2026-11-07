@@ -12,8 +12,10 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from ..auth import READONLY_POST_ALLOW, SESSION_DAYS, api_token_lookup, hash_token, session_lookup, session_touch
-from ..common import BodyTooLarge, NotFoundError, ValidationError, load_json_file, with_file_lock
-from ..users import ensure_user_dir
+from ..common import BodyTooLarge, NotFoundError, ValidationError
+from ..migrate import ensure_migrated
+from ..store import transaction
+from ..users import ensure_user_dir, user_dir
 
 
 class RequestMixin:
@@ -163,27 +165,39 @@ class RequestMixin:
     if not user:
       self._error(HTTPStatus.UNAUTHORIZED, "not authenticated")
       return None
+    if not self._ensure_store(user["id"], user["username"]):
+      return None
     return user
+
+  def _ensure_store(self, uid: int, username: str) -> bool:
+    """Make sure the user's JSON files have been copied into rows. The startup
+    pass normally did; this covers a user created since and one whose files
+    were unreadable then. Sends a 500 and returns False if they still are."""
+    try:
+      ensure_migrated(self.conn, uid, user_dir(self.cfg, username))
+    except (ValidationError, OSError, sqlite3.Error) as e:
+      self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"user data not migrated: {e}")
+      return False
+    return True
 
   def _user_dir(self, username: str) -> Path:
     """Get + ensure the per-user data dir."""
     return ensure_user_dir(self.cfg, username)
 
-  def _locked_write(self, user, filename: str, fn):
-    """Run fn() under the per-user write lock for `filename`, mapping storage
-    errors to HTTP responses (NotFoundError -> 404, ValidationError -> 409,
-    OSError -> 500). fn does its own load/mutate/write and returns whatever the
-    caller needs for its response. Returns (True, result) on success, or
-    (False, None) after an error response has already been sent."""
-    lock_path = self._user_dir(user["username"]) / ("." + filename[:-len(".json")] + ".lock")
+  def _store_write(self, fn):
+    """Run fn() as one all-or-nothing transaction, mapping storage errors to
+    HTTP responses (NotFoundError -> 404, ValidationError -> 409, database
+    error -> 500). Returns (True, result), or (False, None) after an error
+    response has been sent."""
     try:
-      return True, with_file_lock(lock_path, fn)
+      with transaction(self.conn):
+        return True, fn()
     except NotFoundError as e:
       self._error(HTTPStatus.NOT_FOUND, str(e))
     except ValidationError as e:
       self._error(HTTPStatus.CONFLICT, str(e))
-    except OSError as e:
-      self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to write {filename}: {e}")
+    except sqlite3.Error as e:
+      self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"failed to save: {e}")
     return False, None
 
   def _client_ip(self) -> str:
@@ -222,17 +236,6 @@ class RequestMixin:
 
   def _error(self, status: int, message: str) -> None:
     self._send_json(status, {"error": message})
-
-  def _send_user_json(self, udir: Path, filename: str, expected_type: type, *, default=None, key: str | None = None) -> None:
-    """Send a per-user JSON file. A missing file reads as empty; `default`
-    replaces an empty value and `key` wraps the result in {key: value}."""
-    try:
-      data = load_json_file(udir / filename, expected_type=expected_type, required=False, label=filename)
-    except ValidationError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(e))
-    if default is not None:
-      data = data or default
-    self._send_json(HTTPStatus.OK, {key: data} if key else data)
 
   def _admin_body(self):
     """(admin row, parsed body) for an admin-only JSON endpoint, or None once

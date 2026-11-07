@@ -24,12 +24,21 @@ def registration_open(conn: sqlite3.Connection) -> bool:
   return setting_get(conn, "registration", "closed") == "open"
 
 
-def create_user(conn: sqlite3.Connection, username: str, password: str, is_admin: bool = False) -> int:
+def create_user(conn: sqlite3.Connection, username: str, password: str, is_admin: bool = False, fresh: bool = True) -> int:
+  """Insert a user. A fresh user has no JSON files to copy, so the migrated
+  marker is written here; without it the first request would migrate from a
+  folder that may not exist yet. `fresh=False` leaves the user to the startup
+  migration, for a seeded user whose data may already sit on disk."""
   salt, digest = hash_password(password)
   cur = conn.execute(
     "INSERT INTO users(username, pw_salt, pw_hash, is_admin, created_at) VALUES (?, ?, ?, ?, ?)",
     (username, salt, digest, 1 if is_admin else 0, int(time.time())),
   )
+  if fresh:
+    conn.execute(
+      "INSERT OR IGNORE INTO store_migrated(user_id, migrated_at) VALUES (?, ?)",
+      (cur.lastrowid, int(time.time())),
+    )
   return cur.lastrowid
 
 
@@ -44,7 +53,7 @@ def seed_initial_user(conn: sqlite3.Connection, cfg: dict) -> None:
   if not user or not pw:
     return
   if user_count(conn) == 0:
-    create_user(conn, user, pw, is_admin=True)
+    create_user(conn, user, pw, is_admin=True, fresh=False)
     print(f"[api] seeded initial admin '{user}'", file=sys.stderr)
 
 
@@ -153,14 +162,6 @@ def dir_size_bytes(path: Path) -> int:
       except OSError:
         continue
   return total
-
-
-def count_user_places(udir: Path) -> int:
-  try:
-    data = json.loads((udir / "places.json").read_text("utf-8"))
-    return len(data) if isinstance(data, list) else 0
-  except (OSError, json.JSONDecodeError):
-    return 0
 
 
 def count_user_routes(udir: Path) -> int:

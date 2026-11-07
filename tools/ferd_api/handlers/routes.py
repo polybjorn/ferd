@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import sqlite3
 import subprocess
 from http import HTTPStatus
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from ..common import BodyTooLarge, ConflictError, NotFoundError, ValidationError, atomic_write_bytes, load_json_file, resolve_under, safe_path_component, with_file_lock, write_json_file
+from .. import store
+from ..common import BodyTooLarge, ConflictError, NotFoundError, ValidationError, atomic_write_bytes, resolve_under, safe_path_component, with_file_lock
 from ..gpx import GPX_MAX_BYTES, apply_gpx_move, parse_gpx_move, plan_gpx_move, strip_gpx_pii, validate_gpx
 from ..routes import validate_route_metadata
 
@@ -135,7 +137,7 @@ class RoutesMixin:
 
   def _h_gpx_move(self):
     """Move and/or rename a route (and any .planned.gpx sibling). Re-keys
-    its metadata.json entry, prunes the old region dir if empty, and
+    its metadata entry, prunes the old region dir if empty, and
     regenerates the manifest. Body: {key, new_region, new_name?}. Key is
     'Region/Route' or 'Route' (no region); new_region is '' for no-region;
     new_name is optional (defaults to the current route name)."""
@@ -160,8 +162,8 @@ class RoutesMixin:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
     try:
-      moved = with_file_lock(udir / ".gpx.lock", lambda: apply_gpx_move(udir, req, pairs))
-    except OSError as e:
+      moved = with_file_lock(udir / ".gpx.lock", lambda: apply_gpx_move(self.conn, user["id"], req, pairs))
+    except (OSError, sqlite3.Error) as e:
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"move failed: {e}")
     manifest_status = self._regenerate_manifest(udir)
     self._send_json(HTTPStatus.OK, {
@@ -243,7 +245,7 @@ class RoutesMixin:
 
   def _h_region_rename(self):
     """Rename a region: rename the gpx/<from> directory and rewrite any
-    metadata.json keys that referenced the old name. Regenerates the manifest."""
+    metadata keys that referenced the old name. Regenerates the manifest."""
     user = self._require_user()
     if user is None:
       return
@@ -270,29 +272,17 @@ class RoutesMixin:
     if dst.exists():
       return self._error(HTTPStatus.CONFLICT, f"region already exists: {new_name}")
 
-    meta_path = udir / "metadata.json"
     lock_path = udir / ".gpx.lock"
     moved = {"routes": 0, "metadata": 0}
 
     def do_rename():
       src.rename(dst)
       moved["routes"] = sum(1 for p in dst.glob("*.gpx") if p.is_file())
-      if meta_path.exists():
-        existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
-        prefix = old_name + "/"
-        updated = {}
-        for k, v in existing.items():
-          if isinstance(k, str) and k.startswith(prefix):
-            updated[new_name + "/" + k[len(prefix):]] = v
-            moved["metadata"] += 1
-          else:
-            updated[k] = v
-        if moved["metadata"]:
-          write_json_file(meta_path, updated)
+      moved["metadata"] = store.rekey_metadata_prefix(self.conn, user["id"], old_name + "/", new_name + "/")
 
     try:
       with_file_lock(lock_path, do_rename)
-    except OSError as e:
+    except (OSError, sqlite3.Error) as e:
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"rename failed: {e}")
     manifest_status = self._regenerate_manifest(udir)
     self._send_json(HTTPStatus.OK, {
@@ -303,7 +293,7 @@ class RoutesMixin:
 
   def _h_region_clear(self):
     """Move every GPX in gpx/<name>/ up to gpx/ (no-region bucket), rewrite
-    matching metadata.json keys, then delete the now-empty directory.
+    matching metadata keys, then delete the now-empty directory.
     Refuses with 409 if any move would overwrite an existing root-level file."""
     user = self._require_user()
     if user is None:
@@ -331,7 +321,6 @@ class RoutesMixin:
       return self._error(HTTPStatus.CONFLICT,
                          f"cannot clear: filename(s) already exist at root: {', '.join(conflicts)}")
 
-    meta_path = udir / "metadata.json"
     lock_path = udir / ".gpx.lock"
     moved = {"routes": 0, "metadata": 0}
 
@@ -342,18 +331,7 @@ class RoutesMixin:
         if not p.name.endswith(".planned.gpx"):
           moved["routes"] += 1
       # Rewrite metadata keys: "<name>/Route" -> "Route"
-      if meta_path.exists():
-        existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
-        prefix = name + "/"
-        updated = {}
-        for k, v in existing.items():
-          if isinstance(k, str) and k.startswith(prefix):
-            updated[k[len(prefix):]] = v
-            moved["metadata"] += 1
-          else:
-            updated[k] = v
-        if moved["metadata"]:
-          write_json_file(meta_path, updated)
+      moved["metadata"] = store.rekey_metadata_prefix(self.conn, user["id"], name + "/", "")
       # Best-effort prune.
       try:
         if not any(region_dir.iterdir()):
@@ -363,7 +341,7 @@ class RoutesMixin:
 
     try:
       with_file_lock(lock_path, do_clear)
-    except OSError as e:
+    except (OSError, sqlite3.Error) as e:
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"clear failed: {e}")
     manifest_status = self._regenerate_manifest(udir)
     self._send_json(HTTPStatus.OK, {
@@ -418,16 +396,28 @@ class RoutesMixin:
     cmd_path = Path(cmd)
     if not cmd_path.is_absolute():
       cmd_path = (repo_dir / cmd).resolve()
-    try:
+    uid = self._current_user()["id"]
+
+    def run_and_ingest():
       proc = subprocess.run(
         [str(cmd_path), str(target_dir)],
         shell=False, check=False, timeout=60, cwd=str(target_dir),
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
       )
+      # The script's routes.json is its output, not the store. Reading it back
+      # under the same lock keeps two runs from landing in the wrong order.
+      if proc.returncode == 0:
+        store.ingest_route_manifest(self.conn, uid, target_dir / "routes.json")
+      return proc
+
+    try:
+      proc = with_file_lock(target_dir / ".manifest.lock", run_and_ingest)
     except FileNotFoundError:
       return {"ran": False, "reason": f"manifest_cmd not found: {cmd}"}
     except subprocess.TimeoutExpired:
       return {"ran": False, "reason": "manifest_cmd timed out"}
+    except sqlite3.Error as e:
+      return {"ran": True, "exit_code": 1, "stderr_tail": f"routes not stored: {e}"}
     return {
       "ran": True,
       "exit_code": proc.returncode,
@@ -438,20 +428,18 @@ class RoutesMixin:
     user = self._require_user()
     if user is None:
       return
-    udir = self._user_dir(user["username"])
-    self._send_user_json(udir, "routes.json", dict, default={"regions": []})
+    self._send_json(HTTPStatus.OK, store.routes_manifest(self.conn, user["id"]))
 
   def _h_metadata_get(self):
     user = self._require_user()
     if user is None:
       return
-    udir = self._user_dir(user["username"])
-    self._send_user_json(udir, "metadata.json", dict, default={})
+    self._send_json(HTTPStatus.OK, store.get_map(self.conn, user["id"], "metadata"))
 
   def _h_metadata_put(self):
     """Upsert metadata for one route. Body: {key, metadata}. Empty metadata
-    deletes the key. Triggers a manifest regen so routes.json picks up the
-    change."""
+    deletes the key. The manifest is not regenerated: metadata rows are laid
+    over the route rows when it is served."""
     user = self._require_user()
     if user is None:
       return
@@ -465,7 +453,7 @@ class RoutesMixin:
       return self._error(HTTPStatus.BAD_REQUEST, "key too long")
     # Key shape: "Region/Route" for regioned routes, or just "Route" for
     # root-level (no region). Defense in depth; the value never touches the
-    # filesystem on this path, but rejecting weird input keeps metadata.json clean.
+    # filesystem on this path, but rejecting weird input keeps stored keys clean.
     parts = key.split("/")
     if len(parts) not in (1, 2):
       return self._error(HTTPStatus.BAD_REQUEST, "key must be 'Region/Route name' or 'Route name'")
@@ -479,23 +467,16 @@ class RoutesMixin:
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
 
-    udir = self._user_dir(user["username"])
-    meta_path = udir / "metadata.json"
-
     def do_write():
-      existing = load_json_file(meta_path, expected_type=dict, required=False, label="metadata.json")
       if entry:
-        existing[key] = entry
+        store.put_item(self.conn, user["id"], "metadata", key, entry)
       else:
-        existing.pop(key, None)
-      write_json_file(meta_path, existing)
-      return existing
+        store.delete_item(self.conn, user["id"], "metadata", key)
 
-    ok, _ = self._locked_write(user, "metadata.json", do_write)
+    ok, _ = self._store_write(do_write)
     if not ok:
       return
-    manifest_status = self._regenerate_manifest(udir)
-    self._send_json(HTTPStatus.OK, {"ok": True, "key": key, "metadata": entry, "manifest": manifest_status})
+    self._send_json(HTTPStatus.OK, {"ok": True, "key": key, "metadata": entry})
 
   def _h_gpx_get(self, region: str, fname: str):
     """Serve an owned GPX file. Path components are validated."""

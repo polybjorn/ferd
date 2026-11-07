@@ -4,13 +4,18 @@ from __future__ import annotations
 
 import io
 import json
+import os
+import secrets
 import shutil
+import sqlite3
+import sys
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from . import store
 from .areas import validate_area
-from .common import ImportTooLarge, ValidationError, atomic_write_bytes, load_json_file, resolve_under, safe_path_component, write_json_file
+from .common import ImportTooLarge, ValidationError, atomic_write_bytes, resolve_under, safe_path_component, write_json_file
 from .gpx import strip_gpx_pii
 from .labels import clean_category_labels
 from .places import validate_place
@@ -165,15 +170,6 @@ def parse_payloads(staged: dict[str, bytes], mode: str) -> ImportPayload:
   return out
 
 
-def _merge_json_object(path: Path, new: dict, label: str) -> int:
-  """Overlay `new` onto the object stored at `path`; return how many keys changed."""
-  existing = load_json_file(path, expected_type=dict, required=False, label=label)
-  changed = sum(1 for k, v in new.items() if existing.get(k) != v)
-  existing.update(new)
-  write_json_file(path, existing)
-  return changed
-
-
 def _write_import_gpx(udir: Path, gpx: dict[str, bytes]) -> None:
   for arcname, data in gpx.items():
     # Contain against gpx/ rather than udir, so a gpx/ that is a symlink to an
@@ -183,31 +179,60 @@ def _write_import_gpx(udir: Path, gpx: dict[str, bytes]) -> None:
     atomic_write_bytes(target, data)
 
 
-def import_replace(udir: Path, payload: ImportPayload) -> dict:
-  for name in IMPORT_TOP_FILES:
-    p = udir / name
-    if p.exists():
-      p.unlink()
+def _remove_path(path: Path) -> None:
+  if path.is_symlink() or path.is_file():
+    path.unlink()
+  elif path.exists():
+    shutil.rmtree(path)
+
+
+def import_replace(conn: sqlite3.Connection, uid: int, udir: Path, payload: ImportPayload) -> dict:
+  """Make the account equal the archive: rows are replaced by its files' items
+  and the GPX tree by its tracks.
+
+  The tracks are written to a staging folder beside the user folder first, so
+  the write transaction (which blocks every user's writes) holds only row work
+  and two renames. A failure at any point puts the old tree back and rolls the
+  rows back, leaving both as they were."""
+  token = secrets.token_hex(4)
+  stage = udir / f".import-{token}"
+  aside = udir / f".gpx-old-{token}"
   gpx_root = udir / "gpx"
-  if gpx_root.is_symlink():
-    # Replace-mode wipes the GPX tree. If it's a symlink, drop the link itself
-    # rather than rmtree-ing the target (which could be a user-managed
-    # external directory).
-    gpx_root.unlink()
-  elif gpx_root.exists():
-    shutil.rmtree(gpx_root)
-  files = {
-    "places.json": payload.places,
-    "areas.json": payload.areas,
-    "routes.json": payload.routes,
-    "metadata.json": payload.metadata,
-    "prefs.json": payload.prefs,
-    "category-labels.json": payload.labels,
-  }
-  for name, data in files.items():
-    if data is not None:
-      write_json_file(udir / name, data)
-  _write_import_gpx(udir, payload.gpx)
+  swapped = False
+  try:
+    _write_import_gpx(stage, payload.gpx)
+    (stage / "gpx").mkdir(parents=True, exist_ok=True)
+    try:
+      with store.transaction(conn):
+        store.replace_list(conn, uid, "place", payload.places or [])
+        store.replace_list(conn, uid, "area", payload.areas or [])
+        store.replace_map(conn, uid, "metadata", payload.metadata or {})
+        store.replace_map(conn, uid, "pref", payload.prefs or {})
+        store.replace_map(conn, uid, "label", payload.labels or {})
+        store.sync_route_manifest(conn, uid, payload.routes or {})
+        # A symlinked gpx/ is renamed as a link, never followed, so replace-mode
+        # cannot wipe a user-managed external directory.
+        if gpx_root.is_symlink() or gpx_root.exists():
+          os.rename(gpx_root, aside)
+        os.rename(stage / "gpx", gpx_root)
+        swapped = True
+    except BaseException:
+      if swapped:
+        os.rename(gpx_root, stage / "gpx")
+      if aside.is_symlink() or aside.exists():
+        os.rename(aside, gpx_root)
+      raise
+    _remove_path(aside)
+  finally:
+    _remove_path(stage)
+  routes_file = udir / "routes.json"
+  try:
+    if payload.routes is not None:
+      write_json_file(routes_file, payload.routes)
+    elif routes_file.exists():
+      routes_file.unlink()
+  except OSError as e:
+    print(f"[api] import: routes.json not refreshed: {e}", file=sys.stderr)
   return {
     "added_places": len(payload.places or []),
     "added_areas": len(payload.areas or []),
@@ -216,44 +241,34 @@ def import_replace(udir: Path, payload: ImportPayload) -> dict:
   }
 
 
-def _merge_prefs_and_labels(udir: Path, payload: ImportPayload) -> int:
+def _merge_prefs_and_labels(conn: sqlite3.Connection, uid: int, payload: ImportPayload) -> int:
   changed_prefs = 0
   if payload.prefs is not None:
-    changed_prefs = _merge_json_object(udir / "prefs.json", payload.prefs, "prefs.json")
+    changed_prefs = store.merge_map(conn, uid, "pref", payload.prefs)
   if payload.labels is not None:
-    _merge_json_object(udir / "category-labels.json", payload.labels, "category-labels.json")
+    store.merge_map(conn, uid, "label", payload.labels)
   return changed_prefs
 
 
-def import_merge(udir: Path, payload: ImportPayload) -> dict:
-  def merge_by_name(filename: str, incoming: list | None) -> int:
-    if incoming is None:
-      return 0
-    path = udir / filename
-    existing = load_json_file(path, expected_type=list, required=False, label=filename)
-    names = {p.get("name") for p in existing if isinstance(p, dict)}
-    count = 0
-    for p in incoming:
-      if p["name"] not in names:
-        existing.append(p)
-        names.add(p["name"])
-        count += 1
-    write_json_file(path, existing)
-    return count
-
-  added = merge_by_name("places.json", payload.places)
-  added_areas = merge_by_name("areas.json", payload.areas)
-  changed_meta = 0
-  if payload.metadata is not None:
-    changed_meta = _merge_json_object(udir / "metadata.json", payload.metadata, "metadata.json")
-  changed_prefs = _merge_prefs_and_labels(udir, payload)
+def import_merge(conn: sqlite3.Connection, uid: int, udir: Path, payload: ImportPayload) -> dict:
+  with store.transaction(conn):
+    added = store.append_unique_names(conn, uid, "place", payload.places or [])
+    added_areas = store.append_unique_names(conn, uid, "area", payload.areas or [])
+    changed_meta = 0
+    if payload.metadata is not None:
+      changed_meta = store.merge_map(conn, uid, "metadata", payload.metadata)
+    changed_prefs = _merge_prefs_and_labels(conn, uid, payload)
+  # After the commit, so file writes never hold the database lock. A failure
+  # here is reported as a failed import; running the merge again is safe.
   _write_import_gpx(udir, payload.gpx)
   return {"added_places": added, "added_areas": added_areas, "changed_meta": changed_meta, "changed_prefs": changed_prefs}
 
 
-def import_prefs(udir: Path, payload: ImportPayload) -> dict:
-  """Preferences-only import: prefs.json and category-labels.json, nothing else."""
-  return {"added_places": 0, "added_areas": 0, "changed_meta": 0, "changed_prefs": _merge_prefs_and_labels(udir, payload)}
+def import_prefs(conn: sqlite3.Connection, uid: int, udir: Path, payload: ImportPayload) -> dict:
+  """Preferences-only import: prefs and category labels, nothing else."""
+  with store.transaction(conn):
+    changed_prefs = _merge_prefs_and_labels(conn, uid, payload)
+  return {"added_places": 0, "added_areas": 0, "changed_meta": 0, "changed_prefs": changed_prefs}
 
 
 IMPORT_WRITERS = {"replace": import_replace, "merge": import_merge, "prefs": import_prefs}
