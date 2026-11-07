@@ -392,7 +392,7 @@ function ImportSection({ ids, modeName, modes, replaceBody, run }) {
 // Hands a downloaded file to the user. The Android shell's WebView drops
 // blob and anchor downloads, so there the bytes go to native, which opens the
 // system "Save to..." picker.
-async function saveDownload(blob, fname, mimeType) {
+export async function saveDownload(blob, fname, mimeType) {
   if (window.FerdAndroid && typeof window.FerdAndroid.exportFile === 'function') {
     await new Promise((resolve, reject) => {
       const reader = new FileReader();

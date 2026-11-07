@@ -1,9 +1,12 @@
 import { DATA_FILES, state } from './core.js';
 import { applyAuth, fetchJson, hasServer, isReadOnly, serverBase, serverFileUrl } from './server.js';
+import { effect } from '@preact/signals';
 import {
-  authCacheKey, loadPublic, metaGet, metaSet, onRemoteChange, open as openStore, sync, synced as storeSynced,
-  updateOfflineBanner,
+  authCacheKey, discardOp, dismissKept, exportOldData, issueText, loadPublic, metaGet, metaSet, onRemoteChange,
+  open as openStore, sync, syncIssues, synced as storeSynced, updateOfflineBanner,
 } from './store.js';
+import { DialogHead, html, openViewModal, useState } from './view.js';
+import { t } from './i18n.js';
 import {
   DEFAULT_CONFIG, applyControlVisibility, catalogEnabled, getDefaultShow, getJsonListPref,
   loadSyncedPrefs, refreshTabVisibility,
@@ -37,7 +40,7 @@ import './history.js';
 import './routes-list.js';
 import './route-detail.js';
 import './router.js';
-import './settings/settings.js';
+import { saveDownload } from './settings/settings.js';
 import './settings/logs.js';
 import './settings/categories.js';
 import './settings/regions.js';
@@ -78,9 +81,36 @@ function loadData() {
   });
 }
 
+// The data saved by an older version could not be brought up to date. It
+// is untouched, so nothing is lost, but the app cannot run on it: editing
+// would start a second copy that the next attempt overwrites.
+function showUpgradeFailed() {
+  document.body.classList.remove('app-booting', 'signin-only');
+  const app = document.getElementById('app');
+  app.innerHTML = '<div class="loading upgrade-failed">'
+    + '<p>' + t('upgrade.failed') + '</p>'
+    + '<div class="sync-issue-actions"><button type="button" class="primary" id="upgrade-retry">' + t('upgrade.retry') + '</button>'
+    + '<button type="button" id="upgrade-export">' + t('upgrade.export') + '</button></div>'
+    + '<p class="modal-error" id="upgrade-error"></p></div>';
+  app.querySelector('#upgrade-retry').addEventListener('click', () => location.reload());
+  app.querySelector('#upgrade-export').addEventListener('click', () => {
+    exportOldData()
+      .then(blob => saveDownload(blob, 'ferd-saved-data.json', 'application/json'))
+      .catch(e => {
+        const el = app.querySelector('#upgrade-error');
+        el.textContent = t('common.failed', { message: (e && e.message) || String(e) });
+        el.classList.add('visible');
+      });
+  });
+}
+
 export function loadDataAndRender() {
   const v = state.viewer;
-  return loadData().then(function(loaded) {
+  return loadData().catch(e => {
+    if (e && e.migration) { showUpgradeFailed(); return 'upgrade-failed'; }
+    throw e;
+  }).then(function(loaded) {
+    if (loaded === 'upgrade-failed') return;
     loadSyncedPrefs();
     refreshTabVisibility();
     if (!loaded) {
@@ -222,6 +252,18 @@ startup();
   window.addEventListener('offline', updateOfflineBanner);
   updateOfflineBanner();
 
+  const issuesBanner = document.getElementById('pwa-sync-issues');
+  const issuesText = document.getElementById('pwa-sync-issues-text');
+  effect(() => {
+    const { stuck, kept } = syncIssues.value;
+    const parts = [];
+    if (stuck.length) parts.push(t('syncIssues.bannerStuck', { count: stuck.length }));
+    if (kept.length) parts.push(t('syncIssues.bannerKept', { count: kept.length }));
+    issuesText.textContent = parts.join(' ');
+    issuesBanner.classList.toggle('visible', parts.length > 0);
+  });
+  document.getElementById('pwa-sync-issues-btn').addEventListener('click', () => openViewModal(html`<${SyncIssues} />`));
+
   if (!('serviceWorker' in navigator)) return;
 
   // After a hard-refresh the browser loads without an SW controller,
@@ -275,3 +317,48 @@ startup();
     try { reg.update(); } catch (_) {}
   }).catch(() => { /* registration failed; app still works online */ });
 })();
+
+/** @type {Record<string, string>} */
+const OP_TEXT = {
+  uploadGpx: 'syncIssues.op.upload', deleteGpx: 'syncIssues.op.delete', moveGpx: 'syncIssues.op.move',
+  setGpxCompleted: 'syncIssues.op.completed', renameRegion: 'syncIssues.op.region', deleteRegion: 'syncIssues.op.region',
+  clearRegion: 'syncIssues.op.region',
+};
+// GPX calls the server keeps failing, each with Retry and Discard, and
+// uploads it refused, kept here to save. Nothing leaves the queue unseen.
+/** @typedef {import('./store.js').SyncIssue} SyncIssue */
+function SyncIssues() {
+  const { stuck, kept } = /** @type {{ stuck: SyncIssue[], kept: SyncIssue[] }} */ (syncIssues.value);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const run = (/** @type {() => any} */ fn) => {
+    setBusy(true); setError('');
+    Promise.resolve().then(fn).catch(e => setError(t('common.failed', { message: (e && e.message) || String(e) }))).finally(() => setBusy(false));
+  };
+  const save = (/** @type {SyncIssue} */ it) => run(() => issueText(it).then(text => {
+    if (text == null) throw new Error(t('syncIssues.noText'));
+    return saveDownload(new Blob([text], { type: 'application/gpx+xml' }), it.name.split('/').pop(), 'application/gpx+xml');
+  }));
+  return html`<${DialogHead} title=${t('syncIssues.title')} />
+  <div class="ui-dialog-body">
+    ${!stuck.length && !kept.length ? html`<p>${t('syncIssues.none')}</p>` : null}
+    ${stuck.length ? html`<p>${t('syncIssues.stuckLead')}</p>
+    <ul class="sync-issues">${stuck.map(it => html`<li key=${'s' + it.id}>
+      <div><div>${t(OP_TEXT[it.method || ''] || 'syncIssues.op.change', { name: it.name })}</div><div class="sync-issue-error">${it.error}</div></div>
+      <div class="sync-issue-actions">
+        <button type="button" class="primary" disabled=${busy} onClick=${() => run(sync)}>${t('syncIssues.retry')}</button>
+        ${it.upload ? html`<button type="button" disabled=${busy} onClick=${() => save(it)}>${t('syncIssues.save')}</button>` : null}
+        <button type="button" disabled=${busy} onClick=${() => run(() => discardOp(it.id))}>${t('syncIssues.discard')}</button>
+      </div>
+    </li>`)}</ul>` : null}
+    ${kept.length ? html`<p>${t('syncIssues.keptLead')}</p>
+    <ul class="sync-issues">${kept.map(it => html`<li key=${it.key}>
+      <div><div>${it.name}</div><div class="sync-issue-error">${it.error}</div></div>
+      <div class="sync-issue-actions">
+        <button type="button" class="primary" disabled=${busy} onClick=${() => save(it)}>${t('syncIssues.save')}</button>
+        <button type="button" disabled=${busy} onClick=${() => run(() => dismissKept(it.key))}>${t('syncIssues.dismiss')}</button>
+      </div>
+    </li>`)}</ul>` : null}
+    <div class=${'modal-error' + (error ? ' visible' : '')}>${error}</div>
+  </div>`;
+}

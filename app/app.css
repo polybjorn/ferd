@@ -1799,9 +1799,11 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 body.signin-only .app-nav,
 body.signin-only #pwa-offline-banner,
+body.signin-only #pwa-sync-issues,
 body.signin-only #pwa-update-banner,
 body.app-booting .app-nav,
 body.app-booting #pwa-offline-banner,
+body.app-booting #pwa-sync-issues,
 body.app-booting #pwa-update-banner { display: none; }
 body.signin-only #app {
   height: 100vh;
@@ -3258,7 +3260,14 @@ button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
   z-index: var(--ui-z-sticky);
 }
 .pwa-banner.visible { display: flex; }
-.pwa-banner.offline { background: #fff3cd; color: #663c00; border-bottom-color: #f0d27a; }
+.pwa-banner.offline,
+.pwa-banner.issues { background: #fff3cd; color: #663c00; border-bottom-color: #f0d27a; }
+.sync-issues { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ui-space-3); }
+.sync-issues li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--ui-space-2); }
+.sync-issues .sync-issue-error { color: var(--muted); font-size: var(--ui-text-sm); overflow-wrap: anywhere; }
+.sync-issue-actions { display: flex; gap: var(--ui-space-2); }
+.upgrade-failed { flex-direction: column; gap: var(--ui-space-3); height: auto; padding: var(--ui-space-6) var(--ui-space-4); text-align: center; }
+.upgrade-failed p { max-width: 36rem; margin: 0; }
 /* Floating "Update available" toast: detached from the sticky stack,
    centered with side padding so it doesn't reach edges, and slides
    down on appear. */

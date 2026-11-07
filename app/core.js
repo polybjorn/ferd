@@ -1,5 +1,5 @@
 import { detectViewer, isReadOnly } from './server.js';
-import { dataLayer } from './store.js';
+import { dataLayer, syncSettled } from './store.js';
 import { DEFAULT_CONFIG, isImperial } from './prefs.js';
 
 // Tableau 20 categorical palette, reordered: indices 0-9 are the saturated
@@ -278,6 +278,9 @@ export function assignCategoryColors(places) {
 function persistAssignedCategoryColors(newAssignments) {
   if (isReadOnly()) return;
   if (!state.auth || !state.auth.authenticated) return;
+  // Until a sync has brought the whole set, the owner's labels may still be
+  // on their way; select.js recolours again once it has.
+  if (!syncSettled.peek()) return;
   const labels = state.config.category_labels = state.config.category_labels || {};
   const payload = {};
   for (const slug in labels) {

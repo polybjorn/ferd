@@ -317,10 +317,12 @@ export function openConfirmModal({ title, body, confirmLabel, danger }) {
 // promise it returns resolves, with no re-fetch.
 export function bindStoreToState() {
   store.bindAuth();
-  // Place colours come from the labels, so this one reads both.
+  // Place colours come from the labels, so this one reads both, and runs
+  // again when a sync settles so the colours assigned meanwhile are saved.
   effect(() => {
     const data = store.places.value;
     store.labels.value;
+    store.syncSettled.value;
     untracked(() => {
       // A missing category is the "uncategorized" bucket (key ''), so the
       // rest of the UI can treat p.category as a plain string.

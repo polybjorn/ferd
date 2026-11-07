@@ -20,11 +20,12 @@ import { ROUTE_META_FIELDS, _genId, _splitKey, parseGpxText, stripGpxPiiText } f
 /**
  * @typedef {{ ns: string, kind: string, id: string, data: any, pos: number }} ItemRec
  * @typedef {{ ns: string, kind: string, id: string, op: string, data?: any, seq: number }} PendingRec
- * @typedef {{ ns: string, file: string, text: string }} GpxRec
- * @typedef {{ id?: number, ns: string, method: string, args: any, ts: number, file?: string }} GpxOpRec
+ * @typedef {{ ns: string, file: string, text: string, ref?: number }} GpxRec
+ * @typedef {{ id?: number, ns: string, method: string, args: any, ts: number, file?: string, ref?: number, error?: string }} GpxOpRec
  * @typedef {{ items?: ItemRec[], delItems?: string[][], pending?: PendingRec[], delPending?: string[][],
  *   gpx?: GpxRec[], delGpx?: string[][], ops?: GpxOpRec[], delOps?: number[], meta?: Array<[string, any]>,
- *   clearItems?: boolean }} DbWrite
+ *   delMeta?: string[], clearItems?: boolean }} DbWrite
+ * @typedef {{ keys: string[], regions: string[] }} OpScope
  * @typedef {{ data: any, pos: number }} MemItem
  * @typedef {{ kind: string, id: string, op: string, data?: any }} Change
  */
@@ -36,6 +37,12 @@ export const labels = signal(/** @type {Record<string, any>} */ ({}));
 export const prefs = signal(/** @type {Record<string, any>} */ ({}));
 export const pendingCount = signal(0);
 export const auth = signal(/** @type {any} */ (null));
+// Queued GPX calls the server keeps failing (`stuck`) and uploads it refused
+// whose text is kept here to save (`kept`), for the sync notice.
+/** @typedef {{ id?: number, key?: string, method?: string, name: string, error?: string, upload: boolean }} SyncIssue */
+export const syncIssues = signal(/** @type {{ stuck: SyncIssue[], kept: SyncIssue[] }} */ ({ stuck: [], kept: [] }));
+// False while a sync runs and while this copy lacks part of the server's set.
+export const syncSettled = signal(true);
 // Make state.auth read and write the auth signal, so every existing reader
 // stays. Called once at startup rather than at import, since core.js and
 // this module import each other.
@@ -67,9 +74,12 @@ function dbOpen() {
   if (_dbPromise) return _dbPromise;
   _dbPromise = new Promise((resolve, reject) => {
     /** @type {IDBOpenDBRequest} */
-    let r;
+    let r, migrating = false;
     try { r = indexedDB.open(DB_NAME, DB_VERSION); } catch (e) { reject(e); return; }
-    r.onupgradeneeded = e => upgrade(r.result, /** @type {IDBTransaction} */ (r.transaction), e.oldVersion);
+    r.onupgradeneeded = e => {
+      migrating = e.oldVersion > 0 && !r.result.objectStoreNames.contains('items');
+      upgrade(r.result, /** @type {IDBTransaction} */ (r.transaction), e.oldVersion);
+    };
     // A tab still on an older version holds the database open, and code
     // from before v6 never lets go of it, so the upgrade waits until that
     // tab closes. Waiting is right (local-mode edits have nowhere else to
@@ -92,7 +102,12 @@ function dbOpen() {
     };
     // Not cached, so a later call tries again (after an upgrade failed, or
     // once the blocking tab is gone).
-    r.onerror = () => { _dbPromise = null; reject(r.error); };
+    // A failed upgrade from v5 leaves the old stores as they were, and the
+    // app stops on a screen that says so rather than running without them.
+    r.onerror = () => {
+      _dbPromise = null;
+      reject(migrating ? Object.assign(new Error('The data saved on this device could not be updated'), { migration: true, cause: r.error }) : r.error);
+    };
   });
   return _dbPromise;
 }
@@ -166,6 +181,7 @@ function dbWrite(w) {
     for (const id of w.delOps || []) ops.delete(id);
     for (const rec of w.ops || []) ops.put(rec);
     const meta = tx.objectStore('meta');
+    for (const k of w.delMeta || []) meta.delete(k);
     for (const [k, v] of w.meta || []) meta.put(v, k);
     return txDone(tx);
   });
@@ -186,6 +202,15 @@ async function gpxOpsFor(ns) {
   const db = await dbOpen();
   const rows = await req(db.transaction('gpx_ops').objectStore('gpx_ops').index('ns').getAll(ns));
   return rows.sort((/** @type {GpxOpRec} */ a, /** @type {GpxOpRec} */ b) => (a.id || 0) - (b.id || 0));
+}
+/** @param {string} ns @returns {Promise<GpxRec[]>} GPX text this device holds for the namespace */
+function gpxFor(ns) { return dbOpen().then(db => req(db.transaction('gpx').objectStore('gpx').index('ns').getAll(ns))); }
+/** @param {string} ns @returns {Promise<Array<[string, any]>>} refused uploads kept for the namespace */
+async function keptFor(ns) {
+  const db = await dbOpen();
+  const st = db.transaction('meta').objectStore('meta'), range = IDBKeyRange.bound(keptKey(ns, ''), keptKey(ns, '\uffff'));
+  const [keys, vals] = await Promise.all([req(st.getAllKeys(range)), req(st.getAll(range))]);
+  return /** @type {IDBValidKey[]} */ (keys).map((k, i) => [String(k), vals[i]]);
 }
 /** @param {string} key */
 export function metaGet(key) { return dbOpen().then(db => req(db.transaction('meta').objectStore('meta').get(key))).catch(() => /** @type {any} */ (undefined)); }
@@ -213,7 +238,7 @@ let mem = emptyMem();
 /** @type {Map<string, PendingRec>} */
 let pendingMap = new Map();
 let opsCount = 0;
-/** @type {{ rev: number, epoch: string | null }} */
+/** @type {{ rev: number, epoch: string | null, more?: boolean }} */
 let syncState = { rev: 0, epoch: null };
 let _seq = 0;
 function nextSeq() { _seq = Math.max(_seq + 1, Date.now() * 1000); return _seq; }
@@ -640,6 +665,7 @@ function applyPull(page) {
     }
   }
   syncState = { rev: page.next != null ? page.next : page.rev, epoch: page.epoch || null };
+  if (page.more) syncState.more = true;
   w.meta = [['sync::' + NS, syncState]];
   return { w, kinds, changed };
 }
@@ -650,11 +676,13 @@ function applyPull(page) {
 // the batch until the change behind it is alone, so no other edit goes
 // with it. Anything else (a proxy error while the API restarts, a server
 // error, a lapsed session) leaves the queue as it is and ends the sync.
-// Returns counts.
-async function pushPending() {
+// Metadata edits on a route a held GPX call touches wait with it. Returns
+// counts.
+/** @param {OpScope[]} [held] */
+async function pushPending(held = []) {
   let pushed = 0, skipped = 0, size = BATCH_MAX;
   for (;;) {
-    const list = nextBatch(size);
+    const list = nextBatch(size, held);
     if (!list.length) break;
     const body = { changes: list.map(p => p.op === 'put' ? { kind: p.kind, op: 'put', id: p.id, data: p.data } : { kind: p.kind, op: 'delete', id: p.id }) };
     /** @type {PendingRec[]} */
@@ -679,12 +707,13 @@ async function pushPending() {
   }
   return { pushed, skipped };
 }
-/** @param {number} size */
-function nextBatch(size) {
+/** @param {number} size @param {OpScope[]} [held] */
+function nextBatch(size, held = []) {
   const out = [];
   let chars = 0;
   for (const p of [...pendingMap.values()].sort((a, b) => a.seq - b.seq)) {
     if (out.length >= size) break;
+    if (p.kind === 'metadata' && held.some(s => inScope(s, p.id))) continue;
     const n = JSON.stringify(p.data === undefined ? null : p.data).length + p.id.length + 40;
     if (out.length && chars + n > BATCH_CHARS) break;
     out.push(p); chars += n;
@@ -712,32 +741,130 @@ function forgetPending(list) {
   updatePendingCount();
   return dbWrite({ delPending: del });
 }
-// Statuses that mean the server will never take a queued call as it is:
-// it is skipped and the rest go on. Any other failure stops the drain with
-// the call still queued; `stopped` tells sync() not to push item edits
-// past it, since they may depend on it (metadata under a moved key).
+// How a queued GPX call fails decides what happens to it. No answer, a
+// lapsed session, a rate limit or a proxy error while the API restarts:
+// nothing gets through now, so the drain stops with every call still
+// queued. A refusal: the server will never take the call as it is, so it
+// is dropped and the rest go on. Any other answer (a server error such as
+// a failing disk) can last, so the call stays queued, marked with its
+// error for the owner to retry or discard, and only the calls and
+// metadata edits that touch the same routes wait behind it (`held`).
 const REFUSED = new Set([400, 404, 409, 413]);
+const UNREACHABLE = new Set([401, 403, 429, 502, 503, 504]);
 /** @param {string} ns */
 async function drainGpxOps(ns) {
   let synced = 0, skipped = 0, stopped = false;
+  /** @type {OpScope[]} */
+  const held = [];
+  /** @type {string[]} */
+  const kept = [];
   for (const row of await gpxOpsFor(ns)) {
-    try { await GPX_REST[row.method](row.args); synced++; }
-    catch (err) {
-      if (!REFUSED.has(/** @type {any} */ (err) && /** @type {any} */ (err).status)) { stopped = true; break; }
-      skipped++;
-      await forceResync(ns);
-    }
+    const scope = opScope(row);
+    if (held.some(h => scopesOverlap(h, scope))) { held.push(scope); continue; }
     /** @type {DbWrite} */
     const w = { delOps: [/** @type {number} */ (row.id)] };
-    if (row.method === 'uploadGpx') w.delGpx = [[ns, (row.args.region ? row.args.region + '/' : '') + row.args.name + '.gpx']];
+    try {
+      await GPX_REST[row.method](row.args);
+      synced++;
+      if (row.method === 'uploadGpx') w.delGpx = (await uploadCopies(ns, row)).map(g => [ns, g.file]);
+    } catch (err) {
+      const e = /** @type {any} */ (err), st = e && e.status;
+      if (!st || UNREACHABLE.has(st)) { stopped = true; break; }
+      if (!REFUSED.has(st)) {
+        held.push(scope);
+        const error = e.message || ('HTTP ' + st);
+        if (row.error !== error) await dbWrite({ ops: [Object.assign({}, row, { error })] });
+        continue;
+      }
+      skipped++;
+      await forceResync(ns);
+      // A refused upload's text is all there is of it, so it is kept for
+      // the owner to save, and the toast names the file.
+      if (row.method === 'uploadGpx') {
+        const copies = await uploadCopies(ns, row);
+        const text = row.args.text != null ? row.args.text : (copies[0] && copies[0].text);
+        w.delGpx = copies.map(g => [ns, g.file]);
+        if (text != null) {
+          const file = uploadFile(row.args);
+          w.meta = [[keptKey(ns, String(row.id)), { file, text, error: e.message || ('HTTP ' + st), ts: Date.now() }]];
+          kept.push(file);
+        }
+      }
+    }
     await dbWrite(w);
     if (ns === NS) { opsCount = Math.max(0, opsCount - 1); updatePendingCount(); }
   }
-  return { synced, skipped, stopped };
+  return { synced, skipped, stopped, held, kept };
+}
+/** @param {any} a */
+function uploadFile(a) { return (a.region ? a.region + '/' : '') + a.name + '.gpx'; }
+/** @param {string} ns @param {string} id */
+function keptKey(ns, id) { return 'kept::' + ns + '::' + id; }
+// An upload's text stays on the device until the server has it. A queued
+// move may have carried it to another name since, so it is found by the
+// upload's ref; a call queued before refs existed still names its file.
+/** @param {string} ns @param {GpxOpRec} row */
+async function uploadCopies(ns, row) {
+  const file = uploadFile(row.args);
+  return (await gpxFor(ns)).filter(g => row.ref == null ? g.file === file : g.ref === row.ref);
+}
+// The route keys and regions a GPX call reads or changes, so a call that
+// keeps failing holds back only what depends on it.
+/** @param {GpxOpRec} row @returns {OpScope} */
+function opScope(row) {
+  const a = row.args || {};
+  const at = (/** @type {string} */ region, /** @type {string} */ name) => (region ? region + '/' : '') + name;
+  switch (row.method) {
+    case 'uploadGpx': return { keys: [at(a.region || '', String(a.name).replace(/\.planned$/, ''))], regions: [] };
+    case 'deleteGpx': return { keys: [at(a.region || '', String(a.name || '').replace(/\.gpx$/i, ''))], regions: [] };
+    case 'setGpxCompleted': case 'putMetadata': return { keys: [a.key], regions: [] };
+    case 'moveGpx': return { keys: [a.key, at(a.new_region || '', String(a.new_name || _splitKey(a.key).name).trim())], regions: [] };
+    case 'renameRegion': return { keys: [], regions: [a.from || '', a.to || ''] };
+    case 'deleteRegion': return { keys: [], regions: [a.name || ''] };
+    // Clearing a region moves its routes to No region.
+    case 'clearRegion': return { keys: [], regions: [a.name || '', ''] };
+    default: return { keys: [], regions: [] };
+  }
+}
+/** @param {OpScope} s @param {string} key */
+function inScope(s, key) { return s.keys.includes(key) || s.regions.includes(_splitKey(key).region); }
+/** @param {OpScope} a @param {OpScope} b */
+function scopesOverlap(a, b) {
+  return a.keys.some(k => inScope(b, k)) || b.keys.some(k => inScope(a, k)) || a.regions.some(r => b.regions.includes(r));
 }
 // STORE-CORE-END
 
 function updatePendingCount() { pendingCount.value = pendingMap.size + opsCount; }
+// Category colours are assigned and saved only once this copy holds the
+// server's whole set: saved against part of it, they would replace labels
+// a later page still brings (core.js persistAssignedCategoryColors).
+function updateSettled() {
+  syncSettled.value = !_syncing && (!isOwnerServer() || (!!syncState.epoch && !syncState.more));
+}
+
+/** @param {GpxOpRec} o */
+function opName(o) {
+  const a = o.args || {};
+  switch (o.method) {
+    case 'uploadGpx': return uploadFile(a);
+    case 'deleteGpx': return a.name || '';
+    case 'renameRegion': return a.from || '';
+    case 'deleteRegion': case 'clearRegion': return a.name || '';
+    case 'clearCategory': return a.category || '';
+    default: return _splitKey(a.key || '').name;
+  }
+}
+/** @param {string} ns */
+async function refreshIssues(ns) {
+  try {
+    const [ops, kept] = await Promise.all([gpxOpsFor(ns), keptFor(ns)]);
+    if (ns !== NS) return;
+    syncIssues.value = {
+      stuck: ops.filter(o => o.error).map(o => ({ id: o.id, method: o.method, name: opName(o), error: o.error, upload: o.method === 'uploadGpx' })),
+      kept: kept.map(([key, v]) => ({ key, name: v.file, error: v.error, upload: true })),
+    };
+  } catch (e) { /* no database: nothing to show */ }
+}
 
 /** @param {Set<string>} kinds */
 function publish(kinds) {
@@ -778,8 +905,13 @@ export async function open() {
     opsCount = r.ops.length;
     if (r.sync) syncState = r.sync;
     had = r.items.length > 0 || !!r.sync;
-  } catch (e) { console.warn('[store] IndexedDB unavailable', e); }
+  } catch (e) {
+    if (e && /** @type {any} */ (e).migration) throw e;
+    console.warn('[store] IndexedDB unavailable', e);
+  }
   publish(new Set(KINDS));
+  updateSettled();
+  await refreshIssues(NS);
   return NS === 'local' || had;
 }
 
@@ -818,12 +950,15 @@ export function sync() {
   const ns = NS;
   _syncing = (async () => {
     let synced = 0, skipped = 0, pulled = 0;
+    /** @type {string[]} */
+    let kept = [];
+    syncSettled.value = false;
     try {
       const g = await drainGpxOps(ns);
-      synced += g.synced; skipped += g.skipped;
+      synced += g.synced; skipped += g.skipped; kept = g.kept;
       if (g.stopped || ns !== NS) return;
       try {
-        const p = await pushPending();
+        const p = await pushPending(g.held);
         synced += p.pushed; skipped += p.skipped;
       } catch (e) {
         // A server that answers can still be pulled from: the pull keeps
@@ -835,8 +970,10 @@ export function sync() {
       // A network failure leaves the rest queued for the next attempt.
     } finally {
       _syncing = null;
+      updateSettled();
       updateOfflineBanner();
-      if (synced || skipped) showSyncToast(synced, skipped);
+      await refreshIssues(ns);
+      if (synced || skipped) showSyncToast(synced, skipped, kept);
       if (pulled) for (const fn of _remoteListeners) { try { fn(); } catch (e) { console.error(e); } }
     }
   })();
@@ -914,7 +1051,7 @@ async function applyRouteOp(method, args) {
   w.gpx = []; w.delGpx = [];
   for (const [from, to] of out.moves) {
     const rec = await dbGpx(NS, from).catch(() => /** @type {GpxRec | undefined} */ (undefined));
-    if (rec) { w.delGpx.push([NS, from]); w.gpx.push({ ns: NS, file: to, text: rec.text }); }
+    if (rec) { w.delGpx.push([NS, from]); w.gpx.push(Object.assign({}, rec, { file: to })); }
   }
   for (const f of out.drops) w.delGpx.push([NS, f]);
   publish(kinds);
@@ -946,20 +1083,75 @@ async function gpxOp(method, args) {
   // No server, or offline: change the route items here; on a server the
   // call is queued and replayed in order on reconnect.
   const { w, result } = await applyRouteOp(method, args);
-  if (method === 'uploadGpx') {
-    const file = (args.region ? args.region + '/' : '') + args.name + '.gpx';
-    w.gpx = (w.gpx || []).concat([{ ns: NS, file, text: args.text }]);
-  }
+  // The upload's text and its queued call share a ref, so the text is found
+  // under whatever name later queued calls give it.
+  const ref = nextSeq();
+  if (method === 'uploadGpx') w.gpx = (w.gpx || []).concat([{ ns: NS, file: uploadFile(args), text: args.text, ref }]);
   if (hasServer()) {
     /** @type {GpxOpRec} */
-    const op = { ns: NS, method, args, ts: Date.now() };
+    const op = { ns: NS, method, args, ts: Date.now(), ref };
     w.ops = [op];
     opsCount++;
     updatePendingCount();
     updateOfflineBanner();
   }
   await dbWrite(w);
+  // Online, a call queues only behind one that keeps failing, and may not
+  // depend on it.
+  if (hasServer() && navigator.onLine) scheduleSync();
   return result;
+}
+/** Drop a queued GPX call that keeps failing, with any text it held here. @param {number} id */
+export async function discardOp(id) {
+  const ns = NS;
+  const row = (await gpxOpsFor(ns)).find(o => o.id === id);
+  if (!row) return;
+  /** @type {DbWrite} */
+  const w = { delOps: [id] };
+  if (row.method === 'uploadGpx') w.delGpx = (await uploadCopies(ns, row)).map(g => [ns, g.file]);
+  await dbWrite(w);
+  opsCount = Math.max(0, opsCount - 1);
+  updatePendingCount();
+  // The copy here shows the call as done; the next pull fetches the whole
+  // set and puts back the server's version.
+  await forceResync(ns);
+  await refreshIssues(ns);
+  return sync();
+}
+/** Forget a refused upload kept here. @param {string} key */
+export async function dismissKept(key) {
+  await dbWrite({ delMeta: [key] });
+  await refreshIssues(NS);
+}
+/** The GPX text behind a sync issue. @param {{ id?: number, key?: string }} it @returns {Promise<string | null>} */
+export async function issueText(it) {
+  if (it.key) { const k = await metaGet(it.key); return k ? k.text : null; }
+  const row = (await gpxOpsFor(NS)).find(o => o.id === it.id);
+  if (!row) return null;
+  if (row.args.text != null) return row.args.text;
+  const copies = await uploadCopies(NS, row);
+  return copies[0] ? copies[0].text : null;
+}
+// The database as it stands before a failed upgrade, every store as
+// [key, value] pairs, for the owner to keep while the upgrade cannot run.
+export function exportOldData() {
+  return new Promise((resolve, reject) => {
+    const r = indexedDB.open(DB_NAME);
+    r.onerror = () => reject(r.error);
+    r.onsuccess = () => {
+      const db = r.result, names = [...db.objectStoreNames];
+      /** @type {Record<string, Array<[any, any]>>} */
+      const stores = {};
+      const done = () => { db.close(); resolve(new Blob([JSON.stringify({ version: db.version, stores })], { type: 'application/json' })); };
+      if (!names.length) { done(); return; }
+      const tx = db.transaction(names);
+      const reads = names.map(n => { const st = tx.objectStore(n); return { n, k: st.getAllKeys(), v: st.getAll() }; });
+      txDone(tx).then(() => {
+        for (const { n, k, v } of reads) stores[n] = k.result.map((key, i) => [key, v.result[i]]);
+        done();
+      }, e => { db.close(); reject(e); });
+    };
+  });
 }
 /** GPX text kept on this device: every file with no server, and offline uploads on one. @param {string} file */
 export function gpxText(file) { return dbGpx(NS, file).then(r => r ? r.text : null, () => /** @type {string | null} */ (null)); }
@@ -1252,12 +1444,13 @@ export function updateOfflineBanner() {
   el.classList.add('visible');
 }
 let _syncToastTimer = /** @type {ReturnType<typeof setTimeout> | null} */ (null);
-/** @param {number} synced @param {number} skipped */
-function showSyncToast(synced, skipped) {
+/** @param {number} synced @param {number} skipped @param {string[]} kept */
+function showSyncToast(synced, skipped, kept) {
   const el = document.getElementById('pwa-sync-toast');
   if (!el) return;
   let msg = synced ? ('Synced ' + synced + ' change' + (synced === 1 ? '' : 's')) : 'Sync complete';
   if (skipped) msg += ', ' + skipped + ' refused by the server';
+  if (kept.length) msg += '. Kept on this device to save: ' + kept.map(f => f.split('/').pop()).join(', ');
   el.textContent = msg;
   el.classList.add('visible');
   if (_syncToastTimer) clearTimeout(_syncToastTimer);

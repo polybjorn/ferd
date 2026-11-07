@@ -13,7 +13,7 @@ const m = /STORE-CORE-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ STORE-CORE-END/.exec(app)
 assert.ok(m, 'STORE-CORE markers not found in app/');
 const source = m[1] + `
 globalThis.__s = { emptyMem, buildManifest, manifestItems, migrateV5, applyChanges, applyPull,
-  pushPending, nextBatch, drainGpxOps, labelChanges, ROUTE_OPS, pkey, stripUi };
+  pushPending, nextBatch, drainGpxOps, labelChanges, ROUTE_OPS, pkey, stripUi, opScope, scopesOverlap };
 globalThis.__setMem = v => { mem = v; };`;
 
 const META = ['source', 'date_completed', 'rating', 'notes', 'tags', 'difficulty', 'local_name'];
@@ -28,6 +28,7 @@ function makeEnv(overrides = {}) {
     BATCH_CHARS: 300000,
     opsCount: 0,
     gpxOpsFor: () => Promise.resolve([]),
+    gpxFor: () => Promise.resolve([]),
     GPX_REST: {},
     NS: 'https://ferd.test::own:bjorn',
     pendingMap: new Map(),
@@ -268,10 +269,10 @@ test('nextBatch stops at the character budget but always takes one change', () =
   assert.deepEqual(plain(s.nextBatch(2).map(p => p.id)), ['aaaaaaa1', 'aaaaaaa2']);
 });
 
-test('drainGpxOps skips a refused call and stops, keeping it queued, on any other error', async () => {
+test('drainGpxOps skips a refused call and stops, keeping it queued, when the server is unreachable', async () => {
   const rows = [
     { id: 1, ns: 'n', method: 'moveGpx', args: { key: 'A', new_region: 'West' } },
-    { id: 2, ns: 'n', method: 'uploadGpx', args: { region: 'West', name: 'B' } },
+    { id: 2, ns: 'n', method: 'uploadGpx', args: { region: 'West', name: 'B' }, ref: 7 },
     { id: 3, ns: 'n', method: 'deleteGpx', args: { name: 'C' } },
   ];
   const fails = { moveGpx: httpError(404, 'route not found: A'), uploadGpx: httpError(502) };
@@ -281,16 +282,108 @@ test('drainGpxOps skips a refused call and stops, keeping it queued, on any othe
   const env = makeEnv({ NS: 'n', opsCount: 3, GPX_REST: rest, gpxOpsFor: () => Promise.resolve(rows) });
   env.ctx.syncState = { rev: 4, epoch: 'e1' };
   const r = plain(await env.s.drainGpxOps('n'));
-  assert.deepEqual(r, { synced: 0, skipped: 1, stopped: true });
+  assert.deepEqual(r, { synced: 0, skipped: 1, stopped: true, held: [], kept: [] });
   assert.deepEqual(called, ['moveGpx', 'uploadGpx'], 'nothing runs past the stop');
   assert.deepEqual(env.writes.filter(w => w.delOps).map(w => plain(w.delOps)), [[1]], 'the upload stays queued, its text with it');
   assert.equal(env.ctx.opsCount, 2);
   assert.equal(env.ctx.syncState.epoch, null, 'a skipped call asks the next pull for the whole set');
 
+  // The text went under the upload's ref; a queued move has renamed it since.
   fails.uploadGpx = null;
-  const env2 = makeEnv({ NS: 'n', opsCount: 2, GPX_REST: rest, gpxOpsFor: () => Promise.resolve(rows.slice(1)) });
-  assert.deepEqual(plain(await env2.s.drainGpxOps('n')), { synced: 2, skipped: 0, stopped: false });
-  assert.deepEqual(plain(env2.writes.find(w => w.delGpx).delGpx), [['n', 'West/B.gpx']]);
+  const gpx = [{ ns: 'n', file: 'East/B.gpx', text: '<gpx/>', ref: 7 }, { ns: 'n', file: 'West/B.gpx', text: '<other/>', ref: 9 }];
+  const env2 = makeEnv({ NS: 'n', opsCount: 2, GPX_REST: rest, gpxOpsFor: () => Promise.resolve(rows.slice(1)), gpxFor: () => Promise.resolve(gpx) });
+  assert.deepEqual(plain(await env2.s.drainGpxOps('n')), { synced: 2, skipped: 0, stopped: false, held: [], kept: [] });
+  assert.deepEqual(plain(env2.writes.find(w => w.delGpx).delGpx), [['n', 'East/B.gpx']]);
+});
+
+test('an upload queued before refs existed finds its text by file name', async () => {
+  const gpx = [{ ns: 'n', file: 'West/B.gpx', text: '<gpx/>' }, { ns: 'n', file: 'West/C.gpx', text: '<c/>' }];
+  const env = makeEnv({
+    NS: 'n', opsCount: 1,
+    GPX_REST: { uploadGpx: () => Promise.resolve({ ok: true }) },
+    gpxOpsFor: () => Promise.resolve([{ id: 1, ns: 'n', method: 'uploadGpx', args: { region: 'West', name: 'B' } }]),
+    gpxFor: () => Promise.resolve(gpx),
+  });
+  await env.s.drainGpxOps('n');
+  assert.deepEqual(plain(env.writes.find(w => w.delGpx).delGpx), [['n', 'West/B.gpx']]);
+});
+
+test('a call the server keeps failing holds only the calls on the same routes', async () => {
+  const rows = [
+    { id: 1, ns: 'n', method: 'uploadGpx', args: { region: 'West', name: 'A', text: '<a/>' }, ref: 1 },
+    { id: 2, ns: 'n', method: 'moveGpx', args: { key: 'West/A', new_region: 'East' } },
+    { id: 3, ns: 'n', method: 'deleteGpx', args: { region: 'North', name: 'C.gpx' } },
+    { id: 4, ns: 'n', method: 'renameRegion', args: { from: 'East', to: 'South' } },
+  ];
+  const called = [];
+  const rest = {};
+  for (const m of ['uploadGpx', 'moveGpx', 'deleteGpx', 'renameRegion']) rest[m] = () => { called.push(m); return m === 'uploadGpx' ? Promise.reject(httpError(500, 'disk full')) : Promise.resolve({ ok: true }); };
+  const env = makeEnv({ NS: 'n', opsCount: 4, GPX_REST: rest, gpxOpsFor: () => Promise.resolve(rows) });
+  const r = plain(await env.s.drainGpxOps('n'));
+  assert.equal(r.stopped, false);
+  assert.equal(r.synced, 1);
+  assert.deepEqual(called, ['uploadGpx', 'deleteGpx'], 'the move waits on the upload, the rename on the move');
+  assert.deepEqual(r.held.map(h => h.keys.concat(h.regions)), [['West/A'], ['West/A', 'East/A'], ['East', 'South']]);
+  assert.deepEqual(plain(env.writes.find(w => w.ops).ops), [{ ...rows[0], error: 'disk full' }], 'the failing call is marked, not dropped');
+  assert.deepEqual(env.writes.filter(w => w.delOps).map(w => plain(w.delOps)), [[3]]);
+  assert.equal(env.ctx.opsCount, 3);
+
+  // A call already marked with the same error is not written again.
+  env.writes.length = 0;
+  rows[0].error = 'disk full';
+  await env.s.drainGpxOps('n');
+  assert.equal(env.writes.filter(w => w.ops).length, 0);
+});
+
+test('metadata edits on a held route wait, the rest push', async () => {
+  const { s, ctx } = makeEnv();
+  s.applyChanges([
+    { kind: 'metadata', id: 'West/A', op: 'put', data: { notes: 'a' } },
+    { kind: 'metadata', id: 'East/B', op: 'put', data: { notes: 'b' } },
+    { kind: 'metadata', id: 'North/C', op: 'put', data: { notes: 'c' } },
+    { kind: 'place', id: 'aaaaaaa1', op: 'put', data: { name: 'Hut' } },
+  ], true);
+  const held = [{ keys: ['West/A'], regions: [] }, { keys: [], regions: ['East'] }];
+  assert.deepEqual(plain(s.nextBatch(500, held).map(p => p.id)), ['North/C', 'aaaaaaa1']);
+  assert.equal(ctx.pendingMap.size, 4);
+});
+
+test('call scopes overlap on a shared route or region', () => {
+  const { s } = makeEnv();
+  const sc = row => plain(s.opScope(row));
+  assert.deepEqual(sc({ method: 'uploadGpx', args: { region: 'West', name: 'A.planned' } }), { keys: ['West/A'], regions: [] });
+  assert.deepEqual(sc({ method: 'deleteGpx', args: { name: 'A.gpx' } }), { keys: ['A'], regions: [] });
+  assert.deepEqual(sc({ method: 'moveGpx', args: { key: 'West/A', new_name: 'B ' } }), { keys: ['West/A', 'B'], regions: [] });
+  assert.deepEqual(sc({ method: 'clearRegion', args: { name: 'West' } }), { keys: [], regions: ['West', ''] });
+  const up = s.opScope({ method: 'uploadGpx', args: { region: 'West', name: 'A' } });
+  assert.equal(s.scopesOverlap(up, s.opScope({ method: 'deleteRegion', args: { name: 'West' } })), true);
+  assert.equal(s.scopesOverlap(up, s.opScope({ method: 'setGpxCompleted', args: { key: 'West/B' } })), false);
+  assert.equal(s.scopesOverlap(s.opScope({ method: 'clearRegion', args: { name: 'East' } }), s.opScope({ method: 'putMetadata', args: { key: 'Loop' } })), true, 'clearing a region moves routes into No region');
+  assert.equal(s.scopesOverlap(up, s.opScope({ method: 'clearCategory', args: { category: 'x' } })), false);
+});
+
+test('a refused upload is kept on the device to save, and the toast names it', async () => {
+  const gpx = [{ ns: 'n', file: 'West/A.gpx', text: '<device/>', ref: 3 }];
+  const env = makeEnv({
+    NS: 'n', opsCount: 1,
+    GPX_REST: { uploadGpx: () => Promise.reject(httpError(413, 'file too large')) },
+    gpxOpsFor: () => Promise.resolve([{ id: 5, ns: 'n', method: 'uploadGpx', args: { region: 'West', name: 'A' }, ref: 3 }]),
+    gpxFor: () => Promise.resolve(gpx),
+  });
+  const r = plain(await env.s.drainGpxOps('n'));
+  assert.deepEqual([r.skipped, r.kept], [1, ['West/A.gpx']]);
+  const w = plain(env.writes.find(x => x.delOps));
+  assert.deepEqual(w.delGpx, [['n', 'West/A.gpx']]);
+  assert.equal(w.meta[0][0], 'kept::n::5');
+  assert.deepEqual({ ...w.meta[0][1], ts: 0 }, { file: 'West/A.gpx', text: '<device/>', error: 'file too large', ts: 0 });
+});
+
+test('a paged pull marks the copy incomplete until the last page', () => {
+  const { s, ctx } = makeEnv();
+  s.applyPull({ rev: 5, next: 3, epoch: 'e1', more: true, changes: [] });
+  assert.equal(ctx.syncState.more, true);
+  s.applyPull({ rev: 5, next: 5, epoch: 'e1', changes: [] });
+  assert.equal(!!ctx.syncState.more, false);
 });
 
 test('drainGpxOps stops on a network error', async () => {
@@ -299,7 +392,7 @@ test('drainGpxOps stops on a network error', async () => {
     GPX_REST: { deleteGpx: () => Promise.reject(new Error('Network error')) },
     gpxOpsFor: () => Promise.resolve([{ id: 1, ns: 'n', method: 'deleteGpx', args: { name: 'C' } }]),
   });
-  assert.deepEqual(plain(await env.s.drainGpxOps('n')), { synced: 0, skipped: 0, stopped: true });
+  assert.deepEqual(plain(await env.s.drainGpxOps('n')), { synced: 0, skipped: 0, stopped: true, held: [], kept: [] });
   assert.equal(env.writes.length, 0);
 });
 
