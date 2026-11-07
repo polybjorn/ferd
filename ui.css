@@ -1,4 +1,4 @@
-/* ui.css 1.8.1: shared building blocks for menus, modals and forms.
+/* ui.css 1.9.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -63,7 +63,8 @@
    popover or menu opened from a dialog must mount inside it, with
    position: fixed so the scrolling body does not clip it. A <form> that holds
    the body and the actions can sit directly inside the dialog.
-   .ui-dialog-sheet and .ui-dialog-fullscreen change where a dialog sits and
+   .ui-dialog-sheet, .ui-dialog-top and .ui-dialog-fullscreen change where a
+   dialog sits and
    nothing about how it opens or closes, so a host picks one per screen size
    when it opens the dialog.
 
@@ -570,6 +571,22 @@
   .ui-dialog-sheet[open] { animation: ui-sheet-in var(--ui-duration-base) ease-out; }
   @keyframes ui-sheet-in {
     from { transform: translateY(100%); }
+  }
+
+  /* The bottom margin stays auto, which holds the panel to the top edge, and
+     its height follows the content, so with a phone keyboard down the page
+     shows below it. The top padding keeps the head below a notch. */
+  .ui-dialog-top {
+    box-sizing: border-box;
+    inline-size: 100%;
+    max-inline-size: none;
+    margin-block-start: 0;
+    padding-block-start: env(safe-area-inset-top, 0);
+    border-block-start: 0;
+    border-start-start-radius: 0;
+    border-start-end-radius: 0;
+    border-end-start-radius: var(--ui-radius-xl);
+    border-end-end-radius: var(--ui-radius-xl);
   }
 
   .ui-dialog-fullscreen {

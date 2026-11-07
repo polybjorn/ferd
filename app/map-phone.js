@@ -1,4 +1,4 @@
-import { closeModal, openFullScreenModal, openSheetModal } from './modal.js';
+import { closeModal, openModal, openSheetModal } from './modal.js';
 import { bindFilterSheet, filterSheetHtml, refreshFilterPanel, syncFilterDot } from './map.js';
 import { goToSearchResult, recentResultsHtml, searchMatches, searchResultsHtml } from './place-layer.js';
 import { addRecentPick, clearRecentPicks, getRecentPicks, placesEnabled, routesEnabled } from './prefs.js';
@@ -39,7 +39,7 @@ if (barSearch) barSearch.addEventListener('click', openSearchView);
 // own field filters what it lists, which is a different job. The route page
 // has a map too, so the main map is told apart by its filter button.
 export function openSearchView() {
-  openFullScreenModal(
+  openModal(
     '<div class="ui-dialog-head map-search-head">' +
       '<div class="ui-field map-search-field"><input type="search" id="map-search-view-input" aria-label="Search" placeholder="Search places, areas and routes" enterkeyhint="search" autocomplete="off"></div>' +
       '<button type="button" class="ui-button ui-button-quiet ui-dialog-close modal-close" aria-label="Close">&times;</button>' +
@@ -81,7 +81,24 @@ export function openSearchView() {
         location.hash = '#/';
       });
       input.focus();
-    }
+      // The keyboard going down shows as the visible height growing back.
+      // The layout height can't tell, since an app WebView resizes it with
+      // the keyboard. With nothing typed the panel has nothing left to show.
+      const vv = window.visualViewport;
+      if (!vv) return;
+      let low = vv.height;
+      const onResize = function() {
+        if (!dialog.isConnected) { vv.removeEventListener('resize', onResize); return; }
+        if (vv.scale > 1.01) return;
+        low = Math.min(low, vv.height);
+        if (vv.height - low < 120) return;
+        low = vv.height;
+        if (!input.value.trim()) closeModal();
+      };
+      vv.addEventListener('resize', onResize);
+    },
+    null,
+    { phone: 'top' }
   );
 }
 

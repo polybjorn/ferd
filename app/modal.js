@@ -35,12 +35,12 @@ function closeOnBackdropClick(dialog, close) {
   dialog.addEventListener('click', e => { if (e.target === dialog && pressedBackdrop) close(); });
 }
 
-// A phone shows a long form or a search as a full-screen view and a short
-// choice as a sheet, where a wider screen keeps the centred dialog. The class
+// A phone shows a long form as a full-screen view, a short choice as a sheet
+// and search as a panel from the top edge, where a wider screen keeps the centred dialog. The class
 // follows the width, so a phone turned sideways with a modal open moves it
 // too.
 const phoneQuery = window.matchMedia('(max-width: 600px)');
-const PHONE_LAYOUTS = { sheet: 'ui-dialog-sheet', fullscreen: 'ui-dialog-fullscreen' };
+const PHONE_LAYOUTS = { sheet: 'ui-dialog-sheet', fullscreen: 'ui-dialog-fullscreen', top: 'ui-dialog-top' };
 function applyPhoneLayout(entry) {
   Object.values(PHONE_LAYOUTS).forEach(c => entry.backdrop.classList.remove(c));
   if (entry.phone && phoneQuery.matches) entry.backdrop.classList.add(PHONE_LAYOUTS[entry.phone]);
@@ -81,7 +81,7 @@ phoneQuery.addEventListener('change', () => {
   fitModalsToKeyboard();
 });
 
-// opts.phone is 'sheet' or 'fullscreen'.
+// opts.phone is 'sheet', 'fullscreen' or 'top'.
 export function openModal(html, onMount, onClose, opts) {
   const root = document.getElementById('modal-root');
   const dialog = document.createElement('dialog');
