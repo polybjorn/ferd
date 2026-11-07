@@ -1,5 +1,4 @@
-import { idbClear, idbGet, idbGetAll, idbPut, idbSet, localLog } from './device-cache.js';
-import { _genId, localStore, parseGpxText } from './local-mode.js';
+import { exportLocal, importLocal } from './store.js';
 import { areaHasGeometry } from './area-geo.js';
 
 // Export/import a local map as a zip with the same layout the server uses
@@ -65,65 +64,42 @@ async function _zipRead(buf) {
   }
   return out;
 }
-function _gpxPathParts(rel) {
-  const slash = rel.lastIndexOf('/');
-  const region = slash >= 0 ? rel.slice(0, slash) : '';
-  const base = slash >= 0 ? rel.slice(slash + 1) : rel;
-  const planned = base.endsWith('.planned.gpx');
-  const stem = planned ? base.slice(0, -'.planned.gpx'.length) : base.slice(0, -'.gpx'.length);
-  return { region, name: stem, planned };
-}
 export const localBackup = {
   exportZip() {
-    return Promise.all([idbGetAll('places'), idbGetAll('gpx'), localStore._metadata(), idbGet('kv', 'local:category-labels'), localStore.getRoutes(), idbGetAll('areas')])
-      .then(([places, gpx, metadata, labels, manifest, areas]) => {
-        const enc = new TextEncoder();
-        const j = o => enc.encode(JSON.stringify(o, null, 2));
-        const files = [
-          { name: 'places.json', data: j(places || []) },
-          { name: 'areas.json', data: j(areas || []) },
-          { name: 'routes.json', data: j(manifest) },
-          { name: 'metadata.json', data: j(metadata || {}) },
-          { name: 'category-labels.json', data: j(labels || {}) },
-        ];
-        for (const rec of gpx) files.push({ name: 'gpx/' + rec.file, data: enc.encode(rec.text) });
-        return _zipStore(files);
-      });
+    return exportLocal().then(d => {
+      const enc = new TextEncoder();
+      const j = (/** @type {any} */ o) => enc.encode(JSON.stringify(o, null, 2));
+      const files = [
+        { name: 'places.json', data: j(d.places) },
+        { name: 'areas.json', data: j(d.areas) },
+        { name: 'routes.json', data: j(d.routes) },
+        { name: 'metadata.json', data: j(d.metadata) },
+        { name: 'category-labels.json', data: j(d.labels) },
+      ];
+      for (const g of d.gpx) files.push({ name: 'gpx/' + g.file, data: enc.encode(g.text) });
+      return _zipStore(files);
+    });
   },
+  /** @param {Blob} file @param {string} mode */
   importZip(file, mode) {
-    return file.arrayBuffer().then(_zipRead).then(async entries => {
+    return file.arrayBuffer().then(_zipRead).then(entries => {
       const dec = new TextDecoder();
+      /** @type {Record<string, Uint8Array>} */
       const byName = {};
       for (const e of entries) byName[e.name] = e.data;
-      const parse = n => { if (!byName[n]) return null; try { return JSON.parse(dec.decode(byName[n])); } catch { return null; } };
-      const places = parse('places.json'), areas = parse('areas.json'), metadata = parse('metadata.json'), labels = parse('category-labels.json');
-      if (mode === 'replace') { await idbClear('places'); await idbClear('areas'); await idbClear('gpx'); }
-      let nPlaces = 0;
-      if (Array.isArray(places)) {
-        for (const p of places) { if (p && typeof p === 'object') { if (!p.id) p.id = _genId(); await idbPut('places', p); nPlaces++; } }
-      }
-      let nAreas = 0;
-      if (Array.isArray(areas)) {
-        for (const a of areas) { if (areaHasGeometry(a)) { if (!a.id) a.id = _genId(); await idbPut('areas', a); nAreas++; } }
-      }
-      let nRoutes = 0;
+      const parse = (/** @type {string} */ n) => { if (!byName[n]) return null; try { return JSON.parse(dec.decode(byName[n])); } catch { return null; } };
+      const areas = parse('areas.json');
+      const gpx = [];
       for (const name in byName) {
-        if (!name.startsWith('gpx/') || !name.endsWith('.gpx')) continue;
-        const rel = name.slice(4), text = dec.decode(byName[name]);
-        const pp = _gpxPathParts(rel), m = parseGpxText(text);
-        await idbPut('gpx', { file: rel, region: pp.region, name: pp.name, planned: pp.planned, text, bbox: m.bbox, hasElevation: m.hasElevation, trackCount: m.trackCount, trackNames: m.trackNames });
-        nRoutes++;
+        if (name.startsWith('gpx/') && name.endsWith('.gpx')) gpx.push({ file: name.slice(4), text: dec.decode(byName[name]) });
       }
-      if (metadata && typeof metadata === 'object') {
-        const next = mode === 'merge' ? Object.assign({}, await localStore._metadata(), metadata) : metadata;
-        await idbSet('kv', 'local:metadata', next);
-      }
-      if (labels && typeof labels === 'object') {
-        const cur = (await idbGet('kv', 'local:category-labels')) || {};
-        await idbSet('kv', 'local:category-labels', mode === 'merge' ? Object.assign({}, cur, labels) : labels);
-      }
-      localLog('local.import', '', { places: nPlaces, areas: nAreas, gpx: nRoutes, mode: mode });
-      return { ok: true, places: nPlaces, areas: nAreas, routes: nRoutes };
+      return importLocal({
+        places: parse('places.json'),
+        areas: Array.isArray(areas) ? areas.filter(areaHasGeometry) : null,
+        metadata: parse('metadata.json'),
+        labels: parse('category-labels.json'),
+        gpx,
+      }, mode);
     });
   },
 };

@@ -1,5 +1,4 @@
 import { state } from './core.js';
-import { isLocalMode } from './local-mode.js';
 import { apiUrl } from './auth.js';
 
 // When the frontend is bundled in a native/WebView shell it has no
@@ -10,7 +9,20 @@ import { apiUrl } from './auth.js';
 // origins), with the token kept in localStorage and cleared on logout or
 // server switch.
 const SERVER_KEY = 'ferd-server';
+const MODE_KEY = 'ferd-mode';
 const TOKEN_KEY = 'ferd-token';
+
+// With no server configured the app runs on this device alone: the store
+// keeps everything in IndexedDB and the server UI (sign-in, publish,
+// sessions, admin, catalog) is hidden. The device's own map and each
+// server's maps are kept apart, so switching never touches the other.
+export function hasServer() {
+  try { return localStorage.getItem(MODE_KEY) !== 'local'; } catch { return true; }
+}
+/** @param {boolean} on */
+export function setServerless(on) {
+  try { on ? localStorage.setItem(MODE_KEY, 'local') : localStorage.removeItem(MODE_KEY); } catch {}
+}
 
 export function serverBase() {
   try { return (localStorage.getItem(SERVER_KEY) || '').replace(/\/+$/, ''); }
@@ -94,7 +106,7 @@ export function categoryLabelsUrl() {
 }
 
 export function gpxUrlFor(file) {
-  if (isLocalMode()) return 'local:' + file;
+  if (!hasServer()) return 'local:' + file;
   const v = state.viewer;
   if (v && v.mode === 'public') return apiUrl('/u/' + encodeURIComponent(v.username) + '/gpx/' + file);
   return apiUrl('/gpx/' + file);

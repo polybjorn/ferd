@@ -1,9 +1,8 @@
 import {
   addButtonHtml, displayCategory, escapeHtml, setActiveTab, setCrumb, sortedCategorySlugs, state,
 } from './core.js';
-import { fetchJson, isReadOnly } from './server.js';
-import { isLocalMode } from './local-mode.js';
-import { dataLayer } from './offline-queue.js';
+import { fetchJson, hasServer, isReadOnly } from './server.js';
+import { dataLayer } from './store.js';
 import { collectTags, tagPillsHtml, tagsIncludeAll } from './tags.js';
 import { wireFilterPopover } from './map-panel.js';
 import { getShowField, setPref, setResultCount } from './prefs.js';
@@ -16,7 +15,7 @@ import { listView, listViewPopoverHtml, wireListViewPopover } from './history.js
 import { focusHash } from './router.js';
 import { api } from './auth.js';
 import { attachContextMenu } from './context-menu.js';
-import { enhanceSelectsIn, modalHeaderHtml, refreshPlaces } from './select.js';
+import { enhanceSelectsIn, modalHeaderHtml } from './select.js';
 import { closeModal, openFullScreenModal } from './modal.js';
 import { openAddModal } from './add.js';
 import { wrappedRouter } from './pick-coords.js';
@@ -63,7 +62,7 @@ function isCatalogOrphan(place) {
 // catalog-management UI stays hidden in local mode; browse + import +
 // update-detection all work against the static file.
 export function fetchCatalog() {
-  if (isLocalMode()) {
+  if (!hasServer()) {
     return fetchJson('catalog.json', []).then(arr =>
       Array.isArray(arr) ? arr.map(e => Object.assign({ _source: 'shipped' }, e)) : []);
   }
@@ -397,7 +396,7 @@ export function openCatalogBulkUpdateModal() {
         let i = 0;
         (function next() {
           if (i >= items.length) {
-            refreshPlaces().then(() => {
+            Promise.resolve().then(() => {
               refreshPlacesPresentation();
               closeModal();
               if (document.getElementById('place-list')) renderPlacesIndex();
@@ -457,7 +456,6 @@ export function openCatalogUpdateModal(place) {
       function submit(applyFields, btn) {
         btn.disabled = true;
         dataLayer.updatePlace({ id: place.id, place: buildCatalogRefreshPayload(place, entry, changes, applyFields) })
-          .then(() => refreshPlaces())
           .then(() => {
             closeModal();
             const fresh = (state.places || []).find(p => p.id === place.id) || place;

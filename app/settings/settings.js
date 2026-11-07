@@ -1,6 +1,5 @@
 import { state } from '../core.js';
-import { applyAuth, isReadOnly } from '../server.js';
-import { isLocalMode } from '../local-mode.js';
+import { applyAuth, hasServer, isReadOnly } from '../server.js';
 import { rebuildMapFilterPanel } from '../map-panel.js';
 import {
   BASE_LAYER_NAMES, applyControlVisibility, featureVisible, getClusterPlaces,
@@ -29,7 +28,8 @@ import { openManageRegionsModal } from './regions.js';
 import {
   AdminCatalog, AdminStats, AdminUsers, Sessions, Tokens, renderAdminCatalog,
 } from './account.js';
-import { openConfirmModal, refreshAreas, refreshPlaces, refreshRoutes } from '../select.js';
+import { openConfirmModal } from '../select.js';
+import { sync } from '../store.js';
 import {
   CopyButton, DialogHead, ErrorBox, Field, RadioPills, Toggle, html, openViewModal, useRef, useState,
 } from '../view.js';
@@ -98,7 +98,7 @@ const THEME_LABELS = {
 
 export function openSettingsModal(group) {
   const isAdmin = !!state.auth.is_admin;
-  const local = isLocalMode();
+  const local = !hasServer();
   // Backup is the only durable copy without a server; Account and Security
   // need a server account.
   const offered = { backup: local, account: !local, security: !local, admin: isAdmin };
@@ -526,7 +526,7 @@ function runServerImport(file, mode) {
     if (c.places) parts.push(t('account.importedPlaces', { n: c.places }));
     if (c.areas) parts.push(t('account.importedAreas', { n: c.areas }));
     if (c.gpx) parts.push(t('account.importedRoutes', { n: c.gpx }));
-    Promise.all([refreshPlaces(), refreshAreas(), refreshRoutes()]).then(() => { wrappedRouter(); });
+    sync().then(() => { wrappedRouter(); });
     return { message: parts.length ? t('account.imported', { list: parts.join(', ') }) : t('account.nothingImported') };
   });
 }

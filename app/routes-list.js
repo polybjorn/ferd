@@ -90,7 +90,7 @@ export function renderTrailsIndex() {
   const filterClear = document.getElementById('filter-clear');
   const mountEl = document.getElementById('trails-list-mount');
   const filterSels = [statusSel, regionSel, diffSel, ratingSel].filter(Boolean);
-  // Re-read the manifest on every render: refreshRoutes replaces it, so a
+  // Re-read the manifest on every render: the store replaces it, so a
   // list flattened once at mount keeps showing deleted routes.
   function flattenRoutes() {
     return state.manifest.regions.flatMap(r => r.routes.map(rt => ({route: rt, region: r.name})));

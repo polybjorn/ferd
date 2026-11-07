@@ -1,9 +1,9 @@
 import { state } from './core.js';
 import { applyAuth, routeStatusColor } from './server.js';
-import { idbGet } from './device-cache.js';
-import { easeLeaflet, localStore } from './local-mode.js';
+import { gpxText } from './store.js';
+
 import { _geometryPolygons } from './area-geo.js';
-import { mapScheduler } from './map-layers.js';
+import { easeLeaflet, mapScheduler } from './map-layers.js';
 import { areaStyle } from './areas.js';
 import { getTrailWeightFactor } from './theme.js';
 import { wrappedRouter } from './pick-coords.js';
@@ -27,7 +27,7 @@ export function fetchGpxText(url) {
   // Local mode: `local:<file>` resolves to the GPX text held in IndexedDB,
   // no network and no concurrency queue needed.
   if (url && url.indexOf('local:') === 0) {
-    return localStore.gpxText(url.slice(6)).then(function(text) {
+    return gpxText(url.slice(6)).then(function(text) {
       if (text == null) throw new Error('not found: ' + url);
       return text;
     });
@@ -39,13 +39,13 @@ export function fetchGpxText(url) {
         return r.text();
       }).then(resolve, function(err) {
         // Network failure: a GPX uploaded offline isn't on the server yet,
-        // so serve its bytes from the pending_gpx queue. The file path is
-        // everything after '/gpx/' in the URL (matches the pending_gpx key).
+        // so serve the bytes the store keeps until the upload replays. The
+        // file path is everything after '/gpx/' in the URL.
         const i = url.indexOf('/gpx/');
         const file = i >= 0 ? url.slice(i + 5).split('?')[0] : null;
         if (!file) return reject(err);
-        idbGet('pending_gpx', file).then(function(rec) {
-          if (rec && rec.text != null) resolve(rec.text); else reject(err);
+        gpxText(file).then(function(text) {
+          if (text != null) resolve(text); else reject(err);
         }, function() { reject(err); });
       });
     });

@@ -1,5 +1,5 @@
 import { COLORS, state } from '../core.js';
-import { dataLayer } from '../offline-queue.js';
+import { dataLayer } from '../store.js';
 import { t, tx } from '../i18n.js';
 import { refreshPlacesPresentation } from '../map-popups.js';
 import { openConfirmModal } from '../select.js';
@@ -183,11 +183,6 @@ function CategoriesView({ initial, inUse }) {
       .then(() => dataLayer.putCategoryLabels({ category_labels: payload }))
       .then(res => {
         state.config.category_labels = res.category_labels || payload;
-        if (cleared.length && state.places) {
-          // The server cleared these; mirror it locally instead of refetching.
-          for (const p of state.places) if (cleared.includes(p.category)) p.category = '';
-          for (const a of state.areas || []) if (cleared.includes(a.category)) a.category = '';
-        }
         refreshPlacesPresentation();
         closeTopModal();
       })

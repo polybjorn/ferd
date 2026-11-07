@@ -46,6 +46,13 @@ The ES module builds, renamed from `.mjs` to `.js` so that every server and the 
 - Upstream: https://preactjs.com
 - License: MIT
 - Copyright: (c) 2015-present Jason Miller
+### @preact/signals
+- Purpose: holds the map's places, areas, routes, labels, settings and sign-in state (`app/store.js`), so the views update when they change.
+- Version: 2.11.4, with @preact/signals-core 1.14.5
+- Files: `dist/signals.mjs` as `signals/signals.js`, `@preact/signals-core`'s `dist/signals-core.mjs` as `signals/signals-core.js`
+- Upstream: https://github.com/preactjs/signals
+- License: MIT
+- Copyright: (c) 2022-present Preact Team
 ### htm
 - Purpose: tagged template syntax for those components, so they need no build step.
 - Version: 3.1.1

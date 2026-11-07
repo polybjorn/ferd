@@ -1,12 +1,12 @@
 import { displayRegion, state } from './core.js';
-import { dataLayer } from './offline-queue.js';
+import { dataLayer } from './store.js';
 import { placePopupHtml } from './map-popups.js';
 import { manifestRoutes } from './areas.js';
 import { openEditPlaceModal } from './edit-place.js';
 import { renderPlaceList } from './places-list.js';
 import { focusHash } from './router.js';
 import { getMarkerSize, getPinStyle } from './theme.js';
-import { openConfirmModal, refreshPlaces, refreshRoutes } from './select.js';
+import { openConfirmModal } from './select.js';
 
 // Pan/zoom to a place marker and open its popup. With clustering on, a plain
 // setView+openPopup leaves the marker buried inside an unexpanded cluster;
@@ -130,7 +130,7 @@ function deletePlaceNow(place, { animate, deleted, after, onError }) {
     .then(() => {
       if (deleted) deleted();
       const layer = state._placeClusterGroup;
-      return Promise.all([refreshPlaces(), layer ? layer.fadeOutPlace(place) : null]);
+      return Promise.all([layer ? layer.fadeOutPlace(place) : null]);
     })
     .then(() => anim)
     .then(() => after(prevColors))
@@ -159,7 +159,6 @@ export function deleteRouteItem(route, regionName, after) {
   }).then(function(ok) {
     if (!ok) return;
     return dataLayer.deleteGpx({ region: regionName, name: route.name })
-      .then(() => refreshRoutes())
       .then(() => after())
       .catch(err => alert('Delete failed: ' + err.message));
   });

@@ -1,5 +1,5 @@
 import { displayCategory, escapeHtml, grpNum, sortedCategorySlugs, state } from './core.js';
-import { dataLayer } from './offline-queue.js';
+import { dataLayer } from './store.js';
 import {
   AREA_CATEGORY_KINDS, AREA_MAX_FILE_BYTES, AREA_TARGET_POINTS, _areaPointCount,
   buildAreaGeometry, nominatimAreas, parseAreaGeoJson,
@@ -17,8 +17,8 @@ import { wireCountryPicker } from './countries.js';
 import { fetchCatalog } from './places-list.js';
 import { router } from './router.js';
 import {
-  enhanceSelectsIn, modalErrorHtml, modalHeaderHtml, openConfirmModal, refreshAreas,
-  refreshPlaces, refreshRoutes, uiFieldHtml, uiToggleHtml,
+  enhanceSelectsIn, modalErrorHtml, modalHeaderHtml, openConfirmModal,
+  uiFieldHtml, uiToggleHtml,
 } from './select.js';
 import { closeModal, openFullScreenModal, showModalError } from './modal.js';
 import { enterPickCoordsMode } from './pick-coords.js';
@@ -272,7 +272,6 @@ export function openAddModal(prefillCoords, initialTab, draft) {
       submitBtn.disabled = true;
       const prevColors = Object.assign({}, state.categoryColors);
       dataLayer.createPlace(r.payload)
-        .then(() => refreshPlaces())
         .then(() => { closeModal(); syncPlacesOnMap(prevColors); refreshPlacesPresentation(); })
         .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
     });
@@ -570,7 +569,6 @@ export function openAddModal(prefillCoords, initialTab, draft) {
       submit.disabled = true;
       const before = new Set((state.areas || []).map(a => a.id));
       items.reduce((chain, area) => chain.then(() => dataLayer.createArea(area)), Promise.resolve())
-        .then(() => refreshAreas())
         .then(() => {
           closeModal();
           refreshPlacesPresentation();
@@ -640,7 +638,6 @@ export function openAddModal(prefillCoords, initialTab, draft) {
         if (Object.keys(metadata).length === 0) return null;
         return dataLayer.putMetadata({ key: metaKey, metadata: metadata });
       })
-      .then(() => refreshRoutes())
       .then(() => { closeModal(); router(); })
       .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
     });
@@ -851,7 +848,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
           const errors = [];
           (function next() {
             if (done >= picked.length) {
-              refreshPlaces().then(() => {
+              Promise.resolve().then(() => {
                 syncPlacesOnMap(prevColors);
                 refreshPlacesPresentation();
                 if (errors.length) {

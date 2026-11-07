@@ -1,5 +1,5 @@
 import { escapeHtml, state } from './core.js';
-import { easeLeaflet } from './local-mode.js';
+import { easeLeaflet } from './map-layers.js';
 import { getClusterPlaces, placesEnabled, routesEnabled } from './prefs.js';
 import { MAP_FADE_MS, applyAreaFilters, reduceMotion, revealArea } from './areas.js';
 import { goToPlace, goToRoute, openPlacePopup, placeMarkerRadius } from './map-actions.js';

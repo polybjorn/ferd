@@ -1,7 +1,6 @@
 import { state } from '../core.js';
-import { dataLayer } from '../offline-queue.js';
+import { dataLayer } from '../store.js';
 import { t } from '../i18n.js';
-import { refreshRoutes } from '../select.js';
 import { closeTopModal } from '../modal.js';
 import { wrappedRouter } from '../pick-coords.js';
 import { DialogHead, ErrorBox, HideToggle, RowTag, html, openViewModal, useState } from '../view.js';
@@ -61,7 +60,6 @@ function RegionsView({ regions }) {
       ? dataLayer.deleteRegion({ name: r.original })
       : dataLayer.clearRegion({ name: r.original }))))
       .then(() => Promise.all(renames.map(r => dataLayer.renameRegion(r))))
-      .then(() => refreshRoutes())
       .then(() => { wrappedRouter(); closeTopModal(); })
       .catch(e => { setBusy(false); setError(e.message); });
   };

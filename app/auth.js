@@ -1,6 +1,6 @@
 import { escapeHtml, state } from './core.js';
-import { applyAuth, isReadOnly, serverBase, setBearerToken } from './server.js';
-import { isLocalMode, setLocalMode } from './local-mode.js';
+import { applyAuth, hasServer, isReadOnly, serverBase, setBearerToken, setServerless } from './server.js';
+
 import { clearRecentPicks, logsEnabled } from './prefs.js';
 import { TOPO_CREDIT, parseOverlays } from './map-layers.js';
 import { closeTransientOverlays } from './map-actions.js';
@@ -66,7 +66,7 @@ export function renderAuthWidget() {
     document.getElementById('auth-signin').addEventListener('click', openSignInModal);
     return;
   }
-  const local = isLocalMode();
+  const local = !hasServer();
   el.innerHTML =
     '<button id="auth-menu-btn" title="Account menu" aria-haspopup="true" aria-expanded="false">' + MENU_ICON + '<span class="auth-menu-label">Menu</span></button>' +
     '<div class="auth-menu" id="auth-menu" hidden>' +
@@ -146,7 +146,7 @@ function confirmSignOut() {
 }
 
 export function enterLocalMode() {
-  setLocalMode(true);
+  setServerless(true);
   // A fresh load takes the local-only branch in startup()/bootApp().
   document.body.classList.remove('signin-only');
   location.reload();
@@ -159,7 +159,7 @@ function confirmLeaveLocal() {
     confirmLabel: 'Connect to a server',
   }).then(ok => {
     if (!ok) return;
-    setLocalMode(false);
+    setServerless(false);
     location.reload();
   });
 }

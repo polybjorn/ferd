@@ -1,7 +1,8 @@
 import {
   assignCategoryColors, assignPlaceSlugs, assignTrailSlugs, escapeHtml, state,
 } from './core.js';
-import { dataLayer } from './offline-queue.js';
+import { effect, untracked } from '@preact/signals';
+import * as store from './store.js';
 import { areaHasGeometry } from './area-geo.js';
 import { syncAreasOnMap } from './areas.js';
 import { closeTopModal, modalStack, openSheetModal, popoverHost } from './modal.js';
@@ -310,39 +311,49 @@ export function openConfirmModal({ title, body, confirmLabel, danger }) {
   });
 }
 
-export function refreshPlaces() {
-  return dataLayer.fetchPlaces([]).then(data => {
-    state.places = Array.isArray(data) ? data : [];
-    assignPlaceSlugs(state.places);
-    const cc = assignCategoryColors(state.places);
-    state.categoryColors = cc.dark;
-    state.categoryColorsLight = cc.light;
+// The store's signals are the data; state holds the copies the views read,
+// with the slugs, colours and defaults they hang on them. These effects
+// keep the two in step, so a write (or a sync) updates state before the
+// promise it returns resolves, with no re-fetch.
+export function bindStoreToState() {
+  store.bindAuth();
+  // Place colours come from the labels, so this one reads both.
+  effect(() => {
+    const data = store.places.value;
+    const labels = store.labels.value;
+    untracked(() => {
+      if (state.config) state.config.category_labels = labels;
+      // A missing category is the "uncategorized" bucket (key ''), so the
+      // rest of the UI can treat p.category as a plain string.
+      for (const p of data) { if (p.category == null) p.category = ''; }
+      state.places = data;
+      assignPlaceSlugs(state.places);
+      recolor();
+    });
+  });
+  effect(() => {
+    const data = store.areas.value;
+    untracked(() => {
+      state.areas = data.filter(areaHasGeometry);
+      for (const a of state.areas) { if (a.category == null) a.category = ''; }
+      recolor();
+      // The layers hold the area objects, so they are rebuilt from the new ones.
+      syncAreasOnMap();
+    });
+  });
+  effect(() => {
+    const data = store.routes.value;
+    untracked(() => {
+      for (const region of data.regions) region.routes.sort((a, b) => a.name.localeCompare(b.name));
+      data.regions.sort((a, b) => a.name.localeCompare(b.name));
+      state.manifest = data;
+      assignTrailSlugs(state.manifest);
+      syncAreasOnMap();
+    });
   });
 }
-
-// A missing category is the "uncategorized" bucket (key ''), as for places.
-export function setAreas(data) {
-  state.areas = Array.isArray(data) ? data.filter(areaHasGeometry) : [];
-  for (const a of state.areas) { if (a.category == null) a.category = ''; }
-}
-export function refreshAreas() {
-  return dataLayer.fetchAreas([]).then(data => {
-    setAreas(data);
-    const cc = assignCategoryColors(state.places || []);
-    state.categoryColors = cc.dark;
-    state.categoryColorsLight = cc.light;
-    // The layers hold the area objects: left alone they keep the ids an offline create was queued under.
-    syncAreasOnMap();
-  });
-}
-
-export function refreshRoutes() {
-  return dataLayer.fetchRoutes(null).then(data => {
-    if (!data || !Array.isArray(data.regions)) return;
-    data.regions.sort((a, b) => a.name.localeCompare(b.name));
-    for (const region of data.regions) region.routes.sort((a, b) => a.name.localeCompare(b.name));
-    state.manifest = data;
-    assignTrailSlugs(state.manifest);
-    syncAreasOnMap();
-  });
+function recolor() {
+  const cc = assignCategoryColors(state.places || []);
+  state.categoryColors = cc.dark;
+  state.categoryColorsLight = cc.light;
 }

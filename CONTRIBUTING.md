@@ -35,7 +35,7 @@ Tests live in `tests/`. Run from the repo root:
 python3 -m unittest discover -s tests
 ```
 
-The offline write queue in `app/offline-queue.js` has its own tests, run with Node 20 or newer and no install step:
+The frontend has its own tests, among them the on-device store and its sync queue in `app/store.js`, run with Node 20 or newer and no install step:
 
 ```sh
 node --test tests/js/*.test.js

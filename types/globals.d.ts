@@ -19,3 +19,4 @@ interface Window {
 declare module 'preact';
 declare module 'preact/hooks';
 declare module 'htm';
+declare module '@preact/signals';

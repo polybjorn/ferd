@@ -1,5 +1,5 @@
-import { localLogClear, localLogPage } from '../device-cache.js';
-import { isLocalMode } from '../local-mode.js';
+import { localLogClear, localLogPage } from '../store.js';
+import { hasServer } from '../server.js';
 import { api } from '../auth.js';
 import { t, tx } from '../i18n.js';
 import { openConfirmModal } from '../select.js';
@@ -169,5 +169,5 @@ function LogsView({ local }) {
 }
 
 export function openLogsModal() {
-  openViewModal(html`<${LogsView} local=${isLocalMode()} />`, { phone: 'fullscreen' });
+  openViewModal(html`<${LogsView} local=${!hasServer()} />`, { phone: 'fullscreen' });
 }

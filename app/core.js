@@ -1,5 +1,5 @@
 import { detectViewer, isReadOnly } from './server.js';
-import { dataLayer } from './offline-queue.js';
+import { dataLayer } from './store.js';
 import { DEFAULT_CONFIG, isImperial } from './prefs.js';
 
 // Tableau 20 categorical palette, reordered: indices 0-9 are the saturated
@@ -110,7 +110,6 @@ export const state = {
   config: DEFAULT_CONFIG,
   /** @type {AuthState} */
   auth: { authenticated: false, username: null, is_admin: false, published: false, registration_open: true, publishing_open: true, catalog_baseline_open: true, has_users: false, requires_setup_token: false },
-  serverPrefs: {},
   viewer: detectViewer(),
   currentMap: null,
   currentElevation: null,

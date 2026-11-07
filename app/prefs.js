@@ -1,7 +1,6 @@
 import { state } from './core.js';
-import { applyAuth } from './server.js';
-import { isLocalMode } from './local-mode.js';
-import { apiUrl } from './auth.js';
+import { hasServer, isReadOnly } from './server.js';
+import { dataLayer, prefs } from './store.js';
 
 export const DEFAULT_CONFIG = {
   brand: 'Ferd',
@@ -47,7 +46,7 @@ export function setFeatureVisible(key, visible) {
 // only when reachable AND not toggled off.
 export function historyEnabled() { return (placesEnabled() || routesEnabled()) && featureVisible('history'); }
 export function catalogEnabled() { return placesEnabled() && featureVisible('catalog'); }
-export function logsAvailable() { return isLocalMode() || !!(state.auth && state.auth.is_admin); }
+export function logsAvailable() { return !hasServer() || !!(state.auth && state.auth.is_admin); }
 export function logsEnabled() { return logsAvailable() && featureVisible('logs'); }
 
 export function getPref(key, def) {
@@ -69,33 +68,22 @@ const SYNCED_PREF_KEYS = new Set([
 ]);
 export function setPref(key, val) {
   try { localStorage.setItem(key, val); } catch {}
-  if (SYNCED_PREF_KEYS.has(key) && state.auth && state.auth.authenticated) {
-    state.serverPrefs[key] = val;
-    fetch(apiUrl('/me/prefs'), applyAuth({
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(state.serverPrefs),
-    })).catch(() => {});
+  if (SYNCED_PREF_KEYS.has(key) && hasServer() && !isReadOnly() && state.auth && state.auth.authenticated) {
+    dataLayer.putPref(key, val).catch(() => {});
   }
 }
+// Copy the account's synced preferences from the store into localStorage,
+// where the readers look. Theme is applied at app render
+// (loadDataAndRender), not here, so the synced theme appears with the map
+// rather than recoloring the sign-in screen first.
 export function loadSyncedPrefs() {
-  if (isLocalMode()) return Promise.resolve();
-  if (!state.auth || !state.auth.authenticated) return Promise.resolve();
-  return fetch(apiUrl('/me/prefs'), applyAuth({}))
-    .then(r => r.ok ? r.json() : null)
-    .then(prefs => {
-      if (!prefs || typeof prefs !== 'object') return;
-      state.serverPrefs = Object.assign({}, prefs);
-      for (const key of SYNCED_PREF_KEYS) {
-        if (key in prefs) {
-          try { localStorage.setItem(key, prefs[key]); } catch {}
-        }
-      }
-      // Theme is applied at app render (loadDataAndRender), not here, so the
-      // synced theme appears with the map rather than recoloring the
-      // sign-in screen first.
-    })
-    .catch(() => {});
+  if (!hasServer() || isReadOnly()) return;
+  const p = prefs.value;
+  for (const key of SYNCED_PREF_KEYS) {
+    if (key in p) {
+      try { localStorage.setItem(key, p[key]); } catch {}
+    }
+  }
 }
 export function bindRadioPref(name, prefKey, onChange) {
   document.querySelectorAll('input[name="' + name + '"]').forEach(r => {

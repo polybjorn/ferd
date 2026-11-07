@@ -26,7 +26,7 @@
   </script>
   <!-- Firefox ignores an import map that comes after a module preload. -->
   <script type="importmap">
-    { "imports": { "preact": "/vendor/preact/preact.js", "preact/hooks": "/vendor/preact/hooks.js", "htm": "/vendor/htm/htm.js" } }
+    { "imports": { "preact": "/vendor/preact/preact.js", "preact/hooks": "/vendor/preact/hooks.js", "htm": "/vendor/htm/htm.js", "@preact/signals": "/vendor/signals/signals.js", "@preact/signals-core": "/vendor/signals/signals-core.js" } }
   </script>
   <!-- Without these, each import is found only after its parent arrives. -->
   <link rel="modulepreload" href="/app/add.js">
@@ -37,12 +37,11 @@
   <link rel="modulepreload" href="/app/context-menu.js">
   <link rel="modulepreload" href="/app/core.js">
   <link rel="modulepreload" href="/app/countries.js">
-  <link rel="modulepreload" href="/app/device-cache.js">
   <link rel="modulepreload" href="/app/edit-place.js">
   <link rel="modulepreload" href="/app/form-fields.js">
   <link rel="modulepreload" href="/app/history.js">
   <link rel="modulepreload" href="/app/i18n.js">
-  <link rel="modulepreload" href="/app/local-mode.js">
+  <link rel="modulepreload" href="/app/gpx-text.js">
   <link rel="modulepreload" href="/app/main.js">
   <link rel="modulepreload" href="/app/map-actions.js">
   <link rel="modulepreload" href="/app/map-layers.js">
@@ -53,7 +52,6 @@
   <link rel="modulepreload" href="/app/map-wheel.js">
   <link rel="modulepreload" href="/app/map.js">
   <link rel="modulepreload" href="/app/modal.js">
-  <link rel="modulepreload" href="/app/offline-queue.js">
   <link rel="modulepreload" href="/app/pick-coords.js">
   <link rel="modulepreload" href="/app/place-layer.js">
   <link rel="modulepreload" href="/app/places-list.js">
@@ -72,6 +70,7 @@
   <link rel="modulepreload" href="/app/settings/regions.js">
   <link rel="modulepreload" href="/app/settings/settings.js">
   <link rel="modulepreload" href="/app/sign-in.js">
+  <link rel="modulepreload" href="/app/store.js">
   <link rel="modulepreload" href="/app/tags.js">
   <link rel="modulepreload" href="/app/theme.js">
   <link rel="modulepreload" href="/app/view.js">

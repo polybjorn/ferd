@@ -1,5 +1,5 @@
 import { displayRegion, escapeHtml, state } from './core.js';
-import { dataLayer } from './offline-queue.js';
+import { dataLayer } from './store.js';
 import {
   radioPillsHtml, readRouteMetaFields, readStarRating, starRatingHtml, wireStarRating,
 } from './form-fields.js';
@@ -8,7 +8,7 @@ import { getShowField } from './prefs.js';
 import { EXTERNAL_ICON_SVG } from './map-popups.js';
 import { deleteRouteItem, placePopupContent } from './map-actions.js';
 import {
-  modalErrorHtml, modalHeaderHtml, refreshRoutes, uiFieldHtml, uiToggleHtml,
+  modalErrorHtml, modalHeaderHtml, uiFieldHtml, uiToggleHtml,
 } from './select.js';
 import { closeModal, openFullScreenModal, showModalError } from './modal.js';
 import { wrappedRouter } from './pick-coords.js';
@@ -229,7 +229,6 @@ export function openEditTrailMetadataModal(route, regionName) {
         let movedKey = key;
         chain
           .then(finalKey => { movedKey = finalKey; return dataLayer.putMetadata({ key: finalKey, metadata: metadata }); })
-          .then(() => refreshRoutes())
           .then(() => {
             closeModal();
             // If this route's detail view is open and it moved (region or

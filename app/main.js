@@ -1,20 +1,19 @@
+import { DATA_FILES, state } from './core.js';
+import { applyAuth, fetchJson, hasServer, isReadOnly, serverBase, serverFileUrl } from './server.js';
 import {
-  DATA_FILES, assignCategoryColors, assignPlaceSlugs, assignTrailSlugs, state,
-} from './core.js';
-import { applyAuth, fetchJson, isReadOnly, serverBase, serverFileUrl } from './server.js';
-import { authCacheKey, idbGet, idbSet } from './device-cache.js';
-import { isLocalMode } from './local-mode.js';
-import { dataLayer, drainOutbox, updateOfflineBanner } from './offline-queue.js';
+  authCacheKey, loadPublic, metaGet, metaSet, onRemoteChange, open as openStore, sync, synced as storeSynced,
+  updateOfflineBanner,
+} from './store.js';
 import {
   DEFAULT_CONFIG, applyControlVisibility, catalogEnabled, getDefaultShow, getJsonListPref,
-  loadSyncedPrefs, placesAvailable, refreshTabVisibility, routesAvailable,
+  loadSyncedPrefs, refreshTabVisibility,
 } from './prefs.js';
 import { fetchCatalog } from './places-list.js';
 import {
   applyTheme, applyTileFilter, getStoredMode, getStoredTheme, getTileFilter,
 } from './theme.js';
 import { apiUrl, renderAuthWidget } from './auth.js';
-import { setAreas } from './select.js';
+import { bindStoreToState } from './select.js';
 import { renderServerPicker, renderSignInPage } from './sign-in.js';
 import { wrappedRouter } from './pick-coords.js';
 import './backup.js';
@@ -65,44 +64,26 @@ function applyConfig(cfg) {
   refreshTabVisibility();
 }
 
+// Open this viewer's copy of the map and bring it up to date: an owner on a
+// server syncs (waiting for it only when this device has never synced
+// that map), a public map is fetched whole, and with no server the device
+// copy is all there is. The signals in store.js then hold the data, and
+// select.js mirrors them into state.
+function loadData() {
+  if (!hasServer()) return openStore();
+  if (isReadOnly()) return loadPublic();
+  return openStore().then(had => {
+    if (had) { sync(); return true; }
+    return sync().then(() => storeSynced());
+  });
+}
+
 export function loadDataAndRender() {
   const v = state.viewer;
-  const placesP = placesAvailable()
-    ? dataLayer.fetchPlaces(null).catch(() => null)
-    : Promise.resolve(null);
-  const routesP = routesAvailable()
-    ? dataLayer.fetchRoutes(null).catch(() => null)
-    : Promise.resolve(null);
-  const labelsP = placesAvailable()
-    ? dataLayer.fetchCategoryLabels(null).catch(() => null)
-    : Promise.resolve(null);
-  const areasP = placesAvailable()
-    ? dataLayer.fetchAreas([]).catch(() => [])
-    : Promise.resolve([]);
-  return Promise.all([placesP, routesP, labelsP, areasP]).then(function([places, routes, labels, areas]) {
-    if (labels && labels.category_labels) {
-      state.config.category_labels = labels.category_labels;
-    }
-    setAreas(areas);
-    if (Array.isArray(places)) {
-      // Normalize: missing/empty category is the "uncategorized" bucket
-      // (key ''), so the rest of the UI can treat p.category as a plain
-      // string without sprinkling null checks everywhere.
-      for (const p of places) { if (p.category == null) p.category = ''; }
-      state.places = places;
-      assignPlaceSlugs(state.places);
-      const cc = assignCategoryColors(places);
-      state.categoryColors = cc.dark;
-      state.categoryColorsLight = cc.light;
-    }
-    if (routes && Array.isArray(routes.regions)) {
-      routes.regions.sort((a, b) => a.name.localeCompare(b.name));
-      for (const region of routes.regions) region.routes.sort((a, b) => a.name.localeCompare(b.name));
-      state.manifest = routes;
-      assignTrailSlugs(state.manifest);
-    }
+  return loadData().then(function(loaded) {
+    loadSyncedPrefs();
     refreshTabVisibility();
-    if ((placesAvailable() && !state.places) && (routesAvailable() && !state.manifest)) {
+    if (!loaded) {
       document.body.classList.remove('app-booting', 'signin-only');
       if (v.mode === 'public') {
         document.getElementById('app').innerHTML = '<div class="loading">Map not found, or owner has not published it.</div>';
@@ -126,9 +107,6 @@ export function loadDataAndRender() {
     document.body.classList.remove('app-booting', 'signin-only');
     wrappedRouter();
     updateOfflineBanner();
-    // Flush any writes queued during a previous offline session, then
-    // reconcile state with the server. No-op when offline or local-only.
-    drainOutbox();
     // Warm the catalog cache in the background so the Browse tab in the
     // Add modal renders instantly the first time it's opened, instead of
     // flashing the Loading placeholder. Authed users only.
@@ -144,9 +122,9 @@ export function loadDataAndRender() {
 }
 
 export function bootApp() {
-  // Local-only mode: no server, no auth. Run as a read-write owner whose
-  // data lives entirely in IndexedDB. Config falls back to defaults.
-  if (isLocalMode()) {
+  // No server: no auth, a read-write owner whose data lives entirely in
+  // IndexedDB. Config falls back to defaults.
+  if (!hasServer()) {
     applyConfig(null);
     state.auth = { authenticated: true, username: null, is_admin: false, local: true };
     renderAuthWidget();
@@ -162,9 +140,9 @@ export function bootApp() {
       return fetch(apiUrl('/state'), applyAuth({})).then(
         r => {
           if (!r.ok) return null;
-          return r.json().then(s => { idbSet('cache', authCacheKey(), { data: s, ts: Date.now() }); return s; }, () => null);
+          return r.json().then(s => { metaSet(authCacheKey(), s); return s; }, () => null);
         },
-        () => idbGet('cache', authCacheKey()).then(rec => rec ? rec.data : null)
+        () => metaGet(authCacheKey()).then(s => s || null)
       );
     })
     .then(function(authState) {
@@ -175,7 +153,7 @@ export function bootApp() {
         renderSignInPage();
         return;
       }
-      return loadSyncedPrefs().then(() => loadDataAndRender());
+      return loadDataAndRender();
     });
 }
 
@@ -196,7 +174,7 @@ export function probeServer(base, timeoutMs) {
 // load, so a failed probe (offline, flaky link, server down) can boot
 // into the last-known map read-only instead of dead-ending at the picker.
 function hasOfflineCache() {
-  return idbGet('cache', authCacheKey()).then(rec => !!(rec && rec.data));
+  return metaGet(authCacheKey()).then(s => !!s);
 }
 
 // Boot trigger. A stored server is probed and used (re-prompts on failure).
@@ -207,8 +185,8 @@ function hasOfflineCache() {
 // restores the session and data from IndexedDB and the offline banner
 // signals read-only mode.
 function startup() {
-  // Local-only mode skips the server probe entirely.
-  if (isLocalMode()) return bootApp();
+  // With no server there is nothing to probe.
+  if (!hasServer()) return bootApp();
   const base = serverBase();
   if (base) {
     return probeServer(base, 6000).then(function(ok) {
@@ -227,6 +205,10 @@ function startup() {
   });
 }
 
+bindStoreToState();
+// Changes pulled from the server redraw the page on show; edits made here
+// redraw through their own call sites.
+onRemoteChange(() => { if (!document.body.classList.contains('app-booting')) wrappedRouter(); });
 startup();
 
 // PWA: offline indicator + service worker registration + update toast.
@@ -234,7 +216,7 @@ startup();
   const updateBanner = document.getElementById('pwa-update-banner');
   const updateBtn = document.getElementById('pwa-update-btn');
 
-  window.addEventListener('online', () => { updateOfflineBanner(); drainOutbox(); });
+  window.addEventListener('online', () => { updateOfflineBanner(); sync(); });
   window.addEventListener('offline', updateOfflineBanner);
   updateOfflineBanner();
 

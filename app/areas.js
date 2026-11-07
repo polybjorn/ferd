@@ -1,6 +1,6 @@
 import { displayCategory, escapeHtml, sortedCategorySlugs, state } from './core.js';
 import { gpxUrlFor, popupEditHtml } from './server.js';
-import { dataLayer } from './offline-queue.js';
+import { dataLayer } from './store.js';
 import {
   areaBbox, areaContains, areaSize, areaStatText, bboxesOverlap, placesInArea, tracksTouchArea,
 } from './area-geo.js';
@@ -12,7 +12,7 @@ import { COUNTRY_MAX_ZOOM, syncCountriesOnMap } from './countries.js';
 import { goToPlace, goToRoute } from './map-actions.js';
 import { parseGpxTracks } from './route-detail.js';
 import {
-  modalErrorHtml, modalHeaderHtml, openConfirmModal, refreshAreas, uiFieldHtml, uiToggleHtml,
+  modalErrorHtml, modalHeaderHtml, openConfirmModal, uiFieldHtml, uiToggleHtml,
 } from './select.js';
 import { closeModal, openFullScreenModal, showModalError } from './modal.js';
 
@@ -313,7 +313,7 @@ function openEditAreaModal(area) {
     '</form>',
     function() {
       wireSelectOrNew('ea-category');
-      const done = () => refreshAreas().then(() => { closeModal(); refreshPlacesPresentation(); });
+      const done = () => Promise.resolve().then(() => { closeModal(); refreshPlacesPresentation(); });
       document.getElementById('ea-delete').addEventListener('click', function() {
         const btn = /** @type {HTMLButtonElement} */ (this);
         openConfirmModal({ title: 'Delete area?', body: 'Delete "' + area.name + '"?', confirmLabel: 'Delete', danger: true }).then(ok => {
@@ -324,7 +324,7 @@ function openEditAreaModal(area) {
           dataLayer.deleteArea({ id: area.id }).then(
             () => {
               closeModal();
-              return refreshAreas().then(() => {
+              return Promise.resolve().then(() => {
                 if (shown) fadeOutArea(area, entry.visited);
                 refreshPlacesPresentation();
               }).catch(err => alert('Failed: ' + err.message));

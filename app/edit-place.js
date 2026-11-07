@@ -1,5 +1,5 @@
 import { displayCategory, escapeHtml, sortedCategorySlugs, state } from './core.js';
-import { dataLayer } from './offline-queue.js';
+import { dataLayer } from './store.js';
 import {
   readPlaceFormFields, selectOrNewHtml, starRatingHtml, wireSelectOrNew, wireStarRating,
 } from './form-fields.js';
@@ -9,7 +9,7 @@ import { wireCountryPicker } from './countries.js';
 import { deletePlaceItem, resyncPlaceCardSlugs } from './map-actions.js';
 import { renderPlaceList, updatePlaceCardAfterEdit } from './places-list.js';
 import {
-  modalErrorHtml, modalHeaderHtml, refreshPlaces, uiFieldHtml, uiToggleHtml,
+  modalErrorHtml, modalHeaderHtml, uiFieldHtml, uiToggleHtml,
 } from './select.js';
 import { closeModal, openFullScreenModal, showModalError } from './modal.js';
 import { enterPickCoordsMode } from './pick-coords.js';
@@ -139,7 +139,6 @@ export function openEditPlaceModal(place) {
         submit.disabled = true;
         const prevColors = Object.assign({}, state.categoryColors);
         dataLayer.updatePlace({ id: place.id, place: r.payload })
-          .then(() => refreshPlaces())
           .then(() => {
             closeModal();
             syncPlacesOnMap(prevColors);
