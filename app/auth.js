@@ -1,7 +1,6 @@
 import { escapeHtml, state } from './core.js';
 import { applyAuth, isReadOnly, serverBase, setBearerToken } from './server.js';
 import { isLocalMode, setLocalMode } from './local-mode.js';
-import { localBackup } from './backup.js';
 import { clearRecentPicks, logsEnabled } from './prefs.js';
 import { TOPO_CREDIT, parseOverlays } from './map-layers.js';
 import { closeTransientOverlays } from './map-actions.js';
@@ -137,73 +136,6 @@ function confirmSignOut() {
     if (!ok) return;
     const done = function() { setBearerToken(''); clearRecentPicks(); location.reload(); };
     api('POST', '/logout').then(done, done);
-  });
-}
-
-// Wire the local-mode Backup tab (Settings > Backup). Mirrors the server
-// Export/Import sections: Export downloads a zip; Import restores with a
-// Merge/Replace mode chosen via the segmented control, then reloads.
-export function wireLocalBackup() {
-  const exp = document.getElementById('s-local-export');
-  const expErr = document.getElementById('s-local-export-error');
-  if (exp) exp.addEventListener('click', function() {
-    const orig = exp.textContent;
-    if (expErr) expErr.classList.remove('visible');
-    exp.disabled = true; exp.textContent = 'Exporting…';
-    localBackup.exportZip().then(function(blob) {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'ferd-local-export.zip';
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
-    }).catch(function(e) {
-      if (expErr) { expErr.textContent = 'Export failed: ' + e.message; expErr.classList.add('visible'); }
-    }).finally(function() { exp.disabled = false; exp.textContent = orig; });
-  });
-
-  const pickBtn = document.getElementById('s-local-import-pick');
-  const impInput = document.getElementById('s-local-import-file');
-  const nameEl = document.getElementById('s-local-import-name');
-  const impBtn = document.getElementById('s-local-import-btn');
-  const errEl = document.getElementById('s-local-import-error');
-  const okEl = document.getElementById('s-local-import-success');
-  if (pickBtn && impInput) pickBtn.addEventListener('click', function() { impInput.click(); });
-  if (impInput) impInput.addEventListener('change', function() {
-    const f = impInput.files && impInput.files[0];
-    if (nameEl) {
-      nameEl.textContent = f ? f.name : 'No file selected';
-      nameEl.classList.toggle('has-file', !!f);
-    }
-    if (okEl) okEl.hidden = true;
-  });
-  if (impBtn) impBtn.addEventListener('click', function() {
-    const f = impInput && impInput.files && impInput.files[0];
-    if (errEl) errEl.classList.remove('visible');
-    if (!f) {
-      if (errEl) { errEl.textContent = 'Choose a zip file first.'; errEl.classList.add('visible'); }
-      return;
-    }
-    const mode = document.querySelector('input[name="local-import-mode"]:checked').value;
-    const run = function() {
-      impBtn.disabled = true;
-      const orig = impBtn.textContent; impBtn.textContent = 'Importing…';
-      localBackup.importZip(f, mode).then(function(res) {
-        if (okEl) { okEl.hidden = false; okEl.textContent = 'Imported ' + res.places + ' places' + (res.areas ? ', ' + res.areas + ' areas' : '') + ' and ' + res.routes + ' routes. Reloading…'; }
-        setTimeout(function() { location.reload(); }, 900);
-      }).catch(function(e) {
-        impBtn.disabled = false; impBtn.textContent = orig;
-        if (errEl) { errEl.textContent = 'Import failed: ' + e.message; errEl.classList.add('visible'); }
-      });
-    };
-    if (mode === 'replace') {
-      openConfirmModal({
-        title: 'Replace all?',
-        body: 'This replaces your current on-device map (places and routes) with the contents of the zip.',
-        confirmLabel: 'Replace', danger: true,
-      }).then(function(ok) { if (ok) run(); });
-    } else {
-      run();
-    }
   });
 }
 

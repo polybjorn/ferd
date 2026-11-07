@@ -6,7 +6,7 @@ A one-page tour of what the app is made of and how the pieces fit. If you just w
 
 Two things glued together at one HTTP origin:
 
-1. **A static SPA frontend.** `index.html` holds the markup and `app/` the stylesheet and vanilla JavaScript, as native ES modules the browser loads directly, with `app/main.js` as the entry. Leaflet and its plugins are vendored under `vendor/` and served from the same origin, so the only external host at runtime is the map tile provider. Everything else (`site-config.json`, places, routes, GPX) comes from the API. No build step, no framework, no bundler.
+1. **A static SPA frontend.** `index.html` holds the markup and `app/` the stylesheet and vanilla JavaScript, as native ES modules the browser loads directly, with `app/main.js` as the entry. Leaflet and its plugins are vendored under `vendor/` and served from the same origin, so the only external host at runtime is the map tile provider. Everything else (`site-config.json`, places, routes, GPX) comes from the API. Dialogs converted to components use Preact with htm templates, vendored and mapped by an import map in `index.html`, so there is still no build step and no bundler.
 2. **The Python API.** `tools/api.py` is a stdlib-only HTTP server (`http.server` + `sqlite3`) that handles auth, per-user reads and writes, and serves the static files so the app runs from one origin.
 
 The frontend talks to the API via `fetch`; the API stores users, sessions, and per-user publish state in SQLite and writes each user's places/routes to JSON and GPX files under their own folder on disk.
@@ -94,11 +94,29 @@ ui.css                     # shared form and modal building blocks, copied from 
 
 Two-person threshold: the project is small enough that a build step would cost more than it buys. As long as that holds, the rule is:
 
-- Vanilla JS for the frontend.
+- Plain JS for the frontend, with Preact and htm for views (see below). The map stays plain Leaflet.
 - Stdlib only for the API. No `pip install` to run the server.
 - No dependency for something that fits in fifty lines.
 
 If you're proposing a change that breaks one of these, lead the PR with the why.
+
+## Views
+
+Settings, Account and Admin run on Preact components written as htm tagged templates, which the browser loads as plain ES modules. The pilot weighed this against Vite with TypeScript and Svelte or Preact; the no-build option covered everything Settings needed, so the toolchain stays out.
+
+- Text is escaped by default, so a component has no `escapeHtml` and no `innerHTML`.
+- Each checkbox, radio and text field keeps its own state, because Preact compares `checked` and `value` with the live element on every render. A save that fails puts the control back through that state.
+- `openViewModal(view, opts)` in `app/view.js` renders a component into a dialog and unmounts it on close. The view renders its own `.ui-dialog-head` and `.ui-dialog-body`. `app/view.js` also holds the shared pieces: field, toggle, radio pills, error box, copy button and `useFetch`.
+- Selects stay uncontrolled (`selected` on the initial option), since `enhanceSelectsIn` drives the native element.
+- The import map sits above the module preloads in `index.html`, because Firefox ignores one that comes after a preload has started.
+- Leaflet popups and the map code stay plain strings and DOM, since Leaflet takes those directly.
+
+The remaining screens are worth converting, in this order:
+
+1. The dialogs Settings opens: catalog, categories, regions and logs. They finish the Settings area and reuse its pieces.
+2. The edit forms: place, area and route metadata, with the shared fields in `form-fields.js`. Forms carry most of the escaping and the control state.
+3. The Add dialog (`add.js`), the largest, once the form pieces from step 2 exist.
+4. Lists and panels (places, routes, history, route detail), when a change touches them anyway. They mostly render read-only rows.
 
 ## Platform targets
 

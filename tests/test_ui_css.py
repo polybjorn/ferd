@@ -367,10 +367,15 @@ class EditForms(unittest.TestCase):
       self.assertNotIn("<label for=", form, name)
 
   def test_settings_uses_the_blocks(self):
-    settings = FRONTEND[FRONTEND.index("function openSettingsModal("):FRONTEND.index("getElementById('settings-pw-form')")]
-    self.assertIn("uiFieldHtml(", settings)
-    self.assertIn("uiToggleHtml(", settings)
-    self.assertNotRegex(settings, r"settings-toggle|settings-inline-row|settings-grid-2|<label for=")
+    view = (ROOT / "app" / "view.js").read_text(encoding="utf-8")
+    self.assertIn('class="ui-field"', view)
+    self.assertIn('class="ui-toggle-row"', view)
+    for name in ("settings.js", "settings-account.js"):
+      settings = (ROOT / "app" / name).read_text(encoding="utf-8")
+      self.assertNotRegex(settings, r"settings-toggle|settings-inline-row|settings-grid-2|<label for=", name)
+    settings = (ROOT / "app" / "settings.js").read_text(encoding="utf-8")
+    self.assertIn("<${Field}", settings)
+    self.assertIn("<${Toggle}", settings)
 
   def test_area_fields_use_the_blocks(self):
     start = FRONTEND.index("function areaLocalNameHtml(")

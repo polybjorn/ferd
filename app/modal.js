@@ -103,7 +103,6 @@ export function openModal(html, onMount, onClose, opts) {
   modalStack.push(entry);
   closeOnBackdropClick(dialog, () => entry.onClose());
   if (entry.phone === 'sheet') dragToClose(dialog, () => entry.onClose());
-  dialog.querySelectorAll('.modal-close').forEach(el => el.addEventListener('click', () => entry.onClose()));
   // Escape is handled on keydown (escClose), where preventDefault keeps the
   // browser from closing the dialog itself. Any other close request, such
   // as Android's back gesture, arrives as cancel.
@@ -121,6 +120,8 @@ export function openModal(html, onMount, onClose, opts) {
   // Open before onMount, which measures and focuses inside the dialog.
   dialog.showModal();
   if (onMount) onMount(dialog);
+  // After onMount, which may render the head itself (openViewModal).
+  dialog.querySelectorAll('.modal-close').forEach(el => el.addEventListener('click', () => entry.onClose()));
   enhanceSelectsIn(dialog);
   return dialog;
 }

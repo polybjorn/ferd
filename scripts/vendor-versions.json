@@ -5,7 +5,9 @@
     { "npm": "leaflet-gpx", "version": "2.2.0" },
     { "npm": "@raruto/leaflet-elevation", "version": "2.9.2" },
     { "npm": "leaflet.tilelayer.nogap", "version": "0.3.0" },
-    { "npm": "supercluster", "version": "9.1.0" }
+    { "npm": "supercluster", "version": "9.1.0" },
+    { "npm": "preact", "version": "11.0.2" },
+    { "npm": "htm", "version": "3.1.1" }
   ],
   "tools": [
     { "name": "jscpd", "source": "npm", "version": "5.4.2" },

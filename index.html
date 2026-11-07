@@ -24,6 +24,10 @@
         : matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
     } catch {}
   </script>
+  <!-- Firefox ignores an import map that comes after a module preload. -->
+  <script type="importmap">
+    { "imports": { "preact": "/vendor/preact/preact.js", "preact/hooks": "/vendor/preact/hooks.js", "htm": "/vendor/htm/htm.js" } }
+  </script>
   <!-- Without these, each import is found only after its parent arrives. -->
   <link rel="modulepreload" href="/app/add.js">
   <link rel="modulepreload" href="/app/area-geo.js">
@@ -69,6 +73,7 @@
   <link rel="modulepreload" href="/app/sign-in.js">
   <link rel="modulepreload" href="/app/tags.js">
   <link rel="modulepreload" href="/app/theme.js">
+  <link rel="modulepreload" href="/app/view.js">
   <style>
     /* Unlayered on purpose: a browser without cascade layers (before Chrome 99)
        drops every layered rule above, so this is all it can still style. */

@@ -5,92 +5,99 @@ import { api } from './auth.js';
 import { deviceLabel, timeAgo } from './settings.js';
 import { openCatalogManager, openCatalogPicker } from './settings-catalog.js';
 import { openConfirmModal } from './select.js';
+import { html, useEffect, useFetch, useState } from './view.js';
 
-export function renderSessions() {
-  const el = document.getElementById('s-sessions');
-  if (!el) return;
-  api('GET', '/sessions').then(data => {
-    const others = data.sessions ? data.sessions.filter(s => !s.current) : [];
-    const revokeOthersBtn = document.getElementById('s-revoke-others');
-    if (revokeOthersBtn) revokeOthersBtn.hidden = others.length === 0;
-    if (!data.sessions || !data.sessions.length) {
-      el.innerHTML = '<div class="hint">No sessions.</div>';
-      return;
-    }
-    el.innerHTML = '<ul class="session-list">' + data.sessions.map(s => {
-      const label = escapeHtml(deviceLabel(s.user_agent));
-      const ip = s.ip ? escapeHtml(s.ip) : '?';
-      const ago = escapeHtml(timeAgo(s.last_seen_at || s.created_at));
-      const current = s.current ? '<span class="session-current">This device</span>' : '';
-      const revoke = s.current ? '' : '<button class="session-revoke" data-id="' + escapeHtml(s.id) + '">Revoke</button>';
-      const sub = s.current ? ip : (ip + ' &middot; ' + ago);
-      return '<li class="session-row">' +
-        '<div class="session-meta">' +
-          '<div class="session-device">' + label + ' ' + current + '</div>' +
-          '<div class="session-sub">' + sub + '</div>' +
-        '</div>' +
-        revoke +
-      '</li>';
-    }).join('') + '</ul>';
-    el.querySelectorAll('.session-revoke').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const id = this.dataset.id;
-        this.disabled = true;
-        api('POST', '/sessions/revoke', { id: id })
-          .then(renderSessions)
-          .catch(err => { this.disabled = false; alert('Failed: ' + err.message); });
-      });
+const failAlert = err => alert('Failed: ' + err.message);
+
+// `version` comes from Settings, which bumps it after a password change.
+export function Sessions({ version }) {
+  const [own, setOwn] = useState(0);
+  const reload = () => setOwn(n => n + 1);
+  const res = useFetch(() => api('GET', '/sessions'), [version, own]);
+  const [revoking, setRevoking] = useState(false);
+  const sessions = res.status === 'ok' ? res.data.sessions || [] : [];
+  const others = sessions.filter(s => !s.current);
+  const revokeOthers = () => {
+    openConfirmModal({
+      title: 'Sign out other sessions?',
+      body: 'This signs out every other browser and device signed in to this account. Your current session stays active, and any API tokens are unaffected.',
+      confirmLabel: 'Sign out others',
+      danger: true,
+    }).then(ok => {
+      if (!ok) return;
+      setRevoking(true);
+      api('POST', '/sessions/revoke-others')
+        .then(reload)
+        .catch(failAlert)
+        .finally(() => setRevoking(false));
     });
-  }).catch(() => {
-    el.innerHTML = '<div class="hint">Could not load sessions.</div>';
-  });
+  };
+  let body = 'Loading…';
+  if (res.status === 'error') body = html`<div class="hint">Could not load sessions.</div>`;
+  else if (res.status === 'ok' && !sessions.length) body = html`<div class="hint">No sessions.</div>`;
+  else if (res.status === 'ok') body = html`<ul class="session-list">${sessions.map(s => html`<${SessionRow} key=${s.id} s=${s} onRevoked=${reload} />`)}</ul>`;
+  return html`
+    <h3 class="settings-h sessions-h">Active sessions<button type="button" class="sessions-revoke-others" id="s-revoke-others" hidden=${!others.length} disabled=${revoking} onClick=${revokeOthers}>Sign out others</button></h3>
+    <div id="s-sessions">${body}</div>`;
 }
 
-export function renderTokens() {
-  const el = document.getElementById('s-tokens');
-  if (!el) return;
-  api('GET', '/me/tokens').then(data => {
-    const tokens = data.tokens || [];
-    if (!tokens.length) {
-      el.innerHTML = '<div class="hint">No tokens.</div>';
-      return;
-    }
-    el.innerHTML = '<ul class="session-list">' + tokens.map(t => {
-      const name = escapeHtml(t.name);
-      const scope = t.scope === 'readonly' ? 'Read-only' : 'Full access';
-      const used = t.last_used_at ? ('used ' + escapeHtml(timeAgo(t.last_used_at))) : 'never used';
-      const exp = t.expires_at
-        ? (' &middot; expires ' + new Date(t.expires_at * 1000).toISOString().slice(0, 10))
-        : ' &middot; no expiry';
-      return '<li class="session-row">' +
-        '<div class="session-meta">' +
-          '<div class="session-device">' + name + '</div>' +
-          '<div class="session-sub">' + scope + ' &middot; ' + used + exp + '</div>' +
-        '</div>' +
-        '<button class="session-revoke" data-id="' + escapeHtml(t.id) + '">Revoke</button>' +
-      '</li>';
-    }).join('') + '</ul>';
-    el.querySelectorAll('.session-revoke').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const id = this.dataset.id;
-        const self = this;
-        openConfirmModal({
-          title: 'Revoke token',
-          body: 'Any client using this token stops working immediately.',
-          confirmLabel: 'Revoke',
-          danger: true,
-        }).then(ok => {
-          if (!ok) return;
-          self.disabled = true;
-          api('POST', '/me/tokens/revoke', { id: id })
-            .then(renderTokens)
-            .catch(err => { self.disabled = false; alert('Failed: ' + err.message); });
-        });
-      });
+function SessionRow({ s, onRevoked }) {
+  const [busy, setBusy] = useState(false);
+  const ip = s.ip || '?';
+  const revoke = () => {
+    setBusy(true);
+    api('POST', '/sessions/revoke', { id: s.id })
+      .then(onRevoked)
+      .catch(err => { setBusy(false); failAlert(err); });
+  };
+  return html`<li class="session-row">
+    <div class="session-meta">
+      <div class="session-device">${deviceLabel(s.user_agent)} ${s.current ? html`<span class="session-current">This device</span>` : ''}</div>
+      <div class="session-sub">${s.current ? ip : ip + ' · ' + timeAgo(s.last_seen_at || s.created_at)}</div>
+    </div>
+    ${s.current ? '' : html`<button class="session-revoke" data-id=${s.id} disabled=${busy} onClick=${revoke}>Revoke</button>`}
+  </li>`;
+}
+
+// `version` comes from the create form, which bumps it for each new token.
+export function Tokens({ version }) {
+  const [own, setOwn] = useState(0);
+  const reload = () => setOwn(n => n + 1);
+  const res = useFetch(() => api('GET', '/me/tokens'), [version, own]);
+  if (res.status === 'loading') return html`<div id="s-tokens">Loading…</div>`;
+  if (res.status === 'error') return html`<div id="s-tokens"><div class="hint">Could not load tokens.</div></div>`;
+  const tokens = res.data.tokens || [];
+  if (!tokens.length) return html`<div id="s-tokens"><div class="hint">No tokens.</div></div>`;
+  return html`<div id="s-tokens"><ul class="session-list">${tokens.map(t => html`<${TokenRow} key=${t.id} t=${t} onRevoked=${reload} />`)}</ul></div>`;
+}
+
+function TokenRow({ t, onRevoked }) {
+  const [busy, setBusy] = useState(false);
+  const used = t.last_used_at ? 'used ' + timeAgo(t.last_used_at) : 'never used';
+  const exp = t.expires_at
+    ? ' · expires ' + new Date(t.expires_at * 1000).toISOString().slice(0, 10)
+    : ' · no expiry';
+  const revoke = () => {
+    openConfirmModal({
+      title: 'Revoke token',
+      body: 'Any client using this token stops working immediately.',
+      confirmLabel: 'Revoke',
+      danger: true,
+    }).then(ok => {
+      if (!ok) return;
+      setBusy(true);
+      api('POST', '/me/tokens/revoke', { id: t.id })
+        .then(onRevoked)
+        .catch(err => { setBusy(false); failAlert(err); });
     });
-  }).catch(() => {
-    el.innerHTML = '<div class="hint">Could not load tokens.</div>';
-  });
+  };
+  return html`<li class="session-row">
+    <div class="session-meta">
+      <div class="session-device">${t.name}</div>
+      <div class="session-sub">${(t.scope === 'readonly' ? 'Read-only' : 'Full access') + ' · ' + used + exp}</div>
+    </div>
+    <button class="session-revoke" data-id=${t.id} disabled=${busy} onClick=${revoke}>Revoke</button>
+  </li>`;
 }
 
 function formatBytes(n) {
@@ -102,82 +109,117 @@ function formatBytes(n) {
   return (v >= 10 ? v.toFixed(0) : v.toFixed(1)) + ' ' + units[i];
 }
 
-export function renderAdminStats() {
-  const el = document.getElementById('s-admin-stats');
-  if (!el) return;
-  api('GET', '/admin/stats').then(s => {
-    const tiles = [
+export function AdminStats({ version }) {
+  const res = useFetch(() => api('GET', '/admin/stats'), [version]);
+  let body;
+  // Keyed apart from the cards, so the first card is not built from this
+  // placeholder and left with its style.
+  if (res.status === 'loading') body = html`<div key="hint" class="hint" style="grid-column:1/-1">Loading…</div>`;
+  else if (res.status === 'error') body = html`<div key="hint" class="hint" style="grid-column:1/-1">Could not load stats.</div>`;
+  else {
+    const s = res.data;
+    body = [
       ['Users', s.users],
       ['Published', s.published_users],
       ['Places', s.places],
       ['Routes', s.routes],
       ['Files', formatBytes(s.data_bytes)],
       ['Database', formatBytes(s.db_bytes)],
-    ];
-    el.innerHTML = tiles.map(([lbl, v]) =>
-      '<div class="stat-card"><div class="stat-val">' + escapeHtml(String(v)) + '</div>' +
-      '<div class="stat-lbl">' + escapeHtml(lbl) + '</div></div>'
-    ).join('');
-  }).catch(() => {
-    el.innerHTML = '<div class="hint" style="grid-column:1/-1">Could not load stats.</div>';
-  });
+    ].map(([lbl, v]) => html`<div key=${lbl} class="stat-card"><div class="stat-val">${String(v)}</div><div class="stat-lbl">${lbl}</div></div>`);
+  }
+  return html`<div class="stats-grid" id="s-admin-stats">${body}</div>`;
 }
 
-export function renderAdminUsers() {
-  const el = document.getElementById('s-admin-users');
-  if (!el) return;
-  api('GET', '/admin/users').then(data => {
-    const users = data.users || [];
-    if (!users.length) {
-      el.innerHTML = '<div class="hint">No users.</div>';
-      return;
-    }
+// `onChanged` reloads the users and the stats, which count them.
+export function AdminUsers({ version, onChanged }) {
+  const res = useFetch(() => api('GET', '/admin/users'), [version]);
+  let body;
+  if (res.status === 'loading') body = html`<div class="hint">Loading…</div>`;
+  else if (res.status === 'error') body = html`<div class="hint">Could not load users.</div>`;
+  else if (!(res.data.users || []).length) body = html`<div class="hint">No users.</div>`;
+  else {
     const meName = state.auth.username;
-    // Sort: current user first, then other admins, then everyone else by id.
-    users.sort((a, b) => {
+    // Current user first, then other admins, then everyone else by id.
+    const users = [...res.data.users].sort((a, b) => {
       if (a.username === meName) return -1;
       if (b.username === meName) return 1;
       if (a.is_admin !== b.is_admin) return a.is_admin ? -1 : 1;
       return a.id - b.id;
     });
-    const admins = users.filter(u => u.is_admin);
-    const members = users.filter(u => !u.is_admin);
-    const renderRow = u => {
-      const isSelf = u.username === meName;
-      return '<li class="user-row' + (isSelf ? ' self' : '') + '" data-uid="' + u.id + '" data-uname="' + escapeHtml(u.username) + '">' +
-        '<span class="user-name">' +
-          escapeHtml(u.username) +
-          (u.published ? '<span class="user-flag on">Public</span>' : '') +
-        '</span>' +
-        '<div class="user-actions">' +
-          (u.published ? '<button data-act="unpublish">Unpublish</button>' : '') +
-          (u.sessions ? '<button data-act="revoke">Revoke</button>' : '') +
-          (isSelf ? '' : '<button data-act="role" data-promote="' + (u.is_admin ? '0' : '1') + '">' + (u.is_admin ? 'Demote' : 'Promote') + '</button>') +
-          (isSelf ? '' : '<button data-act="delete" class="danger-btn">Delete</button>') +
-        '</div>' +
-        '<div class="user-counts">' +
-          '<span><b>' + u.sessions + '</b>sessions</span>' +
-          '<span><b>' + u.places + '</b>places</span>' +
-          '<span><b>' + u.routes + '</b>routes</span>' +
-        '</div>' +
-      '</li>';
+    const group = (title, list) => list.length ? html`
+      <div class="user-group-h">${title}</div>
+      <ul class="user-list">${list.map(u => html`<${UserRow} key=${u.id} u=${u} isSelf=${u.username === meName} onChanged=${onChanged} />`)}</ul>` : null;
+    body = [group('Admins', users.filter(u => u.is_admin)), group('Members', users.filter(u => !u.is_admin))];
+  }
+  return html`<div id="s-admin-users">${body}</div>`;
+}
+
+// The confirm for each row action, and the call it makes.
+const USER_ACTIONS = {
+  unpublish: (u) => ({
+    title: 'Force unpublish ' + u.username,
+    body: u.username + '\'s map will no longer be reachable at the public URL. They can republish if global publishing is on.',
+    confirmLabel: 'Unpublish',
+    run: () => api('POST', '/admin/users/' + u.id + '/unpublish'),
+  }),
+  revoke: (u) => ({
+    title: 'Revoke sessions for ' + u.username,
+    body: 'Signs ' + u.username + ' out on every device they are currently signed in on.',
+    confirmLabel: 'Revoke',
+    run: () => api('POST', '/admin/users/' + u.id + '/revoke-sessions'),
+  }),
+  role: (u) => {
+    const promote = !u.is_admin;
+    return {
+      title: (promote ? 'Promote ' : 'Demote ') + u.username,
+      body: promote
+        ? u.username + ' will get full admin access, including Admin in the menu and the ability to delete other users.'
+        : u.username + ' will lose admin access on their next request.',
+      confirmLabel: promote ? 'Promote' : 'Demote',
+      run: () => api('POST', '/admin/users/' + u.id + '/role', { is_admin: promote }),
     };
-    let html = '';
-    if (admins.length) {
-      html += '<div class="user-group-h">Admins</div>' +
-        '<ul class="user-list">' + admins.map(renderRow).join('') + '</ul>';
-    }
-    if (members.length) {
-      html += '<div class="user-group-h">Members</div>' +
-        '<ul class="user-list">' + members.map(renderRow).join('') + '</ul>';
-    }
-    el.innerHTML = html;
-    el.querySelectorAll('button[data-act]').forEach(btn => {
-      btn.addEventListener('click', () => handleAdminUserAction(btn));
+  },
+  delete: (u) => ({
+    title: 'Delete user ' + u.username,
+    body: 'Permanently removes ' + u.username + ', all their sessions, and their data folder (places, routes, preferences). This cannot be undone.',
+    confirmLabel: 'Delete user',
+    danger: true,
+    run: () => api('DELETE', '/admin/users/' + u.id).then(resp => {
+      if (resp && resp.cleanup_warning) {
+        alert('User deleted, but data folder cleanup incomplete: ' + resp.cleanup_warning);
+      }
+    }),
+  }),
+};
+
+function UserRow({ u, isSelf, onChanged }) {
+  // A failed action leaves its button disabled until the list reloads.
+  const [busy, setBusy] = useState(null);
+  useEffect(() => setBusy(null), [u]);
+  const act = name => {
+    const { run, ...confirm } = USER_ACTIONS[name](u);
+    openConfirmModal(confirm).then(ok => {
+      if (!ok) return;
+      setBusy(name);
+      run().then(onChanged).catch(failAlert);
     });
-  }).catch(() => {
-    el.innerHTML = '<div class="hint">Could not load users.</div>';
-  });
+  };
+  const button = (name, label, extra) =>
+    html`<button data-act=${name} disabled=${busy === name} onClick=${() => act(name)} ...${extra}>${label}</button>`;
+  return html`<li class=${'user-row' + (isSelf ? ' self' : '')} data-uid=${u.id} data-uname=${u.username}>
+    <span class="user-name">${u.username}${u.published ? html`<span class="user-flag on">Public</span>` : ''}</span>
+    <div class="user-actions">
+      ${u.published ? button('unpublish', 'Unpublish') : ''}
+      ${u.sessions ? button('revoke', 'Revoke') : ''}
+      ${isSelf ? '' : button('role', u.is_admin ? 'Demote' : 'Promote', { 'data-promote': u.is_admin ? '0' : '1' })}
+      ${isSelf ? '' : button('delete', 'Delete', { class: 'danger-btn' })}
+    </div>
+    <div class="user-counts">
+      <span><b>${u.sessions}</b>sessions</span>
+      <span><b>${u.places}</b>places</span>
+      <span><b>${u.routes}</b>routes</span>
+    </div>
+  </li>`;
 }
 
 function formatLogRow(r) {
@@ -306,82 +348,31 @@ export function renderAdminLogs(beforeId) {
   });
 }
 
+// The catalog editors in settings-catalog.js call renderAdminCatalog after a
+// change, so the Admin row reloads under them.
+let reloadAdminCatalog = null;
 export function renderAdminCatalog() {
-  const el = document.getElementById('s-admin-catalog');
-  if (!el) return;
-  api('GET', '/catalog').then(entries => {
-    const list = Array.isArray(entries) ? entries : [];
-    const n = list.length;
-    el.innerHTML =
-      '<div style="display:flex;align-items:center;gap:var(--ui-space-2)">' +
-        '<span class="modal-desc" style="margin:0;flex:1">Places users can import.</span>' +
-        (n ? '<button type="button" class="primary" id="s-catalog-manage">Manage</button>' : '') +
-        '<button type="button" class="primary" id="s-catalog-add">Add</button>' +
-      '</div>';
-    const manage = document.getElementById('s-catalog-manage');
-    if (manage) manage.addEventListener('click', openCatalogManager);
-    const add = document.getElementById('s-catalog-add');
-    if (add) add.addEventListener('click', openCatalogPicker);
-  }).catch(() => {
-    el.innerHTML = '<div class="hint">Could not load catalog.</div>';
-  });
+  if (reloadAdminCatalog) reloadAdminCatalog();
 }
 
-function handleAdminUserAction(btn) {
-  const row = btn.closest('.user-row');
-  const uid = row.dataset.uid;
-  const uname = row.dataset.uname;
-  const act = btn.dataset.act;
-  const refresh = () => { renderAdminUsers(); renderAdminStats(); };
-  const fail = err => alert('Failed: ' + err.message);
-  if (act === 'unpublish') {
-    openConfirmModal({
-      title: 'Force unpublish ' + uname,
-      body: uname + '\'s map will no longer be reachable at the public URL. They can republish if global publishing is on.',
-      confirmLabel: 'Unpublish',
-    }).then(ok => {
-      if (!ok) return;
-      btn.disabled = true;
-      api('POST', '/admin/users/' + uid + '/unpublish').then(refresh).catch(fail);
-    });
-  } else if (act === 'revoke') {
-    openConfirmModal({
-      title: 'Revoke sessions for ' + uname,
-      body: 'Signs ' + uname + ' out on every device they are currently signed in on.',
-      confirmLabel: 'Revoke',
-    }).then(ok => {
-      if (!ok) return;
-      btn.disabled = true;
-      api('POST', '/admin/users/' + uid + '/revoke-sessions').then(refresh).catch(fail);
-    });
-  } else if (act === 'role') {
-    const promote = btn.dataset.promote === '1';
-    openConfirmModal({
-      title: (promote ? 'Promote ' : 'Demote ') + uname,
-      body: promote
-        ? uname + ' will get full admin access, including Admin in the menu and the ability to delete other users.'
-        : uname + ' will lose admin access on their next request.',
-      confirmLabel: promote ? 'Promote' : 'Demote',
-    }).then(ok => {
-      if (!ok) return;
-      btn.disabled = true;
-      api('POST', '/admin/users/' + uid + '/role', { is_admin: promote }).then(refresh).catch(fail);
-    });
-  } else if (act === 'delete') {
-    openConfirmModal({
-      title: 'Delete user ' + uname,
-      body: 'Permanently removes ' + uname + ', all their sessions, and their data folder (places, routes, preferences). This cannot be undone.',
-      confirmLabel: 'Delete user',
-      danger: true,
-    }).then(ok => {
-      if (!ok) return;
-      btn.disabled = true;
-      api('DELETE', '/admin/users/' + uid).then(resp => {
-        if (resp && resp.cleanup_warning) {
-          alert('User deleted, but data folder cleanup incomplete: ' + resp.cleanup_warning);
-        }
-        refresh();
-      }).catch(fail);
-    });
+export function AdminCatalog() {
+  const [version, setVersion] = useState(0);
+  useEffect(() => {
+    const reload = () => setVersion(n => n + 1);
+    reloadAdminCatalog = reload;
+    return () => { if (reloadAdminCatalog === reload) reloadAdminCatalog = null; };
+  }, []);
+  const res = useFetch(() => api('GET', '/catalog'), [version]);
+  let body;
+  if (res.status === 'loading') body = html`<div class="hint">Loading…</div>`;
+  else if (res.status === 'error') body = html`<div class="hint">Could not load catalog.</div>`;
+  else {
+    const n = Array.isArray(res.data) ? res.data.length : 0;
+    body = html`<div style="display:flex;align-items:center;gap:var(--ui-space-2)">
+      <span class="modal-desc" style="margin:0;flex:1">Places users can import.</span>
+      ${n ? html`<button type="button" class="primary" id="s-catalog-manage" onClick=${openCatalogManager}>Manage</button>` : ''}
+      <button type="button" class="primary" id="s-catalog-add" onClick=${openCatalogPicker}>Add</button>
+    </div>`;
   }
+  return html`<div id="s-admin-catalog">${body}</div>`;
 }

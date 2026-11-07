@@ -35,6 +35,24 @@ Ferd vendors the third-party libraries listed below under `vendor/`. Each retain
 - Upstream: https://github.com/mapbox/supercluster
 - License: ISC
 - Copyright: (c) Mapbox
+## Views
+
+The ES module builds, renamed from `.mjs` to `.js` so that every server and the Android asset loader send them as JavaScript. `index.html` maps the bare imports to these files.
+
+### preact
+- Purpose: renders the dialogs built as components (`app/view.js`) and keeps their controls in step with their state.
+- Version: 11.0.2
+- Files: `dist/preact.mjs` as `preact/preact.js`, `hooks/dist/hooks.mjs` as `preact/hooks.js`
+- Upstream: https://preactjs.com
+- License: MIT
+- Copyright: (c) 2015-present Jason Miller
+### htm
+- Purpose: tagged template syntax for those components, so they need no build step.
+- Version: 3.1.1
+- Files: `dist/htm.mjs` as `htm/htm.js`
+- Upstream: https://github.com/developit/htm
+- License: Apache-2.0
+- Copyright: (c) 2018 Google Inc.
 ## Trail detail (lazy-loaded)
 
 ### @raruto/leaflet-elevation
