@@ -2,7 +2,7 @@ import { DATA_FILES, state } from './core.js';
 import { applyAuth, fetchJson, hasServer, isReadOnly, serverBase, serverFileUrl } from './server.js';
 import { effect } from '@preact/signals';
 import {
-  authCacheKey, discardOp, dismissKept, exportOldData, issueText, loadPublic, metaGet, metaSet, onRemoteChange,
+  areas, authCacheKey, discardOp, dismissKept, exportOldData, issueText, labels, loadPublic, metaGet, metaSet, places, routes,
   open as openStore, sync, syncIssues, synced as storeSynced, updateOfflineBanner,
 } from './store.js';
 import { DialogHead, html, openViewModal, useState } from './view.js';
@@ -19,7 +19,7 @@ import { apiUrl, renderAuthWidget } from './auth.js';
 import { bindStoreToState } from './select.js';
 import { bindMapToStore } from './map/index.js';
 import { renderServerPicker, renderSignInPage } from './sign-in.js';
-import { wrappedRouter } from './router.js';
+import { rerenderStaticPage, wrappedRouter } from './router.js';
 import './backup.js';
 import './area-geo.js';
 import './form-fields.js';
@@ -29,7 +29,6 @@ import './countries.js';
 import './routes/route-meta.js';
 import './places/edit-place.js';
 import './history.js';
-import './routes-list.js';
 import './router.js';
 import { saveDownload } from './settings/settings.js';
 import './settings/logs.js';
@@ -136,9 +135,6 @@ export function loadDataAndRender() {
     if (state.auth && state.auth.authenticated && !isReadOnly() && catalogEnabled() && state._catalogCache == null) {
       fetchCatalog().then(entries => {
         state._catalogCache = Array.isArray(entries) ? entries : [];
-        // If the user is sitting on the Places list when this lands,
-        // re-render so the "update available" badges reflect the cache.
-        if ((location.hash || '#/').startsWith('#/places')) wrappedRouter();
       }).catch(() => {});
     }
   });
@@ -230,9 +226,18 @@ function startup() {
 
 bindStoreToState();
 bindMapToStore();
-// Changes pulled from the server redraw the page on show; edits made here
-// redraw through their own call sites.
-onRemoteChange(() => { if (!document.body.classList.contains('app-booting')) wrappedRouter(); });
+// History draws from state once, so any write to the data, here or pulled,
+// redraws it. A microtask folds a batch of writes into one redraw.
+let staticPending = false;
+effect(() => {
+  places.value; areas.value; routes.value; labels.value;
+  if (staticPending) return;
+  staticPending = true;
+  queueMicrotask(() => {
+    staticPending = false;
+    if (!document.body.classList.contains('app-booting')) rerenderStaticPage();
+  });
+});
 startup();
 
 // PWA: offline indicator + service worker registration + update toast.

@@ -10,7 +10,7 @@ import { wrappedRouter } from '../router.js';
 // transient overlay opens. Clicks inside are swallowed so selecting a control
 // doesn't dismiss it. Shared by the filter and list-view popovers.
 export function wirePopover(btn, pop) {
-  if (!btn || !pop) return;
+  if (!btn || !pop) return () => {};
   btn.addEventListener('click', function(e) {
     e.stopPropagation();
     const open = pop.hidden;
@@ -18,13 +18,17 @@ export function wirePopover(btn, pop) {
     pop.hidden = !open;
     btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
-  document.addEventListener('click', function(e) {
+  const outside = function(/** @type {MouseEvent} */ e) {
     if (!pop.hidden && !pop.contains(e.target) && e.target !== btn) {
       pop.hidden = true;
       btn.setAttribute('aria-expanded', 'false');
     }
-  });
+  };
+  document.addEventListener('click', outside);
   pop.addEventListener('click', function(e) { e.stopPropagation(); });
+  // The document outlives the page; a page that unmounts must take its
+  // listener with it.
+  return () => document.removeEventListener('click', outside);
 }
 
 // Wire a list-page filter popover end to end: open/close, the "Filters (N)"

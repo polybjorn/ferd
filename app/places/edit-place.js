@@ -1,9 +1,8 @@
-import { displayCategory, state } from '../core.js';
+import { displayCategory } from '../core.js';
 import { dataLayer } from '../store.js';
 import { CountryInput, DoneFields, SelectOrNew, categorySlugs, roundCoord } from '../form-fields.js';
 import { getShowField } from '../prefs.js';
-import { deletePlaceItem, enterPickCoordsMode, resyncPlaceCardSlugs } from '../map/index.js';
-import { renderPlaceList, updatePlaceCardAfterEdit } from '../places-list.js';
+import { deletePlaceItem, enterPickCoordsMode } from '../map/index.js';
 import { t } from '../i18n.js';
 import { ErrorBox, DialogHead, Field, html, openViewModal, useState } from '../view.js';
 import { closeModal } from '../modal.js';
@@ -37,7 +36,6 @@ function EditPlace({ place }) {
     deletePlaceItem(place, {
       animate: true,
       deleted: closeModal,
-      after: resyncPlaceCardSlugs,
       onError: (/** @type {Error} */ err) => setError(err.message),
     });
   };
@@ -47,15 +45,7 @@ function EditPlace({ place }) {
     if ('error' in r) { setError(t('place.pickLocation')); return; }
     setBusy(true);
     dataLayer.updatePlace({ id: place.id, place: r.payload })
-      .then(() => {
-        closeModal();
-        // Patch the card in place when the edit doesn't move it (toggling
-        // visited, say), so the list doesn't flash; otherwise re-render.
-        if (document.getElementById('place-list')) {
-          const fresh = (state.places || []).find(p => p.id === place.id);
-          if (!(fresh && updatePlaceCardAfterEdit(place, fresh))) renderPlaceList();
-        }
-      })
+      .then(() => { closeModal(); })
       .catch((/** @type {Error} */ err) => { setBusy(false); setError(err.message); });
   };
 

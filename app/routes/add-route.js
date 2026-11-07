@@ -2,9 +2,7 @@ import { state } from '../core.js';
 import { dataLayer } from '../store.js';
 import { DoneFields, FilePick, SelectOrNew, difficultyOptions } from '../form-fields.js';
 import { getShowField } from '../prefs.js';
-import { homeMapMounted } from '../map/index.js';
 import { closeModal } from '../modal.js';
-import { router } from '../router.js';
 import { t } from '../i18n.js';
 import { ErrorBox, Field, RadioPills, Toggle, html, useState } from '../view.js';
 import { gpxUploadPlan, routeMetaValues } from './route-payload.js';
@@ -39,8 +37,6 @@ export function AddRoute() {
       })
       .then(() => {
         closeModal();
-        // The index map picks the new route up from the store.
-        if (!homeMapMounted()) router();
       })
       .catch((/** @type {Error} */ err) => { setBusy(false); setError(err.message); });
   };

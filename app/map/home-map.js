@@ -133,6 +133,7 @@ export function renderUnifiedMap(focus) {
   // Routes: two groups by status
   const groupCompleted = L.featureGroup();
   const groupPlanned = L.featureGroup();
+  /** @type {any[]} */
   const routeLayers = [];
   const routeBounds = L.latLngBounds();
   let focusTrailKey = (focus && focus.type === 'route') ? focus.name : null;
@@ -292,6 +293,8 @@ export function renderUnifiedMap(focus) {
     if (loadedRouteKeys.has(desc.route.key) || pendingRouteKeys.has(desc.route.key)) return;
     pendingRouteKeys.add(desc.route.key);
     fetchGpxText(desc.gpxUrl).then(function(text) {
+      // Dropped (deleted or edited) while the file was in flight.
+      if (!routeDescriptors.includes(desc)) return;
       const gpxLayer = new L.GPX(text, {
         async: true,
         polyline_options: { color: desc.color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'route-line' },
@@ -333,17 +336,17 @@ export function renderUnifiedMap(focus) {
       }).bindPopup(
         () => popupElement(html`<${RoutePopup} route=${desc.route} region=${desc.region} color=${desc.color} />`),
         { closeButton: false }
-      ).on('click', (function(slug, key) {
+      ).on('click', (function(key) {
         return function(ev) {
           // Stop propagation so the map-level near-tap handler
           // doesn't fire a duplicate replaceState + popup toggle.
           if (ev && ev.originalEvent) L.DomEvent.stopPropagation(ev.originalEvent);
-          history.replaceState(null, '', focusHash('route', slug));
+          history.replaceState(null, '', focusHash('route', desc.route._slug || key));
           // Direct stroke hits skip the map handler, so set the
           // highlight here too, otherwise it stays on the prior route.
           setSelectedRoute(key);
         };
-      })(desc.route._slug || desc.route.key, desc.route.key));
+      })(desc.route.key));
       routeLayers.push({ route: desc.route, region: desc.region.name, layer: gpxLayer, completed: desc.route.completed });
       loadedRouteKeys.add(desc.route.key);
       pendingRouteKeys.delete(desc.route.key);
@@ -412,9 +415,32 @@ export function renderUnifiedMap(focus) {
     return found;
   }
 
+  // A metadata-only edit (name, status, tags, rating) keeps the drawn line:
+  // the loaded layer is restyled and its records updated in place, so the
+  // GPX is neither fetched nor parsed again. A moved file or region, or a
+  // line still loading, takes the drop-and-reload path.
+  /** @param {any} desc @param {any} now */
+  function restyleRoute(desc, now) {
+    if (now.gpxUrl !== desc.gpxUrl || now.region.name !== desc.region.name) return false;
+    const key = desc.route.key;
+    if (pendingRouteKeys.has(key)) return false;
+    const loaded = loadedRouteKeys.has(key);
+    Object.assign(desc, now);
+    if (!loaded) return true;
+    for (const rec of routeLayers) {
+      if (rec.route.key !== key) continue;
+      rec.route = desc.route;
+      rec.region = desc.region.name;
+      rec.completed = desc.route.completed;
+      try { rec.layer.setStyle({ color: desc.color }); } catch (_) {}
+      try { const pop = rec.layer.getPopup && rec.layer.getPopup(); if (pop && pop.isOpen && pop.isOpen()) pop.update(); } catch (_) {}
+    }
+    return true;
+  }
+
   // Brings this map in line with the routes signal without a rebuild (a
   // blink and a refit): a route gone from the manifest fades out, a new one
-  // waits for the next viewport check, and an edited one is loaded again.
+  // waits for the next viewport check, and an edited one is restyled in place, or loaded again if its file moved.
   state._syncRoutesOnMap = function() {
     const next = new Map();
     for (const region of (state.manifest && state.manifest.regions) || []) {
@@ -422,16 +448,18 @@ export function renderUnifiedMap(focus) {
     }
     const fades = [];
     let changed = false;
+    let restyled = false;
     for (const desc of routeDescriptors.slice()) {
       const now = next.get(desc.route.key);
       if (now && now.sig === desc.sig) { next.delete(desc.route.key); continue; }
+      if (now && restyleRoute(desc, now)) { next.delete(desc.route.key); restyled = true; continue; }
       const layer = dropRoute(desc.route.key);
       if (!now && layer && map.hasLayer(layer)) fades.push(layer);
       if (!now && state._selectedRouteKey === desc.route.key) state._selectedRouteKey = null;
       changed = true;
     }
     for (const desc of next.values()) { routeDescriptors.push(desc); changed = true; }
-    if (!changed) return;
+    if (!changed && !restyled) return;
     // applyMapFilters clears and re-adds the status groups from routeLayers,
     // so a dropped layer leaves the map; applyRouteHighlight re-strokes the
     // survivors (SVG) and rebuilds the GL buffer (touch).

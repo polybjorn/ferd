@@ -316,6 +316,7 @@ export function openConfirmModal({ title, body, confirmLabel, danger }) {
 // promise it returns resolves, with no re-fetch.
 export function bindStoreToState() {
   store.bindAuth();
+  store.bindCatalogCache();
   // Place colours come from the labels, so this one reads both, and runs
   // again when a sync settles so the colours assigned meanwhile are saved.
   effect(() => {

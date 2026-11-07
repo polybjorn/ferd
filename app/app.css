@@ -1600,6 +1600,8 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   margin-top: var(--ui-space-3);
 }
 
+/* Preact's mount point for the panel; it adds no box of its own. */
+#route-meta-mount { display: contents; }
 .route-meta-panel {
   margin-top: var(--ui-space-2);
   padding: var(--ui-space-3) var(--ui-space-4);

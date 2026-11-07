@@ -3,8 +3,6 @@ import { dataLayer } from '../store.js';
 import { html } from '../view.js';
 import { PlacePopup, popupElement } from './popups.js';
 import { openEditPlaceModal } from '../places/edit-place.js';
-import { renderPlaceList } from '../places-list.js';
-import { focusHash } from '../router.js';
 import { getMarkerSize, getPinStyle } from '../theme.js';
 import { openConfirmModal } from '../select.js';
 
@@ -109,20 +107,13 @@ export function playLeave(el, cls, done, fallbackMs) {
   setTimeout(fire, fallbackMs || 300);
 }
 
-// Drop the card the moment the collapse finishes, not after the network
-// round-trip, so there's no pause between the animation ending and the row
-// closing. `failed` guards that optimistic removal against a delete that
-// errors and re-renders the list. after(prevColors) runs once the refresh
-// lands; callers that keep the list resync survivors there, since deleting
-// one of several same-named places renumbers the rest's slugs.
+// The list follows the store, so the card leaves when the delete lands; the
+// collapse plays meanwhile. A failed delete restores the card. after(prevColors)
+// runs once the refresh lands.
 function deletePlaceNow(place, { animate, deleted, after, onError }) {
   const prevColors = Object.assign({}, state.categoryColors);
   const slug = place._slug || '';
-  const wasVisited = !!place.visited;
-  let failed = false;
-  const anim = animate
-    ? animatePlaceCardOut(slug).then(function() { if (!failed) removePlaceCardFromList(slug, wasVisited); })
-    : Promise.resolve();
+  const anim = animate ? animatePlaceCardOut(slug) : Promise.resolve();
   return dataLayer.deletePlace({ id: place.id })
     .then(() => {
       if (deleted) deleted();
@@ -132,8 +123,7 @@ function deletePlaceNow(place, { animate, deleted, after, onError }) {
     .then(() => anim)
     .then(() => { if (after) after(prevColors); })
     .catch(err => {
-      failed = true;
-      if (animate && document.getElementById('place-list')) renderPlaceList();
+      if (animate) restorePlaceCard(slug);
       (onError || function(e) { alert('Delete failed: ' + e.message); })(err);
     });
 }
@@ -161,6 +151,12 @@ export function deleteRouteItem(route, regionName, after) {
   });
 }
 
+// Undo animatePlaceCardOut after a delete that failed.
+function restorePlaceCard(slug) {
+  const card = /** @type {HTMLElement | null} */ (document.querySelector('.place-card[data-place-slug="' + slug + '"]'));
+  if (card) card.removeAttribute('style');
+}
+
 // Collapse a place card to zero height + opacity, then resolve. Lets
 // following cards in the grid flow up smoothly instead of jumping when
 // the list re-renders. Reduced-motion users get an immediate resolve.
@@ -185,63 +181,6 @@ function animatePlaceCardOut(slug) {
     card.style.borderTopWidth = '0';
     card.style.borderBottomWidth = '0';
     setTimeout(resolve, 190);
-  });
-}
-
-// After a successful delete + collapse animation, drop the card from the
-// DOM and patch its group's (visited/total) count. Avoids the innerHTML
-// wipe of a full re-render so the rest of the list doesn't flash.
-function removePlaceCardFromList(slug, wasVisited) {
-  if (!slug) return;
-  const card = /** @type {HTMLElement | null} */ (document.querySelector('.place-card[data-place-slug="' + slug + '"]'));
-  if (!card) return;
-  const grid = card.parentElement;
-  const group = grid ? grid.closest('.category-group') : null;
-  card.remove();
-  if (group) {
-    const remaining = grid.querySelectorAll('.place-card').length;
-    if (remaining === 0) {
-      group.remove();
-    } else {
-      const countEl = group.querySelector('.place-count');
-      if (countEl) {
-        const m = /\((\d+)\/(\d+)\)/.exec(countEl.textContent);
-        if (m) {
-          const v = Math.max(0, parseInt(m[1], 10) - (wasVisited ? 1 : 0));
-          const t = Math.max(0, parseInt(m[2], 10) - 1);
-          countEl.textContent = '(' + v + '/' + t + ')';
-        }
-      }
-    }
-  }
-  const listEl = document.getElementById('place-list');
-  if (listEl && !listEl.querySelector('.place-card')) {
-    listEl.innerHTML = '<div class="loading">No matches</div>';
-  }
-}
-
-// After a delete, deleting one of several same-named places renumbers the
-// survivors' slugs (slug disambiguation is positional). The surgical card
-// removal leaves those survivors' DOM slugs stale, which silently breaks
-// their context menu / edit. Patch the stale slug attributes in place,
-// keyed by the stable place id, instead of re-rendering the whole list
-// (which flashes). Cards whose slug is unchanged are skipped, so the
-// common unique-name delete does nothing here.
-export function resyncPlaceCardSlugs() {
-  const listEl = document.getElementById('place-list');
-  if (!listEl) return;
-  const byId = {};
-  for (const p of (state.places || [])) if (p.id) byId[p.id] = p;
-  /** @type {NodeListOf<HTMLElement>} */ (listEl.querySelectorAll('.place-card[data-place-id]')).forEach(function(card) {
-    const p = byId[card.dataset.placeId];
-    if (!p) return;
-    const slug = p._slug || '';
-    if (card.dataset.placeSlug === slug) return;
-    card.dataset.placeSlug = slug;
-    const href = focusHash('place', slug || p.name);
-    card.setAttribute('onclick', "location.hash='" + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'");
-    const mark = /** @type {HTMLElement | null} */ (card.querySelector('.catalog-mark'));
-    if (mark) mark.dataset.placeSlug = slug;
   });
 }
 

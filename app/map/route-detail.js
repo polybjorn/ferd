@@ -3,7 +3,6 @@ import {
   formatElevation, setActiveTab, setCrumb, state,
 } from '../core.js';
 import { gpxUrlFor, isReadOnly } from '../server.js';
-import { tagPillsHtml } from '../tags.js';
 import { collapseCreditOnPhone } from './map-panel.js';
 import { DEFAULT_CONFIG, getShowField, isImperial } from '../prefs.js';
 import { enableWheelZoom } from './map-wheel.js';
@@ -16,8 +15,11 @@ import {
   decimateCoords, fetchGpxText, simplifyRouteForZoom,
 } from './route-layer.js';
 import { EXTERNAL_ICON_SVG } from './map-popups.js';
-import { DIFFICULTY_LABELS, openEditTrailMetadataModal, ratingStarsText } from '../routes/route-meta.js';
+import { DIFFICULTY_LABELS, findRouteByKey, openEditTrailMetadataModal, ratingStarsText, routeIsMoving } from '../routes/route-meta.js';
 import { getTrailWeightFactor } from '../theme.js';
+import { wrappedRouter } from '../router.js';
+import { routes } from '../store.js';
+import { html as vhtml, mountExtra, useEffect, useRef } from '../view.js';
 
 export function parseGpxTracks(xmlText) {
   const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
@@ -124,53 +126,12 @@ export function renderTrailDetail(routeKey) {
     if (route) break;
   }
   if (!route) { setCrumb('Not found', true); app.innerHTML = '<div class="loading">Route not found</div>'; return; }
-
   setCrumb(route.name, true);
 
   const color = ROUTE_COLOR;
-  const statusLabel = route.completed ? 'Completed' : 'Planned';
 
-  let routeSourceHref = '';
-  if (route.source) {
-    try {
-      const u = new URL(route.source, location.href);
-      if (u.protocol === 'http:' || u.protocol === 'https:') routeSourceHref = u.href;
-    } catch {}
-  }
-  state._routeSourceHref = routeSourceHref;
-  state._routeSourceDomain = routeSourceHref ? domainFromUrl(route.source) : '';
-
-  const facts = [];
-  facts.push('<span class="fact"><span class="dot" style="background:' + (route.completed ? 'var(--status-completed)' : 'var(--status-planned)') + '"></span>' + statusLabel + '</span>');
-  facts.push('<span class="fact">' + escapeHtml(displayRegion(regionName)) + '</span>');
-  if (route.difficulty) facts.push('<span class="fact">' + escapeHtml(DIFFICULTY_LABELS[route.difficulty] || route.difficulty) + '</span>');
-  if (route.rating && getShowField('rating')) facts.push('<span class="fact" title="' + route.rating + '/5">' + ratingStarsText(route.rating) + '</span>');
-  if (route.date_completed && getShowField('date')) facts.push('<span class="fact">' + escapeHtml(route.date_completed) + '</span>');
-  // Source link moved here from the removed top stats bar.
-  if (routeSourceHref) facts.push('<a class="fact fact-source" href="' + escapeHtml(routeSourceHref) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(state._routeSourceDomain) + ' ' + EXTERNAL_ICON_SVG + '</a>');
-
-  const showActions = state.auth.authenticated && !isReadOnly();
-  const hasTags = route.tags && route.tags.length;
-  const hasNotes = !!route.notes && getShowField('note');
-  let metaHtml = '';
-  if (facts.length || hasTags || hasNotes) {
-    metaHtml = '<div class="route-meta-panel">';
-    metaHtml += '<div class="route-meta-header">';
-    metaHtml += '<div class="route-meta-line">' + facts.join('<span class="sep">&middot;</span>') + '</div>';
-    metaHtml += tagPillsHtml(route.tags, 'route-meta-tags');
-    metaHtml += '</div>';
-    if (hasNotes) {
-      metaHtml += '<div class="route-meta-notes"><span class="route-meta-notes-label">Notes</span>' + escapeHtml(route.notes) + '</div>';
-    }
-    metaHtml += '</div>';
-  }
-
-  const navActionsEl = document.getElementById('nav-actions');
-  if (navActionsEl) {
-    navActionsEl.innerHTML = showActions
-      ? '<button type="button" id="route-edit-btn" class="nav-action-btn">Edit</button>'
-      : '';
-  }
+  // The meta panel, crumb and Edit button follow the store (RouteMeta, below);
+  // the map and graphs are built once for this route's GPX.
   // The old top stats bar is gone; stats live on the elevation header now.
   const navStatsEl = document.getElementById('nav-stats-dynamic');
   if (navStatsEl) navStatsEl.innerHTML = '';
@@ -200,15 +161,10 @@ export function renderTrailDetail(routeKey) {
     html += '<div class="detail-elev-statbar"><span class="seg-stat" id="single-elev-stats"></span></div>';
     html += '<div class="no-elevation-notice">No elevation data available for this route</div>';
   }
-  html += metaHtml;
+  html += '<div id="route-meta-mount"></div>';
   html += '</div>';
   app.innerHTML = html;
-
-  const editBtn = document.getElementById('route-edit-btn');
-  if (editBtn) editBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    openEditTrailMetadataModal(route, regionName);
-  });
+  mountExtra(vhtml`<${RouteMeta} routeKey=${routeKey} />`, document.getElementById('route-meta-mount'));
 
   const dvt = state.config.default_view_routes || DEFAULT_CONFIG.default_view_routes;
   const map = L.map('map', {
@@ -689,4 +645,86 @@ export function addStartEndMarkers(map, startLatLng, endLatLng) {
   const endIcon = L.divIcon({ className: 'marker-end', html: '<svg viewBox="0 0 32 32" width="32" height="32"><rect x="4" y="2" width="2" height="28" rx="1" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><path d="M6 3h12c1 0 1.5.5 1 1.5L17 8l2 3.5c.5 1 0 1.5-1 1.5H6V3z" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><rect x="7" y="4" width="4.5" height="4" fill="#2d333b"/><rect x="11.5" y="4" width="4.5" height="4" fill="#fff"/><rect x="7" y="8" width="4.5" height="4" fill="#fff"/><rect x="11.5" y="8" width="4.5" height="4" fill="#2d333b"/></svg>', iconSize: [32, 32], iconAnchor: [5, 30] });
   L.marker(startLatLng, { icon: startIcon }).bindPopup('Start').addTo(map);
   L.marker(endLatLng, { icon: endIcon }).bindPopup('End').addTo(map);
+}
+
+function detailKeyInHash() {
+  const seg = (location.hash || '').split('?')[0].split('/routes/route/')[1];
+  return seg === undefined ? null : decodeURIComponent(seg);
+}
+
+// The router unmounts this view, so calling it from one of the view's own
+// effects would tear the view down mid-flush and lose the new page's effects
+// (its Edit button). Rebuild once the flush is done.
+const rebuildLater = () => setTimeout(wrappedRouter, 0);
+
+const metaHtml = (/** @type {string} */ h) => ({ __html: h });
+
+// The detail page's metadata: the facts, tags and notes panel, the crumb and
+// the nav Edit button. They follow the store, so an edit redraws these and
+// leaves the map and graphs (built from the GPX) alone.
+/** @param {{ routeKey: string }} props */
+function RouteMeta({ routeKey }) {
+  routes.value;
+  const found = findRouteByKey(routeKey);
+  const last = useRef(found);
+  if (found) last.current = found;
+  const shown = found || last.current;
+  const canEdit = !!(state.auth && state.auth.authenticated) && !isReadOnly();
+  const cur = useRef(shown);
+  cur.current = shown;
+  useEffect(() => { setCrumb(shown.route.name, true); }, [shown.route.name]);
+  useEffect(() => {
+    const nav = document.getElementById('nav-actions');
+    if (!nav || !canEdit) return;
+    nav.innerHTML = '<button type="button" id="route-edit-btn" class="nav-action-btn">Edit</button>';
+    const btn = nav.querySelector('#route-edit-btn');
+    if (btn) btn.addEventListener('click', e => {
+      e.preventDefault();
+      openEditTrailMetadataModal(cur.current.route, cur.current.region.name);
+    });
+    return () => { nav.innerHTML = ''; };
+  }, [canEdit]);
+  // Gone for good (deleted, or removed by a pull): leave the way the delete
+  // flow always has, through the router's not-found view. A move is not that,
+  // the edit form redirects to the new key.
+  // A move can finish before this runs and have pointed the hash at the new
+  // key already; rerouting then would build that page twice.
+  useEffect(() => {
+    if (!found && !routeIsMoving(routeKey) && detailKeyInHash() === routeKey) rebuildLater();
+  }, [!!found]);
+  // The map and graphs are drawn from the files the page was built with, and
+  // a completed flip swaps the walked and planned files under the same key.
+  const files = found ? found.route.file + '|' + (found.route.plannedFile || '') : null;
+  const builtFiles = useRef(files);
+  useEffect(() => {
+    if (files && files !== builtFiles.current) rebuildLater();
+  }, [files]);
+  if (!found) return null;
+
+  const { route, region } = found;
+  let href = '';
+  if (route.source) {
+    try {
+      const u = new URL(route.source, location.href);
+      if (u.protocol === 'http:' || u.protocol === 'https:') href = u.href;
+    } catch {}
+  }
+  const tagsOn = getShowField('tags') && Array.isArray(route.tags) && route.tags.length > 0;
+  const notes = !!route.notes && getShowField('note');
+  const facts = [
+    vhtml`<span class="fact"><span class="dot" style=${'background:' + (route.completed ? 'var(--status-completed)' : 'var(--status-planned)')}></span>${route.completed ? 'Completed' : 'Planned'}</span>`,
+    vhtml`<span class="fact">${displayRegion(region.name)}</span>`,
+  ];
+  if (route.difficulty) facts.push(vhtml`<span class="fact">${DIFFICULTY_LABELS[route.difficulty] || route.difficulty}</span>`);
+  if (route.rating && getShowField('rating')) facts.push(vhtml`<span class="fact" title=${route.rating + '/5'} dangerouslySetInnerHTML=${metaHtml(ratingStarsText(route.rating))}></span>`);
+  if (route.date_completed && getShowField('date')) facts.push(vhtml`<span class="fact">${route.date_completed}</span>`);
+  // Source link moved here from the removed top stats bar.
+  if (href) facts.push(vhtml`<a class="fact fact-source" href=${href} target="_blank" rel="noopener noreferrer">${domainFromUrl(route.source) + ' '}<span dangerouslySetInnerHTML=${metaHtml(EXTERNAL_ICON_SVG)}></span></a>`);
+  return vhtml`<div class="route-meta-panel">
+    <div class="route-meta-header">
+      <div class="route-meta-line">${facts.map((f, i) => vhtml`${i > 0 && vhtml`<span class="sep">\u00b7</span>`}${f}`)}</div>
+      ${tagsOn && vhtml`<div class="route-meta-tags">${route.tags.map((/** @type {string} */ t) => vhtml`<span class="tag" key=${t}>${'#' + t}</span>`)}</div>`}
+    </div>
+    ${notes && vhtml`<div class="route-meta-notes"><span class="route-meta-notes-label">Notes</span>${route.notes}</div>`}
+  </div>`;
 }

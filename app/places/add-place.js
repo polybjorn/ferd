@@ -4,7 +4,6 @@ import { CountryInput, DoneFields, SelectOrNew, Collapsible, categorySlugs } fro
 import { getShowField } from '../prefs.js';
 import { enterPickCoordsMode } from '../map/index.js';
 import { closeModal } from '../modal.js';
-import { rerenderOnPlacesPage } from '../router.js';
 import { t } from '../i18n.js';
 import { ErrorBox, Field, html, useState } from '../view.js';
 import { placePayload, placeSnapshot, placeValues } from './place-payload.js';
@@ -49,7 +48,7 @@ export function AddPlace({ prefillCoords, draft, reopen }) {
     if ('error' in r) { setError(t('place.pickLocation')); return; }
     setBusy(true);
     dataLayer.createPlace(r.payload)
-      .then(() => { closeModal(); rerenderOnPlacesPage(); })
+      .then(() => { closeModal(); })
       .catch((/** @type {Error} */ err) => { setBusy(false); setError(err.message); });
   };
 

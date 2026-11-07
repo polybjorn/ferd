@@ -37,6 +37,10 @@ export const labels = signal(/** @type {Record<string, any>} */ ({}));
 export const prefs = signal(/** @type {Record<string, any>} */ ({}));
 export const pendingCount = signal(0);
 export const auth = signal(/** @type {any} */ (null));
+// The catalogue's entries, null until fetched. state._catalogCache reads and
+// writes it (bindCatalogCache), so a list that shows import badges follows
+// a refetch.
+export const catalogCache = signal(/** @type {any[] | null} */ (null));
 // Queued GPX calls the server keeps failing (`stuck`) and uploads it refused
 // whose text is kept here to save (`kept`), for the sync notice.
 /** @typedef {{ id?: number, key?: string, method?: string, name: string, error?: string, upload: boolean }} SyncIssue */
@@ -51,6 +55,14 @@ export function bindAuth() {
   Object.defineProperty(state, 'auth', {
     get() { return auth.value; },
     set(v) { auth.value = v; },
+    enumerable: true, configurable: true,
+  });
+}
+
+export function bindCatalogCache() {
+  Object.defineProperty(state, '_catalogCache', {
+    get() { return catalogCache.value; },
+    set(v) { catalogCache.value = v == null ? null : v; },
     enumerable: true, configurable: true,
   });
 }
@@ -936,12 +948,6 @@ function scheduleSync() {
   if (_syncTimer) clearTimeout(_syncTimer);
   _syncTimer = setTimeout(() => { _syncTimer = null; sync(); }, 300);
 }
-/** @type {Array<() => void>} */
-const _remoteListeners = [];
-// Called after a sync brought in changes from elsewhere, for views that
-// need more than the signals (the router's current page).
-/** @param {() => void} fn */
-export function onRemoteChange(fn) { _remoteListeners.push(fn); }
 
 /** Push local changes, then pull the server's. Owner on a server only. @returns {Promise<void>} */
 export function sync() {
@@ -949,7 +955,7 @@ export function sync() {
   if (_syncing) return _syncing.then(() => sync());
   const ns = NS;
   _syncing = (async () => {
-    let synced = 0, skipped = 0, pulled = 0;
+    let synced = 0, skipped = 0;
     /** @type {string[]} */
     let kept = [];
     syncSettled.value = false;
@@ -965,7 +971,7 @@ export function sync() {
         // every edit still queued here.
         if (!e || !/** @type {any} */ (e).status) throw e;
       }
-      pulled = await pull(ns);
+      await pull(ns);
     } catch (e) {
       // A network failure leaves the rest queued for the next attempt.
     } finally {
@@ -974,7 +980,6 @@ export function sync() {
       updateOfflineBanner();
       await refreshIssues(ns);
       if (synced || skipped) showSyncToast(synced, skipped, kept);
-      if (pulled) for (const fn of _remoteListeners) { try { fn(); } catch (e) { console.error(e); } }
     }
   })();
   return _syncing;

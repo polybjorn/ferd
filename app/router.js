@@ -1,9 +1,10 @@
 import { state } from './core.js';
 import { historyEnabled, placesEnabled, routesEnabled } from './prefs.js';
 import { renderTrailDetail, renderUnifiedMap } from './map/index.js';
-import { renderPlacesIndex } from './places-list.js';
+import { renderPlacesIndex } from './places/places-page.js';
 import { renderHistoryIndex } from './history.js';
-import { renderTrailsIndex } from './routes-list.js';
+import { renderTrailsIndex } from './routes/routes-page.js';
+import { unmountPage } from './view.js';
 
 export function focusHash(type, slug) { return '#/' + type + '/' + slug; }
 
@@ -39,6 +40,7 @@ function parseFocus(hash) {
 }
 
 export function router() {
+  unmountPage();
   const navActions = document.getElementById('nav-actions');
   if (navActions) navActions.innerHTML = '';
   const hash = location.hash || '#/';
@@ -69,10 +71,9 @@ export function router() {
 // current view. The map's Add action now lives in the nav (renderUnifiedMap
 // populates #nav-actions), so there's no floating button to re-mount.
 export function wrappedRouter() { router(); }
-// The places page lists from state at render time and does not follow the
-// store's signals, so a write that adds a place re-renders it.
-export function rerenderOnPlacesPage() {
-  if ((location.hash || '#/').startsWith('#/places')) wrappedRouter();
+// Every page but history follows the store's signals.
+export function rerenderStaticPage() {
+  if ((location.hash || '#/').split('?')[0] === '#/history') wrappedRouter();
 }
 // Flag in-app hash navigations (clicks) vs the initial load (reload), so a
 // place focus from a click centers the map on the pin, while a reload at a

@@ -3,7 +3,6 @@ import { dataLayer } from '../store.js';
 import { collectTags, tagsInclude } from '../tags.js';
 import { wireFilterPopover } from '../map/index.js';
 import { fetchCatalog } from '../places-list.js';
-import { rerenderOnPlacesPage } from '../router.js';
 import { enhanceSelectsIn, openConfirmModal } from '../select.js';
 import { closeModal } from '../modal.js';
 import { t } from '../i18n.js';
@@ -116,7 +115,6 @@ function BrowseList({ entries }) {
       const next = () => {
         if (done >= picked.length) {
           setProgress(0);
-          rerenderOnPlacesPage();
           if (errors.length) setError(t('browse.someFailed', { failed: errors.length, total: picked.length, errors: errors.join('; ') }));
           else closeModal();
           return;

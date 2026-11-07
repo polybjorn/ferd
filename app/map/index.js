@@ -17,7 +17,6 @@ export {
   deletePlaceItem,
   deleteRouteItem,
   openPlacePopup,
-  resyncPlaceCardSlugs,
 } from './map-actions.js';
 export { applyCoverMinZoom, cleanupMap, parseOverlays, TOPO_CREDIT } from './map-layers.js';
 export { refreshPlaceMarkerIcons } from './map-markers.js';

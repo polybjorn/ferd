@@ -21,6 +21,36 @@ export function openViewModal(view, opts) {
   }, null, opts);
 }
 
+// A list page is one Preact tree under #app. The router unmounts it before
+// any page writes #app, so effects clean up and a page that sets innerHTML
+// never sits on top of a live tree.
+let pageMounted = false;
+/** @param {any} view */
+export function mountPage(view) {
+  const app = document.getElementById('app');
+  if (!app) return;
+  if (!pageMounted) app.replaceChildren();
+  render(view, app);
+  pageMounted = true;
+}
+// A view mounted inside imperative page markup (the route detail's meta
+// panel). unmountPage tears these down with the page, because the router
+// replaces #app's markup next and would otherwise strand their effects.
+const extraRoots = new Set();
+/** @param {any} view @param {Element} el */
+export function mountExtra(view, el) {
+  extraRoots.add(el);
+  render(view, el);
+}
+export function unmountPage() {
+  extraRoots.forEach(el => render(null, el));
+  extraRoots.clear();
+  if (!pageMounted) return;
+  pageMounted = false;
+  const app = document.getElementById('app');
+  if (app) render(null, app);
+}
+
 // openModal wires .modal-close to its own close handling.
 export function DialogHead({ title, lead }) {
   return html`<div class="ui-dialog-head">

@@ -2,9 +2,8 @@ import { state } from '../core.js';
 import { dataLayer } from '../store.js';
 import { DoneFields, SelectOrNew, difficultyOptions } from '../form-fields.js';
 import { getShowField } from '../prefs.js';
-import { deleteRouteItem, homeMapMounted } from '../map/index.js';
+import { deleteRouteItem } from '../map/index.js';
 import { closeModal } from '../modal.js';
-import { wrappedRouter } from '../router.js';
 import { t } from '../i18n.js';
 import { DialogHead, ErrorBox, Field, RadioPills, html, openViewModal, useState } from '../view.js';
 import { editRoutePlan, routeMetaValues } from './route-payload.js';
@@ -33,11 +32,11 @@ export function ratingStarsText(rating) {
   return filled + '<span style="opacity:0.35">' + '★'.repeat(empty) + '</span>';
 }
 
-// After a route delete. The index map drops the route itself when the
-// store's routes signal changes; any other page re-renders.
-export function afterRouteDeleted() {
-  if (!homeMapMounted()) wrappedRouter();
-}
+// Keys of routes mid-move. The old key leaves the store before the new one
+// is known, and the open detail page must not read that as a delete.
+const moving = new Set();
+/** @param {string} key */
+export function routeIsMoving(key) { return moving.has(key); }
 
 /** @param {string} key */
 export function findRouteByKey(key) {
@@ -67,7 +66,7 @@ function EditRoute({ route, regionName }) {
   const text = k => (/** @type {Event} */ e) => patch({ [k]: valueOf(e) });
 
   const remove = () => {
-    deleteRouteItem(route, regionName, () => { closeModal(); afterRouteDeleted(); });
+    deleteRouteItem(route, regionName, () => { closeModal(); });
   };
   const save = (/** @type {Event} */ e) => {
     e.preventDefault();
@@ -78,6 +77,7 @@ function EditRoute({ route, regionName }) {
     }
     const { metadata, newName, targetRegion, newCompleted, needsMove, needsCompletedFlip } = plan;
     setBusy(true);
+    if (needsMove) moving.add(route.key);
     /** @type {Promise<string>} */
     let chain = Promise.resolve(key);
     if (needsCompletedFlip) {
@@ -98,11 +98,17 @@ function EditRoute({ route, regionName }) {
         const onThisDetail = seg && decodeURIComponent(seg) === route.key;
         if (needsMove && onThisDetail && movedKey && movedKey !== route.key) {
           location.hash = '#/routes/route/' + encodeURIComponent(movedKey);
-        } else if (!homeMapMounted()) {
-          wrappedRouter();
         }
       })
-      .catch((/** @type {Error} */ err) => { setBusy(false); setError(err.message); });
+      .catch((/** @type {Error} */ err) => {
+        setBusy(false);
+        setError(err.message);
+        const seg = location.hash.split('/routes/route/')[1];
+        if (movedKey !== route.key && seg && decodeURIComponent(seg) === route.key) {
+          location.hash = '#/routes/route/' + encodeURIComponent(movedKey);
+        }
+      })
+      .finally(() => { moving.delete(route.key); });
   };
 
   return html`<${DialogHead} title=${t('route.editTitle')} />

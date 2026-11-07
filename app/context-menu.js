@@ -1,7 +1,7 @@
 import { state } from './core.js';
 import { isReadOnly } from './server.js';
 import { deletePlaceItem, deleteRouteItem, openPlacePopup } from './map/index.js';
-import { afterRouteDeleted, openEditTrailMetadataModal } from './routes/route-meta.js';
+import { openEditTrailMetadataModal } from './routes/route-meta.js';
 import { openEditPlaceModal } from './places/edit-place.js';
 import { findCatalogUpdate, openCatalogUpdateModal } from './places-list.js';
 import { focusHash } from './router.js';
@@ -67,7 +67,7 @@ export function openMapRouteContextMenu(route, regionName, oe, map) {
   if (!isReadOnly() && state.auth && state.auth.authenticated) {
     items.push(null);
     items.push({ label: 'Delete', danger: true, onClick: function() {
-      deleteRouteItem(route, regionName, function() { afterRouteDeleted(); });
+      deleteRouteItem(route, regionName, function() { /* the map follows the store */ });
     }});
   }
   openContextMenu({ x: oe.clientX, y: oe.clientY, items });
