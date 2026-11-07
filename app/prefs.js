@@ -60,7 +60,7 @@ export function getPref(key, def) {
 const SYNCED_PREF_KEYS = new Set([
   'theme', 'mode', 'pin-style', 'marker-size', 'route-weight', 'tile-filter',
   'tile-layer', 'units', 'show-local-name',
-  'cluster-places', 'tile-picker', 'map-filter', 'map-zoom', 'map-expand', 'remember-view',
+  'cluster-places', 'tile-picker', 'map-filter', 'map-zoom', 'map-zoom-touch', 'map-expand', 'remember-view',
   'places-group-by', 'trails-group-by', 'history-view',
   'places-view', 'routes-view',
   'default-hidden-categories', 'default-hidden-regions',
@@ -117,7 +117,13 @@ export function getDefaultTileLayer() {
 }
 export function getShowTilePicker() { return getPref('tile-picker', 'true') !== 'false'; }
 export function getShowFilterPanel() { return getPref('map-filter', 'true') !== 'false'; }
-export function getShowZoomControls() { return getPref('map-zoom', 'true') !== 'false'; }
+// A touch screen zooms with a pinch, so there the buttons are a choice of
+// their own that starts off, and turning them on for the phone leaves the
+// desktop as it was. They stay one switch away because double-tap only zooms
+// in: the buttons are the one-finger way out (WCAG 2.5.1).
+const coarsePointer = matchMedia('(pointer: coarse)');
+export function zoomControlsKey() { return coarsePointer.matches ? 'map-zoom-touch' : 'map-zoom'; }
+export function getShowZoomControls() { return getPref(zoomControlsKey(), coarsePointer.matches ? 'false' : 'true') !== 'false'; }
 export function getShowExpandButton() { return getPref('map-expand', 'true') !== 'false'; }
 export function applyControlVisibility() {
   document.body.classList.toggle('hide-map-filter', !getShowFilterPanel());

@@ -551,13 +551,12 @@ a:hover { opacity: 0.8; }
   bottom: 0;
   z-index: var(--ui-z-sticky);
 }
-.view-title { display: none; }
 .nav-action-btn > svg,
 #auth-menu-btn > svg { display: none; }
 
 /* A phone gives the map and the lists the whole screen: the bar floats over
-   them, Menu and Add float as round buttons, and each list carries its own
-   title. A route keeps the header, which is the only place its name shows.
+   them and names the current tab, and Menu and Add float as round buttons.
+   A route keeps the header, which is the only place its name shows.
    --shell-bar-space is the floating bar's share of the bottom edge. */
 @media (max-width: 600px) {
   :root { --shell-bar-space: calc(var(--ui-bottom-bar-height) + 2 * var(--ui-space-3) + env(safe-area-inset-bottom, 0px)); }
@@ -579,22 +578,18 @@ a:hover { opacity: 0.8; }
   }
   body[data-view="route"] .detail-layout { padding-bottom: var(--shell-bar-space); }
 
-  .view-title {
-    display: block;
-    margin: 0 0 var(--ui-space-3);
-    padding-right: calc(var(--ui-touch-target) + var(--ui-space-3));
-    font-size: var(--ui-text-xl);
-    font-weight: 400;
-    line-height: var(--ui-touch-target);
-  }
-
+  /* Top-left on every tab, so Menu never moves: the map's top-right holds
+     the layer picker, and a list's filter row starts after the button. */
   body:not([data-view="route"]) .auth-widget {
     position: fixed;
     top: calc(var(--ui-space-3) + env(safe-area-inset-top, 0px));
-    right: var(--ui-space-3);
+    left: var(--ui-space-3);
   }
-  body[data-view="map"] .auth-widget { right: auto; left: var(--ui-space-3); }
-  body[data-view="map"] .auth-menu { right: auto; left: 0; }
+  body:not([data-view="route"]) .auth-menu { right: auto; left: 0; }
+  body:not([data-view="route"]) #app .index-controls {
+    min-height: var(--ui-touch-target);
+    padding-left: calc(var(--ui-touch-target) + var(--ui-space-1));
+  }
   body:not([data-view="route"]) .auth-widget > button {
     justify-content: center;
     min-width: var(--ui-touch-target);
@@ -614,9 +609,6 @@ a:hover { opacity: 0.8; }
     right: var(--ui-space-4);
     bottom: calc(var(--shell-bar-space) + var(--ui-space-3));
   }
-  /* Clears the map credit's corner button, so opening the credit never
-     moves it. */
-  body[data-view="map"] .nav-actions { bottom: calc(var(--shell-bar-space) + 1.75rem + var(--ui-space-5)); }
   body:not([data-view="route"]) .nav-action-add {
     justify-content: center;
     width: 3.5rem;
@@ -636,6 +628,11 @@ a:hover { opacity: 0.8; }
   }
 
   #app > #map .leaflet-bottom { bottom: var(--shell-bar-space); }
+  /* The credit takes the bottom-left corner, which the hidden filter panel
+     leaves empty, so the right side is Add's alone. */
+  #app > #map .leaflet-bottom.leaflet-right { right: auto; left: 0; }
+  #app > #map .leaflet-bottom.leaflet-right .leaflet-control { float: left; }
+  #app > #map .leaflet-control-attribution { max-width: calc(100vw - 3.5rem - 2 * var(--ui-space-4)); }
   body[data-view="map"] .leaflet-top.leaflet-left { top: calc(var(--ui-touch-target) + var(--ui-space-3)); }
 }
 /* Glass where the browser can draw it: the same recipe as ui.css's floating

@@ -25,35 +25,20 @@ export function addPhoneMapButtons(map) {
   map.addControl(new Ctrl());
   document.getElementById('map-filter-btn').addEventListener('click', openFilterSheet);
   syncFilterDot();
-  if (state._searchOnMapReady) {
-    state._searchOnMapReady = false;
-    openMapSearchView();
+  if (state._pendingSearchResult) {
+    const row = state._pendingSearchResult;
+    state._pendingSearchResult = null;
+    goToSearchResult(map, row);
   }
 }
 
-// The bar's Search finds things on the map. A list page has its own search
-// for what it lists, so there it goes to that field; any other page goes to
-// the map first.
-function openBarSearch() {
-  const listInput = document.querySelector('#app .index-controls input[type="text"]');
-  if (listInput) {
-    document.getElementById('app').scrollTo({ top: 0 });
-    listInput.focus();
-    return;
-  }
-  if (document.getElementById('map-phone-buttons')) {
-    openMapSearchView();
-    return;
-  }
-  state._searchOnMapReady = true;
-  location.hash = '#/';
-}
 const barSearch = document.getElementById('bar-search');
-if (barSearch) barSearch.addEventListener('click', openBarSearch);
+if (barSearch) barSearch.addEventListener('click', openSearchView);
 
-export function openMapSearchView() {
-  const map = state.currentMap;
-  if (!map) return;
+// The same search on every tab, and a pick always shows on the map. A list's
+// own field filters what it lists, which is a different job. The route page
+// has a map too, so the main map is told apart by its filter button.
+export function openSearchView() {
   openFullScreenModal(
     '<div class="ui-dialog-head map-search-head">' +
       '<div class="ui-field map-search-field"><input type="search" id="map-search-view-input" aria-label="Search" placeholder="Search places, areas and routes" enterkeyhint="search" autocomplete="off"></div>' +
@@ -72,7 +57,12 @@ export function openMapSearchView() {
         const row = e.target.closest('.map-search-result');
         if (!row) return;
         closeModal();
-        goToSearchResult(map, row);
+        if (state.currentMap && document.getElementById('map-phone-buttons')) {
+          goToSearchResult(state.currentMap, row);
+          return;
+        }
+        state._pendingSearchResult = { dataset: { ...row.dataset } };
+        location.hash = '#/';
       });
       input.focus();
     }

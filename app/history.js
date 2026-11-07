@@ -73,7 +73,6 @@ export function renderHistoryIndex() {
   const hf = state.historyFilters;
 
   app.innerHTML =
-    '<h1 class="view-title">History</h1>' +
     '<div class="index-controls">' +
     '<div class="search-wrap"><input type="text" id="hist-search" placeholder="Filter history..." value="' + escapeHtml(hf.search) + '"><span class="result-count" id="result-count"></span></div>' +
     '<div class="filter-dropdown">' +

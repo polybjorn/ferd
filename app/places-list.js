@@ -509,7 +509,6 @@ export function renderPlacesIndex() {
     ? '<div class="filter-dropdown catalog-update-chip-wrap"><button type="button" class="filter-btn catalog-update-chip" id="catalog-update-review">Review updates</button></div>'
     : '';
   app.innerHTML =
-    '<h1 class="view-title">Places</h1>' +
     '<div class="index-controls">' +
     '<div class="search-wrap"><input type="text" id="search-input" placeholder="Filter places..." value="' + escapeHtml(state.placeFilters.search) + '"><span class="result-count" id="result-count"></span></div>' +
     updChip +

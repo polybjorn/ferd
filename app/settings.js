@@ -8,7 +8,7 @@ import {
   getDefaultShow, getDefaultTileLayer, getRememberView, getShowExpandButton, getShowField,
   getShowFilterPanel, getShowTilePicker, getShowZoomControls, getUnits, logsAvailable,
   placesAvailable, placesEnabled, refreshTabVisibility, routesAvailable, routesEnabled,
-  setFeatureHidden, setFeatureVisible, setPref,
+  setFeatureHidden, setFeatureVisible, setPref, zoomControlsKey,
 } from './prefs.js';
 import { addTilePicker } from './map-layers.js';
 import { refreshPlaceMarkerIcons } from './map-markers.js';
@@ -550,7 +550,7 @@ export function openSettingsModal(initialTab) {
         setPref('tile-layer', this.value);
         wrappedRouter();
       });
-      [['s-cluster', 'cluster-places'], ['s-remember-view', 'remember-view'], ['s-tile-picker', 'tile-picker'], ['s-map-filter', 'map-filter'], ['s-map-zoom', 'map-zoom'], ['s-map-expand', 'map-expand']].forEach(function([id, key]) {
+      [['s-cluster', 'cluster-places'], ['s-remember-view', 'remember-view'], ['s-tile-picker', 'tile-picker'], ['s-map-filter', 'map-filter'], ['s-map-zoom', zoomControlsKey()], ['s-map-expand', 'map-expand']].forEach(function([id, key]) {
         const cb = document.getElementById(id);
         if (!cb) return;
         cb.addEventListener('change', function() {
@@ -586,7 +586,7 @@ export function openSettingsModal(initialTab) {
             return;
           }
           // Filter panel + zoom + expand controls hide via body classes; no map work.
-          if (key === 'map-filter' || key === 'map-zoom' || key === 'map-expand') {
+          if (key === 'map-filter' || key === zoomControlsKey() || key === 'map-expand') {
             applyControlVisibility();
             return;
           }
