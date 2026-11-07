@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from . import store
-from .common import ConflictError, NotFoundError, ValidationError, resolve_under, safe_path_component
+from .common import ConflictError, NotFoundError, ValidationError, nfc_component, resolve_under, safe_path_component
 from .routes import ROUTE_META_FIELDS
 from .users import _walk_follow_symlinks
 
@@ -41,8 +41,8 @@ def parse_gpx_move(body: dict) -> dict:
   if old_region:
     safe_path_component(old_region)
   safe_path_component(route_name)
-  new_region = safe_path_component(new_region_raw) if new_region_raw else ""
-  final_name = safe_path_component((new_name_raw or route_name).strip())
+  new_region = nfc_component(new_region_raw) if new_region_raw else ""
+  final_name = nfc_component((new_name_raw or route_name).strip())
   return {
     "old_region": old_region, "route_name": route_name,
     "new_region": new_region, "final_name": final_name,

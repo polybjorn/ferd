@@ -19,6 +19,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - A place's popup has an Edit button, so editing no longer depends on finding the right-click or long-press menu. It shows when you're signed in, and never on a public map.
 
 ### Fixed
+- A route uploaded or imported from a Mac or iPhone no longer shows up twice. The server now stores every route and region name in composed Unicode (NFC), whatever form the device sent, and on start merges each route already stored under both spellings into one, keeping one GPX file and the metadata from both. A pair whose GPX files differ, or whose metadata holds two different values for the same field, is left as it is and named in the server log.
 - In the Android app, the back gesture closes an open modal instead of leaving the page or the app.
 - Category names and local names in popups are readable on every theme, with the category colour moved to a dot beside the name. Uncategorized entries now follow a theme or mode change straight away.
 - Every control is at least 24px each way and shows a visible focus ring, including text fields, selects and filled buttons. A switch now toggles from anywhere on its row, the colour palette fits a narrow window, and hidden file inputs, closed palettes and collapsed sections no longer take a keyboard stop.

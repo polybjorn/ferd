@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import sqlite3
-import subprocess
 from http import HTTPStatus
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from .. import store
-from ..common import BodyTooLarge, ConflictError, NotFoundError, ValidationError, atomic_write_bytes, resolve_under, safe_path_component, with_file_lock
+from ..common import BodyTooLarge, ConflictError, NotFoundError, ValidationError, atomic_write_bytes, nfc_component, nfc_route_key, resolve_under, safe_path_component, with_file_lock
+from ..manifest import regenerate_manifest
 from ..gpx import GPX_MAX_BYTES, apply_gpx_move, parse_gpx_move, plan_gpx_move, strip_gpx_pii, validate_gpx
 from ..routes import validate_route_metadata
 
@@ -79,8 +79,8 @@ class RoutesMixin:
     qs = parse_qs(urlparse(self.path).query)
     raw_region = (qs.get("region") or [""])[0]
     try:
-      region = safe_path_component(raw_region) if raw_region else ""
-      name = safe_path_component((qs.get("name") or [""])[0])
+      region = nfc_component(raw_region) if raw_region else ""
+      name = nfc_component((qs.get("name") or [""])[0])
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, f"invalid region/name: {e}")
     if name.lower().endswith(".gpx"):
@@ -254,7 +254,7 @@ class RoutesMixin:
       return
     try:
       old_name = safe_path_component(body.get("from") or "")
-      new_name = safe_path_component(body.get("to") or "")
+      new_name = nfc_component(body.get("to") or "")
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, f"invalid region name: {e}")
     if old_name == new_name:
@@ -387,42 +387,7 @@ class RoutesMixin:
     self._send_json(HTTPStatus.OK, {"ok": True, "name": name, "manifest": manifest_status})
 
   def _regenerate_manifest(self, target_dir: Path) -> dict:
-    cmd = self.cfg.get("manifest_cmd")
-    if not cmd:
-      return {"ran": False, "reason": "no manifest_cmd configured"}
-    # Resolve cmd relative to the *original* data_dir (where the script lives)
-    # so that switching cwd to a per-user dir doesn't break the path.
-    repo_dir = Path(self.cfg["data_dir"]).resolve()
-    cmd_path = Path(cmd)
-    if not cmd_path.is_absolute():
-      cmd_path = (repo_dir / cmd).resolve()
-    uid = self._current_user()["id"]
-
-    def run_and_ingest():
-      proc = subprocess.run(
-        [str(cmd_path), str(target_dir)],
-        shell=False, check=False, timeout=60, cwd=str(target_dir),
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-      )
-      # The script's routes.json is its output, not the store. Reading it back
-      # under the same lock keeps two runs from landing in the wrong order.
-      if proc.returncode == 0:
-        store.ingest_route_manifest(self.conn, uid, target_dir / "routes.json")
-      return proc
-
-    try:
-      proc = with_file_lock(target_dir / ".manifest.lock", run_and_ingest)
-    except FileNotFoundError:
-      return {"ran": False, "reason": f"manifest_cmd not found: {cmd}"}
-    except subprocess.TimeoutExpired:
-      return {"ran": False, "reason": "manifest_cmd timed out"}
-    except sqlite3.Error as e:
-      return {"ran": True, "exit_code": 1, "stderr_tail": f"routes not stored: {e}"}
-    return {
-      "ran": True,
-      "exit_code": proc.returncode,
-      "stderr_tail": proc.stderr.decode("utf-8", "replace")[-400:],
-    }
+    return regenerate_manifest(self.cfg, self.conn, self._current_user()["id"], target_dir)
 
   def _h_routes_get(self):
     user = self._require_user()
@@ -462,6 +427,10 @@ class RoutesMixin:
         safe_path_component(p)
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_REQUEST, f"invalid key: {e}")
+    # Composed, like every name the server stores, unless the key as sent is
+    # a route that is still stored decomposed (one the merge left alone).
+    if store.get_item(self.conn, user["id"], "route", key) is None:
+      key = nfc_route_key(key)
     try:
       entry = validate_route_metadata(body.get("metadata") or {})
     except ValidationError as e:

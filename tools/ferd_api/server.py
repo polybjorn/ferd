@@ -14,7 +14,9 @@ from pathlib import Path
 from .auth import RATE_LIMIT_MAX_FAILS, RATE_LIMIT_WINDOW, RateLimiter, new_setup_token
 from .config import load_config, parse_trusted_proxies
 from .db import db_connect, db_init, db_migrate
+from .manifest import regenerate_manifest
 from .migrate import edited_after_migration, migrate_user
+from .nfc import merge_nfd_routes
 from .places import backfill_country_codes
 from .users import ensure_user_dir, migrate_legacy_data, seed_initial_user, user_count, user_dir
 from .handler import Handler
@@ -54,6 +56,8 @@ def main() -> int:
         print(f"[api] WARNING: users/{name}/{stale} changed after {name} was migrated; "
               "that edit is not in the database (an older version ran here?). "
               "Export from that version and import here to recover it", file=sys.stderr)
+      if merge_nfd_routes(conn, r["id"], udir):
+        regenerate_manifest(cfg, conn, r["id"], udir)
       n = backfill_country_codes(conn, r["id"])
       if n:
         print(f"[api] set country_code on {n} places for {name}", file=sys.stderr)

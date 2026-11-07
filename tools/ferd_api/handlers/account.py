@@ -15,6 +15,7 @@ from .. import store
 from ..common import BodyTooLarge, ImportTooLarge, ValidationError, with_file_lock
 from ..db import log_event
 from ..gpx import build_geojson
+from ..nfc import merge_nfd_routes
 from ..transfer import IMPORT_MAX_BYTES, IMPORT_TOP_FILES, IMPORT_WRITERS, parse_payloads, stage_archive
 from ..users import _is_export_junk, _walk_follow_symlinks, publishing_open, set_user_published
 
@@ -159,6 +160,12 @@ class AccountMixin:
       return self._error(HTTPStatus.BAD_REQUEST, str(e))
     except (OSError, sqlite3.Error) as e:
       return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"import failed: {e}")
+    # An archive made on a Mac often carries decomposed names; the pass moves
+    # them to composed ones, merging with a copy already there.
+    try:
+      merge_nfd_routes(self.conn, user["id"], udir)
+    except (OSError, sqlite3.Error) as e:
+      print(f"[api] import: NFC merge skipped: {e}", file=sys.stderr)
 
     log_event(self.conn, actor=user["username"], action="user.import", details={
       "mode": mode,

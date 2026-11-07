@@ -7,6 +7,7 @@ import json
 import os
 import re
 import tempfile
+import unicodedata
 from pathlib import Path
 
 
@@ -81,6 +82,17 @@ def safe_path_component(value: str) -> str:
   if not PATH_COMPONENT_RE.match(s):
     raise ValidationError("contains disallowed characters")
   return s
+
+
+def nfc_component(value: str) -> str:
+  """safe_path_component, composed to NFC. Every name a client writes goes
+  through this, so a route or region named on a device that sends decomposed
+  (NFD) text lands under the same key as one typed in the app."""
+  return unicodedata.normalize("NFC", safe_path_component(value))
+
+
+def nfc_route_key(key: str) -> str:
+  return unicodedata.normalize("NFC", key)
 
 
 def resolve_under(base: Path, *parts: str) -> Path:

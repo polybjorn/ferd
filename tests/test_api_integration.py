@@ -19,8 +19,10 @@ import sys
 import tempfile
 import threading
 import time
+import unicodedata
 import unittest
 import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
 from http.cookiejar import CookieJar
@@ -1326,6 +1328,66 @@ class TestApiTokens(unittest.TestCase):
     bc = Client(_server.base_url)
     status, _ = bc.request("GET", "/api/sessions", headers=self._bearer("not-a-real-token"))
     self.assertEqual(status, 401)
+
+
+NFC_ROUTE = unicodedata.normalize("NFC", "Måløy Ås")
+NFD_ROUTE = unicodedata.normalize("NFD", NFC_ROUTE)
+
+
+class TestNfcNames(unittest.TestCase):
+  """Names reach the server decomposed from macOS and iOS pickers; every
+  write stores them composed, so one route never ends up under two keys."""
+
+  def setUp(self):
+    self.c = admin_client()
+    self.root = admin_dir() / "gpx"
+    shutil.rmtree(self.root, ignore_errors=True)
+    reset_kind("metadata")
+
+  def names(self):
+    return sorted(str(p.relative_to(self.root)) for p in self.root.rglob("*.gpx"))
+
+  def test_upload_stores_a_decomposed_name_composed(self):
+    q = urllib.parse.urlencode({"region": NFD_ROUTE, "name": NFD_ROUTE})
+    status, body = self.c.request("POST", f"/api/gpx?{q}", raw_body=GPX_BODY, content_type="application/gpx+xml")
+    self.assertEqual(status, 201, body)
+    self.assertEqual(body["saved"], f"gpx/{NFC_ROUTE}/{NFC_ROUTE}.gpx")
+    q = urllib.parse.urlencode({"region": NFC_ROUTE, "name": NFC_ROUTE})
+    self.assertEqual(self.c.request("POST", f"/api/gpx?{q}", raw_body=GPX_BODY, content_type="application/gpx+xml")[0], 201)
+    self.assertEqual(self.names(), [f"{NFC_ROUTE}/{NFC_ROUTE}.gpx"])
+
+  def test_metadata_key_is_stored_composed(self):
+    status, body = self.c.request("PUT", "/api/metadata", {"key": f"R/{NFD_ROUTE}", "metadata": {"rating": 4}})
+    self.assertEqual(status, 200, body)
+    self.assertEqual(body["key"], f"R/{NFC_ROUTE}")
+    self.assertEqual(stored("metadata"), {f"R/{NFC_ROUTE}": {"rating": 4}})
+
+  def test_metadata_for_a_route_still_stored_decomposed_keeps_its_key(self):
+    conn = store_conn()
+    self.addCleanup(conn.close)
+    store.put_item(conn, user_id(), "route", NFD_ROUTE, {"region": "", "key": NFD_ROUTE, "name": NFD_ROUTE})
+    self.addCleanup(store.delete_item, conn, user_id(), "route", NFD_ROUTE)
+    status, body = self.c.request("PUT", "/api/metadata", {"key": NFD_ROUTE, "metadata": {"rating": 2}})
+    self.assertEqual(status, 200, body)
+    self.assertEqual(stored("metadata"), {NFD_ROUTE: {"rating": 2}})
+
+  def test_import_merges_a_decomposed_route_into_the_composed_one(self):
+    gpx = GPX_BODY
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+      zf.writestr(f"gpx/{NFC_ROUTE}.gpx", gpx)
+      zf.writestr(f"gpx/{NFD_ROUTE}.gpx", gpx)
+      zf.writestr(f"gpx/{NFD_ROUTE}/{NFD_ROUTE}.gpx", gpx)
+      zf.writestr("metadata.json", json.dumps({
+        NFC_ROUTE: {"source": "https://example.com/r"},
+        NFD_ROUTE: {"rating": 5},
+      }))
+    for mode in ("replace", "merge"):
+      status, body = self.c.request("POST", f"/api/me/import?mode={mode}",
+                                    raw_body=buf.getvalue(), content_type="application/zip")
+      self.assertEqual(status, 200, body)
+      self.assertEqual(self.names(), sorted([f"{NFC_ROUTE}.gpx", f"{NFC_ROUTE}/{NFC_ROUTE}.gpx"]))
+      self.assertEqual(stored("metadata"), {NFC_ROUTE: {"source": "https://example.com/r", "rating": 5}})
 
 
 class TestImport(unittest.TestCase):
