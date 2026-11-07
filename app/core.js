@@ -17,8 +17,25 @@ export const ROUTE_COLOR = '#6aaeee';
 export const GPX_NS = 'http://www.topografix.com/GPX/1/1';
 export const DATA_FILES = { siteConfig: 'site-config.json' };
 
+/**
+ * The `/api/state` response (docs/api.md), and the stand-in local mode sets.
+ * @typedef {object} AuthState
+ * @property {boolean} authenticated
+ * @property {string | null} username
+ * @property {boolean} is_admin
+ * @property {boolean} [published]
+ * @property {boolean} [registration_open]
+ * @property {boolean} [publishing_open]
+ * @property {boolean} [catalog_baseline_open]
+ * @property {boolean} [has_users]
+ * @property {boolean} [requires_setup_token]
+ * @property {string} [version]
+ * @property {boolean} [local] set by local mode, never by the server
+ */
+
 export const state = {
   config: DEFAULT_CONFIG,
+  /** @type {AuthState} */
   auth: { authenticated: false, username: null, is_admin: false, published: false, registration_open: true, publishing_open: true, catalog_baseline_open: true, has_users: false, requires_setup_token: false },
   serverPrefs: {},
   viewer: detectViewer(),

@@ -8,6 +8,12 @@ import { openCatalogBulkUpdateModal, placesWithCatalogUpdates } from './places-l
 import { openSettingsModal } from './settings.js';
 import { openLogsModal } from './settings-logs.js';
 import { modalHeaderHtml, openConfirmModal } from './select.js';
+
+/**
+ * An Error thrown by an API call: `status` and `body` from a non-2xx reply,
+ * `offline` when the request never reached the server.
+ * @typedef {Error & { status?: number, body?: any, offline?: boolean }} ApiError
+ */
 import { openSheetModal } from './modal.js';
 import { openSignInModal } from './sign-in.js';
 
@@ -28,14 +34,14 @@ export function api(method, path, body) {
     let data = null;
     try { data = await r.json(); } catch {}
     if (!r.ok) {
-      const err = new Error((data && data.error) || ('HTTP ' + r.status));
+      const err = /** @type {ApiError} */ (new Error((data && data.error) || ('HTTP ' + r.status)));
       err.status = r.status;
       err.body = data;
       throw err;
     }
     return data;
   }, (netErr) => {
-    const err = new Error(navigator.onLine ? 'Network error' : "You're offline. Changes not saved.");
+    const err = /** @type {ApiError} */ (new Error(navigator.onLine ? 'Network error' : "You're offline. Changes not saved."));
     err.offline = !navigator.onLine;
     err.cause = netErr;
     throw err;

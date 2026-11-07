@@ -66,6 +66,14 @@ jobs:
         run: python3 -m unittest discover -s tests
       - name: Offline queue tests
         run: node --test tests/js/*.test.js
+      # TypeScript is fetched here and nowhere else: the shipped files stay plain
+      # JS with JSDoc. tsc exits non-zero on any error, so the step judges by the
+      # baseline in types/tsc-baseline.txt, which only ever comes down.
+      - name: Type-check the frontend
+        run: |
+          out="${RUNNER_TEMP:-/tmp}/tsc.out"
+          npx --yes -p typescript@5.9.3 tsc -p . --pretty false > "$out" || true
+          python3 scripts/typecheck.py "$out"
       # Cloned like ci-actions, for the same reason. The tag comes from the first
       # line of ui.css, so vendoring a new copy moves the tools in the same commit.
       - name: Fetch ui-foundation

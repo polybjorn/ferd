@@ -274,6 +274,10 @@ export function uiToggleHtml(id, label, opts) {
   '</label>';
 }
 
+/**
+ * @param {{ title: string, body?: string, confirmLabel?: string, danger?: boolean }} opts
+ * @returns {Promise<boolean>}
+ */
 export function openConfirmModal({ title, body, confirmLabel, danger }) {
   return new Promise(resolve => {
     let settled = false;

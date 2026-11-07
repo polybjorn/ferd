@@ -95,7 +95,7 @@ export function openManageRegionsModal() {
         // Default-visibility eye: persists instantly, independent of the
         // rename/remove Save batch; also updates the in-session set.
         container.querySelectorAll('.rgn-hide').forEach(btn => {
-          btn.addEventListener('click', function() {
+          btn.addEventListener('click', /** @this {HTMLButtonElement} */ function() {
             const name = this.dataset.name;
             const nowHidden = !isDefaultHidden('default-hidden-regions', name);
             setDefaultHidden('default-hidden-regions', name, nowHidden);

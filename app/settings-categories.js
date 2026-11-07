@@ -199,7 +199,7 @@ export function openManageCategoriesModal() {
         // independent of the label/color/order Save batch. Also updates the
         // in-session set so the next map navigation reflects it.
         container.querySelectorAll('.cat-hide').forEach(btn => {
-          btn.addEventListener('click', function() {
+          btn.addEventListener('click', /** @this {HTMLButtonElement} */ function() {
             const slug = this.dataset.slug;
             const nowHidden = !isDefaultHidden('default-hidden-categories', slug);
             setDefaultHidden('default-hidden-categories', slug, nowHidden);
@@ -222,7 +222,7 @@ export function openManageCategoriesModal() {
           });
         });
         container.querySelectorAll('.cat-drag').forEach(handle => {
-          handle.addEventListener('pointerdown', function(ev) {
+          handle.addEventListener('pointerdown', /** @param {PointerEvent} ev */ function(ev) {
             ev.preventDefault();
             const startIdx = +this.dataset.i;
             const rowEls = Array.from(container.querySelectorAll('.cat-row'));

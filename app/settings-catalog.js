@@ -56,7 +56,7 @@ export function openCatalogManager() {
             '</li>';
           }).join('') + '</ul>';
           list.querySelectorAll('button[data-act="catalog-delete"]').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', /** @this {HTMLButtonElement} */ function() {
               const name = this.closest('.user-row').dataset.name;
               openConfirmModal({
                 title: 'Remove from catalog',
@@ -73,7 +73,7 @@ export function openCatalogManager() {
             });
           });
           list.querySelectorAll('button[data-act="catalog-hide"]').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', /** @this {HTMLButtonElement} */ function() {
               const name = this.closest('.user-row').dataset.name;
               const wantHidden = this.dataset.hidden !== '1';
               this.disabled = true;

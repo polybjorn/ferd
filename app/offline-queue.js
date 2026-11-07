@@ -273,7 +273,7 @@ function _gpxUploadRequest(a) {
   if (a.stripPii) qs += '&strip_pii=true';
   return fetch(apiUrl('/gpx') + qs, applyAuth({ method: 'POST', headers: { 'Content-Type': 'application/gpx+xml' }, body: a.file })).then(async r => {
     const data = await r.json().catch(() => null);
-    if (!r.ok) { const e = new Error((data && data.error) || ('HTTP ' + r.status)); e.status = r.status; throw e; }
+    if (!r.ok) { const e = /** @type {import('./auth.js').ApiError} */ (new Error((data && data.error) || ('HTTP ' + r.status))); e.status = r.status; throw e; }
     return data;
   });
 }

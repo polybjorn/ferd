@@ -255,7 +255,7 @@ export const localStore = {
       return Promise.all(ops).then(() => ({ ok: true, renamed: 1 }));
     });
   },
-  deleteRegion() { return Promise.resolve({ ok: true }); }, // regions are derived from files; an empty region needs no deletion
+  deleteRegion(_body) { return Promise.resolve({ ok: true }); }, // regions are derived from files; an empty region needs no deletion
   clearRegion(body) {
     const name = body.name || '';
     return Promise.all([idbGetAll('gpx'), this._metadata()]).then(([recs, meta]) => {

@@ -41,6 +41,15 @@ The offline write queue in `app/offline-queue.js` has its own tests, run with No
 node --test tests/js/*.test.js
 ```
 
+CI also type-checks `app/` with TypeScript reading the JSDoc (`tsconfig.json`, `strict` off). Nothing ships compiled; TypeScript is fetched in CI only. The errors that predate the check are listed in `types/tsc-baseline.txt`, and CI fails when the list changes either way, so a fix lowers it in the same commit. To run it locally:
+
+```sh
+npx -p typescript@5.9.3 tsc -p . --pretty false > /tmp/tsc.out
+python3 scripts/typecheck.py /tmp/tsc.out            # add --update after fixing errors
+```
+
+Type API responses and shared state with JSDoc `@typedef` where they are defined (`AuthState` in `app/core.js` is the pattern). Globals from the classic scripts and the Android bridge are declared in `types/globals.d.ts`.
+
 Stdlib only, no deps. Two layers: unit tests for pure helpers and file utilities in `tools/ferd_api/`, and integration tests that launch the API in a subprocess and hit endpoints over HTTP. Run before opening a PR. If your change touches the API surface or one of the helpers, add a case.
 
 ### Modal review sheet
