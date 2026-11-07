@@ -17,7 +17,7 @@ FRONTEND = "\n".join(p.read_text(encoding="utf-8")
 
 # Lower these as one-off styles move out. Never raise them.
 MAX_INLINE_STYLES = 74
-MAX_IMPORTANT = 73
+MAX_IMPORTANT = 71
 MAX_HARDCODED_COLOURS = 12
 
 COLOUR = re.compile(r"#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?)\(")

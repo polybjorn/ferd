@@ -2,14 +2,14 @@ import { escapeHtml, state } from './core.js';
 import { applyAuth, isReadOnly, serverBase, setBearerToken } from './server.js';
 import { isLocalMode, setLocalMode } from './local-mode.js';
 import { localBackup } from './backup.js';
-import { historyEnabled, logsEnabled, placesEnabled, routesEnabled } from './prefs.js';
+import { logsEnabled } from './prefs.js';
 import { TOPO_CREDIT, parseOverlays } from './map-layers.js';
 import { closeTransientOverlays } from './map-actions.js';
 import { openCatalogBulkUpdateModal, placesWithCatalogUpdates } from './places-list.js';
 import { openSettingsModal } from './settings.js';
 import { openLogsModal } from './settings-logs.js';
 import { modalHeaderHtml, openConfirmModal } from './select.js';
-import { openModal } from './modal.js';
+import { openSheetModal } from './modal.js';
 import { openSignInModal } from './sign-in.js';
 
 export function apiUrl(path) {
@@ -65,14 +65,6 @@ export function renderAuthWidget() {
       (local
         ? '<div class="auth-menu-header">Local map<strong>No account</strong></div>'
         : '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>') +
-      // Narrow screens hide the nav's Places/Routes/History tabs; surface
-      // them here as their own section (shown only on mobile via CSS).
-      ((placesEnabled() || routesEnabled()) ?
-        '<div class="auth-menu-nav">' +
-          (placesEnabled() ? '<button data-action="nav-places">Places</button>' : '') +
-          (routesEnabled() ? '<button data-action="nav-routes">Routes</button>' : '') +
-          (historyEnabled() ? '<button data-action="history">History</button>' : '') +
-        '</div>' : '') +
       '<button class="auth-menu-mobile" data-action="catalog-updates" id="menu-catalog-updates" hidden>Review updates</button>' +
       '<button data-action="settings">Settings</button>' +
       (logsEnabled() ? '<button data-action="logs">Logs</button>' : '') +
@@ -116,9 +108,6 @@ export function renderAuthWidget() {
     if (!action) return;
     closeMenu();
     switch (action.dataset.action) {
-      case 'nav-places': location.hash = '#/places'; break;
-      case 'nav-routes': location.hash = '#/routes'; break;
-      case 'history':  location.hash = '#/history'; break;
       case 'catalog-updates': openCatalogBulkUpdateModal(); break;
       case 'settings': openSettingsModal(); break;
       case 'logs':     openLogsModal(); break;
@@ -249,7 +238,7 @@ function openAboutModal() {
   const brand = (state.config && state.config.brand) || 'Ferd';
   const overlayCredits = parseOverlays(state.config && state.config.overlays)
     .map(ov => ov.attribution).filter(Boolean);
-  openModal(
+  openSheetModal(
     modalHeaderHtml('About') +
     '<div class="about-body">' +
       '<img class="about-logo" src="/icons/favicon.svg" alt="">' +

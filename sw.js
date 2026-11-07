@@ -35,6 +35,7 @@ const SHELL_ASSETS = [
   '/app/map-layers.js',
   '/app/map-markers.js',
   '/app/map-panel.js',
+  '/app/map-phone.js',
   '/app/map-popups.js',
   '/app/map-wheel.js',
   '/app/map.js',

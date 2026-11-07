@@ -11,7 +11,7 @@ import { renderPlaceList, updatePlaceCardAfterEdit } from './places-list.js';
 import {
   modalErrorHtml, modalHeaderHtml, refreshPlaces, uiFieldHtml, uiToggleHtml,
 } from './select.js';
-import { closeModal, openModal, showModalError } from './modal.js';
+import { closeModal, openFullScreenModal, showModalError } from './modal.js';
 import { enterPickCoordsMode } from './pick-coords.js';
 
 export function openEditPlaceModal(place) {
@@ -19,7 +19,7 @@ export function openEditPlaceModal(place) {
   // is the default state of the empty option, not a pickable category.
   const cats = sortedCategorySlugs(Object.keys(state.categoryColors).filter(c => c !== ''));
   const sourcesText = (place.sources || []).join('\n');
-  openModal(
+  openFullScreenModal(
     modalHeaderHtml('Edit place') +
     '<form id="edit-place-form">' +
       '<div class="ui-section">' +

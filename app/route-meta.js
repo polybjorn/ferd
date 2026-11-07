@@ -10,7 +10,7 @@ import { deleteRouteItem, placePopupContent } from './map-actions.js';
 import {
   modalErrorHtml, modalHeaderHtml, refreshRoutes, uiFieldHtml, uiToggleHtml,
 } from './select.js';
-import { closeModal, openModal, showModalError } from './modal.js';
+import { closeModal, openFullScreenModal, showModalError } from './modal.js';
 import { wrappedRouter } from './pick-coords.js';
 
 // If a place popup is currently open on the home map, re-render its
@@ -113,7 +113,7 @@ export function openEditTrailMetadataModal(route, regionName) {
     ),
     '<option value="__new__">(Add new region&hellip;)</option>',
   ].join('');
-  openModal(
+  openFullScreenModal(
     modalHeaderHtml('Edit route') +
     '<form id="route-meta-form">' +
       '<div class="ui-section">' +

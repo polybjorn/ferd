@@ -3,12 +3,12 @@ import { isLocalMode } from './local-mode.js';
 import { api } from './auth.js';
 import { renderAdminLogs } from './settings-account.js';
 import { modalHeaderHtml, openConfirmModal } from './select.js';
-import { openModal } from './modal.js';
+import { openFullScreenModal } from './modal.js';
 
 export function openLogsModal() {
   const local = isLocalMode();
   const title = local ? 'Activity log' : 'Audit log';
-  openModal(
+  openFullScreenModal(
     modalHeaderHtml(title) +
     '<div id="s-admin-logs"><div class="hint">Loading&hellip;</div></div>' +
     '<div class="ui-dialog-actions"><button type="button" id="s-logs-clear" class="ui-button ui-button-danger">Clear all</button></div>',

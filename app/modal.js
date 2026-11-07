@@ -35,14 +35,31 @@ function closeOnBackdropClick(dialog, close) {
   dialog.addEventListener('click', e => { if (e.target === dialog && pressedBackdrop) close(); });
 }
 
-export function openModal(html, onMount, onClose) {
+// A phone shows a long form or a search as a full-screen view and a short
+// choice as a sheet, where a wider screen keeps the centred dialog. The class
+// follows the width, so a phone turned sideways with a modal open moves it
+// too.
+const phoneQuery = window.matchMedia('(max-width: 600px)');
+const PHONE_LAYOUTS = { sheet: 'ui-dialog-sheet', fullscreen: 'ui-dialog-fullscreen' };
+function applyPhoneLayout(entry) {
+  Object.values(PHONE_LAYOUTS).forEach(c => entry.backdrop.classList.remove(c));
+  if (entry.phone && phoneQuery.matches) entry.backdrop.classList.add(PHONE_LAYOUTS[entry.phone]);
+}
+phoneQuery.addEventListener('change', () => {
+  modalStack.forEach(applyPhoneLayout);
+  fitModalsToKeyboard();
+});
+
+// opts.phone is 'sheet' or 'fullscreen'.
+export function openModal(html, onMount, onClose, opts) {
   const root = document.getElementById('modal-root');
   const dialog = document.createElement('dialog');
   dialog.className = 'ui-dialog modal';
   dialog.innerHTML = html;
   wrapDialogBody(dialog);
   root.appendChild(dialog);
-  const entry = { backdrop: dialog, onClose: null };
+  const entry = { backdrop: dialog, onClose: null, phone: opts && opts.phone };
+  applyPhoneLayout(entry);
   // Default close behavior: tear down this dialog. onClose overrides
   // run instead and may call closeModal()/closeTopModal() themselves.
   entry.onClose = onClose
@@ -72,6 +89,13 @@ export function openModal(html, onMount, onClose) {
   return dialog;
 }
 
+export function openFullScreenModal(html, onMount, onClose) {
+  return openModal(html, onMount, onClose, { phone: 'fullscreen' });
+}
+export function openSheetModal(html, onMount, onClose) {
+  return openModal(html, onMount, onClose, { phone: 'sheet' });
+}
+
 export function closeTopModal() {
   closeSelectPopover();
   const entry = modalStack.pop();
@@ -95,14 +119,29 @@ export function popoverHost() {
 // modal's scroll end behind the keys. Capping modals at the part still
 // visible keeps every field and list reachable. A modal keeps its top, so
 // only a short centred one moves, up to the height the form modals sit at.
+// A full-screen view shrinks to the visible part instead, and a sheet rides
+// up on the keyboard's top edge.
 function fitModalsToKeyboard() {
   const vv = window.visualViewport;
+  if (!vv) return;
   // A pinch also shrinks the visual viewport, but only a keyboard does so at scale 1.
-  const covered = vv.scale < 1.01 && document.documentElement.clientHeight - vv.height > 120;
+  const layoutHeight = document.documentElement.clientHeight;
+  const covered = vv.scale < 1.01 && layoutHeight - vv.height > 120;
   modalStack.forEach(({ backdrop: dialog }) => {
     if (!covered) {
-      ['top', 'bottom', 'marginTop', 'maxHeight'].forEach(prop => { dialog.style[prop] = ''; });
+      ['top', 'bottom', 'marginTop', 'maxHeight', 'height'].forEach(prop => { dialog.style[prop] = ''; });
       delete dialog.dataset.keyboardTop;
+      return;
+    }
+    if (dialog.classList.contains('ui-dialog-fullscreen')) {
+      dialog.style.top = vv.offsetTop + 'px';
+      dialog.style.bottom = 'auto';
+      dialog.style.height = vv.height + 'px';
+      return;
+    }
+    if (dialog.classList.contains('ui-dialog-sheet')) {
+      dialog.style.bottom = (layoutHeight - vv.offsetTop - vv.height) + 'px';
+      dialog.style.maxHeight = (vv.height - 8) + 'px';
       return;
     }
     if (!dialog.dataset.keyboardTop) {

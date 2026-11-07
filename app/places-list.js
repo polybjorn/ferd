@@ -17,7 +17,7 @@ import { focusHash } from './router.js';
 import { api } from './auth.js';
 import { attachContextMenu } from './context-menu.js';
 import { enhanceSelectsIn, modalHeaderHtml, refreshPlaces } from './select.js';
-import { closeModal, openModal } from './modal.js';
+import { closeModal, openFullScreenModal } from './modal.js';
 import { openAddModal } from './add.js';
 import { wrappedRouter } from './pick-coords.js';
 
@@ -325,7 +325,7 @@ export function openCatalogBulkUpdateModal() {
       renderCatalogDiff(r.changes, { selectable: true, place: p, entry: r.entry }) +
     '</div>';
   }).join('');
-  openModal(
+  openFullScreenModal(
     modalHeaderHtml('Catalog updates (' + pending.length + ')') +
     '<div id="catalog-bulk-list">' + sections + '</div>' +
     '<div class="ui-dialog-actions">' +
@@ -424,7 +424,7 @@ export function openCatalogUpdateModal(place) {
     return;
   }
   const { entry, changes } = result;
-  openModal(
+  openFullScreenModal(
     modalHeaderHtml('Update from catalog') +
     renderCatalogDiff(changes, { selectable: true, place, entry }) +
     '<div class="ui-dialog-actions">' +

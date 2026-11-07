@@ -2,7 +2,7 @@ import { escapeHtml, state } from './core.js';
 import { dataLayer } from './offline-queue.js';
 import { eyeIconHtml, isDefaultHidden, setDefaultHidden } from './prefs.js';
 import { modalErrorHtml, modalHeaderHtml, refreshRoutes } from './select.js';
-import { closeTopModal, openModal, showErrorBox } from './modal.js';
+import { closeTopModal, openFullScreenModal, showErrorBox } from './modal.js';
 import { wrappedRouter } from './pick-coords.js';
 
 export function openManageRegionsModal() {
@@ -17,7 +17,7 @@ export function openManageRegionsModal() {
   const pendingDeletes = new Set();   // empty regions removed by X
   const pendingClears = new Set();    // non-empty regions removed by X
 
-  openModal(
+  openFullScreenModal(
     modalHeaderHtml('Manage regions') +
     '<h3 class="settings-h" style="margin-top:var(--ui-space-3);display:flex;align-items:baseline;gap:var(--ui-space-2)">Regions' +
       '<span id="rgn-clear-warning" class="action-warning" style="margin-left:auto;text-align:right" hidden></span></h3>' +

@@ -336,7 +336,8 @@ class ModalHeight(unittest.TestCase):
     self.assertNotRegex(FRONTEND, r"\.modal[^{}]*\{[^{}]*height: calc\(100vh")
     # Insets on the fixed dialog follow the visible screen, where 100vh would
     # count the space behind a phone browser's toolbar.
-    self.assertRegex(FRONTEND, r"\.modal:is\([^{}]*\) \{ inset-block: 3rem; \}")
+    # A full-screen view fills the screen instead.
+    self.assertRegex(FRONTEND, r"\.modal:not\(\.ui-dialog-fullscreen\):is\([^{}]*\) \{ inset-block: 3rem; \}")
 
   def test_a_scrolling_list_keeps_a_floor(self):
     self.assertRegex(FRONTEND, r"#catalog-bulk-list\) \{\s+flex: 1 1 auto;\s+min-height: 4rem")

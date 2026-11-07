@@ -174,6 +174,14 @@ export function refreshTabVisibility() {
   if (tabTrails) { tabTrails.style.display = routesEnabled() ? '' : 'none'; tabTrails.textContent = 'Routes'; }
   const tabHistory = document.getElementById('tab-history');
   if (tabHistory) tabHistory.style.display = historyEnabled() ? '' : 'none';
+  const shown = { places: placesEnabled(), routes: routesEnabled(), history: historyEnabled() };
+  Object.keys(shown).forEach(v => {
+    const item = document.getElementById('bar-' + v);
+    if (item) item.hidden = !shown[v];
+  });
+  // With every view off the map is all there is, and a bar would switch to nothing.
+  const bar = document.getElementById('bottom-bar');
+  if (bar) bar.hidden = !Object.values(shown).some(Boolean);
 }
 
 // Set the live count pinned inside a list page's search box.

@@ -20,7 +20,7 @@ import {
   enhanceSelectsIn, modalErrorHtml, modalHeaderHtml, openConfirmModal, refreshAreas,
   refreshPlaces, refreshRoutes, uiFieldHtml, uiToggleHtml,
 } from './select.js';
-import { closeModal, openModal, showModalError } from './modal.js';
+import { closeModal, openFullScreenModal, showModalError } from './modal.js';
 import { enterPickCoordsMode } from './pick-coords.js';
 
 export function openAddModal(prefillCoords, initialTab, draft) {
@@ -51,7 +51,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
   const tabLabels = { place: 'Place', route: 'Route', area: 'Area', browse: 'Browse' };
   // With one tab there is no tab row, so the head names the form instead.
   const singleTabTitle = 'Add ' + tabLabels[tab].toLowerCase();
-  openModal(
+  openFullScreenModal(
     modalHeaderHtml(singleTabTitle, {tabsHtml: tabs.length > 1 ?
       '<div class="modal-tabs" id="add-tabs">' +
         tabs.map(t => '<button data-tab="' + t + '"' + (t === tab ? ' class="active"' : '') + '>' + tabLabels[t] + '</button>').join('') +

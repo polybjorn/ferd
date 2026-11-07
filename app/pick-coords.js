@@ -1,6 +1,7 @@
 import { state } from './core.js';
 import { router } from './router.js';
 import { openAddModal } from './add.js';
+import { openMapSearchView } from './map-phone.js';
 
 // onPick is called with the chosen latlng. If omitted, the default
 // behavior opens the Add modal pre-filled with those coordinates.
@@ -81,6 +82,13 @@ document.addEventListener('keydown', function(e) {
     return;
   }
   const mapInput = document.getElementById('map-search-input');
+  // A narrow window swaps the panel, and with it the input, for a button.
+  const phoneSearch = document.getElementById('map-search-btn');
+  if (phoneSearch && phoneSearch.offsetParent !== null) {
+    e.preventDefault();
+    openMapSearchView();
+    return;
+  }
   if (mapInput) {
     e.preventDefault();
     const wasForced = !document.body.classList.contains('force-show-map-filter');

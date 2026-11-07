@@ -3,7 +3,8 @@ import {
 } from './core.js';
 import { gpxUrlFor, isReadOnly, routeStatusColor } from './server.js';
 import { applyCoverMinZoom } from './form-fields.js';
-import { collapseCreditOnPhone, keepPanelAboveCredit, panelInnerHtml } from './map-panel.js';
+import { collapseCreditOnPhone, panelInnerHtml } from './map-panel.js';
+import { addPhoneMapButtons } from './map-phone.js';
 import {
   DEFAULT_CONFIG, getRememberView, loadStoredView, placesEnabled, routesEnabled, saveStoredView,
 } from './prefs.js';
@@ -451,7 +452,7 @@ export function renderUnifiedMap(focus) {
   });
   if (placesEnabled() || routesEnabled()) {
     map.addControl(new PanelControl());
-    keepPanelAboveCredit(map);
+    addPhoneMapButtons(map);
     bindFilterPanel();
     refreshFilterPanel();
     initUnifiedSearch(map);
@@ -468,40 +469,84 @@ export function renderUnifiedMap(focus) {
   }
 }
 
+function placesLegendHtml() {
+  const cats = sortedCategorySlugs(Object.keys(state.categoryColors));
+  let html = '<div class="legend-cats">';
+  for (const cat of cats) {
+    const color = state.categoryColors[cat];
+    const hidden = state.hiddenCategories.has(cat);
+    html += '<div class="legend-item' + (hidden ? ' disabled' : '') + '" data-cat="' + escapeHtml(cat) + '">';
+    html += '<span class="legend-dot" style="background:' + color + '"></span>';
+    html += escapeHtml(displayCategory(cat));
+    html += '</div>';
+  }
+  return html + '</div>';
+}
+
+function routesLegendHtml() {
+  const regions = state.manifest && state.manifest.regions ? state.manifest.regions.map(r => r.name) : [];
+  if (!regions.length) return '';
+  let html = '<div class="legend-cats">';
+  for (const r of regions) {
+    const hidden = state.hiddenRegions.has(r);
+    html += '<div class="legend-item' + (hidden ? ' disabled' : '') + '" data-region="' + escapeHtml(r) + '">';
+    html += escapeHtml(displayRegion(r));
+    html += '</div>';
+  }
+  return html + '</div>';
+}
+
+function statusChipsHtml(section) {
+  if (section === 'places') {
+    return '<div class="status-chip' + (state.showVisited ? ' active' : '') + '" data-filter="visited"><span class="status-dot visited"></span>Visited</div>' +
+      '<div class="status-chip' + (state.showWant ? ' active' : '') + '" data-filter="want"><span class="status-dot want"></span>Planned</div>' +
+      '<div class="status-chip panel-toggle-all" data-toggle-all="places">Toggle all</div>';
+  }
+  return '<div class="status-chip' + (state.showCompleted ? ' active' : '') + '" data-route-status="completed"><span class="status-dot completed"></span>Completed</div>' +
+    '<div class="status-chip' + (state.showPlanned ? ' active' : '') + '" data-route-status="planned"><span class="status-dot planned"></span>Planned</div>' +
+    '<div class="status-chip panel-toggle-all" data-toggle-all="routes">Toggle all</div>';
+}
+
+// The phone's filter button carries a dot while anything is filtered out,
+// since its sheet is closed most of the time.
+export function filtersActive() {
+  return state.hiddenCategories.size > 0 || state.hiddenRegions.size > 0 ||
+    !state.showVisited || !state.showWant || !state.showCompleted || !state.showPlanned;
+}
+export function syncFilterDot() {
+  const btn = document.getElementById('map-filter-btn');
+  if (btn) btn.classList.toggle('has-active', filtersActive());
+}
+
+// Redraws every open filter view: the desktop panel and the phone's sheet.
 export function refreshFilterPanel() {
   const placesBody = document.getElementById('places-body');
-  if (placesBody) {
-    const cats = sortedCategorySlugs(Object.keys(state.categoryColors));
-    let html = '<div class="legend-cats">';
-    for (const cat of cats) {
-      const color = state.categoryColors[cat];
-      const hidden = state.hiddenCategories.has(cat);
-      html += '<div class="legend-item' + (hidden ? ' disabled' : '') + '" data-cat="' + escapeHtml(cat) + '">';
-      html += '<span class="legend-dot" style="background:' + color + '"></span>';
-      html += escapeHtml(displayCategory(cat));
-      html += '</div>';
-    }
-    html += '</div>';
-    placesBody.innerHTML = html;
-  }
-
+  if (placesBody) placesBody.innerHTML = placesLegendHtml();
   const routesBody = document.getElementById('routes-body');
-  if (routesBody) {
-    let html = '';
-    const regions = state.manifest && state.manifest.regions ? state.manifest.regions.map(r => r.name) : [];
-    if (regions.length) {
-      html += '<div class="legend-cats">';
-      for (const r of regions) {
-        const hidden = state.hiddenRegions.has(r);
-        html += '<div class="legend-item' + (hidden ? ' disabled' : '') + '" data-region="' + escapeHtml(r) + '">';
-        html += escapeHtml(displayRegion(r));
-        html += '</div>';
-      }
-      html += '</div>';
-    }
-    routesBody.innerHTML = html;
-  }
+  if (routesBody) routesBody.innerHTML = routesLegendHtml();
   renderPanelStatus();
+  document.querySelectorAll('.filter-sheet [data-legend]').forEach(el => {
+    el.innerHTML = el.dataset.legend === 'places' ? placesLegendHtml() : routesLegendHtml();
+  });
+  document.querySelectorAll('.filter-sheet [data-status]').forEach(el => {
+    el.innerHTML = statusChipsHtml(el.dataset.status);
+  });
+  syncFilterDot();
+}
+
+// The phone's filter sheet shows both sections open, each with its chips.
+export function filterSheetHtml() {
+  const section = (id, title) =>
+    '<section class="filter-sheet-section">' +
+      '<h3 class="filter-sheet-title">' + title + '</h3>' +
+      '<div class="legend-status" data-status="' + id + '">' + statusChipsHtml(id) + '</div>' +
+      '<div class="panel-section-body" data-legend="' + id + '">' +
+        (id === 'places' ? placesLegendHtml() : routesLegendHtml()) + '</div>' +
+    '</section>';
+  return '<div class="filter-sheet">' +
+    (placesEnabled() ? section('places', 'Places') : '') +
+    (routesEnabled() ? section('routes', 'Routes') : '') +
+    '</div>';
 }
 
 // Which section is currently open (accordion = at most one).
@@ -523,17 +568,7 @@ function renderPanelStatus() {
   const active = activePanelSection();
   if (!active) { el.innerHTML = ''; el.style.display = 'none'; return; }
   el.style.display = '';
-  let html = '';
-  if (active === 'places') {
-    html += '<div class="status-chip' + (state.showVisited ? ' active' : '') + '" data-filter="visited"><span class="status-dot visited"></span>Visited</div>';
-    html += '<div class="status-chip' + (state.showWant ? ' active' : '') + '" data-filter="want"><span class="status-dot want"></span>Planned</div>';
-    html += '<div class="status-chip panel-toggle-all" data-toggle-all="places">Toggle all</div>';
-  } else {
-    html += '<div class="status-chip' + (state.showCompleted ? ' active' : '') + '" data-route-status="completed"><span class="status-dot completed"></span>Completed</div>';
-    html += '<div class="status-chip' + (state.showPlanned ? ' active' : '') + '" data-route-status="planned"><span class="status-dot planned"></span>Planned</div>';
-    html += '<div class="status-chip panel-toggle-all" data-toggle-all="routes">Toggle all</div>';
-  }
-  el.innerHTML = html;
+  el.innerHTML = statusChipsHtml(active);
 }
 
 // Toggle-all handlers, called from the delegated body click handlers (the
@@ -566,6 +601,40 @@ function toggleAllRoutes() {
   applyMapFilters();
 }
 
+// Delegated, so the handler survives refreshFilterPanel replacing the items.
+// Toggles flip in place rather than re-render, which would cut the pulse.
+export function bindFilterClicks(el) {
+  el.addEventListener('click', function(e) {
+    const item = e.target.closest('.legend-item[data-cat], .legend-item[data-region]');
+    if (item) {
+      const isCat = item.dataset.cat !== undefined;
+      const set = isCat ? state.hiddenCategories : state.hiddenRegions;
+      const key = isCat ? item.dataset.cat : item.dataset.region;
+      if (set.has(key)) set.delete(key); else set.add(key);
+      item.classList.toggle('disabled', set.has(key));
+      pulseChip(item);
+      applyMapFilters();
+      syncFilterDot();
+      return;
+    }
+    const chip = e.target.closest('.status-chip');
+    if (!chip) return;
+    if (chip.classList.contains('panel-toggle-all')) {
+      if (chip.dataset.toggleAll === 'places') toggleAllPlaces();
+      else toggleAllRoutes();
+      return;
+    }
+    if (chip.dataset.filter === 'visited') state.showVisited = !state.showVisited;
+    else if (chip.dataset.filter === 'want') state.showWant = !state.showWant;
+    else if (chip.dataset.routeStatus === 'completed') state.showCompleted = !state.showCompleted;
+    else if (chip.dataset.routeStatus === 'planned') state.showPlanned = !state.showPlanned;
+    chip.classList.toggle('active');
+    pulseChip(chip);
+    applyMapFilters();
+    syncFilterDot();
+  });
+}
+
 export function bindFilterPanel() {
   // Section tabs: accordion. Clicking a collapsed tab expands it and
   // collapses the other; clicking the open tab collapses everything.
@@ -583,51 +652,8 @@ export function bindFilterPanel() {
       renderPanelStatus();
     });
   });
-
-  // Delegated clicks on the body elements (survive innerHTML refresh). The
-  // bodies hold only the category/region lists now; status chips live in
-  // the shared footer below.
-  const placesBody = document.getElementById('places-body');
-  if (placesBody) placesBody.addEventListener('click', function(e) {
-    const cat = e.target.closest('.legend-item[data-cat]');
-    if (!cat) return;
-    const c = cat.dataset.cat;
-    if (state.hiddenCategories.has(c)) { state.hiddenCategories.delete(c); cat.classList.remove('disabled'); }
-    else { state.hiddenCategories.add(c); cat.classList.add('disabled'); }
-    pulseChip(cat);
-    applyMapFilters();
-  });
-
-  const routesBody = document.getElementById('routes-body');
-  if (routesBody) routesBody.addEventListener('click', function(e) {
-    const region = e.target.closest('.legend-item[data-region]');
-    if (!region) return;
-    const r = region.dataset.region;
-    if (state.hiddenRegions.has(r)) { state.hiddenRegions.delete(r); region.classList.remove('disabled'); }
-    else { state.hiddenRegions.add(r); region.classList.add('disabled'); }
-    pulseChip(region);
-    applyMapFilters();
-  });
-
-  // Shared status footer: chips route to the open section's filters. The
-  // footer's data attributes already match the active tab (set by
-  // renderPanelStatus), so we just read them. Status toggles flip in place
-  // (no re-render) to avoid any flash; toggle-all re-renders.
-  const panelStatus = document.getElementById('panel-status');
-  if (panelStatus) panelStatus.addEventListener('click', function(e) {
-    const chip = e.target.closest('.status-chip');
-    if (!chip) return;
-    if (chip.classList.contains('panel-toggle-all')) {
-      if (chip.dataset.toggleAll === 'places') toggleAllPlaces();
-      else toggleAllRoutes();
-      return;
-    }
-    if (chip.dataset.filter === 'visited') state.showVisited = !state.showVisited;
-    else if (chip.dataset.filter === 'want') state.showWant = !state.showWant;
-    else if (chip.dataset.routeStatus === 'completed') state.showCompleted = !state.showCompleted;
-    else if (chip.dataset.routeStatus === 'planned') state.showPlanned = !state.showPlanned;
-    chip.classList.toggle('active');
-    pulseChip(chip);
-    applyMapFilters();
+  ['places-body', 'routes-body', 'panel-status'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) bindFilterClicks(el);
   });
 }

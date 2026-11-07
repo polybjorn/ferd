@@ -133,9 +133,14 @@ function overlayLayersControlClass() {
 export function addTilePicker(map) {
   const overlays = state.tilePickerOverlays;
   const Ctrl = overlayLayersControlClass();
-  return new Ctrl(state.tilePickerLayers,
+  const ctrl = new Ctrl(state.tilePickerLayers,
     overlays && Object.keys(overlays).length ? overlays : null,
     { position: 'topright' }).addTo(map);
+  // Leaflet stacks a top corner in the order controls arrive, and a picker
+  // turned back on in Settings arrives after the phone's map buttons.
+  const el = ctrl.getContainer();
+  el.parentNode.prepend(el);
+  return ctrl;
 }
 
 export function addTileLayersToMap(map) {

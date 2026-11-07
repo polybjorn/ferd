@@ -32,7 +32,7 @@ import {
   modalErrorHtml, modalHeaderHtml, openConfirmModal, refreshAreas, refreshPlaces, refreshRoutes,
   uiFieldHtml, uiToggleHtml,
 } from './select.js';
-import { openModal } from './modal.js';
+import { openFullScreenModal } from './modal.js';
 import { wrappedRouter } from './pick-coords.js';
 
 export function deviceLabel(ua) {
@@ -91,7 +91,7 @@ export function openSettingsModal(initialTab) {
     'tokyo-night': 'Tokyo Night',
     dracula: 'Dracula'
   };
-  openModal(
+  openFullScreenModal(
     modalHeaderHtml('Settings') +
     '<div class="modal-tabs" id="settings-tabs">' +
       '<button data-tab="general" class="active">General</button>' +

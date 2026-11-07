@@ -1,4 +1,4 @@
-/* ui.css 1.6.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.7.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -33,7 +33,17 @@
                   class to size that one. --ui-dialog-border draws the frame
                   and the lines around the head and actions, and follows
                   --ui-border until a host maps it, because a control's border
-                  has to stand out against its surface and a frame does not
+                  has to stand out against its surface and a frame does not.
+                  The bottom bar draws its top edge with it too
+        sheet     --ui-sheet-width caps a sheet on a wide screen
+        bar       --ui-bottom-bar-height, --ui-bottom-bar-display; the bar
+                  shows while --ui-bottom-bar-display is flex, so a host sets
+                  it to none in its own media query wherever the bar should
+                  not show, since a display: none from the host would lose to
+                  the ui layer
+        touch     --ui-touch-target, the smallest height a control takes
+                  under a coarse pointer. 3rem meets Android's 48dp and
+                  Apple's 44pt
 
    Markup contract: classes and plain HTML only, with no on*= or style=
    attributes, so a page with a strict CSP can use it. specimen.html in
@@ -50,7 +60,15 @@
    element takes it. The top layer covers everything outside the dialog, so a
    popover or menu opened from a dialog must mount inside it, with
    position: fixed so the scrolling body does not clip it. A <form> that holds
-   the body and the actions can sit directly inside the dialog. */
+   the body and the actions can sit directly inside the dialog.
+   .ui-dialog-sheet and .ui-dialog-fullscreen change where a dialog sits and
+   nothing about how it opens or closes, so a host picks one per screen size
+   when it opens the dialog.
+
+   Bottom bar contract: the bar sets no position. A host puts it where the
+   layout ends, in the flow below a full-height column or fixed to the
+   bottom from its own layer, and reserves --ui-bottom-bar-height for it.
+   aria-current="page" marks the item for the screen in view. */
 
 @layer ui-tokens {
   :root {
@@ -93,6 +111,11 @@
     --ui-dialog-border: var(--ui-border);
     --ui-backdrop: rgb(0 0 0 / 50%);
     --ui-shadow: 0 10px 40px rgb(0 0 0 / 30%);
+    --ui-sheet-width: 40rem;
+
+    --ui-bottom-bar-height: 3.5rem;
+    --ui-bottom-bar-display: flex;
+    --ui-touch-target: 3rem;
 
     --ui-text: CanvasText;
     --ui-muted: GrayText;
@@ -507,10 +530,111 @@
     border-block-start: 1px solid var(--ui-dialog-border);
   }
 
+  /* margin-block-start stays auto from .ui-dialog, which is what holds the
+     sheet to the bottom edge. The bottom padding keeps the last control
+     above a phone's gesture bar. */
+  .ui-dialog-sheet {
+    box-sizing: border-box;
+    inline-size: 100%;
+    max-inline-size: var(--ui-sheet-width);
+    margin-block-end: 0;
+    padding-block-end: env(safe-area-inset-bottom, 0);
+    border-block-end: 0;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+  .ui-dialog-sheet[open] { animation: ui-sheet-in var(--ui-duration-base) ease-out; }
+  @keyframes ui-sheet-in {
+    from { transform: translateY(100%); }
+  }
+
+  .ui-dialog-fullscreen {
+    box-sizing: border-box;
+    inline-size: 100%;
+    block-size: 100%;
+    max-inline-size: none;
+    max-block-size: none;
+    margin: 0;
+    padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
+      env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* min-inline-size: 0 because the items' labels never wrap, and without it
+     a bar inside a grid or flex column widens that column to fit them all. */
+  .ui-bottom-bar {
+    display: var(--ui-bottom-bar-display);
+    box-sizing: border-box;
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0 0 env(safe-area-inset-bottom, 0);
+    background: var(--ui-surface);
+    border-block-start: 1px solid var(--ui-dialog-border);
+  }
+  /* Equal widths, so an item never moves when the active one changes. */
+  .ui-bottom-bar-item {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ui-space-1);
+    box-sizing: border-box;
+    min-inline-size: 0;
+    min-block-size: var(--ui-bottom-bar-height);
+    margin: 0;
+    padding: var(--ui-space-1) var(--ui-space-2);
+    font: inherit;
+    font-size: var(--ui-text-xs);
+    font-weight: var(--ui-label-weight);
+    color: var(--ui-muted);
+    text-decoration: none;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+  }
+  .ui-bottom-bar-item > svg {
+    flex: none;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+  }
+  .ui-bottom-bar-item > span {
+    max-inline-size: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* The label turns to full text colour rather than the accent, which a
+     host may not have made readable as small text on its surface. */
+  .ui-bottom-bar-item[aria-current="page"] { color: var(--ui-text); }
+  .ui-bottom-bar-item[aria-current="page"] > svg { color: var(--ui-accent); }
+  .ui-bottom-bar-item:where(:not(:disabled, [aria-disabled="true"])):hover { color: var(--ui-text); }
+  .ui-bottom-bar-item:focus-visible {
+    outline: 2px solid var(--ui-accent);
+    outline-offset: -2px;
+  }
+  .ui-bottom-bar-item:is(:disabled, [aria-disabled="true"]) {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Every display above beats the browser's own [hidden] rule, so a block
+     carrying the hidden attribute would still show. .ui-dialog[open] in the
+     list lifts this rule over all of them, whatever their order. */
+  :is(.ui-section, .ui-field, .ui-field-label, .ui-field-row, .ui-control-row,
+      .ui-toggle-row, .ui-toggle-text, .ui-choice-list, .ui-choice, .ui-button,
+      .ui-dialog[open], .ui-dialog-head, .ui-dialog-actions, .ui-bottom-bar,
+      .ui-bottom-bar-item)[hidden] {
+    display: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .ui-button { transition: none; }
     .ui-dialog[open],
-    .ui-dialog::backdrop { animation: none; }
+    .ui-dialog::backdrop,
+    .ui-dialog-sheet[open] { animation: none; }
     .ui-toggle-row > input[type="checkbox"],
     .ui-toggle-row > input[type="checkbox"]::after { transition: none; }
   }
@@ -542,5 +666,19 @@
     :is(.ui-check, .ui-toggle-row > input[type="checkbox"]):focus-visible { outline-color: Highlight; }
     /* Forced colours drop box-shadow, which is all a hover draws. */
     .ui-button:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: Highlight; }
+    .ui-bottom-bar-item[aria-current="page"],
+    .ui-bottom-bar-item[aria-current="page"] > svg { color: Highlight; }
+  }
+
+  /* A finger needs a bigger target than a mouse, and only a coarse pointer
+     gets it, so a desktop layout keeps its density. Selectors match the rules
+     they lift, so these win on source order. */
+  @media (pointer: coarse) {
+    .ui-button,
+    .ui-field :is(input:where(:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"])), select),
+    .ui-control-row,
+    .ui-toggle-row,
+    .ui-choice { min-block-size: var(--ui-touch-target); }
+    .ui-dialog-close { inline-size: var(--ui-touch-target); }
   }
 }

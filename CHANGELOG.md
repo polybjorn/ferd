@@ -43,6 +43,11 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - On a phone or small tablet the map shows the update banner under the top bar, so it no longer covers the search panel. There it stays hidden while offline.
 
 ### Changed
+- On a phone, a bar at the bottom of the screen switches between Map, Places, Routes and History, and the menu no longer lists them. A view turned off in Settings leaves the bar, and with all three off the bar goes too.
+- On a phone, the map's search and filters are two buttons under the layer picker instead of the panel at the bottom, so the credit no longer pushes anything aside. Search opens a full-screen list of matching places, areas and routes, also with the S key, and Filters opens a sheet from the bottom of the screen. A dot on the Filters button shows while something is filtered out.
+- On a phone, forms, Settings and the catalog lists fill the screen, and confirm dialogs and About rise from the bottom of the screen. Both stay above the on-screen keyboard.
+- On a touch screen, the map's buttons, the layer picker, the filter toggles and search results are at least 48px tall.
+- On a wide screen, a long map credit wraps beside the search panel instead of lifting it.
 - The frontend's styles and scripts now load from `app/`. A self-hosted web server needs to serve that directory, with `Cache-Control: no-cache` so a browser never mixes old and new modules. The nginx and Caddy examples show how.
 - On a phone, the map credit collapses to an (i) button after five seconds or on the first touch of the map. Tapping the button shows it again, and About still lists every credit.
 - Text is 0.75rem or larger everywhere, and sizes, spacing, corners, animation speeds and stacking follow the scales in `ui.css`. Spacing moves slightly in places, and a long category in a map popup wraps instead of pushing the status out.

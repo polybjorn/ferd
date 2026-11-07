@@ -3,10 +3,10 @@ import { reloadCatalogCache } from './places-list.js';
 import { api } from './auth.js';
 import { renderAdminCatalog } from './settings-account.js';
 import { modalErrorHtml, modalHeaderHtml, openConfirmModal } from './select.js';
-import { closeModal, openModal, showErrorBox } from './modal.js';
+import { closeModal, openFullScreenModal, showErrorBox } from './modal.js';
 
 export function openCatalogManager() {
-  openModal(
+  openFullScreenModal(
     modalHeaderHtml(null, {titleHtml: 'Manage catalog<span id="cat-mgr-count" class="modal-title-count"></span>'}) +
     '<input type="text" id="cat-mgr-filter" placeholder="Filter…" style="margin-bottom:var(--ui-space-2)">' +
     '<div id="cat-mgr-list"></div>' +
@@ -156,7 +156,7 @@ function renderCatalogPicker(places) {
       '</span>' +
     '</label>';
   }).join('');
-  openModal(
+  openFullScreenModal(
     modalHeaderHtml('Add to catalog') +
     '<input type="text" id="cat-filter" placeholder="Filter…" style="margin-bottom:var(--ui-space-2)">' +
     '<div id="cat-list">' + rows + '</div>' +

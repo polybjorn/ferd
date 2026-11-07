@@ -507,58 +507,73 @@ export function applyMapFilters() {
   }
 }
 
+// Up to six of each kind, matched on the words a person would type for it.
+export function searchMatches(q) {
+  const lower = q.toLowerCase();
+  const places = state.places ? state.places.filter(p =>
+    p.name.toLowerCase().includes(lower)
+    || (p.note && p.note.toLowerCase().includes(lower))
+    || p.category.toLowerCase().includes(lower)
+    || (p.country && p.country.toLowerCase().includes(lower))
+  ).slice(0, 6) : [];
+  const areas = (state.areas && placesEnabled()) ? state.areas.filter(a =>
+    a.name.toLowerCase().includes(lower)
+    || (a.local_name && a.local_name.toLowerCase().includes(lower))
+    || (a.note && a.note.toLowerCase().includes(lower))
+    || a.category.toLowerCase().includes(lower)
+  ).slice(0, 6) : [];
+  const routes = state.manifest ? state.manifest.regions.flatMap(r =>
+    r.routes.filter(route => route.name.toLowerCase().includes(lower) || r.name.toLowerCase().includes(lower)).map(route => ({ route, region: r.name }))
+  ).slice(0, 6) : [];
+  return { places, areas, routes };
+}
+
+// Rows for searchMatches' result, or '' when nothing matched.
+export function searchResultsHtml(m) {
+  let html = '';
+  for (const p of m.places) {
+    const color = state.categoryColors[p.category];
+    html += '<div class="map-search-result" data-type="place" data-name="' + escapeHtml(p.name) + '">';
+    html += '<span class="result-dot" style="background:' + color + '"></span>';
+    html += escapeHtml(p.name);
+    html += '<span class="result-meta">' + escapeHtml(p.country || '') + '</span></div>';
+  }
+  for (const a of m.areas) {
+    html += '<div class="map-search-result" data-type="area" data-id="' + escapeHtml(a.id) + '">';
+    html += '<span class="result-dot" style="background:' + state.categoryColors[a.category] + '"></span>';
+    html += escapeHtml(a.name);
+    html += '<span class="result-meta">Area</span></div>';
+  }
+  for (const t of m.routes) {
+    const statusClass = t.route.completed ? 'completed' : 'planned';
+    html += '<div class="map-search-result" data-type="route" data-key="' + escapeHtml(t.route.key) + '">';
+    html += '<span class="result-line ' + statusClass + '"></span>';
+    html += escapeHtml(t.route.name);
+    html += '<span class="result-meta">' + escapeHtml(t.region) + '</span></div>';
+  }
+  return html;
+}
+
+export function goToSearchResult(map, row) {
+  if (row.dataset.type === 'place') {
+    const name = row.dataset.name;
+    const place = (state._placeRecords || []).find(p => p.name === name);
+    if (place) goToPlace(map, place);
+  } else if (row.dataset.type === 'area') {
+    revealArea(map, row.dataset.id);
+  } else {
+    goToRoute(map, row.dataset.key);
+  }
+}
+
 export function initUnifiedSearch(map) {
   const input = document.getElementById('map-search-input');
   const results = document.getElementById('map-search-results');
 
   function render(q) {
-    if (!q) { results.classList.remove('visible'); results.innerHTML = ''; return; }
-    const lower = q.toLowerCase();
-    const placeMatches = state.places ? state.places.filter(p =>
-      p.name.toLowerCase().includes(lower)
-      || (p.note && p.note.toLowerCase().includes(lower))
-      || p.category.toLowerCase().includes(lower)
-      || (p.country && p.country.toLowerCase().includes(lower))
-    ).slice(0, 6) : [];
-    const areaMatches = (state.areas && placesEnabled()) ? state.areas.filter(a =>
-      a.name.toLowerCase().includes(lower)
-      || (a.local_name && a.local_name.toLowerCase().includes(lower))
-      || (a.note && a.note.toLowerCase().includes(lower))
-      || a.category.toLowerCase().includes(lower)
-    ).slice(0, 6) : [];
-    const routeMatches = state.manifest ? state.manifest.regions.flatMap(r =>
-      r.routes.filter(route => route.name.toLowerCase().includes(lower) || r.name.toLowerCase().includes(lower)).map(route => ({ route, region: r.name }))
-    ).slice(0, 6) : [];
-
-    if (!placeMatches.length && !areaMatches.length && !routeMatches.length) {
-      results.classList.remove('visible');
-      results.innerHTML = '';
-      return;
-    }
-
-    let html = '';
-    for (const p of placeMatches) {
-      const color = state.categoryColors[p.category];
-      html += '<div class="map-search-result" data-type="place" data-name="' + escapeHtml(p.name) + '">';
-      html += '<span class="result-dot" style="background:' + color + '"></span>';
-      html += escapeHtml(p.name);
-      html += '<span class="result-meta">' + escapeHtml(p.country || '') + '</span></div>';
-    }
-    for (const a of areaMatches) {
-      html += '<div class="map-search-result" data-type="area" data-id="' + escapeHtml(a.id) + '">';
-      html += '<span class="result-dot" style="background:' + state.categoryColors[a.category] + '"></span>';
-      html += escapeHtml(a.name);
-      html += '<span class="result-meta">Area</span></div>';
-    }
-    for (const t of routeMatches) {
-      const statusClass = t.route.completed ? 'completed' : 'planned';
-      html += '<div class="map-search-result" data-type="route" data-key="' + escapeHtml(t.route.key) + '">';
-      html += '<span class="result-line ' + statusClass + '"></span>';
-      html += escapeHtml(t.route.name);
-      html += '<span class="result-meta">' + escapeHtml(t.region) + '</span></div>';
-    }
+    const html = q ? searchResultsHtml(searchMatches(q)) : '';
     results.innerHTML = html;
-    results.classList.add('visible');
+    results.classList.toggle('visible', html !== '');
   }
 
   input.addEventListener('input', function() { render(this.value.trim()); });
@@ -570,15 +585,7 @@ export function initUnifiedSearch(map) {
     // no longer sees the panel's click guard and takes this for a map
     // click, which closes the popup just opened.
     e.stopPropagation();
-    if (row.dataset.type === 'place') {
-      const name = row.dataset.name;
-      const place = (state._placeRecords || []).find(p => p.name === name);
-      if (place) goToPlace(map, place);
-    } else if (row.dataset.type === 'area') {
-      revealArea(map, row.dataset.id);
-    } else {
-      goToRoute(map, row.dataset.key);
-    }
+    goToSearchResult(map, row);
     input.value = '';
     results.classList.remove('visible');
     results.innerHTML = '';

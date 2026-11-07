@@ -14,7 +14,7 @@ import { parseGpxTracks } from './route-detail.js';
 import {
   modalErrorHtml, modalHeaderHtml, openConfirmModal, refreshAreas, uiFieldHtml, uiToggleHtml,
 } from './select.js';
-import { closeModal, openModal, showModalError } from './modal.js';
+import { closeModal, openFullScreenModal, showModalError } from './modal.js';
 
 // Areas get their own pane under the route layers, with no pointer events:
 // a filled polygon must never swallow a click meant for a route, a pin or
@@ -295,7 +295,7 @@ function areaFieldsHtml(prefix, area) {
     '</div>';
 }
 function openEditAreaModal(area) {
-  openModal(
+  openFullScreenModal(
     modalHeaderHtml('Edit area') +
     '<form id="edit-area-form">' +
       '<div class="ui-section">' +

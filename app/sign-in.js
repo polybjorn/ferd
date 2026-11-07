@@ -3,7 +3,7 @@ import { fetchJson, isCrossOrigin, serverBase, setBearerToken, setServerBase } f
 import { loadSyncedPrefs } from './prefs.js';
 import { api, apiUrl, enterLocalMode, refreshAuthState } from './auth.js';
 import { modalErrorHtml, modalHeaderHtml, uiFieldHtml } from './select.js';
-import { closeModal, openModal, showModalError } from './modal.js';
+import { closeModal, openFullScreenModal, showModalError } from './modal.js';
 import { bootApp, loadDataAndRender, probeServer } from './main.js';
 
 function signInFormHtml(includeClose) {
@@ -88,7 +88,7 @@ function bindSignInForm(opts) {
 }
 
 export function openSignInModal() {
-  openModal(signInFormHtml(true), function() {
+  openFullScreenModal(signInFormHtml(true), function() {
     bindSignInForm({ onSuccess: () => { closeModal(); return loadDataAndRender(); } });
   });
 }

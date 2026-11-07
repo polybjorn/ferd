@@ -426,7 +426,7 @@ html, body {
 a:hover { opacity: 0.8; }
 
 /* Nav */
-nav {
+.app-nav {
   position: sticky;
   top: 0;
   z-index: var(--ui-z-dropdown);
@@ -541,6 +541,25 @@ nav {
   padding: var(--ui-space-3) var(--ui-space-5) var(--ui-space-6);
   box-sizing: border-box;
 }
+
+/* The phone's view switch, standing in for the nav tabs. ui.css draws the bar
+   from a display token, so the token is what hides it here. */
+.bottom-bar {
+  --ui-bottom-bar-display: none;
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: var(--ui-z-sticky);
+}
+@media (max-width: 600px) {
+  .bottom-bar { --ui-bottom-bar-display: flex; }
+  body:not(.signin-only, .app-booting) > .bottom-bar:not([hidden]) ~ #app {
+    height: calc(100vh - 50px - var(--ui-bottom-bar-height));
+    height: calc(100dvh - 50px - var(--ui-bottom-bar-height));
+  }
+  body:not(.signin-only) .pwa-update-toast { bottom: calc(var(--ui-bottom-bar-height) + 24px); }
+}
+body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none; }
 
 #app:has(#map),
 #app:has(.detail-layout) {
@@ -1134,6 +1153,63 @@ nav {
 .map-search-result .result-line { width: 12px; height: 2px; border-radius: var(--ui-radius-sm); }
 .map-search-result .result-meta { color: var(--muted); margin-left: auto; font-size: var(--ui-text-xs); }
 
+/* A phone has no room for the filter panel beside the credit, so two
+   buttons under the tile picker open search and filters as their own views. */
+.map-phone-buttons { display: none; flex-direction: column; gap: var(--ui-space-1); }
+.map-phone-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.map-phone-btn:hover { background: var(--surface2); }
+.map-phone-btn svg { width: 20px; height: 20px; }
+/* The sheet is closed most of the time, and a filter left on hides things
+   from the map without saying so. */
+.map-phone-btn.has-active::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+@media (max-width: 600px) {
+  .map-panel { display: none; }
+  .map-phone-buttons { display: flex; }
+}
+.map-search-head .map-search-field { flex: 1; }
+.map-search-list .map-search-result {
+  padding: var(--ui-space-3) var(--ui-space-1);
+  font-size: var(--ui-text-sm);
+  border-bottom: 1px solid var(--border);
+}
+.map-search-list .map-search-result .result-meta { font-size: var(--ui-text-xs); }
+.map-search-empty { margin: var(--ui-space-5) 0; text-align: center; color: var(--muted); font-size: var(--ui-text-sm); }
+.filter-sheet { display: flex; flex-direction: column; gap: var(--ui-space-5); padding-bottom: var(--ui-space-2); }
+.filter-sheet-title { margin: 0 0 var(--ui-space-2); font-size: var(--ui-text-sm); font-weight: 400; letter-spacing: 0.03em; }
+.filter-sheet .legend-status { flex-wrap: wrap; margin: 0 0 var(--ui-space-2); padding: 0; border: 0; }
+.filter-sheet .panel-section-body { overflow: visible; }
+/* The layers toggle is a background image Leaflet centres, so only its box grows. */
+@media (pointer: coarse) {
+  .map-phone-btn,
+  .leaflet-control-layers-toggle { width: var(--ui-touch-target); height: var(--ui-touch-target); }
+  .map-search-list .map-search-result,
+  .filter-sheet :is(.legend-item, .status-chip) { min-block-size: var(--ui-touch-target); box-sizing: border-box; }
+  .filter-sheet :is(.legend-item, .status-chip) { font-size: var(--ui-text-sm); }
+}
+
 /* Filter panel sections */
 .panel-tabs {
   display: flex;
@@ -1543,10 +1619,10 @@ nav {
   color: var(--muted);
   font-size: var(--ui-text-sm);
 }
-body.signin-only nav,
+body.signin-only .app-nav,
 body.signin-only #pwa-offline-banner,
 body.signin-only #pwa-update-banner,
-body.app-booting nav,
+body.app-booting .app-nav,
 body.app-booting #pwa-offline-banner,
 body.app-booting #pwa-update-banner { display: none; }
 body.signin-only #app {
@@ -1687,6 +1763,12 @@ body.signin-only #app {
   text-shadow: 0 0 1px black, 0 0 1px black, 0 0 3px black;
 }
 .leaflet-control-attribution a { color: inherit !important; text-decoration: underline !important; }
+/* Beside the filter panel a long credit wraps rather than running under it.
+   The map spans the window here, and its corner box sizes to the credit, so
+   the width comes from the viewport. */
+@media (min-width: 601px) {
+  .leaflet-container:has(#map-panel) .leaflet-control-attribution { max-width: calc(100vw - 246px - 2rem); text-align: right; }
+}
 .map-credit-toggle {
   display: none;
   width: 1.75rem;
@@ -1863,7 +1945,7 @@ body.signin-only #app {
 .leaflet-popup-content .popup-meta a:hover { color: var(--accent); }
 
 .leaflet-control-layers { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: var(--radius) !important; color: var(--text) !important; padding: 0 !important; }
-.leaflet-control-layers-toggle { width: 36px !important; height: 36px !important; padding: 6px !important; background-size: 24px 24px !important; }
+.leaflet-control-layers-toggle { width: 36px; height: 36px; padding: 6px !important; background-size: 24px 24px !important; }
 .leaflet-control-layers label { color: var(--text); }
 .leaflet-control-layers-separator { border-color: var(--border) !important; }
 .leaflet-control-layers-list { padding: 6px 10px 8px; }
@@ -1912,7 +1994,7 @@ body.signin-only #app {
   #app { padding: var(--ui-space-3) var(--ui-space-5) var(--ui-space-7); }
   .route-grid { grid-template-columns: 1fr; }
   .detail-layout { padding: 0; }
-  nav { gap: var(--ui-space-2); }
+  .app-nav { gap: var(--ui-space-2); }
   .nav-group { gap: var(--ui-space-2); }
   .nav-group + .nav-group { padding-left: var(--ui-space-2); }
   .nav-stat .label { font-size: var(--ui-text-xs); }
@@ -2021,25 +2103,16 @@ body.signin-only #app {
   border-radius: 0 0 var(--ui-radius-sm) var(--ui-radius-sm);
 }
 .auth-menu button.auth-menu-foot:hover { color: var(--text); }
-/* Places/Routes section in the menu, shown only on narrow screens where the
-   nav tabs are hidden (see the matching media query). */
-.auth-menu-nav { display: none; }
 /* Catalog-updates entry: mobile-only counterpart to the desktop Review chip,
    and only when updates are pending (toggled via the [hidden] attribute). */
 .auth-menu button.auth-menu-mobile { display: none; }
 @media (max-width: 600px) {
-  nav .view-tabs { display: none; }
+  .app-nav .view-tabs { display: none; }
   .auth-menu button.auth-menu-mobile:not([hidden]) { display: flex; }
   /* With the tabs gone, drop the empty middle column so the brand stays
      left and the actions stay hard right (otherwise nav-right auto-places
      into the vacated center column). */
-  nav { grid-template-columns: minmax(0, 1fr) auto; }
-  .auth-menu-nav {
-    display: block;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: var(--ui-space-1);
-    padding-bottom: var(--ui-space-1);
-  }
+  .app-nav { grid-template-columns: minmax(0, 1fr) auto; }
 }
 .about-body { text-align: center; padding: var(--ui-space-2) 0 var(--ui-space-1); }
 .about-logo {
@@ -2100,9 +2173,11 @@ body.map-chrome-hidden .map-panel { display: none !important; }
    Animate opacity/transform rather than display:none so the toggle is
    visible. The spacebar (.map-chrome-hidden) above still hard-hides. */
 .map-panel { transform-origin: bottom left; transition: transform var(--ui-duration-base) ease-out, opacity var(--ui-duration-base) ease-out; }
+.map-phone-buttons { transform-origin: top right; transition: transform var(--ui-duration-base) ease-out, opacity var(--ui-duration-base) ease-out; }
 .leaflet-control-zoom { transform-origin: top left; transition: transform var(--ui-duration-base) ease-out, opacity var(--ui-duration-base) ease-out; }
 .map-expand-btn { transition: transform var(--ui-duration-base) ease-out, opacity var(--ui-duration-base) ease-out; }
 body.hide-map-filter .map-panel,
+body.hide-map-filter .map-phone-buttons,
 body.hide-map-zoom .leaflet-control-zoom,
 body.hide-map-expand .map-expand-btn {
   opacity: 0;
@@ -2410,9 +2485,9 @@ body.force-show-map-filter .map-panel {
    browser's toolbar. Settings, Add and the catalog lists fit their content
    up to that height, held at the top edge so the tabs and filter box stay
    put when a tab or a filter result is shorter. */
-.modal:is(:has(#settings-tabs), :has(#add-tabs), :has(#add-body), :has(#cat-rows), :has(#rgn-rows),
-          :has(#cat-list), :has(#cat-mgr-list), :has(#catalog-bulk-list)) { inset-block: 3rem; }
-.modal:is(:has(#settings-tabs), :has(#add-tabs), :has(#cat-list), :has(#cat-mgr-list)) {
+.modal:not(.ui-dialog-fullscreen):is(:has(#settings-tabs), :has(#add-tabs), :has(#add-body), :has(#cat-rows),
+          :has(#rgn-rows), :has(#cat-list), :has(#cat-mgr-list), :has(#catalog-bulk-list)) { inset-block: 3rem; }
+.modal:not(.ui-dialog-fullscreen):is(:has(#settings-tabs), :has(#add-tabs), :has(#cat-list), :has(#cat-mgr-list)) {
   inset-block: 3rem auto;
   --ui-dialog-max-height: calc(100% - 6rem);
 }

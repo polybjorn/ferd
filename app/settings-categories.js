@@ -3,7 +3,7 @@ import { dataLayer } from './offline-queue.js';
 import { eyeIconHtml, isDefaultHidden, setDefaultHidden } from './prefs.js';
 import { refreshPlacesPresentation } from './map-popups.js';
 import { modalErrorHtml, modalHeaderHtml, openConfirmModal } from './select.js';
-import { closeTopModal, openModal, showErrorBox } from './modal.js';
+import { closeTopModal, openFullScreenModal, showErrorBox } from './modal.js';
 
 function slugifyCategory(s) {
   return (s || '').toLowerCase().trim()
@@ -46,7 +46,7 @@ export function openManageCategoriesModal() {
     return { slug, display, original: display, color, originalColor: color, originalOrder: i, count: placeCountBySlug[slug] || 0 };
   });
 
-  openModal(
+  openFullScreenModal(
     modalHeaderHtml('Manage categories') +
     '<h3 class="settings-h" style="margin-top:var(--ui-space-3)">Add</h3>' +
     '<div class="row" style="margin-top:var(--ui-space-1)">' +

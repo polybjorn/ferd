@@ -229,6 +229,12 @@ export function setActiveTab(view) {
     const el = document.getElementById('tab-' + v);
     if (el) el.classList.toggle('active', v === view);
   });
+  ['map', 'places', 'routes', 'history'].forEach(v => {
+    const el = document.getElementById('bar-' + v);
+    if (!el) return;
+    if (v === view) el.setAttribute('aria-current', 'page');
+    else el.removeAttribute('aria-current');
+  });
 }
 
 let _crumbText = '';

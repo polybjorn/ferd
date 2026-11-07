@@ -107,27 +107,6 @@ export function panelInnerHtml() {
     panelTabsHtml();
 }
 
-// A credit too long for the space beside the filter panel would sit on top
-// of its controls, and fitting it there leaves a small phone too little width
-// to wrap "OpenStreetMap", so the panel moves up instead. The credit's length
-// follows the base map and overlays, so this runs whenever it changes.
-export function keepPanelAboveCredit(map) {
-  const container = map.getContainer();
-  const panel = document.getElementById('map-panel');
-  const credit = container.querySelector('.leaflet-control-attribution');
-  const corner = panel.parentElement;
-  const fit = function() {
-    // Offsets, not the panel's rect: hide-map-filter scales it, and the S
-    // key can bring it back with nothing here resizing.
-    const panelRight = corner.getBoundingClientRect().left + panel.offsetLeft + panel.offsetWidth;
-    const box = credit.getBoundingClientRect();
-    corner.style.bottom = box.height && box.left < panelRight ? box.height + 'px' : '';
-  };
-  const observer = new ResizeObserver(fit);
-  [container, credit, panel].forEach(function(el) { observer.observe(el); });
-  map.on('unload', function() { observer.disconnect(); });
-}
-
 // A credit across a phone's map covers more than it needs to. OpenStreetMap's
 // guidelines let it collapse on map interaction or after five seconds, so
 // long as a corner button still finds it. Zooming is left to the pointer
@@ -167,8 +146,11 @@ export function rebuildMapFilterPanel() {
     if (state.currentMap && (placesEnabled() || routesEnabled())) wrappedRouter();
     return;
   }
-  if (!(placesEnabled() || routesEnabled())) { div.style.display = 'none'; return; }
-  div.style.display = '';
+  const buttons = document.getElementById('map-phone-buttons');
+  const on = placesEnabled() || routesEnabled();
+  div.style.display = on ? '' : 'none';
+  if (buttons) buttons.style.display = on ? '' : 'none';
+  if (!on) return;
   div.innerHTML = panelInnerHtml();
   bindFilterPanel();
   refreshFilterPanel();

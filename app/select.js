@@ -4,7 +4,7 @@ import {
 import { dataLayer } from './offline-queue.js';
 import { areaHasGeometry } from './area-geo.js';
 import { syncAreasOnMap } from './areas.js';
-import { closeTopModal, modalStack, openModal, popoverHost } from './modal.js';
+import { closeTopModal, modalStack, openSheetModal, popoverHost } from './modal.js';
 
 // The native option list is OS-rendered and can't take the app's theme, so
 // we keep the real <select> as the trigger and render our own listbox over
@@ -291,7 +291,7 @@ export function openConfirmModal({ title, body, confirmLabel, danger }) {
         (body ? '<div class="modal-desc">' + escapeHtml(body) + '</div>' : '') +
         '<button type="button" class="ui-button ' + (danger ? 'ui-button-danger' : 'ui-button-primary') + '" data-role="ok">' + escapeHtml(confirmLabel || 'Confirm') + '</button>' +
       '</div>';
-    openModal(html, backdrop => {
+    openSheetModal(html, backdrop => {
       backdrop.classList.add('narrow-dialog');
       backdrop.querySelector('[data-role="ok"]').addEventListener('click', () => finish(true));
       // Enter to confirm: only while this confirm is the topmost modal.
