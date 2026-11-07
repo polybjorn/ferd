@@ -33,6 +33,79 @@ export const DATA_FILES = { siteConfig: 'site-config.json' };
  * @property {boolean} [local] set by local mode, never by the server
  */
 
+/**
+ * A place from `/api/places` (docs/api.md, Common shapes).
+ * @typedef {object} Place
+ * @property {string} [id] assigned by the server, absent on a place not yet saved
+ * @property {string} name
+ * @property {number} lat
+ * @property {number} lon
+ * @property {string} [category]
+ * @property {string} [country]
+ * @property {string} [country_code] set by the server from `country`
+ * @property {boolean} [visited]
+ * @property {string} [note]
+ * @property {string[]} [sources]
+ * @property {string} [image]
+ * @property {string} [image_focus]
+ * @property {string} [local_name]
+ * @property {string[]} [tags]
+ * @property {string} [date_visited] YYYY-MM-DD
+ * @property {number} [rating] 1-5
+ * @property {string} [from_catalog]
+ * @property {Object<string, any>} [catalog_skip]
+ * @property {string} [_slug] set by assignPlaceSlugs, never by the server
+ */
+
+/**
+ * An area from `/api/areas` (docs/api.md, Common shapes).
+ * @typedef {object} Area
+ * @property {string} [id]
+ * @property {string} name
+ * @property {{ type: 'Polygon' | 'MultiPolygon', coordinates: any[] }} geometry
+ * @property {string} [category]
+ * @property {boolean} [visited]
+ * @property {string} [note]
+ * @property {string} [local_name]
+ * @property {string} [source] 'osm' for an OpenStreetMap boundary
+ */
+
+/**
+ * One route in the `/api/routes` manifest, as scripts/gpx-manifest.sh writes
+ * it, with the metadata.json fields merged in.
+ * @typedef {object} ManifestRoute
+ * @property {string} key `Region/Route`, or `Route` with no region
+ * @property {string} file the walked GPX, or the planned one when not completed
+ * @property {string} name
+ * @property {boolean} hasElevation
+ * @property {boolean} completed
+ * @property {number[]} [bbox] [minLat, minLon, maxLat, maxLon]
+ * @property {string} [plannedFile]
+ * @property {number} [trackCount] only when the GPX holds more than one track
+ * @property {string[]} [trackNames] beside trackCount
+ * @property {string} [source]
+ * @property {string} [date_completed] YYYY-MM-DD
+ * @property {number} [rating] 1-5
+ * @property {string} [notes]
+ * @property {string[]} [tags]
+ * @property {'easy' | 'moderate' | 'hard' | 'expert'} [difficulty]
+ * @property {string} [local_name]
+ * @property {string} [_slug] set by assignTrailSlugs, never by the server
+ */
+
+/**
+ * @typedef {object} ManifestRegion
+ * @property {string} name empty for routes with no region
+ * @property {ManifestRoute[]} routes
+ * @property {string} [_slug] set by assignTrailSlugs
+ */
+
+/**
+ * The `/api/routes` response.
+ * @typedef {object} Manifest
+ * @property {ManifestRegion[]} regions
+ */
+
 export const state = {
   config: DEFAULT_CONFIG,
   /** @type {AuthState} */
@@ -46,8 +119,11 @@ export const state = {
   // load. Keyed by overlay name, with no entry meaning off.
   overlayLevels: new Map(),
   // data
+  /** @type {Place[] | null} */
   places: null,
+  /** @type {Area[] | null} */
   areas: null,
+  /** @type {Manifest | null} */
   manifest: null,
   categoryColors: {},
   categoryColorsLight: {},
