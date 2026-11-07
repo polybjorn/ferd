@@ -808,59 +808,6 @@
 1	app/settings/regions.js	TS7031	Binding element 'region' implicitly has an 'any' type.
 1	app/settings/regions.js	TS7031	Binding element 'regions' implicitly has an 'any' type.
 1	app/settings/regions.js	TS7034	Variable 'renames' implicitly has type 'any[]' in some locations where its type cannot be determined.
-1	app/settings/settings.js	TS2339	Property '_catalogCache' does not exist on type '{...}'.
-1	app/settings/settings.js	TS2339	Property 'expires_in_days' does not exist on type '{...}'.
-5	app/settings/settings.js	TS2339	Property 'tilePickerCtrl' does not exist on type '{...}'.
-1	app/settings/settings.js	TS2339	Property 'tilePickerLayers' does not exist on type '{...}'.
-1	app/settings/settings.js	TS7006	Parameter 'blob' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7006	Parameter 'body' implicitly has an 'any' type.
-4	app/settings/settings.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7006	Parameter 'err' implicitly has an 'any' type.
-3	app/settings/settings.js	TS7006	Parameter 'feat' implicitly has an 'any' type.
-2	app/settings/settings.js	TS7006	Parameter 'file' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7006	Parameter 'fname' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7006	Parameter 'group' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7006	Parameter 'id' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7006	Parameter 'initial' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7006	Parameter 'isOn' implicitly has an 'any' type.
-3	app/settings/settings.js	TS7006	Parameter 'key' implicitly has an 'any' type.
-2	app/settings/settings.js	TS7006	Parameter 'label' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7006	Parameter 'mimeType' implicitly has an 'any' type.
-2	app/settings/settings.js	TS7006	Parameter 'mode' implicitly has an 'any' type.
-3	app/settings/settings.js	TS7006	Parameter 'n' implicitly has an 'any' type.
-3	app/settings/settings.js	TS7006	Parameter 'name' implicitly has an 'any' type.
-8	app/settings/settings.js	TS7006	Parameter 'on' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7006	Parameter 'res' implicitly has an 'any' type.
-5	app/settings/settings.js	TS7006	Parameter 'set' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7006	Parameter 'ua' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7006	Parameter 'unixSec' implicitly has an 'any' type.
-8	app/settings/settings.js	TS7006	Parameter 'v' implicitly has an 'any' type.
-4	app/settings/settings.js	TS7006	Parameter 'wanted' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7011	Function expression, which lacks return-type annotation, implicitly has an 'any' return type.
-4	app/settings/settings.js	TS7031	Binding element 'env' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'field' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'hint' implicitly has an 'any' type.
-3	app/settings/settings.js	TS7031	Binding element 'id' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'ids' implicitly has an 'any' type.
-2	app/settings/settings.js	TS7031	Binding element 'initial' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'l' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'label' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'modeName' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'modes' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'onChanged' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'onCreated' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'onOpen' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'onPasswordChanged' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'onPick' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'onToggle' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'options' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'replaceBody' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'run' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'sessionsVersion' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'tabs' implicitly has an 'any' type.
-1	app/settings/settings.js	TS7031	Binding element 'v' implicitly has an 'any' type.
-6	app/settings/settings.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-3	app/settings/settings.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/sign-in.js	TS2339	Property 'setup_token' does not exist on type '{...}'.
 1	app/sign-in.js	TS2339	Property 'token' does not exist on type '{...}'.
 1	app/sign-in.js	TS7006	Parameter 'includeClose' implicitly has an 'any' type.

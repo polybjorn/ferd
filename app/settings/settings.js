@@ -35,6 +35,7 @@ import {
 } from '../view.js';
 import { wrappedRouter } from '../pick-coords.js';
 
+/** @param {string | null | undefined} ua */
 export function deviceLabel(ua) {
   if (!ua) return t('device.unknown');
   const s = ua.toLowerCase();
@@ -47,6 +48,7 @@ export function deviceLabel(ua) {
   if (s.startsWith('curl/')) return 'curl';
   return ua.slice(0, 32) + (ua.length > 32 ? '…' : '');
 }
+/** @param {number} unixSec */
 export function timeAgo(unixSec) {
   const d = Math.max(0, Math.floor(Date.now() / 1000) - unixSec);
   if (d < 60) return t('time.seconds', { n: d });
@@ -57,6 +59,7 @@ export function timeAgo(unixSec) {
   return dt.toISOString().slice(0, 10);
 }
 
+/** @type {Record<string, { path: string, fallbackName: string, mimeType: string, desc: string }>} */
 const EXPORT_FORMATS = {
   zip: {
     path: '/me/export',
@@ -74,18 +77,22 @@ const EXPORT_FORMATS = {
 
 // Settings, Account and Admin are separate menu items, each showing only its
 // own tabs.
+/** @type {Record<string, string[]>} */
 const SETTINGS_GROUPS = {
   settings: ['general', 'appearance', 'backup'],
   account: ['account', 'security'],
   admin: ['admin'],
 };
+/** @type {Record<string, string>} */
 const SETTINGS_TAB_LABELS = {
   general: 'settings.tab.general', appearance: 'settings.tab.appearance', backup: 'settings.tab.backup',
   account: 'settings.tab.account', security: 'settings.tab.security', admin: 'settings.tab.admin',
 };
+/** @type {Record<string, string>} */
 const MODE_LABELS = {
   dark: 'settings.appearance.modeDark', light: 'settings.appearance.modeLight', system: 'settings.appearance.modeSystem',
 };
+/** @type {Record<string, string>} */
 const THEME_LABELS = {
   nord: 'Nord',
   solarized: 'Solarized',
@@ -96,11 +103,13 @@ const THEME_LABELS = {
   dracula: 'Dracula',
 };
 
+/** @param {string} [group] */
 export function openSettingsModal(group) {
   const isAdmin = !!state.auth.is_admin;
   const local = !hasServer();
   // Backup is the only durable copy without a server; Account and Security
   // need a server account.
+  /** @type {Record<string, boolean>} */
   const offered = { backup: local, account: !local, security: !local, admin: isAdmin };
   const tabs = SETTINGS_GROUPS[group || 'settings'].filter(name => offered[name] !== false);
   // Read once, as the dialog opens: a toggle inside it changes some of these,
@@ -117,6 +126,18 @@ export function openSettingsModal(group) {
   openViewModal(html`<${SettingsView} tabs=${tabs} env=${env} />`, { phone: 'fullscreen' });
 }
 
+/**
+ * @typedef {object} SettingsEnv
+ * @property {boolean} readOnly
+ * @property {boolean} placesAvailable
+ * @property {boolean} routesAvailable
+ * @property {boolean} placesEnabled
+ * @property {boolean} routesEnabled
+ * @property {boolean} logsAvailable
+ * @property {boolean} sharing
+ */
+
+/** @param {{ tabs: string[], env: SettingsEnv }} props */
 function SettingsView({ tabs, env }) {
   const [tab, setTab] = useState(tabs[0]);
   // The password form is on Account and the session list on Security.
@@ -125,6 +146,7 @@ function SettingsView({ tabs, env }) {
   const lead = tabs.length > 1 && html`<div class="modal-tabs" id="settings-tabs">
     ${tabs.map(name => html`<button key=${name} data-tab=${name} class=${name === tab ? 'active' : undefined} onClick=${() => setTab(name)}>${t(SETTINGS_TAB_LABELS[name])}</button>`)}
   </div>`;
+  /** @type {(name: string, body: any) => any} */
   const panel = (name, body) => tabs.includes(name) &&
     html`<div data-panel=${name} hidden=${name !== tab}>${body}</div>`;
   return html`
@@ -133,14 +155,16 @@ function SettingsView({ tabs, env }) {
       ${panel('general', html`<${GeneralPanel} env=${env} />`)}
       ${panel('backup', html`<${BackupPanel} />`)}
       ${panel('appearance', html`<${AppearancePanel} env=${env} />`)}
-      ${panel('account', html`<${AccountPanel} env=${env} onPasswordChanged=${() => setSessionsVersion(n => n + 1)} />`)}
+      ${panel('account', html`<${AccountPanel} env=${env} onPasswordChanged=${() => setSessionsVersion((/** @type {number} */ n) => n + 1)} />`)}
       ${panel('security', html`<${SecurityPanel} sessionsVersion=${sessionsVersion} />`)}
       ${panel('admin', html`<${AdminPanel} />`)}
     </div>`;
 }
 
+/** @param {{ id?: string, field?: string, label: string, initial: boolean, onToggle: (on: boolean) => void }} props */
 function FeaturePill({ id, field, label, initial, onToggle }) {
   const [on, setOn] = useState(!!initial);
+  /** @param {any} e */
   const change = e => {
     setOn(e.currentTarget.checked);
     onToggle(e.currentTarget.checked);
@@ -148,12 +172,14 @@ function FeaturePill({ id, field, label, initial, onToggle }) {
   return html`<label class=${'feature-pill' + (on ? ' active' : '')}><input type="checkbox" id=${id} data-field=${field} checked=${on} onChange=${change} />${label}</label>`;
 }
 
+/** @param {{ id: string, options: string[][], initial: string, onPick: (v: string) => void }} props */
 function Select({ id, options, initial, onPick }) {
-  return html`<select id=${id} onChange=${e => onPick(e.currentTarget.value)}>
+  return html`<select id=${id} onChange=${(/** @type {any} */ e) => onPick(e.currentTarget.value)}>
     ${options.map(([v, l]) => html`<option key=${v} value=${v} selected=${v === initial}>${l}</option>`)}
   </select>`;
 }
 
+/** @param {{ id: string, hint: string, onOpen: () => void }} props */
 function ManageRow({ id, hint, onOpen }) {
   return html`<div class="ui-control-row">
     <p class="ui-hint">${hint}</p>
@@ -164,6 +190,10 @@ function ManageRow({ id, hint, onOpen }) {
 // Places and Routes. Layer groups are pre-built, so visibility applies in
 // place instead of tearing down the map, which would blink while Settings is
 // open. The filter panel is rebuilt so its tab row drops or adds the feature.
+/**
+ * @param {string} feat
+ * @param {boolean} on
+ */
 function setMainFeature(feat, on) {
   setFeatureHidden(feat, !on);
   refreshTabVisibility();
@@ -174,6 +204,10 @@ function setMainFeature(feat, on) {
 }
 
 // Menu items and the Add modal's Browse tab, none of which touch the map.
+/**
+ * @param {string} feat
+ * @param {boolean} on
+ */
 function setSecondaryFeature(feat, on) {
   setFeatureVisible(feat, on);
   renderAuthWidget();
@@ -188,6 +222,10 @@ function setSecondaryFeature(feat, on) {
 // detail page. The lists are redrawn so the change shows under Settings; the
 // home map is not, since only its popups change and refreshOpenPlacePopup
 // catches an open one.
+/**
+ * @param {string} key
+ * @param {boolean} on
+ */
 function setOptionalField(key, on) {
   setPref('show-' + key, on ? 'true' : 'false');
   const hash = location.hash || '#/';
@@ -201,8 +239,10 @@ const OPTIONAL_FIELDS = [
   ['rating', 'settings.general.fieldRating'], ['tags', 'settings.general.fieldTags'],
 ];
 
+/** @param {{ env: SettingsEnv }} props */
 function GeneralPanel({ env }) {
-  const pill = (feat, label, set, isOn) => html`<${FeaturePill} id=${'s-feat-' + feat} label=${label} initial=${isOn} onToggle=${on => set(feat, on)} />`;
+  /** @type {(feat: string, label: string, set: (feat: string, on: boolean) => void, isOn: boolean) => any} */
+  const pill = (feat, label, set, isOn) => html`<${FeaturePill} id=${'s-feat-' + feat} label=${label} initial=${isOn} onToggle=${(/** @type {boolean} */ on) => set(feat, on)} />`;
   const pe = env.placesEnabled, re = env.routesEnabled;
   return html`
     ${(env.placesAvailable || env.routesAvailable) && html`
@@ -222,10 +262,10 @@ function GeneralPanel({ env }) {
     ${!env.readOnly && html`
       <h3 class="settings-h">${t('settings.general.optionalFields')}</h3>
       <div class="feature-pills optional-fields">
-        ${OPTIONAL_FIELDS.map(([key, label]) => html`<${FeaturePill} key=${key} field=${key} label=${t(label)} initial=${getShowField(key)} onToggle=${on => setOptionalField(key, on)} />`)}
+        ${OPTIONAL_FIELDS.map(([key, label]) => html`<${FeaturePill} key=${key} field=${key} label=${t(label)} initial=${getShowField(key)} onToggle=${(/** @type {boolean} */ on) => setOptionalField(key, on)} />`)}
       </div>`}
     <h3 class="settings-h">${t('settings.general.units')}</h3>
-    <${RadioPills} name="units" options=${[['imperial', t('settings.general.imperial')], ['metric', t('settings.general.metric')]]} initial=${getUnits()} variant="radio-segmented" onPick=${v => setPref('units', v)} />
+    <${RadioPills} name="units" options=${[['imperial', t('settings.general.imperial')], ['metric', t('settings.general.metric')]]} initial=${getUnits()} variant="radio-segmented" onPick=${(/** @type {string} */ v) => setPref('units', v)} />
     <h3 class="settings-h">${t('settings.general.language')}</h3>
     <div class="ui-field"><select id="s-language" aria-label=${t('settings.general.language')} disabled><option value="en" selected>${t('settings.general.english')}</option></select></div>
     ${env.placesAvailable && !env.readOnly && html`
@@ -238,7 +278,13 @@ function GeneralPanel({ env }) {
 
 // The on/off preferences on Appearance, and what each changes right away.
 // Only the default tile layer needs the map rebuilt, which blinks it.
+/**
+ * @param {string} key
+ * @param {boolean} on
+ */
 function setSwitchPref(key, on) {
+  // Map-layers.js owns these two fields and adds them at runtime.
+  const st = /** @type {any} */ (state);
   setPref(key, on ? 'true' : 'false');
   if (key === 'remember-view') {
     // Read on the next navigation only.
@@ -252,14 +298,14 @@ function setSwitchPref(key, on) {
     return;
   }
   if (key === 'tile-picker') {
-    if (state.currentMap && state.tilePickerLayers) {
-      if (on && !state.tilePickerCtrl) {
+    if (state.currentMap && st.tilePickerLayers) {
+      if (on && !st.tilePickerCtrl) {
         const ctrl = addTilePicker(state.currentMap);
-        state.tilePickerCtrl = ctrl;
+        st.tilePickerCtrl = ctrl;
         playEnter(ctrl.getContainer(), 'tile-pick-enter');
-      } else if (!on && state.tilePickerCtrl) {
-        const ctrl = state.tilePickerCtrl;
-        state.tilePickerCtrl = null;
+      } else if (!on && st.tilePickerCtrl) {
+        const ctrl = st.tilePickerCtrl;
+        st.tilePickerCtrl = null;
         playLeave(ctrl.getContainer(), 'tile-pick-leave', () => state.currentMap.removeControl(ctrl));
       }
     }
@@ -278,53 +324,55 @@ const DEFAULT_SHOW = [
   ['s-def-planned', 'planned', 'showPlanned', 'settings.appearance.planned'],
 ];
 
+/** @param {{ env: SettingsEnv }} props */
 function AppearancePanel({ env }) {
   const theme = getStoredTheme();
   const mode = getStoredMode();
+  /** @type {(id: string, key: string, label: string, initial: boolean) => any} */
   const switchToggle = (id, key, label, initial) =>
-    html`<${Toggle} id=${id} label=${label} initial=${initial} onToggle=${on => setSwitchPref(key, on)} />`;
+    html`<${Toggle} id=${id} label=${label} initial=${initial} onToggle=${(/** @type {boolean} */ on) => setSwitchPref(key, on)} />`;
   return html`
     <div class="ui-field-row">
       <${Field} id="s-theme" label=${t('settings.appearance.theme')}>
         <${Select} id="s-theme" options=${THEMES.map(v => [v, THEME_LABELS[v] || v])} initial=${theme}
-          onPick=${v => { setPref('theme', v); applyTheme(v, getStoredMode()); }} />
+          onPick=${(/** @type {string} */ v) => { setPref('theme', v); applyTheme(v, getStoredMode()); }} />
       <//>
       <${Field} id="s-mode" label=${t('settings.appearance.mode')}>
         <${Select} id="s-mode" options=${MODES.map(v => [v, t(MODE_LABELS[v])])} initial=${mode}
-          onPick=${v => { setPref('mode', v); applyTheme(getStoredTheme(), v); }} />
+          onPick=${(/** @type {string} */ v) => { setPref('mode', v); applyTheme(getStoredTheme(), v); }} />
       <//>
     </div>
     <h3 class="settings-h">${t('settings.appearance.markers')}</h3>
     <div class="ui-section">
       <${Field} id="s-pin-style" label=${t('settings.appearance.pinStyle')}>
         <${Select} id="s-pin-style" options=${[['dot', t('settings.appearance.pinDot')], ['tag', t('settings.appearance.pinFlag')], ['pin', t('settings.appearance.pinPin')], ['ring', t('settings.appearance.pinRing')]]} initial=${getPinStyle()}
-          onPick=${v => { setPref('pin-style', v); refreshPlaceMarkerIcons(); }} />
+          onPick=${(/** @type {string} */ v) => { setPref('pin-style', v); refreshPlaceMarkerIcons(); }} />
       <//>
       <${Field} label=${t('settings.appearance.markerSize')}>
         <${RadioPills} name="marker-size" options=${[['small', t('settings.appearance.small')], ['default', t('settings.appearance.default')], ['large', t('settings.appearance.large')]]} initial=${getMarkerSizeKey()} variant="radio-segmented"
-          onPick=${v => { setPref('marker-size', v); refreshPlaceMarkerIcons(); }} />
+          onPick=${(/** @type {string} */ v) => { setPref('marker-size', v); refreshPlaceMarkerIcons(); }} />
       <//>
       <${Field} label=${t('settings.appearance.routeWeight')}>
         <${RadioPills} name="route-weight" options=${[['thin', t('settings.appearance.thin')], ['default', t('settings.appearance.default')], ['thick', t('settings.appearance.thick')]]} initial=${getTrailWeightKey()} variant="radio-segmented"
-          onPick=${v => { setPref('route-weight', v); refreshTrailWeights(); }} />
+          onPick=${(/** @type {string} */ v) => { setPref('route-weight', v); refreshTrailWeights(); }} />
       <//>
       ${env.placesAvailable && switchToggle('s-cluster', 'cluster-places', t('settings.appearance.cluster'), getClusterPlaces())}
     </div>
     <h3 class="settings-h">${t('settings.appearance.defaultVisibility')}</h3>
     <div class="toggle-grid">
       ${DEFAULT_SHOW.map(([id, status, stateKey, label]) => html`<${Toggle} key=${id} id=${id} label=${t(label)} initial=${getDefaultShow(status)}
-        onToggle=${on => { setPref('default-show-' + status, on ? 'true' : 'false'); state[stateKey] = on; }} />`)}
+        onToggle=${(/** @type {boolean} */ on) => { setPref('default-show-' + status, on ? 'true' : 'false'); /** @type {any} */ (state)[stateKey] = on; }} />`)}
     </div>
     <h3 class="settings-h">${t('settings.appearance.map')}</h3>
     <div class="ui-section">
       <div class="ui-field-row">
         <${Field} id="s-tile" label=${t('settings.appearance.tileLayer')}>
           <${Select} id="s-tile" options=${BASE_LAYER_NAMES.map(n => [n, n])} initial=${getDefaultTileLayer()}
-            onPick=${v => { setPref('tile-layer', v); wrappedRouter(); }} />
+            onPick=${(/** @type {string} */ v) => { setPref('tile-layer', v); wrappedRouter(); }} />
         <//>
         <${Field} id="s-tile-filter" label=${t('settings.appearance.tileStyle')}>
           <${Select} id="s-tile-filter" options=${[['none', t('settings.appearance.tileNone')], ['contrast', t('settings.appearance.tileContrast')], ['grayscale', t('settings.appearance.tileGrayscale')], ['muted', t('settings.appearance.tileMuted')], ['sepia', t('settings.appearance.tileSepia')]]} initial=${getTileFilter()}
-            onPick=${v => { setPref('tile-filter', v); applyTileFilter(v); }} />
+            onPick=${(/** @type {string} */ v) => { setPref('tile-filter', v); applyTileFilter(v); }} />
         <//>
       </div>
       ${switchToggle('s-remember-view', 'remember-view', t('settings.appearance.rememberView'), getRememberView())}
@@ -340,6 +388,21 @@ function AppearancePanel({ env }) {
 
 // A zip import. `run` resolves to the message to show and whether the page is
 // about to reload, in which case the button stays busy.
+/**
+ * @typedef {object} ImportResult
+ * @property {string} message
+ * @property {boolean} [reloading]
+ */
+
+/**
+ * @param {{
+ *   ids: Record<string, string>,
+ *   modeName: string,
+ *   modes: string[][],
+ *   replaceBody: string,
+ *   run: (file: File, mode: string) => Promise<ImportResult>,
+ * }} props
+ */
 function ImportSection({ ids, modeName, modes, replaceBody, run }) {
   const fileRef = useRef(null);
   const [fileName, setFileName] = useState('');
@@ -392,6 +455,11 @@ function ImportSection({ ids, modeName, modes, replaceBody, run }) {
 // Hands a downloaded file to the user. The Android shell's WebView drops
 // blob and anchor downloads, so there the bytes go to native, which opens the
 // system "Save to..." picker.
+/**
+ * @param {Blob} blob
+ * @param {string} fname
+ * @param {string} mimeType
+ */
 export async function saveDownload(blob, fname, mimeType) {
   if (window.FerdAndroid && typeof window.FerdAndroid.exportFile === 'function') {
     await new Promise((resolve, reject) => {
@@ -432,6 +500,10 @@ function BackupPanel() {
     }).catch(e => setError(t('backup.exportFailed', { message: e.message })))
       .finally(() => setBusy(false));
   };
+  /**
+   * @param {File} file
+   * @param {string} mode
+   */
   const runImport = (file, mode) => localBackup.importZip(file, mode).then(res => {
     setTimeout(() => location.reload(), 900);
     return {
@@ -459,6 +531,10 @@ function BackupPanel() {
 function PublicSharing() {
   const [linkOpen, setLinkOpen] = useState(!!state.auth.published);
   const urlRef = useRef(null);
+  /**
+   * @param {boolean} wanted
+   * @param {(on: boolean) => void} set
+   */
   const toggle = (wanted, set) => {
     api('POST', '/me/publish', { published: wanted })
       .then(() => { setLinkOpen(wanted); return refreshAuthState(); })
@@ -513,13 +589,18 @@ function ExportSection() {
     </div>`;
 }
 
+/**
+ * @param {File} file
+ * @param {string} mode
+ * @returns {Promise<ImportResult>}
+ */
 function runServerImport(file, mode) {
   return fetch(apiUrl('/me/import?mode=' + mode), applyAuth({
     method: 'POST',
     headers: { 'Content-Type': 'application/zip' },
     body: file,
   })).then(async r => {
-    const data = await r.json().catch(() => null);
+    const data = await r.json().catch(/** @returns {null} */ () => null);
     if (!r.ok) throw new Error((data && data.error) || ('HTTP ' + r.status));
     const c = data.imported || {};
     const parts = [];
@@ -531,13 +612,14 @@ function runServerImport(file, mode) {
   });
 }
 
+/** @param {{ onChanged: () => void }} props */
 function PasswordForm({ onChanged }) {
   const current = useRef(null);
   const next = useRef(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState('');
-  const submit = e => {
+  const submit = (/** @type {any} */ e) => {
     e.preventDefault();
     setBusy(true);
     api('POST', '/change-password', { current_password: current.current.value, new_password: next.current.value })
@@ -571,6 +653,7 @@ function PasswordForm({ onChanged }) {
   </form>`;
 }
 
+/** @param {{ env: SettingsEnv, onPasswordChanged: () => void }} props */
 function AccountPanel({ env, onPasswordChanged }) {
   return html`
     ${env.sharing && html`<${PublicSharing} />`}
@@ -585,6 +668,7 @@ function AccountPanel({ env, onPasswordChanged }) {
     <${PasswordForm} onChanged=${onPasswordChanged} />`;
 }
 
+/** @param {{ onCreated: () => void }} props */
 function TokenForm({ onCreated }) {
   const nameRef = useRef(null);
   const valueRef = useRef(null);
@@ -593,8 +677,9 @@ function TokenForm({ onCreated }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [token, setToken] = useState('');
-  const submit = e => {
+  const submit = (/** @type {any} */ e) => {
     e.preventDefault();
+    /** @type {{ name: string, scope: string, expires_in_days?: number }} */
     const body = { name: nameRef.current.value.trim(), scope };
     if (expiry) body.expires_in_days = parseInt(expiry, 10);
     setBusy(true);
@@ -635,12 +720,13 @@ function TokenForm({ onCreated }) {
   </form>`;
 }
 
+/** @param {{ sessionsVersion: number }} props */
 function SecurityPanel({ sessionsVersion }) {
   const [tokensVersion, setTokensVersion] = useState(0);
   return html`
     <${Sessions} version=${sessionsVersion} />
     <h3 class="settings-h">${t('security.apiTokens')}</h3>
-    <${TokenForm} onCreated=${() => setTokensVersion(n => n + 1)} />
+    <${TokenForm} onCreated=${() => setTokensVersion(/** @type {number} */ (/** @type {number} */ n) => n + 1)} />
     <h3 class="settings-h">${t('security.yourTokens')}</h3>
     <${Tokens} version=${tokensVersion} />`;
 }
@@ -648,12 +734,20 @@ function SecurityPanel({ sessionsVersion }) {
 function AdminPanel() {
   // Bumped after a change that the user list and the stats both count.
   const [version, setVersion] = useState(0);
-  const changed = () => setVersion(n => n + 1);
+  const changed = () => setVersion(/** @type {number} */ (/** @type {number} */ n) => n + 1);
+  /**
+   * @param {boolean} wanted
+   * @param {(on: boolean) => void} set
+   */
   const setRegistration = (wanted, set) => {
     api('POST', '/settings/registration', { mode: wanted ? 'open' : 'closed' })
       .then(() => refreshAuthState())
       .catch(err => { alert(t('common.failed', { message: err.message })); set(!wanted); });
   };
+  /**
+   * @param {boolean} wanted
+   * @param {(on: boolean) => void} set
+   */
   const setPublishing = (wanted, set) => {
     const apply = () => api('POST', '/admin/settings/publishing', { mode: wanted ? 'open' : 'closed' })
       .then(() => refreshAuthState())
@@ -674,9 +768,13 @@ function AdminPanel() {
       });
     });
   };
+  /**
+   * @param {boolean} wanted
+   * @param {(on: boolean) => void} set
+   */
   const setBaseline = (wanted, set) => {
     api('POST', '/admin/settings/catalog-baseline', { mode: wanted ? 'open' : 'closed' })
-      .then(() => { state.auth.catalog_baseline_open = wanted; state._catalogCache = null; renderAdminCatalog(); reloadCatalogCache(); })
+      .then(() => { state.auth.catalog_baseline_open = wanted; /** @type {any} */ (state)._catalogCache = null; renderAdminCatalog(); reloadCatalogCache(); })
       .catch(err => { alert(t('common.failed', { message: err.message })); set(!wanted); });
   };
   return html`
