@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+import sys
 from http import HTTPStatus
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -10,7 +11,7 @@ from urllib.parse import parse_qs, urlparse
 from .. import store
 from ..common import BodyTooLarge, ConflictError, NotFoundError, ValidationError, atomic_write_bytes, nfc_component, nfc_route_key, resolve_under, safe_path_component, with_file_lock
 from ..manifest import regenerate_manifest
-from ..gpx import GPX_MAX_BYTES, apply_gpx_move, parse_gpx_move, plan_gpx_move, strip_gpx_pii, validate_gpx
+from ..gpx import GPX_MAX_BYTES, apply_gpx_move, parse_gpx_move, plan_gpx_move, prune_route_metadata, strip_gpx_pii, validate_gpx
 from ..routes import validate_route_metadata
 
 
@@ -61,6 +62,14 @@ class RoutesMixin:
             region_dir.rmdir()
         except OSError:
           pass
+      # Every route without a file, not only this one, so entries an older
+      # version left behind go too. The files are gone either way; a failure
+      # here leaves the entries for the next delete.
+      if removed:
+        try:
+          prune_route_metadata(self.conn, user["id"], gpx_root)
+        except sqlite3.Error as e:
+          print(f"[api] route metadata not pruned: {e}", file=sys.stderr)
 
     try:
       with_file_lock(lock_path, do_delete)

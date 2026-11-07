@@ -50,7 +50,7 @@ All paths read and write the signed-in user's own folder (`users/<self>/`).
 | `PUT` | `/metadata` | `{key, metadata}` | Upsert one entry; empty `metadata` deletes the key. See [Common shapes](#common-shapes) for fields. |
 | `GET` | `/gpx/<region>/<file>.gpx` | - | Raw GPX. `region` is optional: `/gpx/<file>.gpx` serves a root-level (no region) file. |
 | `POST` | `/gpx?name=<n>&region=<r>&strip_pii=<bool>` | raw GPX XML | Upload. `region` optional. Names are stored in composed Unicode (NFC), as are new names given to a move, a region rename, a metadata key and the routes of an imported zip. `strip_pii=true` removes timestamps, author, creator. Triggers manifest regen. |
-| `DELETE` | `/gpx` | `{name, region?}` | Delete a route (and its `.planned.gpx` sibling if present). Prunes empty region dir. Triggers manifest regen. |
+| `DELETE` | `/gpx` | `{name, region?}` | Delete a route (and its `.planned.gpx` sibling if present). Prunes empty region dir and the metadata of every route with no GPX file left. Triggers manifest regen. |
 | `POST` | `/gpx/move` | `{key, new_region, new_name?}` | Move/rename a route. `new_region: ""` moves to root. Re-keys the route's metadata. `409` on target conflict. |
 | `POST` | `/gpx/set-completed` | `{key, completed}` | Flip between `.gpx` and `.planned.gpx` by renaming. No-op if already in that state. `409` if the rename would collide with the existing sibling. |
 | `POST` | `/regions/rename` | `{from, to}` | Rename a region directory and re-key matching route metadata. |

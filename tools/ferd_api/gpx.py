@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import os
 import sqlite3
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from . import store
-from .common import ConflictError, NotFoundError, ValidationError, nfc_component, resolve_under, safe_path_component
+from .common import ConflictError, NotFoundError, ValidationError, nfc_component, nfc_route_key, resolve_under, safe_path_component
 from .routes import ROUTE_META_FIELDS
 from .users import _walk_follow_symlinks
 
@@ -91,6 +92,36 @@ def apply_gpx_move(conn: sqlite3.Connection, uid: int, req: dict, pairs: list) -
     except OSError:
       pass
   return moved
+
+
+def _route_gone(gpx_root: Path, key: str) -> bool:
+  """Whether the route `key` has no GPX file left. Only a missing region dir,
+  or a readable one without either file, counts: an unreadable or dangling one
+  says nothing, and a wrong yes deletes notes nothing else holds."""
+  region, _, name = key.rpartition("/")
+  try:
+    folder = resolve_under(gpx_root, *region.split("/")) if region else gpx_root
+  except ValidationError:
+    return False
+  # resolve_under follows links, so ask about the link itself.
+  if not os.path.lexists(gpx_root.joinpath(*region.split("/")) if region else gpx_root):
+    return True
+  try:
+    names = {nfc_route_key(n) for n in os.listdir(folder)}
+  except OSError:
+    return False
+  return not {nfc_route_key(name + ".gpx"), nfc_route_key(name + ".planned.gpx")} & names
+
+
+def prune_route_metadata(conn: sqlite3.Connection, uid: int, gpx_root: Path) -> int:
+  """Tombstone the metadata of every route with no GPX file left, so a route
+  uploaded later under the same name starts blank. Caller holds the .gpx.lock.
+  Returns entries removed."""
+  if not gpx_root.is_dir():
+    return 0
+  with store.transaction(conn):
+    gone = [k for k in store.get_map(conn, uid, "metadata") if _route_gone(gpx_root, k)]
+    return sum(store.delete_item(conn, uid, "metadata", k) is not None for k in gone)
 
 
 # Real GPX stops around eight levels (gpx/trk/trkseg/trkpt/extensions/...).

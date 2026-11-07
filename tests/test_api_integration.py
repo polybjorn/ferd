@@ -819,6 +819,63 @@ class TestGpx(unittest.TestCase):
     self.assertFalse((admin_dir() / "gpx" / "loose-route.gpx").exists())
 
 
+class TestGpxDeleteMetadata(unittest.TestCase):
+  """A deleted route takes its metadata with it, so a later upload under the
+  same name starts blank."""
+
+  def setUp(self):
+    self.c = admin_client()
+    reset_kind("metadata")
+
+  def _upload(self, region, name):
+    status, _ = self.c.request("POST", f"/api/gpx?region={region}&name={name}",
+                               raw_body=GPX_BODY, content_type="application/gpx+xml")
+    self.assertEqual(status, 201)
+
+  def _delete(self, region, name):
+    status, _ = self.c.request("DELETE", "/api/gpx", {"region": region, "name": name})
+    self.assertEqual(status, 200)
+
+  def test_delete_drops_metadata_and_a_new_upload_starts_blank(self):
+    self._upload("MetaDel", "gone")
+    self.c.request("PUT", "/api/metadata", {"key": "MetaDel/gone", "metadata": {"notes": "old", "rating": 4}})
+    self._delete("MetaDel", "gone")
+    self.assertNotIn("MetaDel/gone", stored("metadata"))
+    self._upload("MetaDel", "gone")
+    self.assertNotIn("MetaDel/gone", stored("metadata"))
+    self._delete("MetaDel", "gone")
+
+  def test_delete_prunes_older_orphans_and_keeps_live_routes(self):
+    self._upload("MetaDel", "kept")
+    planned = admin_dir() / "gpx" / "MetaDel" / "plan.planned.gpx"
+    planned.write_bytes(GPX_BODY)
+    self._upload("MetaDel", "other")
+    reset_kind("metadata", {
+      "MetaDel/kept": {"notes": "walked"},
+      "MetaDel/plan": {"notes": "planned"},
+      "MetaDel/ghost": {"notes": "orphan"},
+      "NoSuchRegion/ghost": {"notes": "orphan"},
+    })
+    self._delete("MetaDel", "other")
+    meta = stored("metadata")
+    self.assertEqual(sorted(meta), ["MetaDel/kept", "MetaDel/plan"])
+    self._delete("MetaDel", "kept")
+    planned.unlink()
+
+  def test_a_region_that_cannot_be_read_keeps_its_metadata(self):
+    gpx = admin_dir() / "gpx"
+    gpx.mkdir(exist_ok=True)
+    dangling = gpx / "Unmounted"
+    dangling.symlink_to(gpx / "no-such-target")
+    try:
+      self._upload("MetaDel", "other")
+      reset_kind("metadata", {"Unmounted/route": {"notes": "keep"}})
+      self._delete("MetaDel", "other")
+      self.assertIn("Unmounted/route", stored("metadata"))
+    finally:
+      dangling.unlink()
+
+
 class TestRegions(unittest.TestCase):
   def setUp(self):
     self.c = admin_client()
