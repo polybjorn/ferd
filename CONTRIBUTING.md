@@ -16,7 +16,7 @@ FERD_SECURE_COOKIES=false FERD_BIND=127.0.0.1:8090 \
 
 To start completely fresh, delete `tools/app.db*` and `users/` (both gitignored).
 
-Edits to `index.html` show up on reload.
+Edits to `index.html` and `app/` show up on reload.
 
 ## Where to look
 
@@ -35,7 +35,7 @@ Tests live in `tests/`. Run from the repo root:
 python3 -m unittest discover -s tests
 ```
 
-The offline write queue in `index.html` has its own tests, run with Node 20 or newer and no install step:
+The offline write queue in `app/offline-queue.js` has its own tests, run with Node 20 or newer and no install step:
 
 ```sh
 node --test tests/js/*.test.js

@@ -6,7 +6,7 @@ A one-page tour of what the app is made of and how the pieces fit. If you just w
 
 Two things glued together at one HTTP origin:
 
-1. **A single-file SPA frontend.** `index.html` is the whole app: HTML, CSS, and vanilla JavaScript in one file. Leaflet and its plugins are vendored under `vendor/` and served from the same origin, so the only external host at runtime is the map tile provider. Everything else (`site-config.json`, places, routes, GPX) comes from the API. No build step, no framework, no bundler.
+1. **A static SPA frontend.** `index.html` holds the markup and `app/` the stylesheet and vanilla JavaScript, as native ES modules the browser loads directly, with `app/main.js` as the entry. Leaflet and its plugins are vendored under `vendor/` and served from the same origin, so the only external host at runtime is the map tile provider. Everything else (`site-config.json`, places, routes, GPX) comes from the API. No build step, no framework, no bundler.
 2. **The Python API.** `tools/api.py` is a stdlib-only HTTP server (`http.server` + `sqlite3`) that handles auth, per-user reads and writes, and serves the static files so the app runs from one origin.
 
 The frontend talks to the API via `fetch`; the API stores users, sessions, and per-user publish state in SQLite and writes each user's places/routes to JSON and GPX files under their own folder on disk.
@@ -78,12 +78,13 @@ README.md
 SECURITY.md                # account model, setup token, threat notes
 VERSION                    # app version (surfaced in /api/state)
 
+app/                       # the frontend: app.css and ES modules, entered at main.js
 .dockerignore              # files excluded from image build context
 .env.example               # Docker env-var template
 catalog.json               # shipped baseline site catalog
 compose.yml                # Docker Compose service definition
 Dockerfile                 # container image
-index.html                 # the app (HTML/CSS/JS in one file)
+index.html                 # the page: markup and script tags
 site-config.example.json   # branding, feature flags, default view, API base
 sw.js                      # PWA service worker (cache shell, tiles, GPX)
 ui.css                     # shared form and modal building blocks, copied from bjorn/ui-foundation
@@ -106,7 +107,7 @@ Minimums for any change to the frontend. Don't drop below them without a real re
 - **Browsers:** Baseline Widely Available (caniuse.com / web-platform-dx), with Chrome 99 as the WebView floor. The map layout already needs Chrome 105 for `:has()`. Below 99 the page shows an update-your-WebView notice instead of the app, since a browser without cascade layers drops every layered rule.
 - **Viewport:** desktop first (>=1024 px). Mobile portrait works down to 320 px. Installable as a PWA (own home-screen icon, standalone window), no native wrapper.
 - **CSS:** baseline only. In: `:has()`, `:is()`, `:where()`, grid, flex, custom properties, logical properties, `aspect-ratio`, `prefers-*`, cascade layers, container queries, `color-mix()`. Wait for baseline: subgrid, anchor positioning.
-- **CSS layers:** `index.html` declares `@layer ui-tokens, reset, vendor, app, ui;`. The element resets sit in `reset`, below vendor CSS so they leave Leaflet's margins and link colours alone. Vendor CSS is imported into `vendor`, the app's own rules sit in `app`, and the building blocks in `ui.css` (field, toggle row, choice list, section, hint) sit in `ui`, so a general rule cannot beat a component. Keep new rules in a layer: unlayered CSS and `style=` attributes beat every layer. `ui.css` documents its markup contract at the top. It is a copy from a `bjorn/ui-foundation` tag, and its first line records the version: a change or a new block lands in that repo, gets a tag and is copied here unchanged, never edited in place.
+- **CSS layers:** `app/app.css` declares `@layer ui-tokens, reset, vendor, app, ui;`. The element resets sit in `reset`, below vendor CSS so they leave Leaflet's margins and link colours alone. Vendor CSS is imported into `vendor`, the app's own rules sit in `app`, and the building blocks in `ui.css` (field, toggle row, choice list, section, hint) sit in `ui`, so a general rule cannot beat a component. Keep new rules in a layer: unlayered CSS and `style=` attributes beat every layer. `ui.css` documents its markup contract at the top. It is a copy from a `bjorn/ui-foundation` tag, and its first line records the version: a change or a new block lands in that repo, gets a tag and is copied here unchanged, never edited in place.
 - **Scales:** sizes come from the `ui.css` tokens: `--ui-text-*`, `--ui-space-*`, `--ui-radius-*`, `--ui-duration-*` and `--ui-z-*`. Text never goes below 0.75rem, which `tests/test_ui_css.py` holds. A literal is for what the scale can't say, such as a hairline offset or px paired with a fixed box, and the audit step in CI holds how many there are per group, a limit that only goes down.
 - **One-off styling:** don't add any. Inline `style=` attributes, `!important` and hard-coded colours outside the theme blocks only go down: `tests/test_one_off_styles.py` holds each count in `index.html` and fails when one rises, and also when one falls until its ceiling there is lowered to match. Reach for a `ui.css` block, a class in `@layer app` or a theme token instead.
 - **Accessibility:** required. Semantic HTML, labels on every input, Esc closes modals, `prefers-reduced-motion` is respected, WCAG AA contrast on every theme. Coloured text (`--text`, `--muted`, `--accent`, `--danger`, `--green`) reaches 4.5:1 on `--bg`, `--surface` and `--surface2`, and so does text on an accent fill. A control's edge reaches 3:1 against those surfaces through `--control-border` or its fill; `--border` is for panels and dividers. Route status dots and lines (`--status-planned`, `--status-completed`) reach 3:1 and never colour text. Place status is filled or hollow in `--text`, since colour on a place means its category. A category's colour sits in a dot beside its name, and the name itself uses `--muted`. Text on a tint of its own colour uses `--text`. Every target is at least 24px each way, and every focusable element shows a 2px `:focus-visible` ring, drawn inside fields, buttons and the map because panels clip what sticks out. `tests/test_ui_css.py` holds these in every theme.

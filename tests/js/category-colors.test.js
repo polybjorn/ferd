@@ -1,5 +1,5 @@
 'use strict';
-// Runs the real theme and popup functions out of index.html, each cut at its
+// Runs the real theme and popup functions out of the app modules, each cut at its
 // closing brace.
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -7,15 +7,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const html = fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8');
+const app = require('./app-source');
 function source(re, name) {
-  const m = re.exec(html);
-  assert.ok(m, `${name} not found in index.html`);
+  const m = re.exec(app);
+  assert.ok(m, `${name} not found in app/`);
   return m[1];
 }
-const fn = name => source(new RegExp(`^( {4}function ${name}\\([^)]*\\) \\{[\\s\\S]*?^ {4}\\})$`, 'm'), name);
+const fn = name => source(new RegExp(`^(function ${name}\\([^)]*\\) \\{[\\s\\S]*?^\\})$`, 'm'), name);
 const systemListener = source(
-  /^( {4}if \(window\.matchMedia\) \{\n {6}window\.matchMedia\('\(prefers-color-scheme: light\)'\)[\s\S]*?^ {4}\})$/m,
+  /^(if \(window\.matchMedia\) \{\n {2}window\.matchMedia\('\(prefers-color-scheme: light\)'\)[\s\S]*?^\})$/m,
   'system mode listener');
 
 function run(code, ctx) {
@@ -37,7 +37,7 @@ function themeEnv() {
     getStoredTheme: () => 'nord',
     refreshCategoryColors: () => calls.push('refresh'),
   };
-  return run(`let _routeColorCache = null;\n${fn('applyTheme')}\n${systemListener}\nglobalThis.__applyTheme = applyTheme;`, ctx);
+  return run(`function clearRouteColorCache() {}\n${fn('applyTheme')}\n${systemListener}\nglobalThis.__applyTheme = applyTheme;`, ctx);
 }
 
 test('applyTheme refreshes the colours once the new theme is set', () => {

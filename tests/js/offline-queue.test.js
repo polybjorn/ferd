@@ -1,5 +1,5 @@
 'use strict';
-// Runs the offline write queue straight out of index.html, between the
+// Runs the offline write queue straight out of the app modules, between the
 // OFFLINE-QUEUE markers, against an in-memory IndexedDB stand-in. The markers
 // are the only coupling: moving the section to its own file later only
 // changes how `source` is read.
@@ -9,9 +9,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const html = fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8');
-const m = /OFFLINE-QUEUE-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ OFFLINE-QUEUE-END/.exec(html);
-assert.ok(m, 'OFFLINE-QUEUE markers not found in index.html');
+const app = require('./app-source');
+const m = /OFFLINE-QUEUE-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ OFFLINE-QUEUE-END/.exec(app);
+assert.ok(m, 'OFFLINE-QUEUE markers not found in app/');
 const source = m[1] + `
 globalThis.__q = { OPS, mutate, offlineWrite, drainOutbox, remapArgs, currentNs,
   applyCreatePlace, applyUpdatePlace, applyDeletePlace, applyClearCategory,

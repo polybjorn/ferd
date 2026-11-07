@@ -43,6 +43,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - On a phone or small tablet the map shows the update banner under the top bar, so it no longer covers the search panel. There it stays hidden while offline.
 
 ### Changed
+- The frontend's styles and scripts now load from `app/`. A self-hosted web server needs to serve that directory, with `Cache-Control: no-cache` so a browser never mixes old and new modules. The nginx and Caddy examples show how.
 - On a phone, the map credit collapses to an (i) button after five seconds or on the first touch of the map. Tapping the button shows it again, and About still lists every credit.
 - Text is 0.75rem or larger everywhere, and sizes, spacing, corners, animation speeds and stacking follow the scales in `ui.css`. Spacing moves slightly in places, and a long category in a map popup wraps instead of pushing the status out.
 - The OpenStreetMap and Dark base maps no longer keep tiles for offline use, since OpenStreetMap's tile policy does not permit it; the browser's normal cache still serves recently viewed tiles. OpenTopoMap still works offline. Tiles cached before this update are cleared once.

@@ -1,5 +1,5 @@
 'use strict';
-// Runs the overlay config parser out of index.html (OVERLAY-CFG markers) and
+// Runs the overlay config parser out of the app modules (OVERLAY-CFG markers) and
 // the service worker's overlay host list out of sw.js (OVERLAY-HOSTS markers).
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -8,17 +8,16 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.join(__dirname, '..', '..');
-function load(file, begin, end, names) {
-  const src = fs.readFileSync(path.join(root, file), 'utf8');
+function load(src, begin, end, names) {
   const m = new RegExp(begin + '[^\\n]*\\n([\\s\\S]*?)\\n\\s*// ' + end).exec(src);
-  assert.ok(m, `${begin} markers not found in ${file}`);
+  assert.ok(m, `${begin} markers not found`);
   const ctx = { URL };
   vm.createContext(ctx);
   vm.runInContext(m[1] + `\nglobalThis.__g = { ${names} };`, ctx);
   return ctx.__g;
 }
-const { parseOverlays } = load('index.html', 'OVERLAY-CFG-BEGIN', 'OVERLAY-CFG-END', 'parseOverlays');
-const { overlayHosts } = load('sw.js', 'OVERLAY-HOSTS-BEGIN', 'OVERLAY-HOSTS-END', 'overlayHosts');
+const { parseOverlays } = load(require('./app-source'), 'OVERLAY-CFG-BEGIN', 'OVERLAY-CFG-END', 'parseOverlays');
+const { overlayHosts } = load(fs.readFileSync(path.join(root, 'sw.js'), 'utf8'), 'OVERLAY-HOSTS-BEGIN', 'OVERLAY-HOSTS-END', 'overlayHosts');
 // Results come from another realm, so deepEqual needs plain copies.
 const plain = v => JSON.parse(JSON.stringify(v));
 

@@ -1,5 +1,5 @@
 'use strict';
-// Runs the picker's matching out of index.html (COUNTRY-MATCH markers) against
+// Runs the picker's matching out of the app modules (COUNTRY-MATCH markers) against
 // the shipped list, so a rebuilt list is covered too.
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -8,9 +8,9 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.join(__dirname, '..', '..');
-const src = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const src = require('./app-source');
 const block = /COUNTRY-MATCH-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ COUNTRY-MATCH-END/.exec(src);
-assert.ok(block, 'COUNTRY-MATCH markers not found in index.html');
+assert.ok(block, 'COUNTRY-MATCH markers not found in app/');
 const ctx = {};
 vm.createContext(ctx);
 vm.runInContext(block[1] + '\nglobalThis.__g = { countryMatches, canonicalCountry, normCountryName };', ctx);

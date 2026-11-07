@@ -1,5 +1,5 @@
 'use strict';
-// Runs the real popup builders out of index.html: the POPUP-EDIT block, plus
+// Runs the real popup builders out of the app modules: the POPUP-EDIT block, plus
 // placePopupHtml and areaPopupHtml cut at their closing brace.
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -7,15 +7,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const html = fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8');
+const app = require('./app-source');
 function source(re, name) {
-  const m = re.exec(html);
-  assert.ok(m, `${name} not found in index.html`);
+  const m = re.exec(app);
+  assert.ok(m, `${name} not found in app/`);
   return m[1];
 }
 const block = source(/POPUP-EDIT-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ POPUP-EDIT-END/, 'POPUP-EDIT block');
-const placeHtml = source(/^( {4}function placePopupHtml\(p\) \{[\s\S]*?^ {4}\})$/m, 'placePopupHtml');
-const areaHtml = source(/^( {4}function areaPopupHtml\(a, visited\) \{[\s\S]*?^ {4}\})$/m, 'areaPopupHtml');
+const placeHtml = source(/^(function placePopupHtml\(p\) \{[\s\S]*?^\})$/m, 'placePopupHtml');
+const areaHtml = source(/^(function areaPopupHtml\(a, visited\) \{[\s\S]*?^\})$/m, 'areaPopupHtml');
 
 function popups(viewer, auth) {
   const ctx = {

@@ -1,5 +1,5 @@
 'use strict';
-// Runs mapScheduler straight out of index.html, between the MAP-SCHEDULER
+// Runs mapScheduler straight out of the app modules, between the MAP-SCHEDULER
 // markers, against a stand-in map whose remove() behaves like Leaflet 1.9's:
 // it fires 'unload', then deletes the map pane that every position read uses.
 const test = require('node:test');
@@ -9,13 +9,13 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.join(__dirname, '..', '..');
-const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const m = /MAP-SCHEDULER-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ MAP-SCHEDULER-END/.exec(html);
-assert.ok(m, 'MAP-SCHEDULER markers not found in index.html');
+const app = require('./app-source');
+const m = /MAP-SCHEDULER-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ MAP-SCHEDULER-END/.exec(app);
+assert.ok(m, 'MAP-SCHEDULER markers not found in app/');
 
 function functionSource(name) {
-  const fn = new RegExp('\\n    function ' + name + '\\([^\\n]*\\n[\\s\\S]*?\\n    \\}\\n').exec(html);
-  assert.ok(fn, name + ' not found in index.html');
+  const fn = new RegExp('\\nfunction ' + name + '\\([^\\n]*\\n[\\s\\S]*?\\n\\}\\n').exec(app);
+  assert.ok(fn, name + ' not found in app/');
   return fn[0];
 }
 

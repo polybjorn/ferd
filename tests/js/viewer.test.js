@@ -1,5 +1,5 @@
 'use strict';
-// Runs the viewer-mode detection straight out of index.html, between the
+// Runs the viewer-mode detection straight out of the app modules, between the
 // VIEWER markers.
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -7,9 +7,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const html = fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8');
-const m = /VIEWER-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ VIEWER-END/.exec(html);
-assert.ok(m, 'VIEWER markers not found in index.html');
+const app = require('./app-source');
+const m = /VIEWER-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ VIEWER-END/.exec(app);
+assert.ok(m, 'VIEWER markers not found in app/');
 const ctx = {};
 vm.createContext(ctx);
 vm.runInContext(m[1] + '\nglobalThis.__viewerOf = viewerOf;', ctx);

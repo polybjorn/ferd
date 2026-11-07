@@ -1,5 +1,5 @@
 'use strict';
-// Runs the wheel classification straight out of index.html, between the
+// Runs the wheel classification straight out of the app modules, between the
 // WHEEL-ZOOM markers, since the zoom loop itself needs a real map.
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -7,9 +7,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const html = fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8');
-const m = /WHEEL-ZOOM-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ WHEEL-ZOOM-END/.exec(html);
-assert.ok(m, 'WHEEL-ZOOM markers not found in index.html');
+const app = require('./app-source');
+const m = /WHEEL-ZOOM-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ WHEEL-ZOOM-END/.exec(app);
+assert.ok(m, 'WHEEL-ZOOM markers not found in app/');
 
 const env = { L: { DomEvent: { getWheelDelta: (e) => -e.deltaY / 6 } } };
 vm.createContext(env);

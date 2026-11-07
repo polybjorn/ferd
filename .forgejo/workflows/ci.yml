@@ -80,8 +80,8 @@ jobs:
           tools="${RUNNER_TEMP:-/tmp}/ui-foundation/tools"
           python3 "$tools/vendored_check.py" ui.css --repo "$GITHUB_SERVER_URL/bjorn/ui-foundation.git"
           python3 "$tools/host_check.py" index.html
-          python3 "$tools/contrast.py" index.html --theme-re '\[data-theme="[^"]+"\]\[data-mode="[^"]+"\]'
-          python3 "$tools/css_audit.py" index.html --scale ui.css --max font-size=1 --max spacing=19 --max radius=0 --max transition=0 --max z-index=1
+          python3 "$tools/contrast.py" app/app.css --theme-re '\[data-theme="[^"]+"\]\[data-mode="[^"]+"\]'
+          python3 "$tools/css_audit.py" index.html app/app.css --scale ui.css --max font-size=1 --max spacing=19 --max radius=0 --max transition=0 --max z-index=1
 
   # Reads a PR's commits with the list github-sync applies after the merge, when
   # the only fix for a hit is rewriting protected main. Here it is still a

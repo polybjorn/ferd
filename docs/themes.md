@@ -25,14 +25,14 @@ Each theme runs in Light, Dark, or System mode. Theme and mode are picked from S
 
 ### What the theme does NOT control
 
-- **Category colors on pins and popups.** These come from a fixed palette (`COLORS` in `index.html`); each category is assigned a slot the first time it's seen and remembers its color across edits. The palette stays the same across themes, so a category always shows the same color. In light mode, popup text uses a darker parallel palette (`COLORS_LIGHT`) for legibility; pins keep the original colors.
+- **Category colors on pins and popups.** These come from a fixed palette (`COLORS` in `app/core.js`); each category is assigned a slot the first time it's seen and remembers its color across edits. The palette stays the same across themes, so a category always shows the same color. In light mode, popup text uses a darker parallel palette (`COLORS_LIGHT`) for legibility; pins keep the original colors.
 - **Map tiles.** Tile layers are independent. If a light tile layer feels harsh on a dark theme, use the "Tile filter" setting (Settings -> Map) to desaturate or mute it.
 
 ## For contributors
 
 ### File layout
 
-Everything theme-related lives in `index.html`. Find by name:
+The theme CSS is in `app/app.css` and the code in `app/`. Find by name:
 
 - CSS variable blocks: one per `[data-theme="X"][data-mode="Y"]` pair near the top of the file, plus a base `:root` block (Nord dark) as fallback.
 - `THEMES` array: registered theme keys.
@@ -80,7 +80,7 @@ System mode resolves to `light` or `dark` via `window.matchMedia('(prefers-color
 
 ### Category palette
 
-`COLORS` and `COLORS_LIGHT` in `index.html`. Pins and swatches use the dark palette; popup text in light mode uses the light palette (via `--cl`).
+`COLORS` and `COLORS_LIGHT` in `app/core.js`. Pins and swatches use the dark palette; popup text in light mode uses the light palette (via `--cl`).
 
 Source is Tableau 20, reordered: indices 0-9 are saturated hues spread across the wheel, 10-19 are paler siblings of the same hues in matching order.
 
@@ -91,7 +91,7 @@ The two arrays must stay the same length (a runtime check warns on mismatch).
 ### Adding a new theme
 
 1. Pick a key (lowercase, hyphenated), e.g. `my-theme`.
-2. In `index.html`, add two CSS blocks (dark first, then light), each filling out the full variable contract above.
+2. In `app/app.css`, add two CSS blocks (dark first, then light), each filling out the full variable contract above.
    ```css
    [data-theme="my-theme"][data-mode="dark"]  { --bg: #...; /* ... */ }
    [data-theme="my-theme"][data-mode="light"] { --bg: #...; /* ... */ }

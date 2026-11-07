@@ -1289,8 +1289,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     elif rel == "index.html":
       data = data.replace(APP_VERSION_PLACEHOLDER.encode(),
                           get_app_version().encode())
-      # The stylesheet link carries it: nginx serves ui.css with no cache
-      # header, so a browser can keep the old file under a new page.
+      # The stylesheet links carry it: nginx serves them with no cache
+      # header, so a browser can keep an old file under a new page.
       data = data.replace(SW_VERSION_PLACEHOLDER.encode(),
                           get_sw_version(base).encode())
     self.send_response(HTTPStatus.OK)
@@ -3481,7 +3481,7 @@ _country_names: dict | None = None
 
 def normalise_country_name(name: str) -> str:
   """Fold case, accents and punctuation. Must match norm() in
-  scripts/build-countries.py and normCountryName in index.html."""
+  scripts/build-countries.py and normCountryName in app/countries.js."""
   s = unicodedata.normalize("NFKD", name)
   s = "".join(c for c in s if unicodedata.category(c) != "Mn").lower()
   s = s.replace("&", " and ").replace(".", "").replace("'", "").replace("\u2019", "")

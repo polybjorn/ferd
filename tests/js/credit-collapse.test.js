@@ -1,13 +1,13 @@
 'use strict';
-// Runs the real collapseCreditOnPhone out of index.html against a fake map.
+// Runs the real collapseCreditOnPhone out of the app modules against a fake map.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const html = fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8');
-const source = /^ {4}function collapseCreditOnPhone\([\s\S]*?^ {4}\}$/m.exec(html)[0];
+const app = require('./app-source');
+const source = /^function collapseCreditOnPhone\([\s\S]*?^\}$/m.exec(app)[0];
 
 function element(extra) {
   return {

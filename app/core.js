@@ -1,0 +1,264 @@
+import { detectViewer, isReadOnly } from './server.js';
+import { dataLayer } from './offline-queue.js';
+import { DEFAULT_CONFIG, isImperial } from './prefs.js';
+
+// Tableau 20 categorical palette, reordered: indices 0-9 are the saturated
+// hues in hue-spread order (blue, orange, green, red, teal, purple, gold,
+// pink, brown, gray) so the first N categories get maximally different
+// colors. Indices 10-19 are the paler siblings of the same hues in the
+// same order, used as fallback once 10+ categories accumulate.
+// COLORS_LIGHT are HSL-darkened to L=30% for legibility on light surfaces;
+// saturation preserved so gray stays gray.
+export const COLORS       = ['#3e78b7', '#ff8e1f', '#4eaf41', '#f93f42', '#3ba6a0', '#b971a5', '#cea715', '#e46190', '#a87355', '#7b6f6c', '#93cdf5', '#ffbe7d', '#83e06e', '#ff9d9a', '#7dc5bd', '#dc9ecc', '#ffd555', '#ffbad0', '#e0b29d', '#bdafa8'];
+const COLORS_LIGHT = ['#274c72', '#994c00', '#327029', '#950407', '#29706e', '#673258', '#8b700e', '#83163d', '#654534', '#514948', '#0e598b', '#994c00', '#2d7e1b', '#990500', '#2f6a64', '#70295d', '#997400', '#990031', '#743d25', '#574942'];
+if (COLORS.length !== COLORS_LIGHT.length) console.warn('COLORS and COLORS_LIGHT length mismatch');
+export const TRACK_COLORS = COLORS;
+export const ROUTE_COLOR = '#6aaeee';
+export const GPX_NS = 'http://www.topografix.com/GPX/1/1';
+export const DATA_FILES = { siteConfig: 'site-config.json' };
+
+export const state = {
+  config: DEFAULT_CONFIG,
+  auth: { authenticated: false, username: null, is_admin: false, published: false, registration_open: true, publishing_open: true, catalog_baseline_open: true, has_users: false, requires_setup_token: false },
+  serverPrefs: {},
+  viewer: detectViewer(),
+  currentMap: null,
+  currentElevation: null,
+  // Each overlay requests tiles from a third party, so none is on at load.
+  // One the user turns on keeps its level across map rebuilds for this page
+  // load. Keyed by overlay name, with no entry meaning off.
+  overlayLevels: new Map(),
+  // data
+  places: null,
+  areas: null,
+  manifest: null,
+  categoryColors: {},
+  categoryColorsLight: {},
+  // browse-list state
+  groupBy: (function(){ try { return localStorage.getItem('places-group-by') || 'category'; } catch { return 'category'; } })(),
+  trailsGroupBy: (function(){ try { return localStorage.getItem('trails-group-by') || 'region'; } catch { return 'region'; } })(),
+  // Filter values are kept in memory only — they survive in-page re-renders
+  // (catalog refresh, CRUD writes) but reset on a full page reload.
+  placeFilters: { search: '', status: 'all', category: 'all', country: 'all', tags: [], catalog: 'all' },
+  trailFilters: { search: '', status: 'all', region: 'all', difficulty: 'all', rating: 'all', tags: [] },
+  historyFilters: { search: '', kind: 'all', year: 'all', rating: 'all' },
+  // unified-map filter state
+  hiddenCategories: new Set(),
+  hiddenRegions: new Set(),
+  showVisited: true,
+  showWant: true,
+  showCompleted: true,
+  showPlanned: true,
+  showPlaces: true,
+  showTrails: true,
+  // unified-map layer refs
+  _placeRecords: null,
+  _placeClusterGroup: null,
+  _routeLayers: null,        // [{ route, layer, completed }]
+  _selectedRouteKey: null,   // index-map: highlighted route (click-to-distinguish overlaps)
+  _routeGroupCompleted: null,
+  _routeGroupPlanned: null,
+};
+
+export function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function categoryFallbackLabel(slug) {
+  return slug.replace(/-/g, ' ').replace(/^./, function(c) { return c.toUpperCase(); });
+}
+
+export function displayCategory(cat) {
+  if (!cat) return 'Uncategorized';
+  const labels = (state.config && state.config.category_labels) || {};
+  const entry = labels[cat];
+  if (entry && entry.label) return entry.label;
+  return categoryFallbackLabel(cat);
+}
+
+export function displayRegion(name) {
+  return name || 'No region';
+}
+
+export function domainFromUrl(url) {
+  try { return new URL(url).hostname.replace(/^www\./, ''); }
+  catch { return url; }
+}
+
+function slugify(s) {
+  if (!s) return '';
+  const cleaned = s
+    .toLowerCase()
+    .replace(/æ/g, 'ae').replace(/ø/g, 'o').replace(/å/g, 'a')
+    .replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ß/g, 'ss')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return cleaned || encodeURIComponent(s.toLowerCase());
+}
+
+export function assignPlaceSlugs(places) {
+  if (!places) return;
+  const used = new Set();
+  for (const p of places) {
+    const base = slugify(p.name);
+    let slug = base;
+    let n = 2;
+    while (used.has(slug)) { slug = base + '-' + n; n++; }
+    used.add(slug);
+    p._slug = slug;
+  }
+}
+
+export function assignTrailSlugs(manifest) {
+  if (!manifest || !manifest.regions) return;
+  const used = new Set();
+  for (const region of manifest.regions) {
+    region._slug = slugify(region.name);
+    for (const route of region.routes) {
+      const base = region._slug + '/' + slugify(route.name);
+      let slug = base;
+      let n = 2;
+      while (used.has(slug)) { slug = base + '-' + n; n++; }
+      used.add(slug);
+      route._slug = slug;
+    }
+  }
+}
+
+function renderSources(sources) {
+  if (!sources || sources.length === 0) return '';
+  return sources.map(s => {
+    let url;
+    try { url = new URL(s, location.href); } catch { return escapeHtml(s); }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return escapeHtml(s);
+    return '<a href="' + escapeHtml(url.href) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(domainFromUrl(s)) + '</a>';
+  }).join(' &middot; ');
+}
+
+// Sort category slugs alphabetically, but always push uncategorized ('') last
+// so legends/filters don't lead with the fallback bucket.
+export function sortedCategorySlugs(slugs) {
+  return [...slugs].sort((a, b) => {
+    if (a === '') return 1;
+    if (b === '') return -1;
+    return a.localeCompare(b);
+  });
+}
+
+export function assignCategoryColors(places) {
+  // Colors are stable per slug: stored alongside the label in
+  // category-labels.json. Unstored slugs get the next free index
+  // (highest stored + 1, mod palette length) so adding a new category
+  // never reshuffles the existing ones.
+  const cats = [...new Set(places.concat(state.areas || []).map(p => p.category))]
+    .filter(c => c !== '').sort();
+  const labels = (state.config && state.config.category_labels) || {};
+  let nextIdx = 0;
+  for (const slug in labels) {
+    const c = labels[slug] && labels[slug].color;
+    if (typeof c === 'number' && c + 1 > nextIdx) nextIdx = c + 1;
+  }
+  const dark = {}, light = {};
+  const newAssignments = {};
+  for (const c of cats) {
+    const entry = labels[c];
+    let idx;
+    if (entry && typeof entry.color === 'number') {
+      idx = entry.color;
+    } else {
+      idx = nextIdx % COLORS.length;
+      nextIdx += 1;
+      newAssignments[c] = idx;
+    }
+    dark[c] = COLORS[idx];
+    light[c] = COLORS_LIGHT[idx];
+  }
+  const mutedDark = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() || '#888';
+  dark[''] = mutedDark;
+  light[''] = mutedDark;
+  if (Object.keys(newAssignments).length) persistAssignedCategoryColors(newAssignments);
+  return { dark, light };
+}
+
+function persistAssignedCategoryColors(newAssignments) {
+  if (isReadOnly()) return;
+  if (!state.auth || !state.auth.authenticated) return;
+  const labels = state.config.category_labels = state.config.category_labels || {};
+  const payload = {};
+  for (const slug in labels) {
+    const lbl = (labels[slug] && labels[slug].label) || categoryFallbackLabel(slug);
+    payload[slug] = { label: lbl };
+    if (typeof labels[slug].color === 'number') payload[slug].color = labels[slug].color;
+    if (typeof labels[slug].order === 'number') payload[slug].order = labels[slug].order;
+  }
+  for (const slug in newAssignments) {
+    const existing = labels[slug] || {};
+    const existingLabel = existing.label || categoryFallbackLabel(slug);
+    const merged = { label: existingLabel, color: newAssignments[slug] };
+    if (typeof existing.order === 'number') merged.order = existing.order;
+    labels[slug] = merged;
+    payload[slug] = { ...merged };
+  }
+  dataLayer.putCategoryLabels({ category_labels: payload }).catch(function() {
+    // Best-effort: if the write fails, the same indices will be re-assigned
+    // (deterministically) the next time assignCategoryColors runs.
+  });
+}
+
+// Thousand-separated number formatting (en-US grouping: 7,340.9 / 101,424).
+export function grpNum(n, decimals) {
+  return n.toLocaleString('en-US', { minimumFractionDigits: decimals || 0, maximumFractionDigits: decimals || 0 });
+}
+export function formatDistance(m) {
+  if (isImperial()) {
+    const mi = m / 1609.344;
+    return mi >= 0.1 ? grpNum(mi, 1) + ' mi' : grpNum(Math.round(m * 3.28084)) + ' ft';
+  }
+  return m >= 1000 ? grpNum(m / 1000, 1) + ' km' : grpNum(Math.round(m)) + ' m';
+}
+export function formatElevation(m) {
+  if (isImperial()) return grpNum(Math.round(m * 3.28084)) + ' ft';
+  return grpNum(Math.round(m)) + ' m';
+}
+
+export function setActiveTab(view) {
+  ['places', 'routes', 'history'].forEach(v => {
+    const el = document.getElementById('tab-' + v);
+    if (el) el.classList.toggle('active', v === view);
+  });
+}
+
+let _crumbText = '';
+let _crumbAlways = false;
+export function setCrumb(text, alwaysShow) {
+  _crumbText = text || '';
+  _crumbAlways = !!alwaysShow;
+  const crumbEl = document.getElementById('nav-crumb');
+  const brandEl = document.querySelector('.nav-brand');
+  if (!crumbEl) return;
+  // List pages (Places/Routes/History) show the crumb only on mobile, where
+  // the nav tabs are hidden; route detail (no tab) shows it everywhere.
+  crumbEl.classList.toggle('crumb-mobile-only', !_crumbAlways);
+  if (!_crumbText) { crumbEl.textContent = ''; return; }
+  crumbEl.textContent = ' / ' + _crumbText;
+  if (!brandEl) return;
+  // Truncate the crumb char-by-char until the brand stops colliding with the
+  // nav's center tabs (desktop) or, when those are hidden, the right-side
+  // controls (mobile). Cheaper than it looks: stops as soon as it fits.
+  const tabsEl = document.querySelector('.view-tabs');
+  const rightEl = document.querySelector('.nav-right');
+  const boundary = (tabsEl && tabsEl.getBoundingClientRect().width > 0) ? tabsEl : rightEl;
+  if (!boundary) return;
+  const gap = 8; // breathing room before the boundary
+  let len = _crumbText.length;
+  while (len > 0 && brandEl.getBoundingClientRect().right > boundary.getBoundingClientRect().left - gap) {
+    len--;
+    crumbEl.textContent = ' / ' + _crumbText.slice(0, len).trimEnd() + '…';
+  }
+}
+window.addEventListener('resize', function() {
+  if (_crumbText) setCrumb(_crumbText, _crumbAlways);
+});

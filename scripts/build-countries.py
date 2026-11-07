@@ -89,7 +89,7 @@ DISPLAY = {
 
 def norm(name: str) -> str:
   """Must match normalise_country_name in tools/api.py and normCountryName
-  in index.html."""
+  in app/countries.js."""
   s = unicodedata.normalize("NFKD", name)
   s = "".join(c for c in s if unicodedata.category(c) != "Mn").lower()
   s = s.replace("&", " and ").replace(".", "").replace("'", "").replace("’", "")

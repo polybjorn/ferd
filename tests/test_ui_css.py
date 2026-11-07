@@ -1,4 +1,4 @@
-"""How Ferd loads ui.css, and the cascade layer order in index.html.
+"""How Ferd loads ui.css, and the cascade layer order in app/app.css.
 
 ui.css is a copy from bjorn/ui-foundation, whose own tests cover the file. Its
 blocks only win over the app's general rules while those rules sit in a lower
@@ -11,6 +11,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 UI_CSS = (ROOT / "ui.css").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
+APP_CSS = (ROOT / "app" / "app.css").read_text(encoding="utf-8")
+FRONTEND = "\n".join(p.read_text(encoding="utf-8")
+                     for p in [ROOT / "index.html", *sorted((ROOT / "app").iterdir())])
 SW = (ROOT / "sw.js").read_text(encoding="utf-8")
 
 
@@ -45,11 +48,11 @@ def top_level_statements(css):
 
 class IndexLayers(unittest.TestCase):
   def test_layer_order_comes_first(self):
-    first = next(top_level_statements(head_styles(INDEX)[0]))
+    first = next(top_level_statements(APP_CSS))
     self.assertEqual(first, "@layer ui-tokens, reset, vendor, app, ui;")
 
   def test_element_resets_sit_below_vendor(self):
-    stmts = list(top_level_statements(head_styles(INDEX)[0]))
+    stmts = list(top_level_statements(APP_CSS))
     reset = next(s for s in stmts if s.startswith("@layer reset {"))
     app = next(s for s in stmts if s.startswith("@layer app {"))
     self.assertIn("*, *::before, *::after", reset)
@@ -57,7 +60,7 @@ class IndexLayers(unittest.TestCase):
     self.assertNotRegex(app, r"(?m)^\s*a \{")
 
   def test_old_rules_and_vendor_css_are_layered(self):
-    stmts = list(top_level_statements(head_styles(INDEX)[0]))
+    stmts = list(top_level_statements(APP_CSS))
     for stmt in stmts[1:]:
       self.assertTrue(
         re.match(r'@import url\("/vendor/[^"]+\.css"\) layer\(vendor\);$', stmt)
@@ -67,16 +70,17 @@ class IndexLayers(unittest.TestCase):
   def test_no_vendor_stylesheet_links(self):
     head = INDEX.split("</head>", 1)[0]
     links = re.findall(r'<link rel="stylesheet" href="([^"]+)">', head)
-    self.assertEqual(links, ["/ui.css?v=__FERD_CACHE_VERSION__"])
+    self.assertEqual(links, ["/app/app.css?v=__FERD_CACHE_VERSION__",
+                            "/ui.css?v=__FERD_CACHE_VERSION__"])
 
   def test_ui_css_loads_after_the_app_rules(self):
     head = INDEX.split("</head>", 1)[0]
-    self.assertGreater(head.index('href="/ui.css?'), head.index("} /* @layer app */"))
+    self.assertGreater(head.index('href="/ui.css?'), head.index('href="/app/app.css?'))
 
   def test_only_the_webview_notice_is_unlayered(self):
     styles = head_styles(INDEX)
-    self.assertEqual(len(styles), 2)
-    for stmt in top_level_statements(styles[1]):
+    self.assertEqual(len(styles), 1)
+    for stmt in top_level_statements(styles[0]):
       self.assertTrue(stmt.startswith("#webview-notice"), stmt[:80])
 
   def test_webview_notice(self):
@@ -102,7 +106,7 @@ class ThemeContrast(unittest.TestCase):
   def themes(self):
     found = {}
     for selector, body in re.findall(
-        r'(:root|\[data-theme="[\w-]+"\]\[data-mode="\w+"\])\s*\{(.*?)\}', INDEX, re.S):
+        r'(:root|\[data-theme="[\w-]+"\]\[data-mode="\w+"\])\s*\{(.*?)\}', FRONTEND, re.S):
       tokens = dict(re.findall(r"--([\w-]+):\s*(#[0-9a-fA-F]{6})\b", body))
       if "muted" in tokens:
         found[selector] = tokens
@@ -119,7 +123,7 @@ class ThemeContrast(unittest.TestCase):
           self.assertGreaterEqual(ratio, 4.5, "%s %s on %s" % (selector, fg, bg))
 
   def test_coloured_text_meets_aa_on_every_surface(self):
-    self.assertIn("--ui-danger:  var(--danger);", INDEX)
+    self.assertIn("--ui-danger:  var(--danger);", FRONTEND)
     for selector, tokens in self.themes().items():
       for fg in ("accent", "danger", "green"):
         for bg in ("bg", "surface", "surface2"):
@@ -128,7 +132,7 @@ class ThemeContrast(unittest.TestCase):
 
   def test_status_colours_reach_3_to_1_on_every_surface(self):
     pairs = {mode: dict(re.findall(r"--status-(\w+): (#[0-9a-f]{6})", rule)) for mode, rule in
-             re.findall(r'\[data-theme\]\[data-mode="(\w+)"\] \{([^}]*)\}', INDEX)}
+             re.findall(r'\[data-theme\]\[data-mode="(\w+)"\] \{([^}]*)\}', FRONTEND)}
     self.assertEqual(sorted(pairs), ["dark", "light"])
     for selector, tokens in self.themes().items():
       pair = pairs["light" if "light" in selector else "dark"]
@@ -139,21 +143,21 @@ class ThemeContrast(unittest.TestCase):
           self.assertGreaterEqual(ratio, 3, "%s %s on %s" % (selector, name, bg))
 
   def test_status_colours_never_paint_text(self):
-    self.assertNotRegex(INDEX, r"(?<![-\w])color:[^;}\n]*--status-")
+    self.assertNotRegex(FRONTEND, r"(?<![-\w])color:[^;}\n]*--status-")
 
   def test_place_status_is_fill_not_colour(self):
     for selector in (r"\.status-dot\.visited", r"\.status-dot\.want",
                      r"\.popup-area-item::before", r"\.popup-area-item\.done::before"):
-      rule = re.search(selector + r" \{([^}]*)\}", INDEX)
+      rule = re.search(selector + r" \{([^}]*)\}", FRONTEND)
       self.assertIsNotNone(rule, selector)
       self.assertIn("var(--text)", rule.group(1), selector)
 
   def test_routes_in_an_area_list_keep_their_status_colours(self):
-    self.assertRegex(INDEX, r"\.popup-area-item\.route::before \{[^}]*--status-planned")
-    self.assertRegex(INDEX, r"\.popup-area-item\.route\.done::before \{[^}]*--status-completed")
+    self.assertRegex(FRONTEND, r"\.popup-area-item\.route::before \{[^}]*--status-planned")
+    self.assertRegex(FRONTEND, r"\.popup-area-item\.route\.done::before \{[^}]*--status-completed")
 
   def test_only_route_lines_read_the_tile_colours(self):
-    self.assertNotRegex(INDEX, r"var\(--(planned|completed)\)")
+    self.assertNotRegex(FRONTEND, r"var\(--(planned|completed)\)")
 
   def test_text_on_an_accent_fill_meets_aa(self):
     for selector, tokens in self.themes().items():
@@ -162,7 +166,7 @@ class ThemeContrast(unittest.TestCase):
         self.assertGreaterEqual(ratio, 4.5, "%s %s on accent" % (selector, fg))
 
   def test_control_edge_reaches_3_to_1_on_every_surface(self):
-    self.assertIn("--ui-border:  var(--control-border);", INDEX)
+    self.assertIn("--ui-border:  var(--control-border);", FRONTEND)
     for selector, tokens in self.themes().items():
       for bg in ("bg", "surface", "surface2"):
         ratio = contrast(tokens["control-border"], tokens[bg])
@@ -172,14 +176,14 @@ class ThemeContrast(unittest.TestCase):
     # The colour measured on a surface falls short on a tint of itself.
     for rule in (r"\.modal \.modal-success-box \{", r"\.modal \.user-flag\.on \{",
                  r"\.modal \.danger-btn:not\(h2 \.modal-close\):hover:not\(:disabled\) \{"):
-      self.assertRegex(INDEX, rule + r"[^}]*\n\s*color: var\(--text\);")
+      self.assertRegex(FRONTEND, rule + r"[^}]*\n\s*color: var\(--text\);")
 
   def test_settings_hints_use_the_measured_colour(self):
-    self.assertRegex(INDEX, r"\.modal \.hint \{[^}]*color: var\(--muted\);")
-    self.assertIn('<div class="hint">Visited countries show when zoomed out.</div>', INDEX)
+    self.assertRegex(FRONTEND, r"\.modal \.hint \{[^}]*color: var\(--muted\);")
+    self.assertIn('<div class="hint">Visited countries show when zoomed out.</div>', FRONTEND)
 
   def test_placeholders_use_the_measured_colour(self):
-    self.assertRegex(INDEX, r"\n\s*::placeholder \{ color: var\(--muted\); opacity: 1; \}")
+    self.assertRegex(FRONTEND, r"\n\s*::placeholder \{ color: var\(--muted\); opacity: 1; \}")
     self.assertRegex(UI_CSS, r"\.ui-field ::placeholder \{\s*color: var\(--ui-muted\);\s*opacity: 1;")
 
 
@@ -191,7 +195,7 @@ class ControlEdges(unittest.TestCase):
               ".public-maps-item", ".row-src", ".cat-color-dot")
 
   def rules(self):
-    stmts = top_level_statements(head_styles(INDEX)[0])
+    stmts = top_level_statements(APP_CSS)
     app = next(s for s in stmts if s.startswith("@layer app {"))
     return re.findall(r"([^{}]+)\{([^{}]*)\}", app)
 
@@ -262,7 +266,7 @@ class TargetsAndFocus(unittest.TestCase):
     self.assertIn("text-shadow", body)
 
   def test_the_credit_collapses_only_on_a_phone(self):
-    self.assertRegex(INDEX, r"max-width: 600px\) \{\s+\.credit-collapsed \.leaflet-control-attribution \{ display: none; \}")
+    self.assertRegex(FRONTEND, r"max-width: 600px\) \{\s+\.credit-collapsed \.leaflet-control-attribution \{ display: none; \}")
 
   def test_a_closed_section_takes_no_keyboard_stop(self):
     for closed, opened in ((".cat-swatches", ".cat-swatches.open"), (".collapsible", ".collapsible.expanded")):
@@ -280,14 +284,14 @@ class TargetsAndFocus(unittest.TestCase):
     self.assertNotIn("min-width", self.body("button"))
 
   def test_a_toggle_row_is_one_target(self):
-    self.assertIn("""'<label class="ui-toggle-row\"""", INDEX)
-    self.assertNotIn("settings-toggle", INDEX)
+    self.assertIn("""'<label class="ui-toggle-row\"""", FRONTEND)
+    self.assertNotIn("settings-toggle", FRONTEND)
 
   def test_the_start_marker_reaches_the_minimum(self):
-    self.assertRegex(INDEX, r"className: 'marker-start'.*iconSize: \[24, 24\]")
+    self.assertRegex(FRONTEND, r"className: 'marker-start'.*iconSize: \[24, 24\]")
 
   def test_hidden_file_inputs_leave_the_tab_order(self):
-    inputs = re.findall(r"<input[^>]*file-input-hidden[^>]*>", INDEX)
+    inputs = re.findall(r"<input[^>]*file-input-hidden[^>]*>", FRONTEND)
     self.assertTrue(inputs)
     for tag in inputs:
       self.assertIn('tabindex="-1"', tag)
@@ -311,7 +315,7 @@ class CategoryColours(unittest.TestCase):
 
 class Labels(unittest.TestCase):
   def test_required_is_marked_instead_of_optional(self):
-    self.assertNotIn("(optional", INDEX)
+    self.assertNotIn("(optional", FRONTEND)
     self.assertIn(".ui-required::after", UI_CSS)
 
 
@@ -329,20 +333,20 @@ class Shipping(unittest.TestCase):
 
 class ModalHeight(unittest.TestCase):
   def test_modals_size_to_the_visible_screen(self):
-    self.assertNotRegex(INDEX, r"\.modal[^{}]*\{[^{}]*height: calc\(100vh")
+    self.assertNotRegex(FRONTEND, r"\.modal[^{}]*\{[^{}]*height: calc\(100vh")
     # Insets on the fixed dialog follow the visible screen, where 100vh would
     # count the space behind a phone browser's toolbar.
-    self.assertRegex(INDEX, r"\.modal:is\([^{}]*\) \{ inset-block: 3rem; \}")
+    self.assertRegex(FRONTEND, r"\.modal:is\([^{}]*\) \{ inset-block: 3rem; \}")
 
   def test_a_scrolling_list_keeps_a_floor(self):
-    self.assertRegex(INDEX, r"#catalog-bulk-list\) \{\s+flex: 1 1 auto;\s+min-height: 4rem")
+    self.assertRegex(FRONTEND, r"#catalog-bulk-list\) \{\s+flex: 1 1 auto;\s+min-height: 4rem")
 
 
 class AddForm(unittest.TestCase):
   def test_forms_use_the_blocks_without_inline_styles(self):
     for name, end in (("placeFormHtml", "gpxFormHtml"), ("gpxFormHtml", "wirePlaceForm"),
                       ("areaFormHtml", "searchAreaBoundaries")):
-      form = INDEX[INDEX.index("function %s(" % name):INDEX.index("function %s(" % end)]
+      form = FRONTEND[FRONTEND.index("function %s(" % name):FRONTEND.index("function %s(" % end)]
       self.assertIn("uiFieldHtml(", form)
       self.assertNotIn("style=", form, name)
       self.assertNotIn("settings-toggle", form, name)
@@ -354,22 +358,22 @@ class EditForms(unittest.TestCase):
                       ("openEditTrailMetadataModal", "modalErrorHtml('tm-error')"),
                       ("openEditAreaModal", "modalErrorHtml('edit-area-error')"),
                       ("signInFormHtml", "modalErrorHtml('auth-error')")):
-      start = INDEX.index("function %s(" % name)
-      form = INDEX[start:INDEX.index(end, start)]
+      start = FRONTEND.index("function %s(" % name)
+      form = FRONTEND[start:FRONTEND.index(end, start)]
       self.assertIn("uiFieldHtml(", form, name)
       self.assertNotIn("style=", form, name)
       self.assertNotIn("settings-toggle", form, name)
       self.assertNotIn("<label for=", form, name)
 
   def test_settings_uses_the_blocks(self):
-    settings = INDEX[INDEX.index("function openSettingsModal("):INDEX.index("getElementById('settings-pw-form')")]
+    settings = FRONTEND[FRONTEND.index("function openSettingsModal("):FRONTEND.index("getElementById('settings-pw-form')")]
     self.assertIn("uiFieldHtml(", settings)
     self.assertIn("uiToggleHtml(", settings)
     self.assertNotRegex(settings, r"settings-toggle|settings-inline-row|settings-grid-2|<label for=")
 
   def test_area_fields_use_the_blocks(self):
-    start = INDEX.index("function areaLocalNameHtml(")
-    fields = INDEX[start:INDEX.index("function openEditAreaModal(")]
+    start = FRONTEND.index("function areaLocalNameHtml(")
+    fields = FRONTEND[start:FRONTEND.index("function openEditAreaModal(")]
     self.assertNotIn("<label for=", fields)
     self.assertNotIn("style=", fields)
 
@@ -377,12 +381,12 @@ class EditForms(unittest.TestCase):
 class PopupMeta(unittest.TestCase):
   def test_status_keeps_its_width_beside_the_label(self):
     # At the text floor a 20 character category outgrows Leaflet's 300px popup.
-    grid = re.search(r"\.popup-meta \{[^}]*grid-template-columns:\s*([^;]+);", INDEX).group(1)
+    grid = re.search(r"\.popup-meta \{[^}]*grid-template-columns:\s*([^;]+);", FRONTEND).group(1)
     self.assertEqual(grid, "auto 1fr auto")
 
   def test_label_wraps_only_past_the_popup_cap(self):
     # A fixed nowrap pushes the status out, and normal wraps before the popup grows.
-    rule = re.search(r"\.popup-meta > :first-child \{([^}]*)\}", INDEX).group(1)
+    rule = re.search(r"\.popup-meta > :first-child \{([^}]*)\}", FRONTEND).group(1)
     self.assertIn("white-space: inherit", rule)
     self.assertNotIn("min-width", rule)
 
@@ -390,19 +394,19 @@ class PopupMeta(unittest.TestCase):
 class PhoneWidth(unittest.TestCase):
   """Settings fits a phone: nothing is clipped and the dialog never scrolls sideways."""
   def test_a_segmented_label_can_wrap(self):
-    self.assertRegex(INDEX, r"\.radio-row\.radio-segmented > label \{[^}]*white-space: normal")
+    self.assertRegex(FRONTEND, r"\.radio-row\.radio-segmented > label \{[^}]*white-space: normal")
 
   def test_settings_tabs_wrap(self):
-    self.assertIn("#settings-tabs { flex-wrap: wrap; }", INDEX)
+    self.assertIn("#settings-tabs { flex-wrap: wrap; }", FRONTEND)
 
   def test_token_rows_leave_their_columns_to_the_stylesheet(self):
-    self.assertNotIn("grid-template-columns:5rem", INDEX)
+    self.assertNotIn("grid-template-columns:5rem", FRONTEND)
 
 
 class TextFloor(unittest.TestCase):
   """Text stays at 0.75rem or above, in a rule or in a style the script builds."""
   FLOOR_REM = 0.75
-  SOURCES = INDEX + UI_CSS
+  SOURCES = FRONTEND + UI_CSS
 
   def under_floor(self, matches):
     rems = [(float(n) / 16 if unit == "px" else float(n), n + unit) for n, unit in matches]
@@ -431,3 +435,15 @@ class TextFloor(unittest.TestCase):
 
 if __name__ == "__main__":
   unittest.main()
+
+
+class ModuleLists(unittest.TestCase):
+  def test_every_module_is_precached(self):
+    # A module left out still works online, then breaks the whole app offline.
+    for path in sorted((ROOT / "app").iterdir()):
+      self.assertIn(f"'/app/{path.name}',", SW)
+
+  def test_every_module_is_preloaded(self):
+    # A module left out still works, one network round trip slower per level.
+    for path in sorted((ROOT / "app").glob("*.js")):
+      self.assertIn(f'<link rel="modulepreload" href="/app/{path.name}">', INDEX)

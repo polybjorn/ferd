@@ -22,27 +22,16 @@ PY
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-# index.html is one giant inline <script>; jscpd picks parsers by extension, so
-# without this it tokenizes the file as HTML and misses the JS duplication we
-# care about. Extract the script to a real .js, padded with leading blank lines
-# so its line numbers map 1:1 back to index.html.
-python3 - "$TMP/index.inline.js" <<'PY'
-import re, sys
-html = open('index.html', encoding='utf-8').read()
-m = re.search(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', html, re.S)
-pad = html[:m.start(1)].count('\n')   # blank lines so content starts on its real line
-open(sys.argv[1], 'w', encoding='utf-8').write('\n' * pad + m.group(1))
-PY
+cp -R app "$TMP/app"
 cp tools/api.py "$TMP/api.py"
 
 echo "== Duplication (jscpd $JSCPD_VERSION) =="
-echo "   (index.inline.js line N == index.html line N)"
 # Defaults skip files >100KB / >1000 lines; ours blow past both, so raise them.
 # Rewrite the temp paths back to the real files and drop jscpd's promo banner.
 npx -y "jscpd@$JSCPD_VERSION" \
   --min-tokens 60 --max-size 5mb --max-lines 50000 \
   -p "**/*.{js,py}" --reporters console "$TMP" 2>&1 \
-  | sed -E "s#[^ ]*/index\.inline\.js#index.html#g; s#[^ ]*/api\.py#tools/api.py#g" \
+  | sed -E "s#[^ ]*/app/#app/#g; s#[^ ]*/api\.py#tools/api.py#g" \
   | grep -vE "Auto-refactor with AI|Gangsta|Support jscpd|opencollective" || true
 
 echo

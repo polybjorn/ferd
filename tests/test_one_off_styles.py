@@ -1,7 +1,7 @@
-"""A ratchet on one-off styling in index.html.
+"""A ratchet on one-off styling in the frontend.
 
 Inline `style=` attributes and `!important` beat every cascade layer, and a
-hard-coded colour skips the theme. Each count below is what index.html holds
+hard-coded colour skips the theme. Each count below is what the frontend holds
 today. A change that adds one fails here: use a ui.css block, a class in
 `@layer app` or a theme token instead. A change that removes some fails too,
 until the number below is lowered to match, so the slack can't be spent again.
@@ -11,7 +11,9 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
+APP_CSS = (ROOT / "app" / "app.css").read_text(encoding="utf-8")
+FRONTEND = "\n".join(p.read_text(encoding="utf-8")
+                     for p in [ROOT / "index.html", *sorted((ROOT / "app").iterdir())])
 
 # Lower these as one-off styles move out. Never raise them.
 MAX_INLINE_STYLES = 74
@@ -21,17 +23,6 @@ MAX_HARDCODED_COLOURS = 12
 COLOUR = re.compile(r"#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?)\(")
 # A theme block defines tokens, so its literals are the theme itself.
 THEME_SELECTOR = re.compile(r"^(?::root|\[data-theme[^{]*\])\s*$")
-
-
-def main_stylesheet(html):
-  """The first <style> in <head>, comments removed.
-
-  The second one styles the old-WebView notice, unlayered and without tokens
-  on purpose, so it is left out.
-  """
-  head = html.split("</head>", 1)[0]
-  css = re.search(r"<style>(.*?)</style>", head, flags=re.S).group(1)
-  return re.sub(r"/\*.*?\*/", "", css, flags=re.S)
 
 
 def declaration_blocks(css):
@@ -69,22 +60,22 @@ class OneOffStyles(unittest.TestCase):
   def check(self, name, count, ceiling):
     self.assertLessEqual(
       count, ceiling,
-      f"index.html now has {count} {name}, over the ceiling of {ceiling}. "
+      f"the frontend now has {count} {name}, over the ceiling of {ceiling}. "
       "Use a ui.css block, a class in @layer app or a theme token instead.")
     self.assertEqual(
       count, ceiling,
-      f"index.html is down to {count} {name}. Lower the ceiling in "
+      f"the frontend is down to {count} {name}. Lower the ceiling in "
       f"tests/test_one_off_styles.py from {ceiling} to {count}.")
 
   def test_inline_styles(self):
-    self.check("inline style= attributes", count_inline_styles(INDEX), MAX_INLINE_STYLES)
+    self.check("inline style= attributes", count_inline_styles(FRONTEND), MAX_INLINE_STYLES)
 
   def test_important(self):
-    self.check("!important declarations", count_important(INDEX), MAX_IMPORTANT)
+    self.check("!important declarations", count_important(FRONTEND), MAX_IMPORTANT)
 
   def test_hardcoded_colours(self):
     self.check("hard-coded colours outside the theme blocks",
-               count_hardcoded_colours(main_stylesheet(INDEX)), MAX_HARDCODED_COLOURS)
+               count_hardcoded_colours(re.sub(r"/\*.*?\*/", "", APP_CSS, flags=re.S)), MAX_HARDCODED_COLOURS)
 
 
 class Counting(unittest.TestCase):

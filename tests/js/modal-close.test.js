@@ -1,16 +1,16 @@
 'use strict';
 // Runs the real closeOnBackdropClick, showErrorBox and requestCloseTopModal out
-// of index.html.
+// of the app modules.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const html = fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8');
+const app = require('./app-source');
 function fn(name) {
-  const m = new RegExp(`^( {4}function ${name}\\([\\s\\S]*?^ {4}\\})$`, 'm').exec(html);
-  assert.ok(m, `${name} not found in index.html`);
+  const m = new RegExp(`^(function ${name}\\([\\s\\S]*?^\\})$`, 'm').exec(app);
+  assert.ok(m, `${name} not found in app/`);
   return m[1];
 }
 const ctx = { modalStack: [] };
@@ -81,6 +81,6 @@ test('a close request with no modal open reports false, so the app can go back',
 test('the Android app calls the name the page exposes', () => {
   const activity = fs.readFileSync(path.join(__dirname, '..', '..',
     'android/app/src/main/java/io/github/polybjorn/ferd/MainActivity.kt'), 'utf8');
-  assert.match(html, /window\.ferdCloseTopModal = requestCloseTopModal;/);
+  assert.match(app, /window\.ferdCloseTopModal = requestCloseTopModal;/);
   assert.match(activity, /window\.ferdCloseTopModal\(\)/);
 });

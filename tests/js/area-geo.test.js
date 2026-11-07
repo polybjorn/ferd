@@ -1,5 +1,5 @@
 'use strict';
-// Runs the area parser and geometry helpers straight out of index.html,
+// Runs the area parser and geometry helpers straight out of the app modules,
 // between the AREA-GEO markers.
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -7,9 +7,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-const html = fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8');
-const m = /AREA-GEO-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ AREA-GEO-END/.exec(html);
-assert.ok(m, 'AREA-GEO markers not found in index.html');
+const app = require('./app-source');
+const m = /AREA-GEO-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ AREA-GEO-END/.exec(app);
+assert.ok(m, 'AREA-GEO markers not found in app/');
 const ctx = { Math, JSON, Array, Uint8Array, Error, console };
 vm.createContext(ctx);
 vm.runInContext(m[1] + `

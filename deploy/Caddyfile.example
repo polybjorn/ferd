@@ -27,6 +27,10 @@ ferd.example.com {
     @blocked path /tools/app.db /tools/config.json
     respond @blocked 404
 
+    # The modules import each other by plain URL, so a browser that guesses a
+    # lifetime for one can run it against a newer page.
+    header /app/* Cache-Control "no-cache"
+
     # Static site with SPA-style fallback.
     try_files {path} {path}/ /index.html
     file_server
