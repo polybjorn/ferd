@@ -35,7 +35,8 @@ class ParseTest(unittest.TestCase):
             self.assertEqual(typecheck.read_baseline(path), counts)
 
     def test_committed_baseline_parses(self):
-        self.assertTrue(typecheck.read_baseline(typecheck.BASELINE))
+        # Empty once the last error went; it must still read without raising.
+        self.assertIsInstance(typecheck.read_baseline(typecheck.BASELINE), Counter)
 
 
 if __name__ == "__main__":
