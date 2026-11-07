@@ -11,12 +11,14 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from ferd_api import store  # noqa: E402
 from ferd_api.common import nfc_component  # noqa: E402
 from ferd_api.db import db_connect, db_init  # noqa: E402
 from ferd_api.nfc import merge_metadata, merge_nfd_routes  # noqa: E402
 from ferd_api.users import create_user  # noqa: E402
+from fs_probe import FOLDS_REASON, folds_unicode_names  # noqa: E402
 
 NFC_NAME = unicodedata.normalize("NFC", "Kjølen–Åsen")
 NFD_NAME = unicodedata.normalize("NFD", NFC_NAME)
@@ -24,6 +26,9 @@ NFC_REGION = unicodedata.normalize("NFC", "Måløy")
 NFD_REGION = unicodedata.normalize("NFD", NFC_REGION)
 GPX = b'<gpx version="1.1"><trk><name>a</name></trk></gpx>'
 OTHER_GPX = b'<gpx version="1.1"><trk><name>b</name></trk></gpx>'
+
+# For tests that write both spellings of a name to disk.
+both_spellings = unittest.skipIf(folds_unicode_names(), FOLDS_REASON)
 
 
 class NfcCase(unittest.TestCase):
@@ -78,6 +83,7 @@ class TestMergeMetadata(unittest.TestCase):
 
 
 class TestMergePass(NfcCase):
+  @both_spellings
   def test_identical_pair_merges_into_the_composed_key(self):
     self.put_gpx(NFC_REGION, NFC_NAME)
     self.put_gpx(NFC_REGION, NFD_NAME)
@@ -91,6 +97,7 @@ class TestMergePass(NfcCase):
     self.assertEqual(self.files(), [f"{NFC_REGION}/{NFC_NAME}.gpx"])
     self.assertEqual(self.metadata(), {key: {"source": "https://x.test/", "rating": 4, "date_completed": "2025-07-01"}})
 
+  @both_spellings
   def test_pass_is_idempotent(self):
     self.put_gpx("", NFC_NAME)
     self.put_gpx("", NFD_NAME)
@@ -103,6 +110,7 @@ class TestMergePass(NfcCase):
     self.assertEqual(self.files(), files)
     self.assertEqual(self.metadata(), {NFC_NAME: {"rating": 2}})
 
+  @both_spellings
   def test_planned_track_pair_merges(self):
     # The NFC copy has the walked track, the NFD copy the same walked track
     # plus the planned one under its own spelling.
@@ -113,6 +121,7 @@ class TestMergePass(NfcCase):
     self.assertEqual(self.files(), sorted([f"{NFC_REGION}/{NFC_NAME}.gpx", f"{NFC_REGION}/{NFC_NAME}.planned.gpx"]))
     self.assertEqual((self.gpx / NFC_REGION / f"{NFC_NAME}.planned.gpx").read_bytes(), OTHER_GPX)
 
+  @both_spellings
   def test_equal_planned_tracks_under_both_spellings_merge(self):
     for name in (NFC_NAME, NFD_NAME):
       self.put_gpx("", name, suffix=".planned.gpx")
@@ -127,6 +136,7 @@ class TestMergePass(NfcCase):
     self.assertFalse((self.gpx / NFD_REGION).exists())
     self.assertEqual(self.metadata(), {f"{NFC_REGION}/{NFC_NAME}": {"rating": 5}})
 
+  @both_spellings
   def test_different_gpx_bytes_are_left_alone(self):
     self.put_gpx("", NFC_NAME)
     self.put_gpx("", NFD_NAME, OTHER_GPX)
@@ -135,6 +145,7 @@ class TestMergePass(NfcCase):
     self.assertEqual(self.files(), sorted([f"{NFC_NAME}.gpx", f"{NFD_NAME}.gpx"]))
     self.assertEqual(self.metadata(), {NFD_NAME: {"rating": 4}})
 
+  @both_spellings
   def test_conflicting_metadata_keeps_both_copies(self):
     self.put_gpx("", NFC_NAME)
     self.put_gpx("", NFD_NAME)

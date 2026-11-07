@@ -7,7 +7,7 @@ from urllib.parse import parse_qs, urlparse
 
 from .. import store
 from ..areas import validate_area
-from ..common import ValidationError, safe_path_component
+from ..common import ValidationError, nfc_route_key, safe_path_component
 from ..labels import clean_category_labels
 from ..places import PLACE_ID_RE, validate_place
 from ..routes import validate_route_metadata
@@ -35,6 +35,15 @@ def _clean_metadata_key(key: str) -> str:
     raise ValidationError("metadata id must be 'Region/Route name' or 'Route name'")
   for p in parts:
     safe_path_component(p)
+  return key
+
+
+def _metadata_key(conn, user_id: int, key: str) -> str:
+  """The key a metadata write lands under: composed, as PUT /api/metadata
+  stores it, unless the key as sent is a route still stored decomposed."""
+  key = _clean_metadata_key(key)
+  if store.get_item(conn, user_id, "route", key) is None:
+    key = nfc_route_key(key)
   return key
 
 
@@ -111,7 +120,7 @@ class SyncMixin:
           raise ValidationError(f"kind must be one of {', '.join(store.CLIENT_KINDS)}")
         item_id = _check_id(kind, change.get("id"))
         if kind == "metadata":
-          item_id = _clean_metadata_key(item_id)
+          item_id = _metadata_key(self.conn, user["id"], item_id)
         if op == "put":
           value = _prepare_put(kind, item_id, change.get("data"))
           op = "put" if value is not None else "delete"

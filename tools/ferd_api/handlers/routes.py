@@ -462,12 +462,20 @@ class RoutesMixin:
       return self._error(HTTPStatus.BAD_REQUEST, "invalid path")
     if not file_safe.lower().endswith(".gpx"):
       return self._error(HTTPStatus.BAD_REQUEST, "expected .gpx")
-    parts = (region_safe, file_safe) if region_safe else (file_safe,)
-    try:
-      target = resolve_under(udir / "gpx", *parts)
-    except ValidationError:
-      return self._error(HTTPStatus.BAD_REQUEST, "invalid path")
-    if not target.exists() or not target.is_file():
+    # Names are stored composed, so a decomposed URL (a client holding a
+    # route list from before the merge) finds the composed file. The spelling
+    # as sent is the fallback, for a route the merge left decomposed.
+    target = None
+    for spelling in (nfc_route_key, str):
+      parts = tuple(spelling(p) for p in (region_safe, file_safe) if p)
+      try:
+        candidate = resolve_under(udir / "gpx", *parts)
+      except ValidationError:
+        return self._error(HTTPStatus.BAD_REQUEST, "invalid path")
+      if candidate.is_file():
+        target = candidate
+        break
+    if target is None:
       return self._error(HTTPStatus.NOT_FOUND, "not found")
     try:
       data = target.read_bytes()

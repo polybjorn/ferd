@@ -30,8 +30,10 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "tools"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from ferd_api import store  # noqa: E402
+from fs_probe import FOLDS_REASON, folds_unicode_names  # noqa: E402
 
 API_SCRIPT = REPO_ROOT / "tools" / "api.py"
 
@@ -1371,6 +1373,41 @@ class TestNfcNames(unittest.TestCase):
     self.assertEqual(status, 200, body)
     self.assertEqual(stored("metadata"), {NFD_ROUTE: {"rating": 2}})
 
+  def test_sync_batch_stores_a_decomposed_metadata_id_composed(self):
+    status, body = self.c.request("POST", "/api/sync/batch", {"changes": [
+      {"kind": "metadata", "id": f"R/{NFD_ROUTE}", "op": "put", "data": {"rating": 4}},
+    ]})
+    self.assertEqual(status, 200, body)
+    self.assertEqual(body["results"][0]["id"], f"R/{NFC_ROUTE}")
+    status, body = self.c.request("POST", "/api/sync/batch", {"changes": [
+      {"kind": "metadata", "id": f"R/{NFC_ROUTE}", "op": "put", "data": {"rating": 5}},
+    ]})
+    self.assertEqual(status, 200, body)
+    self.assertEqual(stored("metadata"), {f"R/{NFC_ROUTE}": {"rating": 5}})
+
+  def test_sync_batch_keeps_the_key_of_a_route_still_stored_decomposed(self):
+    conn = store_conn()
+    self.addCleanup(conn.close)
+    store.put_item(conn, user_id(), "route", NFD_ROUTE, {"region": "", "key": NFD_ROUTE, "name": NFD_ROUTE})
+    self.addCleanup(store.delete_item, conn, user_id(), "route", NFD_ROUTE)
+    status, body = self.c.request("POST", "/api/sync/batch", {"changes": [
+      {"kind": "metadata", "id": NFD_ROUTE, "op": "put", "data": {"rating": 2}},
+    ]})
+    self.assertEqual(status, 200, body)
+    self.assertEqual(stored("metadata"), {NFD_ROUTE: {"rating": 2}})
+
+  def test_gpx_get_with_a_decomposed_url_serves_the_composed_file(self):
+    q = urllib.parse.urlencode({"region": NFC_ROUTE, "name": NFC_ROUTE})
+    self.assertEqual(self.c.request("POST", f"/api/gpx?{q}", raw_body=GPX_BODY, content_type="application/gpx+xml")[0], 201)
+    for region in (NFC_ROUTE, NFD_ROUTE):
+      for name in (NFC_ROUTE, NFD_ROUTE):
+        path = "/api/gpx/" + urllib.parse.quote(region) + "/" + urllib.parse.quote(name + ".gpx")
+        req = urllib.request.Request(_server.base_url + path)
+        with self.c.opener.open(req, timeout=10) as r:
+          self.assertEqual(r.status, 200)
+          self.assertIn(b"<gpx", r.read())
+
+  @unittest.skipIf(folds_unicode_names(), FOLDS_REASON)
   def test_import_merges_a_decomposed_route_into_the_composed_one(self):
     gpx = GPX_BODY
     buf = io.BytesIO()
