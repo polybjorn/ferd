@@ -15,7 +15,7 @@ function slugifyCategory(s) {
 export function openManageCategoriesModal() {
   const labels = state.config.category_labels || {};
   // Uncategorized ('') isn't a manageable slug — drop it.
-  const slugsFromPlaces = [...new Set((state.places || []).concat(state.areas || []).map(p => p.category).filter(Boolean))];
+  const slugsFromPlaces = [...new Set([...(state.places || []), ...(state.areas || [])].map(p => p.category).filter(Boolean))];
   const allSlugs = [...new Set([...Object.keys(labels), ...slugsFromPlaces])];
   // Stored `order` (if any) wins; entries without one fall to the end,
   // ordered alphabetically by slug so the modal stays deterministic.
@@ -386,7 +386,7 @@ export function openManageCategoriesModal() {
         // save - confirm before that destructive bulk edit.
         if (pendingClears.size) {
           const slugs = [...pendingClears];
-          const total = state.places.concat(state.areas || []).filter(p => slugs.includes(p.category)).length;
+          const total = [...state.places, ...(state.areas || [])].filter(p => slugs.includes(p.category)).length;
           const many = slugs.length > 1;
           openConfirmModal({
             title: 'Remove ' + (many ? 'categories' : 'category') + ' in use?',
