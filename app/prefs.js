@@ -172,8 +172,7 @@ export function clearRecentPicks() {
 export function refreshTabVisibility() {
   const tabPlaces = document.getElementById('tab-places');
   const tabTrails = document.getElementById('tab-routes');
-  // The count moved to the list-page search box (see setResultCount); tabs
-  // are just the plain labels now.
+  // The count sits in the list page's search box, so a tab is its label.
   if (tabPlaces) { tabPlaces.style.display = placesEnabled() ? '' : 'none'; tabPlaces.textContent = 'Places'; }
   if (tabTrails) { tabTrails.style.display = routesEnabled() ? '' : 'none'; tabTrails.textContent = 'Routes'; }
   const tabHistory = document.getElementById('tab-history');
@@ -190,10 +189,4 @@ export function refreshTabVisibility() {
   // switch to nothing.
   const bar = document.getElementById('bottom-bar');
   if (bar) bar.hidden = !Object.values(shown).some(Boolean) && !(search && !search.hidden);
-}
-
-// Set the live count pinned inside a list page's search box.
-export function setResultCount(n) {
-  const el = document.getElementById('result-count');
-  if (el) el.textContent = n;
 }

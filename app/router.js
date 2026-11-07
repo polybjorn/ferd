@@ -71,10 +71,6 @@ export function router() {
 // current view. The map's Add action now lives in the nav (renderUnifiedMap
 // populates #nav-actions), so there's no floating button to re-mount.
 export function wrappedRouter() { router(); }
-// Every page but history follows the store's signals.
-export function rerenderStaticPage() {
-  if ((location.hash || '#/').split('?')[0] === '#/history') wrappedRouter();
-}
 // Flag in-app hash navigations (clicks) vs the initial load (reload), so a
 // place focus from a click centers the map on the pin, while a reload at a
 // place URL keeps the user's prior/remembered view.

@@ -3,10 +3,10 @@ import { isReadOnly } from './server.js';
 import { setPref } from './prefs.js';
 import { wirePopover } from './map/index.js';
 import { _selPopover, closeSelectPopover, enhanceSelectsIn, openMultiSelectList } from './select.js';
-import { listView } from './history.js';
+import { listView, listViewOptions } from './history.js';
 import { html, useEffect, useLayoutEffect, useRef, useState } from './view.js';
 
-// Controls the Places and Routes pages share: the search box, the filter and
+// Controls the Places, Routes and History pages share: the search box, the filter and
 // view popovers, and the Add button in the nav.
 
 /**
@@ -74,7 +74,6 @@ function FilterPopover({ active, onClear, children }) {
   </div>`;
 }
 
-const VIEW_OPTIONS = [['grid', 'Grid'], ['compact', 'Compact'], ['gallery', 'Gallery']];
 /** @param {{ kind: string, onView: () => void }} props */
 function ViewPopover({ kind, onView }) {
   const btn = useRef(/** @type {HTMLButtonElement | null} */ (null));
@@ -91,7 +90,7 @@ function ViewPopover({ kind, onView }) {
   return html`<div class="filter-dropdown">
     <button type="button" class="filter-btn" id="view-btn" aria-haspopup="true" aria-expanded="false" ref=${btn}>View</button>
     <div class="filter-popover" id="view-popover" hidden ref=${pop}>
-      ${VIEW_OPTIONS.map(o => html`<button type="button" key=${o[0]} class=${'view-option' + (cur === o[0] ? ' active' : '')} data-view=${o[0]} onClick=${() => pick(o[0])}>${o[1]}</button>`)}
+      ${listViewOptions(kind).map(o => html`<button type="button" key=${o[0]} class=${'view-option' + (cur === o[0] ? ' active' : '')} data-view=${o[0]} onClick=${() => pick(o[0])}>${o[1]}</button>`)}
     </div>
   </div>`;
 }

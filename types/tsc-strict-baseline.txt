@@ -121,17 +121,11 @@
 1	app/countries.js	TS7031	Binding element 'countries' implicitly has an 'any' type.
 1	app/countries.js	TS7031	Binding element 'names' implicitly has an 'any' type.
 1	app/countries.js	TS7034	Variable 'rows' implicitly has type 'any[]' in some locations where its type cannot be determined.
-1	app/history.js	TS7005	Variable 'all' implicitly has an 'any[]' type.
 1	app/history.js	TS7006	Parameter 'canvas' implicitly has an 'any' type.
-2	app/history.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-3	app/history.js	TS7006	Parameter 'kind' implicitly has an 'any' type.
 1	app/history.js	TS7006	Parameter 'name' implicitly has an 'any' type.
-1	app/history.js	TS7006	Parameter 'onApply' implicitly has an 'any' type.
 2	app/history.js	TS7006	Parameter 'parent' implicitly has an 'any' type.
 1	app/history.js	TS7006	Parameter 'route' implicitly has an 'any' type.
 1	app/history.js	TS7006	Parameter 'text' implicitly has an 'any' type.
-1	app/history.js	TS7018	Object literal's property 'items' implicitly has an 'any[]' type.
-1	app/history.js	TS7034	Variable 'all' implicitly has type 'any[]' in some locations where its type cannot be determined.
 1	app/i18n.js	TS7006	Parameter 'i' implicitly has an 'any' type.
 3	app/i18n.js	TS7006	Parameter 'key' implicitly has an 'any' type.
 2	app/i18n.js	TS7006	Parameter 'piece' implicitly has an 'any' type.
@@ -512,7 +506,6 @@
 2	app/prefs.js	TS7006	Parameter 'hidden' implicitly has an 'any' type.
 2	app/prefs.js	TS7006	Parameter 'id' implicitly has an 'any' type.
 7	app/prefs.js	TS7006	Parameter 'key' implicitly has an 'any' type.
-1	app/prefs.js	TS7006	Parameter 'n' implicitly has an 'any' type.
 3	app/prefs.js	TS7006	Parameter 'name' implicitly has an 'any' type.
 1	app/prefs.js	TS7006	Parameter 'onChange' implicitly has an 'any' type.
 1	app/prefs.js	TS7006	Parameter 'pick' implicitly has an 'any' type.

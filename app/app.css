@@ -825,7 +825,7 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 .filter-popover[hidden] { display: none; }
 .filter-popover label { display: block; font-size: var(--ui-text-xs); color: var(--muted); margin-bottom: var(--ui-space-1); text-transform: uppercase; letter-spacing: 0.05em; }
-#hist-view-popover, #view-popover { min-width: 8rem; gap: var(--ui-space-1); padding: var(--ui-space-2); }
+#view-popover { min-width: 8rem; gap: var(--ui-space-1); padding: var(--ui-space-2); }
 .filter-popover .view-option { display: block; width: 100%; text-align: left; background: transparent; border: none; border-radius: var(--radius); color: var(--text); font-family: inherit; font-size: var(--ui-text-sm); padding: var(--ui-space-2) var(--ui-space-2); cursor: pointer; }
 .filter-popover .view-option:hover { background: var(--surface2); }
 .filter-popover .view-option.active { color: var(--accent); font-weight: 600; }
