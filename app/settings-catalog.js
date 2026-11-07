@@ -16,7 +16,7 @@ export function openCatalogManager() {
       '<button type="button" id="cat-mgr-clear" class="ui-button ui-button-danger">Remove all</button>' +
     '</div>',
     function() {
-      const filter = document.getElementById('cat-mgr-filter');
+      const filter = /** @type {HTMLInputElement} */ (document.getElementById('cat-mgr-filter'));
       const list = document.getElementById('cat-mgr-list');
 
       const countEl = document.getElementById('cat-mgr-count');
@@ -57,7 +57,7 @@ export function openCatalogManager() {
           }).join('') + '</ul>';
           list.querySelectorAll('button[data-act="catalog-delete"]').forEach(btn => {
             btn.addEventListener('click', /** @this {HTMLButtonElement} */ function() {
-              const name = this.closest('.user-row').dataset.name;
+              const name = /** @type {HTMLElement} */ (this.closest('.user-row')).dataset.name;
               openConfirmModal({
                 title: 'Remove from catalog',
                 body: 'Remove "' + name + '" from the site catalog? Users who already imported it keep their copy.',
@@ -74,7 +74,7 @@ export function openCatalogManager() {
           });
           list.querySelectorAll('button[data-act="catalog-hide"]').forEach(btn => {
             btn.addEventListener('click', /** @this {HTMLButtonElement} */ function() {
-              const name = this.closest('.user-row').dataset.name;
+              const name = /** @type {HTMLElement} */ (this.closest('.user-row')).dataset.name;
               const wantHidden = this.dataset.hidden !== '1';
               this.disabled = true;
               api('POST', '/admin/catalog/hide', { name, hidden: wantHidden })
@@ -90,7 +90,7 @@ export function openCatalogManager() {
 
       function applyFilter() {
         const q = filter.value.trim().toLowerCase();
-        list.querySelectorAll('.user-row').forEach(row => {
+        /** @type {NodeListOf<HTMLElement>} */ (list.querySelectorAll('.user-row')).forEach(row => {
           row.style.display = (!q || row.textContent.toLowerCase().includes(q)) ? '' : 'none';
         });
       }
@@ -101,7 +101,7 @@ export function openCatalogManager() {
         const on = list.classList.toggle('show-notes');
         this.textContent = on ? 'Hide notes' : 'Show notes';
       });
-      const clearBtn = document.getElementById('cat-mgr-clear');
+      const clearBtn = /** @type {HTMLButtonElement} */ (document.getElementById('cat-mgr-clear'));
       if (clearBtn) {
         clearBtn.addEventListener('click', function() {
           openConfirmModal({
@@ -168,17 +168,17 @@ function renderCatalogPicker(places) {
       '<button type="button" class="ui-button ui-button-primary" id="cat-submit" disabled>Add selected</button>' +
     '</div>',
     function() {
-      const filter = document.getElementById('cat-filter');
+      const filter = /** @type {HTMLInputElement} */ (document.getElementById('cat-filter'));
       const list = document.getElementById('cat-list');
-      const submit = document.getElementById('cat-submit');
-      const selectAll = document.getElementById('cat-select-all');
+      const submit = /** @type {HTMLButtonElement} */ (document.getElementById('cat-submit'));
+      const selectAll = /** @type {HTMLButtonElement} */ (document.getElementById('cat-select-all'));
       const status = document.getElementById('cat-status');
       // state.places carries runtime annotations (`_slug`, normalized empty
       // `category`) that aren't part of the server-side place schema; only
       // forward the documented fields.
       const ALLOWED = ['name', 'lat', 'lon', 'category', 'country', 'visited', 'note', 'sources', 'local_name', 'date_visited', 'rating'];
       function visibleRows() {
-        return Array.from(list.querySelectorAll('.browse-row')).filter(r => r.style.display !== 'none');
+        return Array.from(/** @type {NodeListOf<HTMLElement>} */ (list.querySelectorAll('.browse-row'))).filter(r => r.style.display !== 'none');
       }
       function cleanPlace(p) {
         const out = {};
@@ -193,14 +193,14 @@ function renderCatalogPicker(places) {
         submit.disabled = checked === 0;
         submit.textContent = checked ? 'Add ' + checked + ' selected' : 'Add selected';
         const vis = visibleRows();
-        const visChecked = vis.filter(r => { const cb = r.querySelector('.cat-pick'); return cb && cb.checked; }).length;
+        const visChecked = vis.filter(r => { const cb = /** @type {HTMLInputElement | null} */ (r.querySelector('.cat-pick')); return cb && cb.checked; }).length;
         selectAll.disabled = vis.length === 0;
         selectAll.textContent = (vis.length > 0 && visChecked === vis.length) ? 'Deselect all' : 'Select all';
       }
       list.addEventListener('change', updateBtns);
       filter.addEventListener('input', function() {
         const q = this.value.trim().toLowerCase();
-        list.querySelectorAll('.browse-row').forEach(row => {
+        /** @type {NodeListOf<HTMLElement>} */ (list.querySelectorAll('.browse-row')).forEach(row => {
           row.style.display = (!q || row.textContent.toLowerCase().includes(q)) ? 'flex' : 'none';
         });
         updateBtns();
@@ -239,7 +239,7 @@ function renderCatalogPicker(places) {
           });
       }
       submit.addEventListener('click', function() {
-        const picks = Array.from(list.querySelectorAll('.cat-pick:checked'))
+        const picks = Array.from(/** @type {NodeListOf<HTMLInputElement>} */ (list.querySelectorAll('.cat-pick:checked')))
           .map(cb => places[parseInt(cb.dataset.idx, 10)])
           .filter(Boolean)
           .map(cleanPlace);
@@ -247,8 +247,8 @@ function renderCatalogPicker(places) {
       });
       selectAll.addEventListener('click', function() {
         const vis = visibleRows();
-        const allChecked = vis.length > 0 && vis.every(r => { const cb = r.querySelector('.cat-pick'); return cb && cb.checked; });
-        vis.forEach(r => { const cb = r.querySelector('.cat-pick'); if (cb) cb.checked = !allChecked; });
+        const allChecked = vis.length > 0 && vis.every(r => { const cb = /** @type {HTMLInputElement | null} */ (r.querySelector('.cat-pick')); return cb && cb.checked; });
+        vis.forEach(r => { const cb = /** @type {HTMLInputElement | null} */ (r.querySelector('.cat-pick')); if (cb) cb.checked = !allChecked; });
         updateBtns();
       });
       const notesToggle = document.getElementById('cat-notes-toggle');

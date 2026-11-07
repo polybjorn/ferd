@@ -189,7 +189,7 @@ function openAreaPopup(map, area, latlng) {
   const popup = L.popup({ closeButton: false }).setLatLng(latlng).setContent(content).openOn(map);
   const edit = content.querySelector('.popup-edit');
   if (edit) edit.addEventListener('click', function() { map.closePopup(); openEditAreaModal(area); });
-  const list = content.querySelector('.popup-area-list');
+  const list = /** @type {HTMLElement} */ (content.querySelector('.popup-area-list'));
   // Items are {label, done, go}. No items leaves plain text: nothing to open.
   const fillCount = function(slot, text, items) {
     if (!items.length) { slot.textContent = text; return; }
@@ -261,10 +261,10 @@ export function revealArea(map, id) {
 }
 // The fields the Add and Edit forms share, read from the given id prefix.
 export function readAreaFormFields(prefix) {
-  const payload = { visited: document.getElementById(prefix + '-visited').checked };
+  const payload = { visited: /** @type {HTMLInputElement} */ (document.getElementById(prefix + '-visited')).checked };
   const category = readSelectOrNew(prefix + '-category');
   if (category) payload.category = category;
-  const noteEl = document.getElementById(prefix + '-note');
+  const noteEl = /** @type {HTMLTextAreaElement} */ (document.getElementById(prefix + '-note'));
   const note = noteEl ? noteEl.value.trim() : '';
   if (note) payload.note = note;
   return payload;
@@ -272,7 +272,7 @@ export function readAreaFormFields(prefix) {
 // Settings > Optional fields can leave the input out of the form, and a
 // save replaces the whole area, so `kept` is what survives it.
 export function readAreaLocalName(prefix, kept) {
-  const el = document.getElementById(prefix + '-local-name');
+  const el = /** @type {HTMLInputElement} */ (document.getElementById(prefix + '-local-name'));
   return el ? el.value.trim() : (kept || '');
 }
 function areaLocalNameHtml(prefix, value) {
@@ -315,7 +315,7 @@ function openEditAreaModal(area) {
       wireSelectOrNew('ea-category');
       const done = () => refreshAreas().then(() => { closeModal(); refreshPlacesPresentation(); });
       document.getElementById('ea-delete').addEventListener('click', function() {
-        const btn = this;
+        const btn = /** @type {HTMLButtonElement} */ (this);
         openConfirmModal({ title: 'Delete area?', body: 'Delete "' + area.name + '"?', confirmLabel: 'Delete', danger: true }).then(ok => {
           if (!ok) return;
           btn.disabled = true;
@@ -336,7 +336,7 @@ function openEditAreaModal(area) {
       document.getElementById('edit-area-form').addEventListener('submit', function(e) {
         e.preventDefault();
         const payload = Object.assign(readAreaFormFields('ea'), {
-          name: document.getElementById('ea-name').value.trim(),
+          name: /** @type {HTMLInputElement} */ (document.getElementById('ea-name')).value.trim(),
           geometry: area.geometry,
         });
         // A note hidden via Settings > Optional fields isn't in the form,
@@ -345,7 +345,7 @@ function openEditAreaModal(area) {
         const local = readAreaLocalName('ea', area.local_name);
         if (local) payload.local_name = local;
         if (area.source) payload.source = area.source;
-        const submit = document.getElementById('ea-submit');
+        const submit = /** @type {HTMLButtonElement} */ (document.getElementById('ea-submit'));
         submit.disabled = true;
         dataLayer.updateArea({ id: area.id, area: payload }).then(done)
           .catch(err => { submit.disabled = false; showModalError(err.message); });

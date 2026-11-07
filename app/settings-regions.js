@@ -123,7 +123,7 @@ export function openManageRegionsModal() {
       refreshSaveBtn();
 
       document.getElementById('rgn-save').addEventListener('click', function() {
-        const submit = this;
+        const submit = /** @type {HTMLButtonElement} */ (this);
         submit.disabled = true;
         const err = document.getElementById('rgn-error');
         err.classList.remove('visible');

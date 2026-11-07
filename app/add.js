@@ -62,7 +62,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
       document.querySelectorAll('#add-tabs button[data-tab]').forEach(b => {
         b.addEventListener('click', function() {
           tab = this.dataset.tab;
-          document.querySelectorAll('#add-tabs button[data-tab]').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
+          /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#add-tabs button[data-tab]')).forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
           renderTab();
         });
       });
@@ -218,7 +218,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
     wireSelectOrNew('p-category');
     wireCountryPicker('p-country');
     wireStarRating('p-rating');
-    const visitedCb = document.getElementById('p-visited');
+    const visitedCb = /** @type {HTMLInputElement} */ (document.getElementById('p-visited'));
     const visitedExtras = document.getElementById('p-visited-extras');
     if (visitedCb && visitedExtras) {
       visitedCb.addEventListener('change', function() {
@@ -229,7 +229,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
       // Snapshot current form values so they survive the close+reopen around
       // the map click. Coordinates aren't set yet (that's why the user is
       // picking), so this can't reuse readPlaceFormFields, which requires them.
-      const $ = id => document.getElementById('p-' + id);
+      const $ = id => /** @type {HTMLInputElement} */ (document.getElementById('p-' + id));
       const val = id => { const el = $(id); return el ? el.value : ''; };
       const sourcesRaw = val('sources').trim();
       const snapshot = {
@@ -268,7 +268,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
       e.preventDefault();
       const r = readPlaceFormFields('p');
       if (r.error) { showModalError(r.error); return; }
-      const submitBtn = document.getElementById('place-submit');
+      const submitBtn = /** @type {HTMLButtonElement} */ (document.getElementById('place-submit'));
       submitBtn.disabled = true;
       const prevColors = Object.assign({}, state.categoryColors);
       dataLayer.createPlace(r.payload)
@@ -352,17 +352,17 @@ export function openAddModal(prefillCoords, initialTab, draft) {
   }
   function wireAreaForm() {
     wireSelectOrNew('a-category');
-    const fileInput = document.getElementById('a-file');
+    const fileInput = /** @type {HTMLInputElement} */ (document.getElementById('a-file'));
     const fileName = document.getElementById('a-file-name');
     const info = document.getElementById('a-file-info');
     const splitRow = document.getElementById('a-split-row');
-    const split = document.getElementById('a-split');
+    const split = /** @type {HTMLInputElement} */ (document.getElementById('a-split'));
     const nameRow = document.getElementById('a-name-row');
-    const nameEl = document.getElementById('a-name');
+    const nameEl = /** @type {HTMLInputElement} */ (document.getElementById('a-name'));
     const errorEl = document.getElementById('area-error');
-    const localEl = document.getElementById('a-local-name');
-    const searchEl = document.getElementById('a-search');
-    const searchGo = document.getElementById('a-search-go');
+    const localEl = /** @type {HTMLInputElement} */ (document.getElementById('a-local-name'));
+    const searchEl = /** @type {HTMLInputElement} */ (document.getElementById('a-search'));
+    const searchGo = /** @type {HTMLButtonElement} */ (document.getElementById('a-search-go'));
     const creditEl = document.getElementById('a-results-credit');
     const infoBtn = document.getElementById('a-search-info');
     const noteEl = document.getElementById('a-search-note');
@@ -392,7 +392,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
     const moreEl = document.getElementById('a-results-more');
     let parsed = null;
     let pickedLocal = '';
-    const categoryEl = document.getElementById('a-category');
+    const categoryEl = /** @type {HTMLSelectElement} */ (document.getElementById('a-category'));
     let autoCategory = '';
     let autoOption = null;
     // Places share this list, so only AREA_CATEGORY_KINDS may add to it:
@@ -440,7 +440,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
     // The other rows stay rendered until the end so they can fade while the
     // picked one slides between its place in the list and the top.
     const foldResults = (row, fold) => {
-      const rows = Array.from(resultsEl.querySelectorAll('.area-result'));
+      const rows = Array.from(/** @type {NodeListOf<HTMLElement>} */ (resultsEl.querySelectorAll('.area-result')));
       const others = rows.filter(b => b !== row);
       if (others.every(b => b.hidden === fold)) return;
       const motion = ++resultsMotion;
@@ -474,7 +474,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
       nameEl.value = result.name;
       if (localEl) localEl.value = result.localName;
       pickCategory(result.kind);
-      const rows = resultsEl.querySelectorAll('.area-result');
+      const rows = /** @type {NodeListOf<HTMLElement>} */ (resultsEl.querySelectorAll('.area-result'));
       rows.forEach(b => b.setAttribute('aria-pressed', String(b === row)));
       foldResults(row, true);
       moreEl.textContent = 'Show all ' + rows.length + ' results';
@@ -566,7 +566,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
       const local = readAreaLocalName('a', pickedLocal);
       if (local && items.length === 1 && !split.checked) items[0].local_name = local;
       if (parsed.osm) for (const item of items) item.source = 'osm';
-      const submit = document.getElementById('area-submit');
+      const submit = /** @type {HTMLButtonElement} */ (document.getElementById('area-submit'));
       submit.disabled = true;
       const before = new Set((state.areas || []).map(a => a.id));
       items.reduce((chain, area) => chain.then(() => dataLayer.createArea(area)), Promise.resolve())
@@ -588,7 +588,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
   function wireGpxForm() {
     wireSelectOrNew('g-region');
     wireStarRating('g-rating');
-    const fileInput = document.getElementById('g-file');
+    const fileInput = /** @type {HTMLInputElement} */ (document.getElementById('g-file'));
     const filePick = document.getElementById('g-file-pick');
     const fileName = document.getElementById('g-file-name');
     if (filePick) filePick.addEventListener('click', function() { fileInput.click(); });
@@ -602,7 +602,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
         fileName.classList.remove('has-file');
       }
     });
-    const completedCb = document.getElementById('g-completed');
+    const completedCb = /** @type {HTMLInputElement} */ (document.getElementById('g-completed'));
     const completedExtras = document.getElementById('g-completed-extras');
     if (completedCb && completedExtras) {
       completedCb.addEventListener('change', function() {
@@ -611,19 +611,19 @@ export function openAddModal(prefillCoords, initialTab, draft) {
     }
     document.getElementById('gpx-form').addEventListener('submit', function(e) {
       e.preventDefault();
-      const file = document.getElementById('g-file').files[0];
+      const file = /** @type {HTMLInputElement} */ (document.getElementById('g-file')).files[0];
       const region = readSelectOrNew('g-region');
-      const name = document.getElementById('g-name').value.trim();
+      const name = /** @type {HTMLInputElement} */ (document.getElementById('g-name')).value.trim();
       if (!file) { showModalError('Pick a GPX file first.'); return; }
-      const stripPii = document.getElementById('g-strip-pii').checked;
-      const completed = document.getElementById('g-completed').checked;
+      const stripPii = /** @type {HTMLInputElement} */ (document.getElementById('g-strip-pii')).checked;
+      const completed = /** @type {HTMLInputElement} */ (document.getElementById('g-completed')).checked;
       // Default is "planned": file lands as <name>.planned.gpx, rendered as a
       // dashed overlay. Toggling "completed" saves the walked variant.
       const storedName = completed ? name : (name + '.planned');
 
       // Optional metadata. date_completed + rating only apply to completed routes.
       // Each field may be hidden by user preference; guard with optional chaining.
-      const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+      const get = id => { const el = /** @type {HTMLInputElement} */ (document.getElementById(id)); return el ? el.value : ''; };
       const metadata = readRouteMetaFields('g');
       if (completed) {
         const dateVal = get('g-date').trim();
@@ -633,7 +633,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
       }
       const metaKey = region ? region + '/' + name : name;
 
-      const submitBtn = document.getElementById('gpx-submit');
+      const submitBtn = /** @type {HTMLButtonElement} */ (document.getElementById('gpx-submit'));
       submitBtn.disabled = true;
       dataLayer.uploadGpx({ region, name: storedName, stripPii, file })
       .then(() => {
@@ -759,13 +759,13 @@ export function openAddModal(prefillCoords, initialTab, draft) {
           '<button type="button" class="ui-button ui-button-primary" id="browse-add" disabled>Add selected</button>' +
         '</div>';
 
-      const searchInput = document.getElementById('browse-filter');
+      const searchInput = /** @type {HTMLInputElement} */ (document.getElementById('browse-filter'));
       const list = document.getElementById('browse-list');
-      const addBtn = document.getElementById('browse-add');
-      const selectAllBtn = document.getElementById('browse-select-all');
+      const addBtn = /** @type {HTMLButtonElement} */ (document.getElementById('browse-add'));
+      const selectAllBtn = /** @type {HTMLButtonElement} */ (document.getElementById('browse-select-all'));
 
       function visibleRows() {
-        return Array.from(list.querySelectorAll('.browse-row'))
+        return Array.from(/** @type {NodeListOf<HTMLElement>} */ (list.querySelectorAll('.browse-row')))
           .filter(r => r.style.display !== 'none');
       }
       function updateBtn() {
@@ -773,7 +773,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
         addBtn.disabled = n === 0;
         addBtn.textContent = n ? 'Add ' + n + ' selected' : 'Add selected';
         const vis = visibleRows();
-        const visChecked = vis.filter(r => r.querySelector('.browse-pick').checked).length;
+        const visChecked = vis.filter(r => /** @type {HTMLInputElement} */ (r.querySelector('.browse-pick')).checked).length;
         selectAllBtn.textContent = (vis.length && visChecked === vis.length) ? 'Clear selection' : 'Select all';
         selectAllBtn.disabled = vis.length === 0;
       }
@@ -781,8 +781,8 @@ export function openAddModal(prefillCoords, initialTab, draft) {
 
       selectAllBtn.addEventListener('click', function() {
         const vis = visibleRows();
-        const allChecked = vis.length && vis.every(r => r.querySelector('.browse-pick').checked);
-        vis.forEach(r => { r.querySelector('.browse-pick').checked = !allChecked; });
+        const allChecked = vis.length && vis.every(r => /** @type {HTMLInputElement} */ (r.querySelector('.browse-pick')).checked);
+        vis.forEach(r => { /** @type {HTMLInputElement} */ (r.querySelector('.browse-pick')).checked = !allChecked; });
         updateBtn();
       });
 
@@ -790,13 +790,13 @@ export function openAddModal(prefillCoords, initialTab, draft) {
       // intersected with the Category / Country / Tag dropdowns.
       function applyFilters() {
         const q = (searchInput.value || '').trim().toLowerCase();
-        const catSel = document.getElementById('bf-category');
-        const countrySel = document.getElementById('bf-country');
-        const tagSel = document.getElementById('bf-tag');
+        const catSel = /** @type {HTMLSelectElement} */ (document.getElementById('bf-category'));
+        const countrySel = /** @type {HTMLSelectElement} */ (document.getElementById('bf-country'));
+        const tagSel = /** @type {HTMLSelectElement} */ (document.getElementById('bf-tag'));
         const cat = catSel ? catSel.value : 'all';
         const country = countrySel ? countrySel.value : 'all';
         const tag = tagSel ? tagSel.value : 'all';
-        list.querySelectorAll('.browse-row').forEach(row => {
+        /** @type {NodeListOf<HTMLElement>} */ (list.querySelectorAll('.browse-row')).forEach(row => {
           const e = entries[parseInt(row.dataset.idx, 10)] || {};
           let show = !q || row.textContent.toLowerCase().includes(q);
           if (show && cat !== 'all') show = e.category === cat;
@@ -835,7 +835,7 @@ export function openAddModal(prefillCoords, initialTab, draft) {
       });
 
       addBtn.addEventListener('click', function() {
-        const picked = Array.from(list.querySelectorAll('.browse-pick:checked'))
+        const picked = Array.from(/** @type {NodeListOf<HTMLInputElement>} */ (list.querySelectorAll('.browse-pick:checked')))
           .map(cb => entries[parseInt(cb.dataset.idx, 10)])
           .filter(Boolean)
           // _source is a server-side UI tag; the place schema rejects it.

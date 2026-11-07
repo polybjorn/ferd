@@ -237,11 +237,11 @@ export function renderHistoryIndex() {
     }
     html += '</div>';
     mount.innerHTML = html;
-    mount.querySelectorAll('canvas.route-thumb').forEach(function(canvas) {
+    /** @type {NodeListOf<HTMLElement>} */ (mount.querySelectorAll('canvas.route-thumb')).forEach(function(canvas) {
       const found = findRouteByKey(canvas.dataset.routeKey);
       if (found) drawRouteSilhouette(canvas, found.route);
     });
-    mount.querySelectorAll('.history-card').forEach(function(card) {
+    /** @type {NodeListOf<HTMLElement>} */ (mount.querySelectorAll('.history-card')).forEach(function(card) {
       attachContextMenu(card, function() {
         const e = flat[+card.dataset.idx];
         return e ? menuFor(e) : [];
@@ -274,7 +274,7 @@ export function renderHistoryIndex() {
     filters: hf, searchInput: searchInput, searchKey: 'search', onApply: paint,
   });
   const viewSel = document.getElementById('hist-view-select');
-  if (viewSel) viewSel.addEventListener('change', function() { setPref('history-view', this.value); paint(); });
+  if (viewSel) viewSel.addEventListener('change', function() { setPref('history-view', /** @type {HTMLSelectElement} */ (this).value); paint(); });
   paint();
 }
 

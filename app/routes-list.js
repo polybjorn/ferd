@@ -79,12 +79,12 @@ export function renderTrailsIndex() {
   }
   const addTrailBtn = document.getElementById('add-route-btn');
   if (addTrailBtn) addTrailBtn.addEventListener('click', function() { openAddModal(null, 'route'); });
-  const searchInput = document.getElementById('search-input');
-  const statusSel = document.getElementById('filter-status');
-  const regionSel = document.getElementById('filter-region');
-  const diffSel = document.getElementById('filter-difficulty');
-  const ratingSel = document.getElementById('filter-rating');
-  const groupBySel = document.getElementById('filter-group-by');
+  const searchInput = /** @type {HTMLInputElement} */ (document.getElementById('search-input'));
+  const statusSel = /** @type {HTMLSelectElement} */ (document.getElementById('filter-status'));
+  const regionSel = /** @type {HTMLSelectElement} */ (document.getElementById('filter-region'));
+  const diffSel = /** @type {HTMLSelectElement} */ (document.getElementById('filter-difficulty'));
+  const ratingSel = /** @type {HTMLSelectElement} */ (document.getElementById('filter-rating'));
+  const groupBySel = /** @type {HTMLSelectElement} */ (document.getElementById('filter-group-by'));
   const filterBtn = document.getElementById('filter-btn');
   const filterPop = document.getElementById('filter-popover');
   const filterClear = document.getElementById('filter-clear');
@@ -168,13 +168,13 @@ export function renderTrailsIndex() {
     mountEl.innerHTML = inner;
     if (view !== 'grid') {
       mountEl.querySelectorAll('canvas.route-thumb').forEach(function(canvas) {
-        const found = findRouteByKey(canvas.dataset.routeKey);
+        const found = findRouteByKey(/** @type {HTMLElement} */ (canvas).dataset.routeKey);
         if (found) drawRouteSilhouette(canvas, found.route);
       });
     }
     mountEl.querySelectorAll('.route-card').forEach(function(card) {
       attachContextMenu(card, function() {
-        const key = card.dataset.routeKey;
+        const key = /** @type {HTMLElement} */ (card).dataset.routeKey;
         const found = findRouteByKey(key);
         if (!found) return [];
         const route = found.route;
@@ -199,7 +199,7 @@ export function renderTrailsIndex() {
     });
     mountEl.querySelectorAll('.section-link[data-filter-region]').forEach(function(label) {
       label.addEventListener('click', function() {
-        const r = label.dataset.filterRegion;
+        const r = /** @type {HTMLElement} */ (label).dataset.filterRegion;
         const allRegions = regions.map(x => x.name);
         state.hiddenRegions = new Set(allRegions.filter(x => x !== r));
         // Strong intent: "show only this region". Hide all places too;

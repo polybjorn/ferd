@@ -599,7 +599,7 @@ export function goToSearchResult(map, row) {
 }
 
 export function initUnifiedSearch(map) {
-  const input = document.getElementById('map-search-input');
+  const input = /** @type {HTMLInputElement} */ (document.getElementById('map-search-input'));
   const results = document.getElementById('map-search-results');
 
   function render(q) {
@@ -611,7 +611,7 @@ export function initUnifiedSearch(map) {
   input.addEventListener('input', function() { render(this.value.trim()); });
 
   results.addEventListener('click', function(e) {
-    const row = e.target.closest('.map-search-result');
+    const row = /** @type {Element} */ (e.target).closest('.map-search-result');
     if (!row) return;
     // Emptying the list below detaches the row from the panel, so Leaflet
     // no longer sees the panel's click guard and takes this for a map
@@ -629,7 +629,7 @@ export function initUnifiedSearch(map) {
     state._searchDocClickBound = true;
     document.addEventListener('click', function(e) {
       const r = document.getElementById('map-search-results');
-      if (r && !e.target.closest('#map-search')) r.classList.remove('visible');
+      if (r && !/** @type {Element} */ (e.target).closest('#map-search')) r.classList.remove('visible');
     });
   }
 }

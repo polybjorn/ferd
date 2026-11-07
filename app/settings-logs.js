@@ -14,7 +14,7 @@ export function openLogsModal() {
     '<div class="ui-dialog-actions"><button type="button" id="s-logs-clear" class="ui-button ui-button-danger">Clear all</button></div>',
     function() {
       renderAdminLogs();
-      const clearBtn = document.getElementById('s-logs-clear');
+      const clearBtn = /** @type {HTMLButtonElement} */ (document.getElementById('s-logs-clear'));
       if (clearBtn) {
         clearBtn.addEventListener('click', function() {
           openConfirmModal({

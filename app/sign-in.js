@@ -40,7 +40,7 @@ function signInFormHtml(includeClose) {
 function bindSignInForm(opts) {
   let mode = state.auth.has_users ? 'login' : 'register';
   setMode(mode);
-  document.querySelectorAll('#auth-tabs button[data-mode]').forEach(b => {
+  /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#auth-tabs button[data-mode]')).forEach(b => {
     b.addEventListener('click', function() { setMode(this.dataset.mode); });
   });
   document.getElementById('auth-form').addEventListener('submit', function(e) {
@@ -51,7 +51,7 @@ function bindSignInForm(opts) {
 
   function setMode(m) {
     mode = m;
-    document.querySelectorAll('#auth-tabs button[data-mode]').forEach(b => {
+    /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#auth-tabs button[data-mode]')).forEach(b => {
       b.classList.toggle('active', b.dataset.mode === m);
     });
     document.getElementById('modal-title').textContent = m === 'register' ? 'Register' : 'Sign in';
@@ -61,22 +61,22 @@ function bindSignInForm(opts) {
     hint.textContent = m === 'register' ? 'Password must be at least 12 characters.' : '';
     hint.hidden = m !== 'register';
     const tokenRow = document.getElementById('setup-token-row');
-    const tokenInput = document.getElementById('auth-setup-token');
+    const tokenInput = /** @type {HTMLInputElement | null} */ (document.getElementById('auth-setup-token'));
     const needsToken = m === 'register' && state.auth.requires_setup_token;
     tokenRow.hidden = !needsToken;
     if (tokenInput) tokenInput.required = needsToken;
   }
   function submit() {
-    const u = document.getElementById('auth-username').value.trim();
-    const p = document.getElementById('auth-password').value;
+    const u = /** @type {HTMLInputElement} */ (document.getElementById('auth-username')).value.trim();
+    const p = /** @type {HTMLInputElement} */ (document.getElementById('auth-password')).value;
     const payload = { username: u, password: p };
     if (mode === 'register' && state.auth.requires_setup_token) {
-      payload.setup_token = document.getElementById('auth-setup-token').value.trim();
+      payload.setup_token = /** @type {HTMLInputElement} */ (document.getElementById('auth-setup-token')).value.trim();
     }
     // Cross-origin clients can't use the session cookie, so ask for the
     // session token in the response body and store it for bearer auth.
     if (isCrossOrigin()) payload.token = true;
-    const submitBtn = document.getElementById('auth-submit');
+    const submitBtn = /** @type {HTMLButtonElement} */ (document.getElementById('auth-submit'));
     submitBtn.disabled = true;
     api('POST', '/' + mode, payload)
       .then(res => { if (res && res.session_token) setBearerToken(res.session_token); })
@@ -135,10 +135,10 @@ export function renderServerPicker(opts) {
     '</div>';
   const localBtn = document.getElementById('srv-local');
   if (localBtn) localBtn.addEventListener('click', enterLocalMode);
-  const input = document.getElementById('srv-url');
+  const input = /** @type {HTMLInputElement} */ (document.getElementById('srv-url'));
   const errBox = document.getElementById('srv-error');
   const warn = document.getElementById('srv-warn');
-  const btn = document.getElementById('srv-connect');
+  const btn = /** @type {HTMLButtonElement} */ (document.getElementById('srv-connect'));
   function fail(msg) {
     errBox.textContent = msg;
     errBox.classList.add('visible');

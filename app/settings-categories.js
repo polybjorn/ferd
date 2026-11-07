@@ -225,7 +225,7 @@ export function openManageCategoriesModal() {
           handle.addEventListener('pointerdown', /** @param {PointerEvent} ev */ function(ev) {
             ev.preventDefault();
             const startIdx = +this.dataset.i;
-            const rowEls = Array.from(container.querySelectorAll('.cat-row'));
+            const rowEls = Array.from(/** @type {NodeListOf<HTMLElement>} */ (container.querySelectorAll('.cat-row')));
             const rowEl = rowEls[startIdx];
             if (!rowEl) return;
             const startRect = rowEl.getBoundingClientRect();
@@ -307,7 +307,7 @@ export function openManageCategoriesModal() {
       rerender();
       refreshSaveBtn();
 
-      const newDisplay = document.getElementById('cat-new-display');
+      const newDisplay = /** @type {HTMLInputElement} */ (document.getElementById('cat-new-display'));
       const slugPreview = document.getElementById('cat-new-slug-preview');
       newDisplay.addEventListener('input', function() {
         const s = slugifyCategory(this.value);
@@ -345,7 +345,7 @@ export function openManageCategoriesModal() {
       });
 
       document.getElementById('cat-save').addEventListener('click', function() {
-        const submit = this;
+        const submit = /** @type {HTMLButtonElement} */ (this);
         const doSave = function() {
         submit.disabled = true;
         const payload = {};

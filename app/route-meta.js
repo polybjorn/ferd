@@ -167,14 +167,14 @@ export function openEditTrailMetadataModal(route, regionName) {
     '</form>',
     function() {
       wireStarRating('tm-rating');
-      const regionSel = document.getElementById('tm-region');
-      const regionNewInput = document.getElementById('tm-region-new');
+      const regionSel = /** @type {HTMLSelectElement} */ (document.getElementById('tm-region'));
+      const regionNewInput = /** @type {HTMLInputElement} */ (document.getElementById('tm-region-new'));
       regionSel.addEventListener('change', function() {
         const adding = this.value === '__new__';
         regionNewInput.hidden = !adding;
         if (adding) regionNewInput.focus();
       });
-      const tmCompletedCb = document.getElementById('tm-completed');
+      const tmCompletedCb = /** @type {HTMLInputElement} */ (document.getElementById('tm-completed'));
       const tmCompletedExtras = document.getElementById('tm-completed-extras');
       if (tmCompletedCb && tmCompletedExtras) {
         tmCompletedCb.addEventListener('change', function() {
@@ -186,7 +186,7 @@ export function openEditTrailMetadataModal(route, regionName) {
       });
       document.getElementById('route-meta-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+        const get = id => { const el = /** @type {HTMLInputElement} */ (document.getElementById(id)); return el ? el.value : ''; };
         const metadata = readRouteMetaFields('tm');
         const dateVal = get('tm-date').trim();
         const ratingRaw = readStarRating('tm-rating');
@@ -217,7 +217,7 @@ export function openEditTrailMetadataModal(route, regionName) {
           if (!getShowField('date') && route.date_completed) metadata.date_completed = route.date_completed;
           if (!getShowField('rating') && route.rating) metadata.rating = route.rating;
         }
-        const submit = document.getElementById('tm-submit');
+        const submit = /** @type {HTMLButtonElement} */ (document.getElementById('tm-submit'));
         submit.disabled = true;
         let chain = Promise.resolve(key);
         if (needsCompletedFlip) {

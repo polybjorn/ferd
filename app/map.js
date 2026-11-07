@@ -528,7 +528,7 @@ export function refreshFilterPanel() {
   const routesBody = document.getElementById('routes-body');
   if (routesBody) routesBody.innerHTML = routesLegendHtml();
   renderPanelStatus();
-  document.querySelectorAll('.filter-sheet [data-sheet-section]').forEach(el => {
+  /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.filter-sheet [data-sheet-section]')).forEach(el => {
     el.innerHTML = sheetSectionHtml(el.dataset.sheetSection);
   });
   syncFilterSheet();
@@ -593,15 +593,15 @@ function syncFilterSheet() {
     places: state._placeRecords ? [state._placeRecords.filter(placeShown).length, state._placeRecords.length] : [0, 0],
     routes: [routes.filter(routeShown).length, routes.length],
   };
-  sheet.querySelectorAll('[data-count]').forEach(el => {
+  /** @type {NodeListOf<HTMLElement>} */ (sheet.querySelectorAll('[data-count]')).forEach(el => {
     const [shown, total] = counts[el.dataset.count];
     el.textContent = total ? shown + ' of ' + total + ' shown' : '';
   });
-  sheet.querySelectorAll('[data-toggle-all]').forEach(el => {
+  /** @type {NodeListOf<HTMLElement>} */ (sheet.querySelectorAll('[data-toggle-all]')).forEach(el => {
     const allOn = el.dataset.toggleAll === 'places' ? allPlacesOn() : allRoutesOn();
     el.textContent = allOn ? 'Hide all' : 'Show all';
   });
-  const reset = document.querySelector('[data-filter-reset]');
+  const reset = /** @type {HTMLButtonElement | null} */ (document.querySelector('[data-filter-reset]'));
   if (reset) reset.disabled = !filtersActive();
 }
 

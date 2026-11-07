@@ -74,13 +74,13 @@ export function revealPlaceMarker(map, place) {
 // popover) so only one is open at a time. Pass the element being opened to
 // keep it open.
 export function closeTransientOverlays(keepEl) {
-  document.querySelectorAll('.filter-popover').forEach(function(p) {
+  /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.filter-popover')).forEach(function(p) {
     if (p === keepEl || p.hidden) return;
     p.hidden = true;
     const b = p.parentElement && p.parentElement.querySelector('.filter-btn');
     if (b) b.setAttribute('aria-expanded', 'false');
   });
-  const menu = document.getElementById('auth-menu');
+  const menu = /** @type {(HTMLElement & { _close?: () => void }) | null} */ (document.getElementById('auth-menu'));
   if (menu && menu !== keepEl && !menu.hidden && typeof menu._close === 'function') {
     menu._close();
   }
@@ -171,7 +171,7 @@ export function deleteRouteItem(route, regionName, after) {
 function animatePlaceCardOut(slug) {
   return new Promise(function(resolve) {
     if (!slug) { resolve(); return; }
-    const card = document.querySelector('.place-card[data-place-slug="' + slug + '"]');
+    const card = /** @type {HTMLElement | null} */ (document.querySelector('.place-card[data-place-slug="' + slug + '"]'));
     if (!card) { resolve(); return; }
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce) { resolve(); return; }
@@ -197,7 +197,7 @@ function animatePlaceCardOut(slug) {
 // wipe of a full re-render so the rest of the list doesn't flash.
 function removePlaceCardFromList(slug, wasVisited) {
   if (!slug) return;
-  const card = document.querySelector('.place-card[data-place-slug="' + slug + '"]');
+  const card = /** @type {HTMLElement | null} */ (document.querySelector('.place-card[data-place-slug="' + slug + '"]'));
   if (!card) return;
   const grid = card.parentElement;
   const group = grid ? grid.closest('.category-group') : null;
@@ -236,7 +236,7 @@ export function resyncPlaceCardSlugs() {
   if (!listEl) return;
   const byId = {};
   for (const p of (state.places || [])) if (p.id) byId[p.id] = p;
-  listEl.querySelectorAll('.place-card[data-place-id]').forEach(function(card) {
+  /** @type {NodeListOf<HTMLElement>} */ (listEl.querySelectorAll('.place-card[data-place-id]')).forEach(function(card) {
     const p = byId[card.dataset.placeId];
     if (!p) return;
     const slug = p._slug || '';
@@ -244,7 +244,7 @@ export function resyncPlaceCardSlugs() {
     card.dataset.placeSlug = slug;
     const href = focusHash('place', slug || p.name);
     card.setAttribute('onclick', "location.hash='" + href.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'");
-    const mark = card.querySelector('.catalog-mark');
+    const mark = /** @type {HTMLElement | null} */ (card.querySelector('.catalog-mark'));
     if (mark) mark.dataset.placeSlug = slug;
   });
 }

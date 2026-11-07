@@ -56,7 +56,7 @@ document.addEventListener('keydown', function(e) {
   if (e.key !== ' ' && e.code !== 'Space') return;
   if (!state.currentMap) return;
   if (document.getElementById('modal-root').children.length) return;
-  const t = e.target;
+  const t = /** @type {HTMLElement} */ (e.target);
   const tag = t && t.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
   e.preventDefault();
@@ -71,17 +71,17 @@ document.addEventListener('keydown', function(e) {
   if (e.key !== 's' && e.key !== 'S') return;
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (document.getElementById('modal-root').children.length) return;
-  const t = e.target;
+  const t = /** @type {HTMLElement} */ (e.target);
   const tag = t && t.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
-  const listInput = document.getElementById('search-input');
+  const listInput = /** @type {HTMLInputElement} */ (document.getElementById('search-input'));
   if (listInput && listInput.offsetParent !== null) {
     e.preventDefault();
     listInput.focus();
     listInput.select();
     return;
   }
-  const mapInput = document.getElementById('map-search-input');
+  const mapInput = /** @type {HTMLInputElement} */ (document.getElementById('map-search-input'));
   // A narrow window swaps the panel, and with it the input, for the search
   // view the bottom bar opens.
   const phoneButtons = document.getElementById('map-phone-buttons');
@@ -125,7 +125,7 @@ document.addEventListener('contextmenu', function(e) {
   if (lastPointerType !== 'touch' && lastPointerType !== 'pen') return;
   if (!state.currentMap) return;
   if (document.getElementById('modal-root').children.length) return;
-  const t = e.target;
+  const t = /** @type {HTMLElement} */ (e.target);
   if (!t.closest('.leaflet-container')) return;
   if (t.closest('.leaflet-marker-icon, .leaflet-control, .leaflet-popup, .map-panel')) return;
   e.preventDefault();

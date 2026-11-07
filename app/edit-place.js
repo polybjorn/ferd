@@ -83,7 +83,7 @@ export function openEditPlaceModal(place) {
       wireSelectOrNew('e-category');
       wireCountryPicker('e-country');
       wireStarRating('e-rating');
-      const eVisitedCb = document.getElementById('e-visited');
+      const eVisitedCb = /** @type {HTMLInputElement} */ (document.getElementById('e-visited'));
       const eVisitedExtras = document.getElementById('e-visited-extras');
       if (eVisitedCb && eVisitedExtras) {
         eVisitedCb.addEventListener('change', function() {
@@ -135,7 +135,7 @@ export function openEditPlaceModal(place) {
           if (!getShowField('date') && place.date_visited) r.payload.date_visited = place.date_visited;
           if (!getShowField('rating') && place.rating) r.payload.rating = place.rating;
         }
-        const submit = document.getElementById('e-submit');
+        const submit = /** @type {HTMLButtonElement} */ (document.getElementById('e-submit'));
         submit.disabled = true;
         const prevColors = Object.assign({}, state.categoryColors);
         dataLayer.updatePlace({ id: place.id, place: r.payload })

@@ -193,7 +193,7 @@ function mountCountryPicker(input, { countries, names }) {
   // Keeps focus in the input, so a tap on a row is not a blur first.
   list.addEventListener('mousedown', e => e.preventDefault());
   list.addEventListener('click', e => {
-    const el = e.target.closest('[role="option"]');
+    const el = /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('[role="option"]'));
     if (!el) return;
     accept(rows[Number(el.dataset.index)].name);
     close();

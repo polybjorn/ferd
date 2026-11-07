@@ -166,7 +166,7 @@ export function placesWithCatalogUpdates() {
 // Used after Apply / Keep so the list doesn't visibly re-render.
 function updatePlaceCardAfterCatalogChange(place) {
   if (!place) return;
-  const card = document.querySelector('.place-card[data-place-slug="' + (place._slug || '') + '"]');
+  const card = /** @type {HTMLElement} */ (document.querySelector('.place-card[data-place-slug="' + (place._slug || '') + '"]'));
   if (!card) return;
   const nameEl = card.querySelector('.name');
   if (nameEl) nameEl.textContent = place.name;
@@ -185,7 +185,7 @@ function updatePlaceCardAfterCatalogChange(place) {
     }
   }
   const upd = findCatalogUpdate(place);
-  const badge = card.querySelector('.catalog-mark');
+  const badge = /** @type {HTMLElement} */ (card.querySelector('.catalog-mark'));
   if (badge) {
     badge.classList.toggle('update-available', !!upd);
     badge.title = upd
@@ -196,7 +196,7 @@ function updatePlaceCardAfterCatalogChange(place) {
   // has any, fade the card out so the list reflects the filter. If that
   // leaves the group empty, fade the group header out too.
   if (state.placeFilters && state.placeFilters.catalog === 'updates-available' && !upd) {
-    const group = card.closest('.category-group');
+    const group = /** @type {HTMLElement} */ (card.closest('.category-group'));
     card.style.transition = 'opacity 0.2s ease';
     card.style.opacity = '0';
     setTimeout(() => {
@@ -223,13 +223,13 @@ export function updatePlaceCardAfterEdit(oldPlace, newPlace) {
   if (oldPlace.name !== newPlace.name) return false;
   if ((oldPlace.category || '') !== (newPlace.category || '')) return false;
   if (state.groupBy === 'country' && (oldPlace.country || '') !== (newPlace.country || '')) return false;
-  const statusEl = document.getElementById('filter-status');
+  const statusEl = /** @type {HTMLSelectElement} */ (document.getElementById('filter-status'));
   const wantStatus = statusEl ? statusEl.value : 'all';
   const visitedChanged = !!oldPlace.visited !== !!newPlace.visited;
   if (visitedChanged && wantStatus !== 'all') return false;
-  const catalogEl = document.getElementById('filter-catalog');
+  const catalogEl = /** @type {HTMLSelectElement} */ (document.getElementById('filter-catalog'));
   if (catalogEl && catalogEl.value === 'updates-available' && !findCatalogUpdate(newPlace)) return false;
-  const card = listEl.querySelector('.place-card[data-place-slug="' + (newPlace._slug || '') + '"]');
+  const card = /** @type {HTMLElement} */ (listEl.querySelector('.place-card[data-place-slug="' + (newPlace._slug || '') + '"]'));
   if (!card) return false;
   const dot = card.querySelector('.status-dot');
   if (dot) dot.className = 'status-dot ' + (newPlace.visited ? 'visited' : 'want');
@@ -241,7 +241,7 @@ export function updatePlaceCardAfterEdit(oldPlace, newPlace) {
       noteEl.textContent = newPlace.note;
     } else if (noteEl) { noteEl.remove(); }
   }
-  const badge = card.querySelector('.catalog-mark');
+  const badge = /** @type {HTMLElement} */ (card.querySelector('.catalog-mark'));
   if (badge && !badge.classList.contains('orphan')) {
     const upd = findCatalogUpdate(newPlace);
     badge.classList.toggle('update-available', !!upd);
@@ -250,7 +250,7 @@ export function updatePlaceCardAfterEdit(oldPlace, newPlace) {
       : 'Imported from the site catalog';
   }
   if (visitedChanged) {
-    const group = card.closest('.category-group');
+    const group = /** @type {HTMLElement} */ (card.closest('.category-group'));
     const countEl = group ? group.querySelector('.place-count') : null;
     if (countEl) {
       const m = /\((\d+)\/(\d+)\)/.exec(countEl.textContent);
@@ -335,13 +335,13 @@ export function openCatalogBulkUpdateModal() {
     '</div>',
     function(backdrop) {
       const list = document.getElementById('catalog-bulk-list');
-      const toggleAllBtn = document.getElementById('catalog-bulk-toggle-all');
-      const applyBtn = document.getElementById('catalog-bulk-apply');
-      const allChecks = () => Array.from(backdrop.querySelectorAll('.catalog-diff-check'));
+      const toggleAllBtn = /** @type {HTMLButtonElement} */ (document.getElementById('catalog-bulk-toggle-all'));
+      const applyBtn = /** @type {HTMLButtonElement} */ (document.getElementById('catalog-bulk-apply'));
+      const allChecks = () => /** @type {HTMLInputElement[]} */ (Array.from(backdrop.querySelectorAll('.catalog-diff-check')));
       function syncPlaceToggle(sec) {
         const btn = sec.querySelector('.catalog-bulk-place-toggle');
         if (!btn) return;
-        const anyOn = Array.from(sec.querySelectorAll('.catalog-diff-check')).some(c => c.checked);
+        const anyOn = /** @type {HTMLInputElement[]} */ (Array.from(sec.querySelectorAll('.catalog-diff-check'))).some(c => c.checked);
         btn.textContent = anyOn ? 'Clear' : 'Select all';
       }
       // Check-all label reflects state; Apply enables only with a selection
@@ -369,8 +369,9 @@ export function openCatalogBulkUpdateModal() {
         syncActions();
       });
       list.addEventListener('change', function(e) {
-        if (!e.target.classList || !e.target.classList.contains('catalog-diff-check')) return;
-        const sec = e.target.closest('.catalog-bulk-place');
+        const tgt = /** @type {HTMLElement} */ (e.target);
+        if (!tgt.classList || !tgt.classList.contains('catalog-diff-check')) return;
+        const sec = tgt.closest('.catalog-bulk-place');
         if (sec) syncPlaceToggle(sec);
         syncActions();
       });
@@ -436,8 +437,8 @@ export function openCatalogUpdateModal(place) {
       '</button>' +
     '</div>',
     function(backdrop) {
-      const applyBtn = document.getElementById('catalog-update-confirm');
-      const skipBtn = document.getElementById('catalog-update-skip');
+      const applyBtn = /** @type {HTMLButtonElement} */ (document.getElementById('catalog-update-confirm'));
+      const skipBtn = /** @type {HTMLButtonElement} */ (document.getElementById('catalog-update-skip'));
       function selectedFields() {
         const set = new Set();
         backdrop.querySelectorAll('.catalog-diff-check').forEach(cb => {
@@ -564,7 +565,7 @@ export function renderPlacesIndex() {
   }
   const addBtn = document.getElementById('add-place-btn');
   if (addBtn) addBtn.addEventListener('click', function() { openAddModal(null, 'place'); });
-  const placesSearchInput = document.getElementById('search-input');
+  const placesSearchInput = /** @type {HTMLInputElement} */ (document.getElementById('search-input'));
   const statusSel = document.getElementById('filter-status');
   const catSel = document.getElementById('filter-category');
   const countrySel = document.getElementById('filter-country');
@@ -577,7 +578,7 @@ export function renderPlacesIndex() {
     renderPlaceList(placesSearchInput ? placesSearchInput.value : '');
   }
   const filterKeyById = { 'filter-status': 'status', 'filter-category': 'category', 'filter-country': 'country', 'filter-catalog': 'catalog' };
-  const groupBySel = document.getElementById('filter-group-by');
+  const groupBySel = /** @type {HTMLSelectElement} */ (document.getElementById('filter-group-by'));
   if (groupBySel) groupBySel.addEventListener('change', function() {
     state.groupBy = this.value;
     setPref('places-group-by', this.value);
@@ -632,7 +633,7 @@ export function groupAndSort(items, keyFn, nameFn, byLetter, sortKeyFn) {
 
 export function renderPlaceList(query) {
   if (query === undefined) {
-    const si = document.getElementById('search-input');
+    const si = /** @type {HTMLInputElement} */ (document.getElementById('search-input'));
     query = si ? si.value : '';
   }
   const q = query.toLowerCase().trim();
@@ -642,14 +643,14 @@ export function renderPlaceList(query) {
   const groupMode = state.groupBy;
   const byCategory = groupMode === 'category';
   const byLetter = groupMode === 'letter';
-  const statusEl = document.getElementById('filter-status');
-  const catEl = document.getElementById('filter-category');
-  const countryEl = document.getElementById('filter-country');
+  const statusEl = /** @type {HTMLSelectElement} */ (document.getElementById('filter-status'));
+  const catEl = /** @type {HTMLSelectElement} */ (document.getElementById('filter-category'));
+  const countryEl = /** @type {HTMLSelectElement} */ (document.getElementById('filter-country'));
   const wantStatus = statusEl ? statusEl.value : 'all';
   const wantCat = catEl ? catEl.value : 'all';
   const wantCountry = countryEl ? countryEl.value : 'all';
   const wantTags = state.placeFilters.tags || [];
-  const catalogEl = document.getElementById('filter-catalog');
+  const catalogEl = /** @type {HTMLSelectElement} */ (document.getElementById('filter-catalog'));
   const wantCatalog = catalogEl ? catalogEl.value : 'all';
   const filtered = state.places.filter(p => {
     if (q && !(
@@ -760,7 +761,7 @@ export function renderPlaceList(query) {
   });
   listEl.querySelectorAll('.place-card').forEach(function(card) {
     attachContextMenu(card, function() {
-      const slug = card.dataset.placeSlug;
+      const slug = /** @type {HTMLElement} */ (card).dataset.placeSlug;
       const place = (state.places || []).find(p => p._slug === slug);
       if (!place) return [];
       const items = [];
@@ -785,7 +786,7 @@ export function renderPlaceList(query) {
   });
   listEl.querySelectorAll('.section-link[data-filter-cat]').forEach(function(label) {
     label.addEventListener('click', function() {
-      const cat = label.dataset.filterCat;
+      const cat = /** @type {HTMLElement} */ (label).dataset.filterCat;
       const allCats = Object.keys(state.categoryColors);
       state.hiddenCategories = new Set(allCats.filter(c => c !== cat));
       // Strong intent: "show only this category". Hide all routes too;

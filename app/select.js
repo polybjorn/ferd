@@ -25,7 +25,7 @@ export function closeSelectPopover() {
 // needs the room an open keyboard takes.
 function focusSelectTrigger(sel) {
   if (!_selectCoarsePointer) { sel.focus(); return; }
-  if (document.activeElement) document.activeElement.blur();
+  if (document.activeElement) /** @type {HTMLElement} */ (document.activeElement).blur();
 }
 function enhanceSelect(sel) {
   if (sel.dataset.enhanced === '1' || sel.disabled) return;

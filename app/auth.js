@@ -97,11 +97,11 @@ export function renderAuthWidget() {
     document.removeEventListener('mousedown', outsideCloser, true);
     document.removeEventListener('touchstart', outsideCloser, true);
   }
-  menu._close = closeMenu;
+  /** @type {HTMLElement & { _close?: () => void }} */ (menu)._close = closeMenu;
   function openMenu() {
     closeTransientOverlays(menu);
     // Refresh the mobile catalog-updates entry from the live pending count.
-    const updItem = menu.querySelector('#menu-catalog-updates');
+    const updItem = /** @type {HTMLElement | null} */ (menu.querySelector('#menu-catalog-updates'));
     if (updItem) {
       const hasUpd = (state.auth.authenticated && !isReadOnly()) && placesWithCatalogUpdates().length > 0;
       updItem.hidden = !hasUpd;
@@ -116,7 +116,7 @@ export function renderAuthWidget() {
     if (menu.hidden) openMenu(); else closeMenu();
   });
   menu.addEventListener('click', function(e) {
-    const action = e.target.closest('button[data-action]');
+    const action = /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('button[data-action]'));
     if (!action) return;
     closeMenu();
     switch (action.dataset.action) {

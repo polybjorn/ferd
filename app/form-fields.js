@@ -38,9 +38,9 @@ export function starRatingHtml(name, current) {
   return html;
 }
 export function wireStarRating(name) {
-  const wrap = document.querySelector('.star-rating[data-name="' + name + '"]');
+  const wrap = /** @type {HTMLElement | null} */ (document.querySelector('.star-rating[data-name="' + name + '"]'));
   if (!wrap) return;
-  const stars = wrap.querySelectorAll('.star');
+  const stars = /** @type {NodeListOf<HTMLElement>} */ (wrap.querySelectorAll('.star'));
   const FILLED = '★';
   const EMPTY = '☆';
   // Set both class and glyph so the state is unmistakable.
@@ -73,7 +73,7 @@ export function wireStarRating(name) {
   });
 }
 export function readStarRating(name) {
-  const wrap = document.querySelector('.star-rating[data-name="' + name + '"]');
+  const wrap = /** @type {HTMLElement | null} */ (document.querySelector('.star-rating[data-name="' + name + '"]'));
   return wrap ? wrap.dataset.value : '';
 }
 
@@ -106,8 +106,8 @@ export function selectOrNewHtml(id, options, current, labelFn, emptyLabel, newPl
 }
 
 export function wireSelectOrNew(id) {
-  const sel = document.getElementById(id);
-  const input = document.getElementById(id + '-new');
+  const sel = /** @type {HTMLSelectElement | null} */ (document.getElementById(id));
+  const input = /** @type {HTMLInputElement | null} */ (document.getElementById(id + '-new'));
   if (!sel || !input) return;
   const sync = () => {
     input.hidden = sel.value !== '__new__';
@@ -118,15 +118,15 @@ export function wireSelectOrNew(id) {
 }
 
 export function readSelectOrNew(id) {
-  const sel = document.getElementById(id);
-  const input = document.getElementById(id + '-new');
+  const sel = /** @type {HTMLSelectElement | null} */ (document.getElementById(id));
+  const input = /** @type {HTMLInputElement} */ (document.getElementById(id + '-new'));
   if (!sel) return '';
   if (sel.value === '__new__') return (input.value || '').trim();
   return sel.value;
 }
 
 export function readPlaceFormFields(prefix) {
-  const $ = id => document.getElementById(prefix + '-' + id);
+  const $ = id => /** @type {HTMLInputElement} */ (document.getElementById(prefix + '-' + id));
   const val = id => { const el = $(id); return el ? el.value : ''; };
   const category = readSelectOrNew(prefix + '-category');
   const sourcesRaw = val('sources').trim();
@@ -173,12 +173,12 @@ export function readPlaceFormFields(prefix) {
 // date_completed/rating are caller-specific (the editor always reads them,
 // GPX upload only when "completed"), so they stay at the call sites.
 export function readRouteMetaFields(prefix) {
-  const get = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const get = id => { const el = /** @type {HTMLInputElement | null} */ (document.getElementById(id)); return el ? el.value : ''; };
   const metadata = {};
   const source = get(prefix + '-source').trim();
   const notes = get(prefix + '-notes');
   const localName = get(prefix + '-local-name').trim();
-  const difficulty = (document.querySelector('input[name="' + prefix + '-difficulty"]:checked') || {}).value || '';
+  const difficulty = (/** @type {HTMLInputElement | null} */ (document.querySelector('input[name="' + prefix + '-difficulty"]:checked')) || {}).value || '';
   const tags = parseTagInput(get(prefix + '-tags'));
   if (source) metadata.source = source;
   if (notes.trim()) metadata.notes = notes;
