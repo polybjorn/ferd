@@ -1,36 +1,3 @@
-4	app/add.js	TS2339	Property '_catalogCache' does not exist on type '{...}'.
-1	app/add.js	TS2339	Property 'date_completed' does not exist on type '{...}'.
-1	app/add.js	TS2339	Property 'rating' does not exist on type '{...}'.
-2	app/add.js	TS7005	Variable 'autoOption' implicitly has an 'any' type.
-1	app/add.js	TS7005	Variable 'errors' implicitly has an 'any[]' type.
-8	app/add.js	TS7005	Variable 'parsed' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'area' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'chain' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'cls' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'draft' implicitly has an 'any' type.
-6	app/add.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'err' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'fold' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'from' implicitly has an 'any' type.
-2	app/add.js	TS7006	Parameter 'i' implicitly has an 'any' type.
-3	app/add.js	TS7006	Parameter 'id' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'initialTab' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'kind' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'latlng' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'prefillCoords' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'q' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'rawEntries' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'result' implicitly has an 'any' type.
-2	app/add.js	TS7006	Parameter 'row' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 's' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'sum' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'text' implicitly has an 'any' type.
-1	app/add.js	TS7006	Parameter 'to' implicitly has an 'any' type.
-3	app/add.js	TS7006	Parameter 'x' implicitly has an 'any' type.
-1	app/add.js	TS7034	Variable 'autoOption' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/add.js	TS7034	Variable 'errors' implicitly has type 'any[]' in some locations where its type cannot be determined.
-1	app/add.js	TS7034	Variable 'parsed' implicitly has type 'any' in some locations where its type cannot be determined.
-2	app/add.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/area-geo.js	TS7006	Parameter '_' implicitly has an 'any' type.
 2	app/area-geo.js	TS7006	Parameter 'a' implicitly has an 'any' type.
 1	app/area-geo.js	TS7006	Parameter 'area' implicitly has an 'any' type.
@@ -65,15 +32,6 @@
 1	app/area-geo.js	TS7006	Parameter 'tracks' implicitly has an 'any' type.
 1	app/area-geo.js	TS7006	Parameter 'x' implicitly has an 'any' type.
 1	app/area-geo.js	TS7006	Parameter 'y' implicitly has an 'any' type.
-1	app/areas.js	TS2339	Property 'category' does not exist on type '{...}'.
-1	app/areas.js	TS2339	Property 'local_name' does not exist on type '{ visited: boolean; } & { name: string; geometry: any; }'.
-1	app/areas.js	TS2339	Property 'note' does not exist on type '{ visited: boolean; } & { name: string; geometry: any; }'.
-1	app/areas.js	TS2339	Property 'note' does not exist on type '{...}'.
-1	app/areas.js	TS2339	Property 'source' does not exist on type '{ visited: boolean; } & { name: string; geometry: any; }'.
-2	app/areas.js	TS7006	Parameter 'area' implicitly has an 'any' type.
-1	app/areas.js	TS7006	Parameter 'kept' implicitly has an 'any' type.
-4	app/areas.js	TS7006	Parameter 'prefix' implicitly has an 'any' type.
-1	app/areas.js	TS7006	Parameter 'value' implicitly has an 'any' type.
 1	app/auth.js	TS2339	Property 'overlays' does not exist on type '{...}'.
 1	app/auth.js	TS7006	Parameter 'backdrop' implicitly has an 'any' type.
 1	app/auth.js	TS7006	Parameter 'body' implicitly has an 'any' type.
@@ -163,44 +121,6 @@
 1	app/countries.js	TS7031	Binding element 'countries' implicitly has an 'any' type.
 1	app/countries.js	TS7031	Binding element 'names' implicitly has an 'any' type.
 1	app/countries.js	TS7034	Variable 'rows' implicitly has type 'any[]' in some locations where its type cannot be determined.
-1	app/edit-place.js	TS2339	Property 'date_visited' does not exist on type '{...}'.
-1	app/edit-place.js	TS2339	Property 'from_catalog' does not exist on type '{...}'.
-2	app/edit-place.js	TS2339	Property 'image' does not exist on type '{...}'.
-1	app/edit-place.js	TS2339	Property 'image_focus' does not exist on type '{...}'.
-1	app/edit-place.js	TS2339	Property 'local_name' does not exist on type '{...}'.
-1	app/edit-place.js	TS2339	Property 'note' does not exist on type '{...}'.
-1	app/edit-place.js	TS2339	Property 'rating' does not exist on type '{...}'.
-1	app/edit-place.js	TS2339	Property 'tags' does not exist on type '{...}'.
-1	app/edit-place.js	TS7006	Parameter 'err' implicitly has an 'any' type.
-1	app/edit-place.js	TS7006	Parameter 'latlng' implicitly has an 'any' type.
-1	app/edit-place.js	TS7006	Parameter 'place' implicitly has an 'any' type.
-1	app/form-fields.js	TS2339	Property 'category' does not exist on type '{...}'.
-1	app/form-fields.js	TS2339	Property 'country' does not exist on type '{...}'.
-1	app/form-fields.js	TS2339	Property 'date_visited' does not exist on type '{...}'.
-1	app/form-fields.js	TS2339	Property 'image' does not exist on type '{...}'.
-1	app/form-fields.js	TS2339	Property 'local_name' does not exist on type '{...}'.
-1	app/form-fields.js	TS2339	Property 'note' does not exist on type '{...}'.
-1	app/form-fields.js	TS2339	Property 'rating' does not exist on type '{...}'.
-1	app/form-fields.js	TS2339	Property 'sources' does not exist on type '{...}'.
-1	app/form-fields.js	TS2339	Property 'tags' does not exist on type '{...}'.
-2	app/form-fields.js	TS7006	Parameter 'current' implicitly has an 'any' type.
-1	app/form-fields.js	TS7006	Parameter 'emptyLabel' implicitly has an 'any' type.
-6	app/form-fields.js	TS7006	Parameter 'id' implicitly has an 'any' type.
-1	app/form-fields.js	TS7006	Parameter 'labelFn' implicitly has an 'any' type.
-1	app/form-fields.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-1	app/form-fields.js	TS7006	Parameter 'n' implicitly has an 'any' type.
-4	app/form-fields.js	TS7006	Parameter 'name' implicitly has an 'any' type.
-1	app/form-fields.js	TS7006	Parameter 'newPlaceholder' implicitly has an 'any' type.
-1	app/form-fields.js	TS7006	Parameter 'on' implicitly has an 'any' type.
-2	app/form-fields.js	TS7006	Parameter 'options' implicitly has an 'any' type.
-2	app/form-fields.js	TS7006	Parameter 'prefix' implicitly has an 'any' type.
-2	app/form-fields.js	TS7006	Parameter 'preview' implicitly has an 'any' type.
-1	app/form-fields.js	TS7006	Parameter 's' implicitly has an 'any' type.
-1	app/form-fields.js	TS7006	Parameter 'selected' implicitly has an 'any' type.
-2	app/form-fields.js	TS7006	Parameter 'v' implicitly has an 'any' type.
-1	app/form-fields.js	TS7006	Parameter 'variant' implicitly has an 'any' type.
-1	app/form-fields.js	TS7031	Binding element 'l' implicitly has an 'any' type.
-1	app/form-fields.js	TS7031	Binding element 'v' implicitly has an 'any' type.
 1	app/history.js	TS7005	Variable 'all' implicitly has an 'any[]' type.
 1	app/history.js	TS7006	Parameter 'canvas' implicitly has an 'any' type.
 2	app/history.js	TS7006	Parameter 'e' implicitly has an 'any' type.
@@ -616,13 +536,6 @@
 1	app/prefs.js	TS7006	Parameter 'view' implicitly has an 'any' type.
 1	app/prefs.js	TS7006	Parameter 'visible' implicitly has an 'any' type.
 1	app/prefs.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
-2	app/route-meta.js	TS2339	Property 'date_completed' does not exist on type '{...}'.
-2	app/route-meta.js	TS2339	Property 'rating' does not exist on type '{...}'.
-1	app/route-meta.js	TS7006	Parameter 'id' implicitly has an 'any' type.
-1	app/route-meta.js	TS7006	Parameter 'key' implicitly has an 'any' type.
-1	app/route-meta.js	TS7006	Parameter 'rating' implicitly has an 'any' type.
-2	app/route-meta.js	TS7006	Parameter 'regionName' implicitly has an 'any' type.
-2	app/route-meta.js	TS7006	Parameter 'route' implicitly has an 'any' type.
 2	app/router.js	TS2339	Property '_navByHash' does not exist on type '{...}'.
 1	app/router.js	TS7006	Parameter 'hash' implicitly has an 'any' type.
 1	app/router.js	TS7006	Parameter 'slug' implicitly has an 'any' type.
@@ -811,21 +724,18 @@
 1	app/view.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
 1	app/view.js	TS7006	Parameter 'view' implicitly has an 'any' type.
 1	app/view.js	TS7031	Binding element 'attrs' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'children' implicitly has an 'any' type.
 1	app/view.js	TS7031	Binding element 'className' implicitly has an 'any' type.
 1	app/view.js	TS7031	Binding element 'dirty' implicitly has an 'any' type.
 1	app/view.js	TS7031	Binding element 'hidden' implicitly has an 'any' type.
 1	app/view.js	TS7031	Binding element 'hiddenSet' implicitly has an 'any' type.
-4	app/view.js	TS7031	Binding element 'id' implicitly has an 'any' type.
+2	app/view.js	TS7031	Binding element 'id' implicitly has an 'any' type.
 1	app/view.js	TS7031	Binding element 'inInput' implicitly has an 'any' type.
-2	app/view.js	TS7031	Binding element 'initial' implicitly has an 'any' type.
+1	app/view.js	TS7031	Binding element 'initial' implicitly has an 'any' type.
 1	app/view.js	TS7031	Binding element 'l' implicitly has an 'any' type.
-2	app/view.js	TS7031	Binding element 'label' implicitly has an 'any' type.
 1	app/view.js	TS7031	Binding element 'lead' implicitly has an 'any' type.
 1	app/view.js	TS7031	Binding element 'msg' implicitly has an 'any' type.
 1	app/view.js	TS7031	Binding element 'name' implicitly has an 'any' type.
 1	app/view.js	TS7031	Binding element 'onPick' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'onToggle' implicitly has an 'any' type.
 1	app/view.js	TS7031	Binding element 'options' implicitly has an 'any' type.
 1	app/view.js	TS7031	Binding element 'prefKey' implicitly has an 'any' type.
 1	app/view.js	TS7031	Binding element 'target' implicitly has an 'any' type.

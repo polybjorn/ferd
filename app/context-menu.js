@@ -1,8 +1,8 @@
 import { state } from './core.js';
 import { isReadOnly } from './server.js';
 import { deletePlaceItem, deleteRouteItem, openPlacePopup } from './map/index.js';
-import { afterRouteDeleted, openEditTrailMetadataModal } from './route-meta.js';
-import { openEditPlaceModal } from './edit-place.js';
+import { afterRouteDeleted, openEditTrailMetadataModal } from './routes/route-meta.js';
+import { openEditPlaceModal } from './places/edit-place.js';
 import { findCatalogUpdate, openCatalogUpdateModal } from './places-list.js';
 import { focusHash } from './router.js';
 import { popoverHost } from './modal.js';

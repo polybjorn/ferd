@@ -19,7 +19,7 @@ export {
   openPlacePopup,
   resyncPlaceCardSlugs,
 } from './map-actions.js';
-export { cleanupMap, parseOverlays, TOPO_CREDIT } from './map-layers.js';
+export { applyCoverMinZoom, cleanupMap, parseOverlays, TOPO_CREDIT } from './map-layers.js';
 export { refreshPlaceMarkerIcons } from './map-markers.js';
 export { wireFilterPopover, wirePopover } from './map-panel.js';
 export {

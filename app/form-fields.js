@@ -1,189 +1,167 @@
-import { escapeHtml } from './core.js';
-import { parseTagInput } from './tags.js';
+import { html, Toggle, useEffect, useRef, useState } from './view.js';
+import { t } from './i18n.js';
+import { getShowField } from './prefs.js';
+import { wireCountryPicker } from './countries.js';
+import { sortedCategorySlugs } from './core.js';
+import { areas, places } from './store.js';
 
-// Raise the map's minimum zoom to the smallest level whose Web Mercator
-// world (a 256*2^z px square) still covers the larger viewport dimension,
-// so the map can never zoom out into the empty background (the dark bands
-// above/below the world on tall screens). Re-run on resize/rotation.
-export function applyCoverMinZoom(map) {
-  const size = map.getSize();
-  const px = Math.max(size.x, size.y);
-  if (!px) return;
-  const cover = Math.max(0, Math.ceil(Math.log2(px / 256)));
-  if (map.getMinZoom() !== cover) {
-    map.setMinZoom(cover); // clamps the current zoom up if it was below.
-  }
-}
+// The pieces the place, area and route forms share. Each control keeps its
+// value in the form's state and reports changes up, so a payload is built
+// from that state and never read back out of the DOM.
 
-// Pill-style radio group: each option renders as a single-select pill.
-export function radioPillsHtml(name, options, selected, variant) {
-  return '<div class="radio-row ' + (variant || 'radio-pills') + '">' +
-    options.map(([v, l]) =>
-      '<label><input type="radio" name="' + name + '" value="' + v + '"' + (selected === v ? ' checked' : '') + '>' + l + '</label>'
-    ).join('') + '</div>';
-}
+export const NEW_CHOICE = '__new__';
 
-// Clickable 1-5 star widget. Reads/writes value via dataset on the wrapper.
-export function starRatingHtml(name, current) {
-  const val = current ? String(current) : '';
-  let html = '<div class="star-rating" data-name="' + name + '" data-value="' + escapeHtml(val) + '">';
-  for (let i = 1; i <= 5; i++) {
-    const filled = current && i <= current;
-    // ★ for filled, ☆ for empty — distinct glyphs make the state obvious
-    // regardless of color contrast in the active theme.
-    html += '<span class="star' + (filled ? ' filled' : '') + '" data-v="' + i + '">' + (filled ? '&#9733;' : '&#9734;') + '</span>';
-  }
-  html += '<a href="#" class="star-clear">clear</a>';
-  html += '</div>';
-  return html;
-}
-export function wireStarRating(name) {
-  const wrap = /** @type {HTMLElement | null} */ (document.querySelector('.star-rating[data-name="' + name + '"]'));
-  if (!wrap) return;
-  const stars = /** @type {NodeListOf<HTMLElement>} */ (wrap.querySelectorAll('.star'));
-  const FILLED = '★';
-  const EMPTY = '☆';
-  // Set both class and glyph so the state is unmistakable.
-  const setStar = (s, on, preview) => {
-    s.classList.toggle('filled', on && !preview);
-    s.classList.toggle('preview', !!preview);
-    s.innerHTML = (on || preview) ? FILLED : EMPTY;
-  };
-  const paint = (n, preview) => stars.forEach(s => {
-    setStar(s, !preview && (+s.dataset.v) <= n, preview && (+s.dataset.v) <= n);
-  });
-  const repaint = () => {
-    const cur = parseInt(wrap.dataset.value, 10) || 0;
-    stars.forEach(s => setStar(s, (+s.dataset.v) <= cur, false));
-  };
-  stars.forEach(star => {
-    star.addEventListener('mouseenter', function() { paint(+this.dataset.v, true); });
-    star.addEventListener('mouseleave', repaint);
-    star.addEventListener('click', function() {
-      const v = +this.dataset.v;
-      wrap.dataset.value = (wrap.dataset.value == String(v) ? '' : String(v));
-      repaint();
-    });
-  });
-  const clear = wrap.querySelector('.star-clear');
-  if (clear) clear.addEventListener('click', function(e) {
-    e.preventDefault();
-    wrap.dataset.value = '';
-    repaint();
-  });
-}
-export function readStarRating(name) {
-  const wrap = /** @type {HTMLElement | null} */ (document.querySelector('.star-rating[data-name="' + name + '"]'));
-  return wrap ? wrap.dataset.value : '';
+// FORM-FIELDS-BEGIN
+/** @typedef {{ sel: string, text: string }} Choice */
+
+/**
+ * The state of a select-or-new control: a current value that is not in the
+ * list opens "+ Add new" with the value in its text input.
+ * @param {string | null | undefined} current
+ * @param {string[]} options
+ * @returns {Choice}
+ */
+export function choiceFrom(current, options) {
+  if (current == null || current === '') return { sel: '', text: '' };
+  if (options.includes(current)) return { sel: current, text: '' };
+  return { sel: '__new__', text: current };
 }
 
-export function selectOrNewHtml(id, options, current, labelFn, emptyLabel, newPlaceholder) {
-  const labelOf = labelFn || (v => v);
-  // When emptyLabel is set, an empty-string option is allowed at the top
-  // and `required` is dropped from the select (the field is optional).
-  const hasEmpty = emptyLabel != null;
-  const isEmpty = current == null || current === '';
-  const inList = !isEmpty && options.includes(current);
-  const opts = options.map(v =>
-    '<option value="' + escapeHtml(v) + '"' + (v === current ? ' selected' : '') + '>' + escapeHtml(labelOf(v)) + '</option>'
-  ).join('');
-  const newSelected = (!isEmpty && !inList) ? ' selected' : '';
-  const inputValue = (!isEmpty && !inList) ? escapeHtml(current) : '';
-  const inputHidden = isEmpty || inList;
-  // The empty option exists so "no selection" is a valid state, but it's
-  // hidden from the dropdown list — the select just shows blank when it's
-  // selected. Picking a real option replaces the placeholder.
-  const emptyOpt = hasEmpty
-    ? '<option value="" hidden' + (isEmpty ? ' selected' : '') + '>' + escapeHtml(emptyLabel) + '</option>'
-    : '';
-  const requiredAttr = hasEmpty ? '' : ' required';
-  return '<div class="select-or-new" data-id="' + id + '">' +
-    '<select id="' + id + '"' + requiredAttr + '>' + emptyOpt + opts +
-      '<option value="__new__"' + newSelected + '>+ Add new</option>' +
-    '</select>' +
-    '<input type="text" class="new-input" id="' + id + '-new" placeholder="' + escapeHtml(newPlaceholder || 'New value') + '" value="' + inputValue + '"' + (inputHidden ? ' hidden' : '') + '>' +
-  '</div>';
+/** @param {Choice} choice */
+export function choiceValue(choice) {
+  return choice.sel === '__new__' ? choice.text.trim() : choice.sel;
 }
 
-export function wireSelectOrNew(id) {
-  const sel = /** @type {HTMLSelectElement | null} */ (document.getElementById(id));
-  const input = /** @type {HTMLInputElement | null} */ (document.getElementById(id + '-new'));
-  if (!sel || !input) return;
-  const sync = () => {
-    input.hidden = sel.value !== '__new__';
-    input.required = sel.value === '__new__';
-  };
-  sel.addEventListener('change', sync);
-  sync();
+/** @param {string} text One URL per line. */
+export function sourcesFromText(text) {
+  const raw = text.trim();
+  return raw ? raw.split('\n').map(s => s.trim()).filter(Boolean) : [];
 }
 
-export function readSelectOrNew(id) {
-  const sel = /** @type {HTMLSelectElement | null} */ (document.getElementById(id));
-  const input = /** @type {HTMLInputElement} */ (document.getElementById(id + '-new'));
-  if (!sel) return '';
-  if (sel.value === '__new__') return (input.value || '').trim();
-  return sel.value;
+// Five decimals is about a metre; anything beyond is float noise that would
+// pollute the stored JSON, and the marker is a 30 px dot anyway.
+/** @param {number} n */
+export function roundCoord(n) {
+  return Math.round(n * 1e5) / 1e5;
+}
+// FORM-FIELDS-END
+
+/** @param {Event} e */
+const valueOf = e => /** @type {HTMLInputElement} */ (e.currentTarget).value;
+
+/**
+ * Clickable 1-5 stars; a second click on the chosen star clears it. The
+ * glyphs differ (filled and empty) so the state reads without colour.
+ * @param {{ name: string, value: number, onChange: (n: number) => void }} props
+ */
+export function StarRating({ name, value, onChange }) {
+  const [hover, setHover] = useState(0);
+  const shown = hover || value;
+  return html`<div class="star-rating" data-name=${name} data-value=${value ? String(value) : ''}>
+    ${[1, 2, 3, 4, 5].map(i => html`<span key=${i}
+      class=${'star' + (!hover && i <= value ? ' filled' : '') + (hover && i <= hover ? ' preview' : '')}
+      data-v=${i} onMouseEnter=${() => setHover(i)} onMouseLeave=${() => setHover(0)} onClick=${() => onChange(value === i ? 0 : i)}>${i <= shown ? '★' : '☆'}</span>`)}
+    <a href="#" class="star-clear" onClick=${(/** @type {Event} */ e) => { e.preventDefault(); onChange(0); }}>${t('form.clear')}</a>
+  </div>`;
 }
 
-export function readPlaceFormFields(prefix) {
-  const $ = id => /** @type {HTMLInputElement} */ (document.getElementById(prefix + '-' + id));
-  const val = id => { const el = $(id); return el ? el.value : ''; };
-  const category = readSelectOrNew(prefix + '-category');
-  const sourcesRaw = val('sources').trim();
-  const sources = sourcesRaw ? sourcesRaw.split('\n').map(s => s.trim()).filter(Boolean) : null;
-  const tags = parseTagInput(val('tags'));
-  const rawLat = parseFloat(val('lat'));
-  const rawLon = parseFloat(val('lon'));
-  if (Number.isNaN(rawLat) || Number.isNaN(rawLon)) {
-    return { error: 'Pick a location on the map (or enter coordinates manually).' };
-  }
-  // Round to 5 decimals (~1 m). Anything beyond is JS float noise and
-  // pollutes the stored JSON; the marker is a 30-px dot anyway.
-  const lat = Math.round(rawLat * 1e5) / 1e5;
-  const lon = Math.round(rawLon * 1e5) / 1e5;
-  const payload = {
-    name: val('name').trim(),
-    lat,
-    lon,
-    visited: $('visited').checked,
-  };
-  if (category) payload.category = category;
-  const country = val('country').trim();
-  const note = val('note').trim();
-  const localName = val('local-name').trim();
-  const image = val('image').trim();
-  const dateVisited = val('date-visited').trim();
-  const ratingRaw = readStarRating(prefix + '-rating');
-  if (country) payload.country = country;
-  if (note) payload.note = note;
-  if (localName) payload.local_name = localName;
-  if (image) payload.image = image;
-  if (sources && sources.length) payload.sources = sources;
-  if (tags) payload.tags = tags;
-  // Visit-only metadata: ignore if the visited toggle is off.
-  if (payload.visited) {
-    if (dateVisited) payload.date_visited = dateVisited;
-    if (ratingRaw) payload.rating = parseInt(ratingRaw, 10);
-  }
-  return { payload };
+/**
+ * A select with a "+ Add new" entry that reveals a text input. By default the
+ * empty option is hidden from the list, so a blank select means no choice;
+ * `emptyLabel` shows it as a pickable entry instead.
+ * @param {{ id: string, options: string[], labelOf?: (v: string) => string, value: Choice,
+ *   onChange: (c: Choice) => void, newPlaceholder: string, emptyLabel?: string,
+ *   addLabel?: string, focusNew?: boolean, maxLength?: number }} props
+ */
+export function SelectOrNew({ id, options, labelOf, value, onChange, newPlaceholder, emptyLabel, addLabel, focusNew, maxLength }) {
+  const adding = value.sel === NEW_CHOICE;
+  const input = useRef(/** @type {HTMLInputElement | null} */ (null));
+  useEffect(() => {
+    if (adding && focusNew && input.current) input.current.focus();
+  }, [adding]);
+  return html`<div class="select-or-new" data-id=${id}>
+    <select id=${id} value=${value.sel} onChange=${(/** @type {Event} */ e) => onChange({ sel: valueOf(e), text: value.text })}>
+      <option value="" hidden=${emptyLabel == null}>${emptyLabel || ''}</option>
+      ${options.map(o => html`<option key=${o} value=${o}>${labelOf ? labelOf(o) : o}</option>`)}
+      <option value=${NEW_CHOICE}>${addLabel || t('form.addNew')}</option>
+    </select>
+    <input type="text" class="new-input" id=${id + '-new'} ref=${input} placeholder=${newPlaceholder} value=${value.text}
+      maxlength=${maxLength} hidden=${!adding} required=${adding} onInput=${(/** @type {Event} */ e) => onChange({ sel: value.sel, text: valueOf(e) })} />
+  </div>`;
 }
 
-// Read the route-metadata fields shared by the route editor and GPX upload
-// (source/notes/local_name/difficulty/tags) from a form by id prefix.
-// date_completed/rating are caller-specific (the editor always reads them,
-// GPX upload only when "completed"), so they stay at the call sites.
-export function readRouteMetaFields(prefix) {
-  const get = id => { const el = /** @type {HTMLInputElement | null} */ (document.getElementById(id)); return el ? el.value : ''; };
-  const metadata = {};
-  const source = get(prefix + '-source').trim();
-  const notes = get(prefix + '-notes');
-  const localName = get(prefix + '-local-name').trim();
-  const difficulty = (/** @type {HTMLInputElement | null} */ (document.querySelector('input[name="' + prefix + '-difficulty"]:checked')) || {}).value || '';
-  const tags = parseTagInput(get(prefix + '-tags'));
-  if (source) metadata.source = source;
-  if (notes.trim()) metadata.notes = notes;
-  if (localName) metadata.local_name = localName;
-  if (difficulty) metadata.difficulty = difficulty;
-  if (tags) metadata.tags = tags;
-  return metadata;
+/**
+ * The expanding block under a toggle.
+ * @param {{ id?: string, open: boolean, children?: any }} props
+ */
+export function Collapsible({ id, open, children }) {
+  return html`<div class=${'collapsible' + (open ? ' expanded' : '')} id=${id}>
+    <div class="collapsible-inner">${children}</div>
+  </div>`;
+}
+
+/**
+ * A toggle for "visited" or "completed" with the date and rating that go
+ * with it. The extras follow Settings > Optional fields.
+ * @param {{ ids: { toggle: string, extras: string, date: string, rating: string }, label: string,
+ *   dateLabel: string, on: boolean, onToggle: (on: boolean) => void, date: string,
+ *   onDate: (s: string) => void, rating: number, onRating: (n: number) => void }} props
+ */
+export function DoneFields({ ids, label, dateLabel, on, onToggle, date, onDate, rating, onRating }) {
+  const showDate = getShowField('date');
+  const showRating = getShowField('rating');
+  return html`<div>
+    <${Toggle} id=${ids.toggle} label=${label} initial=${on} onToggle=${onToggle} />
+    ${(showDate || showRating) && html`<${Collapsible} id=${ids.extras} open=${on}>
+      <div class="ui-section">
+        ${showDate && html`<div class="ui-field">
+          <label class="ui-field-label" for=${ids.date}>${dateLabel}</label>
+          <input type="date" id=${ids.date} value=${date} onInput=${(/** @type {Event} */ e) => onDate(valueOf(e))} />
+        </div>`}
+        ${showRating && html`<div class="ui-field">
+          <span class="ui-field-label">${t('form.rating')}</span>
+          <${StarRating} name=${ids.rating} value=${rating} onChange=${onRating} />
+        </div>`}
+      </div>
+    <//>`}
+  </div>`;
+}
+
+// The picker adds its list beside the input, so the input is the wrapper's
+// only child and Preact never reorders around the list.
+/** @param {{ id: string, value: string, onInput: (s: string) => void }} props */
+export function CountryInput({ id, value, onInput }) {
+  useEffect(() => { wireCountryPicker(id); }, []);
+  return html`<div><input type="text" id=${id} value=${value} onInput=${(/** @type {Event} */ e) => onInput(valueOf(e))} /></div>`;
+}
+
+/**
+ * A file input behind a button. `inputRef` lets the form clear the file.
+ * @param {{ id: string, accept: string, required?: boolean, file: File | null,
+ *   onFile: (f: File | null) => void, inputRef?: { current: HTMLInputElement | null } }} props
+ */
+export function FilePick({ id, accept, required, file, onFile, inputRef }) {
+  const own = useRef(/** @type {HTMLInputElement | null} */ (null));
+  const ref = inputRef || own;
+  return html`<div class="ui-control-row">
+    <input type="file" id=${id} ref=${ref} tabindex="-1" accept=${accept} class="file-input-hidden" required=${required}
+      onChange=${(/** @type {Event} */ e) => { const files = /** @type {HTMLInputElement} */ (e.currentTarget).files; onFile(files && files[0] || null); }} />
+    <button type="button" class="primary" id=${id + '-pick'} onClick=${() => ref.current && ref.current.click()}>${t('form.chooseFile')}</button>
+    <span class=${'ui-control-text' + (file ? ' has-file' : '')} id=${id + '-name'}>${file ? file.name : t('form.noFile')}</span>
+  </div>`;
+}
+
+/** The difficulty choices of a route, in the order the form lists them. */
+export function difficultyOptions() {
+  return [
+    ['', t('form.diffNone')], ['easy', t('form.diffEasy')], ['moderate', t('form.diffModerate')],
+    ['hard', t('form.diffHard')], ['expert', t('form.diffExpert')],
+  ];
+}
+
+// The categories places and areas use. "No category" is the blank option of
+// the control, so the uncategorized bucket is not listed.
+export function categorySlugs() {
+  const used = new Set(places.value.concat(areas.value).map((/** @type {{category?: string}} */ p) => p.category));
+  return sortedCategorySlugs([...used].filter(Boolean));
 }

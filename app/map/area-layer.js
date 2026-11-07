@@ -1,10 +1,10 @@
-import { state } from '../core.js';
+import { manifestRoutes, reduceMotion, state } from '../core.js';
 import { gpxUrlFor } from '../server.js';
 import {
   areaBbox, areaContains, areaSize, bboxesOverlap, placesInArea, tracksTouchArea,
 } from '../area-geo.js';
 import { placesEnabled } from '../prefs.js';
-import { manifestRoutes, openEditAreaModal, reduceMotion } from '../areas.js';
+import { openEditAreaModal } from '../areas/edit-area.js';
 import { fetchGpxText } from './route-layer.js';
 import { html } from '../view.js';
 import { AreaPopup, popupElement } from './popups.js';

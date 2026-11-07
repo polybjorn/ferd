@@ -119,21 +119,17 @@ If you're proposing a change that breaks one of these, lead the PR with the why.
 
 ## Views
 
-Settings, Account, Admin and the dialogs Settings opens (catalog, categories, regions, logs) run on Preact components written as htm tagged templates, which the browser loads as plain ES modules. The pilot weighed this against Vite with TypeScript and Svelte or Preact; the no-build option covered everything these screens needed, so the toolchain stays out.
+Settings, Account, Admin and the dialogs Settings opens (catalog, categories, regions, logs), the place, area and route edit forms and the Add dialog run on Preact components written as htm tagged templates, which the browser loads as plain ES modules. The pilot weighed this against Vite with TypeScript and Svelte or Preact; the no-build option covered everything these screens needed, so the toolchain stays out.
 
 - Text is escaped by default, so a component has no `escapeHtml` and no `innerHTML`.
 - Each checkbox, radio and text field keeps its own state, because Preact compares `checked` and `value` with the live element on every render. A save that fails puts the control back through that state.
 - `openViewModal(view, opts)` in `app/view.js` renders a component into a dialog and unmounts it on close. The view renders its own `.ui-dialog-head` and `.ui-dialog-body`. `app/view.js` also holds the shared pieces: field, toggle, radio pills, error box, copy button and `useFetch`.
 - Selects stay uncontrolled (`selected` on the initial option), since `enhanceSelectsIn` drives the native element.
 - The import map sits above the module preloads in `index.html`, because Firefox ignores one that comes after a preload has started.
-- The modules live in `app/settings/`. Every user-visible string goes through `t(key, vars)` from `app/i18n.js`, a flat English table with `{name}` slots, keys grouped by view and `.one`/`.other` variants picked by a numeric `count`. `tx` returns the pieces instead of a string, for text that wraps a slot in an element. `tests/js/i18n.test.js` fails on a key a view asks for that the table lacks, and on a key nothing uses.
+- The modules live in `app/settings/`, `app/places/`, `app/areas/`, `app/routes/` and `app/add/`. The shared form controls (star rating, select-or-new, collapsible, country input, file pick) are in `app/form-fields.js`. A form keeps its values in state and reads the store's signals, and its payload rules sit in a `*-payload.js` beside it, pure so `tests/js/form-payloads.test.js` runs them without a DOM. Writes go through `dataLayer`. Every user-visible string goes through `t(key, vars)` from `app/i18n.js`, a flat English table with `{name}` slots, keys grouped by view and `.one`/`.other` variants picked by a numeric `count`. `tx` returns the pieces instead of a string, for text that wraps a slot in an element. `tests/js/i18n.test.js` fails on a key a view asks for that the table lacks, and on a key nothing uses.
 - Leaflet popups and the map code stay plain strings and DOM, since Leaflet takes those directly.
 
-The remaining screens are worth converting, in this order:
-
-1. The edit forms: place, area and route metadata, with the shared fields in `form-fields.js`. Forms carry most of the escaping and the control state.
-2. The Add dialog (`add.js`), the largest, once the form pieces from step 1 exist.
-3. Lists and panels (places, routes, history, route detail), when a change touches them anyway. They mostly render read-only rows.
+The remaining screens are worth converting when a change touches them anyway: lists and panels (places, routes, history, route detail). They mostly render read-only rows.
 
 ## Platform targets
 

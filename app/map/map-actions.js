@@ -1,9 +1,8 @@
-import { displayRegion, state } from '../core.js';
+import { displayRegion, manifestRoutes, state } from '../core.js';
 import { dataLayer } from '../store.js';
 import { html } from '../view.js';
 import { PlacePopup, popupElement } from './popups.js';
-import { manifestRoutes } from '../areas.js';
-import { openEditPlaceModal } from '../edit-place.js';
+import { openEditPlaceModal } from '../places/edit-place.js';
 import { renderPlaceList } from '../places-list.js';
 import { focusHash } from '../router.js';
 import { getMarkerSize, getPinStyle } from '../theme.js';

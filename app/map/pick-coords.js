@@ -1,5 +1,5 @@
 import { state } from '../core.js';
-import { openAddModal } from '../add.js';
+import { openAddModal } from '../add/add.js';
 import { openSearchView } from './map-phone.js';
 
 // onPick is called with the chosen latlng. If omitted, the default

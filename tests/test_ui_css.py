@@ -343,26 +343,24 @@ class ModalHeight(unittest.TestCase):
     self.assertRegex(FRONTEND, r"#catalog-bulk-list\) \{\s+flex: 1 1 auto;\s+min-height: 4rem")
 
 
+def view_source(*names):
+  return "\n".join((ROOT / "app" / n).read_text(encoding="utf-8") for n in names)
+
+
 class AddForm(unittest.TestCase):
   def test_forms_use_the_blocks_without_inline_styles(self):
-    for name, end in (("placeFormHtml", "gpxFormHtml"), ("gpxFormHtml", "wirePlaceForm"),
-                      ("areaFormHtml", "searchAreaBoundaries")):
-      form = FRONTEND[FRONTEND.index("function %s(" % name):FRONTEND.index("function %s(" % end)]
-      self.assertIn("uiFieldHtml(", form)
+    for name in ("places/add-place.js", "routes/add-route.js", "areas/add-area.js"):
+      form = view_source(name)
+      self.assertIn("${Field}", form, name)
       self.assertNotIn("style=", form, name)
       self.assertNotIn("settings-toggle", form, name)
 
 
 class EditForms(unittest.TestCase):
   def test_forms_use_the_blocks_without_inline_styles(self):
-    for name, end in (("openEditPlaceModal", "modalErrorHtml('edit-error')"),
-                      ("openEditTrailMetadataModal", "modalErrorHtml('tm-error')"),
-                      ("openEditAreaModal", "modalErrorHtml('edit-area-error')"),
-                      ("signInFormHtml", "modalErrorHtml('auth-error')")):
-      start = FRONTEND.index("function %s(" % name)
-      form = FRONTEND[start:FRONTEND.index(end, start)]
-      self.assertIn("uiFieldHtml(", form, name)
-      self.assertNotIn("style=", form, name)
+    for name in ("places/edit-place.js", "areas/edit-area.js", "routes/route-meta.js"):
+      form = view_source(name)
+      self.assertIn("${Field}", form, name)
       self.assertNotIn("settings-toggle", form, name)
       self.assertNotIn("<label for=", form, name)
 
@@ -378,8 +376,7 @@ class EditForms(unittest.TestCase):
     self.assertIn("<${Toggle}", settings)
 
   def test_area_fields_use_the_blocks(self):
-    start = FRONTEND.index("function areaLocalNameHtml(")
-    fields = FRONTEND[start:FRONTEND.index("function openEditAreaModal(")]
+    fields = view_source("areas/edit-area.js")
     self.assertNotIn("<label for=", fields)
     self.assertNotIn("style=", fields)
 

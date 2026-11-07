@@ -6,13 +6,13 @@ import {
 import {
   getPref, getShowField, placesEnabled, routesEnabled, setPref, setResultCount,
 } from './prefs.js';
-import { findRouteByKey, openEditTrailMetadataModal, ratingStarsText } from './route-meta.js';
-import { openEditPlaceModal } from './edit-place.js';
+import { findRouteByKey, openEditTrailMetadataModal, ratingStarsText } from './routes/route-meta.js';
+import { openEditPlaceModal } from './places/edit-place.js';
 import { NAME_COLLATOR, findCatalogUpdate, openCatalogUpdateModal } from './places-list.js';
 import { focusHash } from './router.js';
 import { attachContextMenu } from './context-menu.js';
 import { enhanceSelectsIn } from './select.js';
-import { openAddModal } from './add.js';
+import { openAddModal } from './add/add.js';
 
 export function renderHistoryIndex() {
   setActiveTab('history');

@@ -29,15 +29,17 @@
     { "imports": { "preact": "/vendor/preact/preact.js", "preact/hooks": "/vendor/preact/hooks.js", "htm": "/vendor/htm/htm.js", "@preact/signals": "/vendor/signals/signals.js", "@preact/signals-core": "/vendor/signals/signals-core.js" } }
   </script>
   <!-- Without these, each import is found only after its parent arrives. -->
-  <link rel="modulepreload" href="/app/add.js">
+  <link rel="modulepreload" href="/app/add/add.js">
+  <link rel="modulepreload" href="/app/add/browse.js">
   <link rel="modulepreload" href="/app/area-geo.js">
-  <link rel="modulepreload" href="/app/areas.js">
+  <link rel="modulepreload" href="/app/areas/add-area.js">
+  <link rel="modulepreload" href="/app/areas/area-payload.js">
+  <link rel="modulepreload" href="/app/areas/edit-area.js">
   <link rel="modulepreload" href="/app/auth.js">
   <link rel="modulepreload" href="/app/backup.js">
   <link rel="modulepreload" href="/app/context-menu.js">
   <link rel="modulepreload" href="/app/core.js">
   <link rel="modulepreload" href="/app/countries.js">
-  <link rel="modulepreload" href="/app/edit-place.js">
   <link rel="modulepreload" href="/app/form-fields.js">
   <link rel="modulepreload" href="/app/gpx-text.js">
   <link rel="modulepreload" href="/app/history.js">
@@ -62,10 +64,15 @@
   <link rel="modulepreload" href="/app/map/sync.js">
   <link rel="modulepreload" href="/app/modal.js">
   <link rel="modulepreload" href="/app/places-list.js">
+  <link rel="modulepreload" href="/app/places/add-place.js">
+  <link rel="modulepreload" href="/app/places/edit-place.js">
+  <link rel="modulepreload" href="/app/places/place-payload.js">
   <link rel="modulepreload" href="/app/prefs.js">
-  <link rel="modulepreload" href="/app/route-meta.js">
   <link rel="modulepreload" href="/app/router.js">
   <link rel="modulepreload" href="/app/routes-list.js">
+  <link rel="modulepreload" href="/app/routes/add-route.js">
+  <link rel="modulepreload" href="/app/routes/route-meta.js">
+  <link rel="modulepreload" href="/app/routes/route-payload.js">
   <link rel="modulepreload" href="/app/select.js">
   <link rel="modulepreload" href="/app/server.js">
   <link rel="modulepreload" href="/app/settings/account.js">

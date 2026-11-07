@@ -1,5 +1,5 @@
 import { h, render, Fragment } from 'preact';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import htm from 'htm';
 import { openModal } from './modal.js';
 import { t } from './i18n.js';
@@ -7,7 +7,7 @@ import { isDefaultHidden, setDefaultHidden } from './prefs.js';
 
 // The view layer: Preact components written as htm templates, so there is no
 // build step. index.html maps the bare names to vendor/.
-export { Fragment, useEffect, useRef, useState };
+export { Fragment, useEffect, useLayoutEffect, useRef, useState };
 export const html = htm.bind(h);
 
 // Preact owns every child of the dialog, so a view renders its own head and
@@ -29,9 +29,11 @@ export function DialogHead({ title, lead }) {
   </div>`;
 }
 
-export function Field({ id, label, children }) {
+/** @param {{id?: string, label: any, required?: boolean, children?: any}} props */
+export function Field({ id, label, required, children }) {
+  const cls = 'ui-field-label' + (required ? ' ui-required' : '');
   return html`<div class="ui-field">
-    ${id ? html`<label class="ui-field-label" for=${id}>${label}</label>` : html`<span class="ui-field-label">${label}</span>`}
+    ${id ? html`<label class=${cls} for=${id}>${label}</label>` : html`<span class=${cls}>${label}</span>`}
     ${children}
   </div>`;
 }
@@ -48,14 +50,15 @@ export function ErrorBox({ id, msg }) {
 // control whose state lived only in the DOM would snap back whenever a parent
 // re-renders. Each control keeps its own state for that reason. onToggle gets
 // the setter, so a failed save can put the switch back.
-export function Toggle({ id, label, initial, onToggle }) {
+/** @param {{id: string, label: any, initial?: boolean, title?: string, onToggle?: Function}} props */
+export function Toggle({ id, label, initial, title, onToggle }) {
   const [on, setOn] = useState(!!initial);
   const change = e => {
     const v = e.currentTarget.checked;
     setOn(v);
     if (onToggle) onToggle(v, setOn);
   };
-  return html`<label class="ui-toggle-row">
+  return html`<label class="ui-toggle-row" title=${title}>
     <span class="ui-toggle-text">${label}</span>
     <input type="checkbox" id=${id} checked=${on} onChange=${change} />
   </label>`;

@@ -1,6 +1,22 @@
 import { escapeHtml, state } from '../core.js';
 import { BASE_LAYER_NAMES, getDefaultTileLayer, getShowTilePicker } from '../prefs.js';
 
+// Raise the map's minimum zoom to the smallest level whose Web Mercator
+// world (a 256*2^z px square) still covers the larger viewport dimension,
+// so the map can never zoom out into the empty background (the dark bands
+// above/below the world on tall screens). Re-run on resize/rotation.
+/** @param {any} map */
+export function applyCoverMinZoom(map) {
+  const size = map.getSize();
+  const px = Math.max(size.x, size.y);
+  if (!px) return;
+  const cover = Math.max(0, Math.ceil(Math.log2(px / 256)));
+  if (map.getMinZoom() !== cover) {
+    map.setMinZoom(cover); // clamps the current zoom up if it was below.
+  }
+}
+
+
 // Skip tile loads during zoom animations. Default true is wasteful:
 // each zoom level transition requests its own batch of tiles while
 // the gesture is still in flight, competing with the animation.

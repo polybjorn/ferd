@@ -8,14 +8,14 @@ import {
   cleanupMap, deletePlaceItem, refreshOpenPlacePopup, redrawPlaces, refreshPlacesPresentation, resyncPlaceCardSlugs, wireFilterPopover,
 } from './map/index.js';
 import { getShowField, setPref, setResultCount } from './prefs.js';
-import { openEditPlaceModal } from './edit-place.js';
+import { openEditPlaceModal } from './places/edit-place.js';
 import { listView, listViewPopoverHtml, wireListViewPopover } from './history.js';
 import { focusHash, wrappedRouter } from './router.js';
 import { api } from './auth.js';
 import { attachContextMenu } from './context-menu.js';
 import { enhanceSelectsIn, modalHeaderHtml } from './select.js';
 import { closeModal, openFullScreenModal } from './modal.js';
-import { openAddModal } from './add.js';
+import { openAddModal } from './add/add.js';
 
 // Fields the catalog "owns" - personal status (visited / date_visited /
 // rating / from_catalog / runtime annotations) is preserved on refresh.

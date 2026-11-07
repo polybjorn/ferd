@@ -3,12 +3,11 @@ import {
   formatElevation, setActiveTab, setCrumb, state,
 } from '../core.js';
 import { gpxUrlFor, isReadOnly } from '../server.js';
-import { applyCoverMinZoom } from '../form-fields.js';
 import { tagPillsHtml } from '../tags.js';
 import { collapseCreditOnPhone } from './map-panel.js';
 import { DEFAULT_CONFIG, getShowField, isImperial } from '../prefs.js';
 import { enableWheelZoom } from './map-wheel.js';
-import { addTileLayersToMap, cleanupMap, mapScheduler } from './map-layers.js';
+import { addTileLayersToMap, applyCoverMinZoom, cleanupMap, mapScheduler } from './map-layers.js';
 import {
   WAYPOINT_PLACEHOLDER_ICON, attachWaypointHandlers, makeWaypointIcon,
 } from './map-markers.js';
@@ -17,7 +16,7 @@ import {
   decimateCoords, fetchGpxText, simplifyRouteForZoom,
 } from './route-layer.js';
 import { EXTERNAL_ICON_SVG } from './map-popups.js';
-import { DIFFICULTY_LABELS, openEditTrailMetadataModal, ratingStarsText } from '../route-meta.js';
+import { DIFFICULTY_LABELS, openEditTrailMetadataModal, ratingStarsText } from '../routes/route-meta.js';
 import { getTrailWeightFactor } from '../theme.js';
 
 export function parseGpxTracks(xmlText) {

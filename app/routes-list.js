@@ -3,14 +3,14 @@ import { gpxUrlFor, isReadOnly } from './server.js';
 import { collectTags, tagsIncludeAll } from './tags.js';
 import { cleanupMap, deleteRouteItem, fetchGpxText, wireFilterPopover } from './map/index.js';
 import { setPref, setResultCount } from './prefs.js';
-import { findRouteByKey, openEditTrailMetadataModal } from './route-meta.js';
+import { findRouteByKey, openEditTrailMetadataModal } from './routes/route-meta.js';
 import { groupAndSort, letterBucket } from './places-list.js';
 import {
   drawRouteSilhouette, listView, listViewPopoverHtml, wireListViewPopover,
 } from './history.js';
 import { attachContextMenu } from './context-menu.js';
 import { enhanceSelectsIn } from './select.js';
-import { openAddModal } from './add.js';
+import { openAddModal } from './add/add.js';
 
 export function renderTrailsIndex() {
   setActiveTab('routes');

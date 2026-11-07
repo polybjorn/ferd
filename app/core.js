@@ -377,3 +377,10 @@ export function setCrumb(text, alwaysShow) {
 window.addEventListener('resize', function() {
   if (_crumbText) setCrumb(_crumbText, _crumbAlways);
 });
+
+export function reduceMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+export function manifestRoutes() {
+  return ((state.manifest && state.manifest.regions) || []).flatMap(region => region.routes);
+}

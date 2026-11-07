@@ -1,8 +1,7 @@
-import { escapeHtml, state } from '../core.js';
+import { escapeHtml, reduceMotion, state } from '../core.js';
 import { easeLeaflet } from './map-layers.js';
 import { getClusterPlaces, placesEnabled, routesEnabled } from '../prefs.js';
 import { applyAreaFilters, MAP_FADE_MS, revealArea } from './area-layer.js';
-import { reduceMotion } from '../areas.js';
 import { goToPlace, goToRoute, openPlacePopup, placeMarkerRadius } from './map-actions.js';
 import { focusHash } from '../router.js';
 import { getMarkerSize, getPinStyle } from '../theme.js';

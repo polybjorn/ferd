@@ -3,6 +3,7 @@ import { state } from '../core.js';
 import * as store from '../store.js';
 import { syncAreasOnMap } from './area-layer.js';
 import { syncPlacesOnMap } from './map-popups.js';
+import { refreshFilterPanel } from './home-map.js';
 
 // The index map follows the store's signals: any write, local or synced,
 // lands here and is drawn without a rebuild, so callers never tell the map
@@ -37,7 +38,12 @@ export function flushMapSync() {
   // A completed route can make an area visited, so routes redraw the areas too.
   if (kinds.has('routes') && state._syncRoutesOnMap) state._syncRoutesOnMap();
   if (kinds.has('places')) syncPlacesOnMap();
-  else if (kinds.has('areas') || kinds.has('routes')) syncAreasOnMap();
+  else {
+    syncAreasOnMap();
+    // The legends list area categories and route regions, and only the
+    // places pass rebuilds them.
+    refreshFilterPanel();
+  }
 }
 
 // The index map, not the route detail map, which has no place layer.

@@ -2,14 +2,13 @@ import {
   addButtonHtml, displayCategory, displayRegion, escapeHtml, setActiveTab, setCrumb, sortedCategorySlugs, state,
 } from '../core.js';
 import { gpxUrlFor, isReadOnly, routeStatusColor } from '../server.js';
-import { applyCoverMinZoom } from '../form-fields.js';
 import { collapseCreditOnPhone, panelInnerHtml } from './map-panel.js';
 import { addPhoneMapButtons } from './map-phone.js';
 import {
   DEFAULT_CONFIG, getRememberView, loadStoredView, placesEnabled, routesEnabled, saveStoredView,
 } from '../prefs.js';
 import { enableWheelZoom } from './map-wheel.js';
-import { addTileLayersToMap, cleanupMap, mapScheduler } from './map-layers.js';
+import { addTileLayersToMap, applyCoverMinZoom, cleanupMap, mapScheduler } from './map-layers.js';
 import {
   adjustTrailStrokes, applyNonScalingStroke, applyRouteHighlight, attachGLRoutes,
   bindTrailStrokeMotion, fetchGpxText, setSelectedRoute, simplifyRouteForZoom,
@@ -22,7 +21,7 @@ import { applyMapFilters, createPlaceLayerGroup, initUnifiedSearch, placeShown, 
 import { focusHash } from '../router.js';
 import { getTrailWeightFactor } from '../theme.js';
 import { openMapPlaceContextMenu, openMapRouteContextMenu } from '../context-menu.js';
-import { openAddModal } from '../add.js';
+import { openAddModal } from '../add/add.js';
 
 export function renderUnifiedMap(focus) {
   setActiveTab('map');

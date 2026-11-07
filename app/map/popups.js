@@ -3,7 +3,7 @@ import { displayCategory, displayRegion, state } from '../core.js';
 import { canEditPopup } from '../server.js';
 import { getShowField } from '../prefs.js';
 import { areaStatText } from '../area-geo.js';
-import { DIFFICULTY_LABELS } from '../route-meta.js';
+import { DIFFICULTY_LABELS } from '../routes/route-meta.js';
 import { html, useEffect, useState } from '../view.js';
 
 // The map's popups as Preact views. Leaflet takes a popup's content as an
