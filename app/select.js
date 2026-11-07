@@ -320,9 +320,8 @@ export function bindStoreToState() {
   // Place colours come from the labels, so this one reads both.
   effect(() => {
     const data = store.places.value;
-    const labels = store.labels.value;
+    store.labels.value;
     untracked(() => {
-      if (state.config) state.config.category_labels = labels;
       // A missing category is the "uncategorized" bucket (key ''), so the
       // rest of the UI can treat p.category as a plain string.
       for (const p of data) { if (p.category == null) p.category = ''; }
@@ -353,6 +352,10 @@ export function bindStoreToState() {
   });
 }
 function recolor() {
+  // Read here, not in the places effect: the areas effect can run first in
+  // the same batch, and a colour assigned against a stale copy is saved as
+  // the whole label map, deleting every label it lacks.
+  if (state.config) state.config.category_labels = store.labels.peek();
   const cc = assignCategoryColors(state.places || []);
   state.categoryColors = cc.dark;
   state.categoryColorsLight = cc.light;
