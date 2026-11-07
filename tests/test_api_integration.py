@@ -228,6 +228,14 @@ def fresh_places(items: list | None = None) -> None:
   reset_kind("place", items)
 
 
+def put(kind: str, item_id: str, data) -> dict:
+  return {"kind": kind, "op": "put", "id": item_id, "data": data}
+
+
+def batch(c: Client, changes: list):
+  return c.request("POST", "/api/sync/batch", {"changes": changes})
+
+
 # ---------- tests ----------
 
 
@@ -420,124 +428,55 @@ class TestSetupTokenAfterUsersEmptied(unittest.TestCase):
                           {"username": "mallory", "password": "mallory-password-1"})
     self.assertEqual(status, 403)
 
-class TestPlacesAuthGates(unittest.TestCase):
-  PAYLOAD = {"name": "AuthGateTest", "lat": 0, "lon": 0, "category": "test"}
-
-  def test_anon_create_blocked(self):
-    c = Client(_server.base_url)  # type: ignore[union-attr]
-    status, _ = c.request("POST", "/api/places", self.PAYLOAD)
-    self.assertEqual(status, 401)
-
-  def test_anon_update_blocked(self):
-    c = Client(_server.base_url)  # type: ignore[union-attr]
-    status, _ = c.request("PUT", "/api/places",
-                          {"id": "0" * 8, "place": self.PAYLOAD})
-    self.assertEqual(status, 401)
-
-  def test_anon_delete_blocked(self):
-    c = Client(_server.base_url)  # type: ignore[union-attr]
-    status, _ = c.request("DELETE", "/api/places", {"id": "0" * 8})
-    self.assertEqual(status, 401)
+class TestOwnerItemWritesRemoved(unittest.TestCase):
+  def test_item_writes_go_through_the_batch(self):
+    c = admin_client()
+    for method, path in (("POST", "/api/places"), ("PUT", "/api/places"), ("DELETE", "/api/places"),
+                         ("POST", "/api/areas"), ("PUT", "/api/areas"), ("DELETE", "/api/areas"),
+                         ("PUT", "/api/me/prefs"), ("PUT", "/api/me/category-labels")):
+      with self.subTest(method=method, path=path):
+        self.assertEqual(c.request(method, path, {})[0], 404)
 
 
-class TestPlacesCRUD(unittest.TestCase):
+class TestPlaces(unittest.TestCase):
   def setUp(self):
     self.c = admin_client()
     fresh_places([])
 
-  def test_create_lists_and_persists(self):
-    status, body = self.c.request("POST", "/api/places",
-                                  {"name": "P1", "lat": 1, "lon": 2, "category": "cat"})
-    self.assertEqual(status, 201)
-    self.assertTrue(body["ok"])
-    self.assertEqual(body["total_places"], 1)
+  def test_put_lists_and_persists(self):
+    status, body = batch(self.c, [put("place", "abcdef01", {"name": "P1", "lat": 1, "lon": 2, "category": "cat"})])
+    self.assertEqual(status, 200, body)
     on_disk = stored("place")
-    self.assertEqual(len(on_disk), 1)
-    self.assertEqual(on_disk[0]["name"], "P1")
+    self.assertEqual([(p["id"], p["name"]) for p in on_disk], [("abcdef01", "P1")])
+    self.assertEqual(self.c.request("GET", "/api/places")[1], on_disk)
 
-  def test_create_validation_error(self):
-    status, body = self.c.request("POST", "/api/places",
-                                  {"name": "X", "lat": 200, "lon": 0, "category": "cat"})
+  def test_validation_error(self):
+    status, body = batch(self.c, [put("place", "abcdef01", {"name": "X", "lat": 200, "lon": 0})])
     self.assertEqual(status, 400)
     self.assertIn("lat", body["error"])
 
-  def test_update_rename(self):
-    _, created = self.c.request("POST", "/api/places",
-                                {"name": "Old", "lat": 0, "lon": 0, "category": "cat"})
-    pid = created["place"]["id"]
-    status, _ = self.c.request("PUT", "/api/places",
-                               {"id": pid,
-                                "place": {"name": "New", "lat": 0, "lon": 0, "category": "cat"}})
-    self.assertEqual(status, 200)
-    on_disk = stored("place")
-    self.assertEqual(on_disk[0]["name"], "New")
-    self.assertEqual(on_disk[0]["id"], pid)
+  def test_put_again_renames_in_place(self):
+    batch(self.c, [put("place", "abcdef01", {"name": "Old", "lat": 0, "lon": 0, "category": "cat"})])
+    batch(self.c, [put("place", "abcdef01", {"name": "New", "lat": 0, "lon": 0, "category": "cat"})])
+    self.assertEqual([(p["id"], p["name"]) for p in stored("place")], [("abcdef01", "New")])
 
-  def test_update_same_name_targets_correct_row(self):
-    # Two rows with the same name are allowed; update by id hits the right one.
-    _, a = self.c.request("POST", "/api/places",
-                          {"name": "Dup", "lat": 1, "lon": 1, "category": "cat"})
-    _, b = self.c.request("POST", "/api/places",
-                          {"name": "Dup", "lat": 2, "lon": 2, "category": "cat"})
-    status, _ = self.c.request("PUT", "/api/places",
-                               {"id": b["place"]["id"],
-                                "place": {"name": "Dup", "lat": 9, "lon": 9, "category": "cat"}})
-    self.assertEqual(status, 200)
-    on_disk = stored("place")
-    by_id = {p["id"]: p for p in on_disk}
-    self.assertEqual(by_id[a["place"]["id"]]["lat"], 1)
-    self.assertEqual(by_id[b["place"]["id"]]["lat"], 9)
+  def test_same_name_rows_are_kept_apart_by_id(self):
+    batch(self.c, [put("place", "aaaaaaa1", {"name": "Dup", "lat": 1, "lon": 1}),
+                   put("place", "bbbbbbb2", {"name": "Dup", "lat": 2, "lon": 2})])
+    batch(self.c, [put("place", "bbbbbbb2", {"name": "Dup", "lat": 9, "lon": 9})])
+    by_id = {p["id"]: p for p in stored("place")}
+    self.assertEqual((by_id["aaaaaaa1"]["lat"], by_id["bbbbbbb2"]["lat"]), (1, 9))
+    batch(self.c, [{"kind": "place", "op": "delete", "id": "aaaaaaa1"}])
+    self.assertEqual([p["id"] for p in stored("place")], ["bbbbbbb2"])
 
-  def test_update_not_found(self):
-    status, _ = self.c.request("PUT", "/api/places",
-                               {"id": "0" * 8,
-                                "place": {"name": "ghost", "lat": 0, "lon": 0, "category": "cat"}})
-    self.assertEqual(status, 404)
-
-  def test_delete(self):
-    _, created = self.c.request("POST", "/api/places",
-                                {"name": "ToGo", "lat": 0, "lon": 0, "category": "cat"})
-    status, body = self.c.request("DELETE", "/api/places", {"id": created["place"]["id"]})
-    self.assertEqual(status, 200)
-    self.assertEqual(body["total_places"], 0)
-
-  def test_delete_same_name_removes_only_targeted_row(self):
-    _, a = self.c.request("POST", "/api/places",
-                          {"name": "Twin", "lat": 1, "lon": 1, "category": "cat"})
-    _, b = self.c.request("POST", "/api/places",
-                          {"name": "Twin", "lat": 2, "lon": 2, "category": "cat"})
-    status, body = self.c.request("DELETE", "/api/places", {"id": a["place"]["id"]})
-    self.assertEqual(status, 200)
-    self.assertEqual(body["total_places"], 1)
-    on_disk = stored("place")
-    self.assertEqual(on_disk[0]["id"], b["place"]["id"])
-
-  def test_delete_not_found(self):
-    status, _ = self.c.request("DELETE", "/api/places", {"id": "0" * 8})
-    self.assertEqual(status, 404)
-
-
-  def test_create_without_category(self):
-    status, _ = self.c.request("POST", "/api/places",
-                               {"name": "NoCat", "lat": 0, "lon": 0})
-    self.assertEqual(status, 201)
-    on_disk = stored("place")
-    self.assertEqual(on_disk[0]["name"], "NoCat")
-    self.assertNotIn("category", on_disk[0])
-
-  def test_create_with_empty_category_strips_field(self):
-    status, _ = self.c.request("POST", "/api/places",
-                               {"name": "Blank", "lat": 0, "lon": 0, "category": ""})
-    self.assertEqual(status, 201)
-    on_disk = stored("place")
-    self.assertNotIn("category", on_disk[0])
+  def test_missing_or_empty_category_is_left_out(self):
+    batch(self.c, [put("place", "aaaaaaa1", {"name": "NoCat", "lat": 0, "lon": 0}),
+                   put("place", "bbbbbbb2", {"name": "Blank", "lat": 0, "lon": 0, "category": ""})])
+    self.assertEqual([("category" in p) for p in stored("place")], [False, False])
 
   def test_clear_category_bulk(self):
-    for name in ("A", "B", "C"):
-      self.c.request("POST", "/api/places",
-                     {"name": name, "lat": 0, "lon": 0, "category": "beach"})
-    self.c.request("POST", "/api/places",
-                   {"name": "Keep", "lat": 0, "lon": 0, "category": "castle"})
+    fresh_places([{"name": n, "lat": 0, "lon": 0, "category": "beach"} for n in ("A", "B", "C")]
+                 + [{"name": "Keep", "lat": 0, "lon": 0, "category": "castle"}])
     status, body = self.c.request("POST", "/api/places/clear-category",
                                   {"category": "beach"})
     self.assertEqual(status, 200)
@@ -565,44 +504,29 @@ class TestAreas(unittest.TestCase):
   def test_list_is_empty_before_first_write(self):
     self.assertEqual(self.c.request("GET", "/api/areas"), (200, []))
 
-  def test_create_update_delete(self):
-    status, body = self.c.request("POST", "/api/areas", {"name": "Park", "geometry": SQUARE, "category": "park"})
-    self.assertEqual(status, 201)
-    self.assertEqual(body["total_areas"], 1)
-    area = body["area"]
+  def test_put_update_delete(self):
+    status, body = batch(self.c, [put("area", "a0000001", {"name": "Park", "geometry": SQUARE, "category": "park"})])
+    self.assertEqual(status, 200, body)
+    area = stored("area")[0]
     self.assertFalse(area["visited"])
-
-    status, body = self.c.request("PUT", "/api/areas",
-                                  {"id": area["id"], "area": dict(area, name="Renamed", visited=True)})
-    self.assertEqual(status, 200)
-    self.assertEqual(body["area"]["id"], area["id"])
+    batch(self.c, [put("area", "a0000001", dict(area, name="Renamed", visited=True))])
     _, listed = self.c.request("GET", "/api/areas")
-    self.assertEqual([(a["name"], a["visited"]) for a in listed], [("Renamed", True)])
-
-    status, body = self.c.request("DELETE", "/api/areas", {"id": area["id"]})
-    self.assertEqual((status, body["total_areas"]), (200, 0))
-
-  def test_client_id_is_ignored_on_create(self):
-    _, body = self.c.request("POST", "/api/areas", {"name": "A", "geometry": SQUARE, "id": "deadbeef"})
-    self.assertNotEqual(body["area"]["id"], "deadbeef")
-
-  def test_unknown_id_is_404(self):
-    status, _ = self.c.request("PUT", "/api/areas", {"id": "00000000", "area": {"name": "A", "geometry": SQUARE}})
-    self.assertEqual(status, 404)
+    self.assertEqual([(a["id"], a["name"], a["visited"]) for a in listed], [("a0000001", "Renamed", True)])
+    batch(self.c, [{"kind": "area", "op": "delete", "id": "a0000001"}])
+    self.assertEqual(self.c.request("GET", "/api/areas"), (200, []))
 
   def test_projected_coordinates_name_the_cause(self):
     utm = {"type": "Polygon", "coordinates": [[[297000, 6700000], [298000, 6700000], [298000, 6701000], [297000, 6700000]]]}
-    status, body = self.c.request("POST", "/api/areas", {"name": "UTM", "geometry": utm})
+    status, body = batch(self.c, [put("area", "a0000001", {"name": "UTM", "geometry": utm})])
     self.assertEqual(status, 400)
     self.assertIn("EPSG:25833", body["error"])
 
   def test_requires_auth(self):
     anon = Client(_server.base_url)  # type: ignore[union-attr]
     self.assertEqual(anon.request("GET", "/api/areas")[0], 401)
-    self.assertEqual(anon.request("POST", "/api/areas", {"name": "A", "geometry": SQUARE})[0], 401)
 
   def test_public_read_follows_publish_state(self):
-    self.c.request("POST", "/api/areas", {"name": "Shared", "geometry": SQUARE})
+    batch(self.c, [put("area", "a0000001", {"name": "Shared", "geometry": SQUARE})])
     anon = Client(_server.base_url)  # type: ignore[union-attr]
     self.assertEqual(anon.request("GET", f"/api/u/{SEED_USER}/areas")[0], 404)
     self.c.request("POST", "/api/me/publish", {"published": True})
@@ -614,7 +538,7 @@ class TestAreas(unittest.TestCase):
       self.c.request("POST", "/api/me/publish", {"published": False})
 
   def test_geojson_export_signed_in_and_public(self):
-    self.c.request("POST", "/api/areas", {"name": "Geo", "geometry": SQUARE})
+    batch(self.c, [put("area", "a0000001", {"name": "Geo", "geometry": SQUARE})])
     status, body = self.c.request("GET", "/api/me/export.geojson")
     self.assertEqual(status, 200)
     self.assertEqual(body["type"], "FeatureCollection")
@@ -632,7 +556,7 @@ class TestAreas(unittest.TestCase):
 
   def test_clear_category_reaches_areas(self):
     fresh_places([{"name": "P", "lat": 1, "lon": 2, "category": "gone"}])
-    self.c.request("POST", "/api/areas", {"name": "A", "geometry": SQUARE, "category": "gone"})
+    batch(self.c, [put("area", "a0000001", {"name": "A", "geometry": SQUARE, "category": "gone"})])
     status, body = self.c.request("POST", "/api/places/clear-category", {"category": "gone"})
     self.assertEqual((status, body["cleared"]), (200, 2))
     _, listed = self.c.request("GET", "/api/areas")
@@ -642,78 +566,28 @@ class TestAreas(unittest.TestCase):
 class TestCategoryLabels(unittest.TestCase):
   def test_anon_blocked(self):
     c = Client(_server.base_url)  # type: ignore[union-attr]
-    status, _ = c.request("PUT", "/api/me/category-labels",
-                          {"category_labels": {"food": "Food"}})
-    self.assertEqual(status, 401)
     status, _ = c.request("GET", "/api/me/category-labels")
     self.assertEqual(status, 401)
 
-  def test_update_and_read(self):
+  def test_put_and_read(self):
     c = admin_client()
-    status, body = c.request("PUT", "/api/me/category-labels",
-                             {"category_labels": {
-                               "food": {"label": "Food"},
-                               "hike": {"label": "Hiking"},
-                             }})
-    self.assertEqual(status, 200)
-    self.assertEqual(body["category_labels"],
-                     {"food": {"label": "Food"}, "hike": {"label": "Hiking"}})
+    status, body = batch(c, [put("label", "food", {"label": "Food"}), put("label", "hike", {"label": "Hiking", "color": 7})])
+    self.assertEqual(status, 200, body)
     on_disk = stored("label")
     self.assertEqual(on_disk["food"], {"label": "Food"})
     status, body = c.request("GET", "/api/me/category-labels")
     self.assertEqual(status, 200)
-    self.assertEqual(body["category_labels"]["hike"], {"label": "Hiking"})
-
-  def test_color_round_trips(self):
-    c = admin_client()
-    payload = {
-      "food": {"label": "Food", "color": 3},
-      "hike": {"label": "Hiking", "color": 7},
-    }
-    status, body = c.request("PUT", "/api/me/category-labels",
-                             {"category_labels": payload})
-    self.assertEqual(status, 200)
-    self.assertEqual(body["category_labels"]["food"], {"label": "Food", "color": 3})
-    status, body = c.request("GET", "/api/me/category-labels")
     self.assertEqual(body["category_labels"]["hike"], {"label": "Hiking", "color": 7})
-
-  def test_color_preserved_when_caller_omits_it(self):
-    c = admin_client()
-    # First save with colors.
-    c.request("PUT", "/api/me/category-labels",
-              {"category_labels": {"food": {"label": "Food", "color": 2}}})
-    # Then rewrite without color (e.g. Manage Categories renames the label).
-    status, body = c.request("PUT", "/api/me/category-labels",
-                             {"category_labels": {"food": {"label": "Cuisine"}}})
-    self.assertEqual(status, 200)
-    self.assertEqual(body["category_labels"]["food"], {"label": "Cuisine", "color": 2})
 
   def test_validation(self):
     c = admin_client()
-    status, _ = c.request("PUT", "/api/me/category-labels",
-                          {"category_labels": "not a dict"})
-    self.assertEqual(status, 400)
-    # bare string value rejected (must be {label, color?}).
-    status, _ = c.request("PUT", "/api/me/category-labels",
-                          {"category_labels": {"x": "X"}})
-    self.assertEqual(status, 400)
-    # color must be an integer.
-    status, _ = c.request("PUT", "/api/me/category-labels",
-                          {"category_labels": {"x": {"label": "X", "color": "blue"}}})
-    self.assertEqual(status, 400)
-    # color must be in range.
-    status, _ = c.request("PUT", "/api/me/category-labels",
-                          {"category_labels": {"x": {"label": "X", "color": -1}}})
-    self.assertEqual(status, 400)
-    # unknown keys rejected.
-    status, _ = c.request("PUT", "/api/me/category-labels",
-                          {"category_labels": {"x": {"label": "X", "extra": 1}}})
-    self.assertEqual(status, 400)
+    for data in ("X", {"label": "X", "color": "blue"}, {"label": "X", "color": -1}, {"label": "X", "extra": 1}):
+      with self.subTest(data=data):
+        self.assertEqual(batch(c, [put("label", "x", data)])[0], 400)
 
   def test_public_read_when_published(self):
     c = admin_client()
-    c.request("PUT", "/api/me/category-labels",
-              {"category_labels": {"beach": {"label": "Beaches", "color": 4}}})
+    batch(c, [put("label", "beach", {"label": "Beaches", "color": 4})])
     c.request("POST", "/api/me/publish", {"published": True})
     anon = Client(_server.base_url)  # type: ignore[union-attr]
     try:
@@ -730,7 +604,7 @@ class TestCategoryLabels(unittest.TestCase):
 
   def test_public_url_with_other_letter_case_creates_no_folder(self):
     c = admin_client()
-    c.request("PUT", "/api/me/category-labels", {"category_labels": {"beach": {"label": "Beaches", "color": 4}}})
+    batch(c, [put("label", "beach", {"label": "Beaches", "color": 4})])
     c.request("POST", "/api/me/publish", {"published": True})
     other = SEED_USER.upper() if SEED_USER.upper() != SEED_USER else SEED_USER.lower()
     users = _server.data_dir / "users"  # type: ignore[union-attr]
@@ -1213,8 +1087,7 @@ class TestPerUserIsolation(unittest.TestCase):
   def test_places_isolated(self):
     fresh_places([])
     # Admin adds a place; peer should not see it.
-    self.c.request("POST", "/api/places",
-                   {"name": "AdminOnly", "lat": 1, "lon": 2, "category": "x"})
+    batch(self.c, [put("place", "abcdef01", {"name": "AdminOnly", "lat": 1, "lon": 2, "category": "x"})])
     status, admin_places = self.c.request("GET", "/api/places")
     self.assertEqual(status, 200)
     self.assertTrue(any(p["name"] == "AdminOnly" for p in admin_places))
@@ -1244,8 +1117,9 @@ class TestPerUserIsolation(unittest.TestCase):
 class TestPrefs(unittest.TestCase):
   def test_prefs_roundtrip(self):
     c = admin_client()
+    reset_kind("pref")
     payload = {"theme": "nord", "marker_size": "large"}
-    status, _ = c.request("PUT", "/api/me/prefs", payload)
+    status, _ = batch(c, [put("pref", k, v) for k, v in payload.items()])
     self.assertEqual(status, 200)
     status, body = c.request("GET", "/api/me/prefs")
     self.assertEqual(status, 200)
@@ -1338,8 +1212,8 @@ class TestApiTokens(unittest.TestCase):
     status, _ = bc.request("GET", "/api/sessions", headers=self._bearer(token))
     self.assertEqual(status, 200)
     # A mutation passes the read-only gate (auth worked, scope is full).
-    status, _ = bc.request("POST", "/api/places", {}, headers=self._bearer(token))
-    self.assertNotIn(status, (401, 403))
+    status, _ = bc.request("POST", "/api/sync/batch", {"changes": []}, headers=self._bearer(token))
+    self.assertEqual(status, 200)
 
   def test_readonly_token_blocks_mutations(self):
     c = admin_client()
@@ -1351,7 +1225,7 @@ class TestApiTokens(unittest.TestCase):
     status, _ = bc.request("GET", "/api/sessions", headers=self._bearer(token))
     self.assertEqual(status, 200)
     # Every mutation is blocked at the gate, before the handler runs.
-    status, body = bc.request("POST", "/api/places", {}, headers=self._bearer(token))
+    status, body = bc.request("POST", "/api/sync/batch", {"changes": []}, headers=self._bearer(token))
     self.assertEqual(status, 403)
     self.assertEqual(body["error"], "read-only token")
 
@@ -1512,7 +1386,7 @@ class TestImport(unittest.TestCase):
 
   def test_areas_round_trip_through_export(self):
     reset_kind("area")
-    self.c.request("POST", "/api/areas", {"name": "Kept", "geometry": SQUARE})
+    batch(self.c, [put("area", "a0000001", {"name": "Kept", "geometry": SQUARE})])
     with self.c.opener.open(_server.base_url + "/api/me/export") as r:  # type: ignore[union-attr]
       exported = zipfile.ZipFile(io.BytesIO(r.read()))
     payload = self._make_zip({"areas.json": exported.read("areas.json")})
@@ -1910,11 +1784,9 @@ class TestAuditLogs(unittest.TestCase):
     self.assertIn("auth.login_failure", self._actions())
 
   def test_publish_toggle_logged(self):
-    before = self._actions().count("user.publish_toggle")
     self.c.request("POST", "/api/me/publish", {"published": True})
     self.c.request("POST", "/api/me/publish", {"published": False})
-    after = self._actions().count("user.publish_toggle")
-    self.assertEqual(after - before, 2)
+    self.assertEqual(self._actions(2), ["user.publish_toggle"] * 2)
 
   def test_pagination_cursor(self):
     # Generate a handful of events.
@@ -2080,20 +1952,6 @@ class TestSync(unittest.TestCase):
     self.assertEqual(anon.request("GET", "/api/sync/changes")[0], 401)
     self.assertEqual(anon.request("POST", "/api/sync/batch", {"changes": []})[0], 401)
 
-  def test_rest_writes_show_up_in_the_feed(self):
-    head = self._changes()[1]["rev"]
-    _, created = self.c.request("POST", "/api/places", {"name": "Feed", "lat": 1, "lon": 2})
-    status, body = self._changes(head)
-    self.assertEqual(status, 200)
-    self.assertEqual([(c["kind"], c["deleted"]) for c in body["changes"]], [("place", False)])
-    pid = created["place"]["id"]
-    self.assertEqual(body["changes"][0]["id"], pid)
-    self.c.request("DELETE", "/api/places", {"id": pid})
-    body = self._changes(body["rev"])[1]
-    self.assertEqual([(c["id"], c["deleted"]) for c in body["changes"]], [(pid, True)])
-    self.assertNotIn("data", body["changes"][0])
-    self.assertTrue(created["ok"])
-
   def test_batch_put_update_delete(self):
     status, body = self._batch([{"kind": "place", "op": "put", "id": "abcdef01",
                                  "data": {"name": "Local", "lat": 1, "lon": 2}}])
@@ -2151,23 +2009,23 @@ class TestSync(unittest.TestCase):
     self.assertEqual(self._changes("x")[0], 400)
     self.assertEqual(self.c.request("GET", "/api/sync/changes?since=0&limit=0")[0], 400)
 
-  def test_concurrent_creates_get_unique_ids(self):
+  def test_concurrent_batches_all_land(self):
     n = 16
     results = []
 
-    def create(i):
-      status, body = admin_client().request("POST", "/api/places", {"name": f"Par {i}", "lat": i, "lon": 1})
-      results.append((status, body["place"]["id"] if status == 201 or status == 200 else None))
+    def push(i):
+      status, body = batch(admin_client(), [put("place", f"{i:08x}", {"name": f"Par {i}", "lat": i, "lon": 1})])
+      results.append((status, body["results"][0]["rev"] if status == 200 else None))
 
-    threads = [threading.Thread(target=create, args=(i,)) for i in range(n)]
+    threads = [threading.Thread(target=push, args=(i,)) for i in range(n)]
     for t in threads:
       t.start()
     for t in threads:
       t.join()
-    ids = [pid for status, pid in results]
+    revs = [rev for status, rev in results]
     self.assertEqual(len(results), n)
-    self.assertNotIn(None, ids, results)
-    self.assertEqual(len(set(ids)), n)
+    self.assertNotIn(None, revs, results)
+    self.assertEqual(len(set(revs)), n)
     self.assertEqual(len(self.c.request("GET", "/api/places")[1]), n)
 
   def test_epoch_mismatch_or_absence_resets(self):
@@ -2229,9 +2087,9 @@ class TestExportImportRoundTrip(unittest.TestCase):
     fresh_places([])
     reset_kind("area")
     reset_kind("metadata")
-    c.request("POST", "/api/places", {"name": "Round", "lat": 1, "lon": 2, "tags": ["x"]})
-    c.request("POST", "/api/areas", {"name": "Trip", "geometry": SQUARE})
-    c.request("PUT", "/api/metadata", {"key": "Reg/Trail", "metadata": {"rating": 3}})
+    batch(c, [put("place", "abcdef01", {"name": "Round", "lat": 1, "lon": 2, "tags": ["x"]}),
+              put("area", "a0000001", {"name": "Trip", "geometry": SQUARE}),
+              put("metadata", "Reg/Trail", {"rating": 3})])
     with c.opener.open(_server.base_url + "/api/me/export") as r:  # type: ignore[union-attr]
       archive = r.read()
     names = zipfile.ZipFile(io.BytesIO(archive)).namelist()

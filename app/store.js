@@ -1191,8 +1191,8 @@ export async function loadPublic() {
 }
 
 // -- writes --
-// Each returns what the matching REST endpoint returns, so call sites read
-// the same shape with or without a server.
+// Each returns one shape, {ok} plus the item or count it changed, whether
+// or not a server is attached, so call sites have one path.
 /** @param {string} action @param {string} target @param {any} [details] */
 function logIfLocal(action, target, details) { if (!hasServer()) localLog(action, target, details); }
 /** @param {any} p */

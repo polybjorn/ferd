@@ -76,6 +76,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - On a phone or small tablet the map shows the update banner under the top bar, so it no longer covers the search panel. There it stays hidden while offline.
 
 ### Removed
+- The owner write endpoints `POST`, `PUT` and `DELETE /api/places` and `/api/areas`, `PUT /api/me/prefs` and `PUT /api/me/category-labels`. Places, areas, preferences and category labels are written through `POST /api/sync/batch`, where the client picks a place or area's id and a category label is replaced whole, colour included. The `GET` paths stay.
 - The CyclOSM base map. Its host's conditions cover public, non-profit sites, which Ferd cannot vouch for on every install, so it is now a documented overlay example in `docs/configure.md` that an install can add if it fits them. A map that defaulted to CyclOSM now opens on OpenTopoMap.
 - The Satellite base map. Its imagery's terms do not allow it in an app like Ferd, or its offline caching, so it is gone until a free imagery source with fitting terms turns up. A map that defaulted to Satellite now opens on OpenTopoMap, and the default can be changed in Settings > Map.
 

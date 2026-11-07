@@ -839,7 +839,7 @@ class TestRouting(unittest.TestCase):
       "POST": {
         "/api/register": "_h_register", "/api/login": "_h_login", "/api/logout": "_h_logout",
         "/api/change-password": "_h_change_password", "/api/settings/registration": "_h_settings_registration",
-        "/api/places": "_h_places_create", "/api/places/clear-category": "_h_places_clear_category",
+        "/api/places/clear-category": "_h_places_clear_category",
         "/api/gpx": "_h_gpx_upload", "/api/gpx/move": "_h_gpx_move", "/api/gpx/set-completed": "_h_gpx_set_completed",
         "/api/regions/rename": "_h_region_rename", "/api/regions/delete": "_h_region_delete",
         "/api/regions/clear": "_h_region_clear", "/api/me/publish": "_h_publish_post",
@@ -853,11 +853,10 @@ class TestRouting(unittest.TestCase):
         "/api/admin/catalog/hide": "_h_admin_catalog_hide",
       },
       "PUT": {
-        "/api/places": "_h_places_update", "/api/me/prefs": "_h_prefs_put",
-        "/api/metadata": "_h_metadata_put", "/api/me/category-labels": "_h_me_category_labels_put",
+        "/api/metadata": "_h_metadata_put",
       },
       "DELETE": {
-        "/api/places": "_h_places_delete", "/api/gpx": "_h_gpx_delete", "/api/admin/logs": "_h_admin_logs_clear",
+        "/api/gpx": "_h_gpx_delete", "/api/admin/logs": "_h_admin_logs_clear",
       },
     }
     for method, table in routes.items():
@@ -911,6 +910,11 @@ class TestRouting(unittest.TestCase):
     # Exact routes are per method.
     self.assertEqual(self.dispatch("GET", "/api/login"), nf)
     self.assertEqual(self.dispatch("PUT", "/api/gpx"), nf)
+    # Item writes go through /api/sync/batch; these paths are read-only.
+    for method, path in (("POST", "/api/places"), ("PUT", "/api/places"), ("DELETE", "/api/places"),
+                         ("POST", "/api/areas"), ("PUT", "/api/areas"), ("DELETE", "/api/areas"),
+                         ("PUT", "/api/me/prefs"), ("PUT", "/api/me/category-labels")):
+      self.assertEqual(self.dispatch(method, path), nf, f"{method} {path}")
     self.assertEqual(self.dispatch("GET", "/api/admin/users/7"), nf)
 
   def test_readonly_blocks_writes_before_routing(self):

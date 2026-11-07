@@ -23,7 +23,7 @@ SYNC_ID_MAX = 256
 
 SYNC_MAX_REV = 2**63 - 1
 
-PREFS_MAX_BYTES = 1024 * 1024  # what a PUT /api/me/prefs body may hold
+PREFS_MAX_BYTES = 1024 * 1024  # the default request body cap, so the whole set can still go in one batch
 
 LABELS_MAX = 200  # clean_category_labels' cap per map, enforced over the whole set here
 
@@ -48,9 +48,9 @@ def _metadata_key(conn, user_id: int, key: str) -> str:
 
 
 def _prepare_put(kind: str, item_id: str, data):
-  """The value to store for a client put, validated the way the matching REST
-  endpoint validates it. Returns None for a metadata entry that validates to
-  nothing, which the caller treats as a delete."""
+  """The validated value to store for a client put. Returns None for a
+  metadata entry that validates to nothing, which the caller treats as a
+  delete."""
   if kind in ("place", "area"):
     if not PLACE_ID_RE.match(item_id):
       raise ValidationError("id must be an 8-char hex string")
@@ -145,8 +145,8 @@ class SyncMixin:
           if rev is None:
             rev = store.item_rev(self.conn, user["id"], kind, item_id)
         results.append({"kind": kind, "id": item_id, "rev": rev, "status": "applied" if changed else "noop"})
-      # The whole-set limits REST enforces per request; checked after the batch
-      # so an over-limit batch rolls back as one.
+      # Limits on the whole set, not one item; checked after the batch so an
+      # over-limit batch rolls back as one.
       if store.count_items(self.conn, user["id"], "label") > LABELS_MAX:
         raise ValidationError(f"too many category labels (max {LABELS_MAX})")
       if store.items_bytes(self.conn, user["id"], "pref") > PREFS_MAX_BYTES:

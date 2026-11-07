@@ -109,14 +109,18 @@ def seed(origin):
 
     wait_for(origin)
     call("POST", "/api/login", {"username": USER, "password": PASSWORD})
-    call("POST", "/api/places", {"name": "Old boathouse", "lat": 59.52, "lon": 6.48,
-                                 "category": "boathouse"})
-    # Imported from the shipped catalog with a note that has since changed
-    # there, so the catalog update modals have an update to show.
-    call("POST", "/api/places", {"name": "Abu Simbel", "lat": 22.3369, "lon": 31.6256,
-                                 "from_catalog": "Abu Simbel", "note": "Temples"})
-    call("POST", "/api/areas", {"name": "Birch grove", "geometry": {"type": "Polygon", "coordinates": [
-        [[6.52, 59.49], [6.54, 59.49], [6.54, 59.50], [6.52, 59.50], [6.52, 59.49]]]}})
+    call("POST", "/api/sync/batch", {"changes": [
+        {"kind": "place", "op": "put", "id": "5eed0001",
+         "data": {"name": "Old boathouse", "lat": 59.52, "lon": 6.48, "category": "boathouse"}},
+        # Imported from the shipped catalog with a note that has since changed
+        # there, so the catalog update modals have an update to show.
+        {"kind": "place", "op": "put", "id": "5eed0002",
+         "data": {"name": "Abu Simbel", "lat": 22.3369, "lon": 31.6256,
+                  "from_catalog": "Abu Simbel", "note": "Temples"}},
+        {"kind": "area", "op": "put", "id": "5eed0003",
+         "data": {"name": "Birch grove", "geometry": {"type": "Polygon", "coordinates": [
+             [[6.52, 59.49], [6.54, 59.49], [6.54, 59.50], [6.52, 59.50], [6.52, 59.49]]]}}},
+    ]})
     call("POST", "/api/gpx?region=Demo&name=Ridge%20loop", GPX, "application/gpx+xml")
 
 

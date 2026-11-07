@@ -27,20 +27,6 @@ class AccountMixin:
       return
     self._send_json(HTTPStatus.OK, store.get_map(self.conn, user["id"], "pref"))
 
-  def _h_prefs_put(self):
-    user = self._require_user()
-    if user is None:
-      return
-    body = self._read_body_or_400()
-    if body is None:
-      return
-    if not isinstance(body, dict):
-      return self._error(HTTPStatus.BAD_REQUEST, "prefs must be an object")
-    ok, _ = self._store_write(lambda: store.replace_map(self.conn, user["id"], "pref", body))
-    if not ok:
-      return
-    self._send_json(HTTPStatus.OK, {"ok": True})
-
   def _h_publish_post(self):
     user = self._require_user()
     if user is None:
