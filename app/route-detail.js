@@ -114,7 +114,7 @@ function trackToGeoJSON(track) {
 }
 
 export function renderTrailDetail(routeKey) {
-  setActiveTab('routes');
+  setActiveTab('routes', 'route');
   cleanupMap();
   const app = document.getElementById('app');
   if (!state.manifest) { app.innerHTML = '<div class="loading">Loading routes...</div>'; return; }

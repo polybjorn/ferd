@@ -1,5 +1,5 @@
 import {
-  displayCategory, escapeHtml, setActiveTab, setCrumb, sortedCategorySlugs, state,
+  addButtonHtml, displayCategory, escapeHtml, setActiveTab, setCrumb, sortedCategorySlugs, state,
 } from './core.js';
 import { fetchJson, isReadOnly } from './server.js';
 import { isLocalMode } from './local-mode.js';
@@ -509,6 +509,7 @@ export function renderPlacesIndex() {
     ? '<div class="filter-dropdown catalog-update-chip-wrap"><button type="button" class="filter-btn catalog-update-chip" id="catalog-update-review">Review updates</button></div>'
     : '';
   app.innerHTML =
+    '<h1 class="view-title">Places</h1>' +
     '<div class="index-controls">' +
     '<div class="search-wrap"><input type="text" id="search-input" placeholder="Filter places..." value="' + escapeHtml(state.placeFilters.search) + '"><span class="result-count" id="result-count"></span></div>' +
     updChip +
@@ -560,7 +561,7 @@ export function renderPlacesIndex() {
 
   const navActionsEl = document.getElementById('nav-actions');
   if (navActionsEl && canAdd) {
-    navActionsEl.innerHTML = '<button type="button" id="add-place-btn" class="nav-action-btn">Add</button>';
+    navActionsEl.innerHTML = addButtonHtml('add-place-btn', 'Add place');
   }
   const addBtn = document.getElementById('add-place-btn');
   if (addBtn) addBtn.addEventListener('click', function() { openAddModal(null, 'place'); });

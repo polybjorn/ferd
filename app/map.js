@@ -1,5 +1,5 @@
 import {
-  displayCategory, displayRegion, escapeHtml, setActiveTab, setCrumb, sortedCategorySlugs, state,
+  addButtonHtml, displayCategory, displayRegion, escapeHtml, setActiveTab, setCrumb, sortedCategorySlugs, state,
 } from './core.js';
 import { gpxUrlFor, isReadOnly, routeStatusColor } from './server.js';
 import { applyCoverMinZoom } from './form-fields.js';
@@ -17,7 +17,7 @@ import {
 import { fadeOutRoute, initAreaLayers, openAreaPopupAt } from './areas.js';
 import { routePopupHtml } from './route-meta.js';
 import { openPlacePopup, pulseChip, revealPlaceMarker } from './map-actions.js';
-import { applyMapFilters, createPlaceLayerGroup, initUnifiedSearch } from './place-layer.js';
+import { applyMapFilters, createPlaceLayerGroup, initUnifiedSearch, placeShown, routeShown } from './place-layer.js';
 import { focusHash } from './router.js';
 import { getTrailWeightFactor } from './theme.js';
 import { openMapPlaceContextMenu, openMapRouteContextMenu } from './context-menu.js';
@@ -464,19 +464,22 @@ export function renderUnifiedMap(focus) {
     const title = placesEnabled() && routesEnabled()
       ? 'Add place or route'
       : (placesEnabled() ? 'Add place' : 'Add route');
-    navActionsEl.innerHTML = '<button type="button" id="map-add-btn" class="nav-action-btn" title="' + title + '">Add</button>';
+    navActionsEl.innerHTML = addButtonHtml('map-add-btn', title);
     document.getElementById('map-add-btn').addEventListener('click', function() { openAddModal(null); });
   }
+}
+
+function categoryDotHtml(cat) {
+  return '<span class="legend-dot" style="background:' + state.categoryColors[cat] + '"></span>';
 }
 
 function placesLegendHtml() {
   const cats = sortedCategorySlugs(Object.keys(state.categoryColors));
   let html = '<div class="legend-cats">';
   for (const cat of cats) {
-    const color = state.categoryColors[cat];
     const hidden = state.hiddenCategories.has(cat);
     html += '<div class="legend-item' + (hidden ? ' disabled' : '') + '" data-cat="' + escapeHtml(cat) + '">';
-    html += '<span class="legend-dot" style="background:' + color + '"></span>';
+    html += categoryDotHtml(cat);
     html += escapeHtml(displayCategory(cat));
     html += '</div>';
   }
@@ -525,28 +528,115 @@ export function refreshFilterPanel() {
   const routesBody = document.getElementById('routes-body');
   if (routesBody) routesBody.innerHTML = routesLegendHtml();
   renderPanelStatus();
-  document.querySelectorAll('.filter-sheet [data-legend]').forEach(el => {
-    el.innerHTML = el.dataset.legend === 'places' ? placesLegendHtml() : routesLegendHtml();
+  document.querySelectorAll('.filter-sheet [data-sheet-section]').forEach(el => {
+    el.innerHTML = sheetSectionHtml(el.dataset.sheetSection);
   });
-  document.querySelectorAll('.filter-sheet [data-status]').forEach(el => {
-    el.innerHTML = statusChipsHtml(el.dataset.status);
-  });
+  syncFilterSheet();
   syncFilterDot();
 }
 
-// The phone's filter sheet shows both sections open, each with its chips.
+// The phone's filter sheet: both sections open, every choice a chip that
+// wraps, so the whole set fits in about half the screen.
+function filterChipHtml(attr, key, on, label, mark) {
+  return '<button type="button" class="filter-chip" ' + attr + '="' + escapeHtml(key) + '" aria-pressed="' + on + '">' +
+    mark + escapeHtml(label) + '</button>';
+}
+function sheetSectionHtml(id) {
+  const places = id === 'places';
+  const status = places
+    ? filterChipHtml('data-filter', 'visited', state.showVisited, 'Visited', '<span class="status-dot visited"></span>') +
+      filterChipHtml('data-filter', 'want', state.showWant, 'Planned', '<span class="status-dot want"></span>')
+    : filterChipHtml('data-route-status', 'completed', state.showCompleted, 'Completed', '<span class="status-dot completed"></span>') +
+      filterChipHtml('data-route-status', 'planned', state.showPlanned, 'Planned', '<span class="status-dot planned"></span>');
+  let groups = '';
+  if (places) {
+    groups = sortedCategorySlugs(Object.keys(state.categoryColors)).map(cat =>
+      filterChipHtml('data-cat', cat, !state.hiddenCategories.has(cat), displayCategory(cat), categoryDotHtml(cat))).join('');
+  } else if (state.manifest && state.manifest.regions) {
+    groups = state.manifest.regions.map(r =>
+      filterChipHtml('data-region', r.name, !state.hiddenRegions.has(r.name), displayRegion(r.name), '<svg class="filter-chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>')).join('');
+  }
+  return '<div class="filter-sheet-sec-head">' +
+      '<h3 class="filter-sheet-title" id="filter-sheet-' + id + '">' + (places ? 'Places' : 'Routes') +
+        '<span class="filter-sheet-count" data-count="' + id + '"></span></h3>' +
+      '<button type="button" class="filter-sheet-link" data-toggle-all="' + id + '"></button>' +
+    '</div>' +
+    '<div class="filter-chips" role="group" aria-label="Status">' + status + '</div>' +
+    (groups ? '<div class="filter-chips" role="group" aria-label="' + (places ? 'Categories' : 'Regions') + '">' + groups + '</div>' : '');
+}
 export function filterSheetHtml() {
-  const section = (id, title) =>
-    '<section class="filter-sheet-section">' +
-      '<h3 class="filter-sheet-title">' + title + '</h3>' +
-      '<div class="legend-status" data-status="' + id + '">' + statusChipsHtml(id) + '</div>' +
-      '<div class="panel-section-body" data-legend="' + id + '">' +
-        (id === 'places' ? placesLegendHtml() : routesLegendHtml()) + '</div>' +
-    '</section>';
-  return '<div class="filter-sheet">' +
-    (placesEnabled() ? section('places', 'Places') : '') +
-    (routesEnabled() ? section('routes', 'Routes') : '') +
+  const section = id =>
+    '<section class="filter-sheet-section" data-sheet-section="' + id + '" aria-labelledby="filter-sheet-' + id + '">' +
+      sheetSectionHtml(id) + '</section>';
+  return '<div class="ui-dialog-head">' +
+      '<h2 class="ui-dialog-title">Filters</h2>' +
+      '<button type="button" class="filter-sheet-link" data-filter-reset>Reset</button>' +
+    '</div>' +
+    '<div class="filter-sheet">' +
+      (placesEnabled() ? section('places') : '') +
+      (routesEnabled() ? section('routes') : '') +
     '</div>';
+}
+
+function allPlacesOn() { return state.hiddenCategories.size === 0 && state.showVisited && state.showWant; }
+function allRoutesOn() { return state.hiddenRegions.size === 0 && state.showCompleted && state.showPlanned; }
+
+// Counts what the map shows, as each section's own measure of the filter.
+function syncFilterSheet() {
+  const sheet = document.querySelector('.filter-sheet');
+  if (!sheet) return;
+  // Routes count from the manifest, since their map layers arrive later.
+  const routes = state.manifest && state.manifest.regions
+    ? state.manifest.regions.flatMap(r => r.routes.map(t => ({ region: r.name, completed: t.completed })))
+    : [];
+  const counts = {
+    places: state._placeRecords ? [state._placeRecords.filter(placeShown).length, state._placeRecords.length] : [0, 0],
+    routes: [routes.filter(routeShown).length, routes.length],
+  };
+  sheet.querySelectorAll('[data-count]').forEach(el => {
+    const [shown, total] = counts[el.dataset.count];
+    el.textContent = total ? shown + ' of ' + total + ' shown' : '';
+  });
+  sheet.querySelectorAll('[data-toggle-all]').forEach(el => {
+    const allOn = el.dataset.toggleAll === 'places' ? allPlacesOn() : allRoutesOn();
+    el.textContent = allOn ? 'Hide all' : 'Show all';
+  });
+  const reset = document.querySelector('[data-filter-reset]');
+  if (reset) reset.disabled = !filtersActive();
+}
+
+export function bindFilterSheet(dialog) {
+  dialog.addEventListener('click', function(e) {
+    if (e.target.closest('[data-filter-reset]')) {
+      state.hiddenCategories.clear();
+      state.hiddenRegions.clear();
+      state.showVisited = state.showWant = state.showCompleted = state.showPlanned = true;
+      refreshFilterPanel();
+      applyMapFilters();
+      return;
+    }
+    const all = e.target.closest('.filter-sheet [data-toggle-all]');
+    if (all) {
+      if (all.dataset.toggleAll === 'places') toggleAllPlaces(); else toggleAllRoutes();
+      return;
+    }
+    const chip = e.target.closest('.filter-chip');
+    if (!chip) return;
+    const d = chip.dataset;
+    if (d.cat !== undefined || d.region !== undefined) {
+      const set = d.cat !== undefined ? state.hiddenCategories : state.hiddenRegions;
+      const key = d.cat !== undefined ? d.cat : d.region;
+      if (set.has(key)) set.delete(key); else set.add(key);
+    } else if (d.filter === 'visited') state.showVisited = !state.showVisited;
+    else if (d.filter === 'want') state.showWant = !state.showWant;
+    else if (d.routeStatus === 'completed') state.showCompleted = !state.showCompleted;
+    else if (d.routeStatus === 'planned') state.showPlanned = !state.showPlanned;
+    chip.setAttribute('aria-pressed', String(chip.getAttribute('aria-pressed') !== 'true'));
+    pulseChip(chip);
+    applyMapFilters();
+    syncFilterSheet();
+    syncFilterDot();
+  });
 }
 
 // Which section is currently open (accordion = at most one).
@@ -575,8 +665,7 @@ function renderPanelStatus() {
 // controls live inside the section bodies, which refreshFilterPanel rebuilds).
 function toggleAllPlaces() {
   const cats = Object.keys(state.categoryColors);
-  const allOn = state.hiddenCategories.size === 0 && state.showVisited && state.showWant;
-  if (allOn) {
+  if (allPlacesOn()) {
     cats.forEach(c => state.hiddenCategories.add(c));
     state.showVisited = false; state.showWant = false;
   } else {
@@ -589,8 +678,7 @@ function toggleAllPlaces() {
 
 function toggleAllRoutes() {
   const regions = state.manifest ? state.manifest.regions.map(r => r.name) : [];
-  const allOn = state.hiddenRegions.size === 0 && state.showCompleted && state.showPlanned;
-  if (allOn) {
+  if (allRoutesOn()) {
     regions.forEach(r => state.hiddenRegions.add(r));
     state.showCompleted = false; state.showPlanned = false;
   } else {

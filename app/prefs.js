@@ -179,9 +179,13 @@ export function refreshTabVisibility() {
     const item = document.getElementById('bar-' + v);
     if (item) item.hidden = !shown[v];
   });
-  // With every view off the map is all there is, and a bar would switch to nothing.
+  // Search finds places, areas and routes, so it goes with the last of them.
+  const search = document.getElementById('bar-search');
+  if (search) search.hidden = !placesEnabled() && !routesEnabled();
+  // With every view and search off the map is all there is, and a bar would
+  // switch to nothing.
   const bar = document.getElementById('bottom-bar');
-  if (bar) bar.hidden = !Object.values(shown).some(Boolean);
+  if (bar) bar.hidden = !Object.values(shown).some(Boolean) && !(search && !search.hidden);
 }
 
 // Set the live count pinned inside a list page's search box.

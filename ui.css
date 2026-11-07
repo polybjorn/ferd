@@ -1,4 +1,4 @@
-/* ui.css 1.7.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.8.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -23,7 +23,8 @@
       to move onto, as well as what the blocks use:
         type      --ui-text-xs to --ui-text-xl; the defaults start at 0.75rem
         spacing   --ui-space-1 to --ui-space-8
-        radius    --ui-radius-sm, --ui-radius, --ui-radius-lg, --ui-radius-full
+        radius    --ui-radius-sm, --ui-radius, --ui-radius-lg, --ui-radius-xl,
+                  --ui-radius-full
         motion    --ui-duration-fast, -base, -slow
         stacking  --ui-z-raised, -sticky, -dropdown, -modal, -popover, -toast,
                   in that order from the page up
@@ -35,7 +36,8 @@
                   --ui-border until a host maps it, because a control's border
                   has to stand out against its surface and a frame does not.
                   The bottom bar draws its top edge with it too
-        sheet     --ui-sheet-width caps a sheet on a wide screen
+        sheet     --ui-sheet-width caps a sheet on a wide screen, and
+                  --ui-radius-xl rounds its top corners
         bar       --ui-bottom-bar-height, --ui-bottom-bar-display; the bar
                   shows while --ui-bottom-bar-display is flex, so a host sets
                   it to none in its own media query wherever the bar should
@@ -68,7 +70,14 @@
    Bottom bar contract: the bar sets no position. A host puts it where the
    layout ends, in the flow below a full-height column or fixed to the
    bottom from its own layer, and reserves --ui-bottom-bar-height for it.
-   aria-current="page" marks the item for the screen in view. */
+   aria-current="page" marks the item for the screen in view.
+   .ui-bottom-bar-float lifts the bar off the screen edges by --ui-space-3,
+   plus the safe area below it; content may run behind it, and a host that
+   keeps something clear of it reserves the bar height and twice the gap.
+
+   Sheet handle contract: a .ui-dialog-handle as a sheet's first child shows
+   that the sheet drags shut. It only draws, so a host adds it where its own
+   code closes the sheet on a downward drag. */
 
 @layer ui-tokens {
   :root {
@@ -93,6 +102,7 @@
     --ui-radius-sm: 4px;
     --ui-radius: 6px;
     --ui-radius-lg: 8px;
+    --ui-radius-xl: 28px;
     --ui-radius-full: 999px;
 
     --ui-duration-fast: 150ms;
@@ -540,8 +550,19 @@
     margin-block-end: 0;
     padding-block-end: env(safe-area-inset-bottom, 0);
     border-block-end: 0;
+    border-start-start-radius: var(--ui-radius-xl);
+    border-start-end-radius: var(--ui-radius-xl);
     border-end-start-radius: 0;
     border-end-end-radius: 0;
+  }
+  .ui-dialog:not(.ui-dialog-sheet) > .ui-dialog-handle { display: none; }
+  .ui-dialog-sheet > .ui-dialog-handle {
+    flex: none;
+    inline-size: 2rem;
+    block-size: 0.25rem;
+    margin: var(--ui-space-2) auto 0;
+    border-radius: var(--ui-radius-full);
+    background: var(--ui-border);
   }
   .ui-dialog-sheet[open] { animation: ui-sheet-in var(--ui-duration-base) ease-out; }
   @keyframes ui-sheet-in {
@@ -585,7 +606,7 @@
     min-inline-size: 0;
     min-block-size: var(--ui-bottom-bar-height);
     margin: 0;
-    padding: var(--ui-space-1) var(--ui-space-2);
+    padding: 0 var(--ui-space-2);
     font: inherit;
     font-size: var(--ui-text-xs);
     font-weight: var(--ui-label-weight);
@@ -595,10 +616,15 @@
     background: transparent;
     border: 0;
   }
+  /* The pill behind the icon marks the current item by shape as well as
+     colour, so it reads for someone who cannot tell the two colours apart. */
   .ui-bottom-bar-item > svg {
     flex: none;
+    box-sizing: content-box;
     inline-size: 1.5rem;
     block-size: 1.5rem;
+    padding: var(--ui-space-1) var(--ui-space-3);
+    border-radius: var(--ui-radius-full);
   }
   .ui-bottom-bar-item > span {
     max-inline-size: 100%;
@@ -610,6 +636,15 @@
      host may not have made readable as small text on its surface. */
   .ui-bottom-bar-item[aria-current="page"] { color: var(--ui-text); }
   .ui-bottom-bar-item[aria-current="page"] > svg { color: var(--ui-accent); }
+  /* A var() inside color-mix() defers the check to computed time, where an
+     unknown function turns the declaration to unset rather than falling
+     back, so the tint needs a support test of its own. */
+  @supports (background: color-mix(in srgb, red 50%, transparent)) {
+    .ui-bottom-bar-item[aria-current="page"] > svg {
+      color: var(--ui-text);
+      background: color-mix(in srgb, var(--ui-accent) 24%, transparent);
+    }
+  }
   .ui-bottom-bar-item:where(:not(:disabled, [aria-disabled="true"])):hover { color: var(--ui-text); }
   .ui-bottom-bar-item:focus-visible {
     outline: 2px solid var(--ui-accent);
@@ -618,6 +653,32 @@
   .ui-bottom-bar-item:is(:disabled, [aria-disabled="true"]) {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  .ui-bottom-bar-float {
+    margin: var(--ui-space-3);
+    margin-block-end: calc(var(--ui-space-3) + env(safe-area-inset-bottom, 0px));
+    padding: 0 var(--ui-space-1);
+    /* A ring rather than a border, so the bar is exactly
+       --ui-bottom-bar-height and a host's reserved space matches it. */
+    border: 0;
+    border-radius: var(--ui-radius-full);
+    box-shadow: 0 0 0 1px var(--ui-dialog-border), var(--ui-shadow);
+  }
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)))
+    and (background: color-mix(in srgb, red 50%, transparent)) {
+    .ui-bottom-bar-float {
+      background: color-mix(in srgb, var(--ui-surface) 80%, transparent);
+      -webkit-backdrop-filter: blur(16px) saturate(1.5);
+      backdrop-filter: blur(16px) saturate(1.5);
+    }
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .ui-bottom-bar-float {
+      background: var(--ui-surface);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
   }
 
   /* Every display above beats the browser's own [hidden] rule, so a block

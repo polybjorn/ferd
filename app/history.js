@@ -1,4 +1,4 @@
-import { GPX_NS, escapeHtml, setActiveTab, setCrumb, state } from './core.js';
+import { GPX_NS, addButtonHtml, escapeHtml, setActiveTab, setCrumb, state } from './core.js';
 import { gpxUrlFor, isReadOnly } from './server.js';
 import { wireFilterPopover, wirePopover } from './map-panel.js';
 import {
@@ -73,6 +73,7 @@ export function renderHistoryIndex() {
   const hf = state.historyFilters;
 
   app.innerHTML =
+    '<h1 class="view-title">History</h1>' +
     '<div class="index-controls">' +
     '<div class="search-wrap"><input type="text" id="hist-search" placeholder="Filter history..." value="' + escapeHtml(hf.search) + '"><span class="result-count" id="result-count"></span></div>' +
     '<div class="filter-dropdown">' +
@@ -117,7 +118,7 @@ export function renderHistoryIndex() {
     const title = placesEnabled() && routesEnabled()
       ? 'Add place or route'
       : (placesEnabled() ? 'Add place' : 'Add route');
-    navActionsEl.innerHTML = '<button type="button" id="hist-add-btn" class="nav-action-btn" title="' + title + '">Add</button>';
+    navActionsEl.innerHTML = addButtonHtml('hist-add-btn', title);
     document.getElementById('hist-add-btn').addEventListener('click', function() { openAddModal(null); });
   }
 

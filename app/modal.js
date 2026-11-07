@@ -45,6 +45,37 @@ function applyPhoneLayout(entry) {
   Object.values(PHONE_LAYOUTS).forEach(c => entry.backdrop.classList.remove(c));
   if (entry.phone && phoneQuery.matches) entry.backdrop.classList.add(PHONE_LAYOUTS[entry.phone]);
 }
+// A sheet follows a downward drag from its handle or head and closes past a
+// quarter of its height or on a flick; anything less springs back. Buttons
+// in the head keep their taps.
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+function dragToClose(dialog, close) {
+  let start = null;
+  dialog.addEventListener('pointerdown', e => {
+    if (!dialog.classList.contains('ui-dialog-sheet') || e.button !== 0) return;
+    if (!e.target.closest('.ui-dialog-handle, .ui-dialog-head') || e.target.closest('button, input, select, a')) return;
+    start = { y: e.clientY, t: e.timeStamp, id: e.pointerId, dy: 0 };
+    dialog.setPointerCapture(e.pointerId);
+    dialog.style.transition = 'none';
+  });
+  dialog.addEventListener('pointermove', e => {
+    if (!start || e.pointerId !== start.id) return;
+    start.dy = Math.max(0, e.clientY - start.y);
+    dialog.style.transform = start.dy ? 'translateY(' + start.dy + 'px)' : '';
+  });
+  const end = e => {
+    if (!start || e.pointerId !== start.id) return;
+    const { dy, t } = start;
+    start = null;
+    const flick = dy > 24 && dy / Math.max(1, e.timeStamp - t) > 0.6;
+    if (e.type === 'pointerup' && (dy > dialog.offsetHeight / 4 || flick)) { close(); return; }
+    dialog.style.transition = reduceMotion.matches ? '' : 'transform var(--ui-duration-base) ease-out';
+    dialog.style.transform = '';
+  };
+  dialog.addEventListener('pointerup', end);
+  dialog.addEventListener('pointercancel', end);
+}
+
 phoneQuery.addEventListener('change', () => {
   modalStack.forEach(applyPhoneLayout);
   fitModalsToKeyboard();
@@ -57,6 +88,10 @@ export function openModal(html, onMount, onClose, opts) {
   dialog.className = 'ui-dialog modal';
   dialog.innerHTML = html;
   wrapDialogBody(dialog);
+  // ui.css shows the handle only while the dialog is a sheet.
+  if (opts && opts.phone === 'sheet') {
+    dialog.insertAdjacentHTML('afterbegin', '<div class="ui-dialog-handle" aria-hidden="true"></div>');
+  }
   root.appendChild(dialog);
   const entry = { backdrop: dialog, onClose: null, phone: opts && opts.phone };
   applyPhoneLayout(entry);
@@ -67,6 +102,7 @@ export function openModal(html, onMount, onClose, opts) {
     : () => closeTopModal();
   modalStack.push(entry);
   closeOnBackdropClick(dialog, () => entry.onClose());
+  if (entry.phone === 'sheet') dragToClose(dialog, () => entry.onClose());
   dialog.querySelectorAll('.modal-close').forEach(el => el.addEventListener('click', () => entry.onClose()));
   // Escape is handled on keydown (escClose), where preventDefault keeps the
   // browser from closing the dialog itself. Any other close request, such

@@ -82,9 +82,10 @@ document.addEventListener('keydown', function(e) {
     return;
   }
   const mapInput = document.getElementById('map-search-input');
-  // A narrow window swaps the panel, and with it the input, for a button.
-  const phoneSearch = document.getElementById('map-search-btn');
-  if (phoneSearch && phoneSearch.offsetParent !== null) {
+  // A narrow window swaps the panel, and with it the input, for the search
+  // view the bottom bar opens.
+  const phoneButtons = document.getElementById('map-phone-buttons');
+  if (phoneButtons && phoneButtons.offsetParent !== null) {
     e.preventDefault();
     openMapSearchView();
     return;

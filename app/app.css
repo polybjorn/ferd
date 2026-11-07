@@ -551,13 +551,104 @@ a:hover { opacity: 0.8; }
   bottom: 0;
   z-index: var(--ui-z-sticky);
 }
+.view-title { display: none; }
+.nav-action-btn > svg,
+#auth-menu-btn > svg { display: none; }
+
+/* A phone gives the map and the lists the whole screen: the bar floats over
+   them, Menu and Add float as round buttons, and each list carries its own
+   title. A route keeps the header, which is the only place its name shows.
+   --shell-bar-space is the floating bar's share of the bottom edge. */
 @media (max-width: 600px) {
+  :root { --shell-bar-space: calc(var(--ui-bottom-bar-height) + 2 * var(--ui-space-3) + env(safe-area-inset-bottom, 0px)); }
   .bottom-bar { --ui-bottom-bar-display: flex; }
-  body:not(.signin-only, .app-booting) > .bottom-bar:not([hidden]) ~ #app {
-    height: calc(100vh - 50px - var(--ui-bottom-bar-height));
-    height: calc(100dvh - 50px - var(--ui-bottom-bar-height));
+  body:not(.signin-only) .pwa-update-toast { bottom: calc(var(--shell-bar-space) + var(--ui-space-3)); }
+
+  body:not([data-view="route"]) .app-nav {
+    position: fixed;
+    inset: 0 0 auto;
+    height: 0;
+    padding: 0;
+    border: 0;
   }
-  body:not(.signin-only) .pwa-update-toast { bottom: calc(var(--ui-bottom-bar-height) + 24px); }
+  body:not([data-view="route"]) .nav-brand { display: none; }
+  body:not([data-view="route"]) #app {
+    height: 100vh;
+    height: 100dvh;
+    padding-bottom: calc(var(--shell-bar-space) + var(--ui-touch-target) + var(--ui-space-6));
+  }
+  body[data-view="route"] .detail-layout { padding-bottom: var(--shell-bar-space); }
+
+  .view-title {
+    display: block;
+    margin: 0 0 var(--ui-space-3);
+    padding-right: calc(var(--ui-touch-target) + var(--ui-space-3));
+    font-size: var(--ui-text-xl);
+    font-weight: 400;
+    line-height: var(--ui-touch-target);
+  }
+
+  body:not([data-view="route"]) .auth-widget {
+    position: fixed;
+    top: calc(var(--ui-space-3) + env(safe-area-inset-top, 0px));
+    right: var(--ui-space-3);
+  }
+  body[data-view="map"] .auth-widget { right: auto; left: var(--ui-space-3); }
+  body[data-view="map"] .auth-menu { right: auto; left: 0; }
+  body:not([data-view="route"]) .auth-widget > button {
+    justify-content: center;
+    min-width: var(--ui-touch-target);
+    height: var(--ui-touch-target);
+    padding: 0 var(--ui-space-4);
+    color: var(--text);
+    background: var(--surface);
+    border-color: var(--border);
+    border-radius: var(--ui-radius-full);
+    box-shadow: var(--ui-shadow);
+  }
+  body:not([data-view="route"]) #auth-menu-btn { padding: 0; }
+  body:not([data-view="route"]) #auth-menu-btn > svg { display: block; width: 22px; height: 22px; }
+
+  body:not([data-view="route"]) .nav-actions {
+    position: fixed;
+    right: var(--ui-space-4);
+    bottom: calc(var(--shell-bar-space) + var(--ui-space-3));
+  }
+  /* Clears the map credit's corner button, so opening the credit never
+     moves it. */
+  body[data-view="map"] .nav-actions { bottom: calc(var(--shell-bar-space) + 1.75rem + var(--ui-space-5)); }
+  body:not([data-view="route"]) .nav-action-add {
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0;
+    border-radius: var(--ui-radius-xl);
+    box-shadow: var(--ui-shadow);
+  }
+  body:not([data-view="route"]) .nav-action-add > svg { display: block; width: 24px; height: 24px; }
+  body:not([data-view="route"]) :is(.nav-action-label, .auth-menu-label) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  #app > #map .leaflet-bottom { bottom: var(--shell-bar-space); }
+  body[data-view="map"] .leaflet-top.leaflet-left { top: calc(var(--ui-touch-target) + var(--ui-space-3)); }
+}
+/* Glass where the browser can draw it: the same recipe as ui.css's floating
+   bar, which these buttons sit with. */
+@media (max-width: 600px) and (prefers-reduced-transparency: no-preference) {
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)))
+    and (background: color-mix(in srgb, red 50%, transparent)) {
+    body:not([data-view="route"]) .auth-widget > button {
+      background: color-mix(in srgb, var(--surface) 80%, transparent);
+      -webkit-backdrop-filter: blur(16px) saturate(1.5);
+      backdrop-filter: blur(16px) saturate(1.5);
+    }
+  }
 }
 body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none; }
 
@@ -1156,13 +1247,16 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 /* A phone has no room for the filter panel beside the credit, so two
    buttons under the tile picker open search and filters as their own views. */
 .map-phone-buttons { display: none; flex-direction: column; gap: var(--ui-space-1); }
+/* One outer size for the tile picker and the phone buttons, so the stack
+   lines up and a touch screen grows them together. */
+.leaflet-container { --map-btn-size: 38px; }
 .map-phone-btn {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: var(--map-btn-size);
+  height: var(--map-btn-size);
   padding: 0;
   background: var(--surface);
   color: var(--text);
@@ -1197,17 +1291,57 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 .map-search-list .map-search-result .result-meta { font-size: var(--ui-text-xs); }
 .map-search-empty { margin: var(--ui-space-5) 0; text-align: center; color: var(--muted); font-size: var(--ui-text-sm); }
-.filter-sheet { display: flex; flex-direction: column; gap: var(--ui-space-5); padding-bottom: var(--ui-space-2); }
-.filter-sheet-title { margin: 0 0 var(--ui-space-2); font-size: var(--ui-text-sm); font-weight: 400; letter-spacing: 0.03em; }
-.filter-sheet .legend-status { flex-wrap: wrap; margin: 0 0 var(--ui-space-2); padding: 0; border: 0; }
-.filter-sheet .panel-section-body { overflow: visible; }
-/* The layers toggle is a background image Leaflet centres, so only its box grows. */
+/* The handle and the head are where a sheet drags shut (modal.js). */
+.ui-dialog-sheet :is(.ui-dialog-handle, .ui-dialog-head) { touch-action: none; }
+.filter-sheet { display: flex; flex-direction: column; padding-bottom: var(--ui-space-2); }
+.filter-sheet-section + .filter-sheet-section {
+  margin-top: var(--ui-space-4);
+  padding-top: var(--ui-space-3);
+  border-top: 1px solid var(--border);
+}
+.filter-sheet-sec-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-3); }
+.filter-sheet-title { margin: 0; font-size: var(--ui-text-sm); font-weight: 600; }
+.filter-sheet-count { margin-left: var(--ui-space-2); color: var(--muted); font-size: var(--ui-text-xs); font-weight: 400; }
+/* Selectors carry button and :not() to outrank `.modal button:not(.modal-close)`,
+   which would draw the links and chips as plain buttons. */
+.modal button.filter-sheet-link:not(.modal-close) {
+  padding: var(--ui-space-2) var(--ui-space-1);
+  font-size: var(--ui-text-sm);
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--accent);
+  background: none;
+  border: 0;
+}
+.filter-chips { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); }
+.filter-chips + .filter-chips { margin-top: var(--ui-space-2); }
+.modal button.filter-chip:not(.modal-close) {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  height: 2rem;
+  padding: 0 var(--ui-space-3);
+  font-size: var(--ui-text-sm);
+  letter-spacing: normal;
+  white-space: nowrap;
+  border-radius: var(--ui-radius-lg);
+}
+.modal button.filter-chip[aria-pressed="true"]:not(.modal-close) { color: var(--text); background: var(--surface2); border-color: transparent; }
+@supports (background: color-mix(in srgb, red 50%, transparent)) {
+  .modal button.filter-chip[aria-pressed="true"]:not(.modal-close) { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+}
+.filter-chip[aria-pressed="false"] :is(.legend-dot, .status-dot) { opacity: 0.35; }
+.filter-chip .legend-dot { margin: 0; }
+.filter-chip-check { display: none; width: 16px; height: 16px; flex: none; }
+.filter-chip[aria-pressed="true"] .filter-chip-check { display: block; }
 @media (pointer: coarse) {
-  .map-phone-btn,
-  .leaflet-control-layers-toggle { width: var(--ui-touch-target); height: var(--ui-touch-target); }
-  .map-search-list .map-search-result,
-  .filter-sheet :is(.legend-item, .status-chip) { min-block-size: var(--ui-touch-target); box-sizing: border-box; }
-  .filter-sheet :is(.legend-item, .status-chip) { font-size: var(--ui-text-sm); }
+  .leaflet-container { --map-btn-size: var(--ui-touch-target); }
+  .map-search-list .map-search-result { min-block-size: var(--ui-touch-target); box-sizing: border-box; }
+  /* A chip stays small to keep the set short, and takes a taller hit area
+     that reaches halfway into the gap on each side. */
+  .filter-chip::after { content: ''; position: absolute; inset: calc(var(--ui-space-2) / -2); }
+  .modal button.filter-sheet-link:not(.modal-close) { min-block-size: var(--ui-touch-target); }
 }
 
 /* Filter panel sections */
@@ -1945,7 +2079,8 @@ body.signin-only #app {
 .leaflet-popup-content .popup-meta a:hover { color: var(--accent); }
 
 .leaflet-control-layers { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: var(--radius) !important; color: var(--text) !important; padding: 0 !important; }
-.leaflet-control-layers-toggle { width: 36px; height: 36px; padding: 6px !important; background-size: 24px 24px !important; }
+/* The picker's 1px border sits on its container, outside the toggle. */
+.leaflet-control-layers-toggle { width: calc(var(--map-btn-size) - 2px); height: calc(var(--map-btn-size) - 2px); padding: 6px !important; background-size: 24px 24px !important; }
 .leaflet-control-layers label { color: var(--text); }
 .leaflet-control-layers-separator { border-color: var(--border) !important; }
 .leaflet-control-layers-list { padding: 6px 10px 8px; }

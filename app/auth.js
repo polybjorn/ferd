@@ -50,6 +50,9 @@ export function refreshAuthState() {
     .catch(() => { renderAuthWidget(); });
 }
 
+// A phone shows Menu as a round button over the content, with only the icon.
+const MENU_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg>';
+
 export function renderAuthWidget() {
   const el = document.getElementById('auth-widget');
   if (!el) return;
@@ -60,7 +63,7 @@ export function renderAuthWidget() {
   }
   const local = isLocalMode();
   el.innerHTML =
-    '<button id="auth-menu-btn" title="Account menu">Menu</button>' +
+    '<button id="auth-menu-btn" title="Account menu" aria-haspopup="true" aria-expanded="false">' + MENU_ICON + '<span class="auth-menu-label">Menu</span></button>' +
     '<div class="auth-menu" id="auth-menu" hidden>' +
       (local
         ? '<div class="auth-menu-header">Local map<strong>No account</strong></div>'
@@ -83,6 +86,7 @@ export function renderAuthWidget() {
   }
   function closeMenu() {
     menu.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
     document.removeEventListener('mousedown', outsideCloser, true);
     document.removeEventListener('touchstart', outsideCloser, true);
   }
@@ -96,6 +100,7 @@ export function renderAuthWidget() {
       updItem.hidden = !hasUpd;
     }
     menu.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
     document.addEventListener('mousedown', outsideCloser, true);
     document.addEventListener('touchstart', outsideCloser, true);
   }

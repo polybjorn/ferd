@@ -460,6 +460,17 @@ export function swapPlaceClusterGroup() {
   cg.setUseClusters(getClusterPlaces());
 }
 
+// The filter sheet counts what these let through, so the count and the map
+// cannot disagree.
+export function placeShown(p) {
+  if (state.hiddenCategories.has(p.category)) return false;
+  return p.visited ? state.showVisited : state.showWant;
+}
+export function routeShown(t) {
+  if (state.hiddenRegions.has(t.region)) return false;
+  return t.completed ? state.showCompleted : state.showPlanned;
+}
+
 export function applyMapFilters() {
   const map = state.currentMap;
   if (!map) return;
@@ -470,10 +481,7 @@ export function applyMapFilters() {
     const filtered = [];
     if (placesEnabled() && state._placeRecords) {
       for (const p of state._placeRecords) {
-        if (state.hiddenCategories.has(p.category)) continue;
-        if (p.visited && !state.showVisited) continue;
-        if (!p.visited && !state.showWant) continue;
-        filtered.push(p);
+        if (placeShown(p)) filtered.push(p);
       }
     }
     cg.setPlaces(filtered);
@@ -493,10 +501,7 @@ export function applyMapFilters() {
     gp.clearLayers();
     if (routesEnabled()) {
       for (const t of state._routeLayers) {
-        if (state.hiddenRegions.has(t.region)) continue;
-        if (t.completed && !state.showCompleted) continue;
-        if (!t.completed && !state.showPlanned) continue;
-        (t.completed ? gc : gp).addLayer(t.layer);
+        if (routeShown(t)) (t.completed ? gc : gp).addLayer(t.layer);
       }
       if (!map.hasLayer(gc)) map.addLayer(gc);
       if (!map.hasLayer(gp)) map.addLayer(gp);

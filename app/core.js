@@ -224,7 +224,10 @@ export function formatElevation(m) {
   return grpNum(Math.round(m)) + ' m';
 }
 
-export function setActiveTab(view) {
+// screen names a page below a view, such as one route under Routes. The
+// phone keeps a header bar only there, where the page has no title of its own.
+export function setActiveTab(view, screen) {
+  document.body.dataset.view = screen || view;
   ['places', 'routes', 'history'].forEach(v => {
     const el = document.getElementById('tab-' + v);
     if (el) el.classList.toggle('active', v === view);
@@ -235,6 +238,14 @@ export function setActiveTab(view) {
     if (v === view) el.setAttribute('aria-current', 'page');
     else el.removeAttribute('aria-current');
   });
+}
+
+// The label stays in the button for its accessible name; a phone shows the
+// button as a round floating one with only the icon.
+export function addButtonHtml(id, title) {
+  return '<button type="button" id="' + id + '" class="nav-action-btn nav-action-add"' +
+    (title ? ' title="' + escapeHtml(title) + '"' : '') + '>' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg><span class="nav-action-label">Add</span></button>';
 }
 
 let _crumbText = '';
@@ -250,7 +261,7 @@ export function setCrumb(text, alwaysShow) {
   crumbEl.classList.toggle('crumb-mobile-only', !_crumbAlways);
   if (!_crumbText) { crumbEl.textContent = ''; return; }
   crumbEl.textContent = ' / ' + _crumbText;
-  if (!brandEl) return;
+  if (!brandEl || !brandEl.getClientRects().length) return;
   // Truncate the crumb char-by-char until the brand stops colliding with the
   // nav's center tabs (desktop) or, when those are hidden, the right-side
   // controls (mobile). Cheaper than it looks: stops as soon as it fits.

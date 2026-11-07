@@ -1,4 +1,4 @@
-import { displayRegion, escapeHtml, setActiveTab, setCrumb, state } from './core.js';
+import { addButtonHtml, displayRegion, escapeHtml, setActiveTab, setCrumb, state } from './core.js';
 import { gpxUrlFor, isReadOnly } from './server.js';
 import { collectTags, tagsIncludeAll } from './tags.js';
 import { wireFilterPopover } from './map-panel.js';
@@ -35,7 +35,8 @@ export function renderTrailsIndex() {
     return a.localeCompare(b);
   });
   const allTags = collectTags(regions.flatMap(r => r.routes));
-  let html = '<div class="index-controls">' +
+  let html = '<h1 class="view-title">Routes</h1>' +
+    '<div class="index-controls">' +
     '<div class="search-wrap"><input type="text" id="search-input" placeholder="Filter routes..." value="' + escapeHtml(state.trailFilters.search) + '"><span class="result-count" id="result-count"></span></div>' +
     '<div class="filter-dropdown">' +
       '<button type="button" class="filter-btn" id="filter-btn" aria-haspopup="true" aria-expanded="false">Filters</button>' +
@@ -75,7 +76,7 @@ export function renderTrailsIndex() {
   enhanceSelectsIn(document.querySelector('.index-controls'));
   const navActionsEl = document.getElementById('nav-actions');
   if (navActionsEl && canAddTrail) {
-    navActionsEl.innerHTML = '<button type="button" id="add-route-btn" class="nav-action-btn">Add</button>';
+    navActionsEl.innerHTML = addButtonHtml('add-route-btn', 'Add route');
   }
   const addTrailBtn = document.getElementById('add-route-btn');
   if (addTrailBtn) addTrailBtn.addEventListener('click', function() { openAddModal(null, 'route'); });
