@@ -7,7 +7,7 @@ A one-page tour of what the app is made of and how the pieces fit. If you just w
 Two things glued together at one HTTP origin:
 
 1. **A static SPA frontend.** `index.html` holds the markup and `app/` the stylesheet and vanilla JavaScript, as native ES modules the browser loads directly, with `app/main.js` as the entry. Leaflet and its plugins are vendored under `vendor/` and served from the same origin, so the only external host at runtime is the map tile provider. Everything else (`site-config.json`, places, routes, GPX) comes from the API. Dialogs converted to components use Preact with htm templates, vendored and mapped by an import map in `index.html`, so there is still no build step and no bundler.
-2. **The Python API.** `tools/api.py` is a stdlib-only HTTP server (`http.server` + `sqlite3`) that handles auth, per-user reads and writes, and serves the static files so the app runs from one origin.
+2. **The Python API.** `tools/api.py` starts a stdlib-only HTTP server (`http.server` + `sqlite3`), implemented in the `tools/ferd_api/` package, that handles auth, per-user reads and writes, and serves the static files so the app runs from one origin.
 
 The frontend talks to the API via `fetch`; the API stores users, sessions, and per-user publish state in SQLite and writes each user's places/routes to JSON and GPX files under their own folder on disk.
 
@@ -66,7 +66,20 @@ tests/
   test_shipped_catalog.py  # CI-enforced catalog conventions
   test_ui_css.py           # how ui.css loads and the cascade layer order
 tools/
-  api.py                   # stdlib-only API server (auth + write endpoints)
+  api.py                   # entry point: python3 tools/api.py --config ...
+  ferd_api/                # the stdlib-only API server, split by concern
+    config.py              # defaults and config-file/env loading
+    db.py                  # SQLite schema, migrations, audit log, site settings
+    auth.py                # password hashing, sessions, API tokens, login rate limit
+    users.py               # accounts, per-user data dirs, publish flags, legacy migration
+    common.py              # exceptions, path-safety and atomic file helpers
+    places.py, areas.py    # place and area validation, country codes
+    routes.py, gpx.py      # route metadata validation; GPX parsing, moves, GeoJSON
+    transfer.py, labels.py # account import; category-label validation
+    static.py              # MIME types, content-derived sw.js/app versions
+    handler.py             # routing tables and the Handler class
+    handlers/              # one mixin per endpoint group, composed into Handler
+    server.py              # startup wiring and the listen loop
   config.example.json      # API config template
 vendor/                    # vendored third-party libs (see vendor/NOTICES.md)
 

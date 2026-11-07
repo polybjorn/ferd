@@ -1,4 +1,4 @@
-"""Unit tests for pure helpers in tools/api.py.
+"""Unit tests for pure helpers in tools/ferd_api.
 
 Run with: python3 -m unittest discover -s tests
 """
@@ -14,7 +14,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
-import api  # noqa: E402
+import ferd_api as api  # noqa: E402
+from ferd_api.handlers import account, request  # noqa: E402
 
 
 GPX_NS = "http://www.topografix.com/GPX/1/1"
@@ -925,7 +926,7 @@ class TestPrefsPutLocking(unittest.TestCase):
       h._send_json = lambda status, payload: events.append(("sent", payload))
       h._error = lambda status, msg: events.append(("error", msg))
 
-      real_lock, real_write = api.with_file_lock, api.write_json_file
+      real_lock, real_write = request.with_file_lock, account.write_json_file
 
       def spy_lock(lock_path, fn):
         events.append(("lock", lock_path.name))
@@ -935,11 +936,11 @@ class TestPrefsPutLocking(unittest.TestCase):
         events.append(("write", path.name))
         return real_write(path, data)
 
-      api.with_file_lock, api.write_json_file = spy_lock, spy_write
+      request.with_file_lock, account.write_json_file = spy_lock, spy_write
       try:
         h._h_prefs_put()
       finally:
-        api.with_file_lock, api.write_json_file = real_lock, real_write
+        request.with_file_lock, account.write_json_file = real_lock, real_write
 
       self.assertEqual(events, [("lock", ".prefs.lock"), ("write", "prefs.json"), ("sent", {"ok": True})])
       self.assertEqual(json.loads((udir / "prefs.json").read_text()), {"theme": "dark"})

@@ -1,4 +1,4 @@
-"""Integration tests for tools/api.py.
+"""Integration tests for the API (tools/api.py).
 
 Spins up a fresh API server in a subprocess against a tempdir
 data dir + sqlite db, then exercises endpoints via urllib.

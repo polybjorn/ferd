@@ -7,7 +7,7 @@ the tag named in vendor/NOTICES.md. Output, both committed:
   countries.geo.json   one feature per ISO 3166-1 alpha-2 code, simplified,
                        properties {"code": "NO"} only. Loaded by the browser
                        when the visited-countries layer is on.
-  country-names.json   {normalised name: code}, read by tools/api.py to turn
+  country-names.json   {normalised name: code}, read by tools/ferd_api/places.py to turn
                        a place's free-text country into a code.
   country-list.json    {code: display name}, the choices in the place form's
                        country picker.
@@ -88,7 +88,7 @@ DISPLAY = {
 
 
 def norm(name: str) -> str:
-  """Must match normalise_country_name in tools/api.py and normCountryName
+  """Must match normalise_country_name in tools/ferd_api/places.py and normCountryName
   in app/countries.js."""
   s = unicodedata.normalize("NFKD", name)
   s = "".join(c for c in s if unicodedata.category(c) != "Mn").lower()

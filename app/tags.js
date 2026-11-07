@@ -7,7 +7,7 @@ export function parseTagInput(str) {
   return t.length ? t : null;
 }
 const TAG_RE = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,31}$/;
-// Mirror of the server's normalize_tags (tools/api.py): trim, drop blanks,
+// Mirror of the server's normalize_tags (tools/ferd_api/common.py): trim, drop blanks,
 // format-check, case-insensitive dedup (first-seen casing kept), cap at 10.
 // Throws on a non-array, non-string item, or bad format. The local-only write
 // path has no server to validate, so it runs this to match server behavior.

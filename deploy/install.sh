@@ -106,6 +106,12 @@ if confirm "  proceed?"; then
     fi
 
     install -m 0644 -o "$SVC_USER" -g "$SVC_USER" "$SRC_DIR/tools/api.py" "$PREFIX/tools/api.py"
+    rm -rf "$PREFIX/tools/ferd_api"
+    cp -R "$SRC_DIR/tools/ferd_api" "$PREFIX/tools/ferd_api"
+    find "$PREFIX/tools/ferd_api" -name __pycache__ -prune -exec rm -rf {} +
+    chown -R "$SVC_USER:$SVC_USER" "$PREFIX/tools/ferd_api"
+    find "$PREFIX/tools/ferd_api" -type d -exec chmod 0755 {} +
+    find "$PREFIX/tools/ferd_api" -type f -exec chmod 0644 {} +
     install -m 0644 -o "$SVC_USER" -g "$SVC_USER" "$SRC_DIR/tools/config.example.json" "$PREFIX/tools/config.example.json"
 
     for f in ferd-api.service ferd-api.socket nginx.example.conf Caddyfile.example; do

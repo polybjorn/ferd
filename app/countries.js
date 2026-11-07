@@ -11,7 +11,7 @@ const COUNTRY_DATA_URL = '/vendor/natural-earth/';
 export const COUNTRY_MAX_ZOOM = 6;
 function countriesEnabled() { return placesEnabled() && featureVisible('countries'); }
 // COUNTRY-MATCH-BEGIN
-// Mirrors normalise_country_name in tools/api.py.
+// Mirrors normalise_country_name in tools/ferd_api/places.py.
 function normCountryName(name) {
   let s = String(name).normalize('NFKD').replace(/\p{Mn}/gu, '').toLowerCase();
   s = s.replace(/&/g, ' and ').replace(/[.'\u2019]/g, '').replace(/,/g, ' ').split(/\s+/).filter(Boolean).join(' ');

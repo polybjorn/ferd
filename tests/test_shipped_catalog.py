@@ -18,7 +18,7 @@ from pathlib import Path
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from api import country_code_for, validate_place, ValidationError  # noqa: E402
+from ferd_api import country_code_for, validate_place, ValidationError  # noqa: E402
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

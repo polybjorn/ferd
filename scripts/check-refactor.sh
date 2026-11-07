@@ -23,7 +23,7 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 cp -R app "$TMP/app"
-cp tools/api.py "$TMP/api.py"
+cp -R tools/ferd_api "$TMP/ferd_api"
 
 echo "== Duplication (jscpd $JSCPD_VERSION) =="
 # Defaults skip files >100KB / >1000 lines; ours blow past both, so raise them.
@@ -31,7 +31,7 @@ echo "== Duplication (jscpd $JSCPD_VERSION) =="
 npx -y "jscpd@$JSCPD_VERSION" \
   --min-tokens 60 --max-size 5mb --max-lines 50000 \
   -p "**/*.{js,py}" --reporters console "$TMP" 2>&1 \
-  | sed -E "s#[^ ]*/app/#app/#g; s#[^ ]*/api\.py#tools/api.py#g" \
+  | sed -E "s#[^ ]*/app/#app/#g; s#[^ ]*/ferd_api/#tools/ferd_api/#g" \
   | grep -vE "Auto-refactor with AI|Gangsta|Support jscpd|opencollective" || true
 
 echo
