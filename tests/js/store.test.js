@@ -2,7 +2,8 @@
 // Runs the store's core (between the STORE-CORE markers in app/store.js) in
 // vm, with IndexedDB and the API replaced by in-memory stand-ins: the v5
 // migration, the manifest round trip, local edits against pulled changes,
-// the push queue, GPX file operations and category labels.
+// the push queue and the GPX call queue, GPX file operations and category
+// labels.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
@@ -12,7 +13,7 @@ const m = /STORE-CORE-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ STORE-CORE-END/.exec(app)
 assert.ok(m, 'STORE-CORE markers not found in app/');
 const source = m[1] + `
 globalThis.__s = { emptyMem, buildManifest, manifestItems, migrateV5, applyChanges, applyPull,
-  pushPending, labelChanges, ROUTE_OPS, pkey, stripUi };
+  pushPending, nextBatch, drainGpxOps, labelChanges, ROUTE_OPS, pkey, stripUi };
 globalThis.__setMem = v => { mem = v; };`;
 
 const META = ['source', 'date_completed', 'rating', 'notes', 'tags', 'difficulty', 'local_name'];
@@ -24,6 +25,10 @@ function makeEnv(overrides = {}) {
     console, JSON, Promise, Object, Array, Map, Set, Error, Math, Date,
     KINDS: ['place', 'area', 'route', 'metadata', 'pref', 'label'],
     BATCH_MAX: 500,
+    BATCH_CHARS: 300000,
+    opsCount: 0,
+    gpxOpsFor: () => Promise.resolve([]),
+    GPX_REST: {},
     NS: 'https://ferd.test::own:bjorn',
     pendingMap: new Map(),
     syncState: { rev: 0, epoch: null },
@@ -92,9 +97,9 @@ test('migrateV5 moves local stores, cached reads and the outbox', () => {
   assert.deepEqual(server.find(i => i.kind === 'metadata').data, { notes: 'n' });
   assert.equal(server.find(i => i.kind === 'route').data.notes, undefined, 'metadata leaves the route row');
 
-  assert.deepEqual(out.pending.map(p => [p.kind, p.id, p.op]), [['place', fresh, 'put'], ['metadata', 'Loop', 'put']]);
+  assert.deepEqual(out.pending.map(p => [p.kind, p.id, p.op]), [['place', fresh, 'put']]);
   assert.equal(out.pending[0].data.id, fresh);
-  assert.deepEqual(out.ops.map(o => o.method), ['uploadGpx']);
+  assert.deepEqual(out.ops.map(o => o.method), ['uploadGpx', 'putMetadata']);
   assert.deepEqual(out.gpx.filter(g => g.ns === ns), [{ ns, file: 'Loop.gpx', text: '<gpx loop/>' }]);
   assert.deepEqual(out.meta, [['auth::https://ferd.test', { authenticated: true, username: 'bjorn' }]]);
 });
@@ -206,4 +211,164 @@ test('category labels replace the map and keep a colour left out', () => {
 test('fields the UI hangs on its copies never reach storage', () => {
   const { s } = makeEnv();
   assert.deepEqual(plain(s.stripUi({ id: 'a', name: 'b', _slug: 'b' })), { id: 'a', name: 'b' });
+});
+
+const httpError = (status, message) => Object.assign(new Error(message || 'HTTP ' + status), { status });
+const places = (s, ids) => s.applyChanges(ids.map(id => ({ kind: 'place', id, op: 'put', data: { name: id } })), true);
+
+test('pushPending keeps the whole queue on a server, proxy or session error', async () => {
+  for (const status of [500, 502, 503, 401, 403, 429]) {
+    const env = makeEnv({ api: () => Promise.reject(httpError(status)) });
+    places(env.s, ['aaaaaaa1', 'aaaaaaa2']);
+    await assert.rejects(env.s.pushPending(), undefined, 'HTTP ' + status);
+    assert.equal(env.ctx.pendingMap.size, 2, 'HTTP ' + status + ' keeps both edits');
+    assert.equal(env.ctx.syncState.epoch, null);
+  }
+});
+
+test('pushPending halves a batch refused as a whole until the culprit is alone', async () => {
+  for (const [status, msg] of [[409, 'too many category labels (max 200)'], [413, 'body too large'], [400, 'too many changes (max 500)']]) {
+    const sent = [];
+    const env = makeEnv({
+      api: (method, path, body) => {
+        const ids = body.changes.map(c => c.id);
+        sent.push(ids);
+        return ids.includes('aaaaaaa3') ? Promise.reject(httpError(status, msg)) : Promise.resolve({ ok: true });
+      },
+    });
+    env.ctx.syncState = { rev: 9, epoch: 'e1' };
+    places(env.s, ['aaaaaaa1', 'aaaaaaa2', 'aaaaaaa3', 'aaaaaaa4']);
+    const r = plain(await env.s.pushPending());
+    assert.deepEqual(r, { pushed: 3, skipped: 1 }, 'HTTP ' + status);
+    assert.equal(env.ctx.pendingMap.size, 0);
+    assert.deepEqual(plain(sent[0]), ['aaaaaaa1', 'aaaaaaa2', 'aaaaaaa3', 'aaaaaaa4']);
+    assert.ok(sent.some(ids => ids.length === 1 && ids[0] === 'aaaaaaa3'), 'the culprit is sent alone before it is dropped');
+    assert.equal(env.ctx.syncState.epoch, null, 'a drop asks the next pull for the whole set');
+    assert.equal(env.ctx.syncState.rev, 9);
+    assert.ok(env.writes.some(w => w.meta && w.meta[0][0] === 'sync::' + env.ctx.NS && w.meta[0][1].epoch === null), 'the reset survives a reload');
+  }
+});
+
+test('pushPending keeps a successful push from resetting the sync', async () => {
+  const env = makeEnv();
+  env.ctx.syncState = { rev: 9, epoch: 'e1' };
+  places(env.s, ['aaaaaaa1']);
+  await env.s.pushPending();
+  assert.equal(env.ctx.syncState.epoch, 'e1');
+});
+
+test('nextBatch stops at the character budget but always takes one change', () => {
+  const { s, ctx } = makeEnv({ BATCH_CHARS: 1000 });
+  const big = 'x'.repeat(600);
+  s.applyChanges(['aaaaaaa1', 'aaaaaaa2', 'aaaaaaa3'].map(id => ({ kind: 'place', id, op: 'put', data: { name: big } })), true);
+  assert.deepEqual(plain(s.nextBatch(500).map(p => p.id)), ['aaaaaaa1']);
+  ctx.BATCH_CHARS = 10;
+  assert.deepEqual(plain(s.nextBatch(500).map(p => p.id)), ['aaaaaaa1']);
+  ctx.BATCH_CHARS = 300000;
+  assert.deepEqual(plain(s.nextBatch(2).map(p => p.id)), ['aaaaaaa1', 'aaaaaaa2']);
+});
+
+test('drainGpxOps skips a refused call and stops, keeping it queued, on any other error', async () => {
+  const rows = [
+    { id: 1, ns: 'n', method: 'moveGpx', args: { key: 'A', new_region: 'West' } },
+    { id: 2, ns: 'n', method: 'uploadGpx', args: { region: 'West', name: 'B' } },
+    { id: 3, ns: 'n', method: 'deleteGpx', args: { name: 'C' } },
+  ];
+  const fails = { moveGpx: httpError(404, 'route not found: A'), uploadGpx: httpError(502) };
+  const called = [];
+  const rest = {};
+  for (const m of ['moveGpx', 'uploadGpx', 'deleteGpx']) rest[m] = () => { called.push(m); return fails[m] ? Promise.reject(fails[m]) : Promise.resolve({ ok: true }); };
+  const env = makeEnv({ NS: 'n', opsCount: 3, GPX_REST: rest, gpxOpsFor: () => Promise.resolve(rows) });
+  env.ctx.syncState = { rev: 4, epoch: 'e1' };
+  const r = plain(await env.s.drainGpxOps('n'));
+  assert.deepEqual(r, { synced: 0, skipped: 1, stopped: true });
+  assert.deepEqual(called, ['moveGpx', 'uploadGpx'], 'nothing runs past the stop');
+  assert.deepEqual(env.writes.filter(w => w.delOps).map(w => plain(w.delOps)), [[1]], 'the upload stays queued, its text with it');
+  assert.equal(env.ctx.opsCount, 2);
+  assert.equal(env.ctx.syncState.epoch, null, 'a skipped call asks the next pull for the whole set');
+
+  fails.uploadGpx = null;
+  const env2 = makeEnv({ NS: 'n', opsCount: 2, GPX_REST: rest, gpxOpsFor: () => Promise.resolve(rows.slice(1)) });
+  assert.deepEqual(plain(await env2.s.drainGpxOps('n')), { synced: 2, skipped: 0, stopped: false });
+  assert.deepEqual(plain(env2.writes.find(w => w.delGpx).delGpx), [['n', 'West/B.gpx']]);
+});
+
+test('drainGpxOps stops on a network error', async () => {
+  const env = makeEnv({
+    NS: 'n', opsCount: 1,
+    GPX_REST: { deleteGpx: () => Promise.reject(new Error('Network error')) },
+    gpxOpsFor: () => Promise.resolve([{ id: 1, ns: 'n', method: 'deleteGpx', args: { name: 'C' } }]),
+  });
+  assert.deepEqual(plain(await env.s.drainGpxOps('n')), { synced: 0, skipped: 0, stopped: true });
+  assert.equal(env.writes.length, 0);
+});
+
+test('migrateV5 replays metadata edits and category clears as calls, in queue order', () => {
+  const { s } = makeEnv();
+  const ns = 'https://ferd.test::own:bjorn';
+  const route = (key, extra) => Object.assign({ key, file: key + '.gpx', name: key.split('/').pop(), completed: true }, extra);
+  const out = plain(s.migrateV5({
+    // As the v5 code left the cache: the move and rename applied, and the
+    // removed region's routes gone from it (the server moves them instead).
+    kv: [['local:metadata', {}]],
+    gpx: [['North/Bay.gpx', { file: 'North/Bay.gpx', region: 'North', name: 'Bay', planned: false, text: '<gpx local only/>' }]],
+    cache: [
+      ['data::' + ns + '::places', { data: [{ id: 'c0ffee01', name: 'Cafe' }] }],
+      ['data::' + ns + '::routes', { data: { regions: [
+        { name: 'North', routes: [route('North/Ridge', { notes: 'edited' }), route('North/Bay')] },
+      ] } }],
+    ],
+    outbox: [
+      [1, { id: 1, ns, method: 'putMetadata', args: { key: 'West/Ridge', metadata: { notes: 'edited' } } }],
+      [2, { id: 2, ns, method: 'moveGpx', args: { key: 'West/Ridge', new_region: 'North' } }],
+      [3, { id: 3, ns, method: 'putMetadata', args: { key: 'Old/Peak', metadata: { notes: 'kept' } } }],
+      [4, { id: 4, ns, method: 'clearRegion', args: { name: 'Old' } }],
+      [5, { id: 5, ns, method: 'clearCategory', args: { category: 'hut' } }],
+      [6, { id: 6, ns, method: 'uploadGpx', args: { region: 'South', name: 'Bay' }, file: 'South/Bay.gpx' }],
+      [7, { id: 7, ns, method: 'moveGpx', args: { key: 'South/Bay', new_region: 'North' } }],
+    ],
+    // The v5 code renamed offline GPX text along with each move.
+    pending_gpx: [['North/Bay.gpx', { file: 'North/Bay.gpx', text: '<gpx bay/>' }]],
+  }));
+  assert.deepEqual(out.pending, [], 'no metadata delete or place re-save is queued');
+  assert.deepEqual(out.ops.map(o => [o.method, o.args.key || o.args.name || o.args.category]), [
+    ['putMetadata', 'West/Ridge'], ['moveGpx', 'West/Ridge'], ['putMetadata', 'Old/Peak'], ['clearRegion', 'Old'],
+    ['clearCategory', 'hut'], ['uploadGpx', 'Bay'], ['moveGpx', 'South/Bay'],
+  ]);
+  assert.deepEqual(out.gpx.filter(g => g.ns === ns), [{ ns, file: 'North/Bay.gpx', text: '<gpx bay/>' }], 'offline text under a moved name is kept');
+  assert.deepEqual(out.gpx.filter(g => g.ns === 'local'), [{ ns: 'local', file: 'North/Bay.gpx', text: '<gpx local only/>' }], "local mode's file of the same name is left alone");
+});
+
+test('pushPending treats a 404 as a missing endpoint, not a refusal', async () => {
+  const env = makeEnv({ api: () => Promise.reject(httpError(404, 'not found')) });
+  places(env.s, ['aaaaaaa1', 'aaaaaaa2']);
+  await assert.rejects(env.s.pushPending());
+  assert.equal(env.ctx.pendingMap.size, 2);
+});
+
+test('pushPending goes back to full batches once the refused change is dropped', async () => {
+  const sizes = [];
+  const env = makeEnv({
+    BATCH_MAX: 8,
+    api: (method, path, body) => {
+      const ids = body.changes.map(c => c.id);
+      sizes.push(ids.length);
+      return ids.includes('aaaaaa01') ? Promise.reject(httpError(409, 'too many category labels')) : Promise.resolve({ ok: true });
+    },
+  });
+  places(env.s, Array.from({ length: 17 }, (_, i) => 'aaaaaa' + (i + 1).toString(16).padStart(2, '0')));
+  assert.deepEqual(plain(await env.s.pushPending()), { pushed: 16, skipped: 1 });
+  assert.deepEqual(sizes, [8, 4, 2, 1, 8, 8]);
+});
+
+test('a skipped GPX call resets the namespace it belongs to, not the one on screen', async () => {
+  const env = makeEnv({
+    NS: 'shown',
+    GPX_REST: { deleteGpx: () => Promise.reject(httpError(404)) },
+    gpxOpsFor: () => Promise.resolve([{ id: 1, ns: 'other', method: 'deleteGpx', args: { name: 'C' } }]),
+  });
+  env.ctx.syncState = { rev: 7, epoch: 'e1' };
+  await env.s.drainGpxOps('other');
+  assert.equal(env.ctx.syncState.epoch, 'e1');
+  assert.deepEqual(plain(env.writes.find(w => w.meta).meta), [['sync::other', { rev: 0, epoch: null }]]);
 });

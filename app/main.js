@@ -86,7 +86,9 @@ export function loadDataAndRender() {
     if (!loaded) {
       document.body.classList.remove('app-booting', 'signin-only');
       if (v.mode === 'public') {
-        document.getElementById('app').innerHTML = '<div class="loading">Map not found, or owner has not published it.</div>';
+        document.getElementById('app').innerHTML = loaded === null
+          ? "<div class=\"loading\">Can't reach the server, and this map hasn't been opened on this device before.</div>"
+          : '<div class="loading">Map not found, or owner has not published it.</div>';
         return;
       }
       document.getElementById('app').innerHTML = '<div class="loading">Failed to load data</div>';
