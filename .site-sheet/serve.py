@@ -6,7 +6,9 @@
 Starts tools/api.py in a fresh temporary directory, seeds the admin the
 states file signs in as, adds places, an area and a route so the edit and
 catalog modals have something to open, prints the origin and serves until
-killed.
+killed. The seeding runs against a private port and that API is stopped
+before one starts on PORT over the same db and data dir, so a caller that
+waits for PORT to answer never sees it unseeded.
 Capture from it with:
 
     site-sheet capture "" / OUT --states .site-sheet/states.json --origin http://127.0.0.1:PORT
@@ -15,6 +17,7 @@ Capture from it with:
 import json
 import shutil
 import signal
+import socket
 import subprocess
 import sys
 import tempfile
@@ -44,9 +47,7 @@ def main():
     shutil.copytree(REPO, static, ignore=shutil.ignore_patterns(
         ".git", ".site-sheet", "android", "tests", "tools", "users", "data", "*.db*"))
     shutil.copy(REPO / "site-config.example.json", static / "site-config.json")
-    config = tmp / "config.json"
-    config.write_text(json.dumps({
-        "bind": "127.0.0.1:%d" % port,
+    settings = {
         "db_path": str(tmp / "app.db"),
         "data_dir": str(tmp / "data"),
         "static_dir": str(static),
@@ -54,18 +55,47 @@ def main():
         "initial_user": USER,
         "initial_password": PASSWORD,
         "secure_cookies": False,
-    }))
-    api = subprocess.Popen([sys.executable, str(REPO / "tools" / "api.py"), "--config", str(config)],
-                           stdin=subprocess.DEVNULL)
-    origin = "http://127.0.0.1:%d" % port
+    }
+    api = None
     try:
-        seed(origin)
+        seeding = free_port()
+        api = start(tmp, settings, seeding)
+        seed("http://127.0.0.1:%d" % seeding)
+        api.terminate()
+        api.wait(timeout=10)
+        api = start(tmp, settings, port)
+        origin = "http://127.0.0.1:%d" % port
+        wait_for(origin)
         print(origin, flush=True)
         signal.signal(signal.SIGTERM, lambda *_: api.terminate())
         api.wait()
     finally:
-        api.terminate()
+        if api:
+            api.terminate()
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+def free_port():
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+def start(tmp, settings, port):
+    config = tmp / "config.json"
+    config.write_text(json.dumps(dict(settings, bind="127.0.0.1:%d" % port)))
+    return subprocess.Popen([sys.executable, str(REPO / "tools" / "api.py"), "--config", str(config)],
+                            stdin=subprocess.DEVNULL)
+
+
+def wait_for(origin):
+    for _ in range(100):
+        try:
+            urllib.request.urlopen(origin + "/api/health", timeout=1).read()
+            return
+        except OSError:
+            time.sleep(0.1)
+    sys.exit("serve.py: the API did not answer on %s" % origin)
 
 
 def seed(origin):
@@ -77,14 +107,7 @@ def seed(origin):
                                      headers={"Content-Type": ctype})
         return opener.open(req, timeout=10).read()
 
-    for _ in range(100):
-        try:
-            urllib.request.urlopen(origin + "/api/health", timeout=1).read()
-            break
-        except OSError:
-            time.sleep(0.1)
-    else:
-        sys.exit("serve.py: the API did not answer on %s" % origin)
+    wait_for(origin)
     call("POST", "/api/login", {"username": USER, "password": PASSWORD})
     call("POST", "/api/places", {"name": "Old boathouse", "lat": 59.52, "lon": 6.48,
                                  "category": "boathouse"})

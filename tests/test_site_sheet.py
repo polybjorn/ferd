@@ -11,6 +11,7 @@ import re
 import socket
 import subprocess
 import sys
+import time
 import unittest
 import urllib.request
 from pathlib import Path
@@ -84,6 +85,34 @@ class TestDemoServer(unittest.TestCase):
       self.assertEqual([r["name"] for r in regions], ["Demo"])
       with urllib.request.urlopen(origin + "/site-config.json", timeout=10) as r:
         self.assertEqual(r.status, 200)
+    finally:
+      proc.terminate()
+      proc.wait(timeout=10)
+
+  def test_port_answers_only_once_seeded(self):
+    """A capture that starts as soon as the port answers
+    must not race the seed."""
+    port = free_port()
+    origin = "http://127.0.0.1:%d" % port
+    proc = subprocess.Popen([sys.executable, str(SHEET / "serve.py"), str(port)],
+                            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL)
+    try:
+      for _ in range(3000):
+        try:
+          urllib.request.urlopen(origin + "/api/health", timeout=1).read()
+          break
+        except OSError:
+          time.sleep(0.005)
+      else:
+        self.fail("serve.py never answered on %s" % origin)
+      opener = urllib.request.build_opener(
+        urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+      req = urllib.request.Request(origin + "/api/login", headers={"Content-Type": "application/json"},
+                                   data=json.dumps({"username": "demo", "password": "demo-password-1"}).encode())
+      opener.open(req, timeout=10).read()
+      with opener.open(origin + "/api/routes", timeout=10) as r:
+        self.assertEqual([g["name"] for g in json.loads(r.read())["regions"]], ["Demo"])
     finally:
       proc.terminate()
       proc.wait(timeout=10)
