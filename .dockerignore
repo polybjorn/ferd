@@ -19,6 +19,12 @@ tsconfig.json
 types/
 docs/
 android/
+package.json
+package-lock.json
+playwright.config.js
+node_modules/
+test-results/
+playwright-report/
 *.md
 !LICENSE
 .DS_Store
