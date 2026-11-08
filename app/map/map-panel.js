@@ -6,12 +6,37 @@ import { initUnifiedSearch } from './place-layer.js';
 import { _selPopover, closeSelectPopover, openMultiSelectList } from '../select.js';
 import { wrappedRouter } from '../router.js';
 
+/** @typedef {import('./route-layer.js').LeafletMap} LeafletMap */
+/** @typedef {Record<string, any>} FilterState */
+// The Browse page hands over plain HTMLElements, so `value` stays optional.
+/** @typedef {HTMLElement & { value?: string }} ValueElement */
+/**
+ * @typedef {object} FilterPopoverOptions
+ * @property {HTMLElement | null} [btn]
+ * @property {HTMLElement | null} [pop]
+ * @property {HTMLElement | null} [clear]
+ * @property {ValueElement[]} sels
+ * @property {Record<string, string>} keyById
+ * @property {FilterState} filters
+ * @property {ValueElement | null} [searchInput]
+ * @property {string} [searchKey]
+ * @property {() => void} onApply
+ * @property {string[]} [tagOptions]
+ * @property {string} [tagsKey]
+ * @property {HTMLElement | null} [tagMsBtn]
+ */
+
 // Toggle a popover open/closed; close on outside click or when another
 // transient overlay opens. Clicks inside are swallowed so selecting a control
 // doesn't dismiss it. Shared by the filter and list-view popovers.
+/**
+ * @param {HTMLElement | null | undefined} btn
+ * @param {HTMLElement | null | undefined} pop
+ * @returns {() => void}
+ */
 export function wirePopover(btn, pop) {
   if (!btn || !pop) return () => {};
-  btn.addEventListener('click', function(e) {
+  btn.addEventListener('click', function(/** @type {MouseEvent} */ e) {
     e.stopPropagation();
     const open = pop.hidden;
     if (open) closeTransientOverlays(pop);
@@ -19,13 +44,13 @@ export function wirePopover(btn, pop) {
     btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
   const outside = function(/** @type {MouseEvent} */ e) {
-    if (!pop.hidden && !pop.contains(e.target) && e.target !== btn) {
+    if (!pop.hidden && !pop.contains(/** @type {Node | null} */ (e.target)) && e.target !== btn) {
       pop.hidden = true;
       btn.setAttribute('aria-expanded', 'false');
     }
   };
   document.addEventListener('click', outside);
-  pop.addEventListener('click', function(e) { e.stopPropagation(); });
+  pop.addEventListener('click', function(/** @type {MouseEvent} */ e) { e.stopPropagation(); });
   // The document outlives the page; a page that unmounts must take its
   // listener with it.
   return () => document.removeEventListener('click', outside);
@@ -37,6 +62,10 @@ export function wirePopover(btn, pop) {
 // select + the search. onApply re-renders the list after any change/clear.
 // Shared by the Places, Routes, and History list pages. Returns the cleanup
 // from wirePopover, which a page that unmounts must call.
+/**
+ * @param {FilterPopoverOptions} opts
+ * @returns {() => void}
+ */
 export function wireFilterPopover(opts) {
   const { btn, pop, clear, sels, keyById, filters, searchInput, searchKey, onApply, tagOptions, tagsKey, tagMsBtn } = opts;
   function tagsActive() { return !!(tagsKey && filters[tagsKey] && filters[tagsKey].length); }
@@ -47,7 +76,7 @@ export function wireFilterPopover(opts) {
     tagMsBtn.classList.toggle('filter-active', sel.length > 0);
   }
   function updateLabel() {
-    let n = sels.reduce((acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
+    let n = sels.reduce((/** @type {number} */ acc, s) => acc + (s.value !== 'all' ? 1 : 0), 0);
     if (tagsActive()) n += 1;
     if (btn) btn.classList.toggle('has-active', n > 0);
     // Tint each select that holds a non-default value, so an applied filter
@@ -56,7 +85,7 @@ export function wireFilterPopover(opts) {
     syncTagLabel();
   }
   function apply() { onApply(); updateLabel(); }
-  if (searchInput && searchKey) searchInput.addEventListener('input', function() {
+  if (searchInput && searchKey) searchInput.addEventListener('input', /** @this {ValueElement} */ function() {
     filters[searchKey] = this.value;
     apply();
   });
@@ -65,7 +94,7 @@ export function wireFilterPopover(opts) {
     if (k) filters[k] = s.value;
     apply();
   }));
-  if (tagMsBtn && tagsKey && tagOptions && tagOptions.length) tagMsBtn.addEventListener('mousedown', function(e) {
+  if (tagMsBtn && tagsKey && tagOptions && tagOptions.length) tagMsBtn.addEventListener('mousedown', function(/** @type {MouseEvent} */ e) {
     e.preventDefault();
     if (_selPopover) { closeSelectPopover(); return; }
     openMultiSelectList(tagMsBtn, tagOptions, () => filters[tagsKey] || [], function(arr) { filters[tagsKey] = arr; apply(); });
@@ -96,6 +125,7 @@ function panelTabsHtml() {
   return h;
 }
 
+/** @param {string} id */
 function panelBodyHtml(id) {
   return '<div class="ui-collapse" id="' + id + '-section">' +
     '<div class="ui-collapse-body"><div class="panel-section-body" id="' + id + '-body"></div></div>' +
@@ -124,6 +154,7 @@ export function panelInnerHtml() {
 // listener because fitBounds fires the same zoom events as a pinch, and would
 // collapse the credit before anyone saw it. Only the phone rule acts on the
 // class, so a wider window keeps the credit.
+/** @param {LeafletMap} map */
 export function collapseCreditOnPhone(map) {
   const container = map.getContainer();
   const credit = container.querySelector('.leaflet-control-attribution');
@@ -138,8 +169,8 @@ export function collapseCreditOnPhone(map) {
   };
   const timer = setTimeout(collapse, 5000);
   map.on('unload', function() { clearTimeout(timer); });
-  container.addEventListener('pointerdown', function(e) {
-    if (e.target !== toggle && !credit.contains(e.target)) collapse();
+  container.addEventListener('pointerdown', function(/** @type {PointerEvent} */ e) {
+    if (e.target !== toggle && !credit.contains(/** @type {Node | null} */ (e.target))) collapse();
   });
   toggle.addEventListener('click', function() {
     container.classList.remove('credit-collapsed');

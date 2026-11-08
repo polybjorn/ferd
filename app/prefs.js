@@ -19,6 +19,10 @@ function getHiddenFeatures() {
     return raw ? new Set(JSON.parse(raw)) : new Set();
   } catch { return new Set(); }
 }
+/**
+ * @param {string} name
+ * @param {boolean} hidden
+ */
 export function setFeatureHidden(name, hidden) {
   const s = getHiddenFeatures();
   if (hidden) s.add(name); else s.delete(name);
@@ -32,10 +36,15 @@ export function routesEnabled() { return routesAvailable() && !getHiddenFeatures
 // others default to shown. To express both with one set, a key listed in
 // FEATURE_DEFAULT_HIDDEN reads inverted: present-in-set means SHOWN.
 const FEATURE_DEFAULT_HIDDEN = new Set(['logs', 'countries']);
+/** @param {string} key */
 export function featureVisible(key) {
   const inSet = getHiddenFeatures().has(key);
   return FEATURE_DEFAULT_HIDDEN.has(key) ? inSet : !inSet;
 }
+/**
+ * @param {string} key
+ * @param {boolean} visible
+ */
 export function setFeatureVisible(key, visible) {
   // setFeatureHidden's flag is "present in the set"; that's `visible` for a
   // default-hidden key and `!visible` for a default-shown one.
@@ -49,6 +58,10 @@ export function catalogEnabled() { return placesEnabled() && featureVisible('cat
 export function logsAvailable() { return !hasServer() || !!(state.auth && state.auth.is_admin); }
 export function logsEnabled() { return logsAvailable() && featureVisible('logs'); }
 
+/**
+ * @param {string} key
+ * @param {string} def
+ */
 export function getPref(key, def) {
   try { const v = localStorage.getItem(key); return v === null ? def : v; }
   catch { return def; }
@@ -66,6 +79,10 @@ const SYNCED_PREF_KEYS = new Set([
   'default-show-visited', 'default-show-want',
   'default-show-completed', 'default-show-planned',
 ]);
+/**
+ * @param {string} key
+ * @param {string} val
+ */
 export function setPref(key, val) {
   try { localStorage.setItem(key, val); } catch {}
   if (SYNCED_PREF_KEYS.has(key) && hasServer() && !isReadOnly() && state.auth && state.auth.authenticated) {
@@ -85,6 +102,11 @@ export function loadSyncedPrefs() {
     }
   }
 }
+/**
+ * @param {string} name
+ * @param {string} prefKey
+ * @param {(value: string) => void} [onChange]
+ */
 export function bindRadioPref(name, prefKey, onChange) {
   document.querySelectorAll('input[name="' + name + '"]').forEach(r => {
     r.addEventListener('change', function() {
@@ -122,20 +144,32 @@ export function getRememberView() { return getPref('remember-view', 'true') !== 
 // Per-category / per-region durable "hidden by default on the map" lists, and
 // the four status defaults. Set in Manage categories/regions and Settings; the
 // map filter panel overrides them per-session without changing the default.
+/** @param {string} key */
 export function getJsonListPref(key) {
   try { const a = JSON.parse(getPref(key, '[]')); return Array.isArray(a) ? a : []; }
   catch { return []; }
 }
+/**
+ * @param {string} key
+ * @param {unknown} id
+ */
 export function isDefaultHidden(key, id) { return getJsonListPref(key).includes(id); }
+/**
+ * @param {string} key
+ * @param {unknown} id
+ * @param {boolean} hidden
+ */
 export function setDefaultHidden(key, id, hidden) {
   const set = new Set(getJsonListPref(key));
   if (hidden) set.add(id); else set.delete(id);
   setPref(key, JSON.stringify([...set]));
 }
+/** @param {string} status */
 export function getDefaultShow(status) { return getPref('default-show-' + status, 'true') !== 'false'; }
 export function getUnits() { return getPref('units', 'metric'); }
 export function getClusterPlaces() { return getPref('cluster-places', 'true') !== 'false'; }
 // Optional form fields — let the user hide ones they never use. All default ON.
+/** @param {string} name */
 export function getShowField(name) { return getPref('show-' + name, 'true') !== 'false'; }
 export function isImperial() { return getUnits() === 'imperial'; }
 export function loadStoredView() {
@@ -146,6 +180,7 @@ export function loadStoredView() {
     return (v && Array.isArray(v.center) && typeof v.zoom === 'number') ? v : null;
   } catch { return null; }
 }
+/** @param {unknown} view */
 export function saveStoredView(view) {
   try { localStorage.setItem('last-view', JSON.stringify(view)); } catch {}
 }
@@ -160,6 +195,7 @@ export function getRecentPicks() {
     return Array.isArray(v) ? v : [];
   } catch { return []; }
 }
+/** @param {unknown} pick */
 export function addRecentPick(pick) {
   const id = JSON.stringify(pick);
   const list = [pick].concat(getRecentPicks().filter(p => JSON.stringify(p) !== id)).slice(0, RECENT_PICKS_MAX);
