@@ -30,13 +30,6 @@
 1	app/map/map-actions.js	TS2322	Type 'string | undefined' is not assignable to type 'string'.
 1	app/map/map-phone.js	TS2531	Object is possibly 'null'.
 3	app/map/pick-coords.js	TS2531	Object is possibly 'null'.
-5	app/map/place-layer.js	TS18047	'results' is possibly 'null'.
-1	app/map/place-layer.js	TS18048	'a.category' is possibly 'undefined'.
-1	app/map/place-layer.js	TS18048	'f.properties.place' is possibly 'undefined'.
-1	app/map/place-layer.js	TS18048	'l.properties.place' is possibly 'undefined'.
-1	app/map/place-layer.js	TS18048	'p.category' is possibly 'undefined'.
-1	app/map/place-layer.js	TS2345	Argument of type 'HTMLElement | null' is not assignable to parameter of type 'HTMLElement'.
-5	app/map/place-layer.js	TS2345	Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
 1	app/map/route-detail.js	TS18048	'route.tags' is possibly 'undefined'.
 1	app/map/route-detail.js	TS2322	Type '(number | null)[][]' is not assignable to type 'number[][]'.
 1	app/map/route-detail.js	TS2345	Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
