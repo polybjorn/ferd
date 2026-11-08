@@ -64,8 +64,8 @@ export function openSearchView() {
     '</div>' +
     '<div class="map-search-list" id="map-search-view-list"></div>',
     function(dialog) {
-      const input = dialog.querySelector('#map-search-view-input');
-      const list = dialog.querySelector('#map-search-view-list');
+      const input = /** @type {HTMLInputElement} */ (dialog.querySelector('#map-search-view-input'));
+      const list = /** @type {HTMLElement} */ (dialog.querySelector('#map-search-view-list'));
       /** @param {HTMLElement} row */
       const pick = function(row) {
         addRecentPick({ ...row.dataset });
@@ -99,13 +99,14 @@ export function openSearchView() {
       dialog.querySelector('#map-search-view-form').addEventListener('submit', (/** @type {Event} */ e) => e.preventDefault());
       render();
       list.addEventListener('click', function(e) {
-        if (e.target.closest('[data-clear-recent]')) {
+        const target = /** @type {Element} */ (e.target);
+        if (target.closest('[data-clear-recent]')) {
           clearRecentPicks();
           render();
           input.focus();
           return;
         }
-        const row = e.target.closest('.map-search-result');
+        const row = /** @type {HTMLElement | null} */ (target.closest('.map-search-result'));
         if (row) pick(row);
       });
       input.focus();

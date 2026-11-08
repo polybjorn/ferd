@@ -6,16 +6,59 @@ import { openCatalogManager, openCatalogPicker } from './catalog.js';
 import { openConfirmModal } from '../select.js';
 import { html, useEffect, useFetch, useState } from '../view.js';
 
+/**
+ * @typedef {object} SessionData
+ * @property {number} id
+ * @property {boolean} [current]
+ * @property {string} [ip]
+ * @property {string} [user_agent]
+ * @property {number} [last_seen_at]
+ * @property {number} created_at
+ */
+
+/**
+ * @typedef {object} TokenData
+ * @property {number} id
+ * @property {string} name
+ * @property {string} scope
+ * @property {number | null} [last_used_at]
+ * @property {number | null} [expires_at]
+ */
+
+/**
+ * @typedef {object} AdminUserData
+ * @property {number} id
+ * @property {string} username
+ * @property {boolean} is_admin
+ * @property {boolean} [published]
+ * @property {number} sessions
+ * @property {number} places
+ * @property {number} routes
+ */
+
+/**
+ * What a row action shows in its confirm dialog, and the call it makes.
+ * @typedef {object} UserAction
+ * @property {string} title
+ * @property {string} body
+ * @property {string} confirmLabel
+ * @property {boolean} [danger]
+ * @property {() => Promise<unknown>} run
+ */
+
+/** @param {Error} err */
 const failAlert = err => alert(t('common.failed', { message: err.message }));
 
 // `version` comes from Settings, which bumps it after a password change.
+/** @param {{ version: number }} props */
 export function Sessions({ version }) {
+  /** @type {[number, (next: number | ((n: number) => number)) => void]} */
   const [own, setOwn] = useState(0);
   const reload = () => setOwn(n => n + 1);
   const res = useFetch(() => api('GET', '/sessions'), [version, own]);
   const [revoking, setRevoking] = useState(false);
   const sessions = res.status === 'ok' ? res.data.sessions || [] : [];
-  const others = sessions.filter(s => !s.current);
+  const others = sessions.filter((/** @type {SessionData} */ s) => !s.current);
   const revokeOthers = () => {
     openConfirmModal({
       title: t('security.signOutOthersTitle'),
@@ -34,12 +77,13 @@ export function Sessions({ version }) {
   let body = t('common.loading');
   if (res.status === 'error') body = html`<div class="hint">${t('security.couldNotLoadSessions')}</div>`;
   else if (res.status === 'ok' && !sessions.length) body = html`<div class="hint">${t('security.noSessions')}</div>`;
-  else if (res.status === 'ok') body = html`<ul class="session-list">${sessions.map(s => html`<${SessionRow} key=${s.id} s=${s} onRevoked=${reload} />`)}</ul>`;
+  else if (res.status === 'ok') body = html`<ul class="session-list">${sessions.map((/** @type {SessionData} */ s) => html`<${SessionRow} key=${s.id} s=${s} onRevoked=${reload} />`)}</ul>`;
   return html`
     <h3 class="settings-h sessions-h">${t('security.sessions')}<button type="button" class="sessions-revoke-others" id="s-revoke-others" hidden=${!others.length} disabled=${revoking} onClick=${revokeOthers}>${t('security.signOutOthers')}</button></h3>
     <div id="s-sessions">${body}</div>`;
 }
 
+/** @param {{ s: SessionData, onRevoked: () => void }} props */
 function SessionRow({ s, onRevoked }) {
   const [busy, setBusy] = useState(false);
   const ip = s.ip || '?';
@@ -59,7 +103,9 @@ function SessionRow({ s, onRevoked }) {
 }
 
 // `version` comes from the create form, which bumps it for each new token.
+/** @param {{ version: number }} props */
 export function Tokens({ version }) {
+  /** @type {[number, (next: number | ((n: number) => number)) => void]} */
   const [own, setOwn] = useState(0);
   const reload = () => setOwn(n => n + 1);
   const res = useFetch(() => api('GET', '/me/tokens'), [version, own]);
@@ -67,9 +113,10 @@ export function Tokens({ version }) {
   if (res.status === 'error') return html`<div id="s-tokens"><div class="hint">${t('security.couldNotLoadTokens')}</div></div>`;
   const tokens = res.data.tokens || [];
   if (!tokens.length) return html`<div id="s-tokens"><div class="hint">${t('security.noTokens')}</div></div>`;
-  return html`<div id="s-tokens"><ul class="session-list">${tokens.map(tok => html`<${TokenRow} key=${tok.id} tok=${tok} onRevoked=${reload} />`)}</ul></div>`;
+  return html`<div id="s-tokens"><ul class="session-list">${tokens.map((/** @type {TokenData} */ tok) => html`<${TokenRow} key=${tok.id} tok=${tok} onRevoked=${reload} />`)}</ul></div>`;
 }
 
+/** @param {{ tok: TokenData, onRevoked: () => void }} props */
 function TokenRow({ tok, onRevoked }) {
   const [busy, setBusy] = useState(false);
   const used = tok.last_used_at ? t('security.used', { ago: timeAgo(tok.last_used_at) }) : t('security.neverUsed');
@@ -99,6 +146,7 @@ function TokenRow({ tok, onRevoked }) {
   </li>`;
 }
 
+/** @param {number | null | undefined} n */
 function formatBytes(n) {
   if (!n || n < 1024) return (n || 0) + ' B';
   const units = ['KB', 'MB', 'GB', 'TB'];
@@ -108,6 +156,7 @@ function formatBytes(n) {
   return (v >= 10 ? v.toFixed(0) : v.toFixed(1)) + ' ' + units[i];
 }
 
+/** @param {{ version: number }} props */
 export function AdminStats({ version }) {
   const res = useFetch(() => api('GET', '/admin/stats'), [version]);
   let body;
@@ -130,6 +179,7 @@ export function AdminStats({ version }) {
 }
 
 // `onChanged` reloads the users and the stats, which count them.
+/** @param {{ version: number, onChanged: () => void }} props */
 export function AdminUsers({ version, onChanged }) {
   const res = useFetch(() => api('GET', '/admin/users'), [version]);
   let body;
@@ -139,12 +189,17 @@ export function AdminUsers({ version, onChanged }) {
   else {
     const meName = state.auth.username;
     // Current user first, then other admins, then everyone else by id.
+    /** @type {AdminUserData[]} */
     const users = [...res.data.users].sort((a, b) => {
       if (a.username === meName) return -1;
       if (b.username === meName) return 1;
       if (a.is_admin !== b.is_admin) return a.is_admin ? -1 : 1;
       return a.id - b.id;
     });
+    /**
+     * @param {string} title
+     * @param {AdminUserData[]} list
+     */
     const group = (title, list) => list.length ? html`
       <div class="user-group-h">${title}</div>
       <ul class="user-list">${list.map(u => html`<${UserRow} key=${u.id} u=${u} isSelf=${u.username === meName} onChanged=${onChanged} />`)}</ul>` : null;
@@ -154,20 +209,21 @@ export function AdminUsers({ version, onChanged }) {
 }
 
 // The confirm for each row action, and the call it makes.
+/** @type {Record<string, (u: AdminUserData) => UserAction>} */
 const USER_ACTIONS = {
-  unpublish: (u) => ({
+  unpublish: u => ({
     title: t('admin.unpublishTitle', { name: u.username }),
     body: t('admin.unpublishBody', { name: u.username }),
     confirmLabel: t('admin.unpublish'),
     run: () => api('POST', '/admin/users/' + u.id + '/unpublish'),
   }),
-  revoke: (u) => ({
+  revoke: u => ({
     title: t('admin.revokeTitle', { name: u.username }),
     body: t('admin.revokeBody', { name: u.username }),
     confirmLabel: t('admin.revoke'),
     run: () => api('POST', '/admin/users/' + u.id + '/revoke-sessions'),
   }),
-  role: (u) => {
+  role: u => {
     const promote = !u.is_admin;
     return {
       title: t(promote ? 'admin.promoteTitle' : 'admin.demoteTitle', { name: u.username }),
@@ -176,7 +232,7 @@ const USER_ACTIONS = {
       run: () => api('POST', '/admin/users/' + u.id + '/role', { is_admin: promote }),
     };
   },
-  delete: (u) => ({
+  delete: u => ({
     title: t('admin.deleteTitle', { name: u.username }),
     body: t('admin.deleteBody', { name: u.username }),
     confirmLabel: t('admin.deleteConfirm'),
@@ -189,10 +245,13 @@ const USER_ACTIONS = {
   }),
 };
 
+/** @param {{ u: AdminUserData, isSelf: boolean, onChanged: () => void }} props */
 function UserRow({ u, isSelf, onChanged }) {
   // A failed action leaves its button disabled until the list reloads.
+  /** @type {[string | null, (next: string | null) => void]} */
   const [busy, setBusy] = useState(null);
   useEffect(() => setBusy(null), [u]);
+  /** @param {string} name */
   const act = name => {
     const { run, ...confirm } = USER_ACTIONS[name](u);
     openConfirmModal(confirm).then(ok => {
@@ -201,6 +260,11 @@ function UserRow({ u, isSelf, onChanged }) {
       run().then(onChanged).catch(failAlert);
     });
   };
+  /**
+   * @param {string} name
+   * @param {string} label
+   * @param {Record<string, string>} [extra]
+   */
   const button = (name, label, extra) =>
     html`<button data-act=${name} disabled=${busy === name} onClick=${() => act(name)} ...${extra}>${label}</button>`;
   return html`<li class=${'user-row' + (isSelf ? ' self' : '')} data-uid=${u.id} data-uname=${u.username}>
@@ -221,12 +285,14 @@ function UserRow({ u, isSelf, onChanged }) {
 
 // The catalog editors in catalog.js call renderAdminCatalog after a
 // change, so the Admin row reloads under them.
+/** @type {(() => void) | null} */
 let reloadAdminCatalog = null;
 export function renderAdminCatalog() {
   if (reloadAdminCatalog) reloadAdminCatalog();
 }
 
 export function AdminCatalog() {
+  /** @type {[number, (next: number | ((n: number) => number)) => void]} */
   const [version, setVersion] = useState(0);
   useEffect(() => {
     const reload = () => setVersion(n => n + 1);
