@@ -7,7 +7,7 @@ import { getShowField, setPref } from '../prefs.js';
 import { openEditPlaceModal } from './edit-place.js';
 import { focusHash } from '../router.js';
 import { attachContextMenu } from '../context-menu.js';
-import { openAddModal } from '../add/add.js';
+import { openAddModal } from '../lazy-open.js';
 import {
   findCatalogUpdate, groupAndSort, isCatalogOrphan, letterBucket, openCatalogBulkUpdateModal,
   openCatalogUpdateModal, placesWithCatalogUpdates,

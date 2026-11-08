@@ -8,7 +8,7 @@ import { openEditPlaceModal } from './places/edit-place.js';
 import { nameCollator, findCatalogUpdate, openCatalogUpdateModal } from './places-list.js';
 import { focusHash } from './router.js';
 import { attachContextMenu } from './context-menu.js';
-import { openAddModal } from './add/add.js';
+import { openAddModal } from './lazy-open.js';
 import { FilterSelect, IndexControls, useFilters, useNavAdd, withCurrent } from './list-controls.js';
 import { Fragment, html, mountPage, useEffect, useRef } from './view.js';
 import { t } from './i18n.js';

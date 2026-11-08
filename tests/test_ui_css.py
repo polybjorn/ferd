@@ -521,10 +521,22 @@ class ModuleLists(unittest.TestCase):
       if path.is_file():
         self.assertIn(f"'/app/{path.relative_to(ROOT / 'app')}',", SW)
 
+  # Loaded by a dynamic import(), so a preload would fetch it on the first load.
+  LAZY = {
+    "add/add.js", "add/browse.js", "areas/add-area.js", "places/add-place.js", "routes/add-route.js",
+    "backup.js", "settings/account.js", "settings/catalog.js", "settings/categories.js",
+    "settings/logs.js", "settings/regions.js", "settings/settings.js",
+  }
+
   def test_every_module_is_preloaded(self):
     # A module left out still works, one network round trip slower per level.
     for path in sorted((ROOT / "app").rglob("*.js")):
-      self.assertIn(f'<link rel="modulepreload" href="/app/{path.relative_to(ROOT / "app")}">', INDEX)
+      rel = str(path.relative_to(ROOT / "app"))
+      tag = f'<link rel="modulepreload" href="/app/{rel}">'
+      if rel in self.LAZY:
+        self.assertNotIn(tag, INDEX)
+      else:
+        self.assertIn(tag, INDEX)
 
 
 class NoInlineScript(unittest.TestCase):

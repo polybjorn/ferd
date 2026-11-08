@@ -1,6 +1,6 @@
 import { state } from '../core.js';
 import { t } from '../i18n.js';
-import { openAddModal } from '../add/add.js';
+import { openAddModal } from '../lazy-open.js';
 import { openSearchView } from './map-phone.js';
 
 // onPick is called with the chosen latlng. If omitted, the default
