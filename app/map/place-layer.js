@@ -1,4 +1,4 @@
-import { colourClass, escapeHtml, reduceMotion, state } from '../core.js';
+import { colourClass, reduceMotion, state } from '../core.js';
 import { easeLeaflet } from './map-layers.js';
 import { getClusterPlaces, placesEnabled, routesEnabled } from '../prefs.js';
 import { applyAreaFilters, MAP_FADE_MS, revealArea } from './area-layer.js';
@@ -6,6 +6,8 @@ import { goToPlace, goToRoute, openPlacePopup, placeMarkerRadius } from './map-a
 import { focusHash } from '../router.js';
 import { getMarkerSize, getPinStyle } from '../theme.js';
 import { bindSearchKeys } from './search-keys.js';
+import { html, renderFresh } from '../view.js';
+import { t } from '../i18n.js';
 
 /** @typedef {import('./route-layer.js').LeafletMap} LeafletMap */
 /** @typedef {import('../core.js').Place} Place */
@@ -563,59 +565,57 @@ export function searchMatches(q) {
   return { places, areas, routes };
 }
 
-/** @param {string} data @param {string} marker @param {string} name @param {string} meta */
+/** @param {Record<string, string>} data @param {any} marker @param {string} name @param {string} meta */
 function resultRow(data, marker, name, meta) {
-  return '<div class="map-search-result" role="option" ' + data + '>' + marker +
-    '<span class="result-name">' + escapeHtml(name) + '</span>' +
-    '<span class="result-meta">' + escapeHtml(meta) + '</span></div>';
+  return html`<div class="map-search-result" role="option" ...${data}>${marker}<span class="result-name">${name}</span><span class="result-meta">${meta}</span></div>`;
 }
 /** @param {string} category */
 function dotMarker(category) {
-  return '<span class="result-dot ' + colourClass(/** @type {Record<string, string>} */ (state.categoryColors)[category]) + '"></span>';
+  return html`<span class=${'result-dot ' + colourClass(/** @type {Record<string, string>} */ (state.categoryColors)[category])}></span>`;
 }
 /** @param {Place} p */
 function placeRow(p) {
-  return resultRow('data-type="place" data-name="' + escapeHtml(p.name) + '"', dotMarker(/** @type {string} */ (p.category)), p.name, p.country || '');
+  return resultRow({ 'data-type': 'place', 'data-name': p.name }, dotMarker(/** @type {string} */ (p.category)), p.name, p.country || '');
 }
 /** @param {Area} a */
 function areaRow(a) {
-  return resultRow('data-type="area" data-id="' + escapeHtml(/** @type {string} */ (a.id)) + '"', dotMarker(/** @type {string} */ (a.category)), a.name, 'Area');
+  return resultRow({ 'data-type': 'area', 'data-id': String(a.id) }, dotMarker(/** @type {string} */ (a.category)), a.name, t('mapSearch.area'));
 }
 /** @param {ManifestRoute} route @param {string} region */
 function routeRow(route, region) {
-  const marker = '<span class="result-line ' + (route.completed ? 'completed' : 'planned') + '"></span>';
-  return resultRow('data-type="route" data-key="' + escapeHtml(route.key) + '"', marker, route.name, region);
+  const marker = html`<span class=${'result-line ' + (route.completed ? 'completed' : 'planned')}></span>`;
+  return resultRow({ 'data-type': 'route', 'data-key': route.key }, marker, route.name, region);
 }
 
-// Rows for searchMatches' result, or '' when nothing matched. The phone's
+// Rows for searchMatches' result, empty when nothing matched. The phone's
 // search view passes headed, as it has the room to name each group.
-/** @param {SearchMatches} m @param {boolean} [headed] */
-export function searchResultsHtml(m, headed) {
-  /** @param {string} title @param {string[]} rows */
+/** @param {SearchMatches} m @param {boolean} [headed] @returns {any[]} */
+export function searchResultRows(m, headed) {
+  /** @param {string} title @param {any[]} rows */
   const group = function(title, rows) {
-    if (!rows.length) return '';
-    if (!headed) return rows.join('');
+    if (!rows.length || !headed) return rows;
     // A listbox holds options and groups only, so the heading names its group.
-    return '<div role="group" aria-label="' + title + '"><h3 class="map-search-heading" aria-hidden="true">' + title + '</h3>' +
-      rows.join('') + '</div>';
+    return [html`<div role="group" aria-label=${title}><h3 class="map-search-heading" aria-hidden="true">${title}</h3>${rows}</div>`];
   };
-  return group('Places', m.places.map(placeRow)) +
-    group('Areas', m.areas.map(areaRow)) +
-    group('Routes', m.routes.map(t => routeRow(t.route, t.region)));
+  return [
+    ...group(t('mapSearch.places'), m.places.map(placeRow)),
+    ...group(t('mapSearch.areas'), m.areas.map(areaRow)),
+    ...group(t('mapSearch.routes'), m.routes.map(r => routeRow(r.route, r.region))),
+  ];
 }
 
 // Rows for remembered picks in pick order, leaving out any that were deleted
 // or hidden since.
-/** @param {RecentPick[]} picks */
-export function recentResultsHtml(picks) {
+/** @param {RecentPick[]} picks @returns {any[]} */
+export function recentResultRows(picks) {
   return picks.map(function(/** @type {RecentPick} */ r) {
     if (r.type === 'place') {
       const p = (state.places || []).find(x => x.name === r.name);
-      return p ? placeRow(p) : '';
+      return p ? placeRow(p) : null;
     }
     if (r.type === 'area' && placesEnabled()) {
       const a = (state.areas || []).find(x => String(x.id) === r.id);
-      return a ? areaRow(a) : '';
+      return a ? areaRow(a) : null;
     }
     if (r.type === 'route' && state.manifest) {
       for (const g of state.manifest.regions) {
@@ -623,8 +623,8 @@ export function recentResultsHtml(picks) {
         if (route) return routeRow(route, g.name);
       }
     }
-    return '';
-  }).join('');
+    return null;
+  }).filter(Boolean);
 }
 
 /** @param {LeafletMap} map @param {{ dataset: DOMStringMap }} row */
@@ -652,17 +652,17 @@ export function initUnifiedSearch(map) {
   const pick = function(row) {
     goToSearchResult(map, row);
     input.value = '';
-    results.innerHTML = '';
+    renderFresh(null, results);
     close();
   };
   const keys = bindSearchKeys(input, results, { pick, close });
 
   /** @param {string} q */
   function render(q) {
-    const html = q ? searchResultsHtml(searchMatches(q)) : '';
-    results.innerHTML = html;
-    results.classList.toggle('visible', html !== '');
-    keys.refresh(html !== '');
+    const rows = q ? searchResultRows(searchMatches(q)) : [];
+    renderFresh(rows.length ? rows : null, results);
+    results.classList.toggle('visible', rows.length > 0);
+    keys.refresh(rows.length > 0);
   }
 
   input.addEventListener('input', function() { render(this.value.trim()); });

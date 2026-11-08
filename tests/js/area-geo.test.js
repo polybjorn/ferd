@@ -14,7 +14,7 @@ const ctx = { Math, JSON, Array, Uint8Array, Error, console };
 vm.createContext(ctx);
 vm.runInContext(m[1] + `
 globalThis.__g = { nominatimAreas, parseAreaGeoJson, buildAreaGeometry, areaContains, areaSize, areaBbox, bboxesOverlap,
-  placesInArea, tracksTouchArea, areaStatText, areaHasGeometry, AREA_TARGET_POINTS };`, ctx);
+  placesInArea, tracksTouchArea, areaHasGeometry, AREA_TARGET_POINTS };`, ctx);
 const g = ctx.__g;
 // Results come from another realm, so deepEqual needs plain copies.
 const plain = v => JSON.parse(JSON.stringify(v));
@@ -189,12 +189,6 @@ test('one track point inside is enough, in any track', () => {
   assert.equal(g.tracksTouchArea(DONUT, [outside, crossing]), true);
   assert.equal(g.tracksTouchArea(DONUT, [outside, inHoleOnly]), false);
   assert.equal(g.tracksTouchArea(DONUT, []), false);
-});
-
-test('stat text', () => {
-  assert.equal(g.areaStatText(0, 'place', 0, 'visited'), 'No places');
-  assert.equal(g.areaStatText(1, 'route', 0, 'completed'), '1 route, 0 completed');
-  assert.equal(g.areaStatText(14, 'place', 9, 'visited'), '14 places, 9 visited');
 });
 
 test('nominatimAreas keeps the English name and the local one beside it', () => {

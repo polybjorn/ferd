@@ -39,6 +39,7 @@ function setup() {
     },
     setTimeout: (f, ms) => { timers.push({ f, ms, cleared: false }); return timers.length - 1; },
     clearTimeout: id => { timers[id].cleared = true; },
+    t: key => key,
   };
   vm.createContext(ctx);
   vm.runInContext(`${source}\nglobalThis.run = collapseCreditOnPhone;`, ctx);

@@ -1,8 +1,8 @@
 import {
-  addButtonHtml, colourClass, displayCategory, displayRegion, escapeHtml, setActiveTab, setCrumb, sortedCategorySlugs, state,
+  addButton, colourClass, displayCategory, displayRegion, setActiveTab, setCrumb, sortedCategorySlugs, state,
 } from '../core.js';
 import { gpxUrlFor, isReadOnly, routeStatusColor } from '../server.js';
-import { collapseCreditOnPhone, panelInnerHtml } from './map-panel.js';
+import { collapseCreditOnPhone, MapPanel } from './map-panel.js';
 import { addPhoneMapButtons } from './map-phone.js';
 import {
   DEFAULT_CONFIG, getRememberView, loadStoredView, placesEnabled, routesEnabled, saveStoredView,
@@ -14,7 +14,8 @@ import {
   bindTrailStrokeMotion, fetchGpxText, setSelectedRoute, simplifyRouteForZoom,
 } from './route-layer.js';
 import { fadeOutRoute, initAreaLayers, openAreaPopupAt } from './area-layer.js';
-import { html } from '../view.js';
+import { html, renderFresh } from '../view.js';
+import { t } from '../i18n.js';
 import { popupElement, RoutePopup } from './popups.js';
 import { openPlacePopup, pulseChip, revealPlaceMarker } from './map-actions.js';
 import { applyMapFilters, createPlaceLayerGroup, initUnifiedSearch, placeShown, routeShown } from './place-layer.js';
@@ -50,7 +51,9 @@ export function renderUnifiedMap(focus) {
   cleanupMap();
 
   const app = /** @type {HTMLElement} */ (document.getElementById('app'));
-  app.innerHTML = '<div id="map"></div>';
+  const mapEl = document.createElement('div');
+  mapEl.id = 'map';
+  app.replaceChildren(mapEl);
 
   // An in-app place click is a "take me there" intent: initialize the map
   // already centered on the pin so it doesn't first paint the previous view
@@ -519,7 +522,7 @@ export function renderUnifiedMap(focus) {
     onAdd: function() {
       const div = L.DomUtil.create('div', 'map-panel');
       div.id = 'map-panel';
-      div.innerHTML = panelInnerHtml();
+      renderFresh(html`<${MapPanel} />`, div);
       L.DomEvent.disableClickPropagation(div);
       L.DomEvent.disableScrollPropagation(div);
       return div;
@@ -537,48 +540,35 @@ export function renderUnifiedMap(focus) {
   const navActionsEl = document.getElementById('nav-actions');
   if (navActionsEl && state.auth.authenticated && !isReadOnly() && (placesEnabled() || routesEnabled())) {
     const title = placesEnabled() && routesEnabled()
-      ? 'Add place or route'
-      : (placesEnabled() ? 'Add place' : 'Add route');
-    navActionsEl.innerHTML = addButtonHtml('map-add-btn', title);
-    /** @type {HTMLElement} */ (document.getElementById('map-add-btn')).addEventListener('click', function() { openAddModal(null); });
+      ? t('history.addEither')
+      : (placesEnabled() ? t('place.add') : t('add.titleRoute'));
+    const btn = addButton('map-add-btn', title);
+    btn.addEventListener('click', function() { openAddModal(null); });
+    navActionsEl.replaceChildren(btn);
   }
 }
 
 /** @param {string} cat */
-function categoryDotHtml(cat) {
-  return '<span class="legend-dot ' + colourClass(/** @type {Record<string, string>} */ (state.categoryColors)[cat]) + '"></span>';
+function categoryDot(cat) {
+  return html`<span class=${'legend-dot ' + colourClass(/** @type {Record<string, string>} */ (state.categoryColors)[cat])}></span>`;
 }
 
-function placesLegendHtml() {
+function placesLegend() {
   const cats = sortedCategorySlugs(Object.keys(state.categoryColors));
-  let html = '<div class="legend-cats">';
-  for (const cat of cats) {
-    const hidden = state.hiddenCategories.has(cat);
-    html += '<div class="legend-item' + (hidden ? ' disabled' : '') + '" data-cat="' + escapeHtml(cat) + '">';
-    html += categoryDotHtml(cat);
-    html += escapeHtml(displayCategory(cat));
-    html += '</div>';
-  }
-  return html + '</div>';
+  return html`<div class="legend-cats">${cats.map(cat => html`<div class=${'legend-item' + (state.hiddenCategories.has(cat) ? ' disabled' : '')} data-cat=${cat}>
+    ${categoryDot(cat)}${displayCategory(cat)}
+  </div>`)}</div>`;
 }
 
-function routesLegendHtml() {
+function routesLegend() {
   const regions = state.manifest && state.manifest.regions ? state.manifest.regions.map(r => r.name) : [];
-  if (!regions.length) return '';
-  let html = '<div class="legend-cats">';
-  for (const r of regions) {
-    const hidden = state.hiddenRegions.has(r);
-    html += '<div class="legend-item' + (hidden ? ' disabled' : '') + '" data-region="' + escapeHtml(r) + '">';
-    html += escapeHtml(displayRegion(r));
-    html += '</div>';
-  }
-  return html + '</div>';
+  if (!regions.length) return null;
+  return html`<div class="legend-cats">${regions.map(r => html`<div class=${'legend-item' + (state.hiddenRegions.has(r) ? ' disabled' : '')} data-region=${r}>${displayRegion(r)}</div>`)}</div>`;
 }
 
 /** @param {string} section */
-function statusChipsHtml(section) {
-  return statusFilterChipsHtml(section === 'places') +
-    '<button type="button" class="ui-chip panel-toggle-all" data-toggle-all="' + section + '">Toggle all</button>';
+function statusChips(section) {
+  return html`${statusFilterChips(section === 'places')}<button type="button" class="ui-chip panel-toggle-all" data-toggle-all=${section}>${t('mapFilter.toggleAll')}</button>`;
 }
 
 // The phone's filter button carries a dot while anything is filtered out,
@@ -595,12 +585,12 @@ export function syncFilterDot() {
 // Redraws every open filter view: the desktop panel and the phone's sheet.
 export function refreshFilterPanel() {
   const placesBody = document.getElementById('places-body');
-  if (placesBody) placesBody.innerHTML = placesLegendHtml();
+  if (placesBody) renderFresh(placesLegend(), placesBody);
   const routesBody = document.getElementById('routes-body');
-  if (routesBody) routesBody.innerHTML = routesLegendHtml();
+  if (routesBody) renderFresh(routesLegend(), routesBody);
   renderPanelStatus();
   /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.filter-sheet [data-sheet-section]')).forEach(el => {
-    el.innerHTML = sheetSectionHtml(el.dataset.sheetSection || '');
+    renderFresh(sheetSection(el.dataset.sheetSection || ''), el);
   });
   syncFilterSheet();
   syncFilterDot();
@@ -608,51 +598,53 @@ export function refreshFilterPanel() {
 
 // The phone's filter sheet: both sections open, every choice a chip that
 // wraps, so the whole set fits in about half the screen.
-/** @param {string} attr @param {string} key @param {boolean} on @param {string} label @param {string} mark */
-function filterChipHtml(attr, key, on, label, mark) {
-  return '<button type="button" class="ui-chip" ' + attr + '="' + escapeHtml(key) + '" aria-pressed="' + on + '">' +
-    mark + escapeHtml(label) + '</button>';
+/** @param {string} attr @param {string} key @param {boolean} on @param {string} label @param {any} mark */
+function filterChip(attr, key, on, label, mark) {
+  return html`<button type="button" class="ui-chip" ...${{ [attr]: key }} aria-pressed=${String(on)}>${mark}${label}</button>`;
 }
+const checkMark = () => html`<svg class="filter-chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>`;
+/** @param {string} cls */
+const statusDot = cls => html`<span class=${'ui-dot ' + cls}></span>`;
 /** @param {boolean} places */
-function statusFilterChipsHtml(places) {
+function statusFilterChips(places) {
   return places
-    ? filterChipHtml('data-filter', 'visited', state.showVisited, 'Visited', '<span class="ui-dot dot-visited"></span>') +
-      filterChipHtml('data-filter', 'want', state.showWant, 'Planned', '<span class="ui-dot dot-want"></span>')
-    : filterChipHtml('data-route-status', 'completed', state.showCompleted, 'Completed', '<span class="ui-dot dot-completed"></span>') +
-      filterChipHtml('data-route-status', 'planned', state.showPlanned, 'Planned', '<span class="ui-dot dot-planned"></span>');
+    ? [filterChip('data-filter', 'visited', state.showVisited, t('mapFilter.visited'), statusDot('dot-visited')),
+      filterChip('data-filter', 'want', state.showWant, t('mapFilter.planned'), statusDot('dot-want'))]
+    : [filterChip('data-route-status', 'completed', state.showCompleted, t('mapFilter.completed'), statusDot('dot-completed')),
+      filterChip('data-route-status', 'planned', state.showPlanned, t('mapFilter.planned'), statusDot('dot-planned'))];
 }
 /** @param {string} id */
-function sheetSectionHtml(id) {
+function sheetSection(id) {
   const places = id === 'places';
-  const status = statusFilterChipsHtml(places);
-  let groups = '';
+  let groups = [];
   if (places) {
     groups = sortedCategorySlugs(Object.keys(state.categoryColors)).map(cat =>
-      filterChipHtml('data-cat', cat, !state.hiddenCategories.has(cat), displayCategory(cat), categoryDotHtml(cat))).join('');
+      filterChip('data-cat', cat, !state.hiddenCategories.has(cat), displayCategory(cat), categoryDot(cat)));
   } else if (state.manifest && state.manifest.regions) {
     groups = state.manifest.regions.map(r =>
-      filterChipHtml('data-region', r.name, !state.hiddenRegions.has(r.name), displayRegion(r.name), '<svg class="filter-chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>')).join('');
+      filterChip('data-region', r.name, !state.hiddenRegions.has(r.name), displayRegion(r.name), checkMark()));
   }
-  return '<div class="filter-sheet-sec-head">' +
-      '<h3 class="filter-sheet-title" id="filter-sheet-' + id + '">' + (places ? 'Places' : 'Routes') +
-        '<span class="filter-sheet-count" data-count="' + id + '"></span></h3>' +
-      '<button type="button" class="filter-sheet-link" data-toggle-all="' + id + '"></button>' +
-    '</div>' +
-    '<div class="filter-chips" role="group" aria-label="Status">' + status + '</div>' +
-    (groups ? '<div class="filter-chips" role="group" aria-label="' + (places ? 'Categories' : 'Regions') + '">' + groups + '</div>' : '');
+  return html`<div class="filter-sheet-sec-head">
+      <h3 class="filter-sheet-title" id=${'filter-sheet-' + id}>${places ? t('mapFilter.places') : t('mapFilter.routes')}<span class="filter-sheet-count" data-count=${id}></span></h3>
+      <button type="button" class="filter-sheet-link" data-toggle-all=${id}></button>
+    </div>
+    <div class="filter-chips" role="group" aria-label=${t('mapFilter.status')}>${statusFilterChips(places)}</div>
+    ${groups.length ? html`<div class="filter-chips" role="group" aria-label=${places ? t('mapFilter.categories') : t('mapFilter.regions')}>${groups}</div>` : null}`;
 }
-export function filterSheetHtml() {
-  const section = (/** @type {string} */ id) =>
-    '<section class="filter-sheet-section" data-sheet-section="' + id + '" aria-labelledby="filter-sheet-' + id + '">' +
-      sheetSectionHtml(id) + '</section>';
-  return '<div class="ui-dialog-head">' +
-      '<h2 class="ui-dialog-title">Filters</h2>' +
-      '<button type="button" class="filter-sheet-link" data-filter-reset>Reset</button>' +
-    '</div>' +
-    '<div class="filter-sheet">' +
-      (placesEnabled() ? section('places') : '') +
-      (routesEnabled() ? section('routes') : '') +
-    '</div>';
+// The whole sheet, handle and head included, as openViewModal's views render
+// theirs. refreshFilterPanel fills each section.
+export function FilterSheet() {
+  /** @param {string} id */
+  const section = id => html`<section class="filter-sheet-section" data-sheet-section=${id} aria-labelledby=${'filter-sheet-' + id}></section>`;
+  return html`<div class="ui-dialog-handle" aria-hidden="true"></div>
+    <div class="ui-dialog-head">
+      <h2 class="ui-dialog-title">${t('mapFilter.title')}</h2>
+      <button type="button" class="filter-sheet-link" data-filter-reset>${t('mapFilter.reset')}</button>
+    </div>
+    <div class="ui-dialog-body"><div class="filter-sheet">
+      ${placesEnabled() ? section('places') : null}
+      ${routesEnabled() ? section('routes') : null}
+    </div></div>`;
 }
 
 function allPlacesOn() { return state.hiddenCategories.size === 0 && state.showVisited && state.showWant; }
@@ -673,11 +665,11 @@ function syncFilterSheet() {
   });
   /** @type {NodeListOf<HTMLElement>} */ (sheet.querySelectorAll('[data-count]')).forEach(el => {
     const [shown, total] = counts[el.dataset.count || ''];
-    el.textContent = total ? shown + ' of ' + total + ' shown' : '';
+    el.textContent = total ? t('mapFilter.shown', { shown, total }) : '';
   });
   /** @type {NodeListOf<HTMLElement>} */ (sheet.querySelectorAll('[data-toggle-all]')).forEach(el => {
     const allOn = el.dataset.toggleAll === 'places' ? allPlacesOn() : allRoutesOn();
-    el.textContent = allOn ? 'Hide all' : 'Show all';
+    el.textContent = allOn ? t('mapFilter.hideAll') : t('mapFilter.showAll');
   });
   const reset = /** @type {HTMLButtonElement | null} */ (document.querySelector('[data-filter-reset]'));
   if (reset) reset.disabled = !filtersActive();
@@ -735,9 +727,9 @@ function renderPanelStatus() {
   const el = document.getElementById('panel-status');
   if (!el) return;
   const active = activePanelSection();
-  if (!active) { el.innerHTML = ''; el.style.display = 'none'; return; }
+  if (!active) { renderFresh(null, el); el.style.display = 'none'; return; }
   el.style.display = '';
-  el.innerHTML = statusChipsHtml(active);
+  renderFresh(statusChips(active), el);
 }
 
 // Toggle-all handlers, called from the delegated body click handlers (the
