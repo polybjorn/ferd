@@ -13,8 +13,12 @@ export const html = htm.bind(h);
 // Preact owns every child of the dialog, so a view renders its own head and
 // .ui-dialog-body, and a sheet would render its own handle. Unmounting on
 // close runs the effects' cleanups.
+/**
+ * @param {any} view
+ * @param {import('./modal.js').ModalOptions} [opts]
+ */
 export function openViewModal(view, opts) {
-  return openModal('', dialog => {
+  return openModal('', (/** @type {HTMLDialogElement} */ dialog) => {
     dialog.replaceChildren();
     render(view, dialog);
     dialog.addEventListener('close', () => render(null, dialog));
@@ -52,6 +56,7 @@ export function unmountPage() {
 }
 
 // openModal wires .ui-dialog-close to its own close handling.
+/** @param {{title?: string, lead?: any}} props */
 export function DialogHead({ title, lead }) {
   return html`<div class="ui-dialog-head">
     ${lead || html`<h2 class="ui-dialog-title">${title}</h2>`}
@@ -68,7 +73,9 @@ export function Field({ id, label, required, children }) {
   </div>`;
 }
 
+/** @param {{id?: string, msg?: string}} props */
 export function ErrorBox({ id, msg }) {
+  /** @type {{current: HTMLDivElement | null}} */
   const ref = useRef(null);
   useEffect(() => {
     if (msg) ref.current.scrollIntoView({ block: 'nearest' });
@@ -83,7 +90,7 @@ export function ErrorBox({ id, msg }) {
 /** @param {{id: string, label: any, initial?: boolean, title?: string, onToggle?: Function}} props */
 export function Toggle({ id, label, initial, title, onToggle }) {
   const [on, setOn] = useState(!!initial);
-  const change = e => {
+  const change = (/** @type {Event & {currentTarget: HTMLInputElement}} */ e) => {
     const v = e.currentTarget.checked;
     setOn(v);
     if (onToggle) onToggle(v, setOn);
@@ -94,25 +101,38 @@ export function Toggle({ id, label, initial, title, onToggle }) {
   </label>`;
 }
 
+/** @param {{name: string, options: [string, any][], initial?: string, variant?: string, onPick?: (value: string) => void}} props */
 export function RadioPills({ name, options, initial, variant, onPick }) {
   const [value, setValue] = useState(initial);
-  const pick = e => {
+  const pick = (/** @type {Event & {currentTarget: HTMLInputElement}} */ e) => {
     setValue(e.currentTarget.value);
     if (onPick) onPick(e.currentTarget.value);
   };
   return html`<div class=${'ui-choice-list ' + (variant === 'radio-segmented' ? 'ui-choice-segmented' : 'ui-choice-pills')} role="radiogroup">
-    ${options.map(([v, l]) => html`<label class="ui-choice" key=${v}><input type="radio" name=${name} value=${v} checked=${value === v} onChange=${pick} />${l}</label>`)}
+    ${options.map((/** @type {[string, any]} */ [v, l]) => html`<label class="ui-choice" key=${v}><input type="radio" name=${name} value=${v} checked=${value === v} onChange=${pick} />${l}</label>`)}
   </div>`;
 }
 
+/**
+ * @template T
+ * @typedef {{ status: 'loading' } | { status: 'ok', data: T } | { status: 'error' }} FetchResult
+ */
+
 // Data a component loads from the API. A reload keeps the last data on
 // screen until the new answer arrives.
+/**
+ * @template T
+ * @param {() => Promise<T>} load
+ * @param {unknown[]} deps
+ * @returns {FetchResult<T>}
+ */
 export function useFetch(load, deps) {
+  /** @type {[FetchResult<T>, (next: FetchResult<T>) => void]} */
   const [res, setRes] = useState({ status: 'loading' });
   useEffect(() => {
     let live = true;
     load().then(
-      data => { if (live) setRes({ status: 'ok', data }); },
+      (/** @type {T} */ data) => { if (live) setRes({ status: 'ok', data }); },
       () => { if (live) setRes({ status: 'error' }); });
     return () => { live = false; };
   }, deps);
@@ -121,8 +141,10 @@ export function useFetch(load, deps) {
 
 // Copies the value of the input `target` points at. The fallback covers a
 // browser without clipboard access, such as an insecure origin.
+/** @param {{target: {current: HTMLInputElement | null}} & Record<string, unknown>} props */
 export function CopyButton({ target, ...rest }) {
   const [copied, setCopied] = useState(false);
+  /** @type {{current: ReturnType<typeof setTimeout> | null}} */
   const timer = useRef(null);
   useEffect(() => () => clearTimeout(timer.current), []);
   const copy = () => {
@@ -147,6 +169,7 @@ const EYE_HIDDEN = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 
 // The span keeps the SVG from being a direct flex child of the button, where
 // it collapses to no width.
+/** @param {{hidden?: boolean}} props */
 export function EyeIcon({ hidden }) {
   return html`<span class="eye-wrap">${hidden ? EYE_HIDDEN : EYE_SHOWN}</span>`;
 }
@@ -155,6 +178,7 @@ export function EyeIcon({ hidden }) {
 // It saves on its own, apart from the dialog's Save, and updates the
 // session's set so the next map navigation follows it. `attrs` carries the
 // row's data attribute.
+/** @param {{prefKey: string, id: string, hiddenSet: Set<string>, className: string, attrs?: Record<string, unknown>}} props */
 export function HideToggle({ prefKey, id, hiddenSet, className, attrs }) {
   const [hidden, setHidden] = useState(() => isDefaultHidden(prefKey, id));
   const toggle = () => {
@@ -169,6 +193,7 @@ export function HideToggle({ prefKey, id, hiddenSet, className, attrs }) {
 
 // The small tag at the end of an editable row: "edited", or a note on its
 // state such as "unused". Empty text hides it through [hidden].
+/** @param {{text?: string, dirty?: boolean, inInput?: boolean}} props */
 export function RowTag({ text, dirty, inInput }) {
   return html`<span class=${'ui-badge tag-end' + (inInput ? ' tag-inside' : '') + (dirty ? ' tag-dirty' : '')} hidden=${!text}>${text}</span>`;
 }
