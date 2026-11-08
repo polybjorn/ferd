@@ -273,17 +273,6 @@ export function assignTrailSlugs(manifest) {
   }
 }
 
-/** @param {string[] | undefined} sources */
-function renderSources(sources) {
-  if (!sources || sources.length === 0) return '';
-  return sources.map(s => {
-    let url;
-    try { url = new URL(s, location.href); } catch { return escapeHtml(s); }
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') return escapeHtml(s);
-    return '<a href="' + escapeHtml(url.href) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(domainFromUrl(s)) + '</a>';
-  }).join(' &middot; ');
-}
-
 // Sort category slugs alphabetically, but always push uncategorized ('') last
 // so legends/filters don't lead with the fallback bucket.
 /**
