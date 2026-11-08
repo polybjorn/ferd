@@ -9,6 +9,7 @@ const STRINGS = {
   'common.failed': 'Failed: {message}',
   'common.add': 'Add',
   'common.delete': 'Delete',
+  'common.confirm': 'Confirm',
   'common.save': 'Save',
   'common.remove': 'Remove',
   'common.manage': 'Manage',
@@ -601,6 +602,27 @@ const STRINGS = {
   'routeDetail.end': 'End',
   'routeDetail.track': 'Track {n}',
   'routeDetail.segment': 'Segment {n}',
+
+  'catalogUpdate.title': 'Update from catalog',
+  'catalogUpdate.bulkTitle': 'Catalog updates ({n})',
+  'catalogUpdate.noneAvailable': 'No catalog updates available.',
+  'catalogUpdate.noneForPlace': 'No catalog updates for this place.',
+  'catalogUpdate.none': '(none)',
+  'catalogUpdate.fieldImage': 'Image',
+  'catalogUpdate.fieldImageFocus': 'Image focus',
+  'catalogUpdate.clear': 'Clear',
+  'catalogUpdate.checkAll': 'Check all',
+  'catalogUpdate.uncheckAll': 'Uncheck all',
+  'catalogUpdate.apply': 'Apply',
+  'catalogUpdate.applyAll': 'Apply all',
+  'catalogUpdate.keepAll': 'Keep all',
+  'catalogUpdate.applying': 'Applying {i} of {n}…',
+  'catalogUpdate.placeError': '{name}: {message}',
+  'catalogUpdate.appliedWithErrors': 'Applied with errors:\n{errors}',
+
+  'menu.open': 'Open',
+  'menu.copyLink': 'Copy link',
+  'menu.copyPrompt': 'Copy this link:',
 };
 
 // Splits a template at its {name} slots, so a slot can hold a vnode as well

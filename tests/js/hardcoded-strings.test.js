@@ -24,7 +24,6 @@ const TEMPLATES = {};
 const LITERALS = {
   'app/map/home-map.js': 4,
   'app/map/map-panel.js': 2,
-  'app/places-list.js': 7,
   'app/sign-in.js': 11,
 };
 const INNER_HTML = {
