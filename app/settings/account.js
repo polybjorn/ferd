@@ -7,33 +7,50 @@ import { openConfirmModal } from '../select.js';
 import { html, useEffect, useFetch, useState } from '../view.js';
 
 /**
+ * One entry of `GET /sessions`.
  * @typedef {object} SessionData
- * @property {number} id
- * @property {boolean} [current]
- * @property {string} [ip]
- * @property {string} [user_agent]
- * @property {number} [last_seen_at]
+ * @property {string} id the session's 12-character prefix, for revoking
+ * @property {boolean} current
+ * @property {string | null} ip
+ * @property {string | null} user_agent
+ * @property {number} last_seen_at 0 before the first request after login
  * @property {number} created_at
+ * @property {number} expires_at
  */
 
 /**
+ * One entry of `GET /me/tokens`. Never carries the secret.
  * @typedef {object} TokenData
- * @property {number} id
+ * @property {string} id the token's 12-character prefix, for revoking
  * @property {string} name
  * @property {string} scope
- * @property {number | null} [last_used_at]
- * @property {number | null} [expires_at]
+ * @property {number} created_at
+ * @property {number | null} last_used_at
+ * @property {number | null} expires_at
  */
 
 /**
+ * One entry of `GET /admin/users`.
  * @typedef {object} AdminUserData
  * @property {number} id
  * @property {string} username
  * @property {boolean} is_admin
- * @property {boolean} [published]
+ * @property {boolean} published
+ * @property {number} created_at
  * @property {number} sessions
  * @property {number} places
  * @property {number} routes
+ */
+
+/**
+ * The `GET /admin/stats` response.
+ * @typedef {object} AdminStats
+ * @property {number} users
+ * @property {number} published_users
+ * @property {number} places
+ * @property {number} routes
+ * @property {number} db_bytes
+ * @property {number} data_bytes
  */
 
 /**
@@ -165,7 +182,7 @@ export function AdminStats({ version }) {
   if (res.status === 'loading') body = html`<div key="hint" class="hint" style="grid-column:1/-1">${t('common.loading')}</div>`;
   else if (res.status === 'error') body = html`<div key="hint" class="hint" style="grid-column:1/-1">${t('admin.couldNotLoadStats')}</div>`;
   else {
-    const s = res.data;
+    const s = /** @type {AdminStats} */ (res.data);
     body = [
       [t('admin.statUsers'), s.users],
       [t('admin.statPublished'), s.published_users],

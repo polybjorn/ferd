@@ -6,6 +6,22 @@ import { modalErrorHtml, modalHeaderHtml, uiFieldHtml } from './select.js';
 import { closeModal, openFullScreenModal, showModalError } from './modal.js';
 import { bootApp, loadDataAndRender, probeServer } from './main.js';
 
+/**
+ * The `/api/public-maps` response.
+ * @typedef {object} PublicMaps
+ * @property {string[]} usernames
+ */
+
+/**
+ * The `POST /api/login` and `/api/register` response. The token fields come
+ * only when the request asked for `token: true`.
+ * @typedef {object} SignInResult
+ * @property {string} username
+ * @property {boolean} is_admin
+ * @property {string} [session_token]
+ * @property {'Bearer'} [token_type]
+ */
+
 /** @param {boolean} includeClose */
 function signInFormHtml(includeClose) {
   const canRegister = state.auth.registration_open;
@@ -82,7 +98,7 @@ function bindSignInForm(opts) {
     const submitBtn = /** @type {HTMLButtonElement} */ (document.getElementById('auth-submit'));
     submitBtn.disabled = true;
     api('POST', '/' + mode, payload)
-      .then(res => { if (res && res.session_token) setBearerToken(res.session_token); })
+      .then((/** @type {SignInResult} */ res) => { if (res && res.session_token) setBearerToken(res.session_token); })
       .then(() => refreshAuthState())
       .then(() => loadSyncedPrefs())
       .then(() => opts.onSuccess ? opts.onSuccess() : undefined)
@@ -227,7 +243,7 @@ export function renderSignInPage() {
   // Surface any published maps as a collapsible list inside the
   // sign-in card. Starts collapsed so the card stays compact even
   // with a long roster; the toggle button shows the count.
-  fetchJson(apiUrl('/public-maps'), /** @type {{ usernames: string[] }} */ ({ usernames: [] })).then(function(resp) {
+  fetchJson(apiUrl('/public-maps'), /** @type {PublicMaps} */ ({ usernames: [] })).then(function(resp) {
     const names = (resp && resp.usernames) || [];
     if (!names.length) return;
     const box = document.getElementById('signin-public-maps');

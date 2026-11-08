@@ -115,6 +115,12 @@ export const DATA_FILES = { siteConfig: 'site-config.json' };
  * @property {ManifestRegion[]} regions
  */
 
+/**
+ * The `/api/me/category-labels` and `/api/u/<name>/category-labels` response.
+ * @typedef {object} CategoryLabelsBody
+ * @property {CategoryLabels} category_labels
+ */
+
 export const state = {
   config: DEFAULT_CONFIG,
   /** @type {AuthState} */

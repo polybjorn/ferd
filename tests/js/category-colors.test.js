@@ -94,7 +94,6 @@ async function popups(category) {
     getShowField: f => f === 'local-name',
     displayCategory: s => s || 'Uncategorized',
     canEditPopup: () => false,
-    areaStatText: n => String(n),
   });
   const entry = { name: 'Lake', local_name: 'Vatn', category };
   return [r.place(entry), r.area(entry, false)];

@@ -22,8 +22,6 @@ async function popups(viewer, auth) {
     getShowField: () => false,
     displayCategory: s => String(s),
     displayRegion: s => String(s),
-    areaStatText: n => String(n),
-    DIFFICULTY_LABELS: {},
   }, block);
   return {
     place: r.place({ name: 'Lake', category: 'nature', visited: false }),

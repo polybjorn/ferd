@@ -2,8 +2,7 @@ import { render } from 'preact';
 import { displayCategory, displayRegion, state } from '../core.js';
 import { canEditPopup } from '../server.js';
 import { getShowField } from '../prefs.js';
-import { areaStatText } from '../area-geo.js';
-import { DIFFICULTY_LABELS } from '../routes/route-meta.js';
+import { t } from '../i18n.js';
 import { html, useEffect, useState } from '../view.js';
 
 // The map's popups as Preact views. Leaflet takes a popup's content as an
@@ -24,7 +23,7 @@ function ExternalIcon() {
 /** @param {{ href?: string }} props */
 function SourceLink({ href }) {
   return href
-    ? html`<a class="popup-source-link" href=${href} target="_blank" rel="noopener noreferrer" title="Go to source" aria-label="Go to source"><${ExternalIcon} /></a>`
+    ? html`<a class="popup-source-link" href=${href} target="_blank" rel="noopener noreferrer" title=${t('popup.source')} aria-label=${t('popup.source')}><${ExternalIcon} /></a>`
     : null;
 }
 
@@ -58,7 +57,7 @@ function PopupCategory({ category }) {
 
 /** @param {{ onEdit: () => void }} props */
 function PopupEdit({ onEdit }) {
-  return canEditPopup() ? html`<button type="button" class="popup-edit" onClick=${onEdit}>Edit</button>` : null;
+  return canEditPopup() ? html`<button type="button" class="popup-edit" onClick=${onEdit}>${t('popup.edit')}</button>` : null;
 }
 
 const IMAGE_FOCUS = /^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$/;
@@ -79,7 +78,7 @@ export function PlacePopup({ place: p, onEdit }) {
     <div class="popup-meta">
       <${PopupCategory} category=${p.category} />
       <${PopupEdit} onEdit=${onEdit} />
-      <span class="popup-status">${p.visited ? 'Visited' : 'Want to visit'}</span>
+      <span class="popup-status">${t(p.visited ? 'popup.visited' : 'popup.want')}</span>
     </div>`;
 }
 
@@ -91,11 +90,15 @@ function Stars({ rating }) {
     ? html`<span class="popup-stars-dim">${'★'.repeat(5 - rating)}</span>` : null}</span>`;
 }
 
+const DIFFICULTIES = /** @type {Record<string, string>} */ ({
+  easy: 'form.diffEasy', moderate: 'form.diffModerate', hard: 'form.diffHard', expert: 'form.diffExpert',
+});
+
 /** @param {{ route: any, region: { name: string }, color: string }} props */
 export function RoutePopup({ route, region, color }) {
   // Difficulty, rating and date sit left, centre and right, so each slot
   // renders even when empty.
-  const difficulty = route.difficulty ? (/** @type {Record<string, string>} */ (DIFFICULTY_LABELS)[route.difficulty] || route.difficulty) : '';
+  const difficulty = route.difficulty ? (DIFFICULTIES[route.difficulty] ? t(DIFFICULTIES[route.difficulty]) : route.difficulty) : '';
   const rating = route.rating && getShowField('rating') ? html`<${Stars} rating=${route.rating} />` : null;
   const date = route.date_completed && getShowField('date') ? route.date_completed : '';
   return html`
@@ -107,7 +110,7 @@ export function RoutePopup({ route, region, color }) {
     <${Tags} tags=${route.tags} />
     <${Note} text=${route.notes} />
     <div class="popup-meta">
-      <span style=${{ color }}>${route.completed ? 'Completed' : 'Planned'}</span>
+      <span style=${{ color }}>${t(route.completed ? 'popup.completed' : 'popup.planned')}</span>
       <span>${displayRegion(region.name)}</span>
     </div>`;
 }
@@ -140,7 +143,8 @@ export function AreaPopup({ area, visited, places, routes, onEdit, close, relayo
   }, []);
   useEffect(() => { relayout(); }, [routeItems, open]);
   const toggle = (/** @type {string} */ id) => () => setOpen(open === id ? null : id);
-  const placeCount = areaStatText(places.length, 'place', places.filter(p => p.done).length, 'visited');
+  const placeCount = places.length
+    ? t('popup.areaPlaces', { count: places.length, done: places.filter(p => p.done).length }) : t('popup.noPlaces');
   const completed = routeItems ? routeItems.filter(r => r.done).length : 0;
   const listed = open === 'places' ? places : open === 'routes' ? routeItems || [] : [];
   return html`
@@ -148,8 +152,8 @@ export function AreaPopup({ area, visited, places, routes, onEdit, close, relayo
     <${Note} text=${area.note} />
     <div class="popup-area-counts">
       <span class="popup-area-places"><${AreaCount} text=${placeCount} items=${places} open=${open === 'places'} onToggle=${toggle('places')} /></span>
-      ${routeItems === null ? null : html`<span class="popup-area-routes">${routeItems === undefined ? 'Counting routes…'
-        : html`<${AreaCount} text=${areaStatText(routeItems.length, 'route', completed, 'completed')}
+      ${routeItems === null ? null : html`<span class="popup-area-routes">${routeItems === undefined ? t('popup.countingRoutes')
+        : html`<${AreaCount} text=${routeItems.length ? t('popup.areaRoutes', { count: routeItems.length, done: completed }) : t('popup.noRoutes')}
             items=${routeItems} open=${open === 'routes'} onToggle=${toggle('routes')} />`}</span>`}
     </div>
     <div class="popup-area-list" hidden=${!listed.length}>
@@ -165,7 +169,7 @@ export function AreaPopup({ area, visited, places, routes, onEdit, close, relayo
     <div class="popup-meta">
       <${PopupCategory} category=${area.category} />
       <${PopupEdit} onEdit=${onEdit} />
-      <span class="popup-status popup-area-status">${visited || completed ? 'Visited' : 'Want to visit'}</span>
+      <span class="popup-status popup-area-status">${t(visited || completed ? 'popup.visited' : 'popup.want')}</span>
     </div>`;
 }
 // POPUP-VIEWS-END

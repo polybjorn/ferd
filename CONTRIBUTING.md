@@ -60,7 +60,7 @@ npx -p typescript@5.9.3 tsc -p . --pretty false > /tmp/tsc.out
 python3 scripts/typecheck.py /tmp/tsc.out            # add --update after fixing errors
 ```
 
-Type API responses and shared state with JSDoc `@typedef` where they are defined (`AuthState` in `app/core.js` is the pattern). Globals from the classic scripts and the Android bridge are declared in `types/globals.d.ts`.
+Type API responses and shared state with JSDoc `@typedef` where they are defined (`AuthState` in `app/core.js` is the pattern). Globals from the classic scripts and the Android bridge are declared in `types/globals.d.ts`. `tests/test_api_contract.py` holds each JSON response to the typedef the client reads it as, so a new endpoint whose body the client reads adds a row to `ENDPOINTS` in `tests/api_contract.py` (one it ignores goes in `NOT_READ`), and a handler key added or renamed fails until its typedef follows.
 
 Stdlib only, no deps. Two layers: unit tests for pure helpers and file utilities in `tools/ferd_api/`, and integration tests that launch the API in a subprocess and hit endpoints over HTTP. Run before opening a PR. If your change touches the API surface or one of the helpers, add a case.
 
