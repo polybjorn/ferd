@@ -1,6 +1,7 @@
 import { detectViewer, isReadOnly } from './server.js';
 import { dataLayer, syncSettled } from './store.js';
 import { DEFAULT_CONFIG, isImperial } from './prefs.js';
+import { t } from './i18n.js';
 
 // Tableau 20 categorical palette, reordered: indices 0-9 are the saturated
 // hues in hue-spread order (blue, orange, green, red, teal, purple, gold,
@@ -410,9 +411,14 @@ const BAR_ITEM = /** @type {Record<string, string>} */ ({
 
 // A wide screen's Add, in the nav. A phone adds from the bar instead.
 /** @param {string} id @param {string} [title] */
-export function addButtonHtml(id, title) {
-  return '<button type="button" id="' + id + '" class="nav-action-btn nav-action-add"' +
-    (title ? ' title="' + escapeHtml(title) + '"' : '') + '>Add</button>';
+export function addButton(id, title) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.id = id;
+  btn.className = 'nav-action-btn nav-action-add';
+  if (title) btn.title = title;
+  btn.textContent = t('common.add');
+  return btn;
 }
 
 let _crumbText = '';

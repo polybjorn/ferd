@@ -25,6 +25,16 @@ export function openViewModal(view, opts) {
   }, null, opts);
 }
 
+// Replaces everything in `el` with a view, as an innerHTML write did: what
+// was there goes, Preact's or not, with the listeners on it. For markup that
+// imperative code redraws whole and flips in place between redraws.
+/** @param {any} view @param {Element} el */
+export function renderFresh(view, el) {
+  render(null, el);
+  el.replaceChildren();
+  render(view, el);
+}
+
 // A list page is one Preact tree under #app. The router unmounts it before
 // any page writes #app, so effects clean up and a page that sets innerHTML
 // never sits on top of a live tree.
