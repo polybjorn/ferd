@@ -62,7 +62,7 @@ const PlaceCanvasLayer = L.Layer.extend({
   // not the frames, ends the wait: a hidden tab gets no frames.
   /** @param {Place} place @returns {Promise<void>} */
   fadeOutPlace: function(place) {
-    const shown = (this._visibleFeatures || []).some((/** @type {PlaceFeature} */ f) => !f.properties.cluster && f.properties.place.id === place.id);
+    const shown = (this._visibleFeatures || []).some((/** @type {PlaceFeature} */ f) => !f.properties.cluster && /** @type {Place} */ (f.properties.place).id === place.id);
     if (!shown || reduceMotion()) return Promise.resolve();
     return new Promise(resolve => {
       const start = performance.now();
@@ -95,7 +95,7 @@ const PlaceCanvasLayer = L.Layer.extend({
         try {
           const leaves = this._supercluster.getLeaves(id, Infinity);
           if (leaves.some((/** @type {PlaceFeature} */ l) => l.properties.place === place
-              || l.properties.place.name === place.name)) {
+              || /** @type {Place} */ (l.properties.place).name === place.name)) {
             targetZoom = Math.min(map.getMaxZoom() || 18,
               this._supercluster.getClusterExpansionZoom(id));
             break;
@@ -548,14 +548,14 @@ export function searchMatches(q) {
   const places = state.places ? state.places.filter(p =>
     p.name.toLowerCase().includes(lower)
     || (p.note && p.note.toLowerCase().includes(lower))
-    || p.category.toLowerCase().includes(lower)
+    || /** @type {string} */ (p.category).toLowerCase().includes(lower)
     || (p.country && p.country.toLowerCase().includes(lower))
   ).slice(0, 6) : [];
   const areas = (state.areas && placesEnabled()) ? state.areas.filter(a =>
     a.name.toLowerCase().includes(lower)
     || (a.local_name && a.local_name.toLowerCase().includes(lower))
     || (a.note && a.note.toLowerCase().includes(lower))
-    || a.category.toLowerCase().includes(lower)
+    || /** @type {string} */ (a.category).toLowerCase().includes(lower)
   ).slice(0, 6) : [];
   const routes = state.manifest ? state.manifest.regions.flatMap(r =>
     r.routes.filter(route => route.name.toLowerCase().includes(lower) || r.name.toLowerCase().includes(lower)).map(route => ({ route, region: r.name }))
@@ -575,11 +575,11 @@ function dotMarker(category) {
 }
 /** @param {Place} p */
 function placeRow(p) {
-  return resultRow('data-type="place" data-name="' + escapeHtml(p.name) + '"', dotMarker(p.category), p.name, p.country || '');
+  return resultRow('data-type="place" data-name="' + escapeHtml(p.name) + '"', dotMarker(/** @type {string} */ (p.category)), p.name, p.country || '');
 }
 /** @param {Area} a */
 function areaRow(a) {
-  return resultRow('data-type="area" data-id="' + escapeHtml(a.id) + '"', dotMarker(a.category), a.name, 'Area');
+  return resultRow('data-type="area" data-id="' + escapeHtml(/** @type {string} */ (a.id)) + '"', dotMarker(/** @type {string} */ (a.category)), a.name, 'Area');
 }
 /** @param {ManifestRoute} route @param {string} region */
 function routeRow(route, region) {
@@ -634,16 +634,16 @@ export function goToSearchResult(map, row) {
     const place = (state._placeRecords || []).find((/** @type {Place} */ p) => p.name === name);
     if (place) goToPlace(map, place);
   } else if (row.dataset.type === 'area') {
-    revealArea(map, row.dataset.id);
+    revealArea(map, /** @type {string} */ (row.dataset.id));
   } else {
-    goToRoute(map, row.dataset.key);
+    goToRoute(map, /** @type {string} */ (row.dataset.key));
   }
 }
 
 /** @param {LeafletMap} map */
 export function initUnifiedSearch(map) {
   const input = /** @type {HTMLInputElement} */ (document.getElementById('map-search-input'));
-  const results = document.getElementById('map-search-results');
+  const results = /** @type {HTMLElement} */ (document.getElementById('map-search-results'));
   const close = function() {
     results.classList.remove('visible');
     keys.refresh(false);
