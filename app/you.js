@@ -7,13 +7,14 @@ import { HistoryPage } from './history.js';
 import { catalogUpdatesPending, openAboutModal, openAccountSheet } from './auth.js';
 import { openSignInModal } from './sign-in.js';
 import { html, mountPage } from './view.js';
+import { t } from './i18n.js';
 
 // The phone's You page: who is signed in, a gear for what the wide screen's
 // menu holds, and History below. A visitor to a public map gets Sign in.
 export function renderYouPage() {
   const signedIn = !!(state.auth && state.auth.authenticated);
   setActiveTab(signedIn && historyEnabled() ? 'history' : 'you');
-  setCrumb('You');
+  setCrumb(t('you.title'));
   cleanupMap();
   mountPage(html`<${YouPage} />`);
 }
@@ -28,19 +29,19 @@ function YouPage() {
   if (!(state.auth && state.auth.authenticated)) {
     return html`<div class="you-signin">
         ${ICON(USER)}
-        <p>Viewing a shared map</p>
-        <button type="button" class="ui-button ui-button-primary" id="you-signin" onClick=${() => openSignInModal()}>Sign in</button>
+        <p>${t('you.sharedMap')}</p>
+        <button type="button" class="ui-button ui-button-primary" id="you-signin" onClick=${() => openSignInModal()}>${t('you.signIn')}</button>
       </div>
-      <div class="you-rows"><button type="button" id="you-about" onClick=${() => openAboutModal()}>About</button></div>`;
+      <div class="you-rows"><button type="button" id="you-about" onClick=${() => openAboutModal()}>${t('you.about')}</button></div>`;
   }
   const local = !hasServer();
   return html`<div class="you-head">
       <div class="you-name">
-        <span>${local ? 'Local map' : 'Signed in as'}</span>
-        <strong>${local ? 'No account' : state.auth.username}</strong>
+        <span>${local ? t('you.localMap') : t('you.signedInAs')}</span>
+        <strong>${local ? t('you.noAccount') : state.auth.username}</strong>
       </div>
       <button type="button" class=${'you-gear' + (catalogUpdatesPending() ? ' has-dot' : '')} id="you-gear"
-        title="Settings and account" aria-label="Settings and account" onClick=${() => openAccountSheet()}>${ICON(GEAR)}</button>
+        title=${t('you.settings')} aria-label=${t('you.settings')} onClick=${() => openAccountSheet()}>${ICON(GEAR)}</button>
     </div>
     ${historyEnabled() && html`<${HistoryPage} />`}`;
 }

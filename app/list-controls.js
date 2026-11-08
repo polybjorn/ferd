@@ -5,6 +5,7 @@ import { wirePopover } from './map/index.js';
 import { _selPopover, closeSelectPopover, enhanceSelectsIn, openMultiSelectList } from './select.js';
 import { listView, listViewOptions } from './history.js';
 import { html, useEffect, useLayoutEffect, useRef, useState } from './view.js';
+import { t } from './i18n.js';
 
 // Controls the list pages share: the search box, the filter and view
 // popovers, the Add button in the nav, and the phone's Lists tabs.
@@ -63,7 +64,7 @@ export function CategoryDot({ category }) {
   return html`<span class="group-color-dot" style=${'background:' + colour}></span>`;
 }
 
-const LIST_LABELS = /** @type {Record<string, string>} */ ({ places: 'Places', routes: 'Routes', areas: 'Areas' });
+const LIST_LABELS = /** @type {Record<string, string>} */ ({ places: 'lists.places', routes: 'lists.routes', areas: 'lists.areas' });
 /**
  * A phone's bar has one Lists item, so the lists it holds are tabs on the
  * page. A wide screen has them in the nav. With one list there is nothing to
@@ -73,8 +74,8 @@ const LIST_LABELS = /** @type {Record<string, string>} */ ({ places: 'Places', r
 export function ListTabs({ current }) {
   const kinds = listKinds();
   if (kinds.length < 2) return null;
-  return html`<nav class="list-tabs" aria-label="Lists">
-    ${kinds.map(k => html`<a key=${k} class="list-tab" href=${'#/' + k} aria-current=${k === current ? 'page' : undefined}>${LIST_LABELS[k]}</a>`)}
+  return html`<nav class="list-tabs" aria-label=${t('lists.tabs')}>
+    ${kinds.map(k => html`<a key=${k} class="list-tab" href=${'#/' + k} aria-current=${k === current ? 'page' : undefined}>${t(LIST_LABELS[k])}</a>`)}
   </nav>`;
 }
 
@@ -87,10 +88,10 @@ function FilterPopover({ active, onClear, children }) {
   const pop = useRef(/** @type {HTMLDivElement | null} */ (null));
   useEffect(() => wirePopover(btn.current, pop.current), []);
   return html`<div class="filter-dropdown">
-    <button type="button" class=${'filter-btn' + (active ? ' has-active' : '')} id="filter-btn" aria-haspopup="true" aria-expanded="false" ref=${btn}>Filters</button>
+    <button type="button" class=${'filter-btn' + (active ? ' has-active' : '')} id="filter-btn" aria-haspopup="true" aria-expanded="false" ref=${btn}>${t('lists.filters')}</button>
     <div class="filter-popover" id="filter-popover" hidden ref=${pop}>
       ${children}
-      <button type="button" class="filter-clear" id="filter-clear" onClick=${onClear}>Clear filters</button>
+      <button type="button" class="filter-clear" id="filter-clear" onClick=${onClear}>${t('lists.clearFilters')}</button>
     </div>
   </div>`;
 }
@@ -109,7 +110,7 @@ function ViewPopover({ kind, onView }) {
     onView();
   };
   return html`<div class="filter-dropdown">
-    <button type="button" class="filter-btn" id="view-btn" aria-haspopup="true" aria-expanded="false" ref=${btn}>View</button>
+    <button type="button" class="filter-btn" id="view-btn" aria-haspopup="true" aria-expanded="false" ref=${btn}>${t('lists.view')}</button>
     <div class="filter-popover" id="view-popover" hidden ref=${pop}>
       ${listViewOptions(kind).map(o => html`<button type="button" key=${o[0]} class=${'view-option' + (cur === o[0] ? ' active' : '')} data-view=${o[0]} onClick=${() => pick(o[0])}>${o[1]}</button>`)}
     </div>
@@ -140,7 +141,7 @@ export function TagFilterButton({ options, filters, onChange }) {
     openMultiSelectList(/** @type {HTMLElement} */ (e.currentTarget), options, () => filters.tags || [], onChange);
   };
   return html`<button type="button" class=${'filter-ms-btn' + (sel.length ? ' filter-active' : '')} id="filter-tag-ms-btn"
-    aria-haspopup="listbox" aria-expanded="false" onMouseDown=${open}>${sel.length ? sel.join(', ') : 'Tags'}</button>`;
+    aria-haspopup="listbox" aria-expanded="false" onMouseDown=${open}>${sel.length ? sel.join(', ') : t('lists.tags')}</button>`;
 }
 
 /**

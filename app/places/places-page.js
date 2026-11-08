@@ -15,6 +15,7 @@ import {
 import { CategoryDot, IndexControls, FilterSelect, ListTabs, TagFilterButton, useFilters, useNavAdd, withCurrent } from '../list-controls.js';
 import { listView } from '../history.js';
 import { Fragment, html, mountPage, useEffect, useRef } from '../view.js';
+import { t } from '../i18n.js';
 
 // PLACE-LIST-BEGIN (tests/js/list-filter.test.js runs this block)
 /**
@@ -48,7 +49,7 @@ const FOCUS_RE = /^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$/;
 
 export function renderPlacesIndex() {
   setActiveTab('places');
-  setCrumb('Places');
+  setCrumb(t('lists.places'));
   cleanupMap();
   setPref('lists-tab', 'places');
   mountPage(html`<${PlacesPage} />`);
@@ -58,8 +59,8 @@ export function renderPlacesIndex() {
 function updateTitle(place) {
   const upd = findCatalogUpdate(place);
   return upd
-    ? 'Catalog updated this entry (' + upd.changes.length + ' field' + (upd.changes.length === 1 ? '' : 's') + '). Click to review.'
-    : 'Imported from the site catalog';
+    ? t('places.catalogUpdated', { count: upd.changes.length })
+    : t('places.fromSiteCatalog');
 }
 
 const ICON_ORPHAN = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18.84 12.25 1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71"/><path d="m5.17 11.75-1.71 1.71a5.004 5.004 0 0 0 .12 7.07 5.006 5.006 0 0 0 6.95 0l1.71-1.71"/><line x1="8" x2="8" y1="2" y2="5"/><line x1="2" x2="5" y1="8" y2="8"/><line x1="16" x2="16" y1="19" y2="22"/><line x1="19" x2="22" y1="16" y2="16"/></svg>`;
@@ -68,18 +69,18 @@ const ICON_BOOK = html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 /** @param {any} p */
 function menuItems(p) {
   const items = /** @type {any[]} */ ([]);
-  items.push({ label: 'Open on map', onClick: () => { location.hash = '#/?focus=place:' + encodeURIComponent(p.name); } });
+  items.push({ label: t('lists.openOnMap'), onClick: () => { location.hash = '#/?focus=place:' + encodeURIComponent(p.name); } });
   if (Array.isArray(p.sources) && p.sources.length) {
-    items.push({ label: 'Open source', onClick: () => { window.open(p.sources[0], '_blank', 'noopener'); } });
+    items.push({ label: t('lists.openSource'), onClick: () => { window.open(p.sources[0], '_blank', 'noopener'); } });
   }
   const canEdit = !isReadOnly() && state.auth && state.auth.authenticated;
-  if (canEdit) items.push({ label: 'Edit', onClick: () => { openEditPlaceModal(p); } });
+  if (canEdit) items.push({ label: t('lists.edit'), onClick: () => { openEditPlaceModal(p); } });
   if (p.from_catalog && findCatalogUpdate(p)) {
-    items.push({ label: 'Apply catalog update', onClick: () => { openCatalogUpdateModal(p); } });
+    items.push({ label: t('lists.applyCatalogUpdate'), onClick: () => { openCatalogUpdateModal(p); } });
   }
   if (canEdit) {
     items.push(null);
-    items.push({ label: 'Delete', danger: true, onClick: () => { deletePlaceItem(p, { animate: true }); } });
+    items.push({ label: t('common.delete'), danger: true, onClick: () => { deletePlaceItem(p, { animate: true }); } });
   }
   return items;
 }
@@ -108,7 +109,7 @@ function PlaceCard({ p, view, showImage, showNote }) {
     </div>
     ${p.from_catalog && html`<button type="button" class=${'catalog-mark' + (orphan ? ' orphan' : (upd ? ' update-available' : ''))}
       data-place-slug=${p._slug || ''} onClick=${openUpdate}
-      title=${orphan ? 'No longer in the site catalog (the linked entry was removed)' : updateTitle(p)}>${orphan ? ICON_ORPHAN : ICON_BOOK}</button>`}`;
+      title=${orphan ? t('places.orphan') : updateTitle(p)}>${orphan ? ICON_ORPHAN : ICON_BOOK}</button>`}`;
   return html`<div class="place-card" ref=${ref} data-place-id=${p.id || ''} data-place-name=${p.name} data-place-slug=${p._slug || ''}
     onClick=${() => { location.hash = focusHash('place', p._slug || p.name); }}>
     ${view === 'grid' ? row : html`
@@ -210,8 +211,8 @@ function PlacesPage() {
   const [f, patch] = useFilters(state.placeFilters);
   const listRef = useRef(/** @type {HTMLDivElement | null} */ (null));
   useHeaderAlignment(listRef);
-  const canAdd = useNavAdd('add-place-btn', 'Add place', () => openAddModal(null, 'place'));
-  if (!state.places) return html`<div class="app-state" aria-busy="true"><p class="ui-hint" role="status">Loading places...</p></div>`;
+  const canAdd = useNavAdd('add-place-btn', t('place.add'), () => openAddModal(null, 'place'));
+  if (!state.places) return html`<div class="app-state" aria-busy="true"><p class="ui-hint" role="status">${t('places.loading')}</p></div>`;
 
   const all = state.places;
   const view = listView('places');
@@ -229,7 +230,7 @@ function PlacesPage() {
   const byLetter = mode === 'letter';
   const { grouped, keys } = groupAndSort(
     filtered,
-    (/** @type {any} */ p) => byCategory ? p.category : byLetter ? letterBucket(p.name) : (p.country || 'Other'),
+    (/** @type {any} */ p) => byCategory ? p.category : byLetter ? letterBucket(p.name) : (p.country || t('places.noCountry')),
     (/** @type {any} */ p) => p.name,
     byLetter
   );
@@ -241,24 +242,24 @@ function PlacesPage() {
     patch({ search: '', status: 'all', country: 'all', category: 'all', catalog: 'all', tags: [] });
   };
 
-  const controls = html`<${IndexControls} placeholder="Filter places..." search=${f.search} onSearch=${(/** @type {string} */ v) => patch({ search: v })}
+  const controls = html`<${IndexControls} placeholder=${t('places.filter')} search=${f.search} onSearch=${(/** @type {string} */ v) => patch({ search: v })}
     count=${filtered.length} kind="places" onView=${() => patch({})} active=${filterCount > 0} onClear=${clear}
     filterChildren=${html`<${Fragment}>
-      <${FilterSelect} id="filter-status" value=${f.status} label="Status" onChange=${(/** @type {string} */ v) => patch({ status: v })}>
-        <option value="visited">Visited</option>
-        <option value="want">Want to visit</option>
+      <${FilterSelect} id="filter-status" value=${f.status} label=${t('lists.status')} onChange=${(/** @type {string} */ v) => patch({ status: v })}>
+        <option value="visited">${t('lists.visited')}</option>
+        <option value="want">${t('lists.want')}</option>
       <//>
-      ${countries.length > 0 && html`<${FilterSelect} id="filter-country" value=${f.country} label="Country" onChange=${(/** @type {string} */ v) => patch({ country: v })}>
+      ${countries.length > 0 && html`<${FilterSelect} id="filter-country" value=${f.country} label=${t('lists.country')} onChange=${(/** @type {string} */ v) => patch({ country: v })}>
         ${countries.map((/** @type {string} */ c) => html`<option key=${c} value=${c}>${c}</option>`)}
       <//>`}
-      <${FilterSelect} id="filter-category" value=${f.category} label="Category" onChange=${(/** @type {string} */ v) => patch({ category: v })}>
+      <${FilterSelect} id="filter-category" value=${f.category} label=${t('lists.category')} onChange=${(/** @type {string} */ v) => patch({ category: v })}>
         ${cats.map((/** @type {string} */ c) => html`<option key=${c} value=${c}>${displayCategory(c)}</option>`)}
       <//>
       ${tagOptions.length > 0 && html`<${TagFilterButton} options=${tagOptions} filters=${f} onChange=${(/** @type {string[]} */ arr) => patch({ tags: arr })} />`}
-      <${FilterSelect} id="filter-catalog" value=${f.catalog} label="Catalog" onChange=${(/** @type {string} */ v) => patch({ catalog: v })}>
-        <option value="from-catalog">From catalog</option>
-        <option value="not-from-catalog">Not from catalog</option>
-        <option value="updates-available">Updates available</option>
+      <${FilterSelect} id="filter-catalog" value=${f.catalog} label=${t('places.catalog')} onChange=${(/** @type {string} */ v) => patch({ catalog: v })}>
+        <option value="from-catalog">${t('places.fromCatalog')}</option>
+        <option value="not-from-catalog">${t('places.notFromCatalog')}</option>
+        <option value="updates-available">${t('places.updatesAvailable')}</option>
       <//>
       <div class="filter-divider"></div>
       <select id="filter-group-by" value=${mode} onChange=${(/** @type {Event} */ e) => {
@@ -267,17 +268,17 @@ function PlacesPage() {
         setPref('places-group-by', v);
         patch({});
       }}>
-        <option value="category">Group by category</option>
-        <option value="country">Group by country</option>
-        <option value="letter">Group by first letter</option>
+        <option value="category">${t('places.groupByCategory')}</option>
+        <option value="country">${t('places.groupByCountry')}</option>
+        <option value="letter">${t('lists.groupByLetter')}</option>
       </select>
     <//>`}>
-    ${pending > 0 && html`<div class="filter-dropdown catalog-update-chip-wrap"><button type="button" class="filter-btn catalog-update-chip" id="catalog-update-review" onClick=${openCatalogBulkUpdateModal}>Review updates</button></div>`}
+    ${pending > 0 && html`<div class="filter-dropdown catalog-update-chip-wrap"><button type="button" class="filter-btn catalog-update-chip" id="catalog-update-review" onClick=${openCatalogBulkUpdateModal}>${t('places.reviewUpdates')}</button></div>`}
   </${IndexControls}>`;
 
   return html`<${ListTabs} current="places" />${controls}
     <div class=${'category-grid' + (view !== 'grid' ? ' view-' + view : '')} id="place-list" ref=${listRef}>
-      ${keys.length === 0 && html`<div class="ui-empty" role="status"><p>No matches</p></div>`}
+      ${keys.length === 0 && html`<div class="ui-empty" role="status"><p>${t('lists.noMatches')}</p></div>`}
       ${keys.map(key => {
         const items = /** @type {Record<string, any[]>} */ (grouped)[key];
         const visited = items.filter((/** @type {any} */ p) => p.visited).length;
@@ -285,7 +286,7 @@ function PlacesPage() {
           <div class="category-label">
             ${byCategory && html`<${CategoryDot} category=${key} />`}
             ${byCategory
-              ? html`<span class="section-link" data-filter-cat=${key} title="Show only this category on the map" onClick=${() => showOnlyCategory(key)}>${displayCategory(key)}</span>`
+              ? html`<span class="section-link" data-filter-cat=${key} title=${t('places.showOnlyCategory')} onClick=${() => showOnlyCategory(key)}>${displayCategory(key)}</span>`
               : html`<span>${key}</span>`}
             <span class="place-count">${'(' + visited + '/' + items.length + ')'}</span>
           </div>

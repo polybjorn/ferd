@@ -9,10 +9,11 @@ import { attachContextMenu } from '../context-menu.js';
 import { openEditAreaModal } from './edit-area.js';
 import { CategoryDot, FilterSelect, IndexControls, ListTabs, useFilters, withCurrent } from '../list-controls.js';
 import { Fragment, html, mountPage, useEffect, useRef, useState } from '../view.js';
+import { t } from '../i18n.js';
 
 export function renderAreasIndex() {
   setActiveTab('areas');
-  setCrumb('Areas');
+  setCrumb(t('lists.areas'));
   cleanupMap();
   setPref('lists-tab', 'areas');
   mountPage(html`<${AreasPage} />`);
@@ -29,8 +30,8 @@ const showOnMap = area => showResultOnMap({ type: 'area', id: String(area.id) })
 
 /** @param {any} area */
 function menuItems(area) {
-  const items = /** @type {any[]} */ ([{ label: 'Open on map', onClick: () => showOnMap(area) }]);
-  if (!isReadOnly() && state.auth && state.auth.authenticated) items.push({ label: 'Edit', onClick: () => openEditAreaModal(area) });
+  const items = /** @type {any[]} */ ([{ label: t('lists.openOnMap'), onClick: () => showOnMap(area) }]);
+  if (!isReadOnly() && state.auth && state.auth.authenticated) items.push({ label: t('lists.edit'), onClick: () => openEditAreaModal(area) });
   return items;
 }
 
@@ -110,20 +111,20 @@ function AreasPage() {
   };
 
   return html`<${ListTabs} current="areas" />
-    <${IndexControls} placeholder="Filter areas..." search=${f.search} onSearch=${(/** @type {string} */ v) => patch({ search: v })}
+    <${IndexControls} placeholder=${t('areas.filter')} search=${f.search} onSearch=${(/** @type {string} */ v) => patch({ search: v })}
       count=${filtered.length} kind="" active=${filterCount > 0} onClear=${clear}
       filterChildren=${html`<${Fragment}>
-        <${FilterSelect} id="filter-status" value=${f.status} label="Status" onChange=${(/** @type {string} */ v) => patch({ status: v })}>
-          <option value="visited">Visited</option>
-          <option value="want">Want to visit</option>
+        <${FilterSelect} id="filter-status" value=${f.status} label=${t('lists.status')} onChange=${(/** @type {string} */ v) => patch({ status: v })}>
+          <option value="visited">${t('lists.visited')}</option>
+          <option value="want">${t('lists.want')}</option>
         <//>
-        <${FilterSelect} id="filter-category" value=${f.category} label="Category" onChange=${(/** @type {string} */ v) => patch({ category: v })}>
+        <${FilterSelect} id="filter-category" value=${f.category} label=${t('lists.category')} onChange=${(/** @type {string} */ v) => patch({ category: v })}>
           ${cats.map((/** @type {string} */ c) => html`<option key=${c} value=${c}>${displayCategory(c)}</option>`)}
         <//>
       <//>`} />
     <div class="category-grid" id="area-list">
-      ${!rows.length && html`<div class="ui-empty" role="status"><p>No areas yet.</p></div>`}
-      ${rows.length > 0 && keys.length === 0 && html`<div class="ui-empty" role="status"><p>No matches</p></div>`}
+      ${!rows.length && html`<div class="ui-empty" role="status"><p>${t('areas.empty')}</p></div>`}
+      ${rows.length > 0 && keys.length === 0 && html`<div class="ui-empty" role="status"><p>${t('lists.noMatches')}</p></div>`}
       ${keys.map(key => {
         const items = /** @type {Record<string, any[]>} */ (grouped)[key];
         const visited = items.filter(r => r.visited).length;

@@ -11,13 +11,14 @@ import { attachContextMenu } from './context-menu.js';
 import { openAddModal } from './add/add.js';
 import { FilterSelect, IndexControls, useFilters, useNavAdd, withCurrent } from './list-controls.js';
 import { Fragment, html, mountPage, useEffect, useRef } from './view.js';
+import { t } from './i18n.js';
 
 const FOCUS_RE = /^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$/;
 const RATINGS = ['unrated', '1', '2', '3', '4', '5'];
 
 export function renderHistoryIndex() {
   setActiveTab('history');
-  setCrumb('History');
+  setCrumb(t('history.title'));
   cleanupMap();
   mountPage(html`<${HistoryPage} />`);
 }
@@ -92,27 +93,27 @@ function menuItems(e) {
   const canEdit = !isReadOnly() && state.auth && state.auth.authenticated;
   if (e.kind === 'place') {
     const place = e.place;
-    items.push({ label: 'Open on map', onClick: () => { location.hash = '#/?focus=place:' + encodeURIComponent(place.name); } });
+    items.push({ label: t('lists.openOnMap'), onClick: () => { location.hash = '#/?focus=place:' + encodeURIComponent(place.name); } });
     if (Array.isArray(place.sources) && place.sources.length) {
-      items.push({ label: 'Open source', onClick: () => { window.open(place.sources[0], '_blank', 'noopener'); } });
+      items.push({ label: t('lists.openSource'), onClick: () => { window.open(place.sources[0], '_blank', 'noopener'); } });
     }
-    if (canEdit) items.push({ label: 'Edit', onClick: () => { openEditPlaceModal(place); } });
+    if (canEdit) items.push({ label: t('lists.edit'), onClick: () => { openEditPlaceModal(place); } });
     if (place.from_catalog && findCatalogUpdate(place)) {
-      items.push({ label: 'Apply catalog update', onClick: () => { openCatalogUpdateModal(place); } });
+      items.push({ label: t('lists.applyCatalogUpdate'), onClick: () => { openCatalogUpdateModal(place); } });
     }
     if (canEdit) {
       items.push(null);
-      items.push({ label: 'Delete', danger: true, onClick: () => { deletePlaceItem(place, {}); } });
+      items.push({ label: t('common.delete'), danger: true, onClick: () => { deletePlaceItem(place, {}); } });
     }
   } else {
     const route = e.route;
-    items.push({ label: 'Open on map', onClick: () => { location.hash = '#/?focus=route:' + encodeURIComponent(route.key); } });
-    items.push({ label: 'Open detail', onClick: () => { location.hash = '#/routes/route/' + encodeURIComponent(route.key); } });
-    if (route.source) items.push({ label: 'Open source', onClick: () => { window.open(route.source, '_blank', 'noopener'); } });
-    if (canEdit) items.push({ label: 'Edit', onClick: () => { openEditTrailMetadataModal(route, e.region); } });
+    items.push({ label: t('lists.openOnMap'), onClick: () => { location.hash = '#/?focus=route:' + encodeURIComponent(route.key); } });
+    items.push({ label: t('lists.openDetail'), onClick: () => { location.hash = '#/routes/route/' + encodeURIComponent(route.key); } });
+    if (route.source) items.push({ label: t('lists.openSource'), onClick: () => { window.open(route.source, '_blank', 'noopener'); } });
+    if (canEdit) items.push({ label: t('lists.edit'), onClick: () => { openEditTrailMetadataModal(route, e.region); } });
     if (canEdit) {
       items.push(null);
-      items.push({ label: 'Delete', danger: true, onClick: () => { deleteRouteItem(route, e.region, () => {}); } });
+      items.push({ label: t('common.delete'), danger: true, onClick: () => { deleteRouteItem(route, e.region, () => {}); } });
     }
   }
   return items;
@@ -152,7 +153,7 @@ function HistoryCard({ e, view, show }) {
     <div class="history-body">
       <div class="history-head">
         <span class="history-name">${e.name}</span>
-        <span class="history-kind">${e.kind === 'place' ? 'Place' : 'Route'}</span>
+        <span class="history-kind">${e.kind === 'place' ? t('history.place') : t('history.route')}</span>
       </div>
       ${(date || stars) && html`<div class="history-meta">
         ${date && html`<span>${e.date}</span>`}
@@ -171,11 +172,11 @@ export function HistoryPage() {
   const wantPlaces = placesEnabled();
   const wantRoutes = routesEnabled();
   const byKind = wantPlaces && wantRoutes;
-  useNavAdd('hist-add-btn', byKind ? 'Add place or route' : (wantPlaces ? 'Add place' : 'Add route'), () => openAddModal(null));
-  if ((wantPlaces && !state.places) || (wantRoutes && !state.manifest)) return html`<div class="app-state" aria-busy="true"><p class="ui-hint" role="status">Loading history...</p></div>`;
+  useNavAdd('hist-add-btn', byKind ? t('history.addEither') : (wantPlaces ? t('place.add') : t('add.titleRoute')), () => openAddModal(null));
+  if ((wantPlaces && !state.places) || (wantRoutes && !state.manifest)) return html`<div class="app-state" aria-busy="true"><p class="ui-hint" role="status">${t('history.loading')}</p></div>`;
 
   const all = historyEntries(wantPlaces, wantRoutes);
-  if (!all.length) return html`<div class="history-list"><div class="ui-empty" role="status"><p>No visited places or completed routes yet.</p></div></div>`;
+  if (!all.length) return html`<div class="history-list"><div class="ui-empty" role="status"><p>${t('history.empty')}</p></div></div>`;
 
   const view = listView('history');
   const show = { image: getShowField('image'), note: getShowField('note'), rating: getShowField('rating'), date: getShowField('date') };
@@ -194,7 +195,7 @@ export function HistoryPage() {
     groups[groups.length - 1].items.push(e);
   }
   const noDate = shown.filter(e => !e.date).sort((a, b) => NAME_COLLATOR.compare(a.name, b.name));
-  if (noDate.length) groups.push({ label: 'No date', items: noDate });
+  if (noDate.length) groups.push({ label: t('history.noDate'), items: noDate });
 
   const filterCount = (byKind && f.kind !== 'all' ? 1 : 0) + (f.year !== 'all' ? 1 : 0) + (f.rating !== 'all' ? 1 : 0);
   const clear = () => {
@@ -202,19 +203,19 @@ export function HistoryPage() {
     patch({ search: '', kind: 'all', year: 'all', rating: 'all' });
   };
 
-  return html`<${IndexControls} placeholder="Filter history..." search=${f.search} onSearch=${(/** @type {string} */ v) => patch({ search: v })}
+  return html`<${IndexControls} placeholder=${t('history.filter')} search=${f.search} onSearch=${(/** @type {string} */ v) => patch({ search: v })}
     count=${shown.length} kind="history" onView=${() => patch({})} active=${filterCount > 0} onClear=${clear}
     filterChildren=${html`<${Fragment}>
-      ${byKind && html`<${FilterSelect} id="filter-kind" value=${f.kind} label="Type" onChange=${(/** @type {string} */ v) => patch({ kind: v })}>
-        <option value="place">Places</option>
-        <option value="route">Routes</option>
+      ${byKind && html`<${FilterSelect} id="filter-kind" value=${f.kind} label=${t('history.type')} onChange=${(/** @type {string} */ v) => patch({ kind: v })}>
+        <option value="place">${t('lists.places')}</option>
+        <option value="route">${t('lists.routes')}</option>
       <//>`}
-      <${FilterSelect} id="filter-year" value=${f.year} label="Year" onChange=${(/** @type {string} */ v) => patch({ year: v })}>
+      <${FilterSelect} id="filter-year" value=${f.year} label=${t('history.year')} onChange=${(/** @type {string} */ v) => patch({ year: v })}>
         ${years.map((/** @type {string} */ y) => html`<option key=${y} value=${y}>${y}</option>`)}
-        ${undated && html`<option value="none">No date</option>`}
+        ${undated && html`<option value="none">${t('history.noDate')}</option>`}
       <//>
-      <${FilterSelect} id="filter-rating" value=${f.rating} label="Rating" onChange=${(/** @type {string} */ v) => patch({ rating: v })}>
-        ${RATINGS.map(v => html`<option key=${v} value=${v}>${v === 'unrated' ? 'Unrated' : v + ' star' + (v === '1' ? '' : 's')}</option>`)}
+      <${FilterSelect} id="filter-rating" value=${f.rating} label=${t('lists.rating')} onChange=${(/** @type {string} */ v) => patch({ rating: v })}>
+        ${RATINGS.map(v => html`<option key=${v} value=${v}>${v === 'unrated' ? t('lists.unrated') : t('lists.stars', { count: Number(v) })}</option>`)}
       <//>
     <//>`} />
     ${groups.length
@@ -226,13 +227,16 @@ export function HistoryPage() {
             </div>
           </div>`)}
         </div>`
-      : html`<div class="history-list"><div class="ui-empty" role="status"><p>No matching history.</p></div></div>`}`;
+      : html`<div class="history-list"><div class="ui-empty" role="status"><p>${t('history.noMatches')}</p></div></div>`}`;
 }
 
-const LIST_VIEWS = [['grid', 'Grid'], ['compact', 'Compact'], ['gallery', 'Gallery']];
-const HISTORY_VIEWS = [['compact', 'Compact'], ['gallery', 'Gallery']];
+// [value, label key]; the labels are looked up when asked for.
+const LIST_VIEWS = [['grid', 'lists.viewGrid'], ['compact', 'lists.viewCompact'], ['gallery', 'lists.viewGallery']];
+const HISTORY_VIEWS = [['compact', 'lists.viewCompact'], ['gallery', 'lists.viewGallery']];
 /** The layouts a list page offers as [value, label], its default first. @param {string} kind */
-export function listViewOptions(kind) { return kind === 'history' ? HISTORY_VIEWS : LIST_VIEWS; }
+export function listViewOptions(kind) {
+  return (kind === 'history' ? HISTORY_VIEWS : LIST_VIEWS).map(([v, key]) => [v, t(key)]);
+}
 
 // Layout for a list page, from its `<kind>-view` pref: 'grid' (multi-column
 // cards, Places and Routes only), 'compact' (single-column cards) or

@@ -11,6 +11,7 @@ import { attachContextMenu } from '../context-menu.js';
 import { openAddModal } from '../add/add.js';
 import { IndexControls, FilterSelect, ListTabs, TagFilterButton, useFilters, useNavAdd, withCurrent } from '../list-controls.js';
 import { Fragment, html, mountPage, useEffect, useRef } from '../view.js';
+import { t } from '../i18n.js';
 
 // ROUTE-LIST-BEGIN (tests/js/list-filter.test.js runs this block)
 /**
@@ -33,12 +34,14 @@ function routeMatches(entry, f) {
 }
 // ROUTE-LIST-END
 
-const DIFFICULTIES = ['easy', 'moderate', 'hard', 'expert'];
+const DIFFICULTIES = /** @type {Record<string, string>} */ ({
+  easy: 'form.diffEasy', moderate: 'form.diffModerate', hard: 'form.diffHard', expert: 'form.diffExpert',
+});
 const RATINGS = ['unrated', '1', '2', '3', '4', '5'];
 
 export function renderTrailsIndex() {
   setActiveTab('routes');
-  setCrumb('Routes');
+  setCrumb(t('lists.routes'));
   cleanupMap();
   setPref('lists-tab', 'routes');
   mountPage(html`<${RoutesPage} />`);
@@ -48,13 +51,13 @@ export function renderTrailsIndex() {
 function menuItems(route, regionName) {
   const items = /** @type {any[]} */ ([]);
   const canEdit = !isReadOnly() && state.auth && state.auth.authenticated;
-  items.push({ label: 'Open on map', onClick: () => { location.hash = '#/?focus=route:' + encodeURIComponent(route.key); } });
-  items.push({ label: 'Open detail', onClick: () => { location.hash = '#/routes/route/' + encodeURIComponent(route.key); } });
-  if (route.source) items.push({ label: 'Open source', onClick: () => { window.open(route.source, '_blank', 'noopener'); } });
-  if (canEdit) items.push({ label: 'Edit', onClick: () => { openEditTrailMetadataModal(route, regionName); } });
+  items.push({ label: t('lists.openOnMap'), onClick: () => { location.hash = '#/?focus=route:' + encodeURIComponent(route.key); } });
+  items.push({ label: t('lists.openDetail'), onClick: () => { location.hash = '#/routes/route/' + encodeURIComponent(route.key); } });
+  if (route.source) items.push({ label: t('lists.openSource'), onClick: () => { window.open(route.source, '_blank', 'noopener'); } });
+  if (canEdit) items.push({ label: t('lists.edit'), onClick: () => { openEditTrailMetadataModal(route, regionName); } });
   if (canEdit) {
     items.push(null);
-    items.push({ label: 'Delete', danger: true, onClick: () => { deleteRouteItem(route, regionName, () => {}); } });
+    items.push({ label: t('common.delete'), danger: true, onClick: () => { deleteRouteItem(route, regionName, () => {}); } });
   }
   return items;
 }
@@ -97,7 +100,7 @@ function RoutesPage() {
   // Read for the subscription; state.manifest is the store's copy.
   routes.value;
   const [f, patch] = useFilters(state.trailFilters);
-  useNavAdd('add-route-btn', 'Add route', () => openAddModal(null, 'route'));
+  useNavAdd('add-route-btn', t('add.titleRoute'), () => openAddModal(null, 'route'));
   const all = state.manifest ? state.manifest.regions.flatMap((/** @type {any} */ r) => r.routes) : [];
   // The GPX cache is warmed once per route file, so a click from the list
   // finds the response already cached; the limiter in fetchGpxText keeps the
@@ -106,7 +109,7 @@ function RoutesPage() {
   useEffect(() => {
     for (const file of files ? files.split('\n') : []) fetchGpxText(gpxUrlFor(file)).catch(() => { /* ignore */ });
   }, [files]);
-  if (!state.manifest) return html`<div class="app-state" aria-busy="true"><p class="ui-hint" role="status">Loading routes...</p></div>`;
+  if (!state.manifest) return html`<div class="app-state" aria-busy="true"><p class="ui-hint" role="status">${t('routes.loading')}</p></div>`;
 
   const regions = state.manifest.regions;
   const view = listView('routes');
@@ -139,21 +142,21 @@ function RoutesPage() {
     patch({ search: '', status: 'all', region: 'all', difficulty: 'all', rating: 'all', tags: [] });
   };
 
-  return html`<${ListTabs} current="routes" /><${IndexControls} placeholder="Filter routes..." search=${f.search} onSearch=${(/** @type {string} */ v) => patch({ search: v })}
+  return html`<${ListTabs} current="routes" /><${IndexControls} placeholder=${t('routes.filter')} search=${f.search} onSearch=${(/** @type {string} */ v) => patch({ search: v })}
     count=${filtered.length} kind="routes" onView=${() => patch({})} active=${filterCount > 0} onClear=${clear}
     filterChildren=${html`<${Fragment}>
-      <${FilterSelect} id="filter-status" value=${f.status} label="Status" onChange=${(/** @type {string} */ v) => patch({ status: v })}>
-        <option value="completed">Completed</option>
-        <option value="planned">Planned</option>
+      <${FilterSelect} id="filter-status" value=${f.status} label=${t('lists.status')} onChange=${(/** @type {string} */ v) => patch({ status: v })}>
+        <option value="completed">${t('routes.completed')}</option>
+        <option value="planned">${t('routes.planned')}</option>
       <//>
-      <${FilterSelect} id="filter-region" value=${f.region} label="Region" onChange=${(/** @type {string} */ v) => patch({ region: v })}>
+      <${FilterSelect} id="filter-region" value=${f.region} label=${t('lists.region')} onChange=${(/** @type {string} */ v) => patch({ region: v })}>
         ${regionValues.map((/** @type {string} */ v) => html`<option key=${v} value=${v}>${regionLabel.get(v) || v}</option>`)}
       <//>
-      <${FilterSelect} id="filter-difficulty" value=${f.difficulty} label="Difficulty" onChange=${(/** @type {string} */ v) => patch({ difficulty: v })}>
-        ${DIFFICULTIES.map(d => html`<option key=${d} value=${d}>${d[0].toUpperCase() + d.slice(1)}</option>`)}
+      <${FilterSelect} id="filter-difficulty" value=${f.difficulty} label=${t('lists.difficulty')} onChange=${(/** @type {string} */ v) => patch({ difficulty: v })}>
+        ${Object.keys(DIFFICULTIES).map(d => html`<option key=${d} value=${d}>${t(DIFFICULTIES[d])}</option>`)}
       <//>
-      <${FilterSelect} id="filter-rating" value=${f.rating} label="Rating" onChange=${(/** @type {string} */ v) => patch({ rating: v })}>
-        ${RATINGS.map(v => html`<option key=${v} value=${v}>${v === 'unrated' ? 'Unrated' : v + ' star' + (v === '1' ? '' : 's')}</option>`)}
+      <${FilterSelect} id="filter-rating" value=${f.rating} label=${t('lists.rating')} onChange=${(/** @type {string} */ v) => patch({ rating: v })}>
+        ${RATINGS.map(v => html`<option key=${v} value=${v}>${v === 'unrated' ? t('lists.unrated') : t('lists.stars', { count: Number(v) })}</option>`)}
       <//>
       ${tagOptions.length > 0 && html`<${TagFilterButton} options=${tagOptions} filters=${f} onChange=${(/** @type {string[]} */ arr) => patch({ tags: arr })} />`}
       <div class="filter-divider"></div>
@@ -163,8 +166,8 @@ function RoutesPage() {
         setPref('trails-group-by', v);
         patch({});
       }}>
-        <option value="region">Group by region</option>
-        <option value="letter">Group by first letter</option>
+        <option value="region">${t('routes.groupByRegion')}</option>
+        <option value="letter">${t('lists.groupByLetter')}</option>
       </select>
     <//>`} />
     <div class=${'region-grid' + (view !== 'grid' ? ' view-' + view : '')} id="trails-list-mount">
@@ -175,7 +178,7 @@ function RoutesPage() {
           <div class="region-label">
             ${byLetter
               ? html`<span>${key}</span>`
-              : html`<span class="section-link" data-filter-region=${key} title="Show only this region on the map" onClick=${() => showOnlyRegion(key)}>${displayRegion(key)}</span>`}
+              : html`<span class="section-link" data-filter-region=${key} title=${t('routes.showOnlyRegion')} onClick=${() => showOnlyRegion(key)}>${displayRegion(key)}</span>`}
             <span class="route-count">${'(' + done + '/' + items.length + ')'}</span>
           </div>
           <div class="route-grid">

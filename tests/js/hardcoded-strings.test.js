@@ -15,14 +15,8 @@ const dir = path.join(__dirname, '..', '..', 'app');
 
 // Lower these as views move to t(). Never raise them, and drop a line at 0.
 const CEILINGS = {
-  'app/areas/areas-page.js': 5,
-  'app/history.js': 7,
-  'app/list-controls.js': 4,
   'app/map/popups.js': 3,
   'app/map/route-detail.js': 1,
-  'app/places/places-page.js': 13,
-  'app/routes/routes-page.js': 7,
-  'app/you.js': 5,
 };
 
 const TEXT_NODE = />\s*[A-Z][a-z]/g;
