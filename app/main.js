@@ -39,6 +39,7 @@ import './settings/catalog.js';
 import './context-menu.js';
 import './modal.js';
 import './add/add.js';
+import './bottom-bar.js';
 
 applyTheme(getStoredTheme(), getStoredMode());
 applyControlVisibility();

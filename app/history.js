@@ -163,7 +163,7 @@ function HistoryCard({ e, view, show }) {
   </div>`;
 }
 
-function HistoryPage() {
+export function HistoryPage() {
   // Read for the subscription; state.places and state.manifest are the
   // store's copies.
   places.value; routes.value;

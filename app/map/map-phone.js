@@ -32,6 +32,20 @@ export function addPhoneMapButtons(map) {
   }
 }
 
+/**
+ * Shows a search result, or anything shaped like one, on the main map,
+ * opening the map first when another tab is showing.
+ * @param {Record<string, string | undefined>} dataset
+ */
+export function showResultOnMap(dataset) {
+  if (state.currentMap && document.getElementById('map-phone-buttons')) {
+    goToSearchResult(state.currentMap, { dataset });
+    return;
+  }
+  state._pendingSearchResult = { dataset };
+  location.hash = '#/';
+}
+
 const barSearch = document.getElementById('bar-search');
 if (barSearch) barSearch.addEventListener('click', openSearchView);
 
@@ -73,12 +87,7 @@ export function openSearchView() {
         if (!row) return;
         addRecentPick({ ...row.dataset });
         closeModal();
-        if (state.currentMap && document.getElementById('map-phone-buttons')) {
-          goToSearchResult(state.currentMap, row);
-          return;
-        }
-        state._pendingSearchResult = { dataset: { ...row.dataset } };
-        location.hash = '#/';
+        showResultOnMap({ ...row.dataset });
       });
       input.focus();
       // The keyboard going down shows as the visible height growing back.

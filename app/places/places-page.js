@@ -12,7 +12,7 @@ import {
   NAME_COLLATOR, findCatalogUpdate, groupAndSort, isCatalogOrphan, letterBucket, openCatalogBulkUpdateModal,
   openCatalogUpdateModal, placesWithCatalogUpdates,
 } from '../places-list.js';
-import { IndexControls, FilterSelect, TagFilterButton, useFilters, useNavAdd, withCurrent } from '../list-controls.js';
+import { CategoryDot, IndexControls, FilterSelect, ListTabs, TagFilterButton, useFilters, useNavAdd, withCurrent } from '../list-controls.js';
 import { listView } from '../history.js';
 import { Fragment, html, mountPage, useEffect, useRef } from '../view.js';
 
@@ -50,6 +50,7 @@ export function renderPlacesIndex() {
   setActiveTab('places');
   setCrumb('Places');
   cleanupMap();
+  setPref('lists-tab', 'places');
   mountPage(html`<${PlacesPage} />`);
 }
 
@@ -274,7 +275,7 @@ function PlacesPage() {
     ${pending > 0 && html`<div class="filter-dropdown catalog-update-chip-wrap"><button type="button" class="filter-btn catalog-update-chip" id="catalog-update-review" onClick=${openCatalogBulkUpdateModal}>Review updates</button></div>`}
   </${IndexControls}>`;
 
-  return html`${controls}
+  return html`<${ListTabs} current="places" />${controls}
     <div class=${'category-grid' + (view !== 'grid' ? ' view-' + view : '')} id="place-list" ref=${listRef}>
       ${keys.length === 0 && html`<div class="loading">No matches</div>`}
       ${keys.map(key => {
@@ -282,7 +283,7 @@ function PlacesPage() {
         const visited = items.filter((/** @type {any} */ p) => p.visited).length;
         return html`<div class="category-group fade-in" key=${key}>
           <div class="category-label">
-            ${byCategory && html`<span class="group-color-dot" style=${'background:' + ((key && /** @type {Record<string, string>} */ (state.categoryColors)[key]) || 'var(--muted)')}></span>`}
+            ${byCategory && html`<${CategoryDot} category=${key} />`}
             ${byCategory
               ? html`<span class="section-link" data-filter-cat=${key} title="Show only this category on the map" onClick=${() => showOnlyCategory(key)}>${displayCategory(key)}</span>`
               : html`<span>${key}</span>`}

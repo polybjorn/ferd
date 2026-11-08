@@ -155,7 +155,7 @@ function routeTouchesArea(area, route) {
 }
 // The manifest bbox narrows the candidates, but only the track can answer,
 // and it may not be loaded yet.
-function routesInArea(area, routes) {
+export function routesInArea(area, routes) {
   const box = areaBbox(area.geometry);
   const candidates = routes.filter(route => !route.bbox || bboxesOverlap(box, route.bbox));
   return Promise.all(candidates.map(route => routeTouchesArea(area, route)))

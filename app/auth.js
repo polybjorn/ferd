@@ -1,12 +1,12 @@
 import { escapeHtml, state } from './core.js';
 import { applyAuth, hasServer, isReadOnly, serverBase, setBearerToken, setServerless } from './server.js';
-import { clearRecentPicks, logsEnabled } from './prefs.js';
+import { clearRecentPicks, logsEnabled, refreshTabVisibility } from './prefs.js';
 import { closeTransientOverlays, parseOverlays, TOPO_CREDIT } from './map/index.js';
 import { openCatalogBulkUpdateModal, placesWithCatalogUpdates } from './places-list.js';
 import { openSettingsModal } from './settings/settings.js';
 import { openLogsModal } from './settings/logs.js';
 import { modalHeaderHtml, openConfirmModal } from './select.js';
-import { openSheetModal } from './modal.js';
+import { closeModal, openSheetModal } from './modal.js';
 import { openSignInModal } from './sign-in.js';
 
 
@@ -54,10 +54,9 @@ export function refreshAuthState() {
     .catch(() => { renderAuthWidget(); });
 }
 
-// A phone shows Menu as a round button over the content, with only the icon.
-const MENU_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg>';
-
 export function renderAuthWidget() {
+  // Add in the phone's bar is for someone who can edit.
+  refreshTabVisibility();
   const el = document.getElementById('auth-widget');
   if (!el) return;
   if (!state.auth.authenticated) {
@@ -67,20 +66,12 @@ export function renderAuthWidget() {
   }
   const local = !hasServer();
   el.innerHTML =
-    '<button id="auth-menu-btn" title="Account menu" aria-haspopup="true" aria-expanded="false">' + MENU_ICON + '<span class="auth-menu-label">Menu</span></button>' +
+    '<button id="auth-menu-btn" title="Account menu" aria-haspopup="true" aria-expanded="false">Menu</button>' +
     '<div class="auth-menu" id="auth-menu" hidden>' +
       (local
         ? '<div class="auth-menu-header">Local map<strong>No account</strong></div>'
         : '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>') +
-      '<button class="auth-menu-mobile" data-action="catalog-updates" id="menu-catalog-updates" hidden>Review updates</button>' +
-      '<button data-action="settings">Settings</button>' +
-      (local ? '' : '<button data-action="account">Account</button>') +
-      (state.auth.is_admin ? '<button data-action="admin">Admin</button>' : '') +
-      (logsEnabled() ? '<button data-action="logs">Logs</button>' : '') +
-      '<button data-action="about">About</button>' +
-      (local
-        ? '<button class="auth-menu-foot" data-action="connect">Connect to server</button>'
-        : '<button class="auth-menu-foot" data-action="signout">Sign out</button>') +
+      menuEntriesHtml(local) +
     '</div>';
   const btn = document.getElementById('auth-menu-btn');
   const menu = document.getElementById('auth-menu');
@@ -99,12 +90,6 @@ export function renderAuthWidget() {
   /** @type {HTMLElement & { _close?: () => void }} */ (menu)._close = closeMenu;
   function openMenu() {
     closeTransientOverlays(menu);
-    // Refresh the mobile catalog-updates entry from the live pending count.
-    const updItem = /** @type {HTMLElement | null} */ (menu.querySelector('#menu-catalog-updates'));
-    if (updItem) {
-      const hasUpd = (state.auth.authenticated && !isReadOnly()) && placesWithCatalogUpdates().length > 0;
-      updItem.hidden = !hasUpd;
-    }
     menu.hidden = false;
     btn.setAttribute('aria-expanded', 'true');
     document.addEventListener('mousedown', outsideCloser, true);
@@ -118,17 +103,62 @@ export function renderAuthWidget() {
     const action = /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('button[data-action]'));
     if (!action) return;
     closeMenu();
-    switch (action.dataset.action) {
-      case 'catalog-updates': openCatalogBulkUpdateModal(); break;
-      case 'settings': openSettingsModal('settings'); break;
-      case 'account':  openSettingsModal('account'); break;
-      case 'admin':    openSettingsModal('admin'); break;
-      case 'logs':     openLogsModal(); break;
-      case 'about':    openAboutModal(); break;
-      case 'signout':  confirmSignOut(); break;
-      case 'connect':  confirmLeaveLocal(); break;
-    }
+    runMenuAction(action.dataset.action);
   });
+}
+
+// The wide screen's menu and the phone's You sheet list the same entries.
+/** @param {boolean} local */
+function menuEntriesHtml(local) {
+  return '<button data-action="settings">Settings</button>' +
+    (local ? '' : '<button data-action="account">Account</button>') +
+    (state.auth.is_admin ? '<button data-action="admin">Admin</button>' : '') +
+    (logsEnabled() ? '<button data-action="logs">Logs</button>' : '') +
+    '<button data-action="about">About</button>' +
+    (local
+      ? '<button class="auth-menu-foot" data-action="connect">Connect to server</button>'
+      : '<button class="auth-menu-foot" data-action="signout">Sign out</button>');
+}
+
+/** @param {string | undefined} action */
+function runMenuAction(action) {
+  switch (action) {
+    case 'catalog-updates': openCatalogBulkUpdateModal(); break;
+    case 'settings': openSettingsModal('settings'); break;
+    case 'account':  openSettingsModal('account'); break;
+    case 'admin':    openSettingsModal('admin'); break;
+    case 'logs':     openLogsModal(); break;
+    case 'about':    openAboutModal(); break;
+    case 'signout':  confirmSignOut(); break;
+    case 'connect':  confirmLeaveLocal(); break;
+  }
+}
+
+/** Whether catalog updates wait for review by someone who can apply them. */
+export function catalogUpdatesPending() {
+  return !!(state.auth && state.auth.authenticated) && !isReadOnly() && placesWithCatalogUpdates().length > 0;
+}
+
+// The You page's gear. A wide screen reviews catalog updates from the chip on
+// Places, which a phone has no room for, so the sheet lists them first.
+export function openAccountSheet() {
+  const local = !hasServer();
+  openSheetModal(
+    modalHeaderHtml('Settings and account') +
+    '<div class="account-sheet">' +
+      (catalogUpdatesPending() ? '<button data-action="catalog-updates">Review updates</button>' : '') +
+      menuEntriesHtml(local) +
+    '</div>',
+    function(/** @type {HTMLElement} */ backdrop) {
+      backdrop.classList.add('narrow-dialog');
+      /** @type {HTMLElement} */ (backdrop.querySelector('.account-sheet')).addEventListener('click', function(e) {
+        const action = /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('button[data-action]'));
+        if (!action) return;
+        closeModal();
+        runMenuAction(action.dataset.action);
+      });
+    }
+  );
 }
 
 function confirmSignOut() {
@@ -163,7 +193,7 @@ function confirmLeaveLocal() {
   });
 }
 
-function openAboutModal() {
+export function openAboutModal() {
   const baked = FERD_BAKED_VERSION.indexOf('__FERD') === 0 ? '' : FERD_BAKED_VERSION;
   const version = state.auth.version || baked || 'unknown';
   // In the Android shell the bundled build version (e.g. "1.0.1-dev+177")

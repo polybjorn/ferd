@@ -50,7 +50,7 @@ function AddDialog({ tabs, prefillCoords, draft, reopen }) {
 
 /**
  * @param {Coords | null | undefined} prefillCoords A map pick to start from.
- * @param {'place' | 'route' | null} [initialTab]
+ * @param {'place' | 'route' | 'area' | null} [initialTab]
  * @param {any} [draft] Place fields to restore after a pick on the map.
  */
 export function openAddModal(prefillCoords, initialTab = null, draft = undefined) {
@@ -60,6 +60,7 @@ export function openAddModal(prefillCoords, initialTab = null, draft = undefined
   // Entry-point determines which tabs the modal exposes:
   //   'place' (Places list Add)  -> [Place, Browse]
   //   'route' (Routes list Add)  -> just the GPX form, no tabs
+  //   'area'  (Areas list Add)   -> just the area form, no tabs
   //   null    (map Add button)   -> [Place, Route, Area, Browse], filtered by enabled features
   // Browse reads the merged catalog in server mode and the bundled shipped
   // catalog.json in local mode (see fetchCatalog); hidden when the Catalog
@@ -69,6 +70,8 @@ export function openAddModal(prefillCoords, initialTab = null, draft = undefined
   let tabs;
   if (initialTab === 'route') {
     tabs = ['route'];
+  } else if (initialTab === 'area' && showPlaces) {
+    tabs = ['area'];
   } else if (initialTab === 'place') {
     tabs = showPlaces ? (showBrowse ? ['place', 'browse'] : ['place']) : ['route'];
   } else {

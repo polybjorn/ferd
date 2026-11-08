@@ -1,13 +1,13 @@
 import { addButtonHtml, state } from './core.js';
 import { isReadOnly } from './server.js';
-import { setPref } from './prefs.js';
+import { listKinds, setPref } from './prefs.js';
 import { wirePopover } from './map/index.js';
 import { _selPopover, closeSelectPopover, enhanceSelectsIn, openMultiSelectList } from './select.js';
 import { listView, listViewOptions } from './history.js';
 import { html, useEffect, useLayoutEffect, useRef, useState } from './view.js';
 
-// Controls the Places, Routes and History pages share: the search box, the filter and
-// view popovers, and the Add button in the nav.
+// Controls the list pages share: the search box, the filter and view
+// popovers, the Add button in the nav, and the phone's Lists tabs.
 
 /**
  * A filters object kept on `state`, so the page remembers it when it is left
@@ -53,8 +53,29 @@ export function IndexControls({ placeholder, search, onSearch, count, kind, onVi
     </div>
     ${children}
     <${FilterPopover} active=${active} onClear=${onClear}>${filterChildren}<//>
-    <${ViewPopover} kind=${kind} onView=${onView} />
+    ${kind && html`<${ViewPopover} kind=${kind} onView=${onView} />`}
   </div>`;
+}
+
+/** A list group's category colour, which only the data knows. @param {{ category: string }} props */
+export function CategoryDot({ category }) {
+  const colour = (category && /** @type {Record<string, string>} */ (state.categoryColors)[category]) || 'var(--muted)';
+  return html`<span class="group-color-dot" style=${'background:' + colour}></span>`;
+}
+
+const LIST_LABELS = /** @type {Record<string, string>} */ ({ places: 'Places', routes: 'Routes', areas: 'Areas' });
+/**
+ * A phone's bar has one Lists item, so the lists it holds are tabs on the
+ * page. A wide screen has them in the nav. With one list there is nothing to
+ * switch to.
+ * @param {{ current: string }} props
+ */
+export function ListTabs({ current }) {
+  const kinds = listKinds();
+  if (kinds.length < 2) return null;
+  return html`<nav class="list-tabs" aria-label="Lists">
+    ${kinds.map(k => html`<a key=${k} class="list-tab" href=${'#/' + k} aria-current=${k === current ? 'page' : undefined}>${LIST_LABELS[k]}</a>`)}
+  </nav>`;
 }
 
 // The popover's open state lives in the DOM (hidden), because wirePopover and

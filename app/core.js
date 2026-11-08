@@ -134,6 +134,7 @@ export const state = {
   placeFilters: { search: '', status: 'all', category: 'all', country: 'all', tags: [], catalog: 'all' },
   trailFilters: { search: '', status: 'all', region: 'all', difficulty: 'all', rating: 'all', tags: [] },
   historyFilters: { search: '', kind: 'all', year: 'all', rating: 'all' },
+  areaFilters: { search: '', status: 'all', category: 'all' },
   // unified-map filter state
   hiddenCategories: new Set(),
   hiddenRegions: new Set(),
@@ -330,20 +331,24 @@ export function setActiveTab(view, screen) {
     const el = document.getElementById('tab-' + v);
     if (el) el.classList.toggle('active', v === view);
   });
-  ['map', 'places', 'routes', 'history'].forEach(v => {
+  const item = BAR_ITEM[view];
+  ['map', 'lists', 'you'].forEach(v => {
     const el = document.getElementById('bar-' + v);
     if (!el) return;
-    if (v === view) el.setAttribute('aria-current', 'page');
+    if (v === item) el.setAttribute('aria-current', 'page');
     else el.removeAttribute('aria-current');
   });
 }
+// The phone bar has one Lists item for the three lists, and History is the
+// You page's content.
+const BAR_ITEM = /** @type {Record<string, string>} */ ({
+  map: 'map', places: 'lists', routes: 'lists', areas: 'lists', history: 'you', you: 'you',
+});
 
-// The label stays in the button for its accessible name; a phone shows the
-// button as a round floating one with only the icon.
+// A wide screen's Add, in the nav. A phone adds from the bar instead.
 export function addButtonHtml(id, title) {
   return '<button type="button" id="' + id + '" class="nav-action-btn nav-action-add"' +
-    (title ? ' title="' + escapeHtml(title) + '"' : '') + '>' +
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg><span class="nav-action-label">Add</span></button>';
+    (title ? ' title="' + escapeHtml(title) + '"' : '') + '>Add</button>';
 }
 
 let _crumbText = '';

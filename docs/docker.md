@@ -35,7 +35,7 @@ Ferd publishes multi-arch (amd64, arm64) images to GitHub Container Registry:
 
 To switch tags, edit the `image:` line in [`compose.yml`](../compose.yml), then `docker compose pull && docker compose up -d`.
 
-You can check which version is running under Menu -> About in the app, or hit `/api/state` and look at the `version` field.
+You can check which version is running under Menu -> About in the app (on a phone, the gear on You), or hit `/api/state` and look at the `version` field.
 
 ## What the compose file does
 

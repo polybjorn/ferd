@@ -177,16 +177,28 @@ export function refreshTabVisibility() {
   if (tabTrails) { tabTrails.style.display = routesEnabled() ? '' : 'none'; tabTrails.textContent = 'Routes'; }
   const tabHistory = document.getElementById('tab-history');
   if (tabHistory) tabHistory.style.display = historyEnabled() ? '' : 'none';
-  const shown = { places: placesEnabled(), routes: routesEnabled(), history: historyEnabled() };
+  // Lists and Search both cover places, areas and routes, so they go with
+  // the last of them, and Add with them for someone who can edit. You holds
+  // Settings, so the bar always has it.
+  const any = placesEnabled() || routesEnabled();
+  const canAdd = any && !isReadOnly() && !!(state.auth && state.auth.authenticated);
+  /** @type {Record<string, boolean>} */
+  const shown = { lists: any, search: any, add: canAdd };
   Object.keys(shown).forEach(v => {
     const item = document.getElementById('bar-' + v);
     if (item) item.hidden = !shown[v];
   });
-  // Search finds places, areas and routes, so it goes with the last of them.
-  const search = document.getElementById('bar-search');
-  if (search) search.hidden = !placesEnabled() && !routesEnabled();
-  // With every view and search off the map is all there is, and a bar would
-  // switch to nothing.
-  const bar = document.getElementById('bottom-bar');
-  if (bar) bar.hidden = !Object.values(shown).some(Boolean) && !(search && !search.hidden);
+}
+
+// The Lists page's tabs, in order. Areas are drawn and filtered with the
+// places, so they go with them.
+export function listKinds() {
+  return /** @type {string[]} */ ([placesEnabled() && 'places', routesEnabled() && 'routes', placesEnabled() && 'areas'].filter(Boolean));
+}
+// Lists opens on the tab last picked on this device.
+export function listsHash() {
+  const kinds = listKinds();
+  if (!kinds.length) return '#/';
+  const last = getPref('lists-tab', '');
+  return '#/' + (kinds.includes(last) ? last : kinds[0]);
 }

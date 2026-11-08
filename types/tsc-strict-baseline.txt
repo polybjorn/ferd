@@ -514,7 +514,6 @@
 1	app/prefs.js	TS7006	Parameter 'val' implicitly has an 'any' type.
 1	app/prefs.js	TS7006	Parameter 'view' implicitly has an 'any' type.
 1	app/prefs.js	TS7006	Parameter 'visible' implicitly has an 'any' type.
-1	app/prefs.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 2	app/router.js	TS2339	Property '_navByHash' does not exist on type '{...}'.
 1	app/router.js	TS7006	Parameter 'hash' implicitly has an 'any' type.
 1	app/router.js	TS7006	Parameter 'slug' implicitly has an 'any' type.

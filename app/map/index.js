@@ -9,7 +9,8 @@ import { playEnter, playLeave } from './map-actions.js';
 import { rebuildMapFilterPanel } from './map-panel.js';
 import { applyMapFilters } from './place-layer.js';
 import { flushMapSync } from './sync.js';
-export { areaFadeOut } from './area-layer.js';
+export { areaFadeOut, routesInArea } from './area-layer.js';
+export { showResultOnMap } from './map-phone.js';
 export { syncCountriesOnMap } from './country-layer.js';
 export { renderUnifiedMap } from './home-map.js';
 export {

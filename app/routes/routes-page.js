@@ -9,7 +9,7 @@ import { groupAndSort, letterBucket } from '../places-list.js';
 import { drawRouteSilhouette, listView } from '../history.js';
 import { attachContextMenu } from '../context-menu.js';
 import { openAddModal } from '../add/add.js';
-import { IndexControls, FilterSelect, TagFilterButton, useFilters, useNavAdd, withCurrent } from '../list-controls.js';
+import { IndexControls, FilterSelect, ListTabs, TagFilterButton, useFilters, useNavAdd, withCurrent } from '../list-controls.js';
 import { Fragment, html, mountPage, useEffect, useRef } from '../view.js';
 
 // ROUTE-LIST-BEGIN (tests/js/list-filter.test.js runs this block)
@@ -40,6 +40,7 @@ export function renderTrailsIndex() {
   setActiveTab('routes');
   setCrumb('Routes');
   cleanupMap();
+  setPref('lists-tab', 'routes');
   mountPage(html`<${RoutesPage} />`);
 }
 
@@ -138,7 +139,7 @@ function RoutesPage() {
     patch({ search: '', status: 'all', region: 'all', difficulty: 'all', rating: 'all', tags: [] });
   };
 
-  return html`<${IndexControls} placeholder="Filter routes..." search=${f.search} onSearch=${(/** @type {string} */ v) => patch({ search: v })}
+  return html`<${ListTabs} current="routes" /><${IndexControls} placeholder="Filter routes..." search=${f.search} onSearch=${(/** @type {string} */ v) => patch({ search: v })}
     count=${filtered.length} kind="routes" onView=${() => patch({})} active=${filterCount > 0} onClear=${clear}
     filterChildren=${html`<${Fragment}>
       <${FilterSelect} id="filter-status" value=${f.status} label="Status" onChange=${(/** @type {string} */ v) => patch({ status: v })}>

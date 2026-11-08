@@ -551,11 +551,9 @@ a:hover { opacity: 0.8; }
   bottom: 0;
   z-index: var(--ui-z-sticky);
 }
-.nav-action-btn > svg,
-#auth-menu-btn > svg { display: none; }
 
 /* A phone gives the map and the lists the whole screen: the bar floats over
-   them and names the current tab, and Menu and Add float as round buttons.
+   them, names the current tab and holds Add, and You stands in for the menu.
    A route keeps the header, which is the only place its name shows.
    --shell-bar-space is the floating bar's share of the bottom edge. */
 @media (max-width: 600px) {
@@ -574,78 +572,122 @@ a:hover { opacity: 0.8; }
   body:not([data-view="route"]) #app {
     height: 100vh;
     height: 100dvh;
-    padding-bottom: calc(var(--shell-bar-space) + var(--ui-touch-target) + var(--ui-space-6));
+    padding-bottom: calc(var(--shell-bar-space) + var(--ui-space-6));
   }
   body[data-view="route"] .detail-layout { padding-bottom: var(--shell-bar-space); }
-
-  /* Top-left on every tab, so Menu never moves: the map's top-right holds
-     the layer picker, and a list's filter row starts after the button. */
-  body:not([data-view="route"]) .auth-widget {
-    position: fixed;
-    top: calc(var(--ui-space-3) + env(safe-area-inset-top, 0px));
-    left: var(--ui-space-3);
-  }
-  body:not([data-view="route"]) .auth-menu { right: auto; left: 0; }
-  body:not([data-view="route"]) #app .index-controls {
-    min-height: var(--ui-touch-target);
-    padding-left: calc(var(--ui-touch-target) + var(--ui-space-1));
-  }
-  body:not([data-view="route"]) .auth-widget > button {
-    justify-content: center;
-    min-width: var(--ui-touch-target);
-    height: var(--ui-touch-target);
-    padding: 0 var(--ui-space-4);
-    color: var(--text);
-    background: var(--surface);
-    border-color: var(--border);
-    border-radius: var(--ui-radius-full);
-    box-shadow: var(--ui-shadow);
-  }
-  body:not([data-view="route"]) #auth-menu-btn { padding: 0; }
-  body:not([data-view="route"]) #auth-menu-btn > svg { display: block; width: 22px; height: 22px; }
-
-  body:not([data-view="route"]) .nav-actions {
-    position: fixed;
-    right: var(--ui-space-4);
-    bottom: calc(var(--shell-bar-space) + var(--ui-space-3));
-  }
-  body:not([data-view="route"]) .nav-action-add {
-    justify-content: center;
-    width: 3.5rem;
-    height: 3.5rem;
-    padding: 0;
-    border-radius: var(--ui-radius-xl);
-    box-shadow: var(--ui-shadow);
-  }
-  body:not([data-view="route"]) .nav-action-add > svg { display: block; width: 24px; height: 24px; }
-  body:not([data-view="route"]) :is(.nav-action-label, .auth-menu-label) {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
+  /* The bar's Add takes over from the nav's. A route's Edit stays in its
+     header. */
+  body:not([data-view="route"]) .nav-actions { display: none; }
 
   #app > #map .leaflet-bottom { bottom: var(--shell-bar-space); }
-  /* The credit takes the bottom-left corner, which the hidden filter panel
-     leaves empty, so the right side is Add's alone. */
-  #app > #map .leaflet-bottom.leaflet-right { right: auto; left: 0; }
-  #app > #map .leaflet-bottom.leaflet-right .leaflet-control { float: left; }
-  #app > #map .leaflet-control-attribution { max-width: calc(100vw - 3.5rem - 2 * var(--ui-space-4)); }
-  body[data-view="map"] .leaflet-top.leaflet-left { top: calc(var(--ui-touch-target) + var(--ui-space-3)); }
 }
-/* Glass where the browser can draw it: the same recipe as ui.css's floating
-   bar, which these buttons sit with. */
-@media (max-width: 600px) and (prefers-reduced-transparency: no-preference) {
-  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)))
-    and (background: color-mix(in srgb, red 50%, transparent)) {
-    body:not([data-view="route"]) .auth-widget > button {
-      background: color-mix(in srgb, var(--surface) 80%, transparent);
-      -webkit-backdrop-filter: blur(16px) saturate(1.5);
-      backdrop-filter: blur(16px) saturate(1.5);
-    }
+/* Add is the bar's one action among its destinations, so it is filled. */
+.bottom-bar .bar-add > svg { color: var(--fab-text); background: var(--accent); }
+.bottom-bar .bar-add:hover > svg { filter: brightness(1.1); }
+/* The You item's dot: catalog updates wait in the gear's list. */
+.bottom-bar .has-dot { position: relative; }
+.bottom-bar .has-dot::after,
+.you-gear.has-dot::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.bottom-bar .has-dot::after { top: var(--ui-space-2); left: calc(50% + 0.6rem); }
+.you-gear.has-dot::after { top: 6px; right: 6px; }
+
+/* The phone's Lists tabs. A wide screen has the lists in the nav. */
+.list-tabs { display: none; }
+@media (max-width: 600px) {
+  .list-tabs {
+    display: flex;
+    margin: 0 0 var(--ui-space-3);
+    border-bottom: 1px solid var(--border);
   }
+  .list-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--ui-touch-target);
+    margin-bottom: -1px;
+    font-size: var(--ui-text-md);
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+  }
+  .list-tab[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
+}
+
+/* You: who is signed in, with the menu's entries behind the gear. */
+.you-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-3);
+  margin: 0 0 var(--ui-space-4);
+}
+.you-name { min-width: 0; }
+.you-name span { display: block; color: var(--muted); font-size: var(--ui-text-sm); }
+.you-name strong { display: block; color: var(--text); font-size: var(--ui-text-xl); overflow-wrap: anywhere; }
+.you-gear {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--ui-touch-target);
+  height: var(--ui-touch-target);
+  padding: 0;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-full);
+  cursor: pointer;
+}
+.you-gear:hover { border-color: var(--muted); }
+.you-gear svg { width: 22px; height: 22px; }
+.you-signin {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--ui-space-6) var(--ui-space-3) var(--ui-space-5);
+  text-align: center;
+}
+.you-signin svg { width: 56px; height: 56px; color: var(--muted); }
+.you-signin p { margin: var(--ui-space-2) 0 var(--ui-space-4); color: var(--muted); }
+.you-rows { max-width: 480px; margin: 0 auto; }
+/* The sheet's selectors carry .modal and :not() to outrank
+   `.modal button:not(.modal-close)`, which would draw the rows as buttons. */
+:is(.account-sheet, .you-rows) { display: flex; flex-direction: column; }
+.you-rows button,
+.modal .account-sheet button:not(.modal-close) {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--ui-touch-target);
+  padding: var(--ui-space-3) var(--ui-space-2);
+  font: inherit;
+  font-size: var(--ui-text-md);
+  color: var(--text);
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  cursor: pointer;
+}
+.you-rows button:last-child,
+.modal .account-sheet button:not(.modal-close):is(:last-child, :has(+ .auth-menu-foot)) { border-bottom: 0; }
+.you-rows button:hover,
+.modal .account-sheet button:not(.modal-close):hover { background: var(--surface2); }
+/* Sign out ends the session, so a gap keeps a tap meant for About off it. */
+.modal .account-sheet button.auth-menu-foot:not(.modal-close) {
+  margin-top: var(--ui-space-4);
+  border-top: 1px solid var(--border);
+  color: var(--muted);
 }
 body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none; }
 
@@ -2291,12 +2333,10 @@ body.signin-only #app {
   border-radius: 0 0 var(--ui-radius-sm) var(--ui-radius-sm);
 }
 .auth-menu button.auth-menu-foot:hover { color: var(--text); }
-/* Catalog-updates entry: mobile-only counterpart to the desktop Review chip,
-   and only when updates are pending (toggled via the [hidden] attribute). */
-.auth-menu button.auth-menu-mobile { display: none; }
 @media (max-width: 600px) {
-  .app-nav .view-tabs { display: none; }
-  .auth-menu button.auth-menu-mobile:not([hidden]) { display: flex; }
+  /* The bar takes over from the tabs, and its You page from the menu. */
+  .app-nav .view-tabs,
+  .auth-widget { display: none; }
   /* With the tabs gone, drop the empty middle column so the brand stays
      left and the actions stay hard right (otherwise nav-right auto-places
      into the vacated center column). */

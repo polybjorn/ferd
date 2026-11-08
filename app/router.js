@@ -1,9 +1,11 @@
 import { state } from './core.js';
-import { historyEnabled, placesEnabled, routesEnabled } from './prefs.js';
+import { historyEnabled, listsHash, placesEnabled, routesEnabled } from './prefs.js';
 import { renderTrailDetail, renderUnifiedMap } from './map/index.js';
 import { renderPlacesIndex } from './places/places-page.js';
 import { renderHistoryIndex } from './history.js';
 import { renderTrailsIndex } from './routes/routes-page.js';
+import { renderAreasIndex } from './areas/areas-page.js';
+import { renderYouPage } from './you.js';
 import { unmountPage } from './view.js';
 
 export function focusHash(type, slug) { return '#/' + type + '/' + slug; }
@@ -47,6 +49,8 @@ export function router() {
   const base = hash.split('?')[0];
   if (base.startsWith('#/place/') || base.startsWith('#/route/')) return renderUnifiedMap(parseFocus(hash));
   if (base === '#/' || base === '#' || base === '#/map') return renderUnifiedMap(parseFocus(hash));
+  // Replaced rather than pushed, so Back skips the step to the tab.
+  if (base === '#/lists') { location.replace(listsHash()); return; }
   if (base === '#/places') {
     if (!placesEnabled()) { location.hash = '#/'; return; }
     return renderPlacesIndex();
@@ -60,6 +64,11 @@ export function router() {
     const key = decodeURIComponent(base.replace('#/routes/route/', ''));
     return renderTrailDetail(key);
   }
+  if (base === '#/areas') {
+    if (!placesEnabled()) { location.hash = '#/'; return; }
+    return renderAreasIndex();
+  }
+  if (base === '#/you') return renderYouPage();
   if (base === '#/history') {
     if (!historyEnabled()) { location.hash = '#/'; return; }
     return renderHistoryIndex();
