@@ -113,6 +113,10 @@ export const state = {
   viewer: detectViewer(),
   currentMap: null,
   currentElevation: null,
+  // Set by map-layers.js for the current map's tile picker.
+  tilePickerCtrl: /** @type {any} */ (null),
+  tilePickerLayers: /** @type {Record<string, any> | null} */ (null),
+  tilePickerOverlays: /** @type {Record<string, any> | null} */ (null),
   // Each overlay requests tiles from a third party, so none is on at load.
   // One the user turns on keeps its level across map rebuilds for this page
   // load. Keyed by overlay name, with no entry meaning off.
