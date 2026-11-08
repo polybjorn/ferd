@@ -636,6 +636,22 @@ const STRINGS = {
   'countries.noMatch': 'No matching country',
 
   'routeDetail.notes': 'Notes',
+  'routeDetail.notFound': 'Route not found',
+  'routeDetail.notFoundCrumb': 'Not found',
+  'routeDetail.edit': 'Edit',
+  'routeDetail.elevation': 'Elevation',
+  'routeDetail.wholeRoute': 'Whole route',
+  'routeDetail.showWholeRoute': 'Show whole route',
+  'routeDetail.bySegment': 'Elevation by segment',
+  'routeDetail.bySegmentCount': 'Elevation by segment ({count})',
+  'routeDetail.toggleGraph': 'Show or hide the graph',
+  'routeDetail.noElevation': 'No elevation data available for this route',
+  'routeDetail.expandMap': 'Expand map',
+  'routeDetail.collapseMap': 'Collapse map',
+  'routeDetail.start': 'Start',
+  'routeDetail.end': 'End',
+  'routeDetail.track': 'Track {n}',
+  'routeDetail.segment': 'Segment {n}',
 };
 
 // Splits a template at its {name} slots, so a slot can hold a vnode as well
