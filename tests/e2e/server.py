@@ -4,8 +4,10 @@
 Playwright's webServer runs this. It makes a temporary directory, writes a
 config that keeps the database and every user folder inside it, starts
 tools/api.py on a free loopback port, then signs in as the seeded user and
-imports the demo dataset from scripts/demo-data.py. A run never touches real
-data, and the directory is removed when Playwright stops the server.
+imports the demo dataset from scripts/demo-data.py, then opens registration
+so a test that writes can sign up an empty account of its own. A run never
+touches real data, and the directory is removed when Playwright stops the
+server.
 
 Once the data is in, it prints "ferd-e2e ready on port N" to stdout.
 playwright.config.js waits for that line and reads the port out of it, so the
@@ -14,7 +16,7 @@ tests never start against a server that is still empty.
 Usage: python3 tests/e2e/server.py [PORT]
 
 Stdlib only. The sign-in the tests use is E2E_USER / E2E_PASSWORD below,
-mirrored in tests/e2e/smoke.spec.js.
+mirrored in tests/e2e/helpers.js and tests/e2e/smoke.spec.js.
 """
 import json
 import shutil
@@ -70,6 +72,14 @@ def seed(base: str, zip_path: Path) -> None:
   )
   with opener.open(imp, timeout=30) as r:
     print("[e2e] imported demo data:", r.read().decode()[:200], file=sys.stderr)
+  # A test that writes registers an account of its own, so what it adds and
+  # deletes never shows on a page another test has open as the demo user.
+  gate = urllib.request.Request(
+    base + "/api/settings/registration",
+    data=json.dumps({"mode": "open"}).encode(),
+    headers={"Content-Type": "application/json"},
+  )
+  opener.open(gate, timeout=10).close()
 
 
 def main() -> int:
