@@ -155,6 +155,7 @@ export const state = {
   _selectedRouteKey: null,   // index-map: highlighted route (click-to-distinguish overlaps)
   _routeGroupCompleted: null,
   _routeGroupPlanned: null,
+  _navByHash: false, // router: true while a hash navigation re-renders, so the map can tell an in-app click from a reload
   _syncRoutesOnMap: /** @type {(() => void) | null} */ (null), // index-map: applies the routes signal (home-map.js)
   // Mirrors the catalogCache signal (store.js bindCatalogCache), null until fetched.
   _catalogCache: /** @type {import('./places-list.js').CatalogEntry[] | null} */ (null),
@@ -165,6 +166,7 @@ export const state = {
   _areaRenderer: /** @type {any} */ (null),
   _routeRenderer: /** @type {any} */ (null),
   _countryRenderer: /** @type {any} */ (null),
+  _countryGroup: /** @type {any} */ (null),
   _detailRenderer: /** @type {any} */ (null),
   _detailPolylines: /** @type {any[] | null} */ (null),
   // Set by route-detail.js for the open route's map.

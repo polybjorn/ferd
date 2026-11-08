@@ -13,9 +13,15 @@ import { syncCountriesOnMap } from './country-layer.js';
 import { goToPlace, goToRoute } from './map-actions.js';
 import { parseGpxTracks } from './route-detail.js';
 
+/** @typedef {import('./route-layer.js').LeafletMap} LeafletMap */
+/** @typedef {import('./route-layer.js').LeafletLayer} LeafletLayer */
+/** @typedef {import('../core.js').Area} Area */
+/** @typedef {import('../core.js').ManifestRoute} ManifestRoute */
+
 // Areas get their own pane under the route layers, with no pointer events:
 // a filled polygon must never swallow a click meant for a route, a pin or
 // the map. Clicks are matched in openAreaPopupAt instead.
+/** @param {LeafletMap} map */
 export function initAreaLayers(map) {
   const pane = map.createPane('areasPane');
   pane.style.zIndex = 390;
@@ -32,6 +38,7 @@ export function initAreaLayers(map) {
   // misses the imagery at any detail level, so the fill is an overview only.
   // Rounded because zoom settles on a whole number: the raw value would
   // fade the fill out mid-pinch and back in when the map snaps.
+  /** @param {{ zoom?: number } | undefined} [e] */
   const syncCountryPane = e => {
     const zoom = e && e.zoom !== undefined ? e.zoom : map.getZoom();
     countryPane.classList.toggle('zoomed-past', Math.round(zoom) > COUNTRY_MAX_ZOOM);
@@ -40,8 +47,14 @@ export function initAreaLayers(map) {
   syncCountryPane();
   syncAreasOnMap();
 }
+/**
+ * @param {{ category?: string }} a
+ * @param {boolean} visited
+ */
 export function areaStyle(a, visited) {
-  const color = state.categoryColors[a.category] || state.categoryColors[''];
+  // The colour map's literal types it as {}; the store fills it by category key.
+  const colors = /** @type {Record<string, string>} */ (state.categoryColors);
+  const color = colors[a.category] || colors[''];
   return visited
     ? { color, weight: 2, opacity: 0.9, fillColor: color, fillOpacity: 0.22, dashArray: null }
     : { color, weight: 2, opacity: 0.7, fillColor: color, fillOpacity: 0.08, dashArray: '6 6' };
@@ -49,21 +62,30 @@ export function areaStyle(a, visited) {
 export const MAP_FADE_MS = 300;
 // Routes and area outlines can sit in the WebGL buffer, where one line can't
 // fade alone, so an SVG copy fades in the place of the removed shape.
+/**
+ * @param {LeafletMap} map
+ * @param {LeafletLayer} shape
+ */
 function fadeOutShape(map, shape) {
   if (reduceMotion()) return;
   shape.addTo(map);
-  shape.eachLayer(function(part) {
+  shape.eachLayer(function(/** @type {LeafletLayer} */ part) {
     part.getElement().animate([{ opacity: 1 }, { opacity: 0 }], { duration: MAP_FADE_MS, easing: 'ease', fill: 'forwards' });
   });
   setTimeout(function() { shape.remove(); }, MAP_FADE_MS);
 }
 // Captured before a delete, while the area's layer still says whether it
 // shows: the store's write rebuilds the layers before the delete resolves.
+/** @param {Area} area */
 export function areaFadeOut(area) {
   const entry = (state._areaLayers || []).find(x => x.area.id === area.id);
   const shown = !!entry && !!state._areaGroup && state._areaGroup.hasLayer(entry.layer);
   return function() { if (shown) fadeOutArea(area, entry.visited); };
 }
+/**
+ * @param {Area} area
+ * @param {boolean} visited
+ */
 function fadeOutArea(area, visited) {
   if (!state.currentMap || !state._areaRenderer) return;
   fadeOutShape(state.currentMap, L.geoJSON(area.geometry, {
@@ -73,9 +95,14 @@ function fadeOutArea(area, visited) {
     style: areaStyle(area, visited),
   }));
 }
+/**
+ * @param {LeafletMap} map
+ * @param {LeafletLayer} layer
+ */
 export function fadeOutRoute(map, layer) {
   if (!state._areaRenderer) return;
   const shape = L.featureGroup();
+  /** @param {LeafletLayer} part */
   const visit = function(part) {
     if (part.getLatLngs && !part.eachLayer) {
       const { color, weight, opacity } = part.options;
@@ -95,7 +122,7 @@ export function syncAreasOnMap() {
   const group = state._areaGroup;
   if (!group) return;
   group.clearLayers();
-  state._areaLayers = (state.areas || []).map(area => {
+  state._areaLayers = (state.areas || []).map((/** @type {Area} */ area) => {
     const visited = !!area.visited || placesInArea(area.geometry, state.places || []).some(p => p.visited);
     return {
       area,
@@ -118,7 +145,7 @@ function markAreasByRoute() {
   const completed = manifestRoutes().filter(route => route.completed);
   for (const entry of state._areaLayers || []) {
     if (entry.visited) continue;
-    routesInArea(entry.area, completed).then(function(routes) {
+    routesInArea(entry.area, completed).then(function(/** @type {ManifestRoute[]} */ routes) {
       if (!routes.length) return;
       entry.visited = true;
       entry.layer.setStyle(areaStyle(entry.area, true));
@@ -141,7 +168,12 @@ export function applyAreaFilters() {
 }
 
 // The bbox is in the key so a replaced track gets read again.
+/** @type {Map<string, Promise<boolean>>} */
 const areaTouchCache = new Map();
+/**
+ * @param {Area} area
+ * @param {ManifestRoute} route
+ */
 function routeTouchesArea(area, route) {
   const key = area.id + '|' + route.file + '|' + route.bbox;
   let touch = areaTouchCache.get(key);
@@ -155,16 +187,21 @@ function routeTouchesArea(area, route) {
 }
 // The manifest bbox narrows the candidates, but only the track can answer,
 // and it may not be loaded yet.
+/**
+ * @param {Area} area
+ * @param {ManifestRoute[]} routes
+ * @returns {Promise<ManifestRoute[]>}
+ */
 export function routesInArea(area, routes) {
   const box = areaBbox(area.geometry);
   const candidates = routes.filter(route => !route.bbox || bboxesOverlap(box, route.bbox));
   return Promise.all(candidates.map(route => routeTouchesArea(area, route)))
     .then(touches => candidates.filter((_, i) => touches[i]));
 }
-/** @param {any} map @param {any} area @param {any} latlng */
+/** @param {LeafletMap} map @param {Area} area @param {{ lat: number, lng: number }} latlng */
 function openAreaPopup(map, area, latlng) {
   const entry = (state._areaLayers || []).find(x => x.area.id === area.id);
-  const byLabel = (x, y) => x.label.localeCompare(y.label);
+  const byLabel = (/** @type {{ label: string }} */ x, /** @type {{ label: string }} */ y) => x.label.localeCompare(y.label);
   const places = placesInArea(area.geometry, state.places || [])
     .map(p => ({ label: p.name, done: p.visited, go: () => goToPlace(map, p) })).sort(byLabel);
   const routes = routesInArea(area, manifestRoutes()).then(found => found
@@ -179,6 +216,7 @@ function openAreaPopup(map, area, latlng) {
   popup = L.popup({ closeButton: false }).setLatLng(latlng).setContent(content).openOn(map);
 }
 // Smallest first, so a park inside a county stays reachable.
+/** @param {LeafletMap} map @param {any} e */
 export function openAreaPopupAt(map, e) {
   if (document.querySelector('.pick-coords-banner')) return;
   const cg = state._placeClusterGroup;
@@ -191,6 +229,7 @@ export function openAreaPopupAt(map, e) {
     .sort((a, b) => areaSize(a.geometry) - areaSize(b.geometry));
   if (hits.length) openAreaPopup(map, hits[0], e.latlng);
 }
+/** @param {LeafletMap} map @param {string} id */
 export function revealArea(map, id) {
   const entry = (state._areaLayers || []).find(x => x.area.id === id);
   if (!entry) return;

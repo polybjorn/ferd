@@ -5,6 +5,15 @@ import { closeSelectPopover, enhanceSelectsIn } from './select.js';
 // a stack: each open call appends a dialog, each close removes the
 // topmost, which lets a confirm sit on top of an open modal without wiping
 // its listeners.
+/** @typedef {'sheet' | 'fullscreen' | 'top'} PhoneLayout */
+/** @typedef {{ phone?: PhoneLayout }} ModalOptions */
+/**
+ * @typedef {object} ModalEntry
+ * @property {HTMLDialogElement} backdrop
+ * @property {() => void} onClose
+ * @property {PhoneLayout} [phone]
+ */
+/** @type {ModalEntry[]} */
 export const modalStack = [];
 
 // A dialog is a head, a body that scrolls and an action row that stays in
@@ -12,6 +21,7 @@ export const modalStack = [];
 // (.ui-dialog-actions, last); everything between them goes into the body
 // here. When that is a single <form>, the body goes inside it, so the
 // submit button stays in the form.
+/** @param {HTMLDialogElement} dialog */
 function wrapDialogBody(dialog) {
   const rest = [...dialog.children].filter(c => !c.classList.contains('ui-dialog-head'));
   const box = rest.length === 1 && rest[0].tagName === 'FORM' ? rest[0] : dialog;
@@ -20,7 +30,7 @@ function wrapDialogBody(dialog) {
   const last = box.lastElementChild;
   const actions = last && last.classList.contains('ui-dialog-actions') ? last : null;
   [...box.childNodes].forEach(n => {
-    if (n === actions || (n.classList && n.classList.contains('ui-dialog-head'))) return;
+    if (n === actions || (n instanceof Element && n.classList.contains('ui-dialog-head'))) return;
     body.appendChild(n);
   });
   box.insertBefore(body, actions);
@@ -29,6 +39,10 @@ function wrapDialogBody(dialog) {
 // A press on the backdrop lands on the dialog itself, since its head, body
 // and actions fill it. A drag between two of those also clicks the dialog,
 // their nearest shared ancestor, so the press has to have started there.
+/**
+ * @param {HTMLDialogElement} dialog
+ * @param {() => void} close
+ */
 function closeOnBackdropClick(dialog, close) {
   let pressedBackdrop = false;
   dialog.addEventListener('pointerdown', e => { pressedBackdrop = e.target === dialog; });
@@ -41,6 +55,7 @@ function closeOnBackdropClick(dialog, close) {
 // too.
 const phoneQuery = window.matchMedia('(max-width: 600px)');
 const PHONE_LAYOUTS = { sheet: 'ui-dialog-sheet', fullscreen: 'ui-dialog-fullscreen', top: 'ui-dialog-top' };
+/** @param {ModalEntry} entry */
 function applyPhoneLayout(entry) {
   Object.values(PHONE_LAYOUTS).forEach(c => entry.backdrop.classList.remove(c));
   if (entry.phone && phoneQuery.matches) entry.backdrop.classList.add(PHONE_LAYOUTS[entry.phone]);
@@ -49,11 +64,17 @@ function applyPhoneLayout(entry) {
 // quarter of its height or on a flick; anything less springs back. Buttons
 // in the head keep their taps.
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+/**
+ * @param {HTMLDialogElement} dialog
+ * @param {() => void} close
+ */
 function dragToClose(dialog, close) {
+  /** @type {{ y: number, t: number, id: number, dy: number } | null} */
   let start = null;
   dialog.addEventListener('pointerdown', e => {
     if (!dialog.classList.contains('ui-dialog-sheet') || e.button !== 0) return;
-    if (!e.target.closest('.ui-dialog-handle, .ui-dialog-head') || e.target.closest('button, input, select, a')) return;
+    const target = /** @type {Element} */ (e.target);
+    if (!target.closest('.ui-dialog-handle, .ui-dialog-head') || target.closest('button, input, select, a')) return;
     start = { y: e.clientY, t: e.timeStamp, id: e.pointerId, dy: 0 };
     dialog.setPointerCapture(e.pointerId);
     dialog.style.transition = 'none';
@@ -63,6 +84,7 @@ function dragToClose(dialog, close) {
     start.dy = Math.max(0, e.clientY - start.y);
     dialog.style.transform = start.dy ? 'translateY(' + start.dy + 'px)' : '';
   });
+  /** @param {PointerEvent} e */
   const end = e => {
     if (!start || e.pointerId !== start.id) return;
     const { dy, t } = start;
@@ -81,7 +103,13 @@ phoneQuery.addEventListener('change', () => {
   fitModalsToKeyboard();
 });
 
-// opts.phone is 'sheet', 'fullscreen' or 'top'.
+/**
+ * @param {string} html
+ * @param {((dialog: HTMLDialogElement) => void) | null} [onMount]
+ * @param {(() => void) | null} [onClose]
+ * @param {ModalOptions} [opts]
+ * @returns {HTMLDialogElement}
+ */
 export function openModal(html, onMount, onClose, opts) {
   const root = document.getElementById('modal-root');
   const dialog = document.createElement('dialog');
@@ -93,7 +121,8 @@ export function openModal(html, onMount, onClose, opts) {
     dialog.insertAdjacentHTML('afterbegin', '<div class="ui-dialog-handle" aria-hidden="true"></div>');
   }
   root.appendChild(dialog);
-  const entry = { backdrop: dialog, onClose: null, phone: opts && opts.phone };
+  /** @type {ModalEntry} */
+  const entry = { backdrop: dialog, onClose: null, phone: opts ? opts.phone : undefined };
   applyPhoneLayout(entry);
   // Default close behavior: tear down this dialog. onClose overrides
   // run instead and may call closeModal()/closeTopModal() themselves.
@@ -126,9 +155,19 @@ export function openModal(html, onMount, onClose, opts) {
   return dialog;
 }
 
+/**
+ * @param {string} html
+ * @param {((dialog: HTMLDialogElement) => void) | null} [onMount]
+ * @param {(() => void) | null} [onClose]
+ */
 export function openFullScreenModal(html, onMount, onClose) {
   return openModal(html, onMount, onClose, { phone: 'fullscreen' });
 }
+/**
+ * @param {string} html
+ * @param {((dialog: HTMLDialogElement) => void) | null} [onMount]
+ * @param {(() => void) | null} [onClose]
+ */
 export function openSheetModal(html, onMount, onClose) {
   return openModal(html, onMount, onClose, { phone: 'sheet' });
 }
@@ -166,7 +205,7 @@ function fitModalsToKeyboard() {
   const covered = vv.scale < 1.01 && layoutHeight - vv.height > 120;
   modalStack.forEach(({ backdrop: dialog }) => {
     if (!covered) {
-      ['top', 'bottom', 'marginTop', 'maxHeight', 'height'].forEach(prop => { dialog.style[prop] = ''; });
+      /** @type {const} */ (['top', 'bottom', 'marginTop', 'maxHeight', 'height']).forEach(prop => { dialog.style[prop] = ''; });
       delete dialog.dataset.keyboardTop;
       return;
     }
@@ -182,7 +221,7 @@ function fitModalsToKeyboard() {
       return;
     }
     if (!dialog.dataset.keyboardTop) {
-      dialog.dataset.keyboardTop = Math.min(dialog.getBoundingClientRect().top, 64);
+      dialog.dataset.keyboardTop = String(Math.min(dialog.getBoundingClientRect().top, 64));
     }
     const gap = Number(dialog.dataset.keyboardTop);
     dialog.style.top = (vv.offsetTop + gap) + 'px';
@@ -205,18 +244,24 @@ function requestCloseTopModal() {
 // The Android app owns the back gesture, so the dialog's cancel event never
 // fires there. MainActivity calls this first, and goes back or exits on false.
 window.ferdCloseTopModal = requestCloseTopModal;
+/** @param {KeyboardEvent} e */
 function escClose(e) {
   if (e.key !== 'Escape') return;
   if (requestCloseTopModal()) e.preventDefault();
 }
 // The box sits at the end of the scrolling body, and a form saved from a
 // pinned action row may be scrolled well above it.
+/**
+ * @param {Element} el
+ * @param {string} msg
+ */
 export function showErrorBox(el, msg) {
   el.textContent = msg;
   el.classList.add('visible');
   el.scrollIntoView({ block: 'nearest' });
 }
 
+/** @param {string} msg */
 export function showModalError(msg) {
   const el = document.querySelector('.form-error');
   if (el) showErrorBox(el, msg);
