@@ -22,7 +22,6 @@ const dir = path.join(__dirname, '..', '..', 'app');
 // Lower these as views move to t(). Never raise them, and drop a line at 0.
 const TEMPLATES = {};
 const LITERALS = {
-  'app/places-list.js': 7,
 };
 const INNER_HTML = {
   'app/modal.js': 1,

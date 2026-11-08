@@ -24,7 +24,7 @@ from pathlib import Path
 DEFAULT_POLICY = (
   "default-src 'self'; "
   "script-src 'self' {importmap}; "
-  "style-src 'self' 'unsafe-inline'; "
+  "style-src 'self'; "
   # Place images are any URL a user pastes, and tiles come from every host in
   # site-config.json, so images and fetches take any https origin.
   "img-src 'self' data: blob: https:; "

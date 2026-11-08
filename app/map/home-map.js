@@ -1,5 +1,5 @@
 import {
-  addButton, displayCategory, displayRegion, setActiveTab, setCrumb, sortedCategorySlugs, state,
+  addButton, colourClass, displayCategory, displayRegion, setActiveTab, setCrumb, sortedCategorySlugs, state,
 } from '../core.js';
 import { gpxUrlFor, isReadOnly, routeStatusColor } from '../server.js';
 import { collapseCreditOnPhone, MapPanel } from './map-panel.js';
@@ -550,7 +550,7 @@ export function renderUnifiedMap(focus) {
 
 /** @param {string} cat */
 function categoryDot(cat) {
-  return html`<span class="legend-dot" style=${'background:' + /** @type {Record<string, string>} */ (state.categoryColors)[cat]}></span>`;
+  return html`<span class=${'legend-dot ' + colourClass(/** @type {Record<string, string>} */ (state.categoryColors)[cat])}></span>`;
 }
 
 function placesLegend() {

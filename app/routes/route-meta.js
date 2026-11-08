@@ -29,7 +29,7 @@ export function ratingStarsText(rating) {
   const filled = '★'.repeat(rating);
   const empty = 5 - rating;
   if (!empty) return filled;
-  return filled + '<span style="opacity:0.35">' + '★'.repeat(empty) + '</span>';
+  return filled + '<span class="stars-empty">' + '★'.repeat(empty) + '</span>';
 }
 
 // Keys of routes mid-move. The old key leaves the store before the new one

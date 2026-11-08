@@ -1,0 +1,14 @@
+/* The update notice in index.html. Unlayered on purpose: a browser without
+   cascade layers (before Chrome 99) drops every layered rule in ui.css and
+   app/app.css, so this is all it can still style. */
+#webview-notice {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  padding: 2rem 1.5rem;
+  background: #2e3440;
+  color: #eceff4;
+  font: 1rem/1.5 system-ui, sans-serif;
+}
+#webview-notice h1 { font-size: 1.25rem; margin: 0 0 0.75rem; }
+#webview-notice p { margin: 0 0 0.75rem; max-width: 36rem; }

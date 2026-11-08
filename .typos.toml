@@ -2,5 +2,7 @@
 extend-exclude = ["vendor/", "catalog.json"]
 
 [default.extend-words]
+# Norwegian, in the nb table of app/i18n.js.
+administrer = "administrer"
 ba = "ba"
 nam = "nam"

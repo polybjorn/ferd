@@ -1023,6 +1023,7 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 .history-meta { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); display: flex; align-items: baseline; gap: var(--ui-space-3); flex-wrap: wrap; }
 .history-stars { color: var(--accent); }
+.stars-empty { opacity: 0.35; }
 .history-note { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); }
 /* Gallery view: single column, image on top and larger. */
 .history-list.gallery .history-cards { display: grid; grid-template-columns: 1fr; gap: var(--ui-space-4); }
@@ -1087,6 +1088,8 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   object-fit: cover; border-radius: var(--radius); background: var(--surface2);
 }
 .catalog-diff-old .catalog-diff-image { opacity: 0.55; }
+.catalog-diff-image-url { color: var(--muted); font-size: var(--ui-text-xs); word-break: break-all; }
+.catalog-diff-none { color: var(--muted); }
 .catalog-diff-field.selectable:has(.catalog-diff-check:not(:checked)) .catalog-diff-old .catalog-diff-image { opacity: 1; }
 .catalog-diff-field.selectable:has(.catalog-diff-check:not(:checked)) .catalog-diff-new .catalog-diff-image { opacity: 0.55; }
 /* When a row is unchecked (user keeps local), invert the strike-through:
@@ -2703,6 +2706,7 @@ body.force-show-map-filter .map-panel {
 }
 .form-error {
   margin-top: var(--ui-space-3);
+  white-space: pre-line;
   padding: var(--ui-space-2) var(--ui-space-3);
   background: rgba(255,95,87,0.1);
   border: 1px solid rgba(255,95,87,0.3);
@@ -3037,4 +3041,9 @@ button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
   display: block;
   block-size: var(--ui-space-3);
 }
+
+/* With the WebGL route layer up it draws the routes, so the SVG route lines
+   and area outlines draw nothing (route-layer.js adds the class). */
+.gl-routes-active path.route-line { opacity: 0 !important; }
+.gl-routes-active path.area-shape { stroke-opacity: 0 !important; }
 } /* @layer app */

@@ -13,16 +13,18 @@ export const html = htm.bind(h);
 // Preact owns every child of the dialog, so a view renders its own head and
 // .ui-dialog-body, and a sheet would render its own handle. Unmounting on
 // close runs the effects' cleanups.
+// onClose replaces the default close, as it does for openModal.
 /**
  * @param {any} view
  * @param {import('./modal.js').ModalOptions} [opts]
+ * @param {(() => void) | null} [onClose]
  */
-export function openViewModal(view, opts) {
+export function openViewModal(view, opts, onClose) {
   return openModal('', (/** @type {HTMLDialogElement} */ dialog) => {
     dialog.replaceChildren();
     render(view, dialog);
     dialog.addEventListener('close', () => render(null, dialog));
-  }, null, opts);
+  }, onClose, opts);
 }
 
 // Replaces everything in `el` with a view, as an innerHTML write did: what

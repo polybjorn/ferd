@@ -65,9 +65,25 @@ function contextMenu() {
   const ctx = env();
   ctx.host = element();
   ctx.popoverHost = () => ctx.host;
+  // Stand-ins for htm and Preact's render: each entry the real ContextMenu
+  // returns becomes a fake element listening for click with the handler its
+  // template holds.
+  ctx.html = (strings, ...vals) => ({ vals });
+  ctx.render = (vnode, el) => {
+    el.kids.length = 0;
+    if (!vnode) return;
+    const [Component, items] = vnode.vals;
+    for (const entry of Component({ items })) {
+      const k = element();
+      const f = entry.vals.find(v => typeof v === 'function');
+      if (f) k.addEventListener('click', f);
+      el.appendChild(k);
+    }
+  };
   vm.runInContext(`let _ctxMenuEl = null;
 ${fn('closeContextMenu')}
 ${fn('openContextMenu')}
+${fn('ContextMenu')}
 ${fn('_ctxOutsideClick')}
 ${fn('_ctxKey')}
 ${fn('_ctxTeardown')}
