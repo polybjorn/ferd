@@ -344,6 +344,47 @@ class NoModalKit(unittest.TestCase):
     self.assertNotRegex(js, r"\bmodal-(?!tabs\b|root\b|title\b)[a-z]+\b[^(]")
 
 
+class MenuScript(unittest.TestCase):
+  """ui.js, the menu block's behaviour, ships wherever ui.css does."""
+
+  def test_loaded_deferred_before_the_app(self):
+    self.assertIn('<script src="/ui.js?v=__FERD_CACHE_VERSION__" defer></script>', INDEX)
+    self.assertLess(INDEX.index('src="/ui.js?'), INDEX.index('src="/app/main.js"'))
+
+  def test_same_release_as_the_stylesheet(self):
+    js = (ROOT / "ui.js").read_text(encoding="utf-8")
+    self.assertEqual(re.match(r"/\* ui\.js ([0-9.]+):", js).group(1),
+                     re.match(r"/\* ui\.css ([0-9.]+):", UI_CSS).group(1))
+
+  def test_precached_and_served_offline(self):
+    self.assertIn("'/ui.js'", SW)
+    self.assertIn("url.pathname === '/ui.js'", SW)
+
+  def test_android_and_install_bundle_it(self):
+    gradle = (ROOT / "android" / "app" / "build.gradle.kts").read_text(encoding="utf-8")
+    self.assertIn('"ui.js"', gradle)
+    self.assertIn(" ui.js ", (ROOT / "deploy" / "install.sh").read_text(encoding="utf-8"))
+
+
+class AccountMenu(unittest.TestCase):
+  """The wide screen's account menu is a ui.css menu that ui.js drives."""
+
+  AUTH = (ROOT / "app" / "auth.js").read_text(encoding="utf-8")
+
+  def test_menu_button_pattern(self):
+    for needle in ('class="ui-menu-anchor"', 'aria-haspopup="menu"', 'aria-controls="auth-menu"',
+                   'class="ui-menu ui-menu-end" id="auth-menu" role="menu"', 'class="ui-menu-head"',
+                   'role="menuitem"', '<hr class="ui-menu-sep">', "'ui-menu-item-danger'"):
+      self.assertIn(needle, self.AUTH)
+
+  def test_no_menu_code_of_its_own(self):
+    self.assertNotIn("outsideCloser", self.AUTH)
+    self.assertNotIn("_close", self.AUTH)
+    actions = (ROOT / "app" / "map" / "map-actions.js").read_text(encoding="utf-8")
+    self.assertNotIn("auth-menu", actions)
+    self.assertNotRegex(APP_CSS, r"\.auth-menu[\s{.\[]")
+
+
 class ModalHeight(unittest.TestCase):
   def test_modals_size_to_the_visible_screen(self):
     self.assertNotRegex(FRONTEND, r"\.ui-dialog[^{}]*\{[^{}]*height: calc\(100vh")

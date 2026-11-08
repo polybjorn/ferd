@@ -65,59 +65,48 @@ export function renderAuthWidget() {
     return;
   }
   const local = !hasServer();
+  // ui.js opens, closes and moves focus through the menu from this markup.
   el.innerHTML =
-    '<button id="auth-menu-btn" title="Account menu" aria-haspopup="true" aria-expanded="false">Menu</button>' +
-    '<div class="auth-menu" id="auth-menu" hidden>' +
-      (local
-        ? '<div class="auth-menu-header">Local map<strong>No account</strong></div>'
-        : '<div class="auth-menu-header">Signed in as<strong>' + escapeHtml(state.auth.username) + '</strong></div>') +
-      menuEntriesHtml(local) +
+    '<div class="ui-menu-anchor">' +
+      '<button type="button" id="auth-menu-btn" title="Account menu" aria-haspopup="menu" aria-expanded="false" aria-controls="auth-menu">Menu</button>' +
+      '<div class="ui-menu ui-menu-end" id="auth-menu" role="menu" aria-labelledby="auth-menu-head" hidden>' +
+        (local
+          ? '<p class="ui-menu-head" id="auth-menu-head">Local map</p>'
+          : '<p class="ui-menu-head" id="auth-menu-head">Signed in as <strong>' + escapeHtml(state.auth.username) + '</strong></p>') +
+        menuEntriesHtml(local, true) +
+      '</div>' +
     '</div>';
-  const btn = document.getElementById('auth-menu-btn');
-  const menu = document.getElementById('auth-menu');
-  // Outside-click closer is added on open and removed on close. We use the
-  // capture phase because Leaflet stops propagation on map-container clicks,
-  // which would otherwise leave the menu open when clicking the map.
-  function outsideCloser(ev) {
-    if (!el.contains(ev.target)) closeMenu();
-  }
-  function closeMenu() {
-    menu.hidden = true;
-    btn.setAttribute('aria-expanded', 'false');
-    document.removeEventListener('mousedown', outsideCloser, true);
-    document.removeEventListener('touchstart', outsideCloser, true);
-  }
-  /** @type {HTMLElement & { _close?: () => void }} */ (menu)._close = closeMenu;
-  function openMenu() {
-    closeTransientOverlays(menu);
-    menu.hidden = false;
-    btn.setAttribute('aria-expanded', 'true');
-    document.addEventListener('mousedown', outsideCloser, true);
-    document.addEventListener('touchstart', outsideCloser, true);
-  }
-  btn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    if (menu.hidden) openMenu(); else closeMenu();
+  // Only one floating overlay at a time: opening the menu closes a filter popover.
+  /** @type {HTMLElement} */ (document.getElementById('auth-menu-btn')).addEventListener('click', function() {
+    closeTransientOverlays();
   });
-  menu.addEventListener('click', function(e) {
+  /** @type {HTMLElement} */ (document.getElementById('auth-menu')).addEventListener('click', function(e) {
     const action = /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('button[data-action]'));
-    if (!action) return;
-    closeMenu();
-    runMenuAction(action.dataset.action);
+    if (action) runMenuAction(action.dataset.action);
   });
 }
 
 // The wide screen's menu and the phone's You sheet list the same entries.
-/** @param {boolean} local */
-function menuEntriesHtml(local) {
-  return '<button data-action="settings">Settings</button>' +
-    (local ? '' : '<button data-action="account">Account</button>') +
-    (state.auth.is_admin ? '<button data-action="admin">Admin</button>' : '') +
-    (logsEnabled() ? '<button data-action="logs">Logs</button>' : '') +
-    '<button data-action="about">About</button>' +
-    (local
-      ? '<button class="auth-menu-foot" data-action="connect">Connect to server</button>'
-      : '<button class="auth-menu-foot" data-action="signout">Sign out</button>');
+/**
+ * @param {boolean} local
+ * @param {boolean} [menu] the wide screen's menu, whose entries are menu items
+ */
+function menuEntriesHtml(local, menu) {
+  /** @param {string} action @param {string} label @param {string} [cls] */
+  const entry = (action, label, cls) => menu
+    ? '<button type="button" class="ui-menu-item' + (cls ? ' ' + cls : '') + '" role="menuitem" data-action="' + action + '">' + label + '</button>'
+    : '<button' + (cls ? ' class="' + cls + '"' : '') + ' data-action="' + action + '">' + label + '</button>';
+  // Sign out ends the session, so it sits apart from the rest.
+  const foot = local
+    ? entry('connect', 'Connect to server', menu ? '' : 'auth-menu-foot')
+    : entry('signout', 'Sign out', menu ? 'ui-menu-item-danger' : 'auth-menu-foot');
+  return entry('settings', 'Settings') +
+    (local ? '' : entry('account', 'Account')) +
+    (state.auth.is_admin ? entry('admin', 'Admin') : '') +
+    (logsEnabled() ? entry('logs', 'Logs') : '') +
+    entry('about', 'About') +
+    (menu ? '<hr class="ui-menu-sep">' : '') +
+    foot;
 }
 
 /** @param {string | undefined} action */

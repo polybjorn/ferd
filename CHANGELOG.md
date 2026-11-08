@@ -77,6 +77,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - On phones, Settings fits the screen: every tab and every option in a segmented row shows in full, and the dialog no longer scrolls sideways.
 - On a phone the map search panel sits above the map credit, so the credit no longer runs across its Places and Routes row.
 - On a phone or small tablet the map shows the update banner under the top bar, so it no longer covers the search panel. There it stays hidden while offline.
+- The account menu on a wide screen works from the keyboard: Enter or the down arrow opens it, the arrow keys, Home, End and typing a name move through its entries, and Escape closes it and returns to the Menu button. Screen readers announce it as a menu. Sign out now shows in the danger colour below a divider, and a local map's menu heading reads "Local map".
 
 ### Removed
 - The upgrade steps from 1.x. The server no longer copies a user's JSON files into `app.db` or moves data from before accounts on start, and the app no longer reads the device database 1.x left. See Changed for how to bring 1.x data over.

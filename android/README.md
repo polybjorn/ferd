@@ -1,7 +1,7 @@
 # Ferd for Android
 
 A thin WebView wrapper around the Ferd frontend, packaged as an installable
-Android app. The web UI (`index.html`, `ui.css`, `app/`, `vendor/`, `icons/`, `sw.js` from the
+Android app. The web UI (`index.html`, `ui.css`, `ui.js`, `app/`, `vendor/`, `icons/`, `sw.js` from the
 repo root) is bundled into the APK at build time and served from a secure
 in-app origin (`https://appassets.androidplatform.net/`).
 

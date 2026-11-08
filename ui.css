@@ -1,4 +1,4 @@
-/* ui.css 1.10.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.11.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -16,8 +16,11 @@
    2. Map the colours in a host layer. The defaults below are system colours,
       only good enough to stay legible:
         --ui-text, --ui-muted, --ui-surface, --ui-control-surface,
-        --ui-border, --ui-accent, --ui-on-accent, --ui-danger
-      --ui-on-accent is the text on an accent fill.
+        --ui-border, --ui-accent, --ui-on-accent, --ui-danger,
+        --ui-success, --ui-warning
+      --ui-on-accent is the text on an accent fill. --ui-success and
+      --ui-warning are for the host's own status marks and text, since no
+      block uses them yet; like --ui-danger they stay legible as text.
    3. Override any size token in a host layer. The names are shared; the
       values are per app. Each scale is a short list for the host's own CSS
       to move onto, as well as what the blocks use:
@@ -38,16 +41,21 @@
                   The bottom bar draws its top edge with it too
         sheet     --ui-sheet-width caps a sheet on a wide screen, and
                   --ui-radius-xl rounds its top corners. --ui-corner-gap is
-                  how far a sheet's or full-screen view's actions sit from the
-                  screen's side and bottom edges, clear of a rounded display
-                  corner; it is in px and stays off the spacing scale, since a
-                  display corner does not shrink with a denser app. A host's
-                  own last row in either reads it too
-        bar       --ui-bottom-bar-height, --ui-bottom-bar-display; the bar
-                  shows while --ui-bottom-bar-display is flex, so a host sets
+                  how far a sheet's or full-screen view's actions, and the
+                  bottom bar's items, sit from the screen's side and bottom
+                  edges, clear of a rounded display corner; it is in px and
+                  stays off the spacing scale, since a display corner does not
+                  shrink with a denser app. A host's own last row in a sheet
+                  or full-screen view reads it too
+        bar       --ui-bottom-bar-height, --ui-bottom-bar-display; the
+                  height is the items' row, and the bar adds its corner gap
+                  below it (see the bottom bar contract). The bar shows while --ui-bottom-bar-display is flex, so a host sets
                   it to none in its own media query wherever the bar should
                   not show, since a display: none from the host would lose to
                   the ui layer
+        focus     --ui-focus-width, --ui-focus-color; the ring every
+                  control draws when it takes keyboard focus. The colour
+                  follows --ui-accent until a host maps it
         touch     --ui-touch-target, the smallest height a control takes
                   under a coarse pointer. 3rem meets Android's 48dp and
                   Apple's 44pt
@@ -75,11 +83,31 @@
 
    Bottom bar contract: the bar sets no position. A host puts it where the
    layout ends, in the flow below a full-height column or fixed to the
-   bottom from its own layer, and reserves --ui-bottom-bar-height for it.
+   bottom from its own layer, and reserves its full height for it:
+   --ui-bottom-bar-height plus the gap below the items, which is
+   max(--ui-corner-gap, the bottom safe-area inset). The gap sits outside
+   --ui-bottom-bar-height because the items' content nearly fills it.
    aria-current="page" marks the item for the screen in view.
    .ui-bottom-bar-float lifts the bar off the screen edges by --ui-space-3,
    plus the safe area below it; content may run behind it, and a host that
    keeps something clear of it reserves the bar height and twice the gap.
+
+   Menu contract: a .ui-menu-anchor holds a trigger and its .ui-menu or
+   .ui-popover, which opens below it, at the start edge or with
+   .ui-menu-end or .ui-menu-center. The anchor must not stretch to its row's
+   height, or the menu opens under the row. A closed menu carries hidden.
+   An action menu follows the menu-button pattern: the trigger has
+   aria-haspopup="menu", aria-expanded and aria-controls, the menu has
+   role="menu", and each .ui-menu-item has role="menuitem",
+   "menuitemcheckbox" or "menuitemradio", with aria-checked on the last two.
+   A listbox has role="listbox" with option items and aria-selected. A
+   .ui-popover holds a form or text, and its trigger has no aria-haspopup.
+   .ui-menu-at opens a menu at a point, for a context menu, at
+   --ui-menu-x and --ui-menu-y; a menu inside a dialog uses it too, placed
+   from its trigger's box, so the dialog's scrolling body does not clip it.
+   Opening, closing, focus and placing a .ui-menu-at are script work:
+   ui.js does it from this markup, and an app with its own script keeps to
+   the same contract.
 
    Sheet handle contract: a .ui-dialog-handle as a sheet's first child shows
    that the sheet drags shut. It only draws, so a host adds it where its own
@@ -133,6 +161,8 @@
     --ui-bottom-bar-height: 3.5rem;
     --ui-bottom-bar-display: flex;
     --ui-touch-target: 3rem;
+    --ui-focus-width: 2px;
+    --ui-focus-color: var(--ui-accent);
 
     --ui-text: CanvasText;
     --ui-muted: GrayText;
@@ -142,6 +172,8 @@
     --ui-accent: LinkText;
     --ui-on-accent: Canvas;
     --ui-danger: #c62828;
+    --ui-success: #2e7d32;
+    --ui-warning: #a15c00;
   }
 }
 
@@ -228,8 +260,8 @@
   }
   /* Drawn inside the box, since a reveal clips whatever sticks out of it. */
   .ui-field :is(input, select, textarea):focus-visible {
-    outline: 2px solid var(--ui-accent);
-    outline-offset: -2px;
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: calc(-1 * var(--ui-focus-width));
   }
   .ui-field-invalid :is(input, select, textarea) { border-color: var(--ui-danger); }
   .ui-field :is(input, select, textarea):disabled {
@@ -325,8 +357,8 @@
     transform: rotate(45deg);
   }
   .ui-check:focus-visible {
-    outline: 2px solid var(--ui-accent);
-    outline-offset: 2px;
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: var(--ui-focus-width);
   }
 
   .ui-toggle-text {
@@ -399,8 +431,8 @@
     accent-color: var(--ui-accent);
   }
   :is(.ui-toggle-row, .ui-choice) > input:focus-visible {
-    outline: 2px solid var(--ui-accent);
-    outline-offset: 2px;
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: var(--ui-focus-width);
   }
 
   /* appearance: none takes the browser's own disabled look away, so the
@@ -455,8 +487,8 @@
     box-shadow: none;
   }
   .ui-button:focus-visible {
-    outline: 2px solid var(--ui-accent);
-    outline-offset: 2px;
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: var(--ui-focus-width);
   }
   /* A link has no disabled state of its own, so it takes aria-disabled and
      loses its href. */
@@ -620,13 +652,19 @@
   }
 
   /* min-inline-size: 0 because the items' labels never wrap, and without it
-     a bar inside a grid or flex column widens that column to fit them all. */
+     a bar inside a grid or flex column widens that column to fit them all.
+     The end items sit in a rounded display's corners, so the bar moves them
+     in from the sides and up from the bottom edge by --ui-corner-gap, as a
+     sheet's actions row does. A safe-area inset counts toward the gap rather
+     than adding to it. */
   .ui-bottom-bar {
     display: var(--ui-bottom-bar-display);
     box-sizing: border-box;
     min-inline-size: 0;
     margin: 0;
-    padding: 0 0 env(safe-area-inset-bottom, 0);
+    padding: 0 max(var(--ui-corner-gap), env(safe-area-inset-right, 0px))
+      max(var(--ui-corner-gap), env(safe-area-inset-bottom, 0px))
+      max(var(--ui-corner-gap), env(safe-area-inset-left, 0px));
     background: var(--ui-surface);
     border-block-start: 1px solid var(--ui-dialog-border);
   }
@@ -683,8 +721,8 @@
   }
   .ui-bottom-bar-item:where(:not(:disabled, [aria-disabled="true"])):hover { color: var(--ui-text); }
   .ui-bottom-bar-item:focus-visible {
-    outline: 2px solid var(--ui-accent);
-    outline-offset: -2px;
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: calc(-1 * var(--ui-focus-width));
   }
   .ui-bottom-bar-item:is(:disabled, [aria-disabled="true"]) {
     opacity: 0.5;
@@ -717,13 +755,126 @@
     }
   }
 
+  /* The anchor is what an anchored menu is placed against, so the trigger and
+     the menu share it. */
+  .ui-menu-anchor {
+    position: relative;
+    display: inline-block;
+  }
+  .ui-menu,
+  .ui-popover {
+    position: absolute;
+    inset-block-start: calc(100% + var(--ui-space-1));
+    inset-inline-start: 0;
+    z-index: var(--ui-z-dropdown);
+    box-sizing: border-box;
+    min-inline-size: 10rem;
+    max-inline-size: min(20rem, 100vw - 2 * var(--ui-space-4));
+    margin: 0;
+    color: var(--ui-text);
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-dialog-border);
+    border-radius: var(--ui-radius-lg);
+    box-shadow: var(--ui-shadow);
+    animation: ui-menu-in var(--ui-duration-fast) ease-out;
+  }
+  .ui-menu {
+    display: grid;
+    padding: var(--ui-space-1);
+  }
+  .ui-popover {
+    display: grid;
+    gap: var(--ui-space-3);
+    padding: var(--ui-space-3);
+  }
+  /* A fade only: a slide would need a transform, and the centred menu's
+     transform is what centres it. */
+  @keyframes ui-menu-in {
+    from { opacity: 0; }
+  }
+  .ui-menu-end { inset-inline: auto 0; }
+  .ui-menu-center {
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+  }
+  /* Fixed, so a dialog's scrolling body does not clip a menu mounted inside
+     it. The script that opens it sets both properties on the menu. */
+  .ui-menu-at {
+    position: fixed;
+    inset-block-start: var(--ui-menu-y, 0);
+    inset-inline: var(--ui-menu-x, 0) auto;
+    transform: none;
+  }
+
+  .ui-menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-2);
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-block-size: var(--ui-control-height);
+    margin: 0;
+    padding: var(--ui-space-1) var(--ui-space-3);
+    font: inherit;
+    font-size: var(--ui-text-sm);
+    color: var(--ui-text);
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    border-radius: var(--ui-radius-sm);
+  }
+  .ui-menu-item-danger { color: var(--ui-danger); }
+  /* The control surface, which tools/contrast.py already holds every text
+     colour to. A tint of the item's own colour would sit closer to it and
+     drop below 4.5:1 on a host whose colours are near the floor. */
+  .ui-menu-item:where(:not(:disabled, [aria-disabled="true"])):hover,
+  .ui-menu-item:focus-visible { background: var(--ui-control-surface); }
+  /* Inside, since the menu's own edge is the next thing out. */
+  .ui-menu-item:focus-visible {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: calc(-1 * var(--ui-focus-width));
+  }
+  .ui-menu-item:is(:disabled, [aria-disabled="true"]) {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  /* Checkable and option rows keep a column for the tick, so checked and
+     unchecked labels line up. */
+  .ui-menu-item:is([aria-checked], [role="option"])::before {
+    content: "";
+    flex: none;
+    box-sizing: border-box;
+    inline-size: 0.9em;
+    block-size: 0.5em;
+    border-inline-start: 2px solid transparent;
+    border-block-end: 2px solid transparent;
+    /* Lifted, since a rotated L sits below the middle of its box. */
+    transform: translateY(-0.1em) rotate(-45deg);
+  }
+  .ui-menu-item:is([aria-checked="true"], [aria-selected="true"])::before { border-color: currentColor; }
+  .ui-menu-sep {
+    margin: var(--ui-space-1) calc(-1 * var(--ui-space-1));
+    border: 0;
+    border-block-start: 1px solid var(--ui-dialog-border);
+  }
+  .ui-menu-head {
+    margin: 0;
+    padding: var(--ui-space-2) var(--ui-space-3) var(--ui-space-1);
+    font-size: var(--ui-text-xs);
+    color: var(--ui-muted);
+    overflow-wrap: anywhere;
+  }
+
   /* Every display above beats the browser's own [hidden] rule, so a block
      carrying the hidden attribute would still show. .ui-dialog[open] in the
      list lifts this rule over all of them, whatever their order. */
   :is(.ui-section, .ui-field, .ui-field-label, .ui-field-row, .ui-control-row,
       .ui-toggle-row, .ui-toggle-text, .ui-choice-list, .ui-choice, .ui-button,
       .ui-dialog[open], .ui-dialog-head, .ui-dialog-actions, .ui-bottom-bar,
-      .ui-bottom-bar-item)[hidden] {
+      .ui-bottom-bar-item, .ui-menu-anchor, .ui-menu, .ui-popover,
+      .ui-menu-item)[hidden] {
     display: none;
   }
 
@@ -731,7 +882,9 @@
     .ui-button { transition: none; }
     .ui-dialog[open],
     .ui-dialog::backdrop,
-    .ui-dialog-sheet[open] { animation: none; }
+    .ui-dialog-sheet[open],
+    .ui-menu,
+    .ui-popover { animation: none; }
     .ui-toggle-row > input[type="checkbox"],
     .ui-toggle-row > input[type="checkbox"]::after { transition: none; }
   }
@@ -765,6 +918,14 @@
     .ui-button:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: Highlight; }
     .ui-bottom-bar-item[aria-current="page"],
     .ui-bottom-bar-item[aria-current="page"] > svg { color: Highlight; }
+    /* Forced colours replace the fill, so the item turns to the system
+       selection colours instead. */
+    .ui-menu-item:where(:not(:disabled, [aria-disabled="true"])):hover,
+    .ui-menu-item:focus-visible {
+      forced-color-adjust: none;
+      color: HighlightText;
+      background: Highlight;
+    }
   }
 
   /* A finger needs a bigger target than a mouse, and only a coarse pointer
@@ -775,7 +936,8 @@
     .ui-field :is(input:where(:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"])), select),
     .ui-control-row,
     .ui-toggle-row,
-    .ui-choice { min-block-size: var(--ui-touch-target); }
+    .ui-choice,
+    .ui-menu-item { min-block-size: var(--ui-touch-target); }
     .ui-dialog-close { inline-size: var(--ui-touch-target); }
   }
 }

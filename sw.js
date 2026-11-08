@@ -16,6 +16,7 @@ const SHELL_ASSETS = [
   '/',
   '/index.html',
   '/ui.css',
+  '/ui.js',
   '/app/add/add.js',
   '/app/add/browse.js',
   '/app/app.css',
@@ -231,7 +232,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.pathname === '/ui.css' || url.pathname.startsWith('/app/')) {
+  if (url.pathname === '/ui.css' || url.pathname === '/ui.js' || url.pathname.startsWith('/app/')) {
     event.respondWith(networkThenShell(req));
     return;
   }
