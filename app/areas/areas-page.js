@@ -41,7 +41,7 @@ function AreaCard({ a, visited, note }) {
   area.current = a;
   useEffect(() => { if (ref.current) attachContextMenu(ref.current, () => menuItems(area.current)); }, []);
   return html`<div class="place-card area-card" ref=${ref} data-area-id=${a.id} onClick=${() => showOnMap(a)}>
-    <span class=${'status-dot ' + (visited ? 'visited' : 'want')}></span>
+    <span class=${'ui-dot ' + (visited ? 'dot-visited' : 'dot-want')}></span>
     <div class="place-text">
       <div class="name">${a.name}</div>
       ${note && html`<div class="note">${note}</div>`}

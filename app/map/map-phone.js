@@ -56,7 +56,10 @@ if (barSearch) barSearch.addEventListener('click', openSearchView);
 export function openSearchView() {
   openModal(
     '<div class="ui-dialog-head map-search-head">' +
-      '<div class="ui-field map-search-field"><input type="search" id="map-search-view-input" aria-label="Search" placeholder="Search places, areas and routes" enterkeyhint="search" autocomplete="off"></div>' +
+      '<div class="ui-field map-search-field"><form class="ui-search" id="map-search-view-form" method="dialog">' +
+        '<input type="search" id="map-search-view-input" aria-label="Search" placeholder="Search places, areas and routes" enterkeyhint="search" autocomplete="off">' +
+        '<button class="ui-button ui-button-quiet ui-search-clear" type="reset" aria-label="Clear">&times;</button>' +
+      '</form></div>' +
       '<button type="button" class="ui-button ui-button-quiet ui-dialog-close" aria-label="Close">&times;</button>' +
     '</div>' +
     '<div class="map-search-list" id="map-search-view-list"></div>',
@@ -92,6 +95,8 @@ export function openSearchView() {
         keys.refresh(!!(found || recent));
       };
       input.addEventListener('input', render);
+      // method="dialog" would close this dialog on Enter with no row active.
+      dialog.querySelector('#map-search-view-form').addEventListener('submit', (/** @type {Event} */ e) => e.preventDefault());
       render();
       list.addEventListener('click', function(e) {
         if (e.target.closest('[data-clear-recent]')) {

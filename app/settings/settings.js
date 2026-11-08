@@ -143,8 +143,8 @@ function SettingsView({ tabs, env }) {
   // picker, so each tab switch themes the panels again, as the Add dialog does.
   useEffect(() => { enhanceSelectsIn(body.current); }, [tab]);
   // The menu item already named the dialog, so tabs take the title's place.
-  const lead = tabs.length > 1 && html`<div class="modal-tabs" id="settings-tabs">
-    ${tabs.map(name => html`<button key=${name} data-tab=${name} class=${name === tab ? 'active' : undefined} onClick=${() => setTab(name)}>${t(SETTINGS_TAB_LABELS[name])}</button>`)}
+  const lead = tabs.length > 1 && html`<div class="ui-tabs" id="settings-tabs">
+    ${tabs.map(name => html`<button type="button" key=${name} data-tab=${name} class="ui-tab" aria-pressed=${String(name === tab)} onClick=${() => setTab(name)}>${t(SETTINGS_TAB_LABELS[name])}</button>`)}
   </div>`;
   /** @type {(name: string, body: any) => any} */
   const panel = (name, body) => tabs.includes(name) &&
@@ -531,8 +531,8 @@ function PublicSharing() {
     <h3 class="settings-h">${t('account.publicSharing')}</h3>
     <div>
       <${Toggle} id="s-publish" label=${t('account.makePublic')} initial=${state.auth.published} onToggle=${toggle} />
-      <div id="s-publish-link" class=${'collapsible' + (linkOpen ? ' expanded' : '')}>
-        <div class="collapsible-inner">
+      <div id="s-publish-link" class=${'ui-collapse' + (linkOpen ? ' open' : '')}>
+        <div class="ui-collapse-body"><div class="collapse-inner">
           <${Field} id="s-publish-url" label=${t('account.publicLink')}>
             <div class="ui-control-row">
               <input type="text" id="s-publish-url" readonly value=${location.origin + '/u/' + (state.auth.username || '') + '/'} ref=${urlRef} />
@@ -540,7 +540,7 @@ function PublicSharing() {
             </div>
             <p class="ui-hint">${t('account.publicLinkHint')}</p>
           <//>
-        </div>
+        </div></div>
       </div>
     </div>`;
 }

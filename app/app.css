@@ -20,11 +20,11 @@ button { min-height: 24px; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 /* Drawn inside the box, since scrolling panels and the map clip whatever
    sticks out of it. */
-:is(input:not([type="checkbox"], [type="radio"]), select, textarea, button, [role="button"], .view-tabs a, .leaflet-container):focus-visible {
+:is(input:not([type="checkbox"], [type="radio"]), select, textarea, button, [role="button"], .leaflet-container):focus-visible {
   outline-offset: -2px;
 }
 /* An accent ring vanishes on an accent fill, and a swatch can be any colour. */
-:is(button.primary, button.nav-action-btn, .view-tabs a.active):focus-visible { outline-color: currentColor; }
+:is(button.primary, button.nav-action-btn):focus-visible { outline-color: currentColor; }
 button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
 /* These clip what sticks out, and a checkbox ring sits outside the box. */
 #browse-list, #cat-list { margin-inline: -4px; padding-inline: 4px; }
@@ -486,29 +486,7 @@ a:hover { opacity: 0.8; }
 .nav-stat a { color: var(--accent); text-decoration: none; display: flex; align-items: center; gap: var(--ui-space-1); }
 .nav-stat a:hover { text-decoration: underline; }
 
-.view-tabs {
-  display: flex;
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius);
-  overflow: hidden;
-  flex-shrink: 0;
-  justify-self: center;
-}
-.view-tabs a {
-  display: inline-flex;
-  align-items: center;
-  color: var(--muted);
-  text-decoration: none;
-  font-size: var(--ui-text-sm);
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: 0.03em;
-  padding: var(--ui-space-2) var(--ui-space-3);
-  transition: background var(--ui-duration-fast), color var(--ui-duration-fast);
-}
-.view-tabs a + a { border-left: 1px solid var(--border); }
-.view-tabs a:hover { color: var(--text); opacity: 1; }
-.view-tabs a.active { background: var(--surface2); color: var(--text); }
+.nav-tabs { flex-shrink: 0; justify-self: center; }
 
 .nav-actions { display: flex; align-items: center; gap: var(--ui-space-2); }
 .nav-actions:empty { display: none; }
@@ -955,29 +933,6 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 .country-list:not([hidden]) { animation: country-list-in var(--ui-duration-slow) ease-in-out; }
 @keyframes country-list-in { from { opacity: 0; transform: translateY(-4px); } }
 
-.group-toggle {
-  display: flex;
-  flex-shrink: 0;
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-.group-toggle button {
-  background: transparent;
-  border: none;
-  color: var(--muted);
-  font-size: var(--ui-text-sm);
-  font-weight: 400;
-  font-family: inherit;
-  padding: var(--ui-space-2) var(--ui-space-3);
-  cursor: pointer;
-  transition: background var(--ui-duration-fast), color var(--ui-duration-fast);
-  letter-spacing: 0.03em;
-}
-.group-toggle button + button { border-left: 1px solid var(--border); }
-.group-toggle button.active { background: var(--surface2); color: var(--text); }
-.group-toggle button:hover:not(.active) { color: var(--text); }
-
 .place-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 460px));
@@ -1006,7 +961,7 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   }
 }
 .place-card { align-items: flex-start; }
-.place-card .status-dot { margin-top: var(--ui-space-1); }
+.place-card .ui-dot { margin-top: var(--ui-space-1); }
 .place-card .place-text { min-width: 0; flex: 1; }
 .place-card .name { font-size: var(--ui-text-sm); font-weight: 300; }
 .place-card .note { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); }
@@ -1149,17 +1104,11 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   #catalog-update-confirm .lbl-alt { transition: none; }
 }
 
-.status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  box-sizing: border-box;
-}
-.status-dot.visited { background: var(--text); }
-.status-dot.completed { background: var(--status-completed); }
-.status-dot.want { background: transparent; border: 1.5px solid var(--text); }
-.status-dot.planned { background: transparent; border: 1.5px solid var(--status-planned); }
+/* A hollow dot draws its ring as a shadow, since the ui layer owns the fill. */
+.dot-visited { --ui-dot-color: var(--text); }
+.dot-want { --ui-dot-color: transparent; box-shadow: inset 0 0 0 1.5px var(--text); }
+.dot-completed { --ui-dot-color: var(--status-completed); }
+.dot-planned { --ui-dot-color: transparent; box-shadow: inset 0 0 0 1.5px var(--status-planned); }
 
 /* Routes index */
 .route-grid {
@@ -1236,20 +1185,6 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   padding: var(--ui-space-2) var(--ui-space-3);
   position: relative;
 }
-
-.panel-search input {
-  width: 100%;
-  padding: var(--ui-space-2) var(--ui-space-2);
-  background: var(--surface2);
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-size: var(--ui-text-xs);
-  font-weight: 300;
-  font-family: inherit;
-  transition: border-color var(--ui-duration-fast);
-}
-.panel-search input:focus { border-color: var(--accent); }
 
 .map-search-results {
   position: absolute;
@@ -1397,32 +1332,12 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 .filter-chips { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); }
 .filter-chips + .filter-chips { margin-top: var(--ui-space-2); }
-.ui-dialog button.filter-chip:not(.ui-dialog-close) {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ui-space-2);
-  height: 2rem;
-  padding: 0 var(--ui-space-3);
-  font-size: var(--ui-text-sm);
-  letter-spacing: normal;
-  white-space: nowrap;
-  border-radius: var(--ui-radius-lg);
-}
-.ui-dialog button.filter-chip[aria-pressed="true"]:not(.ui-dialog-close) { color: var(--text); background: var(--surface2); border-color: transparent; }
-@supports (background: color-mix(in srgb, red 50%, transparent)) {
-  .ui-dialog button.filter-chip[aria-pressed="true"]:not(.ui-dialog-close) { background: color-mix(in srgb, var(--accent) 22%, transparent); }
-}
-.filter-chip[aria-pressed="false"] :is(.legend-dot, .status-dot) { opacity: 0.35; }
-.filter-chip .legend-dot { margin: 0; }
+.ui-chip .legend-dot { margin: 0; }
 .filter-chip-check { display: none; width: 16px; height: 16px; flex: none; }
-.filter-chip[aria-pressed="true"] .filter-chip-check { display: block; }
+.ui-chip[aria-pressed="true"] .filter-chip-check { display: block; }
 @media (pointer: coarse) {
   .leaflet-container { --map-btn-size: var(--ui-touch-target); }
   .map-search-list .map-search-result { min-block-size: var(--ui-touch-target); box-sizing: border-box; }
-  /* A chip stays small to keep the set short, and takes a taller hit area
-     that reaches halfway into the gap on each side. */
-  .filter-chip::after { content: ''; position: absolute; inset: calc(var(--ui-space-2) / -2); }
   .ui-dialog button.filter-sheet-link:not(.ui-dialog-close) { min-block-size: var(--ui-touch-target); }
   /* Clear stays one line of small caps, so the row keeps its height, and
      takes a full-height hit area that overlaps the space around it. */
@@ -1434,59 +1349,34 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 
 /* Filter panel sections */
-.panel-tabs {
+.panel-heads {
   display: flex;
   border-top: 1px solid var(--border);
 }
-.panel-tab {
+.panel-head {
   flex: 1;
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: var(--ui-space-2);
-  padding: var(--ui-space-2) var(--ui-space-3);
-  cursor: pointer;
-  user-select: none;
-  font-size: var(--ui-text-xs);
-  font-weight: 400;
-  color: var(--text);
+  border-radius: 0;
   letter-spacing: 0.03em;
 }
-.panel-tab + .panel-tab { border-left: 1px solid var(--border); }
-.panel-tab .section-arrow {
+.panel-head + .panel-head { border-inline-start: 1px solid var(--border); }
+.panel-head .section-arrow {
   display: inline-flex;
   color: var(--muted);
   transition: transform var(--ui-duration-fast);
 }
-.panel-tab .section-arrow svg { width: 0.85rem; height: 0.85rem; display: block; }
-/* Tabs sit at the panel bottom and the list opens upward, so a collapsed
-   tab points up (open upward) and an open tab points down (collapse). */
-.panel-tab:not(.expanded) .section-arrow { transform: rotate(180deg); }
-/* Accordion height animation: the section is a grid that animates its row
-   from 0fr (collapsed) to 1fr (open). Keeps the body rendered the whole
-   time so it animates reliably (a display:none body won't transition). */
-.panel-section {
-  display: grid;
-  grid-template-rows: 0fr;
-  opacity: 0;
-  transition: grid-template-rows var(--ui-duration-base) ease, opacity var(--ui-duration-base) ease;
-}
-.panel-section:not(.collapsed) { grid-template-rows: 1fr; opacity: 1; }
-@media (prefers-reduced-motion: reduce) {
-  .panel-section { transition: none; }
-}
+.panel-head .section-arrow svg { width: 0.85rem; height: 0.85rem; display: block; }
+/* The heads sit at the panel bottom and the list opens upward, so a closed
+   head points up and an open one points down. */
+.panel-head[aria-expanded="false"] .section-arrow { transform: rotate(180deg); }
 
+/* The border and padding sit inside the collapse body, which clips them
+   to nothing while the section is closed. */
 .panel-section-body {
   box-sizing: border-box;
-  overflow: hidden;
-  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-1);
-}
-/* Border + padding only when open, so a collapsed section (incl. its
-   non-compressible padding) flattens to nothing instead of leaving a gap. */
-.panel-section:not(.collapsed) .panel-section-body {
   border-top: 1px solid var(--border);
   padding: var(--ui-space-2) var(--ui-space-3);
 }
@@ -1531,45 +1421,25 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
    shift when Visited <-> Completed swaps. Done chip pins left, Toggle all
    pins right. */
 .panel-status {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--ui-space-1);
   margin-top: 0;
   padding: var(--ui-space-2) var(--ui-space-3);
 }
-.panel-status > .status-chip:first-child { justify-self: start; }
-.panel-status > .panel-toggle-all { justify-self: end; }
+.panel-status .ui-chip { overflow-wrap: normal; white-space: nowrap; }
+.panel-status > .panel-toggle-all { margin-inline-start: auto; }
 
-.status-chip {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-1);
-  font-size: var(--ui-text-xs);
-  color: var(--text);
-  cursor: pointer;
-  user-select: none;
-  padding: var(--ui-space-1) var(--ui-space-2);
-  border: 1px solid var(--control-border);
-  border-radius: var(--ui-radius-sm);
-  transition: opacity var(--ui-duration-fast), border-color var(--ui-duration-fast), color var(--ui-duration-fast);
-}
-.status-chip.active { border-color: var(--muted); }
-/* On = white label + full dot; off = grey label + faded dot. Toggle-all is
-   an action, not a toggle, so it stays white. */
-.status-chip .status-dot { transition: opacity var(--ui-duration-fast); }
-.status-chip:not(.active):not(.panel-toggle-all) { color: var(--muted); }
-.status-chip:not(.active) .status-dot { opacity: 0.2; }
-.status-chip:hover { border-color: var(--muted); }
-.legend-item, .status-chip { transform-origin: center; }
-.legend-item.pulse, .status-chip.pulse { animation: chip-pulse var(--ui-duration-base) ease-out; }
+.legend-item, .panel-status .ui-chip { transform-origin: center; }
+.legend-item.pulse, .panel-status .ui-chip.pulse { animation: chip-pulse var(--ui-duration-base) ease-out; }
 @keyframes chip-pulse {
   0%   { transform: scale(1); }
   50%  { transform: scale(1.08); }
   100% { transform: scale(1); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .legend-item.pulse, .status-chip.pulse { animation: none !important; }
+  .legend-item.pulse, .panel-status .ui-chip.pulse { animation: none !important; }
 }
 
 /* Routes detail view */
@@ -1949,8 +1819,8 @@ body.signin-only #app {
   color: var(--danger);
 }
 .signin-public-chevron { transition: transform var(--ui-duration-base) ease; font-size: var(--ui-text-xs); }
-.signin-public-toggle.expanded .signin-public-chevron { transform: rotate(180deg); }
-#signin-public-collapsible.expanded .collapsible-inner { padding-top: var(--ui-space-2); max-height: 40vh; overflow-y: auto; }
+.signin-public-toggle[aria-expanded="true"] .signin-public-chevron { transform: rotate(180deg); }
+#signin-public-collapsible.open .collapse-inner { padding-top: var(--ui-space-2); max-height: 40vh; overflow-y: auto; }
 .public-maps-list { display: flex; flex-direction: column; gap: var(--ui-space-2); }
 .public-maps-item {
   display: block;
@@ -2273,7 +2143,7 @@ body.signin-only #app {
 }
 @media (max-width: 600px) {
   /* The bar takes over from the tabs, and its You page from the menu. */
-  .app-nav .view-tabs,
+  .app-nav .nav-tabs,
   .auth-widget { display: none; }
   /* With the tabs gone, drop the empty middle column so the brand stays
      left and the actions stay hard right (otherwise nav-right auto-places
@@ -2482,17 +2352,16 @@ body.force-show-map-filter .map-panel {
 .catalog-eye-btn:hover:not(:disabled) { color: var(--text); border-color: var(--muted); }
 .catalog-eye-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .ui-dialog input.dirty { border-color: var(--accent); }
-.row-tag {
-  font-size: var(--ui-text-xs);
-  color: var(--muted);
+.tag-end {
   flex: 0 0 5rem;
-  text-align: right;
+  justify-content: flex-end;
 }
-.row-tag.dirty {
-  color: var(--accent);
+/* The ui layer owns the badge colour, so a dirty tag moves its token. */
+.tag-dirty {
+  --ui-muted: var(--accent);
   animation: rowTagIn var(--ui-duration-base) ease-out;
 }
-.row-tag.in-input {
+.tag-inside {
   position: absolute;
   right: 0.5rem;
   top: 50%;
@@ -2506,11 +2375,10 @@ body.force-show-map-filter .map-panel {
 @media (prefers-reduced-motion: reduce) {
   .cat-row { transition: none !important; }
 }
-.row-tag:empty { display: none; }
-/* The base .row-tag.dirty animation uses translateX(6px) which would wipe
+/* The base .tag-dirty animation uses translateX(6px) which would wipe
    the translateY(-50%) that vertical-centers the in-input badge, causing
    it to flash from the lower-right corner. Use a paired-axis keyframe. */
-.row-tag.in-input.dirty { animation: rowTagInInside var(--ui-duration-base) ease-out; }
+.tag-inside.tag-dirty { animation: rowTagInInside var(--ui-duration-base) ease-out; }
 @keyframes rowTagInInside {
   from { opacity: 0; transform: translate(6px, -50%); }
   to   { opacity: 1; transform: translate(0, -50%); }
@@ -2519,98 +2387,12 @@ body.force-show-map-filter .map-panel {
 /* While the input is focused, give it full width and snap-hide the badge
    so the user only sees "edited" after they leave the field. */
 .cat-input-wrap:has(.cat-display:focus) > .cat-display { padding-right: var(--ui-space-3); }
-.cat-input-wrap:has(.cat-display:focus) .row-tag.in-input { display: none; }
+.cat-input-wrap:has(.cat-display:focus) .tag-inside { display: none; }
 @keyframes rowTagIn {
   from { opacity: 0; transform: translateX(6px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
-.radio-row {
-  display: flex;
-  row-gap: var(--ui-space-2);
-  column-gap: var(--ui-space-4);
-  flex-wrap: wrap;
-}
-/* Two-column wrapper for stacking related toggles side by side. */
-.toggle-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: var(--ui-space-4);
-}
-.radio-row label {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ui-space-2);
-  margin: 0;
-  text-transform: none;
-  letter-spacing: 0;
-  font-size: var(--ui-text-sm);
-  color: var(--text);
-  cursor: pointer;
-}
-.radio-row input { width: auto; }
-/* Pill variant of radio-row: each option is a clickable pill, the checked
-   one picks up the accent border + background. Single-select. */
-.radio-row.radio-pills > label {
-  padding: var(--ui-space-1) var(--ui-space-3);
-  border: 1px solid var(--control-border);
-  border-radius: var(--ui-radius-full);
-  background: var(--surface2);
-  color: var(--muted);
-  transition: border-color var(--ui-duration-fast), color var(--ui-duration-fast), background var(--ui-duration-fast);
-}
-.radio-row.radio-pills > label:hover { border-color: var(--muted); color: var(--text); }
-.radio-row.radio-pills > label:has(input:checked) {
-  border-color: var(--accent);
-  color: var(--text);
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface2));
-}
-.radio-row.radio-pills input { display: none; }
-/* Segmented variant: options butted into one connected bar (shared outer
-   border, dividers between), single-select, no wrap. Used where separate
-   pills would waste horizontal space or wrap (e.g. token scope/expiry). */
-.radio-row.radio-segmented {
-  display: flex;
-  width: 100%;
-  flex-wrap: nowrap;
-  column-gap: 0;
-  row-gap: 0;
-  border: 1px solid var(--control-border);
-  border-radius: var(--ui-radius-full);
-  overflow: hidden;
-}
-.radio-row.radio-segmented > label {
-  flex: 1 1 0;
-  text-align: center;
-  margin: 0;
-  padding: var(--ui-space-2) var(--ui-space-3);
-  border-radius: 0;
-  border-left: 1px solid var(--border);
-  background: var(--surface2);
-  color: var(--muted);
-  white-space: nowrap;
-  transition: color var(--ui-duration-fast), background var(--ui-duration-fast);
-}
-.radio-row.radio-segmented > label:first-child { border-left: none; }
-.radio-row.radio-segmented > label:hover { color: var(--text); }
-/* Selection is shown by fill alone (no per-cell outline): an accent border
-   can't follow the connected bar's shape - square inner corners at the
-   dividers and a clash with the rounded ends. The fill clips cleanly to the
-   container's radius. Stronger tint than .feature-pill since there's no
-   border to reinforce it. */
-.radio-row.radio-segmented > label:has(input:checked) {
-  color: var(--text);
-  background: color-mix(in srgb, var(--accent) 22%, var(--surface2));
-}
-.radio-row.radio-segmented input { display: none; }
-/* A segmented bar never wraps, so a phone gives it the whole row and it
-   clips no option. Settings tabs share the head with Close: one that doesn't
-   fit starts a second row instead of scrolling the dialog. */
-@media (max-width: 600px) {
-  .radio-row.radio-segmented > label { flex-basis: auto; padding-inline: var(--ui-space-2); white-space: normal; }
-  #settings-tabs { flex-wrap: wrap; }
-  #settings-tabs button { flex: 1 1 auto; letter-spacing: 0; padding-inline: var(--ui-space-1); }
-}
 /* Clickable star rating: filled stars use accent, empty are muted.
    Hovering the row previews the rating up to the cursor via .preview. */
 .star-rating {
@@ -2656,7 +2438,7 @@ body.force-show-map-filter .map-panel {
 .ui-dialog .action-spacer { flex: 1; }
 .ui-dialog .title-count { color: var(--muted); margin-left: var(--ui-space-2); }
 /* The Add modal's tabs are its head. */
-.ui-dialog .ui-dialog-head > .modal-tabs { flex: 1; min-width: 0; margin: 0 0 calc(-1 * var(--ui-space-2) - 1px); border-bottom: 0; }
+.ui-dialog .ui-dialog-head > .ui-tabs { flex: 1; min-width: 0; margin-bottom: 0; box-shadow: none; }
 
 /* Tall modals keep 3rem clear above and below. The insets size the dialog
    to the visible screen, where 100vh would count the space behind a phone
@@ -2718,11 +2500,7 @@ body.force-show-map-filter .map-panel {
   color: var(--text);
   margin-bottom: var(--ui-space-4);
 }
-.modal-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: var(--ui-space-4);
-}
+.ui-dialog .ui-tabs { margin-bottom: var(--ui-space-4); }
 .ui-dialog .dialog-desc { font-size: var(--ui-text-sm); color: var(--text); margin-top: var(--ui-space-2); }
 .ui-dialog .confirm-row { align-items: center; display: flex; gap: var(--ui-space-3); margin-top: var(--ui-space-3); }
 .ui-dialog .confirm-row .dialog-desc { flex: 1; margin-top: 0; min-width: 0; overflow-wrap: anywhere; }
@@ -2805,17 +2583,6 @@ body.force-show-map-filter .map-panel {
 .area-result-kind::first-letter { text-transform: uppercase; }
 .area-result-detail { grid-column: 1 / -1; }
 .ui-dialog .file-picker .file-name { font-size: var(--ui-text-sm); color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* Collapsible block. Toggle the .expanded class to animate height + opacity.
-   Uses grid-template-rows 0fr -> 1fr (smooth, no max-height guessing). */
-.collapsible {
-  display: grid;
-  grid-template-rows: 0fr;
-  opacity: 0;
-  visibility: hidden;
-  transition: grid-template-rows var(--ui-duration-slow) ease, opacity var(--ui-duration-slow) ease, visibility var(--ui-duration-slow);
-}
-.collapsible.expanded { grid-template-rows: 1fr; opacity: 1; visibility: visible; }
-.collapsible > .collapsible-inner { overflow: hidden; min-height: 0; }
 .ui-dialog input[type="file"].file-input-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
 #p-coords-manual { line-height: 24px; }
 .ui-dialog .backup-sub { font-size: var(--ui-text-xs); font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
@@ -2823,20 +2590,6 @@ body.force-show-map-filter .map-panel {
 .ui-dialog h3.sessions-h { display: flex; align-items: baseline; gap: var(--ui-space-3); }
 .ui-dialog button.sessions-revoke-others:not(h2 .ui-dialog-close) { margin-left: auto; font-size: var(--ui-text-xs); font-weight: 400; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0; letter-spacing: 0; }
 .ui-dialog button.sessions-revoke-others:not(h2 .ui-dialog-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
-:is(.ui-dialog, .signin-card) .modal-tabs button:not(.ui-dialog-close) {
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  color: var(--muted);
-  font-family: inherit;
-  font-size: var(--ui-text-sm);
-  padding: var(--ui-space-2) var(--ui-space-3);
-  cursor: pointer;
-  letter-spacing: 0.05em;
-}
-:is(.ui-dialog, .signin-card) .modal-tabs button:not(.ui-dialog-close).active { color: var(--text); border-bottom-color: var(--accent); }
-:is(.ui-dialog, .signin-card) .modal-tabs button:not(.ui-dialog-close):hover:not(.active) { color: var(--text); }
 .ui-dialog label {
   display: block;
   font-size: var(--ui-text-sm);
@@ -3099,7 +2852,6 @@ body.force-show-map-filter .map-panel {
   .cat-swatches.open { max-height: 16rem; }
   .select-popover { font-size: var(--ui-text-sm); }
   .select-popover .select-option { padding: var(--ui-space-3) var(--ui-space-3); }
-  :is(.ui-dialog, .signin-card) .modal-tabs button:not(.ui-dialog-close) { min-height: var(--ui-touch-target); font-size: var(--ui-text-md); }
 }
 .row-note {
   display: block; max-height: 0; opacity: 0; overflow: hidden; margin-top: 0;
@@ -3334,7 +3086,7 @@ button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
 /* The gap above a reveal sits inside it, so a closed one leaves no space
    and the gap opens with it. The row it belongs to shares its wrapper,
    because a section's own gap would also land on the empty row. */
-.ui-section .collapsible > .collapsible-inner::before {
+.ui-section .ui-collapse > .ui-collapse-body > .collapse-inner::before {
   content: '';
   display: block;
   block-size: var(--ui-space-3);

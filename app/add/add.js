@@ -33,8 +33,8 @@ function AddDialog({ tabs, prefillCoords, draft, reopen }) {
   useEffect(() => { enhanceSelectsIn(body.current); }, [tab]);
   // With one tab there is no tab row, so the head names the form instead.
   const lead = tabs.length > 1
-    ? html`<div class="modal-tabs" id="add-tabs">
-        ${tabs.map(x => html`<button type="button" key=${x} data-tab=${x} class=${x === tab ? 'active' : ''} onClick=${() => setTab(x)}>${tabLabel(x)}</button>`)}
+    ? html`<div class="ui-tabs" id="add-tabs">
+        ${tabs.map(x => html`<button type="button" key=${x} data-tab=${x} class="ui-tab" aria-pressed=${String(x === tab)} onClick=${() => setTab(x)}>${tabLabel(x)}</button>`)}
       </div>`
     : null;
   return html`<${DialogHead} title=${tabTitle(tabs[0])} lead=${lead} />

@@ -329,7 +329,8 @@ export function setActiveTab(view, screen) {
   document.body.dataset.view = screen || view;
   ['places', 'routes', 'history'].forEach(v => {
     const el = document.getElementById('tab-' + v);
-    if (el) el.classList.toggle('active', v === view);
+    if (!el) return;
+    if (v === view) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current');
   });
   const item = BAR_ITEM[view];
   ['map', 'lists', 'you'].forEach(v => {
@@ -368,7 +369,7 @@ export function setCrumb(text, alwaysShow) {
   // Truncate the crumb char-by-char until the brand stops colliding with the
   // nav's center tabs (desktop) or, when those are hidden, the right-side
   // controls (mobile). Cheaper than it looks: stops as soon as it fits.
-  const tabsEl = document.querySelector('.view-tabs');
+  const tabsEl = document.querySelector('.nav-tabs');
   const rightEl = document.querySelector('.nav-right');
   const boundary = (tabsEl && tabsEl.getBoundingClientRect().width > 0) ? tabsEl : rightEl;
   if (!boundary) return;

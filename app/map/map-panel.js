@@ -87,16 +87,18 @@ export function wireFilterPopover(opts) {
 
 function panelTabsHtml() {
   const chevron = '<span class="section-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>';
-  let h = '<div class="panel-tabs">';
-  if (placesEnabled()) h += '<div class="panel-tab" data-section="places-section">Places' + chevron + '</div>';
-  if (routesEnabled()) h += '<div class="panel-tab" data-section="routes-section">Routes' + chevron + '</div>';
+  /** @param {string} id @param {string} label */
+  const head = (id, label) => '<button type="button" class="ui-button ui-button-quiet panel-head" aria-expanded="false" aria-controls="' + id + '-section">' + label + chevron + '</button>';
+  let h = '<div class="panel-heads">';
+  if (placesEnabled()) h += head('places', 'Places');
+  if (routesEnabled()) h += head('routes', 'Routes');
   h += '</div>';
   return h;
 }
 
 function panelBodyHtml(id) {
-  return '<div class="panel-section collapsed" id="' + id + '-section">' +
-    '<div class="panel-section-body" id="' + id + '-body"></div>' +
+  return '<div class="ui-collapse" id="' + id + '-section">' +
+    '<div class="ui-collapse-body"><div class="panel-section-body" id="' + id + '-body"></div></div>' +
     '</div>';
 }
 
@@ -104,7 +106,10 @@ function panelBodyHtml(id) {
 // first added and when a feature is toggled (which adds/removes a tab).
 export function panelInnerHtml() {
   return '<div class="panel-search" id="map-search">' +
-    '<input type="text" id="map-search-input" aria-label="Search" placeholder="Search..." autocomplete="off">' +
+    '<div class="ui-field"><form class="ui-search" method="dialog">' +
+      '<input type="search" id="map-search-input" aria-label="Search" placeholder="Search..." autocomplete="off">' +
+      '<button class="ui-button ui-button-quiet ui-search-clear" type="reset" aria-label="Clear">&times;</button>' +
+    '</form></div>' +
     '<div class="map-search-results" id="map-search-results" role="listbox" aria-label="Results"></div>' +
     '</div>' +
     (placesEnabled() ? panelBodyHtml('places') : '') +

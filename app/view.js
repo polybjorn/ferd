@@ -100,8 +100,8 @@ export function RadioPills({ name, options, initial, variant, onPick }) {
     setValue(e.currentTarget.value);
     if (onPick) onPick(e.currentTarget.value);
   };
-  return html`<div class=${'radio-row ' + (variant || 'radio-pills')}>
-    ${options.map(([v, l]) => html`<label key=${v}><input type="radio" name=${name} value=${v} checked=${value === v} onChange=${pick} />${l}</label>`)}
+  return html`<div class=${'ui-choice-list ' + (variant === 'radio-segmented' ? 'ui-choice-segmented' : 'ui-choice-pills')} role="radiogroup">
+    ${options.map(([v, l]) => html`<label class="ui-choice" key=${v}><input type="radio" name=${name} value=${v} checked=${value === v} onChange=${pick} />${l}</label>`)}
   </div>`;
 }
 
@@ -168,7 +168,7 @@ export function HideToggle({ prefKey, id, hiddenSet, className, attrs }) {
 }
 
 // The small tag at the end of an editable row: "edited", or a note on its
-// state such as "unused". Empty text hides it through :empty.
+// state such as "unused". Empty text hides it through [hidden].
 export function RowTag({ text, dirty, inInput }) {
-  return html`<span class=${'row-tag' + (inInput ? ' in-input' : '') + (dirty ? ' dirty' : '')}>${text}</span>`;
+  return html`<span class=${'ui-badge tag-end' + (inInput ? ' tag-inside' : '') + (dirty ? ' tag-dirty' : '')} hidden=${!text}>${text}</span>`;
 }

@@ -42,6 +42,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Name fields no longer show example names, and the local name field says what goes in it.
 - Dialogs keep their title and buttons in view while the rest scrolls, and the page behind an open dialog can no longer be reached with the keyboard or a screen reader. Settings, Add and the catalog lists keep one height, so switching a tab no longer moves the dialog.
 - Switching tabs on the Add form is instant, so the submit button no longer slides into view.
+- Filter chips, status dots, tabs, radio choices, row tags, collapsible sections and the map search use the shared `ui.css` controls. A chip that is on is filled with the accent colour, the main tabs and the dialog tabs are underlined and scroll sideways on a narrow screen instead of wrapping, and screen readers hear which chip is pressed, which tab is current and whether a section is open.
 - The map credit has no box on any theme, and the spacebar or a long-press hides it with the other map controls. About lists the map credits.
 - Dark comes last in the map's layer list and in Settings > Map.
 - Add, Settings and the catalog lists are only as tall as their content, up to the height of the screen. Their top edge stays put, so the tabs and filter box don't move.

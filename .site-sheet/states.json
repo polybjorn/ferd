@@ -55,7 +55,7 @@
         "click": "#add-tabs [data-tab=\"route\"]"
       },
       {
-        "wait": "#add-tabs [data-tab=\"route\"].active"
+        "wait": "#add-tabs [data-tab=\"route\"][aria-pressed=\"true\"]"
       }
     ]
   },
@@ -88,7 +88,7 @@
         "click": "#add-tabs [data-tab=\"area\"]"
       },
       {
-        "wait": "#add-tabs [data-tab=\"area\"].active"
+        "wait": "#add-tabs [data-tab=\"area\"][aria-pressed=\"true\"]"
       }
     ]
   },
@@ -121,7 +121,7 @@
         "click": "#add-tabs [data-tab=\"browse\"]"
       },
       {
-        "wait": "#add-tabs [data-tab=\"browse\"].active"
+        "wait": "#add-tabs [data-tab=\"browse\"][aria-pressed=\"true\"]"
       }
     ]
   },
@@ -151,10 +151,10 @@
         "click": "#auth-menu [data-action=settings]:visible, #you-gear:visible"
       },
       {
-        "click": ".account-sheet [data-action=settings]:visible, #settings-tabs .active"
+        "click": ".account-sheet [data-action=settings]:visible, #settings-tabs [aria-pressed=\"true\"]"
       },
       {
-        "wait": "#settings-tabs [data-tab=\"general\"].active"
+        "wait": "#settings-tabs [data-tab=\"general\"][aria-pressed=\"true\"]"
       }
     ]
   },
@@ -184,16 +184,16 @@
         "click": "#auth-menu [data-action=settings]:visible, #you-gear:visible"
       },
       {
-        "click": ".account-sheet [data-action=settings]:visible, #settings-tabs .active"
+        "click": ".account-sheet [data-action=settings]:visible, #settings-tabs [aria-pressed=\"true\"]"
       },
       {
-        "wait": "#settings-tabs [data-tab=\"general\"].active"
+        "wait": "#settings-tabs [data-tab=\"general\"][aria-pressed=\"true\"]"
       },
       {
         "click": "#settings-tabs [data-tab=\"appearance\"]"
       },
       {
-        "wait": "#settings-tabs [data-tab=\"appearance\"].active"
+        "wait": "#settings-tabs [data-tab=\"appearance\"][aria-pressed=\"true\"]"
       }
     ]
   },
@@ -223,10 +223,10 @@
         "click": "#auth-menu [data-action=account]:visible, #you-gear:visible"
       },
       {
-        "click": ".account-sheet [data-action=account]:visible, #settings-tabs .active"
+        "click": ".account-sheet [data-action=account]:visible, #settings-tabs [aria-pressed=\"true\"]"
       },
       {
-        "wait": "#settings-tabs [data-tab=\"account\"].active"
+        "wait": "#settings-tabs [data-tab=\"account\"][aria-pressed=\"true\"]"
       }
     ]
   },
@@ -256,16 +256,16 @@
         "click": "#auth-menu [data-action=account]:visible, #you-gear:visible"
       },
       {
-        "click": ".account-sheet [data-action=account]:visible, #settings-tabs .active"
+        "click": ".account-sheet [data-action=account]:visible, #settings-tabs [aria-pressed=\"true\"]"
       },
       {
-        "wait": "#settings-tabs [data-tab=\"account\"].active"
+        "wait": "#settings-tabs [data-tab=\"account\"][aria-pressed=\"true\"]"
       },
       {
         "click": "#settings-tabs [data-tab=\"security\"]"
       },
       {
-        "wait": "#settings-tabs [data-tab=\"security\"].active"
+        "wait": "#settings-tabs [data-tab=\"security\"][aria-pressed=\"true\"]"
       }
     ]
   },
@@ -328,10 +328,10 @@
         "click": "#auth-menu [data-action=settings]:visible, #you-gear:visible"
       },
       {
-        "click": ".account-sheet [data-action=settings]:visible, #settings-tabs .active"
+        "click": ".account-sheet [data-action=settings]:visible, #settings-tabs [aria-pressed=\"true\"]"
       },
       {
-        "wait": "#settings-tabs [data-tab=\"general\"].active"
+        "wait": "#settings-tabs [data-tab=\"general\"][aria-pressed=\"true\"]"
       },
       {
         "click": "#s-manage-cats"
@@ -367,10 +367,10 @@
         "click": "#auth-menu [data-action=settings]:visible, #you-gear:visible"
       },
       {
-        "click": ".account-sheet [data-action=settings]:visible, #settings-tabs .active"
+        "click": ".account-sheet [data-action=settings]:visible, #settings-tabs [aria-pressed=\"true\"]"
       },
       {
-        "wait": "#settings-tabs [data-tab=\"general\"].active"
+        "wait": "#settings-tabs [data-tab=\"general\"][aria-pressed=\"true\"]"
       },
       {
         "click": "#s-manage-regions"
@@ -484,10 +484,10 @@
         "click": "#auth-menu [data-action=settings]:visible, #you-gear:visible"
       },
       {
-        "click": ".account-sheet [data-action=settings]:visible, #settings-tabs .active"
+        "click": ".account-sheet [data-action=settings]:visible, #settings-tabs [aria-pressed=\"true\"]"
       },
       {
-        "wait": "#settings-tabs [data-tab=\"general\"].active"
+        "wait": "#settings-tabs [data-tab=\"general\"][aria-pressed=\"true\"]"
       },
       {
         "click": "label:has(#s-feat-logs)"

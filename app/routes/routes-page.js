@@ -72,7 +72,7 @@ function RouteCard({ route, region, view }) {
   useEffect(() => {
     if (view !== 'grid' && canvas.current) drawRouteSilhouette(canvas.current, route);
   }, [view, route.file, route.key]);
-  const row = html`<span class=${'status-dot ' + (route.completed ? 'completed' : 'planned')}></span>
+  const row = html`<span class=${'ui-dot ' + (route.completed ? 'dot-completed' : 'dot-planned')}></span>
     <span class="name">${route.name}</span>`;
   return html`<div class="route-card" ref=${ref} data-route-key=${route.key}
     onClick=${() => { location.hash = '#/routes/route/' + encodeURIComponent(route.key); }}>

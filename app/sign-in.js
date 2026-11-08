@@ -12,9 +12,9 @@ function signInFormHtml(includeClose) {
       ? modalHeaderHtml(null, {titleHtml: '<span id="modal-title">Sign in</span>'})
       : '<h2><span id="modal-title">Sign in</span></h2>') +
     (canRegister
-      ? '<div class="modal-tabs" id="auth-tabs">' +
-          '<button data-mode="login" class="active">Sign in</button>' +
-          '<button data-mode="register">Register</button>' +
+      ? '<div class="ui-tabs" id="auth-tabs">' +
+          '<button type="button" class="ui-tab" data-mode="login" aria-pressed="true">Sign in</button>' +
+          '<button type="button" class="ui-tab" data-mode="register" aria-pressed="false">Register</button>' +
         '</div>'
       : '') +
     '<form id="auth-form">' +
@@ -52,7 +52,7 @@ function bindSignInForm(opts) {
   function setMode(m) {
     mode = m;
     /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#auth-tabs button[data-mode]')).forEach(b => {
-      b.classList.toggle('active', b.dataset.mode === m);
+      b.setAttribute('aria-pressed', String(b.dataset.mode === m));
     });
     document.getElementById('modal-title').textContent = m === 'register' ? 'Register' : 'Sign in';
     document.getElementById('auth-submit').textContent = m === 'register' ? 'Register' : 'Sign in';
@@ -228,25 +228,24 @@ export function renderSignInPage() {
     if (!box) return;
     box.hidden = false;
     box.innerHTML =
-      '<button type="button" class="signin-public-toggle" aria-expanded="false">' +
+      '<button type="button" class="signin-public-toggle" aria-expanded="false" aria-controls="signin-public-collapsible">' +
         '<span>Public maps (' + names.length + ')</span>' +
         '<span class="signin-public-chevron" aria-hidden="true">&#x25BC;</span>' +
       '</button>' +
-      '<div class="collapsible" id="signin-public-collapsible">' +
-        '<div class="collapsible-inner">' +
+      '<div class="ui-collapse" id="signin-public-collapsible">' +
+        '<div class="ui-collapse-body"><div class="collapse-inner">' +
           '<div class="public-maps-list">' +
             names.map(u =>
               '<a class="public-maps-item" href="/u/' + encodeURIComponent(u) + '/">' + escapeHtml(u) + '</a>'
             ).join('') +
           '</div>' +
-        '</div>' +
+        '</div></div>' +
       '</div>';
     const toggle = box.querySelector('.signin-public-toggle');
     const list = document.getElementById('signin-public-collapsible');
     toggle.addEventListener('click', function() {
-      const expanded = list.classList.toggle('expanded');
-      toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-      toggle.classList.toggle('expanded', expanded);
+      const open = list.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
   });
 }

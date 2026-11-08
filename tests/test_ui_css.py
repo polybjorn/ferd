@@ -160,7 +160,7 @@ class ThemeContrast(unittest.TestCase):
     self.assertNotRegex(FRONTEND, r"(?<![-\w])color:[^;}\n]*--status-")
 
   def test_place_status_is_fill_not_colour(self):
-    for selector in (r"\.status-dot\.visited", r"\.status-dot\.want",
+    for selector in (r"\.dot-visited", r"\.dot-want",
                      r"\.popup-area-item::before", r"\.popup-area-item\.done::before"):
       rule = re.search(selector + r" \{([^}]*)\}", FRONTEND)
       self.assertIsNotNone(rule, selector)
@@ -204,8 +204,7 @@ class ThemeContrast(unittest.TestCase):
 class ControlEdges(unittest.TestCase):
   """--border is for panels and dividers: under 3:1, it cannot mark out a control."""
 
-  CONTROLS = (".view-tabs", ".filter-ms-btn", ".select-option-multi::before", ".group-toggle",
-              ".status-chip", ".radio-pills > label", ".radio-segmented", ".feature-pill",
+  CONTROLS = (".filter-ms-btn", ".select-option-multi::before", ".feature-pill",
               ".public-maps-item", ".row-src", ".cat-color-dot")
 
   def rules(self):
@@ -258,7 +257,7 @@ class TargetsAndFocus(unittest.TestCase):
 
   def test_a_filled_control_rings_in_its_label_colour(self):
     selectors = " ".join(s for s, body in self.rules() if "outline-color: currentColor" in body)
-    for filled in ("button.primary", "button.nav-action-btn", ".view-tabs a.active"):
+    for filled in ("button.primary", "button.nav-action-btn"):
       self.assertIn(filled, selectors)
 
   def test_a_swatch_ring_sits_outside_its_colour(self):
@@ -283,7 +282,7 @@ class TargetsAndFocus(unittest.TestCase):
     self.assertRegex(FRONTEND, r"max-width: 600px\) \{\s+\.credit-collapsed \.leaflet-control-attribution \{ display: none; \}")
 
   def test_a_closed_section_takes_no_keyboard_stop(self):
-    for closed, opened in ((".cat-swatches", ".cat-swatches.open"), (".collapsible", ".collapsible.expanded")):
+    for closed, opened in ((".cat-swatches", ".cat-swatches.open"),):
       self.assertIn("visibility: hidden", self.body(closed))
       self.assertIn("visibility: visible", self.body(opened))
 
@@ -346,16 +345,15 @@ class Shipping(unittest.TestCase):
 
 
 class NoModalKit(unittest.TestCase):
-  # Every dialog is a ui-dialog, so the old modal classes are gone. The Add
-  # and Settings tabs keep modal-tabs until ui.css has a tabs block.
+  # Every dialog is a ui-dialog, so the old modal classes are gone.
   def test_no_rule_selects_a_modal_class(self):
     found = re.findall(r"\.modal(?:-[\w-]+)?\b", strip_comments(APP_CSS))
-    self.assertEqual(sorted(set(found) - {".modal-tabs"}), [])
+    self.assertEqual(sorted(set(found)), [])
 
   def test_no_markup_adds_a_modal_class(self):
-    js = re.sub(r"\.modal-tabs\b|['\"]modal-tabs\b", "", FRONTEND.replace(APP_CSS, ""))
+    js = FRONTEND.replace(APP_CSS, "")
     self.assertNotRegex(js, r"class(?:Name)?\s*=\s*\$?\{?['\"`][^'\"`]*\bmodal\b(?!-)")
-    self.assertNotRegex(js, r"\bmodal-(?!tabs\b|root\b|title\b)[a-z]+\b[^(]")
+    self.assertNotRegex(js, r"\bmodal-(?!root\b|title\b)[a-z]+\b[^(]")
 
 
 class MenuScript(unittest.TestCase):
@@ -465,10 +463,10 @@ class PopupMeta(unittest.TestCase):
 class PhoneWidth(unittest.TestCase):
   """Settings fits a phone: nothing is clipped and the dialog never scrolls sideways."""
   def test_a_segmented_label_can_wrap(self):
-    self.assertRegex(FRONTEND, r"\.radio-row\.radio-segmented > label \{[^}]*white-space: normal")
+    self.assertRegex(UI_CSS, r"\.ui-choice-pills\) > \.ui-choice \{[^}]*overflow-wrap: anywhere")
 
-  def test_settings_tabs_wrap(self):
-    self.assertIn("#settings-tabs { flex-wrap: wrap; }", FRONTEND)
+  def test_settings_tabs_scroll_rather_than_clip(self):
+    self.assertRegex(UI_CSS, r"\.ui-tabs \{[^}]*overflow-x: auto")
 
   def test_token_rows_leave_their_columns_to_the_stylesheet(self):
     self.assertNotIn("grid-template-columns:5rem", FRONTEND)

@@ -557,14 +557,8 @@ function routesLegendHtml() {
 }
 
 function statusChipsHtml(section) {
-  if (section === 'places') {
-    return '<div class="status-chip' + (state.showVisited ? ' active' : '') + '" data-filter="visited"><span class="status-dot visited"></span>Visited</div>' +
-      '<div class="status-chip' + (state.showWant ? ' active' : '') + '" data-filter="want"><span class="status-dot want"></span>Planned</div>' +
-      '<div class="status-chip panel-toggle-all" data-toggle-all="places">Toggle all</div>';
-  }
-  return '<div class="status-chip' + (state.showCompleted ? ' active' : '') + '" data-route-status="completed"><span class="status-dot completed"></span>Completed</div>' +
-    '<div class="status-chip' + (state.showPlanned ? ' active' : '') + '" data-route-status="planned"><span class="status-dot planned"></span>Planned</div>' +
-    '<div class="status-chip panel-toggle-all" data-toggle-all="routes">Toggle all</div>';
+  return statusFilterChipsHtml(section === 'places') +
+    '<button type="button" class="ui-chip panel-toggle-all" data-toggle-all="' + section + '">Toggle all</button>';
 }
 
 // The phone's filter button carries a dot while anything is filtered out,
@@ -595,16 +589,20 @@ export function refreshFilterPanel() {
 // The phone's filter sheet: both sections open, every choice a chip that
 // wraps, so the whole set fits in about half the screen.
 function filterChipHtml(attr, key, on, label, mark) {
-  return '<button type="button" class="filter-chip" ' + attr + '="' + escapeHtml(key) + '" aria-pressed="' + on + '">' +
+  return '<button type="button" class="ui-chip" ' + attr + '="' + escapeHtml(key) + '" aria-pressed="' + on + '">' +
     mark + escapeHtml(label) + '</button>';
+}
+/** @param {boolean} places */
+function statusFilterChipsHtml(places) {
+  return places
+    ? filterChipHtml('data-filter', 'visited', state.showVisited, 'Visited', '<span class="ui-dot dot-visited"></span>') +
+      filterChipHtml('data-filter', 'want', state.showWant, 'Planned', '<span class="ui-dot dot-want"></span>')
+    : filterChipHtml('data-route-status', 'completed', state.showCompleted, 'Completed', '<span class="ui-dot dot-completed"></span>') +
+      filterChipHtml('data-route-status', 'planned', state.showPlanned, 'Planned', '<span class="ui-dot dot-planned"></span>');
 }
 function sheetSectionHtml(id) {
   const places = id === 'places';
-  const status = places
-    ? filterChipHtml('data-filter', 'visited', state.showVisited, 'Visited', '<span class="status-dot visited"></span>') +
-      filterChipHtml('data-filter', 'want', state.showWant, 'Planned', '<span class="status-dot want"></span>')
-    : filterChipHtml('data-route-status', 'completed', state.showCompleted, 'Completed', '<span class="status-dot completed"></span>') +
-      filterChipHtml('data-route-status', 'planned', state.showPlanned, 'Planned', '<span class="status-dot planned"></span>');
+  const status = statusFilterChipsHtml(places);
   let groups = '';
   if (places) {
     groups = sortedCategorySlugs(Object.keys(state.categoryColors)).map(cat =>
@@ -677,7 +675,7 @@ export function bindFilterSheet(dialog) {
       if (all.dataset.toggleAll === 'places') toggleAllPlaces(); else toggleAllRoutes();
       return;
     }
-    const chip = e.target.closest('.filter-chip');
+    const chip = e.target.closest('.ui-chip');
     if (!chip) return;
     const d = chip.dataset;
     if (d.cat !== undefined || d.region !== undefined) {
@@ -699,9 +697,9 @@ export function bindFilterSheet(dialog) {
 // Which section is currently open (accordion = at most one).
 function activePanelSection() {
   const p = document.getElementById('places-section');
-  if (p && !p.classList.contains('collapsed')) return 'places';
+  if (p && p.classList.contains('open')) return 'places';
   const r = document.getElementById('routes-section');
-  if (r && !r.classList.contains('collapsed')) return 'routes';
+  if (r && r.classList.contains('open')) return 'routes';
   return null;
 }
 
@@ -762,7 +760,7 @@ export function bindFilterClicks(el) {
       syncFilterDot();
       return;
     }
-    const chip = e.target.closest('.status-chip');
+    const chip = e.target.closest('.ui-chip');
     if (!chip) return;
     if (chip.classList.contains('panel-toggle-all')) {
       if (chip.dataset.toggleAll === 'places') toggleAllPlaces();
@@ -773,7 +771,7 @@ export function bindFilterClicks(el) {
     else if (chip.dataset.filter === 'want') state.showWant = !state.showWant;
     else if (chip.dataset.routeStatus === 'completed') state.showCompleted = !state.showCompleted;
     else if (chip.dataset.routeStatus === 'planned') state.showPlanned = !state.showPlanned;
-    chip.classList.toggle('active');
+    chip.setAttribute('aria-pressed', String(chip.getAttribute('aria-pressed') !== 'true'));
     pulseChip(chip);
     applyMapFilters();
     syncFilterDot();
@@ -783,16 +781,18 @@ export function bindFilterClicks(el) {
 export function bindFilterPanel() {
   // Section tabs: accordion. Clicking a collapsed tab expands it and
   // collapses the other; clicking the open tab collapses everything.
-  document.querySelectorAll('.panel-tab').forEach(function(tab) {
+  document.querySelectorAll('.panel-head').forEach(function(tab) {
     tab.addEventListener('click', function() {
-      const section = document.getElementById(this.dataset.section);
+      const section = document.getElementById(this.getAttribute('aria-controls'));
       if (!section) return;
-      const wasCollapsed = section.classList.contains('collapsed');
-      document.querySelectorAll('.panel-section').forEach(s => s.classList.add('collapsed'));
-      document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('expanded'));
-      if (wasCollapsed) {
-        section.classList.remove('collapsed');
-        this.classList.add('expanded');
+      const wasClosed = !section.classList.contains('open');
+      document.querySelectorAll('.panel-head').forEach(t => {
+        t.setAttribute('aria-expanded', 'false');
+        document.getElementById(t.getAttribute('aria-controls')).classList.remove('open');
+      });
+      if (wasClosed) {
+        section.classList.add('open');
+        this.setAttribute('aria-expanded', 'true');
       }
       renderPanelStatus();
     });

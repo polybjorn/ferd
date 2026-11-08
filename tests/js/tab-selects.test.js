@@ -19,7 +19,7 @@ function tabbedViews() {
     const re = /^function (\w+)\([\s\S]*?^\}$/gm;
     let m;
     while ((m = re.exec(src))) {
-      if (/html`<div class="modal-tabs"/.test(m[0])) found.push({ file: f, name: m[1], body: m[0] });
+      if (/html`<div class="ui-tabs"/.test(m[0])) found.push({ file: f, name: m[1], body: m[0] });
     }
   }
   return found;

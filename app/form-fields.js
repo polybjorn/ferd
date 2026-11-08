@@ -95,8 +95,8 @@ export function SelectOrNew({ id, options, labelOf, value, onChange, newPlacehol
  * @param {{ id?: string, open: boolean, children?: any }} props
  */
 export function Collapsible({ id, open, children }) {
-  return html`<div class=${'collapsible' + (open ? ' expanded' : '')} id=${id}>
-    <div class="collapsible-inner">${children}</div>
+  return html`<div class=${'ui-collapse' + (open ? ' open' : '')} id=${id}>
+    <div class="ui-collapse-body"><div class="collapse-inner">${children}</div></div>
   </div>`;
 }
 

@@ -100,7 +100,7 @@ function PlaceCard({ p, view, showImage, showNote }) {
   };
   const focus = typeof p.image_focus === 'string' && FOCUS_RE.test(p.image_focus.trim()) ? p.image_focus.trim() : '';
   const tags = getShowField('tags') && Array.isArray(p.tags) && p.tags.length ? p.tags : null;
-  const row = html`<span class=${'status-dot ' + (p.visited ? 'visited' : 'want')}></span>
+  const row = html`<span class=${'ui-dot ' + (p.visited ? 'dot-visited' : 'dot-want')}></span>
     <div class="place-text">
       <div class="name">${p.name}</div>
       ${p.note && showNote && html`<div class="note">${p.note}</div>`}
