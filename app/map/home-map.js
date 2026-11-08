@@ -23,6 +23,16 @@ import { getTrailWeightFactor } from '../theme.js';
 import { openMapPlaceContextMenu, openMapRouteContextMenu } from '../context-menu.js';
 import { openAddModal } from '../add/add.js';
 
+/** @typedef {import('./route-layer.js').RouteRecord} RouteRecord */
+/** @typedef {import('./place-layer.js').Pt} Pt */
+/** @typedef {import('../core.js').ManifestRoute} ManifestRoute */
+/** @typedef {import('../core.js').ManifestRegion} ManifestRegion */
+/** @typedef {{ type: string, slug?: string, name?: string }} Focus */
+// One manifest route, with what its line and popup are drawn from. `sig`
+// changes when any of it does.
+/** @typedef {{ route: ManifestRoute, region: ManifestRegion, color: string, parent: any, gpxUrl: string, sig: string }} RouteDescriptor */
+
+/** @param {Focus | null | undefined} focus */
 export function renderUnifiedMap(focus) {
   setActiveTab('map');
   setCrumb('');
@@ -133,7 +143,7 @@ export function renderUnifiedMap(focus) {
   // Routes: two groups by status
   const groupCompleted = L.featureGroup();
   const groupPlanned = L.featureGroup();
-  /** @type {any[]} */
+  /** @type {RouteRecord[]} */
   const routeLayers = [];
   const routeBounds = L.latLngBounds();
   let focusTrailKey = (focus && focus.type === 'route') ? focus.name : null;
@@ -148,13 +158,13 @@ export function renderUnifiedMap(focus) {
   // manifest's per-route bbox is still used synchronously for initial
   // fit, so the map opens at the right area without waiting on any
   // GPX fetch.
-  /** @type {any[]} */
+  /** @type {RouteDescriptor[]} */
   const routeDescriptors = [];
   const loadedRouteKeys = new Set();
   const pendingRouteKeys = new Set();
   // The signature covers everything the line and its popup are drawn from,
   // so an edited route is loaded again rather than kept stale.
-  const routeDescriptor = function(route, region) {
+  const routeDescriptor = function(/** @type {ManifestRoute} */ route, /** @type {ManifestRegion} */ region) {
     return {
       route, region,
       color: routeStatusColor(route.completed),
@@ -188,6 +198,7 @@ export function renderUnifiedMap(focus) {
   // pick the closest segment within ~18px; if found, behave as if
   // the user had hit the polyline exactly.
   const NEAR_TAP_PX = 18;
+  /** @param {Pt} p @param {Pt} a @param {Pt} b */
   function pointSegDistSq(p, a, b) {
     const dx = b.x - a.x, dy = b.y - a.y;
     const len2 = dx * dx + dy * dy;
@@ -197,6 +208,7 @@ export function renderUnifiedMap(focus) {
     const cx = a.x + t * dx, cy = a.y + t * dy;
     return (p.x - cx) * (p.x - cx) + (p.y - cy) * (p.y - cy);
   }
+  /** @param {RouteRecord} record */
   function isLayerVisible(record) {
     if (state.hiddenRegions.has(record.region)) return false;
     return record.completed ? state.showCompleted : state.showPlanned;
@@ -205,11 +217,12 @@ export function renderUnifiedMap(focus) {
   // sorted closest-first (min distance per route). Lets click handling
   // cycle through routes stacked under one spot instead of always
   // re-picking the single nearest.
+  /** @param {Pt} containerPt */
   function nearTrailCandidates(containerPt) {
     if (!state._routeLayers || !state._routeLayers.length) return [];
     const thresh = NEAR_TAP_PX * NEAR_TAP_PX;
     const dists = new Map();
-    const visit = function(layer, record) {
+    const visit = function(/** @type {any} */ layer, /** @type {RouteRecord} */ record) {
       if (layer.getLatLngs && !layer.eachLayer) {
         const raw = layer.getLatLngs();
         const flat = Array.isArray(raw) && Array.isArray(raw[0]) ? [].concat.apply([], raw) : raw;
@@ -223,7 +236,7 @@ export function renderUnifiedMap(focus) {
           }
         }
       }
-      if (layer.eachLayer) layer.eachLayer(function(sub) { visit(sub, record); });
+      if (layer.eachLayer) layer.eachLayer(function(/** @type {any} */ sub) { visit(sub, record); });
     };
     for (const record of state._routeLayers) {
       if (!isLayerVisible(record)) continue;
@@ -231,6 +244,7 @@ export function renderUnifiedMap(focus) {
     }
     return Array.from(dists.entries()).sort((a, b) => a[1] - b[1]).map(e => e[0]);
   }
+  /** @param {Pt} containerPt */
   function findNearTrail(containerPt) {
     const c = nearTrailCandidates(containerPt);
     return c.length ? c[0] : null;
@@ -239,7 +253,7 @@ export function renderUnifiedMap(focus) {
   // on a large area every tap to close a popup would open the next one.
   let popupOpenOnPress = false;
   map.on('preclick', function() { popupOpenOnPress = !!(map._popup && map._popup.isOpen()); });
-  map.on('click', function(e) {
+  map.on('click', function(/** @type {any} */ e) {
     const cands = nearTrailCandidates(e.containerPoint);
     if (cands.length) {
       // If the current selection is one of the routes under the cursor,
@@ -260,7 +274,7 @@ export function renderUnifiedMap(focus) {
   // Right-click on the map: hit-test for a place pin first (canvas
   // layer), then a route polyline (near-tap detector). The first hit
   // wins; if nothing's under the cursor the browser context menu shows.
-  map.on('contextmenu', function(e) {
+  map.on('contextmenu', function(/** @type {any} */ e) {
     const cg = state._placeClusterGroup;
     if (cg && typeof cg._hitTest === 'function') {
       const target = cg._hitTest(e.containerPoint);
@@ -282,13 +296,14 @@ export function renderUnifiedMap(focus) {
   // the 1-2px polyline stroke. mousemove on Leaflet fires only when
   // the cursor moves over the map, so this stays cheap.
   let _nearCursor = false;
-  map.on('mousemove', function(e) {
+  map.on('mousemove', function(/** @type {any} */ e) {
     const near = !!findNearTrail(e.containerPoint);
     if (near === _nearCursor) return;
     _nearCursor = near;
     map.getContainer().classList.toggle('route-near-cursor', near);
   });
 
+  /** @param {RouteDescriptor} desc */
   function loadRouteLazy(desc) {
     if (loadedRouteKeys.has(desc.route.key) || pendingRouteKeys.has(desc.route.key)) return;
     pendingRouteKeys.add(desc.route.key);
@@ -301,7 +316,7 @@ export function renderUnifiedMap(focus) {
         // Waypoints hidden on the index map; revealed in detail view only.
         markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
       });
-      gpxLayer.on('loaded', function(e) {
+      gpxLayer.on('loaded', function(/** @type {any} */ e) {
         // Thin dense tracks to the current zoom before anything reads the
         // geometry (bounds, renderer, stroke). Detail view uses full GPX.
         simplifyRouteForZoom(e.target, map.getZoom());
@@ -319,25 +334,25 @@ export function renderUnifiedMap(focus) {
         // adjustTrailStrokes can force a re-project on smooth-zoom
         // frames. All polylines on the index map share one renderer.
         if (!state._routeRenderer) {
-          const findRenderer = function(layer) {
+          const findRenderer = function(/** @type {any} */ layer) {
             if (layer._renderer) return layer._renderer;
             if (typeof layer.eachLayer === 'function') {
-              let found = null;
-              layer.eachLayer(function(sub) { if (!found) found = findRenderer(sub); });
+              let found = /** @type {any} */ (null);
+              layer.eachLayer(function(/** @type {any} */ sub) { if (!found) found = findRenderer(sub); });
               return found;
             }
             return null;
           };
           state._routeRenderer = findRenderer(e.target);
         }
-      }).on('error', function(e) {
+      }).on('error', function(/** @type {any} */ e) {
         console.warn('[ferd] gpx parse failed for', desc.gpxUrl, e && e.err);
         try { desc.parent.removeLayer(gpxLayer); } catch (_) {}
       }).bindPopup(
         () => popupElement(html`<${RoutePopup} route=${desc.route} region=${desc.region} color=${desc.color} />`),
         { closeButton: false }
       ).on('click', (function(key) {
-        return function(ev) {
+        return function(/** @type {any} */ ev) {
           // Stop propagation so the map-level near-tap handler
           // doesn't fire a duplicate replaceState + popup toggle.
           if (ev && ev.originalEvent) L.DomEvent.stopPropagation(ev.originalEvent);
@@ -360,6 +375,7 @@ export function renderUnifiedMap(focus) {
   // Skip routes whose bbox would render smaller than this many pixels
   // at the current zoom; they'd be visual noise on a continent-zoom view.
   const MIN_ROUTE_VISIBLE_PX = 6;
+  /** @param {RouteDescriptor} desc @param {any} paddedBounds @param {number} mapZoom */
   function routeShouldLoad(desc, paddedBounds, mapZoom) {
     const b = desc.route.bbox;
     if (!b || b.length !== 4) return true; // no bbox info, conservative
@@ -382,6 +398,7 @@ export function renderUnifiedMap(focus) {
       if (routeShouldLoad(desc, padded, zoom)) loadRouteLazy(desc);
     }
   }
+  /** @type {number | null} */
   let _routeEvalTimer = null;
   function scheduleTrailEval() {
     if (_routeEvalTimer) sched.clearTimeout(_routeEvalTimer);
@@ -398,6 +415,7 @@ export function renderUnifiedMap(focus) {
   // Drop one route from this map in place, pruning the lazy-load
   // bookkeeping too, so a later pan can't refetch a deleted GPX from the SW
   // cache and resurrect it. Returns the layer if it was loaded.
+  /** @param {string} key */
   function dropRoute(key) {
     for (let i = routeDescriptors.length - 1; i >= 0; i--) {
       if (routeDescriptors[i].route.key === key) routeDescriptors.splice(i, 1);
@@ -419,7 +437,7 @@ export function renderUnifiedMap(focus) {
   // the loaded layer is restyled and its records updated in place, so the
   // GPX is neither fetched nor parsed again. A moved file or region, or a
   // line still loading, takes the drop-and-reload path.
-  /** @param {any} desc @param {any} now */
+  /** @param {RouteDescriptor} desc @param {RouteDescriptor} now */
   function restyleRoute(desc, now) {
     if (now.gpxUrl !== desc.gpxUrl || now.region.name !== desc.region.name) return false;
     const key = desc.route.key;
@@ -526,8 +544,9 @@ export function renderUnifiedMap(focus) {
   }
 }
 
+/** @param {string} cat */
 function categoryDotHtml(cat) {
-  return '<span class="legend-dot" style="background:' + state.categoryColors[cat] + '"></span>';
+  return '<span class="legend-dot" style="background:' + /** @type {Record<string, string>} */ (state.categoryColors)[cat] + '"></span>';
 }
 
 function placesLegendHtml() {
@@ -556,6 +575,7 @@ function routesLegendHtml() {
   return html + '</div>';
 }
 
+/** @param {string} section */
 function statusChipsHtml(section) {
   return statusFilterChipsHtml(section === 'places') +
     '<button type="button" class="ui-chip panel-toggle-all" data-toggle-all="' + section + '">Toggle all</button>';
@@ -588,6 +608,7 @@ export function refreshFilterPanel() {
 
 // The phone's filter sheet: both sections open, every choice a chip that
 // wraps, so the whole set fits in about half the screen.
+/** @param {string} attr @param {string} key @param {boolean} on @param {string} label @param {string} mark */
 function filterChipHtml(attr, key, on, label, mark) {
   return '<button type="button" class="ui-chip" ' + attr + '="' + escapeHtml(key) + '" aria-pressed="' + on + '">' +
     mark + escapeHtml(label) + '</button>';
@@ -600,6 +621,7 @@ function statusFilterChipsHtml(places) {
     : filterChipHtml('data-route-status', 'completed', state.showCompleted, 'Completed', '<span class="ui-dot dot-completed"></span>') +
       filterChipHtml('data-route-status', 'planned', state.showPlanned, 'Planned', '<span class="ui-dot dot-planned"></span>');
 }
+/** @param {string} id */
 function sheetSectionHtml(id) {
   const places = id === 'places';
   const status = statusFilterChipsHtml(places);
@@ -620,7 +642,7 @@ function sheetSectionHtml(id) {
     (groups ? '<div class="filter-chips" role="group" aria-label="' + (places ? 'Categories' : 'Regions') + '">' + groups + '</div>' : '');
 }
 export function filterSheetHtml() {
-  const section = id =>
+  const section = (/** @type {string} */ id) =>
     '<section class="filter-sheet-section" data-sheet-section="' + id + '" aria-labelledby="filter-sheet-' + id + '">' +
       sheetSectionHtml(id) + '</section>';
   return '<div class="ui-dialog-head">' +
@@ -644,6 +666,7 @@ function syncFilterSheet() {
   const routes = state.manifest && state.manifest.regions
     ? state.manifest.regions.flatMap(r => r.routes.map(t => ({ region: r.name, completed: t.completed })))
     : [];
+  /** @type {Record<string, number[]>} */
   const counts = {
     places: state._placeRecords ? [state._placeRecords.filter(placeShown).length, state._placeRecords.length] : [0, 0],
     routes: [routes.filter(routeShown).length, routes.length],
@@ -660,9 +683,10 @@ function syncFilterSheet() {
   if (reset) reset.disabled = !filtersActive();
 }
 
+/** @param {HTMLElement} dialog */
 export function bindFilterSheet(dialog) {
-  dialog.addEventListener('click', function(e) {
-    if (e.target.closest('[data-filter-reset]')) {
+  dialog.addEventListener('click', function(/** @type {MouseEvent} */ e) {
+    if (/** @type {HTMLElement} */ (e.target).closest('[data-filter-reset]')) {
       state.hiddenCategories.clear();
       state.hiddenRegions.clear();
       state.showVisited = state.showWant = state.showCompleted = state.showPlanned = true;
@@ -670,12 +694,12 @@ export function bindFilterSheet(dialog) {
       applyMapFilters();
       return;
     }
-    const all = e.target.closest('.filter-sheet [data-toggle-all]');
+    const all = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.filter-sheet [data-toggle-all]'));
     if (all) {
       if (all.dataset.toggleAll === 'places') toggleAllPlaces(); else toggleAllRoutes();
       return;
     }
-    const chip = e.target.closest('.ui-chip');
+    const chip = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.ui-chip'));
     if (!chip) return;
     const d = chip.dataset;
     if (d.cat !== undefined || d.region !== undefined) {
@@ -746,9 +770,10 @@ function toggleAllRoutes() {
 
 // Delegated, so the handler survives refreshFilterPanel replacing the items.
 // Toggles flip in place rather than re-render, which would cut the pulse.
+/** @param {HTMLElement} el */
 export function bindFilterClicks(el) {
-  el.addEventListener('click', function(e) {
-    const item = e.target.closest('.legend-item[data-cat], .legend-item[data-region]');
+  el.addEventListener('click', function(/** @type {MouseEvent} */ e) {
+    const item = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.legend-item[data-cat], .legend-item[data-region]'));
     if (item) {
       const isCat = item.dataset.cat !== undefined;
       const set = isCat ? state.hiddenCategories : state.hiddenRegions;
@@ -760,7 +785,7 @@ export function bindFilterClicks(el) {
       syncFilterDot();
       return;
     }
-    const chip = e.target.closest('.ui-chip');
+    const chip = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.ui-chip'));
     if (!chip) return;
     if (chip.classList.contains('panel-toggle-all')) {
       if (chip.dataset.toggleAll === 'places') toggleAllPlaces();
