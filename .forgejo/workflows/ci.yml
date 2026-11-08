@@ -2,7 +2,7 @@
 # because GitHub Actions build the ghcr images and the release APK that
 # Obtainium reads. Nothing is forced, so a commit made on GitHub stops the sync
 # until it is pulled into the forge. The sync waits for the attribution
-# check and the unit tests.
+# check, the unit tests and the browser tests.
 #
 # ci-actions is cloned through $GITHUB_SERVER_URL and its scripts run directly,
 # not through `uses:`. That form needs the CI host written out, this file goes
@@ -93,6 +93,47 @@ jobs:
           python3 "$tools/contrast.py" app/app.css --theme-re '\[data-theme="[^"]+"\]\[data-mode="[^"]+"\]'
           python3 "$tools/css_audit.py" index.html app/app.css --scale ui.css --max font-size=1 --max spacing=18 --max radius=0 --max transition=0 --max z-index=1
 
+  # The browser tests, on Microsoft's Playwright image, which carries the
+  # browsers for one Playwright release only: package.json pins that release,
+  # and the runner's image tag moves with it.
+  e2e:
+    runs-on: playwright
+    timeout-minutes: 20
+    steps:
+      - name: Fetch ci-actions
+        run: git clone -q --depth 1 --branch v1 "$GITHUB_SERVER_URL/bjorn/ci-actions.git" "${RUNNER_TEMP:-/tmp}/ci-actions"
+      - name: Checkout
+        env:
+          TOKEN: ${{ github.token }}
+        run: bash "${RUNNER_TEMP:-/tmp}/ci-actions/checkout/checkout.sh"
+      # Offline against the runner's /osv cache, so the package list never
+      # reaches osv.dev. It reads the lockfile, so it sits ahead of npm ci.
+      - name: Self-test the OSV gate
+        run: bash "${RUNNER_TEMP:-/tmp}/ci-actions/osv-scan/selftest.sh"
+      - name: Known vulnerabilities in dependencies
+        run: bash "${RUNNER_TEMP:-/tmp}/ci-actions/osv-scan/scan.sh"
+      - run: npm ci
+        timeout-minutes: 5
+      - name: Playwright release against the image's browsers
+        run: npx playwright --version
+      - name: Browser tests
+        env:
+          CI: "true"
+        run: npx playwright test
+      # Zipped because the report is a tree and the upload takes one
+      # directory's own files.
+      - name: Upload the report and traces
+        if: failure()
+        run: |
+          set -eu
+          tools="${RUNNER_TEMP:-/tmp}/ci-actions/upload-artifact"
+          bash "$tools/selftest.sh"
+          out="${RUNNER_TEMP:-/tmp}/e2e-upload"
+          mkdir -p "$out"
+          dirs=$(ls -d playwright-report test-results 2>/dev/null || true)
+          [ -z "$dirs" ] || python3 -m zipfile -c "$out/e2e-report.zip" $dirs
+          python3 "$tools/upload_artifact.py" e2e-report "$out"
+
   # Reads a PR's commits with the list github-sync applies after the merge, when
   # the only fix for a hit is rewriting protected main. Here it is still a
   # force-push to the PR branch.
@@ -118,7 +159,7 @@ jobs:
 
   github-sync:
     if: github.event_name == 'push'
-    needs: [attribution, test]
+    needs: [attribution, test, e2e]
     runs-on: docker
     timeout-minutes: 10
     steps:
