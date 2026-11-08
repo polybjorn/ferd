@@ -281,7 +281,9 @@ startup();
     // lazy about checking for new SW versions otherwise, and our
     // content-hash CACHE_VERSION means sw.js bytes can change on any
     // shell-file edit; users shouldn't have to unregister manually.
-    try { reg.update(); } catch (_) {}
+    // update() returns a promise that rejects offline; a try/catch misses it
+    // and WebKit reports the rejection as a page error.
+    reg.update().catch(() => { /* offline; the next load checks again */ });
   }).catch(() => { /* registration failed; app still works online */ });
 })();
 
