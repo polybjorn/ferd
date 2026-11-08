@@ -28,6 +28,8 @@ npx playwright test
 
 They run in Firefox and Chromium at 1280px, Chromium with Pixel emulation and WebKit with iPhone emulation (`playwright.config.js`), with tiles stubbed so nothing leaves the machine. `npx playwright test --project=chromium` runs one. Playwright is pinned to the release the CI image carries, so bump `package.json` and that image together.
 
+They cover the flows a test plan used to check by hand: signing in and out, adding a place and finding it in the list and on the map, editing and deleting it, importing a GPX route and its elevation graph, the map's filter panel and a list's "Clear filters", a settings radio and the theme surviving a reload, Esc closing a modal and handing focus back, and on the phone projects the bottom bar and a modal's phone layout at 320px and 412px. A test that only reads signs in as the demo account; one that writes signs up an empty account of its own (`tests/e2e/helpers.js`), because the projects run at once against one server. A change to one of these flows updates its test in the same PR.
+
 ## Where to look
 
 This page covers the workflow (run, test, submit). The deeper material lives in topic-specific docs:
@@ -58,7 +60,7 @@ npx -p typescript@5.9.3 tsc -p . --pretty false > /tmp/tsc.out
 python3 scripts/typecheck.py /tmp/tsc.out            # add --update after fixing errors
 ```
 
-Type API responses and shared state with JSDoc `@typedef` where they are defined (`AuthState` in `app/core.js` is the pattern). Globals from the classic scripts and the Android bridge are declared in `types/globals.d.ts`.
+Type API responses and shared state with JSDoc `@typedef` where they are defined (`AuthState` in `app/core.js` is the pattern). Globals from the classic scripts and the Android bridge are declared in `types/globals.d.ts`. `tests/test_api_contract.py` holds each JSON response to the typedef the client reads it as, so a new endpoint whose body the client reads adds a row to `ENDPOINTS` in `tests/api_contract.py` (one it ignores goes in `NOT_READ`), and a handler key added or renamed fails until its typedef follows.
 
 Stdlib only, no deps. Two layers: unit tests for pure helpers and file utilities in `tools/ferd_api/`, and integration tests that launch the API in a subprocess and hit endpoints over HTTP. Run before opening a PR. If your change touches the API surface or one of the helpers, add a case.
 
@@ -73,7 +75,7 @@ site-sheet capture "" / /tmp/ferd-sheet --states .site-sheet/states.json --origi
 
 A new modal needs a state here; `tests/test_site_sheet.py` fails on a modal title no state waits for.
 
-To verify the static side end to end, run the dev server above, sign in, and do all of: add a place from the map ("Pick on map" then form), edit a place from its popup, delete a place, upload a GPX, delete a route, switch themes, change your password, revoke a session.
+The browser tests stand in for the old by-hand walk through the app, so a PR's test plan names them rather than repeating it. It keeps a "works on the preview" check only for a visual change, where a passing test does not show that it looks right. Picking a place's position on the map, changing your password and revoking a session are not covered yet; a change to one of those still checks it by hand on the dev server above.
 
 ## Reporting issues
 

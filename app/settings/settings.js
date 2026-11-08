@@ -382,6 +382,24 @@ function AppearancePanel({ env }) {
  */
 
 /**
+ * The `POST /api/me/import` response. `manifest` reports the manifest_cmd run.
+ * @typedef {object} ImportResponse
+ * @property {true} ok
+ * @property {'replace' | 'merge' | 'prefs'} mode
+ * @property {{ places: number, areas: number, gpx: number, metadata: number, prefs: number }} imported
+ * @property {{ ran: boolean, reason?: string, exit_code?: number, stderr_tail?: string }} manifest
+ */
+
+/**
+ * The `POST /api/me/tokens` response, the one place the secret is shown.
+ * @typedef {object} NewToken
+ * @property {string} token
+ * @property {string} name
+ * @property {string} scope
+ * @property {number | null} expires_at
+ */
+
+/**
  * @param {{
  *   ids: Record<string, string>,
  *   modeName: string,
@@ -591,7 +609,7 @@ function runServerImport(file, mode) {
   })).then(async r => {
     const data = await r.json().catch(/** @returns {null} */ () => null);
     if (!r.ok) throw new Error((data && data.error) || ('HTTP ' + r.status));
-    const c = data.imported || {};
+    const c = /** @type {ImportResponse} */ (data).imported || {};
     const parts = [];
     if (c.places) parts.push(t('account.importedPlaces', { n: c.places }));
     if (c.areas) parts.push(t('account.importedAreas', { n: c.areas }));
@@ -673,7 +691,7 @@ function TokenForm({ onCreated }) {
     if (expiry) body.expires_in_days = parseInt(expiry, 10);
     setBusy(true);
     setError('');
-    api('POST', '/me/tokens', body).then(res => {
+    api('POST', '/me/tokens', body).then((/** @type {NewToken} */ res) => {
       setBusy(false);
       nameRef.current.value = '';
       setToken(res.token);
