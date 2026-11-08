@@ -249,7 +249,6 @@
 1	app/map/map-markers.js	TS7006	Parameter 'gpxLayer' implicitly has an 'any' type.
 1	app/map/map-markers.js	TS7006	Parameter 'visited' implicitly has an 'any' type.
 1	app/map/map-panel.js	TS7006	Parameter 'acc' implicitly has an 'any' type.
-1	app/map/map-panel.js	TS7006	Parameter 'arr' implicitly has an 'any' type.
 1	app/map/map-panel.js	TS7006	Parameter 'btn' implicitly has an 'any' type.
 4	app/map/map-panel.js	TS7006	Parameter 'e' implicitly has an 'any' type.
 1	app/map/map-panel.js	TS7006	Parameter 'id' implicitly has an 'any' type.
@@ -383,41 +382,6 @@
 1	app/router.js	TS7006	Parameter 'hash' implicitly has an 'any' type.
 1	app/router.js	TS7006	Parameter 'slug' implicitly has an 'any' type.
 1	app/router.js	TS7006	Parameter 'type' implicitly has an 'any' type.
-1	app/select.js	TS7005	Variable '_selPopover' implicitly has an 'any' type.
-2	app/select.js	TS7005	Variable '_selPopoverTeardown' implicitly has an 'any' type.
-2	app/select.js	TS7005	Variable 'onEnter' implicitly has an 'any' type.
-8	app/select.js	TS7005	Variable 'optEls' implicitly has an 'any[]' type.
-1	app/select.js	TS7005	Variable 'typeTimer' implicitly has an 'any' type.
-2	app/select.js	TS7006	Parameter 'a' implicitly has an 'any' type.
-3	app/select.js	TS7006	Parameter 'anchor' implicitly has an 'any' type.
-2	app/select.js	TS7006	Parameter 'b' implicitly has an 'any' type.
-1	app/select.js	TS7006	Parameter 'backdrop' implicitly has an 'any' type.
-1	app/select.js	TS7006	Parameter 'container' implicitly has an 'any' type.
-1	app/select.js	TS7006	Parameter 'control' implicitly has an 'any' type.
-1	app/select.js	TS7006	Parameter 'dir' implicitly has an 'any' type.
-7	app/select.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/select.js	TS7006	Parameter 'getSelected' implicitly has an 'any' type.
-5	app/select.js	TS7006	Parameter 'i' implicitly has an 'any' type.
-3	app/select.js	TS7006	Parameter 'id' implicitly has an 'any' type.
-2	app/select.js	TS7006	Parameter 'label' implicitly has an 'any' type.
-2	app/select.js	TS7006	Parameter 'o' implicitly has an 'any' type.
-1	app/select.js	TS7006	Parameter 'ok' implicitly has an 'any' type.
-1	app/select.js	TS7006	Parameter 'onClose' implicitly has an 'any' type.
-1	app/select.js	TS7006	Parameter 'onKey' implicitly has an 'any' type.
-1	app/select.js	TS7006	Parameter 'onToggle' implicitly has an 'any' type.
-1	app/select.js	TS7006	Parameter 'optEls' implicitly has an 'any' type.
-1	app/select.js	TS7006	Parameter 'options' implicitly has an 'any' type.
-3	app/select.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
-2	app/select.js	TS7006	Parameter 'pop' implicitly has an 'any' type.
-1	app/select.js	TS7006	Parameter 's' implicitly has an 'any' type.
-3	app/select.js	TS7006	Parameter 'sel' implicitly has an 'any' type.
-1	app/select.js	TS7006	Parameter 'skip' implicitly has an 'any' type.
-1	app/select.js	TS7006	Parameter 'start' implicitly has an 'any' type.
-1	app/select.js	TS7006	Parameter 'title' implicitly has an 'any' type.
-1	app/select.js	TS7034	Variable '_selPopoverTeardown' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/select.js	TS7034	Variable 'onEnter' implicitly has type 'any' in some locations where its type cannot be determined.
-2	app/select.js	TS7034	Variable 'optEls' implicitly has type 'any[]' in some locations where its type cannot be determined.
-1	app/select.js	TS7034	Variable 'typeTimer' implicitly has type 'any' in some locations where its type cannot be determined.
 3	app/server.js	TS7005	Variable '_routeColorCache' implicitly has an 'any' type.
 1	app/server.js	TS7006	Parameter 'base' implicitly has an 'any' type.
 1	app/server.js	TS7006	Parameter 'completed' implicitly has an 'any' type.
