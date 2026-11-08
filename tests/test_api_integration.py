@@ -8,6 +8,8 @@ Run with: python3 -m unittest discover -s tests
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import importlib.util
 import io
 import json
@@ -1773,6 +1775,71 @@ class TestStaticPWAHeaders(unittest.TestCase):
     with urllib.request.urlopen(_server.base_url + "/index.html") as r:
       body = r.read().decode("utf-8")
     self.assertRegex(body, r'/ui\.css\?v=ferd-[0-9a-f]{10}"')
+
+
+class TestContentSecurityPolicy(unittest.TestCase):
+  """The shell carries the policy (Report-Only by default) and nosniff."""
+
+  IMPORTMAP = '{ "imports": { "preact": "/vendor/preact/preact.js" } }'
+
+  def setUp(self):
+    (_server.data_dir / "index.html").write_text(
+      f'<script type="importmap">{self.IMPORTMAP}</script>', encoding="utf-8")
+    (_server.data_dir / "sw.js").write_text("// stub", encoding="utf-8")
+
+  def _headers(self, path):
+    with urllib.request.urlopen(_server.base_url + path) as r:
+      return r.headers
+
+  def test_document_and_worker_carry_the_policy(self):
+    digest = base64.b64encode(hashlib.sha256(self.IMPORTMAP.encode()).digest()).decode()
+    for path in ("/", "/index.html", "/u/someone/", "/sw.js"):
+      with self.subTest(path=path):
+        h = self._headers(path)
+        self.assertIsNone(h.get("Content-Security-Policy"))
+        value = h.get("Content-Security-Policy-Report-Only") or ""
+        self.assertIn(f"script-src 'self' 'sha256-{digest}'", value)
+        self.assertIn("report-uri /api/csp-report", value)
+        self.assertEqual(h.get("Reporting-Endpoints"), 'csp="/api/csp-report"')
+        self.assertEqual(h.get("X-Content-Type-Options"), "nosniff")
+
+  def test_head_gives_the_headers_without_a_body(self):
+    req = urllib.request.Request(_server.base_url + "/", method="HEAD")
+    with urllib.request.urlopen(req) as r:
+      self.assertEqual(r.read(), b"")
+      self.assertIn("script-src", r.headers.get("Content-Security-Policy-Report-Only") or "")
+    req = urllib.request.Request(_server.base_url + "/api/state", method="HEAD")
+    with self.assertRaises(urllib.error.HTTPError) as cm:
+      urllib.request.urlopen(req)
+    self.assertEqual(cm.exception.code, 405)
+
+  def test_other_files_get_nosniff_only(self):
+    (_server.data_dir / "x.css").write_text("a{}", encoding="utf-8")
+    h = self._headers("/x.css")
+    self.assertEqual(h.get("X-Content-Type-Options"), "nosniff")
+    self.assertIsNone(h.get("Content-Security-Policy-Report-Only"))
+
+  def _report(self, body: bytes, ctype: str) -> int:
+    req = urllib.request.Request(_server.base_url + "/api/csp-report", data=body,
+                                 method="POST", headers={"Content-Type": ctype})
+    try:
+      with urllib.request.urlopen(req) as r:
+        return r.status
+    except urllib.error.HTTPError as e:
+      return e.code
+
+  def test_report_sink_takes_both_shapes(self):
+    legacy = json.dumps({"csp-report": {"blocked-uri": "inline",
+                                        "violated-directive": "script-src"}}).encode()
+    self.assertEqual(self._report(legacy, "application/csp-report"), 204)
+    modern = json.dumps([{"type": "csp-violation", "body": {
+      "blockedURL": "inline", "effectiveDirective": "script-src-elem"}}]).encode()
+    self.assertEqual(self._report(modern, "application/reports+json"), 204)
+
+  def test_report_sink_refuses_junk_and_oversize(self):
+    self.assertEqual(self._report(b"{}", "application/json"), 400)
+    self.assertEqual(self._report(b"not json", "application/csp-report"), 400)
+    self.assertEqual(self._report(b"x" * 9000, "application/csp-report"), 413)
 
 
 class TestCrossOrigin(unittest.TestCase):

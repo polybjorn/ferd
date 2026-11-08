@@ -7,6 +7,7 @@ import threading
 from http import HTTPStatus
 from urllib.parse import unquote, urlparse
 
+from . import csp
 from .auth import RateLimiter
 from .static import get_app_version
 from .handlers.request import RequestMixin
@@ -25,6 +26,8 @@ class Handler(RequestMixin, StaticMixin, SessionMixin, AdminMixin, CatalogMixin,
               RoutesMixin, AccountMixin, PublicMixin, SyncMixin, http.server.BaseHTTPRequestHandler):
   cfg: dict = None
   login_limiter: RateLimiter = None
+  # Counts every CSP report, not only failures: the sink takes no auth.
+  csp_limiter: RateLimiter = RateLimiter(csp.REPORT_RATE_MAX, csp.REPORT_RATE_WINDOW)
   # Serializes register-and-create_user (and similar read-then-write critical
   # sections) across worker threads. Each request opens its own SQLite
   # connection, so this lock is for application-level invariants, not
@@ -64,6 +67,7 @@ class Handler(RequestMixin, StaticMixin, SessionMixin, AdminMixin, CatalogMixin,
     },
     "POST": {
       "/api/register": "_h_register",
+      "/api/csp-report": "_h_csp_report",
       "/api/login": "_h_login",
       "/api/logout": "_h_logout",
       "/api/change-password": "_h_change_password",
@@ -174,6 +178,14 @@ class Handler(RequestMixin, StaticMixin, SessionMixin, AdminMixin, CatalogMixin,
       return
     if path.startswith("/api/"):
       return self._error(HTTPStatus.NOT_FOUND, "not found")
+    return self._serve_static(path)
+
+  def do_HEAD(self):
+    # Static files only, so `curl -I` can read their headers. The API's
+    # handlers write their bodies unconditionally.
+    path = urlparse(self.path).path
+    if path.startswith("/api/"):
+      return self.send_error(HTTPStatus.METHOD_NOT_ALLOWED)
     return self._serve_static(path)
 
   def do_POST(self):

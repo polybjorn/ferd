@@ -186,7 +186,7 @@ class MainActivity : AppCompatActivity() {
       ServiceWorkerControllerCompat.getInstance().setServiceWorkerClient(
         object : ServiceWorkerClientCompat() {
           override fun shouldInterceptRequest(request: WebResourceRequest): WebResourceResponse? =
-            assetLoader.shouldInterceptRequest(request.url)
+            ContentSecurityPolicy.apply(this@MainActivity, request.url, assetLoader.shouldInterceptRequest(request.url))
         }
       )
     }
@@ -195,7 +195,8 @@ class MainActivity : AppCompatActivity() {
       override fun shouldInterceptRequest(
         view: WebView,
         request: WebResourceRequest,
-      ): WebResourceResponse? = assetLoader.shouldInterceptRequest(request.url)
+      ): WebResourceResponse? =
+        ContentSecurityPolicy.apply(this@MainActivity, request.url, assetLoader.shouldInterceptRequest(request.url))
 
       override fun shouldOverrideUrlLoading(
         view: WebView,
