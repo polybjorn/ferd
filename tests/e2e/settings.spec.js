@@ -67,7 +67,7 @@ test('a language switch redraws open views at once and survives a reload', async
   await expect(root).toHaveAttribute('lang', 'nb');
   await expect(page.locator('#settings-tabs [data-tab="general"]')).toHaveText('Generelt');
   await expect(page.getByRole('heading', { name: 'Språk' })).toBeVisible();
-  // A key the Norwegian table lacks shows in English, not as the key.
+  // The English heading is gone, and no key shows in place of its text.
   await expect(page.getByRole('heading', { name: 'Language' })).toHaveCount(0);
   await expect(page.locator('body')).not.toContainText('settings.general.');
 

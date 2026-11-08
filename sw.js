@@ -37,6 +37,7 @@ const SHELL_ASSETS = [
   '/app/form-fields.js',
   '/app/gpx-text.js',
   '/app/history.js',
+  '/app/i18n-nb.js',
   '/app/i18n.js',
   '/app/main.js',
   '/app/map/area-layer.js',

@@ -153,7 +153,7 @@ function countInnerHtml(src) {
 /** @param {(src: string) => number} count */
 function counts(count) {
   const out = {};
-  for (const f of fs.readdirSync(dir, { recursive: true }).filter(f => f.endsWith('.js') && f !== 'i18n.js').sort()) {
+  for (const f of fs.readdirSync(dir, { recursive: true }).filter(f => f.endsWith('.js') && !/^i18n(-\w+)?\.js$/.test(f)).sort()) {
     const n = count(fs.readFileSync(path.join(dir, f), 'utf8'));
     if (n) out['app/' + f.split(path.sep).join('/')] = n;
   }

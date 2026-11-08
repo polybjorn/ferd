@@ -1,7 +1,10 @@
+import { NB } from './i18n-nb.js';
+
 // UI strings, one table per language. A view asks for text by key, and a key
 // a language's table lacks falls back to English, so a table can be partial.
 // Keys are grouped by view; `common` is for words that more than one view
 // shares. English is the full set the tests hold the views to.
+
 const STRINGS = {
   'common.close': 'Close',
   'common.copy': 'Copy',
@@ -712,41 +715,6 @@ const STRINGS = {
   'menu.copyPrompt': 'Copy this link:',
 };
 
-// Norwegian bokmål. Partial for now: what it lacks shows in English.
-/** @type {Record<string, string>} */
-const NB = {
-  'common.close': 'Lukk',
-  'common.copy': 'Kopier',
-  'common.copied': 'Kopiert',
-  'common.loading': 'Laster…',
-  'common.failed': 'Feilet: {message}',
-  'common.add': 'Legg til',
-  'common.delete': 'Slett',
-  'common.save': 'Lagre',
-  'common.remove': 'Fjern',
-  'common.manage': 'Administrer',
-  'time.seconds': 'for {n} s siden',
-  'time.minutes': 'for {n} min siden',
-  'time.hours': 'for {n} t siden',
-  'time.days': 'for {n} d siden',
-  'settings.tab.general': 'Generelt',
-  'settings.tab.appearance': 'Utseende',
-  'settings.tab.backup': 'Sikkerhetskopi',
-  'settings.tab.account': 'Konto',
-  'settings.tab.security': 'Sikkerhet',
-  'settings.general.visibleFeatures': 'Synlige funksjoner',
-  'settings.general.places': 'Steder',
-  'settings.general.routes': 'Ruter',
-  'settings.general.history': 'Historikk',
-  'settings.general.optionalFields': 'Valgfrie felt',
-  'settings.general.categories': 'Kategorier',
-  'settings.general.regions': 'Regioner',
-  'settings.general.language': 'Språk',
-  'settings.general.units': 'Enheter',
-  'settings.general.metric': 'Metrisk (km, m)',
-  'settings.general.imperial': 'Imperisk (mi, ft)',
-};
-
 /** @type {Record<string, Record<string, string>>} */
 const TABLES = { en: STRINGS, nb: NB };
 
@@ -773,6 +741,8 @@ export function setLanguage(code) {
 }
 
 // The active language, which is also the locale numbers and sorting use.
+// Dates are not formatted by it: they are stored and shown as ISO 8601
+// (2026-11-08) in every language, which reads the same in both.
 export function language() { return active; }
 
 /** @param {string} k */
@@ -811,3 +781,7 @@ export function tx(key, vars) {
 }
 
 export const stringKeys = () => Object.keys(STRINGS);
+
+// One language's own table, without the English fallback, for the parity test.
+/** @param {string} code */
+export const stringTable = code => ({ ...TABLES[code] });
