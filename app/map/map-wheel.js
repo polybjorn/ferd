@@ -8,6 +8,12 @@ const WHEEL_ZOOM_PER_UNIT = 0.0045;
 const WHEEL_EASE_MS = 46;
 const WHEEL_IDLE_MS = 200;
 
+/** @typedef {import('./route-layer.js').LeafletMap} LeafletMap */
+/** @typedef {any} LeafletLatLng */
+/** @typedef {any} LeafletPoint */
+/** `wheelDeltaY` is non-standard and missing from Firefox, so the DOM types leave it out. @typedef {WheelEvent & { wheelDeltaY?: number }} LegacyWheelEvent */
+
+/** @param {LegacyWheelEvent} e */
 function isWheelNotch(e) {
   // deltaMode comes first: Firefox reports a line-based wheel as pixels to
   // a page that reads deltaY before it.
@@ -17,16 +23,34 @@ function isWheelNotch(e) {
   return !!e.wheelDeltaY && e.wheelDeltaY % 120 === 0 && e.wheelDeltaY !== -3 * e.deltaY;
 }
 
+/**
+ * @param {LegacyWheelEvent} e
+ * @returns {number} zoom levels to add
+ */
 function wheelZoomStep(e) {
   if (isWheelNotch(e)) return -Math.sign(e.deltaY) * WHEEL_ZOOM_PER_NOTCH;
   return L.DomEvent.getWheelDelta(e) * WHEEL_ZOOM_PER_UNIT;
 }
 
+/** @param {LeafletMap} map */
 export function enableWheelZoom(map) {
   const container = map.getContainer();
   let frameId = 0;
   let moved = false;
-  let goalZoom, anchorLatLng, anchorOffset, lastFrame, lastWheel, ownZoom, ownCenter;
+  /** @type {number} */
+  let goalZoom;
+  /** @type {LeafletLatLng} */
+  let anchorLatLng;
+  /** @type {LeafletPoint} */
+  let anchorOffset;
+  /** @type {number} */
+  let lastFrame;
+  /** @type {number} */
+  let lastWheel;
+  /** @type {number} */
+  let ownZoom;
+  /** @type {LeafletLatLng} */
+  let ownCenter;
 
   function finish() {
     frameId = 0;
@@ -36,6 +60,7 @@ export function enableWheelZoom(map) {
     }
   }
 
+  /** @param {DOMHighResTimeStamp} now */
   function onFrame(now) {
     const zoom = map.getZoom();
     // Another mover (flyTo, a route focus) took the view: stop fighting it.
@@ -56,6 +81,7 @@ export function enableWheelZoom(map) {
     frameId = requestAnimationFrame(onFrame);
   }
 
+  /** @param {LegacyWheelEvent} e */
   function onWheel(e) {
     const step = wheelZoomStep(e);
     L.DomEvent.stop(e);

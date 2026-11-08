@@ -141,23 +141,6 @@
 5	app/map/map-panel.js	TS7006	Parameter 's' implicitly has an 'any' type.
 4	app/map/map-phone.js	TS2339	Property '_pendingSearchResult' does not exist on type '{...}'.
 1	app/map/map-phone.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-1	app/map/map-wheel.js	TS7005	Variable 'anchorLatLng' implicitly has an 'any' type.
-1	app/map/map-wheel.js	TS7005	Variable 'anchorOffset' implicitly has an 'any' type.
-5	app/map/map-wheel.js	TS7005	Variable 'goalZoom' implicitly has an 'any' type.
-1	app/map/map-wheel.js	TS7005	Variable 'lastFrame' implicitly has an 'any' type.
-1	app/map/map-wheel.js	TS7005	Variable 'lastWheel' implicitly has an 'any' type.
-1	app/map/map-wheel.js	TS7005	Variable 'ownCenter' implicitly has an 'any' type.
-1	app/map/map-wheel.js	TS7005	Variable 'ownZoom' implicitly has an 'any' type.
-3	app/map/map-wheel.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/map/map-wheel.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-1	app/map/map-wheel.js	TS7006	Parameter 'now' implicitly has an 'any' type.
-1	app/map/map-wheel.js	TS7034	Variable 'anchorLatLng' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map/map-wheel.js	TS7034	Variable 'anchorOffset' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map/map-wheel.js	TS7034	Variable 'goalZoom' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map/map-wheel.js	TS7034	Variable 'lastFrame' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map/map-wheel.js	TS7034	Variable 'lastWheel' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map/map-wheel.js	TS7034	Variable 'ownCenter' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map/map-wheel.js	TS7034	Variable 'ownZoom' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/map/pick-coords.js	TS7006	Parameter 'e' implicitly has an 'any' type.
 2	app/map/pick-coords.js	TS7006	Parameter 'ev' implicitly has an 'any' type.
 1	app/map/pick-coords.js	TS7006	Parameter 'onPick' implicitly has an 'any' type.
