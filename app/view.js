@@ -55,7 +55,7 @@ export function unmountPage() {
 export function DialogHead({ title, lead }) {
   return html`<div class="ui-dialog-head">
     ${lead || html`<h2 class="ui-dialog-title">${title}</h2>`}
-    <button type="button" class="ui-button ui-button-quiet ui-dialog-close" aria-label=${t('common.close')}>×</button>
+    <button type="button" class="ui-button ui-button-quiet ui-dialog-close" aria-label=${t('common.close')}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
   </div>`;
 }
 
