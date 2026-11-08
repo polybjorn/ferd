@@ -24,7 +24,7 @@ object ContentSecurityPolicy {
   private const val POLICY =
     "default-src 'self'; " +
       "script-src 'self' {importmap}; " +
-      "style-src 'self' 'unsafe-inline'; " +
+      "style-src 'self'; " +
       "img-src 'self' data: blob: https:; " +
       "connect-src 'self' https: http:; " +
       "worker-src 'self'; " +

@@ -94,6 +94,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Security
 - The server sends a Content-Security-Policy on the page and the service worker, and `X-Content-Type-Options: nosniff` on every static file, so the Docker image carries them with no proxy in front. It ships report-only: browsers report what it would block to the new `POST /api/csp-report`, which logs one line per violation, and block nothing until `FERD_CSP_MODE=enforce` is set. `FERD_CSP` replaces the policy, for example to list only your own tile hosts. A proxy that serves `index.html` and `sw.js` from disk drops the header, so the nginx and Caddy examples now send those two through the API. The Android app applies the same policy to its bundled page. See [docs/configure.md](docs/configure.md#content-security-policy).
+- The default Content-Security-Policy drops `'unsafe-inline'` from `style-src`, so it allows only the app's own stylesheets, in the server's policy and the Android app's alike. The app no longer needs inline styles: the update notice for old browsers takes its styles from `/webview-notice.css`, and category dots, rating stars and the map's WebGL route layer use classes. The policy still ships report-only, so nothing is blocked until `FERD_CSP_MODE=enforce`; a `FERD_CSP` set by hand keeps its own `style-src`. A setup that serves the files from a proxy or installs them by hand needs the new `webview-notice.css` beside `webview-check.js`.
 
 ## [1.5.0] - 2026-11-05
 

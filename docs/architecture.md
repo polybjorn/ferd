@@ -108,6 +108,7 @@ theme-init.js              # puts the saved theme on before first paint
 ui.css                     # shared form and modal building blocks, copied from bjorn/ui-foundation
 ui.js                      # the menu block's behaviour, copied from the same ui-foundation tag
 webview-check.js           # shows the update notice on browsers before Chrome 99
+webview-notice.css         # styles that notice, unlayered so those browsers apply it
 ```
 
 ## Why no build step

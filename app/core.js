@@ -13,6 +13,24 @@ export const COLORS       = ['#3e78b7', '#ff8e1f', '#4eaf41', '#f93f42', '#3ba6a
 const COLORS_LIGHT = ['#274c72', '#994c00', '#327029', '#950407', '#29706e', '#673258', '#8b700e', '#83163d', '#654534', '#514948', '#0e598b', '#994c00', '#2d7e1b', '#990500', '#2f6a64', '#70295d', '#997400', '#990031', '#743d25', '#574942'];
 if (COLORS.length !== COLORS_LIGHT.length) console.warn('COLORS and COLORS_LIGHT length mismatch');
 export const TRACK_COLORS = COLORS;
+
+// Markup built as a string can't carry an inline style attribute once the CSP's
+// style-src drops 'unsafe-inline', so a dot in a palette colour takes the
+// class colourClass() names. The rules live in a constructed stylesheet,
+// which the CSP does not govern, built from COLORS so the two cannot drift.
+let paletteSheet = false;
+/** @param {string | undefined} colour one of COLORS @returns {string} */
+export function colourClass(colour) {
+  const i = colour ? COLORS.indexOf(colour) : -1;
+  if (i < 0) return '';
+  if (!paletteSheet && typeof document !== 'undefined' && 'adoptedStyleSheets' in document) {
+    paletteSheet = true;
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(COLORS.map((c, n) => `.palette-${n}{background:${c}}`).join('\n'));
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+  }
+  return 'palette-' + i;
+}
 export const ROUTE_COLOR = '#6aaeee';
 export const GPX_NS = 'http://www.topografix.com/GPX/1/1';
 export const DATA_FILES = { siteConfig: 'site-config.json' };

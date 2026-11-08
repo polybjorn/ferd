@@ -342,7 +342,7 @@ function renderSingleTrack(map, route, color, sched) {
       height: 200,
       imperial: isImperial(),
       slope: false, speed: false, acceleration: false, time: false,
-      legend: false, summary: false, ruler: false, downloadLink: false,
+      legend: false, summary: false, ruler: false, downloadLink: false, closeBtn: false,
       almostOver: false, distanceMarkers: false, autofitBounds: false, fitBounds: false,
       polyline: { color: color, opacity: 0.9, weight: 5 * getTrailWeightFactor() },
     }).addTo(map);
@@ -467,7 +467,7 @@ function renderMultiTrack(map, route, sched) {
           height: elevHeight,
           imperial: isImperial(),
           slope: false, speed: false, acceleration: false, time: false,
-          legend: false, summary: false, ruler: false, downloadLink: false,
+          legend: false, summary: false, ruler: false, downloadLink: false, closeBtn: false,
           almostOver: false, distanceMarkers: false, autofitBounds: false, fitBounds: false,
           polyline: false,
         }).addTo(map);
