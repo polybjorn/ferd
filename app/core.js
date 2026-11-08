@@ -159,6 +159,7 @@ export const state = {
   // Mirrors the catalogCache signal (store.js bindCatalogCache), null until fetched.
   _catalogCache: /** @type {import('./places-list.js').CatalogEntry[] | null} */ (null),
   _areaGroup: /** @type {any} */ (null),
+  _searchDocClickBound: false, // place-layer: the outside-click dismiss is bound once
   _areaLayers: /** @type {any[] | null} */ (null), // [{ area, visited, layer }]
   // Set by the map modules: Leaflet renderers and the route highlight and GL hooks.
   _areaRenderer: /** @type {any} */ (null),

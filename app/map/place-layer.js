@@ -7,6 +7,17 @@ import { focusHash } from '../router.js';
 import { getMarkerSize, getPinStyle } from '../theme.js';
 import { bindSearchKeys } from './search-keys.js';
 
+/** @typedef {import('./route-layer.js').LeafletMap} LeafletMap */
+/** @typedef {import('../core.js').Place} Place */
+/** @typedef {import('../core.js').Area} Area */
+/** @typedef {import('../core.js').ManifestRoute} ManifestRoute */
+/** @typedef {{ x: number, y: number }} Pt */
+// A supercluster feature: a cluster carries cluster_id and point_count, a
+// single place carries the place itself.
+/** @typedef {{ type: string, geometry: { type: string, coordinates: number[] }, properties: { place?: Place, cluster?: boolean, cluster_id?: number, point_count?: number, _idx?: number } }} PlaceFeature */
+/** @typedef {{ places: Place[], areas: Area[], routes: Array<{ route: ManifestRoute, region: string }> }} SearchMatches */
+/** @typedef {{ type: string, name?: string, id?: string, key?: string }} RecentPick */
+
 // Canvas-rendered place layer. Owns clustering via supercluster, draws
 // all places and clusters to a single <canvas>, hit-tests clicks and
 // hovers. Replaces the L.markerClusterGroup + L.marker DOM model so
@@ -18,6 +29,7 @@ const PlaceCanvasLayer = L.Layer.extend({
     clickHitRadius: 14,
   },
 
+  /** @param {any} options */
   initialize: function(options) {
     L.setOptions(this, options);
     this._places = [];
@@ -26,6 +38,7 @@ const PlaceCanvasLayer = L.Layer.extend({
     this._useClusters = true;
   },
 
+  /** @param {Place[] | null} places */
   setPlaces: function(places) {
     this._fadingPlaceId = null;
     this._places = (places || []).slice();
@@ -34,6 +47,7 @@ const PlaceCanvasLayer = L.Layer.extend({
     return this;
   },
 
+  /** @param {boolean} useClusters */
   setUseClusters: function(useClusters) {
     if (this._useClusters === useClusters) return this;
     this._useClusters = useClusters;
@@ -46,14 +60,15 @@ const PlaceCanvasLayer = L.Layer.extend({
 
   // The pin stays at the end of the fade until setPlaces drops it. The timer,
   // not the frames, ends the wait: a hidden tab gets no frames.
+  /** @param {Place} place @returns {Promise<void>} */
   fadeOutPlace: function(place) {
-    const shown = (this._visibleFeatures || []).some(f => !f.properties.cluster && f.properties.place.id === place.id);
+    const shown = (this._visibleFeatures || []).some((/** @type {PlaceFeature} */ f) => !f.properties.cluster && f.properties.place.id === place.id);
     if (!shown || reduceMotion()) return Promise.resolve();
     return new Promise(resolve => {
       const start = performance.now();
       this._fadingPlaceId = place.id;
       this._fadeAlpha = 1;
-      const step = now => {
+      const step = (/** @type {number} */ now) => {
         if (this._fadingPlaceId !== place.id) return;
         this._fadeAlpha = Math.min(1, Math.max(0, 1 - (now - start) / MAP_FADE_MS));
         this._redraw();
@@ -66,6 +81,7 @@ const PlaceCanvasLayer = L.Layer.extend({
 
   // Open a popup at the given place. If currently clustered, zoom in
   // first via supercluster's expansion zoom so the popup makes sense.
+  /** @param {Place} place @param {() => void} [onShown] */
   revealPlace: function(place, onShown) {
     const map = this._map;
     if (!map) return;
@@ -78,7 +94,7 @@ const PlaceCanvasLayer = L.Layer.extend({
         const id = f.properties.cluster_id;
         try {
           const leaves = this._supercluster.getLeaves(id, Infinity);
-          if (leaves.some(l => l.properties.place === place
+          if (leaves.some((/** @type {PlaceFeature} */ l) => l.properties.place === place
               || l.properties.place.name === place.name)) {
             targetZoom = Math.min(map.getMaxZoom() || 18,
               this._supercluster.getClusterExpansionZoom(id));
@@ -100,6 +116,7 @@ const PlaceCanvasLayer = L.Layer.extend({
     }
   },
 
+  /** @param {LeafletMap} map */
   onAdd: function(map) {
     this._map = map;
     if (!map.getPane(this.options.pane)) {
@@ -136,6 +153,7 @@ const PlaceCanvasLayer = L.Layer.extend({
     return this;
   },
 
+  /** @param {LeafletMap} map */
   onRemove: function(map) {
     if (this._canvas && this._canvas.parentNode) {
       this._canvas.parentNode.removeChild(this._canvas);
@@ -170,7 +188,7 @@ const PlaceCanvasLayer = L.Layer.extend({
       this._supercluster = null;
       return;
     }
-    const features = this._places.map((p, i) => ({
+    const features = this._places.map((/** @type {Place} */ p, /** @type {number} */ i) => ({
       type: 'Feature',
       geometry: { type: 'Point', coordinates: [p.lon, p.lat] },
       properties: { place: p, _idx: i }
@@ -191,8 +209,8 @@ const PlaceCanvasLayer = L.Layer.extend({
       return this._supercluster.getClusters(bbox, Math.floor(map.getZoom()));
     }
     return this._places
-      .filter(p => bounds.contains([p.lat, p.lon]))
-      .map(p => ({
+      .filter((/** @type {Place} */ p) => bounds.contains([p.lat, p.lon]))
+      .map((/** @type {Place} */ p) => ({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [p.lon, p.lat] },
         properties: { place: p }
@@ -206,6 +224,7 @@ const PlaceCanvasLayer = L.Layer.extend({
   // Draw at a specific zoom/center, or null/null to use the map's
   // current state. Used by _onZoomAnim's rAF loop to render at
   // interpolated zoom during the 250ms desktop animation.
+  /** @param {number | null} zoom @param {LeafletMap | null} center */
   _drawAt: function(zoom, center) {
     const map = this._map;
     if (!map || !this._canvas) return;
@@ -236,7 +255,7 @@ const PlaceCanvasLayer = L.Layer.extend({
     this._visibleFeatures = features;
     const markerSize = (typeof getMarkerSize === 'function') ? getMarkerSize() : 18;
     const pinStyle = (typeof getPinStyle === 'function') ? getPinStyle() : 'ring';
-    const catColors = (state && state.categoryColors) || {};
+    const catColors = /** @type {Record<string, string>} */ ((state && state.categoryColors) || {});
     for (const f of features) {
       const coords = f.geometry.coordinates;
       const projected = crs.latLngToPoint(L.latLng(coords[1], coords[0]), z);
@@ -257,6 +276,7 @@ const PlaceCanvasLayer = L.Layer.extend({
   // center. The map then CSS-animates over 250ms. 'move' doesn't fire
   // during that window, so we manually interpolate and redraw the
   // canvas each frame to keep pins tracking at constant size.
+  /** @param {{ zoom: number, center: any }} e */
   _onZoomAnim: function(e) {
     if (!this._map) return;
     this._stopZoomAnim();
@@ -302,6 +322,7 @@ const PlaceCanvasLayer = L.Layer.extend({
     }
   },
 
+  /** @param {CanvasRenderingContext2D} ctx @param {Pt} pt @param {number} count */
   _drawCluster: function(ctx, pt, count) {
     let r;
     if (count >= 100) r = 22;
@@ -325,6 +346,7 @@ const PlaceCanvasLayer = L.Layer.extend({
     ctx.fillText(String(count), pt.x, pt.y);
   },
 
+  /** @param {CanvasRenderingContext2D} ctx @param {Pt} pt @param {Place} place @param {string} color @param {number} size @param {string} style */
   _drawMarker: function(ctx, pt, place, color, size, style) {
     const r = placeMarkerRadius(size);
     const visited = !!place.visited;
@@ -385,6 +407,7 @@ const PlaceCanvasLayer = L.Layer.extend({
     }
   },
 
+  /** @param {string} hex @param {number} alpha */
   _withAlpha: function(hex, alpha) {
     if (!hex || hex[0] !== '#') return hex;
     let r, g, b;
@@ -400,6 +423,7 @@ const PlaceCanvasLayer = L.Layer.extend({
     return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
   },
 
+  /** @param {Pt} point @returns {PlaceFeature | null} */
   _hitTest: function(point) {
     if (!this._visibleFeatures) return null;
     const map = this._map;
@@ -422,6 +446,7 @@ const PlaceCanvasLayer = L.Layer.extend({
     return best;
   },
 
+  /** @param {{ containerPoint: Pt, originalEvent: Event }} e */
   _onClick: function(e) {
     const target = this._hitTest(e.containerPoint);
     if (!target) return;
@@ -439,6 +464,7 @@ const PlaceCanvasLayer = L.Layer.extend({
     }
   },
 
+  /** @param {{ containerPoint: Pt }} e */
   _onMouseMove: function(e) {
     // Skip on touch devices (no real hover).
     if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
@@ -463,10 +489,12 @@ export function swapPlaceClusterGroup() {
 
 // The filter sheet counts what these let through, so the count and the map
 // cannot disagree.
+/** @param {Place} p */
 export function placeShown(p) {
   if (state.hiddenCategories.has(p.category)) return false;
   return p.visited ? state.showVisited : state.showWant;
 }
+/** @param {{ region: string, completed: boolean }} t */
 export function routeShown(t) {
   if (state.hiddenRegions.has(t.region)) return false;
   return t.completed ? state.showCompleted : state.showPlanned;
@@ -514,6 +542,7 @@ export function applyMapFilters() {
 }
 
 // Up to six of each kind, matched on the words a person would type for it.
+/** @param {string} q @returns {SearchMatches} */
 export function searchMatches(q) {
   const lower = q.toLowerCase();
   const places = state.places ? state.places.filter(p =>
@@ -534,20 +563,25 @@ export function searchMatches(q) {
   return { places, areas, routes };
 }
 
+/** @param {string} data @param {string} marker @param {string} name @param {string} meta */
 function resultRow(data, marker, name, meta) {
   return '<div class="map-search-result" role="option" ' + data + '>' + marker +
     '<span class="result-name">' + escapeHtml(name) + '</span>' +
     '<span class="result-meta">' + escapeHtml(meta) + '</span></div>';
 }
+/** @param {string} category */
 function dotMarker(category) {
-  return '<span class="result-dot" style="background:' + state.categoryColors[category] + '"></span>';
+  return '<span class="result-dot" style="background:' + /** @type {Record<string, string>} */ (state.categoryColors)[category] + '"></span>';
 }
+/** @param {Place} p */
 function placeRow(p) {
   return resultRow('data-type="place" data-name="' + escapeHtml(p.name) + '"', dotMarker(p.category), p.name, p.country || '');
 }
+/** @param {Area} a */
 function areaRow(a) {
   return resultRow('data-type="area" data-id="' + escapeHtml(a.id) + '"', dotMarker(a.category), a.name, 'Area');
 }
+/** @param {ManifestRoute} route @param {string} region */
 function routeRow(route, region) {
   const marker = '<span class="result-line ' + (route.completed ? 'completed' : 'planned') + '"></span>';
   return resultRow('data-type="route" data-key="' + escapeHtml(route.key) + '"', marker, route.name, region);
@@ -555,7 +589,9 @@ function routeRow(route, region) {
 
 // Rows for searchMatches' result, or '' when nothing matched. The phone's
 // search view passes headed, as it has the room to name each group.
+/** @param {SearchMatches} m @param {boolean} [headed] */
 export function searchResultsHtml(m, headed) {
+  /** @param {string} title @param {string[]} rows */
   const group = function(title, rows) {
     if (!rows.length) return '';
     if (!headed) return rows.join('');
@@ -570,8 +606,9 @@ export function searchResultsHtml(m, headed) {
 
 // Rows for remembered picks in pick order, leaving out any that were deleted
 // or hidden since.
+/** @param {RecentPick[]} picks */
 export function recentResultsHtml(picks) {
-  return picks.map(function(r) {
+  return picks.map(function(/** @type {RecentPick} */ r) {
     if (r.type === 'place') {
       const p = (state.places || []).find(x => x.name === r.name);
       return p ? placeRow(p) : '';
@@ -590,10 +627,11 @@ export function recentResultsHtml(picks) {
   }).join('');
 }
 
+/** @param {LeafletMap} map @param {{ dataset: DOMStringMap }} row */
 export function goToSearchResult(map, row) {
   if (row.dataset.type === 'place') {
     const name = row.dataset.name;
-    const place = (state._placeRecords || []).find(p => p.name === name);
+    const place = (state._placeRecords || []).find((/** @type {Place} */ p) => p.name === name);
     if (place) goToPlace(map, place);
   } else if (row.dataset.type === 'area') {
     revealArea(map, row.dataset.id);
@@ -602,6 +640,7 @@ export function goToSearchResult(map, row) {
   }
 }
 
+/** @param {LeafletMap} map */
 export function initUnifiedSearch(map) {
   const input = /** @type {HTMLInputElement} */ (document.getElementById('map-search-input'));
   const results = document.getElementById('map-search-results');
@@ -618,6 +657,7 @@ export function initUnifiedSearch(map) {
   };
   const keys = bindSearchKeys(input, results, { pick, close });
 
+  /** @param {string} q */
   function render(q) {
     const html = q ? searchResultsHtml(searchMatches(q)) : '';
     results.innerHTML = html;
