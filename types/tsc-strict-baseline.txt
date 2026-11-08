@@ -147,29 +147,3 @@
 1	app/theme.js	TS7006	Parameter 'theme' implicitly has an 'any' type.
 1	app/theme.js	TS7006	Parameter 'v' implicitly has an 'any' type.
 4	app/theme.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
-1	app/view.js	TS7006	Parameter 'data' implicitly has an 'any' type.
-1	app/view.js	TS7006	Parameter 'deps' implicitly has an 'any' type.
-2	app/view.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/view.js	TS7006	Parameter 'load' implicitly has an 'any' type.
-1	app/view.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
-1	app/view.js	TS7006	Parameter 'view' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'attrs' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'className' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'dirty' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'hidden' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'hiddenSet' implicitly has an 'any' type.
-2	app/view.js	TS7031	Binding element 'id' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'inInput' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'initial' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'l' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'lead' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'msg' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'name' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'onPick' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'options' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'prefKey' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'target' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'text' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'title' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'v' implicitly has an 'any' type.
-1	app/view.js	TS7031	Binding element 'variant' implicitly has an 'any' type.
