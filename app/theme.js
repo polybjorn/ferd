@@ -16,13 +16,13 @@ export const MODES = ['dark', 'light', 'system'];
 })();
 export function getStoredTheme() {
   try {
-    const v = localStorage.getItem('theme');
+    const v = localStorage.getItem('theme') || '';
     return THEMES.includes(v) ? v : 'nord';
   } catch { return 'nord'; }
 }
 export function getStoredMode() {
   try {
-    const v = localStorage.getItem('mode');
+    const v = localStorage.getItem('mode') || '';
     return MODES.includes(v) ? v : 'system';
   } catch { return 'system'; }
 }
@@ -41,7 +41,7 @@ export function applyTheme(theme, mode) {
 const PIN_STYLES = ['ring', 'pin', 'dot', 'tag'];
 export function getPinStyle() {
   try {
-    const v = localStorage.getItem('pin-style');
+    const v = localStorage.getItem('pin-style') || '';
     return PIN_STYLES.includes(v) ? v : 'ring';
   } catch { return 'ring'; }
 }
@@ -50,21 +50,21 @@ const ROUTE_WEIGHT_FACTORS = /** @type {Record<string, number>} */ ({ thin: 0.7,
 const TILE_FILTERS = ['none', 'muted', 'grayscale', 'sepia', 'contrast'];
 export function getMarkerSizeKey() {
   try {
-    const v = localStorage.getItem('marker-size');
+    const v = localStorage.getItem('marker-size') || '';
     return MARKER_SIZES[v] ? v : 'default';
   } catch { return 'default'; }
 }
 export function getMarkerSize() { return MARKER_SIZES[getMarkerSizeKey()]; }
 export function getTrailWeightKey() {
   try {
-    const v = localStorage.getItem('route-weight');
+    const v = localStorage.getItem('route-weight') || '';
     return ROUTE_WEIGHT_FACTORS[v] ? v : 'default';
   } catch { return 'default'; }
 }
 export function getTrailWeightFactor() { return ROUTE_WEIGHT_FACTORS[getTrailWeightKey()]; }
 export function getTileFilter() {
   try {
-    const v = localStorage.getItem('tile-filter');
+    const v = localStorage.getItem('tile-filter') || '';
     return TILE_FILTERS.includes(v) ? v : 'none';
   } catch { return 'none'; }
 }

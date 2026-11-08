@@ -8,6 +8,8 @@ import {
   DialogHead, ErrorBox, HideToggle, RowTag, html, openViewModal, useRef, useState,
 } from '../view.js';
 
+/** @typedef {import('../core.js').Place} Place */
+
 /**
  * One editable line of the dialog. `original*` hold the values the dialog
  * opened with, which is how a row knows it is edited.
@@ -176,7 +178,7 @@ function CategoriesView({ initial, inUse }) {
   const newSlug = slugifyCategory(newText);
   const changed = cleared.length > 0 || rows.length !== initialKeys.size ||
     rows.some((r, i) => !initialKeys.has(r.slug) || rowDirty(r, i));
-  const lost = cleared.length ? state.places.filter(p => cleared.includes(p.category)).length : 0;
+  const lost = cleared.length ? /** @type {Place[]} */ (state.places).filter(p => cleared.includes(/** @type {string} */ (p.category))).length : 0;
   /** @type {(slug: string, fields: Partial<CategoryRowData>) => void} */
   const patch = (slug, fields) => setRows(list => list.map(r => (r.slug === slug ? { ...r, ...fields } : r)));
 
@@ -234,7 +236,7 @@ function CategoriesView({ initial, inUse }) {
   const save = () => {
     setError('');
     if (!cleared.length) { doSave(); return; }
-    const total = [...state.places, ...(state.areas || [])].filter(p => cleared.includes(p.category)).length;
+    const total = [.../** @type {Place[]} */ (state.places), ...(state.areas || [])].filter(p => cleared.includes(/** @type {string} */ (p.category))).length;
     openConfirmModal({
       title: t('categories.confirmTitle', { count: cleared.length }),
       body: t('categories.confirmBody', { count: total, slugs: cleared.map(s => '"' + s + '"').join(', ') }),
@@ -276,7 +278,7 @@ export function openManageCategoriesModal() {
   /** @type {Record<string, { label?: string, color?: number, order?: number }>} */
   const labels = state.config.category_labels || {};
   // Uncategorized ('') isn't a manageable slug, so it is dropped.
-  const slugsFromPlaces = [...new Set([...(state.places || []), ...(state.areas || [])].map(p => p.category).filter(Boolean))];
+  const slugsFromPlaces = /** @type {string[]} */ ([...new Set([...(state.places || []), ...(state.areas || [])].map(p => p.category).filter(Boolean))]);
   const allSlugs = [...new Set([...Object.keys(labels), ...slugsFromPlaces])];
   // A stored `order` wins; entries without one go last, alphabetical by slug,
   // so the dialog stays deterministic.

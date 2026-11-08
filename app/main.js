@@ -81,12 +81,12 @@ export function loadDataAndRender() {
     if (!loaded) {
       document.body.classList.remove('app-booting', 'signin-only');
       if (v.mode === 'public') {
-        document.getElementById('app').innerHTML = loaded === null
+        /** @type {HTMLElement} */ (document.getElementById('app')).innerHTML = loaded === null
           ? "<div class=\"app-state\"><p class=\"app-error\" role=\"alert\">Can't reach the server, and this map hasn't been opened on this device before.</p></div>"
           : '<div class="app-state"><p class="app-error" role="alert">Map not found, or owner has not published it.</p></div>';
         return;
       }
-      document.getElementById('app').innerHTML = '<div class="app-state"><p class="app-error" role="alert">Failed to load data</p></div>';
+      /** @type {HTMLElement} */ (document.getElementById('app')).innerHTML = '<div class="app-state"><p class="app-error" role="alert">Failed to load data</p></div>';
       return;
     }
     // Apply the (now-synced) theme and reveal the app chrome in the same
@@ -206,14 +206,14 @@ startup();
 
 // PWA: offline indicator + service worker registration + update toast.
 (function() {
-  const updateBtn = document.getElementById('pwa-update-btn');
+  const updateBtn = /** @type {HTMLElement} */ (document.getElementById('pwa-update-btn'));
 
   window.addEventListener('online', () => { updateOfflineBanner(); sync(); });
   window.addEventListener('offline', updateOfflineBanner);
   updateOfflineBanner();
 
-  const issuesBanner = document.getElementById('pwa-sync-issues');
-  const issuesText = document.getElementById('pwa-sync-issues-text');
+  const issuesBanner = /** @type {HTMLElement} */ (document.getElementById('pwa-sync-issues'));
+  const issuesText = /** @type {HTMLElement} */ (document.getElementById('pwa-sync-issues-text'));
   effect(() => {
     const { stuck, kept } = syncIssues.value;
     const parts = [];
@@ -222,7 +222,7 @@ startup();
     issuesBanner.hidden = parts.length === 0;
     issuesText.textContent = parts.join(' ');
   });
-  document.getElementById('pwa-sync-issues-btn').addEventListener('click', () => openViewModal(html`<${SyncIssues} />`));
+  /** @type {HTMLElement} */ (document.getElementById('pwa-sync-issues-btn')).addEventListener('click', () => openViewModal(html`<${SyncIssues} />`));
 
   if (!('serviceWorker' in navigator)) return;
 
@@ -298,7 +298,7 @@ function SyncIssues() {
   };
   const save = (/** @type {SyncIssue} */ it) => run(() => issueText(it).then(text => {
     if (text == null) throw new Error(t('syncIssues.noText'));
-    return saveDownload(new Blob([text], { type: 'application/gpx+xml' }), it.name.split('/').pop(), 'application/gpx+xml');
+    return saveDownload(new Blob([text], { type: 'application/gpx+xml' }), it.name.split('/').pop() || it.name, 'application/gpx+xml');
   }));
   return html`<${DialogHead} title=${t('syncIssues.title')} />
   <div class="ui-dialog-body">
@@ -309,7 +309,7 @@ function SyncIssues() {
       <div class="sync-issue-actions">
         <button type="button" class="primary" disabled=${busy} onClick=${() => run(sync)}>${t('syncIssues.retry')}</button>
         ${it.upload ? html`<button type="button" disabled=${busy} onClick=${() => save(it)}>${t('syncIssues.save')}</button>` : null}
-        <button type="button" disabled=${busy} onClick=${() => run(() => discardOp(it.id))}>${t('syncIssues.discard')}</button>
+        <button type="button" disabled=${busy} onClick=${() => run(() => discardOp(Number(it.id)))}>${t('syncIssues.discard')}</button>
       </div>
     </li>`)}</ul>` : null}
     ${kept.length ? html`<p>${t('syncIssues.keptLead')}</p>
@@ -317,7 +317,7 @@ function SyncIssues() {
       <div><div>${it.name}</div><div class="sync-issue-error">${it.error}</div></div>
       <div class="sync-issue-actions">
         <button type="button" class="primary" disabled=${busy} onClick=${() => save(it)}>${t('syncIssues.save')}</button>
-        <button type="button" disabled=${busy} onClick=${() => run(() => dismissKept(it.key))}>${t('syncIssues.dismiss')}</button>
+        <button type="button" disabled=${busy} onClick=${() => run(() => dismissKept(String(it.key)))}>${t('syncIssues.dismiss')}</button>
       </div>
     </li>`)}</ul>` : null}
     <div class=${'form-error' + (error ? ' visible' : '')}>${error}</div>
