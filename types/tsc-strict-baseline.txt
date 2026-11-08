@@ -1,5 +1,4 @@
 1	app/auth.js	TS2339	Property 'overlays' does not exist on type '{...}'.
-1	app/auth.js	TS7006	Parameter 'backdrop' implicitly has an 'any' type.
 1	app/auth.js	TS7006	Parameter 'body' implicitly has an 'any' type.
 1	app/auth.js	TS7006	Parameter 'method' implicitly has an 'any' type.
 2	app/auth.js	TS7006	Parameter 'path' implicitly has an 'any' type.
@@ -170,8 +169,6 @@
 1	app/map/map-panel.js	TS7006	Parameter 'pop' implicitly has an 'any' type.
 5	app/map/map-panel.js	TS7006	Parameter 's' implicitly has an 'any' type.
 4	app/map/map-phone.js	TS2339	Property '_pendingSearchResult' does not exist on type '{...}'.
-2	app/map/map-phone.js	TS7006	Parameter 'dialog' implicitly has an 'any' type.
-1	app/map/map-phone.js	TS7006	Parameter 'e' implicitly has an 'any' type.
 1	app/map/map-phone.js	TS7006	Parameter 'map' implicitly has an 'any' type.
 1	app/map/map-wheel.js	TS7005	Variable 'anchorLatLng' implicitly has an 'any' type.
 1	app/map/map-wheel.js	TS7005	Variable 'anchorOffset' implicitly has an 'any' type.
@@ -235,21 +232,6 @@
 1	app/map/place-layer.js	TS7006	Parameter 'useClusters' implicitly has an 'any' type.
 1	app/map/place-layer.js	TS7006	Parameter 'zoom' implicitly has an 'any' type.
 2	app/map/place-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-1	app/modal.js	TS7005	Variable 'modalStack' implicitly has an 'any[]' type.
-9	app/modal.js	TS7005	Variable 'start' implicitly has an 'any' type.
-2	app/modal.js	TS7006	Parameter 'close' implicitly has an 'any' type.
-3	app/modal.js	TS7006	Parameter 'dialog' implicitly has an 'any' type.
-6	app/modal.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/modal.js	TS7006	Parameter 'el' implicitly has an 'any' type.
-1	app/modal.js	TS7006	Parameter 'entry' implicitly has an 'any' type.
-3	app/modal.js	TS7006	Parameter 'html' implicitly has an 'any' type.
-2	app/modal.js	TS7006	Parameter 'msg' implicitly has an 'any' type.
-3	app/modal.js	TS7006	Parameter 'onClose' implicitly has an 'any' type.
-3	app/modal.js	TS7006	Parameter 'onMount' implicitly has an 'any' type.
-1	app/modal.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
-1	app/modal.js	TS7018	Object literal's property 'onClose' implicitly has an 'any' type.
-1	app/modal.js	TS7034	Variable 'start' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/modal.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
 1	app/prefs.js	TS7006	Parameter 'def' implicitly has an 'any' type.
 2	app/prefs.js	TS7006	Parameter 'hidden' implicitly has an 'any' type.
 2	app/prefs.js	TS7006	Parameter 'id' implicitly has an 'any' type.
@@ -368,7 +350,6 @@
 4	app/theme.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/view.js	TS7006	Parameter 'data' implicitly has an 'any' type.
 1	app/view.js	TS7006	Parameter 'deps' implicitly has an 'any' type.
-1	app/view.js	TS7006	Parameter 'dialog' implicitly has an 'any' type.
 2	app/view.js	TS7006	Parameter 'e' implicitly has an 'any' type.
 1	app/view.js	TS7006	Parameter 'load' implicitly has an 'any' type.
 1	app/view.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
