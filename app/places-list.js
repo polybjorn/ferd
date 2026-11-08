@@ -16,7 +16,7 @@ import { dataLayer } from './store.js';
 import { refreshOpenPlacePopup, redrawPlaces, refreshPlacesPresentation } from './map/index.js';
 import { api } from './auth.js';
 import { closeModal } from './modal.js';
-import { t } from './i18n.js';
+import { language, t } from './i18n.js';
 import {
   DialogHead, ErrorBox, html, openViewModal, useEffect, useRef, useState,
 } from './view.js';
@@ -417,10 +417,13 @@ export function letterBucket(name) {
   if (!raw) return '#';
   return /\p{L}/u.test(raw) ? raw.toUpperCase() : '#';
 }
-// Locale-agnostic sort. Browser-default locale gives each user the
-// ordering they expect (Norwegian: Æ Ø Å after Z; Swedish: Å Ä Ö; etc.).
-// "#" bucket always last.
-export const NAME_COLLATOR = new Intl.Collator(undefined, { sensitivity: 'base' });
+// Sorted in the chosen language's collation, so the order matches the UI
+// rather than the browser (Norwegian: Æ Ø Å after Z). "#" bucket always last.
+/** @type {Record<string, Intl.Collator>} */
+const collators = {};
+export function nameCollator() {
+  return collators[language()] ??= new Intl.Collator(language(), { sensitivity: 'base' });
+}
 /**
  * @param {string} a
  * @param {string} b
@@ -429,7 +432,7 @@ function compareLetterKeys(a, b) {
   if (a === '#' && b === '#') return 0;
   if (a === '#') return 1;
   if (b === '#') return -1;
-  return NAME_COLLATOR.compare(a, b);
+  return nameCollator().compare(a, b);
 }
 
 // Bucket items by keyFn, sort each bucket's items by nameFn (locale-aware),
@@ -453,7 +456,7 @@ export function groupAndSort(items, keyFn, nameFn, byLetter, sortKeyFn) {
     (grouped[key] = grouped[key] || []).push(item);
   }
   for (const key in grouped) {
-    grouped[key].sort((a, b) => NAME_COLLATOR.compare(nameFn(a), nameFn(b)));
+    grouped[key].sort((a, b) => nameCollator().compare(nameFn(a), nameFn(b)));
   }
   const keys = byLetter
     ? Object.keys(grouped).sort(compareLetterKeys)

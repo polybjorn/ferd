@@ -15,6 +15,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places carry a `country_code` (ISO 3166-1 alpha-2) that the server sets from the Country field on every save. Existing places get one when the server starts.
 - A place's popup has an Edit button, so editing no longer depends on finding the right-click or long-press menu. It shows when you're signed in, and never on a public map.
 - `HEAD` requests for static files, so `curl -I` shows their headers.
+- A language setting under Settings > General. It starts from the browser's language and falls back to English, syncs to your account, and applies at once without a reload. Numbers group in that language's style (7 340,9 in Norwegian) and lists sort in its alphabetical order. Norwegian bokmål is offered with a first few strings translated; anything not yet translated shows in English.
 
 ### Changed
 - Catalog updates report a failed save inside their dialog instead of a browser alert. A bulk review that applies with errors stays open, names each place that failed, and lists the places still waiting.

@@ -7,7 +7,7 @@ import {
 import {
   BASE_LAYER_NAMES, applyControlVisibility, featureVisible, getClusterPlaces,
   getDefaultShow, getDefaultTileLayer, getRememberView, getShowExpandButton, getShowField,
-  getShowFilterPanel, getShowTilePicker, getShowZoomControls, getUnits, logsAvailable,
+  applyLanguage, getLanguage, getShowFilterPanel, getShowTilePicker, getShowZoomControls, getUnits, logsAvailable,
   placesAvailable, placesEnabled, refreshTabVisibility, routesAvailable, routesEnabled,
   setFeatureHidden, setFeatureVisible, setPref, zoomControlsKey,
 } from '../prefs.js';
@@ -17,7 +17,7 @@ import {
   getStoredTheme, getTileFilter, getTrailWeightKey,
 } from '../theme.js';
 import { api, apiUrl, refreshAuthState, renderAuthWidget } from '../auth.js';
-import { t } from '../i18n.js';
+import { LANGUAGES, t } from '../i18n.js';
 import { localBackup } from '../backup.js';
 import { openManageCategoriesModal } from './categories.js';
 import { openManageRegionsModal } from './regions.js';
@@ -138,6 +138,10 @@ function SettingsView({ tabs, env }) {
   const [tab, setTab] = useState(tabs[0]);
   // The password form is on Account and the session list on Security.
   const [sessionsVersion, setSessionsVersion] = useState(0);
+  // Picking a language re-renders the dialog, whose text all comes from t().
+  const [, setLanguageShown] = useState(getLanguage());
+  /** @param {string} code */
+  const pickLanguage = code => { switchLanguage(code); setLanguageShown(code); };
   const body = useRef(/** @type {HTMLDivElement | null} */ (null));
   // A select a tab renders after the dialog opened would keep the system
   // picker, so each tab switch themes the panels again, as the Add dialog does.
@@ -152,7 +156,7 @@ function SettingsView({ tabs, env }) {
   return html`
     <${DialogHead} title=${t(SETTINGS_TAB_LABELS[tabs[0]])} lead=${lead} />
     <div class="ui-dialog-body" ref=${body}>
-      ${panel('general', html`<${GeneralPanel} env=${env} />`)}
+      ${panel('general', html`<${GeneralPanel} env=${env} onLanguage=${pickLanguage} />`)}
       ${panel('backup', html`<${BackupPanel} />`)}
       ${panel('appearance', html`<${AppearancePanel} env=${env} />`)}
       ${panel('account', html`<${AccountPanel} env=${env} onPasswordChanged=${() => setSessionsVersion((/** @type {number} */ n) => n + 1)} />`)}
@@ -172,11 +176,25 @@ function FeaturePill({ id, field, label, initial, onToggle }) {
   return html`<label class=${'feature-pill' + (on ? ' active' : '')}><input type="checkbox" id=${id} data-field=${field} checked=${on} onChange=${change} />${label}</label>`;
 }
 
-/** @param {{ id: string, options: string[][], initial: string, onPick: (v: string) => void }} props */
-function Select({ id, options, initial, onPick }) {
-  return html`<select id=${id} onChange=${(/** @type {any} */ e) => onPick(e.currentTarget.value)}>
+/** @param {{ id: string, label?: string, options: string[][], initial: string, onPick: (v: string) => void }} props */
+function Select({ id, label, options, initial, onPick }) {
+  return html`<select id=${id} aria-label=${label} onChange=${(/** @type {any} */ e) => onPick(e.currentTarget.value)}>
     ${options.map(([v, l]) => html`<option key=${v} value=${v} selected=${v === initial}>${l}</option>`)}
   </select>`;
+}
+
+// A new language applies at once: the chrome and the page behind the dialog
+// redraw in it. The home map keeps its layers and redraws only its panel and
+// an open popup, as a feature toggle does, since a rebuild would blink.
+/** @param {string} code */
+function switchLanguage(code) {
+  setPref('lang', code);
+  applyLanguage();
+  renderAuthWidget();
+  const base = (location.hash || '#/').split('?')[0];
+  const homeMap = base === '#/' || base === '#' || base === '#/map' || base.startsWith('#/place/') || base.startsWith('#/route/');
+  if (homeMap && refreshMapFeatures()) refreshOpenPlacePopup();
+  else wrappedRouter();
 }
 
 /** @param {{ id: string, hint: string, onOpen: () => void }} props */
@@ -238,8 +256,8 @@ const OPTIONAL_FIELDS = [
   ['rating', 'settings.general.fieldRating'], ['tags', 'settings.general.fieldTags'],
 ];
 
-/** @param {{ env: SettingsEnv }} props */
-function GeneralPanel({ env }) {
+/** @param {{ env: SettingsEnv, onLanguage: (code: string) => void }} props */
+function GeneralPanel({ env, onLanguage }) {
   /** @type {(feat: string, label: string, set: (feat: string, on: boolean) => void, isOn: boolean) => any} */
   const pill = (feat, label, set, isOn) => html`<${FeaturePill} id=${'s-feat-' + feat} label=${label} initial=${isOn} onToggle=${(/** @type {boolean} */ on) => set(feat, on)} />`;
   const pe = env.placesEnabled, re = env.routesEnabled;
@@ -266,7 +284,7 @@ function GeneralPanel({ env }) {
     <h3 class="settings-h">${t('settings.general.units')}</h3>
     <${RadioPills} name="units" options=${[['imperial', t('settings.general.imperial')], ['metric', t('settings.general.metric')]]} initial=${getUnits()} variant="radio-segmented" onPick=${(/** @type {string} */ v) => setPref('units', v)} />
     <h3 class="settings-h">${t('settings.general.language')}</h3>
-    <div class="ui-field"><select id="s-language" aria-label=${t('settings.general.language')} disabled><option value="en" selected>${t('settings.general.english')}</option></select></div>
+    <div class="ui-field"><${Select} id="s-language" label=${t('settings.general.language')} options=${LANGUAGES} initial=${getLanguage()} onPick=${onLanguage} /></div>
     ${env.placesAvailable && !env.readOnly && html`
       <h3 class="settings-h">${t('settings.general.categories')}</h3>
       <${ManageRow} id="s-manage-cats" hint=${t('settings.general.categoriesHint')} onOpen=${openManageCategoriesModal} />`}
