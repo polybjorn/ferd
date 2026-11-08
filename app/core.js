@@ -154,6 +154,19 @@ export const state = {
   _syncRoutesOnMap: /** @type {(() => void) | null} */ (null), // index-map: applies the routes signal (home-map.js)
   _areaGroup: /** @type {any} */ (null),
   _areaLayers: /** @type {any[] | null} */ (null), // [{ area, visited, layer }]
+  // Set by the map modules: Leaflet renderers and the route highlight and GL hooks.
+  _areaRenderer: /** @type {any} */ (null),
+  _routeRenderer: /** @type {any} */ (null),
+  _countryRenderer: /** @type {any} */ (null),
+  _detailRenderer: /** @type {any} */ (null),
+  _detailPolylines: /** @type {any[] | null} */ (null),
+  // Highlight animation: undefined _hlFrom/_hlTo mean "follow the selection".
+  _hlFrom: /** @type {string | null | undefined} */ (undefined),
+  _hlTo: /** @type {string | null | undefined} */ (undefined),
+  _hlT: /** @type {number | undefined} */ (undefined),
+  _glRoutesDirty: /** @type {(() => void) | null} */ (null),
+  _glRoutesRebuild: /** @type {(() => void) | null} */ (null),
+  _glRoutesDraw: /** @type {(() => void) | null} */ (null),
 };
 
 export function escapeHtml(str) {

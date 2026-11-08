@@ -7,6 +7,11 @@ import { areaStyle } from './area-layer.js';
 import { getTrailWeightFactor } from '../theme.js';
 import { wrappedRouter } from '../router.js';
 
+// Leaflet is declared `any` in types/globals.d.ts (the vendored build ships no
+// declarations), so its maps, layers and renderers have no narrower type here.
+/** @typedef {any} LeafletMap */
+/** @typedef {any} LeafletLayer */
+/** @typedef {{ route: import('../core.js').ManifestRoute, layer: LeafletLayer, completed: boolean, region: string }} RouteRecord */
 
 // Concurrency-limited GPX text fetcher. The index map can have dozens
 // of routes, and bursting that many parallel XHRs caused leaflet-gpx
@@ -14,6 +19,7 @@ import { wrappedRouter } from '../router.js';
 // failing under load). Fetch + text + limited concurrency avoids the
 // XHR path entirely and keeps the network polite.
 const GPX_CONCURRENCY = 4;
+/** @type {Array<() => Promise<unknown>>} */
 const _gpxQueue = [];
 let _gpxActive = 0;
 function _gpxPump() {
@@ -23,6 +29,7 @@ function _gpxPump() {
     task().finally(function() { _gpxActive--; _gpxPump(); });
   }
 }
+/** @param {string} url @returns {Promise<string>} */
 export function fetchGpxText(url) {
   // Local mode: `local:<file>` resolves to the GPX text held in IndexedDB,
   // no network and no concurrency queue needed.
@@ -59,6 +66,7 @@ export function fetchGpxText(url) {
 // call sites that still pass URLs directly.
 if (window.L && L.GPX && L.GPX.prototype && !L.GPX.prototype._parse_gpx_data._ferdPatched) {
   const orig = L.GPX.prototype._parse_gpx_data;
+  /** @param {Document | null} xml @param {any} options */
   const patched = function(xml, options) {
     if (!xml) return null;
     return orig.call(this, xml, options);
@@ -67,6 +75,7 @@ if (window.L && L.GPX && L.GPX.prototype && !L.GPX.prototype._parse_gpx_data._fe
   L.GPX.prototype._parse_gpx_data = patched;
 }
 
+/** @param {LeafletLayer} layer */
 export function applyNonScalingStroke(layer) {
   if (layer && layer._path && layer._path.setAttribute) {
     // Stamp from layer.options.weight (the intended weight) rather
@@ -100,6 +109,12 @@ const SIMPLIFY_TOLERANCE = 1.3;
 // the profile is unchanged at chart resolution.
 export const MAX_ELEV_POINTS = 3000;
 // Uniform-stride decimation keeping the first and last sample.
+/**
+ * @template T
+ * @param {T[]} coords
+ * @param {number} max
+ * @returns {T[]}
+ */
 export function decimateCoords(coords, max) {
   if (!Array.isArray(coords) || coords.length <= max) return coords;
   const step = (coords.length - 1) / (max - 1);
@@ -107,16 +122,19 @@ export function decimateCoords(coords, max) {
   for (let i = 0; i < max; i++) out.push(coords[Math.round(i * step)]);
   return out;
 }
+/** @param {any[]} latlngs @param {number} zoom */
 function simplifyRouteLatLngs(latlngs, zoom) {
   if (!Array.isArray(latlngs) || latlngs.length < 50) return latlngs;
   const crs = L.CRS.EPSG3857;
   const pts = latlngs.map(ll => crs.latLngToPoint(ll, zoom));
+  /** @type {any[]} */
   const simp = L.LineUtil.simplify(pts, SIMPLIFY_TOLERANCE);
   if (simp.length >= pts.length) return latlngs;
   return simp.map(p => crs.pointToLatLng(p, zoom));
 }
 // Thin each leaf polyline of a route to the given zoom. The full geometry is
 // cached on first touch so later (higher) zooms can restore detail.
+/** @param {LeafletLayer} layer @param {number} zoom */
 export function simplifyRouteForZoom(layer, zoom) {
   if (layer.getLatLngs && layer.setLatLngs && typeof layer.eachLayer !== 'function') {
     let full = layer._fullLatLngs;
@@ -128,7 +146,7 @@ export function simplifyRouteForZoom(layer, zoom) {
     layer.setLatLngs(simplifyRouteLatLngs(full, zoom));
     return;
   }
-  if (typeof layer.eachLayer === 'function') layer.eachLayer(sub => simplifyRouteForZoom(sub, zoom));
+  if (typeof layer.eachLayer === 'function') layer.eachLayer((/** @type {LeafletLayer} */ sub) => simplifyRouteForZoom(sub, zoom));
 }
 
 // Counter-scale route stroke widths against the SVG's current CSS
@@ -145,7 +163,7 @@ export function adjustTrailStrokes() {
   // briefly diverging mid-gesture). Costs more CPU than CSS-only
   // but keeps strokes constant and positions sticky.
   if (!state.currentMap) return;
-  const visit = (layer) => {
+  const visit = (/** @type {LeafletLayer} */ layer) => {
     if (layer._renderer && typeof layer._project === 'function') {
       try { layer._project(); } catch (e) { /* ignore */ }
     }
@@ -198,7 +216,9 @@ export function adjustTrailStrokes() {
 const _glColCanvas = document.createElement('canvas');
 _glColCanvas.width = _glColCanvas.height = 1;
 const _glColCtx = _glColCanvas.getContext('2d');
+/** @type {Record<string, number[]>} */
 const _glColCache = {};
+/** @param {string} c */
 function glParseColor(c) {
   if (_glColCache[c]) return _glColCache[c];
   _glColCtx.fillStyle = '#000'; _glColCtx.fillStyle = c; _glColCtx.fillRect(0, 0, 1, 1);
@@ -208,12 +228,24 @@ function glParseColor(c) {
 }
 const GL_ROUTE_REFZOOM = 20;
 const GL_ROUTE_STRIDE = 14; // segA(2) segB(2) end(1) side(1) rgb(3) opFrom(1) opTo(1) wFrom(1) wTo(1) dist(1)
+/** @param {LeafletMap} map */
 export function attachGLRoutes(map) {
   const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
   if (!coarse) return; // desktop keeps SVG + per-frame reprojection (no WebGL dependency)
 
-  let gl, program, buffer, vertCount = 0, originRef = null;
-  const loc = {};
+  /** @type {WebGLRenderingContext} */
+  let gl;
+  /** @type {WebGLProgram} */
+  let program;
+  /** @type {WebGLBuffer} */
+  let buffer;
+  let vertCount = 0;
+  /** @type {{ x: number, y: number } | null} */
+  let originRef = null;
+  /** @type {Record<string, number>} */
+  const attrLoc = {};
+  /** @type {Record<string, WebGLUniformLocation>} */
+  const uniLoc = {};
   const sched = mapScheduler(map);
   const canvas = document.createElement('canvas');
   canvas.className = 'gl-routes';
@@ -260,6 +292,7 @@ export function attachGLRoutes(map) {
     '}'
   ].join('\n');
 
+  /** @param {number} type @param {string} src */
   function compile(type, src) {
     const s = gl.createShader(type);
     gl.shaderSource(s, src); gl.compileShader(s);
@@ -275,8 +308,8 @@ export function attachGLRoutes(map) {
     gl.attachShader(program, vs); gl.attachShader(program, fs); gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) { console.warn('[gl-routes] link', gl.getProgramInfoLog(program)); return false; }
     gl.useProgram(program);
-    ['aSegA', 'aSegB', 'aEnd', 'aSide', 'aColor', 'aOpFrom', 'aOpTo', 'aWFrom', 'aWTo', 'aDist'].forEach(a => loc[a] = gl.getAttribLocation(program, a));
-    ['uScale', 'uOriginDelta', 'uHalfSize', 'uViewport', 'uHlT'].forEach(u => loc[u] = gl.getUniformLocation(program, u));
+    ['aSegA', 'aSegB', 'aEnd', 'aSide', 'aColor', 'aOpFrom', 'aOpTo', 'aWFrom', 'aWTo', 'aDist'].forEach(a => attrLoc[a] = gl.getAttribLocation(program, a));
+    ['uScale', 'uOriginDelta', 'uHalfSize', 'uViewport', 'uHlT'].forEach(u => uniLoc[u] = gl.getUniformLocation(program, u));
     buffer = gl.createBuffer();
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); // premultiplied alpha
@@ -300,13 +333,25 @@ export function attachGLRoutes(map) {
     // change uploads geometry once and animates with no further rebuilds.
     const hlFrom = (state._hlFrom === undefined) ? sel : state._hlFrom;
     const hlTo = (state._hlTo === undefined) ? sel : state._hlTo;
-    const baseArr = [], topArr = []; // the (incoming) selected route appended last so it draws on top
+    /** @type {number[]} */
+    const baseArr = [];
+    /** @type {number[]} */
+    const topArr = []; // the (incoming) selected route appended last so it draws on top
+    /**
+     * @param {number[]} arr
+     * @param {number} ax @param {number} ay @param {number} bx @param {number} by
+     * @param {number[]} rgb
+     * @param {number} opF @param {number} opT @param {number} wF @param {number} wT
+     * @param {number} [dist]
+     */
     const pushSeg = (arr, ax, ay, bx, by, rgb, opF, opT, wF, wT, dist = -1) => {
       for (const [end, side] of V6) arr.push(ax, ay, bx, by, end, side, rgb[0], rgb[1], rgb[2], opF, opT, wF, wT, dist);
     };
     // Only the outline: an area's fill stays in SVG, where scaling with the
     // pinch is correct, and only a stroke's width has to hold constant.
+    /** @type {number[]} */
     const areaArr = [];
+    /** @param {import('../core.js').Area} area @param {boolean} visited */
     const drawArea = (area, visited) => {
       const style = areaStyle(area, visited);
       const rgb = glParseColor(style.color), hw = style.weight / 2;
@@ -328,13 +373,14 @@ export function attachGLRoutes(map) {
     for (const { area, layer, visited } of state._areaLayers || []) {
       if (state._areaGroup.hasLayer(layer)) drawArea(area, visited);
     }
+    /** @param {RouteRecord} record */
     const drawRoute = (record) => {
       const f = routeHighlightStyle(record.route.key, hlFrom, base4);
       const g = routeHighlightStyle(record.route.key, hlTo, base4);
       const rgb = glParseColor(routeStatusColor(record.completed));
       const opF = f.opacity, opT = g.opacity, wF = f.weight / 2, wT = g.weight / 2;
       const arr = (hlTo && record.route.key === hlTo) ? topArr : baseArr;
-      const visit = (layer) => {
+      const visit = (/** @type {LeafletLayer} */ layer) => {
         if (layer.getLatLngs && !layer.eachLayer) {
           const raw = layer.getLatLngs();
           const flat = Array.isArray(raw) && Array.isArray(raw[0]) ? [].concat.apply([], raw) : raw;
@@ -364,6 +410,7 @@ export function attachGLRoutes(map) {
   // state. The interpolated form is driven by drawZoomAnim's rAF loop so
   // the routes track the tiles through the 250ms release zoom animation
   // (move/zoom don't fire during it), the same way the place canvas does.
+  /** @param {number | null} zoom @param {{ lat: number, lng: number } | null} center */
   function drawAt(zoom, center) {
     if (!gl) return;
     // Keep the canvas pinned to the viewport (counter the map-pane pan offset).
@@ -378,21 +425,21 @@ export function attachGLRoutes(map) {
     gl.useProgram(program);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     const S = GL_ROUTE_STRIDE * 4;
-    gl.enableVertexAttribArray(loc.aSegA); gl.vertexAttribPointer(loc.aSegA, 2, gl.FLOAT, false, S, 0);
-    gl.enableVertexAttribArray(loc.aSegB); gl.vertexAttribPointer(loc.aSegB, 2, gl.FLOAT, false, S, 8);
-    gl.enableVertexAttribArray(loc.aEnd); gl.vertexAttribPointer(loc.aEnd, 1, gl.FLOAT, false, S, 16);
-    gl.enableVertexAttribArray(loc.aSide); gl.vertexAttribPointer(loc.aSide, 1, gl.FLOAT, false, S, 20);
-    gl.enableVertexAttribArray(loc.aColor); gl.vertexAttribPointer(loc.aColor, 3, gl.FLOAT, false, S, 24);
-    gl.enableVertexAttribArray(loc.aOpFrom); gl.vertexAttribPointer(loc.aOpFrom, 1, gl.FLOAT, false, S, 36);
-    gl.enableVertexAttribArray(loc.aOpTo); gl.vertexAttribPointer(loc.aOpTo, 1, gl.FLOAT, false, S, 40);
-    gl.enableVertexAttribArray(loc.aWFrom); gl.vertexAttribPointer(loc.aWFrom, 1, gl.FLOAT, false, S, 44);
-    gl.enableVertexAttribArray(loc.aWTo); gl.vertexAttribPointer(loc.aWTo, 1, gl.FLOAT, false, S, 48);
-    gl.enableVertexAttribArray(loc.aDist); gl.vertexAttribPointer(loc.aDist, 1, gl.FLOAT, false, S, 52);
-    gl.uniform1f(loc.uScale, scale);
-    gl.uniform2f(loc.uOriginDelta, originRef.x - cNow.x, originRef.y - cNow.y);
-    gl.uniform2f(loc.uHalfSize, size.x / 2, size.y / 2);
-    gl.uniform2f(loc.uViewport, size.x, size.y);
-    gl.uniform1f(loc.uHlT, (state._hlT == null) ? 1 : state._hlT);
+    gl.enableVertexAttribArray(attrLoc.aSegA); gl.vertexAttribPointer(attrLoc.aSegA, 2, gl.FLOAT, false, S, 0);
+    gl.enableVertexAttribArray(attrLoc.aSegB); gl.vertexAttribPointer(attrLoc.aSegB, 2, gl.FLOAT, false, S, 8);
+    gl.enableVertexAttribArray(attrLoc.aEnd); gl.vertexAttribPointer(attrLoc.aEnd, 1, gl.FLOAT, false, S, 16);
+    gl.enableVertexAttribArray(attrLoc.aSide); gl.vertexAttribPointer(attrLoc.aSide, 1, gl.FLOAT, false, S, 20);
+    gl.enableVertexAttribArray(attrLoc.aColor); gl.vertexAttribPointer(attrLoc.aColor, 3, gl.FLOAT, false, S, 24);
+    gl.enableVertexAttribArray(attrLoc.aOpFrom); gl.vertexAttribPointer(attrLoc.aOpFrom, 1, gl.FLOAT, false, S, 36);
+    gl.enableVertexAttribArray(attrLoc.aOpTo); gl.vertexAttribPointer(attrLoc.aOpTo, 1, gl.FLOAT, false, S, 40);
+    gl.enableVertexAttribArray(attrLoc.aWFrom); gl.vertexAttribPointer(attrLoc.aWFrom, 1, gl.FLOAT, false, S, 44);
+    gl.enableVertexAttribArray(attrLoc.aWTo); gl.vertexAttribPointer(attrLoc.aWTo, 1, gl.FLOAT, false, S, 48);
+    gl.enableVertexAttribArray(attrLoc.aDist); gl.vertexAttribPointer(attrLoc.aDist, 1, gl.FLOAT, false, S, 52);
+    gl.uniform1f(uniLoc.uScale, scale);
+    gl.uniform2f(uniLoc.uOriginDelta, originRef.x - cNow.x, originRef.y - cNow.y);
+    gl.uniform2f(uniLoc.uHalfSize, size.x / 2, size.y / 2);
+    gl.uniform2f(uniLoc.uViewport, size.x, size.y);
+    gl.uniform1f(uniLoc.uHlT, (state._hlT == null) ? 1 : state._hlT);
     gl.drawArrays(gl.TRIANGLES, 0, vertCount);
   }
   function draw() { drawAt(null, null); }
@@ -403,6 +450,7 @@ export function attachGLRoutes(map) {
   // tiles at constant width instead of freezing then snapping (the drift).
   let zoomAnimRaf = 0;
   function stopZoomAnim() { if (zoomAnimRaf) { sched.cancelFrame(zoomAnimRaf); zoomAnimRaf = 0; } }
+  /** @param {{ zoom: number, center: any }} e */
   function onZoomAnim(e) {
     stopZoomAnim();
     const startZoom = map.getZoom(), startCenter = map.getCenter();
@@ -451,6 +499,7 @@ export function attachGLRoutes(map) {
   map.on('layeradd', rebuildSoon); // routes load lazily (async GPX)
 }
 
+/** @param {LeafletMap} map */
 export function bindTrailStrokeMotion(map) {
   const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
   let lastZoom = map.getZoom();
@@ -485,11 +534,13 @@ export function bindTrailStrokeMotion(map) {
 // after each lazy route load so the selection sticks.
 // A route's style under a selection key: selected fattens + opaque; others
 // dim when something is selected, full when nothing is.
+/** @param {string} routeKey @param {string | null | undefined} selKey @param {number} base */
 function routeHighlightStyle(routeKey, selKey, base) {
   const on = selKey && routeKey === selKey;
   return { weight: on ? base + 2 : base, opacity: on ? 1 : (selKey ? 0.4 : 0.85) };
 }
 // SVG (desktop) highlight at an interpolated point between two selection states.
+/** @param {string | null | undefined} fromKey @param {string | null | undefined} toKey @param {number} t */
 function svgHighlight(fromKey, toKey, t) {
   if (!state._routeLayers) return;
   const base = 4 * getTrailWeightFactor();
@@ -516,6 +567,7 @@ let _hlRaf = 0;
 // new one (~150ms ease-out). The GL buffer is rebuilt once with both end
 // states; the animation only advances the uHlT uniform (no per-frame
 // rebuild). SVG interpolates via setStyle. Respects reduced-motion.
+/** @param {string | null | undefined} key */
 export function setSelectedRoute(key) {
   const from = state._selectedRouteKey;
   const to = key || null;
@@ -527,7 +579,7 @@ export function setSelectedRoute(key) {
   svgHighlight(from, to, 0);
   if (state._glRoutesRebuild) state._glRoutesRebuild(); // upload from/to buffer once
   const start = performance.now(), dur = 150;
-  const tick = (now) => {
+  const tick = (/** @type {number} */ now) => {
     const p = Math.min(1, (now - start) / dur);
     const e = 1 - (1 - p) * (1 - p); // ease-out quad
     state._hlT = e;
