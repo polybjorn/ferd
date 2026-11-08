@@ -259,8 +259,8 @@ function gpxSegments(text) {
     const arr = [];
     const pts = tags(parent, 'trkpt');
     for (let i = 0; i < pts.length; i++) {
-      const lat = parseFloat(pts[i].getAttribute('lat'));
-      const lon = parseFloat(pts[i].getAttribute('lon'));
+      const lat = parseFloat(pts[i].getAttribute('lat') || '');
+      const lon = parseFloat(pts[i].getAttribute('lon') || '');
       if (isFinite(lat) && isFinite(lon)) arr.push({ lat, lon });
     }
     return arr;
@@ -298,6 +298,7 @@ export function drawRouteSilhouette(canvas, route) {
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     ctx.scale(dpr, dpr);
     let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
     for (const p of allPts) {
