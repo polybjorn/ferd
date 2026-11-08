@@ -105,7 +105,7 @@ function PlaceCard({ p, view, showImage, showNote }) {
     <div class="place-text">
       <div class="name">${p.name}</div>
       ${p.note && showNote && html`<div class="note">${p.note}</div>`}
-      ${tags && html`<div class="place-tags">${tags.map((/** @type {string} */ t) => html`<span class="tag" key=${t}>${'#' + t}</span>`)}</div>`}
+      ${tags && html`<div class="place-tags">${tags.map((/** @type {string} */ t) => html`<span class="ui-badge ui-badge-pill tag" key=${t}>${'#' + t}</span>`)}</div>`}
     </div>
     ${p.from_catalog && html`<button type="button" class=${'catalog-mark' + (orphan ? ' orphan' : (upd ? ' update-available' : ''))}
       data-place-slug=${p._slug || ''} onClick=${openUpdate}

@@ -467,18 +467,6 @@ a:not([class]):hover { text-decoration: underline; }
 @media (max-width: 600px) { #nav-crumb.crumb-mobile-only { display: inline; } }
 
 
-.nav-group {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-3);
-}
-
-.nav-group + .nav-group {
-  margin-left: var(--ui-space-2);
-  padding-left: var(--ui-space-5);
-  border-left: 1px solid var(--border);
-}
-
 .nav-stat { display: flex; align-items: center; gap: var(--ui-space-1); }
 .nav-stat .label {
   font-size: var(--ui-text-xs);
@@ -617,22 +605,10 @@ a:not([class]):hover { text-decoration: underline; }
 .you-name { min-width: 0; }
 .you-name span { display: block; color: var(--muted); font-size: var(--ui-text-sm); }
 .you-name strong { display: block; color: var(--text); font-size: var(--ui-text-xl); overflow-wrap: anywhere; }
-.you-gear {
-  position: relative;
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: var(--ui-touch-target);
-  height: var(--ui-touch-target);
-  padding: 0;
-  color: var(--text);
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--ui-radius-full);
-  cursor: pointer;
-}
-.you-gear:hover { border-color: var(--muted); }
-.you-gear svg { width: 22px; height: 22px; }
+/* A ui-button-icon-round, so its colours are the block's tokens; the dot
+   hangs off its corner. */
+.you-gear { position: relative; --ui-border: var(--border); }
+.you-gear:hover { --ui-border: var(--muted); }
 .you-signin {
   max-width: 480px;
   margin: 0 auto;
@@ -1044,19 +1020,6 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   .history-image, .history-image-spacer { width: 88px; }
 }
 
-.catalog-updates-notice {
-  display: flex; align-items: center; gap: var(--ui-space-3);
-  margin: 0 0 var(--ui-space-4); padding: var(--ui-space-2) var(--ui-space-3);
-  background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
-  font-size: var(--ui-text-xs); color: var(--text);
-  column-span: all;
-}
-.catalog-updates-notice span { flex: 1; }
-.catalog-updates-notice button {
-  background: transparent; border: 1px solid var(--accent); color: var(--accent);
-  border-radius: var(--ui-radius-full); padding: var(--ui-space-1) var(--ui-space-2); font-size: var(--ui-text-xs); cursor: pointer;
-}
-.catalog-updates-notice button:hover { background: var(--accent); color: var(--surface); }
 .catalog-diff {
   margin: var(--ui-space-2) 0; padding: var(--ui-space-2) var(--ui-space-3);
   background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
@@ -1575,14 +1538,7 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   gap: var(--ui-space-1) var(--ui-space-2);
 }
 .place-tags { margin-top: var(--ui-space-1); }
-.route-meta-tags .tag, .place-tags .tag {
-  font-size: var(--ui-text-xs);
-  color: var(--muted);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--ui-radius-full);
-  padding: 0.05rem var(--ui-space-2);
-}
+.route-meta-tags .tag, .place-tags .tag { background: var(--bg); --ui-border: var(--border); }
 .route-meta-notes {
   font-size: var(--ui-text-xs);
   color: var(--text);
@@ -1725,7 +1681,6 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 .region-grid > .ui-empty,
 .history-list > .ui-empty { min-block-size: 200px; justify-content: center; }
 .app-state .ui-hint { font-size: var(--ui-text-sm); }
-.app-error { margin: 0; color: var(--ui-danger); font-size: var(--ui-text-sm); }
 body.signin-only .app-nav,
 body.app-booting .app-nav { display: none; }
 body:is(.signin-only, .app-booting) .pwa-notices { display: none; }
@@ -1829,20 +1784,8 @@ body.signin-only #app {
 .signin-public-toggle[aria-expanded="true"] .signin-public-chevron { transform: rotate(180deg); }
 #signin-public-collapsible.open .collapse-inner { padding-top: var(--ui-space-2); max-height: 40vh; overflow-y: auto; }
 .public-maps-list { display: flex; flex-direction: column; gap: var(--ui-space-2); }
-.public-maps-item {
-  display: block;
-  padding: var(--ui-space-2) var(--ui-space-3);
-  background: var(--surface2);
-  color: var(--text);
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius);
-  text-decoration: none;
-  font-size: var(--ui-text-sm);
-}
-.public-maps-item:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
+.public-maps-item { --ui-surface: var(--surface2); }
+.public-maps-item:hover { --ui-text: var(--accent); }
 
 /* Leaflet overrides */
 .leaflet-bar { border-radius: var(--radius) !important; }
@@ -2023,9 +1966,6 @@ body.signin-only #app {
 .leaflet-popup-content .popup-summary > span:nth-child(2) { justify-self: center; }
 .leaflet-popup-content .popup-summary > span:last-child { justify-self: end; }
 .leaflet-popup-content .popup-tags { color: var(--text); font-size: var(--ui-text-xs); margin-top: var(--ui-space-1); text-align: center; }
-.leaflet-popup-content .popup-sources { font-size: var(--ui-text-xs); margin-top: var(--ui-space-1); }
-.leaflet-popup-content .popup-sources-center { text-align: center; }
-.leaflet-popup-content .popup-sources a { color: var(--accent); }
 .leaflet-popup-content .popup-meta {
   margin-top: var(--ui-space-2);
   padding-top: var(--ui-space-2);
@@ -2103,8 +2043,6 @@ body.signin-only #app {
   .route-grid { grid-template-columns: 1fr; }
   .detail-layout { padding: 0; }
   .app-nav { gap: var(--ui-space-2); }
-  .nav-group { gap: var(--ui-space-2); }
-  .nav-group + .nav-group { padding-left: var(--ui-space-2); }
   .nav-stat .label { font-size: var(--ui-text-xs); }
   #multi-elevation-container { max-height: 40vh; }
   .map-panel { max-width: calc(100vw - 40px); }
@@ -2235,25 +2173,6 @@ body.force-show-map-filter .map-panel {
   pointer-events: auto !important;
 }
 
-/* "Pick on map" inline button for the Add Place form */
-.pick-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: var(--ui-space-2);
-}
-.pick-row button {
-  background: transparent;
-  border: 1px solid var(--control-border);
-  color: var(--muted);
-  font-family: inherit;
-  font-size: var(--ui-text-xs);
-  letter-spacing: 0.03em;
-  padding: var(--ui-space-1) var(--ui-space-3);
-  border-radius: var(--radius);
-  cursor: pointer;
-}
-.pick-row button:hover { color: var(--text); border-color: var(--muted); }
-
 /* "Add new" toggle for category/region selects */
 .select-or-new { display: flex; flex-direction: column; gap: var(--ui-space-2); }
 .select-or-new .new-input[hidden] { display: none; }
@@ -2282,26 +2201,9 @@ body.force-show-map-filter .map-panel {
   flex-direction: column;
   gap: var(--ui-space-2);
 }
-.session-row {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-3);
-  padding: var(--ui-space-2) var(--ui-space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface2);
-}
-.session-meta { flex: 1; min-width: 0; }
 .session-device { font-size: var(--ui-text-xs); color: var(--text); display: flex; align-items: center; gap: var(--ui-space-2); }
-.session-current {
-  font-size: var(--ui-text-xs);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--green);
-  border: 1px solid rgba(40,202,65,0.3);
-  padding: 0.1rem var(--ui-space-2);
-  border-radius: var(--ui-radius-sm);
-}
+.session-row { --ui-surface: var(--surface2); --ui-border: var(--border); }
+.session-current { letter-spacing: 0.1em; text-transform: uppercase; }
 .session-sub { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); }
 .session-revoke {
   background: transparent;
@@ -2315,29 +2217,16 @@ body.force-show-map-filter .map-panel {
 }
 .session-revoke:hover:not(:disabled) { border-color: var(--danger); }
 .session-revoke:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-x {
-  background: transparent;
-  border: 1px solid var(--control-border);
-  color: var(--muted);
-  width: 1.6rem;
-  height: 1.6rem;
-  padding: 0;
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: var(--ui-text-md);
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.btn-x:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
-.btn-x:disabled { opacity: 0.4; cursor: not-allowed; }
+/* .btn-x and .catalog-eye-btn sit on ui-button ui-button-icon, which draws
+   the square and outranks this layer, so their colours are set through its
+   tokens. The hover colour says what the button does. */
+.btn-x, .catalog-eye-btn { --ui-text: var(--muted); }
+.btn-x:hover:not(:disabled) { --ui-border: var(--danger); --ui-text: var(--danger); }
 /* Default-visibility eye toggle (Manage categories/regions): shown = text,
    hidden-by-default = muted; hover is accent, not the destructive red. */
-.cat-hide, .rgn-hide { color: var(--text); }
-.cat-hide.is-hidden, .rgn-hide.is-hidden { color: var(--muted); }
-.cat-hide:hover:not(:disabled), .rgn-hide:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.cat-hide, .rgn-hide { --ui-text: var(--text); }
+.cat-hide.is-hidden, .rgn-hide.is-hidden { --ui-text: var(--muted); }
+.cat-hide:hover:not(:disabled), .rgn-hide:hover:not(:disabled) { --ui-border: var(--accent); --ui-text: var(--accent); }
 .cat-hide .eye-wrap, .rgn-hide .eye-wrap { display: block; line-height: 0; }
 .cat-hide svg, .rgn-hide svg { display: block; width: 1rem; height: 1rem; }
 /* X drawn with two rotated bars (not a font character or SVG) so it centers
@@ -2350,14 +2239,7 @@ body.force-show-map-filter .map-panel {
 }
 .btn-x.x-icon::before { transform: translate(-50%, -50%) rotate(45deg); }
 .btn-x.x-icon::after  { transform: translate(-50%, -50%) rotate(-45deg); }
-.catalog-eye-btn {
-  background: transparent; border: 1px solid var(--control-border);
-  color: var(--muted); width: 1.9rem; height: 1.9rem;
-  padding: 0; border-radius: var(--radius); cursor: pointer;
-  display: inline-flex; align-items: center; justify-content: center;
-}
-.catalog-eye-btn:hover:not(:disabled) { color: var(--text); border-color: var(--muted); }
-.catalog-eye-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.catalog-eye-btn:hover:not(:disabled) { --ui-border: var(--muted); --ui-text: var(--text); }
 .ui-dialog input.dirty { border-color: var(--accent); }
 .tag-end {
   flex: 0 0 5rem;
@@ -2592,7 +2474,6 @@ body.force-show-map-filter .map-panel {
 .ui-dialog .file-picker .file-name { font-size: var(--ui-text-sm); color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ui-dialog input[type="file"].file-input-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
 #p-coords-manual { line-height: 24px; }
-.ui-dialog .backup-sub { font-size: var(--ui-text-xs); font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
 .ui-dialog .success-note { font-size: var(--ui-text-sm); color: var(--green, #6db26d); margin-top: var(--ui-space-2); }
 .ui-dialog h3.sessions-h { display: flex; align-items: baseline; gap: var(--ui-space-3); }
 .ui-dialog button.sessions-revoke-others:not(h2 .ui-dialog-close) { margin-left: auto; font-size: var(--ui-text-xs); font-weight: 400; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0; letter-spacing: 0; }
@@ -2649,9 +2530,6 @@ body.force-show-map-filter .map-panel {
 .ui-dialog textarea { min-height: 60px; resize: vertical; }
 .ui-dialog .row { display: flex; gap: var(--ui-space-2); }
 .ui-dialog .row > * { flex: 1; }
-.ui-dialog .checkbox-row { display: flex; align-items: center; gap: var(--ui-space-2); margin-top: var(--ui-space-3); }
-.ui-dialog .checkbox-row input { width: auto; }
-.ui-dialog .checkbox-row label { margin: 0; text-transform: none; letter-spacing: 0; font-size: var(--ui-text-sm); color: var(--text); }
 .feature-pills { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); margin-top: var(--ui-space-2); }
 /* The pills default to a flexible row (content-sized, growing to fill).
    When the modal itself gets narrow enough that the row would wrap and a
@@ -2873,11 +2751,6 @@ body.force-show-map-filter .map-panel {
 }
 .row-src { flex: 0 0 auto; font-size: var(--ui-text-xs); color: var(--muted); text-decoration: none; padding: 0.05rem var(--ui-space-2); border: 1px solid var(--control-border); border-radius: var(--ui-radius-full); }
 .row-src:hover { color: var(--text); border-color: var(--text); }
-.row-notes-toggle {
-  background: transparent; border: none; color: var(--muted); cursor: pointer;
-  padding: 0; font-size: var(--ui-text-xs); letter-spacing: 0;
-}
-.row-notes-toggle:hover { color: var(--text); text-decoration: underline; }
 .ui-dialog .log-row:last-child { border-bottom: none; }
 .ui-dialog .log-row .log-head {
   display: flex;
@@ -3027,6 +2900,7 @@ button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
   --ui-accent:  var(--accent);
   --ui-on-accent: var(--fab-text);
   --ui-danger:  var(--danger);
+  --ui-success: var(--green);
   --ui-radius:  var(--radius);
   --ui-radius-lg: var(--radius);
   --ui-backdrop: var(--backdrop);

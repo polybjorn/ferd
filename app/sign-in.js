@@ -221,7 +221,7 @@ function PublicMaps() {
       <div class=${'ui-collapse' + (open ? ' open' : '')} id="signin-public-collapsible">
         <div class="ui-collapse-body"><div class="collapse-inner">
           <div class="public-maps-list">
-            ${names.map((/** @type {string} */ u) => html`<a class="public-maps-item" href=${'/u/' + encodeURIComponent(u) + '/'}>${u}</a>`)}
+            ${names.map((/** @type {string} */ u) => html`<a class="ui-list-item public-maps-item" href=${'/u/' + encodeURIComponent(u) + '/'}>${u}</a>`)}
           </div>
         </div></div>
       </div>`}

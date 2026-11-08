@@ -718,7 +718,7 @@ function RouteMeta({ routeKey }) {
   return vhtml`<div class="route-meta-panel">
     <div class="route-meta-header">
       <div class="route-meta-line">${facts.map((f, i) => vhtml`${i > 0 && vhtml`<span class="sep">\u00b7</span>`}${f}`)}</div>
-      ${tagsOn && vhtml`<div class="route-meta-tags">${/** @type {string[]} */ (route.tags).map((/** @type {string} */ tag) => vhtml`<span class="tag" key=${tag}>${'#' + tag}</span>`)}</div>`}
+      ${tagsOn && vhtml`<div class="route-meta-tags">${/** @type {string[]} */ (route.tags).map((/** @type {string} */ tag) => vhtml`<span class="ui-badge ui-badge-pill tag" key=${tag}>${'#' + tag}</span>`)}</div>`}
     </div>
     ${notes && vhtml`<div class="route-meta-notes"><span class="route-meta-notes-label">${t('routeDetail.notes')}</span>${route.notes}</div>`}
   </div>`;

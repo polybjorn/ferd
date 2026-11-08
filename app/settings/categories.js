@@ -51,7 +51,7 @@ function CategoryRow({ r, index, open, onToggleSwatches, onColor, onDisplay, onR
   const tag = dirty ? t('common.edited') : r.count === 0 ? t('categories.unused') : '';
   return html`<div class="cat-row" data-i=${index} style="margin-top:var(--ui-space-2)">
     <div style="display:flex;gap:var(--ui-space-2);align-items:center">
-      <button type="button" class="cat-drag btn-x" data-i=${index} aria-label=${t('categories.drag')} title=${t('categories.drag')}
+      <button type="button" class="ui-button ui-button-icon cat-drag btn-x" data-i=${index} aria-label=${t('categories.drag')} title=${t('categories.drag')}
         style="flex:0 0 auto;cursor:grab;touch-action:none" onPointerDown=${(/** @type {PointerEvent} */ e) => onDragStart(e, index)}>☰</button>
       <button type="button" class=${'cat-color-dot' + (open ? ' open' : '')} data-i=${index} title=${t('categories.changeColor')}
         style=${'background:' + COLORS[r.color % COLORS.length]} onClick=${onToggleSwatches}></button>
@@ -62,7 +62,7 @@ function CategoryRow({ r, index, open, onToggleSwatches, onColor, onDisplay, onR
         <${RowTag} text=${tag} dirty=${dirty} inInput />
       </span>
       <${HideToggle} prefKey="default-hidden-categories" id=${r.slug} hiddenSet=${state.hiddenCategories} className="cat-hide" attrs=${{ 'data-slug': r.slug }} />
-      <button type="button" data-i=${index} class="cat-remove btn-x x-icon" aria-label=${t('common.remove')} title=${t('common.remove')}
+      <button type="button" data-i=${index} class="ui-button ui-button-icon cat-remove btn-x x-icon" aria-label=${t('common.remove')} title=${t('common.remove')}
         style="flex:0 0 auto" onClick=${onRemove}></button>
     </div>
     <div class=${'cat-swatches' + (open ? ' open' : '')}>

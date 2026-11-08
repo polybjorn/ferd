@@ -1,4 +1,4 @@
-/* ui.css 1.13.1: shared building blocks for menus, modals and forms.
+/* ui.css 1.14.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -19,9 +19,9 @@
         --ui-text, --ui-muted, --ui-surface, --ui-control-surface,
         --ui-border, --ui-accent, --ui-on-accent, --ui-danger,
         --ui-success, --ui-warning
-      --ui-on-accent is the text on an accent fill. --ui-success and
-      --ui-warning are for the host's own status marks and text, since no
-      block uses them yet; like --ui-danger they stay legible as text.
+      --ui-on-accent is the text on an accent fill. --ui-success colours
+      .ui-badge-success, and --ui-warning is for the host's own status marks
+      and text; like --ui-danger they stay legible as text.
    3. Override any size token in a host layer. The names are shared; the
       values are per app. Each scale is a short list for the host's own CSS
       to move onto, as well as what the blocks use:
@@ -72,6 +72,31 @@
    aria-invalid="true" on its control, shows an error and turns a .ui-hint
    inside it into the error text; .ui-required on a label marks a field that
    must be filled in.
+
+   Error hint contract: .ui-hint-error on a .ui-hint draws it in the danger
+   colour on its own, for an error that belongs to no single field, such as
+   a failed save or a form-wide check. An error about one control is a
+   .ui-field-invalid instead, which also marks the control. The words say it
+   is an error, since forced colours draw every hint alike. A hint that
+   appears when something fails takes role="alert" and follows the banner's
+   rule: the empty element is in the page first and the host fills it.
+
+   Icon button contract: .ui-button-icon on a .ui-button, with any of its
+   looks, makes it a square that holds one icon as an
+   <svg aria-hidden="true">, with an aria-label on the button for its name.
+   .ui-button-icon-round makes the square a circle. A colour on hover, such
+   as danger on a delete, stays in the host.
+
+   List contract: a .ui-list-item is a bordered row on an <li>, an <a> or a
+   <button>: an <li> is static, an <a> goes to a place, a <button> acts and
+   may show aria-pressed="true" for the chosen one. Its text goes in a
+   .ui-list-item-main, which shrinks and wraps, and an optional
+   .ui-list-item-end after it holds a badge, a figure or an action. A row that
+   is itself a link or button holds no second control, so a trailing action
+   sits on an <li>. Hover and pressed draw the accent line, and only on an <a>
+   or <button>. A .ui-list-head is the small uppercase label over a group of
+   rows, on whatever element fits, a heading or a <p>. Space between rows and
+   around a head stays in the host, as does a status stripe on a row.
 
    Dialog contract: open a .ui-dialog with showModal(), never show() or the
    open attribute, because only showModal() gives the top layer and an inert
@@ -156,7 +181,10 @@
    Chip, badge and dot contract: a .ui-chip is a <button> that shows its
    pressed state from aria-pressed="true", never from a class, so a screen
    reader hears what the fill shows; flipping it is the host's code. A
-   .ui-badge is a static label with no state of its own. A .ui-dot takes its
+   .ui-badge is a static label with no state of its own. .ui-badge-pill
+   rounds its ends, and .ui-badge-success draws its text and line in
+   --ui-success, for a label that marks something current or done; its
+   words carry that, never the colour alone. A .ui-dot takes its
    colour from --ui-dot-color, set by the host on the dot or an ancestor, and
    falls back to --ui-muted. Colour alone carries nothing to a screen reader
    or in forced colours, where every dot draws in the text colour, so the
@@ -420,6 +448,8 @@
     text-transform: none;
     color: var(--ui-muted);
   }
+  /* After .ui-hint, which it overrides at the same specificity. */
+  .ui-hint-error { color: var(--ui-danger); }
 
   /* Muted and centred so it reads as an absence, not as content. The gap and
      padding come off the spacing scale, so a dense app tightens it. */
@@ -752,6 +782,15 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
+  /* An icon button is square, as tall as any control, and holds one icon.
+     It changes the shape only, so it sits on any button look, quiet or
+     bordered, and keeps that look's states. */
+  .ui-button-icon {
+    flex: none;
+    inline-size: var(--ui-control-height);
+    padding: 0;
+  }
+  .ui-button-icon-round { border-radius: var(--ui-radius-full); }
 
   /* The browser's own clear button exists only in Chromium and WebKit, so it
      goes, and every engine draws the reset button instead. It shows while
@@ -835,6 +874,66 @@
     vertical-align: middle;
     border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius);
+  }
+  .ui-badge-pill { border-radius: var(--ui-radius-full); }
+  .ui-badge-success {
+    color: var(--ui-success);
+    border-color: var(--ui-success);
+  }
+
+  /* A row is one bordered box with its text and an optional trailing cell, so
+     the same markup serves a static entry, a link and a pick. Only a link or
+     a button reacts, so a plain row never looks pressable. A button is
+     stretched to the width a block row has, and the aria-pressed fill is a
+     tint of the accent that keeps --ui-text on --ui-surface readable. */
+  .ui-list-item {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-3);
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-inline-size: 0;
+    margin: 0;
+    padding: var(--ui-space-2) var(--ui-space-3);
+    font: inherit;
+    font-size: var(--ui-text-sm);
+    text-align: start;
+    text-decoration: none;
+    list-style: none;
+    color: var(--ui-text);
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+  }
+  .ui-list-item-main {
+    flex: 1;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+  .ui-list-item-end { flex: none; }
+  :is(a, button).ui-list-item { cursor: pointer; }
+  :is(a, button).ui-list-item:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: var(--ui-accent); }
+  :is(a, button).ui-list-item:focus-visible {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: var(--ui-focus-width);
+  }
+  .ui-list-item[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--ui-accent) 12%, var(--ui-surface));
+    border-color: var(--ui-accent);
+  }
+  .ui-list-item:is(:disabled, [aria-disabled="true"]) {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .ui-list-head {
+    margin: 0;
+    font-size: var(--ui-text-xs);
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ui-muted);
+    overflow-wrap: anywhere;
   }
 
   /* A banner sits in the flow rather than over it, so it takes the surface
@@ -944,7 +1043,7 @@
   }
   /* The x is an icon, not a × character: a font draws that glyph below the
      middle of its line box, so it never centres in the button. */
-  :is(.ui-dialog-close, .ui-search-clear) > svg {
+  :is(.ui-button-icon, .ui-dialog-close, .ui-search-clear) > svg {
     flex: none;
     inline-size: 1.25rem;
     block-size: 1.25rem;
@@ -1344,7 +1443,7 @@
   :is(.ui-section, .ui-field, .ui-field-label, .ui-field-row, .ui-control-row,
       .ui-toggle-row, .ui-toggle-text, .ui-choice-list, .ui-choice-segmented,
       .ui-choice-pills, .ui-choice, .ui-disclosure, .ui-collapse, .ui-button,
-      .ui-chip, .ui-badge, .ui-dot, .ui-banner, .ui-empty,
+      .ui-chip, .ui-badge, .ui-dot, .ui-list-item, .ui-list-head, .ui-banner, .ui-empty,
       .ui-dialog[open], .ui-dialog-head, .ui-dialog-actions, .ui-bottom-bar,
       .ui-bottom-bar-item, .ui-tabs, .ui-tab, .ui-menu-anchor, .ui-menu, .ui-popover,
       .ui-menu-item, .ui-toast)[hidden] {
@@ -1394,6 +1493,19 @@
     /* Forced colours drop box-shadow, which is all a hover draws. */
     .ui-button:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: Highlight; }
     .ui-chip:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: Highlight; }
+    :is(a, button).ui-list-item:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: Highlight; }
+    /* The tint is replaced, so a pressed row takes the selection colours. */
+    .ui-list-item[aria-pressed="true"] {
+      forced-color-adjust: none;
+      color: HighlightText;
+      background: Highlight;
+      border-color: Highlight;
+    }
+    .ui-list-item[aria-pressed="true"]:is(:disabled, [aria-disabled="true"]) {
+      color: Canvas;
+      background: GrayText;
+      border-color: GrayText;
+    }
     /* The pressed fill is replaced too, so a pressed chip takes the system
        selection colours. */
     .ui-chip[aria-pressed="true"] {
@@ -1453,6 +1565,7 @@
   @media (pointer: coarse) {
     .ui-button,
     .ui-chip,
+    :is(a, button).ui-list-item,
     .ui-field :is(input:where(:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"])), select),
     .ui-control-row,
     .ui-toggle-row,
@@ -1460,6 +1573,7 @@
     .ui-tab,
     .ui-disclosure > summary,
     .ui-menu-item { min-block-size: var(--ui-touch-target); }
+    .ui-button-icon { inline-size: var(--ui-touch-target); }
     .ui-dialog-close { inline-size: var(--ui-touch-target); }
     .ui-search-clear { inline-size: var(--ui-touch-target); }
     .ui-field .ui-search > input { padding-inline-end: var(--ui-touch-target); }

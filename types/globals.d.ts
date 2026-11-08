@@ -13,6 +13,13 @@ interface Window {
   L?: any;
   FerdAndroid?: FerdAndroidBridge;
   ferdCloseTopModal?: () => boolean;
+  // What ui.js defines, as ui-foundation's types/ui-global.d.ts declares it.
+  // ui.js is in the type-check, so an edit to the vendored copy shows here.
+  uiFoundation?: {
+    readonly openMenu: (trigger: Element) => void;
+    readonly openMenuAt: (menu: HTMLElement, x: number, y: number, origin?: Element | null) => void;
+    readonly closeMenu: () => void;
+  };
 }
 
 declare module 'preact';

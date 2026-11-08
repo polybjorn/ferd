@@ -28,7 +28,7 @@ function RegionRow({ index, region, onName, onRemove }) {
     <input type="text" data-i=${index} class=${'rgn-name' + (dirty ? ' dirty' : '')} value=${name} style="flex:1;min-width:0" onInput=${input} />
     <${RowTag} text=${tag} dirty=${dirty} />
     <${HideToggle} prefKey="default-hidden-regions" id=${region.original} hiddenSet=${state.hiddenRegions} className="rgn-hide" attrs=${{ 'data-name': region.original }} />
-    <button type="button" data-i=${index} class="rgn-remove btn-x x-icon" aria-label=${t('common.remove')}
+    <button type="button" data-i=${index} class="ui-button ui-button-icon rgn-remove btn-x x-icon" aria-label=${t('common.remove')}
       title=${t(empty ? 'regions.removeEmpty' : 'regions.removeInUse')} style="flex:0 0 auto" onClick=${() => onRemove(region)}></button>
   </div>`;
 }

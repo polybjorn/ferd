@@ -110,12 +110,12 @@ function SessionRow({ s, onRevoked }) {
       .then(onRevoked)
       .catch(err => { setBusy(false); failAlert(err); });
   };
-  return html`<li class="session-row">
-    <div class="session-meta">
-      <div class="session-device">${deviceLabel(s.user_agent)} ${s.current ? html`<span class="session-current">${t('security.thisDevice')}</span>` : ''}</div>
+  return html`<li class="ui-list-item session-row">
+    <div class="ui-list-item-main session-meta">
+      <div class="session-device">${deviceLabel(s.user_agent)} ${s.current ? html`<span class="ui-badge ui-badge-pill ui-badge-success session-current">${t('security.thisDevice')}</span>` : ''}</div>
       <div class="session-sub">${s.current ? ip : ip + ' · ' + timeAgo(s.last_seen_at || s.created_at)}</div>
     </div>
-    ${s.current ? '' : html`<button class="session-revoke" data-id=${s.id} disabled=${busy} onClick=${revoke}>${t('security.revoke')}</button>`}
+    ${s.current ? '' : html`<button class="ui-list-item-end session-revoke" data-id=${s.id} disabled=${busy} onClick=${revoke}>${t('security.revoke')}</button>`}
   </li>`;
 }
 
@@ -154,12 +154,12 @@ function TokenRow({ tok, onRevoked }) {
         .catch(err => { setBusy(false); failAlert(err); });
     });
   };
-  return html`<li class="session-row">
-    <div class="session-meta">
+  return html`<li class="ui-list-item session-row">
+    <div class="ui-list-item-main session-meta">
       <div class="session-device">${tok.name}</div>
       <div class="session-sub">${[t(tok.scope === 'readonly' ? 'security.scopeReadonly' : 'security.scopeFull'), used, exp].join(' · ')}</div>
     </div>
-    <button class="session-revoke" data-id=${tok.id} disabled=${busy} onClick=${revoke}>${t('security.revoke')}</button>
+    <button class="ui-list-item-end session-revoke" data-id=${tok.id} disabled=${busy} onClick=${revoke}>${t('security.revoke')}</button>
   </li>`;
 }
 

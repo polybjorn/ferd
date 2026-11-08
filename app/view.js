@@ -70,7 +70,7 @@ export function unmountPage() {
 // The whole-page error state, in place of a page that could not load.
 /** @param {{msg: string}} props */
 export function AppError({ msg }) {
-  return html`<div class="app-state"><p class="app-error" role="alert">${msg}</p></div>`;
+  return html`<div class="app-state"><p class="ui-hint ui-hint-error app-error" role="alert">${msg}</p></div>`;
 }
 
 // openModal wires .ui-dialog-close to its own close handling.
@@ -205,8 +205,8 @@ export function HideToggle({ prefKey, id, hiddenSet, className, attrs }) {
     if (now) hiddenSet.add(id); else hiddenSet.delete(id);
     setHidden(now);
   };
-  return html`<button type="button" ...${attrs} class=${className + ' btn-x' + (hidden ? ' is-hidden' : '')} aria-label=${t('common.defaultVisibility')}
-    title=${hidden ? t('common.hiddenByDefault') : t('common.shownByDefault')} style="flex:0 0 auto" onClick=${toggle}><${EyeIcon} hidden=${hidden} /></button>`;
+  return html`<button type="button" ...${attrs} class=${className + ' ui-button ui-button-icon btn-x' + (hidden ? ' is-hidden' : '')} aria-label=${t('common.defaultVisibility')}
+    title=${hidden ? t('common.hiddenByDefault') : t('common.shownByDefault')} onClick=${toggle}><${EyeIcon} hidden=${hidden} /></button>`;
 }
 
 // The small tag at the end of an editable row: "edited", or a note on its

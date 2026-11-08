@@ -1,4 +1,4 @@
-/* ui.js 1.13.1: the behaviour behind the ui.css menu and search blocks, for
+/* ui.js 1.14.0: the behaviour behind the ui.css menu and search blocks, for
    an app that wants it rather than its own.
 
    Load it as a plain deferred script, <script src="ui.js" defer></script>,
@@ -39,14 +39,35 @@
   // Long enough to type a word, short enough that a pause starts a new one.
   const TYPEAHEAD_MS = 500;
 
+  /**
+   * The open menu, and what closing it has to undo.
+   * @typedef {object} MenuState
+   * @property {HTMLElement} menu
+   * @property {Element | null} trigger
+   * @property {Element | null} returnTo
+   * @property {boolean} placed
+   * @property {{ parent: ParentNode | null, next: ChildNode | null } | null} home
+   * @property {boolean} addedAt
+   */
+
+  /** @type {MenuState | null} */
   let current = null;
   let typed = "";
   let typedAt = 0;
 
-  const enabled = (el) => !el.disabled && el.getAttribute("aria-disabled") !== "true"
+  /** @param {Element} el */
+  const enabled = (el) => !(/** @type {HTMLButtonElement} */ (el).disabled) && el.getAttribute("aria-disabled") !== "true"
     && el.getClientRects().length > 0;
-  const itemsOf = (menu) => [...menu.querySelectorAll(ITEM)].filter(enabled);
+  /**
+   * @param {Element} menu
+   * @returns {HTMLElement[]}
+   */
+  const itemsOf = (menu) => [.../** @type {NodeListOf<HTMLElement>} */ (menu.querySelectorAll(ITEM))].filter(enabled);
 
+  /**
+   * @param {Element} trigger
+   * @returns {HTMLElement | null}
+   */
   function menuOf(trigger) {
     const id = trigger.getAttribute("aria-controls");
     const menu = id && document.getElementById(id);
@@ -54,6 +75,7 @@
   }
 
   // The gap ui.css leaves between an anchored menu and its trigger.
+  /** @param {Element} menu */
   function gap(menu) {
     const v = getComputedStyle(menu).getPropertyValue("--ui-space-1").trim();
     const n = parseFloat(v);
@@ -64,6 +86,13 @@
   // x and y are the menu's left and top edges, alternatives the flipped ones.
   // The custom properties are inset-inline-start, which is the right edge in
   // a right-to-left page.
+  /**
+   * @param {HTMLElement} menu
+   * @param {number} x
+   * @param {number} y
+   * @param {number} altX
+   * @param {number} altY
+   */
   function put(menu, x, y, altX, altY) {
     const vw = document.documentElement.clientWidth;
     const vh = document.documentElement.clientHeight;
@@ -78,12 +107,21 @@
     menu.style.setProperty("--ui-menu-y", y + "px");
   }
 
+  /**
+   * @param {HTMLElement} menu
+   * @param {number} x
+   * @param {number} y
+   */
   function putAtPoint(menu, x, y) {
     const { width: w, height: h } = menu.getBoundingClientRect();
     if (getComputedStyle(menu).direction === "rtl") put(menu, x - w, y, x, y - h);
     else put(menu, x, y, x - w, y - h);
   }
 
+  /**
+   * @param {HTMLElement} menu
+   * @param {Element} trigger
+   */
   function putFromTrigger(menu, trigger) {
     const r = trigger.getBoundingClientRect();
     const { width: w, height: h } = menu.getBoundingClientRect();
@@ -98,6 +136,10 @@
     put(menu, x, r.bottom + g, altX, r.top - g - h);
   }
 
+  /**
+   * @param {Element} menu
+   * @param {"first" | "last"} which
+   */
   function focusItem(menu, which) {
     const items = itemsOf(menu);
     const item = which === "last" ? items[items.length - 1] : items[0];
@@ -106,12 +148,19 @@
     if (item) item.focus({ preventScroll: menu.classList.contains("ui-menu-at") });
   }
 
+  /**
+   * @param {HTMLElement} menu
+   * @param {Element | null} trigger
+   * @param {Element | null} returnTo
+   * @param {{ x: number, y: number } | null} at
+   */
   function show(menu, trigger, returnTo, at) {
     close(false);
     // A modal dialog makes the rest of the page inert, and its overflow clips
     // an absolute menu, so the menu goes inside it and is fixed.
     const dialog = (trigger || returnTo)?.closest?.("dialog[open]");
     const placed = Boolean(at || dialog || menu.classList.contains("ui-menu-at"));
+    /** @type {MenuState} */
     const state = { menu, trigger, returnTo, placed, home: null, addedAt: false };
     if (dialog && !dialog.contains(menu)) {
       state.home = { parent: menu.parentNode, next: menu.nextSibling };
@@ -126,10 +175,12 @@
     if (trigger) trigger.setAttribute("aria-expanded", "true");
     if (placed) {
       if (at) putAtPoint(menu, at.x, at.y);
-      else putFromTrigger(menu, trigger);
+      // Only openMenu places without a point, and it always has a trigger.
+      else putFromTrigger(menu, /** @type {Element} */ (trigger));
     }
   }
 
+  /** @param {boolean} returnFocus */
   function close(returnFocus) {
     const s = current;
     if (!s) return;
@@ -145,9 +196,13 @@
     if (s.addedAt) s.menu.classList.remove("ui-menu-at");
     if (s.home) {
       const { parent, next } = s.home;
-      parent.insertBefore(s.menu, next && next.parentNode === parent ? next : null);
+      // A menu built in code and opened before it was attached had no place,
+      // so it leaves the dialog rather than stay where a later open outside
+      // that dialog would find it hidden inside a closed one.
+      if (parent) parent.insertBefore(s.menu, next && next.parentNode === parent ? next : null);
+      else s.menu.remove();
     }
-    const target = s.trigger || s.returnTo;
+    const target = /** @type {HTMLElement | null} */ (s.trigger || s.returnTo);
     // A choice that opened a dialog or moved focus itself keeps it there.
     const focusLeft = !document.activeElement || document.activeElement === document.body;
     if (returnFocus && target && target.isConnected && (hadFocus || focusLeft)) {
@@ -155,6 +210,10 @@
     }
   }
 
+  /**
+   * @param {Element} trigger
+   * @param {"first" | "last"} which
+   */
   function openMenu(trigger, which) {
     const menu = menuOf(trigger);
     if (!menu) return;
@@ -162,12 +221,20 @@
     focusItem(menu, which);
   }
 
+  /**
+   * @param {HTMLElement} menu
+   * @param {number} x
+   * @param {number} y
+   * @param {Element | null} [origin]
+   */
   function openMenuAt(menu, x, y, origin) {
     const from = origin || document.activeElement;
     show(menu, null, from && from !== document.body ? from : null, { x, y });
     focusItem(menu, "first");
   }
 
+  // Called for an item of the open menu, so current is set.
+  /** @param {Element} item */
   function choose(item) {
     const role = item.getAttribute("role");
     if (role === "menuitemcheckbox") {
@@ -175,7 +242,7 @@
       return;
     }
     if (role === "menuitemradio") {
-      const group = item.closest('[role="group"]') || current.menu;
+      const group = item.closest('[role="group"]') || /** @type {MenuState} */ (current).menu;
       for (const r of group.querySelectorAll('[role="menuitemradio"]')) {
         r.setAttribute("aria-checked", String(r === item));
       }
@@ -183,6 +250,11 @@
     close(true);
   }
 
+  /**
+   * @param {Element} menu
+   * @param {number} from
+   * @param {string} key
+   */
   function typeahead(menu, from, key) {
     const now = Date.now();
     typed = now - typedAt > TYPEAHEAD_MS ? key : typed + key;
@@ -201,11 +273,15 @@
     }
   }
 
+  // Called for a key inside the open menu, so current is set and the target
+  // is an element.
+  /** @param {KeyboardEvent} e */
   function menuKey(e) {
-    const menu = current.menu;
+    const menu = /** @type {MenuState} */ (current).menu;
     const items = itemsOf(menu);
-    const item = e.target.closest(ITEM);
-    const i = items.indexOf(item);
+    const item = /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest(ITEM));
+    // indexOf(null) is -1, the same as an item that is not in the list.
+    const i = items.indexOf(/** @type {HTMLElement} */ (item));
     const n = items.length;
     let to = null;
     switch (e.key) {
@@ -259,7 +335,7 @@
   document.addEventListener("click", (e) => {
     if (!(e.target instanceof Element)) return;
     const item = current && e.target.closest(ITEM);
-    if (item && current.menu.contains(item)) {
+    if (item && /** @type {MenuState} */ (current).menu.contains(item)) {
       if (enabled(item)) choose(item);
       else e.preventDefault();
       return;
@@ -272,7 +348,7 @@
 
   document.addEventListener("pointerdown", (e) => {
     if (!current) return;
-    const t = e.target;
+    const t = /** @type {Node | null} */ (e.target);
     if (current.menu.contains(t) || (current.trigger && current.trigger.contains(t))) return;
     close(false);
   }, true);
@@ -281,13 +357,14 @@
   // screen reader. A null relatedTarget is the window losing focus, which
   // leaves the menu as it was.
   document.addEventListener("focusout", (e) => {
-    const to = e.relatedTarget;
+    const to = /** @type {Node | null} */ (e.relatedTarget);
     if (!current || !to || current.menu.contains(to) || to === current.trigger) return;
     close(false);
   });
 
   // A placed menu is fixed, so it would stay put while the page under it
   // moves.
+  /** @param {Event} e */
   const dropPlaced = (e) => {
     if (!current || !current.placed) return;
     if (e.type === "scroll" && e.target instanceof Node && current.menu.contains(e.target)) return;
@@ -298,6 +375,7 @@
 
   // The clear button's click runs the reset, so its reset event follows
   // within the same task; a click whose reset never comes is forgotten after.
+  /** @type {Element | null} */
   let clearing = null;
   document.addEventListener("click", (e) => {
     const button = e.target instanceof Element && e.target.closest(".ui-search-clear");
@@ -311,7 +389,7 @@
   document.addEventListener("reset", (e) => {
     const form = e.target;
     if (!(form instanceof HTMLFormElement) || !form.classList.contains("ui-search")) return;
-    const field = form.querySelector('input[type="search"]');
+    const field = /** @type {HTMLInputElement | null} */ (form.querySelector('input[type="search"]'));
     if (!field) return;
     const before = field.value;
     const button = clearing && form.contains(clearing) ? clearing : null;

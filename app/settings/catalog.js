@@ -65,7 +65,7 @@ function CatalogRow({ e, shown, onChanged }) {
     });
   };
   const action = e._source === 'shipped'
-    ? html`<button data-act="catalog-hide" data-hidden=${hidden ? '1' : '0'} class="catalog-eye-btn" disabled=${busy}
+    ? html`<button data-act="catalog-hide" data-hidden=${hidden ? '1' : '0'} class="ui-button ui-button-icon catalog-eye-btn" disabled=${busy}
         title=${t(hidden ? 'catalog.unhideTitle' : 'catalog.hideTitle')} aria-label=${t(hidden ? 'catalog.unhide' : 'catalog.hide')} onClick=${hide}>${hidden ? EYE_OFF : EYE_ON}</button>`
     : html`<button data-act="catalog-delete" class="danger-btn" disabled=${busy} onClick=${remove}>${t('common.remove')}</button>`;
   return html`<li class="user-row" data-name=${e.name || ''} style=${(hidden ? 'opacity:0.6;' : '') + (shown ? '' : 'display:none')}>

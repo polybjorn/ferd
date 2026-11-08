@@ -17,5 +17,5 @@
     "lib": ["es2022", "dom", "dom.iterable"],
     "skipLibCheck": true
   },
-  "include": ["app/**/*.js", "types/**/*.d.ts"]
+  "include": ["ui.js", "app/**/*.js", "types/**/*.d.ts"]
 }

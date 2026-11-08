@@ -53,7 +53,7 @@ export function normalizePlaceTags(place) {
 /** @param {string[] | undefined} tags @param {string} cls */
 export function tagPillsHtml(tags, cls) {
   return (getShowField('tags') && Array.isArray(tags) && tags.length)
-    ? '<div class="' + cls + '">' + tags.map(t => '<span class="tag">#' + escapeHtml(t) + '</span>').join('') + '</div>' : '';
+    ? '<div class="' + cls + '">' + tags.map(t => '<span class="ui-badge ui-badge-pill tag">#' + escapeHtml(t) + '</span>').join('') + '</div>' : '';
 }
 // Unique tags across items (case-insensitive, first-seen casing kept), sorted.
 /**

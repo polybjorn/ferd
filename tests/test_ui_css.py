@@ -367,14 +367,9 @@ class NoModalKit(unittest.TestCase):
 class MenuScript(unittest.TestCase):
   """ui.js, the menu block's behaviour, ships wherever ui.css does."""
 
-  def test_loaded_deferred_before_the_app(self):
+  # Its release, defer and load order are host_check.py's, run from CI.
+  def test_loaded_with_the_cache_version(self):
     self.assertIn('<script src="/ui.js?v=__FERD_CACHE_VERSION__" defer></script>', INDEX)
-    self.assertLess(INDEX.index('src="/ui.js?'), INDEX.index('src="/app/main.js"'))
-
-  def test_same_release_as_the_stylesheet(self):
-    js = (ROOT / "ui.js").read_text(encoding="utf-8")
-    self.assertEqual(re.match(r"/\* ui\.js ([0-9.]+):", js).group(1),
-                     re.match(r"/\* ui\.css ([0-9.]+):", UI_CSS).group(1))
 
   def test_precached_and_served_offline(self):
     self.assertIn("'/ui.js'", SW)
@@ -391,9 +386,9 @@ class AccountMenu(unittest.TestCase):
 
   AUTH = (ROOT / "app" / "auth.js").read_text(encoding="utf-8")
 
-  def test_menu_button_pattern(self):
-    for needle in ('class="ui-menu-anchor"', 'aria-haspopup="menu"', 'aria-controls="auth-menu"',
-                   'class="ui-menu ui-menu-end" id="auth-menu" role="menu"', 'class="ui-menu-head"',
+  # The trigger's aria attributes and the menu's role are host_check.py's.
+  def test_menu_blocks(self):
+    for needle in ('class="ui-menu-anchor"', 'class="ui-menu ui-menu-end" id="auth-menu"', 'class="ui-menu-head"',
                    'role="menuitem"', '<hr class="ui-menu-sep"', "'ui-menu-item-danger'"):
       self.assertIn(needle, self.AUTH)
 
