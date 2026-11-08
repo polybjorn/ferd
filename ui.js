@@ -1,5 +1,5 @@
-/* ui.js 1.11.0: the behaviour behind the ui.css menu block, for an app that
-   wants it rather than its own.
+/* ui.js 1.13.0: the behaviour behind the ui.css menu and search blocks, for
+   an app that wants it rather than its own.
 
    Load it as a plain deferred script, <script src="ui.js" defer></script>,
    which a module page can load too, and which runs under script-src 'self'.
@@ -22,7 +22,13 @@
    context menu, kept 8px inside the viewport and flipped above or to the
    start when it does not fit. Focus returns to origin, by default the element
    focused before. uiFoundation.openMenu(trigger) and
-   uiFoundation.closeMenu() do from code what the markup does. */
+   uiFoundation.closeMenu() do from code what the markup does.
+
+   A .ui-search form that resets, from its clear button or from form.reset(),
+   fires one input event on its field once the field has cleared, so a filter
+   that listens for input alone sees the empty query. A reset from the clear
+   button then puts focus in the field, unless a listener moved it somewhere
+   else. A reset the host prevented does neither. */
 (() => {
   "use strict";
   if (window.uiFoundation) return;
@@ -289,6 +295,34 @@
   };
   window.addEventListener("resize", dropPlaced);
   document.addEventListener("scroll", dropPlaced, true);
+
+  // The clear button's click runs the reset, so its reset event follows
+  // within the same task; a click whose reset never comes is forgotten after.
+  let clearing = null;
+  document.addEventListener("click", (e) => {
+    const button = e.target instanceof Element && e.target.closest(".ui-search-clear");
+    if (!button) return;
+    clearing = button;
+    setTimeout(() => { clearing = null; });
+  }, true);
+
+  // The field clears after the reset event, not during it, so the input event
+  // waits a task, which also lets a later listener prevent the reset.
+  document.addEventListener("reset", (e) => {
+    const form = e.target;
+    if (!(form instanceof HTMLFormElement) || !form.classList.contains("ui-search")) return;
+    const field = form.querySelector('input[type="search"]');
+    if (!field) return;
+    const before = field.value;
+    const button = clearing && form.contains(clearing) ? clearing : null;
+    clearing = null;
+    setTimeout(() => {
+      if (e.defaultPrevented) return;
+      if (field.value !== before) field.dispatchEvent(new Event("input", { bubbles: true }));
+      const at = document.activeElement;
+      if (button && !field.disabled && (!at || at === document.body || at === button)) field.focus();
+    });
+ }, true);
 
   window.uiFoundation = Object.freeze({
     openMenu: (trigger) => openMenu(trigger, "first"),

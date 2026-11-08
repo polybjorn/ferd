@@ -1,9 +1,10 @@
-/* ui.css 1.11.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.13.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
    Written to be shared between apps, so it carries no app-specific names.
    Every class starts with `ui-`, which lets old and new markup coexist.
+   The one exception is .open, a state the host sets on a .ui-collapse.
 
    Host contract
    1. Declare the layer order before any other stylesheet, with the host's own
@@ -49,7 +50,11 @@
                   or full-screen view reads it too
         bar       --ui-bottom-bar-height, --ui-bottom-bar-display; the
                   height is the items' row, and the bar adds its corner gap
-                  below it (see the bottom bar contract). The bar shows while --ui-bottom-bar-display is flex, so a host sets
+                  below it (see the bottom bar contract).
+                  --ui-bottom-bar-space is its full height, flat, and
+                  --ui-bottom-bar-float-space the same for a floating bar;
+                  the toast reads --ui-bottom-bar-space. The bar shows
+                  while --ui-bottom-bar-display is flex, so a host sets
                   it to none in its own media query wherever the bar should
                   not show, since a display: none from the host would lose to
                   the ui layer
@@ -92,6 +97,24 @@
    plus the safe area below it; content may run behind it, and a host that
    keeps something clear of it reserves the bar height and twice the gap.
 
+   Toast contract: a .ui-toast is fixed and centred near the bottom edge,
+   above the bottom bar, and the host's script shows and hides it by toggling
+   hidden, as it does a menu; ui.js does not. Showing it plays a short entry
+   animation, which reduced motion drops. It is a live region, so it carries
+   role="status" and is in the page, hidden and empty, before its text is
+   set; a toast added to the page already holding its text is often not
+   announced. A toast that holds an action, such as a prompt to reload for an
+   update, must not time out, since a timer would take the action away from
+   whoever has not reached it yet; the host dismisses it when the action is
+   taken or declined. A toast with text only may time out, and that timer is
+   the host's. Its bottom edge sits --ui-space-3 above the bar, using
+   --ui-bottom-bar-space. A host with a floating bar sets
+   --ui-bottom-bar-space: var(--ui-bottom-bar-float-space) in its own layer,
+   and one with no bar, or none at a breakpoint, sets it to 0px, where the
+   toast clears --ui-corner-gap and the bottom safe area itself. Its width
+   stays --ui-corner-gap inside each side of the viewport, or the safe area
+   where that is larger.
+
    Menu contract: a .ui-menu-anchor holds a trigger and its .ui-menu or
    .ui-popover, which opens below it, at the start edge or with
    .ui-menu-end or .ui-menu-center. The anchor must not stretch to its row's
@@ -108,6 +131,84 @@
    Opening, closing, focus and placing a .ui-menu-at are script work:
    ui.js does it from this markup, and an app with its own script keeps to
    the same contract.
+
+   Tabs contract: a .ui-tabs row holds .ui-tab links or buttons that switch a
+   route or a view, and marks the one in view: aria-current="page" on a link,
+   as the bottom bar does, or aria-pressed="true" on a button. The row scrolls
+   sideways when its tabs do not fit, and a tab's label never wraps. That is
+   all it does: an app that shows panels in place gives the row
+   role="tablist", each tab role="tab" with aria-selected and aria-controls,
+   and each panel role="tabpanel", and writes the arrow-key focus itself,
+   since ui.js does not. aria-selected="true" draws the same mark, so the
+   look holds when an app adds those roles.
+
+   Collapse contract: a .ui-disclosure on <details>, with a <summary> as its
+   first child, is the default for a section that opens and closes, since it
+   needs no script and the browser keeps its state and keyboard handling.
+   .ui-collapse is for when app state drives the panel, such as one opened
+   from elsewhere on the page or kept in step with other panels: the host's
+   script toggles .open on it, and its trigger is a button with
+   aria-expanded and aria-controls naming the .ui-collapse. Its one child is
+   a .ui-collapse-body.
+
+   Chip, badge and dot contract: a .ui-chip is a <button> that shows its
+   pressed state from aria-pressed="true", never from a class, so a screen
+   reader hears what the fill shows; flipping it is the host's code. A
+   .ui-badge is a static label with no state of its own. A .ui-dot takes its
+   colour from --ui-dot-color, set by the host on the dot or an ancestor, and
+   falls back to --ui-muted. Colour alone carries nothing to a screen reader
+   or in forced colours, where every dot draws in the text colour, so the
+   state a dot marks needs text beside it or an aria-label on it with
+   role="img". Any animation on these, such as a pulse on a change, stays in
+   the host.
+
+   Search contract: a .ui-search is a <form> inside a .ui-field that holds
+   one <input type="search"> with a placeholder, then a .ui-search-clear
+   <button type="reset"> on a .ui-button-quiet with an aria-label. The reset
+   clears the field with no script, back to its value attribute, so the input
+   carries none and a starting value is set from script. A reset fires no
+   input event, and the button hides once the field is empty, so focus falls
+   back to the page. ui.js covers both: the field fires input once it has
+   cleared, and the clear button leaves focus in the field. Without ui.js, a
+   live filter also listens for reset on the form and reads the query as
+   empty there, since the field clears after that event, and moves focus
+   itself. Enter
+   submits the form: the host handles submit, or, outside a dialog, the form
+   takes method="dialog", where a submit does nothing.
+
+   Banner contract: a .ui-banner is a notice in the page's flow, with its
+   words in a .ui-banner-text and, optionally, one .ui-button after them that
+   wraps below on a narrow screen. .ui-banner-warn marks one the reader
+   should act on. It draws a heavier start edge in --ui-warning on the same
+   surface and text colours, so contrast never depends on the warning colour,
+   and the words carry the severity because forced colours draw every edge
+   alike. When a banner shows stays with the host. A passive notice has
+   role="status" and one that blocks has role="alert". Either is announced
+   only when its text changes inside an element already in the page, so the
+   host renders the empty element first and fills it, rather than inserting
+   a banner that already holds its text.
+
+   Empty contract: a .ui-empty stands in for content that loaded and has
+   nothing to show, such as a list with no items or a search with no match.
+   Its text is the muted line, an optional .ui-empty-title above it names
+   what is missing, and an optional .ui-empty-action holds the one control
+   that fills it. It is not for the other two states: a region still loading
+   keeps its content and carries aria-busy="true" on itself, and a failure
+   uses the danger text of a .ui-hint or a banner, since an app that draws
+   all three with one class cannot tell a screen reader, or a later restyle,
+   which one it meant. The block keeps no icon or illustration; a host puts
+   its own above the title.
+
+   Live region contract: a screen reader hears a change only inside a live
+   region, so a .ui-banner takes role="status", or role="alert" when it
+   blocks, a .ui-toast takes role="status", and so does a .ui-empty, so a
+   list that empties after a search or a filter is heard. A live region is
+   announced when its text changes, not when it arrives already holding
+   text, so the element is in the page, hidden or empty, before the host
+   sets that text. A region that is loading carries aria-busy="true" until
+   it is filled, with a role="status" line, such as a .ui-hint, that says
+   what is loading; ui.css has no busy block, since a spinner tells a screen
+   reader nothing.
 
    Sheet handle contract: a .ui-dialog-handle as a sheet's first child shows
    that the sheet drags shut. It only draws, so a host adds it where its own
@@ -160,6 +261,10 @@
 
     --ui-bottom-bar-height: 3.5rem;
     --ui-bottom-bar-display: flex;
+    --ui-bottom-bar-space: calc(var(--ui-bottom-bar-height)
+      + max(var(--ui-corner-gap), env(safe-area-inset-bottom, 0px)));
+    --ui-bottom-bar-float-space: calc(var(--ui-bottom-bar-height)
+      + var(--ui-space-3) * 2 + env(safe-area-inset-bottom, 0px));
     --ui-touch-target: 3rem;
     --ui-focus-width: 2px;
     --ui-focus-color: var(--ui-accent);
@@ -313,6 +418,30 @@
     color: var(--ui-muted);
   }
 
+  /* Muted and centred so it reads as an absence, not as content. The gap and
+     padding come off the spacing scale, so a dense app tightens it. */
+  .ui-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ui-space-2);
+    box-sizing: border-box;
+    min-inline-size: 0;
+    margin: 0;
+    padding: var(--ui-space-6) var(--ui-space-4);
+    font-size: var(--ui-text-sm);
+    color: var(--ui-muted);
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  .ui-empty > :where(p) { margin: 0; }
+  .ui-empty-title {
+    font-size: var(--ui-text-md);
+    font-weight: var(--ui-label-weight);
+    color: var(--ui-text);
+  }
+  .ui-empty-action { margin-block-start: var(--ui-space-2); }
+
   .ui-toggle-row {
     font: inherit;
     display: flex;
@@ -435,6 +564,130 @@
     outline-offset: var(--ui-focus-width);
   }
 
+  /* Segmented and pill choice lists draw each option as a button-like label
+     over its radio. The radio is see-through rather than gone, so it stays in
+     the accessibility tree, takes focus and keeps the browser's own arrow
+     keys. The label can only follow its radio's state through :has(), so a
+     browser without it, such as a WebView before Chrome 105, keeps the
+     ordinary list with visible radios. */
+  @supports selector(:has(*)) {
+    .ui-choice-segmented,
+    .ui-choice-pills {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .ui-choice-segmented { gap: 0; }
+    .ui-choice-pills { gap: var(--ui-space-2); }
+    :is(.ui-choice-segmented, .ui-choice-pills) > .ui-choice {
+      position: relative;
+      box-sizing: border-box;
+      justify-content: center;
+      min-inline-size: 0;
+      padding: var(--ui-space-1) var(--ui-space-3);
+      text-align: center;
+      overflow-wrap: anywhere;
+      background: var(--ui-control-surface);
+      border: 1px solid var(--ui-border);
+    }
+    .ui-choice-segmented > .ui-choice { flex: 1 1 0; }
+    .ui-choice-segmented > .ui-choice + .ui-choice { border-inline-start-width: 0; }
+    .ui-choice-segmented > .ui-choice:first-of-type {
+      border-start-start-radius: var(--ui-radius);
+      border-end-start-radius: var(--ui-radius);
+    }
+    .ui-choice-segmented > .ui-choice:last-of-type {
+      border-start-end-radius: var(--ui-radius);
+      border-end-end-radius: var(--ui-radius);
+    }
+    .ui-choice-pills > .ui-choice { border-radius: var(--ui-radius-full); }
+    :is(.ui-choice-segmented, .ui-choice-pills) > .ui-choice > input {
+      position: absolute;
+      inset: 0;
+      inline-size: 100%;
+      block-size: 100%;
+      opacity: 0;
+      cursor: inherit;
+    }
+    :is(.ui-choice-segmented, .ui-choice-pills) > .ui-choice:has(> input:checked) {
+      color: var(--ui-on-accent);
+      background: var(--ui-accent);
+      border-color: var(--ui-accent);
+    }
+    :is(.ui-choice-segmented, .ui-choice-pills) > .ui-choice:has(> input[aria-invalid="true"]) {
+      border-color: var(--ui-danger);
+    }
+    :is(.ui-choice-segmented, .ui-choice-pills) > .ui-choice:has(> input:focus-visible) {
+      z-index: var(--ui-z-raised);
+      outline: var(--ui-focus-width) solid var(--ui-focus-color);
+      outline-offset: var(--ui-focus-width);
+    }
+  }
+
+  /* A disclosure is a native <details>, which opens and closes without
+     script. The browser's own marker sits at the start and points a
+     different way per engine, so it goes and a chevron at the end takes its
+     place: down when closed, up when open, the same in either writing
+     direction. Drawn from two borders in currentColor, so forced colours keep
+     it. */
+  .ui-disclosure { display: block; }
+  .ui-disclosure > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-2);
+    box-sizing: border-box;
+    min-block-size: var(--ui-control-height);
+    padding: var(--ui-space-1) 0;
+    font-size: var(--ui-text-sm);
+    font-weight: var(--ui-label-weight);
+    color: var(--ui-text);
+    overflow-wrap: anywhere;
+    cursor: pointer;
+    list-style: none;
+    border-radius: var(--ui-radius-sm);
+  }
+  .ui-disclosure > summary::-webkit-details-marker { display: none; }
+  .ui-disclosure > summary::after {
+    content: "";
+    flex: none;
+    inline-size: 0.45em;
+    block-size: 0.45em;
+    margin-inline: var(--ui-space-1);
+    color: var(--ui-muted);
+    border: solid currentColor;
+    border-width: 0 2px 2px 0;
+    transform: translateY(-25%) rotate(45deg);
+    transition: transform var(--ui-duration-fast);
+  }
+  .ui-disclosure[open] > summary::after { transform: translateY(25%) rotate(225deg); }
+  .ui-disclosure[open] > summary { margin-block-end: var(--ui-space-2); }
+  .ui-disclosure > summary:focus-visible {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: var(--ui-focus-width);
+  }
+
+  /* A collapse opens when the host's script adds .open, for a panel that app
+     state drives. Rows from 0fr to 1fr animate to the content's own height
+     with no measuring; a browser without grid-template-rows interpolation,
+     such as a WebView before Chrome 107, opens it at once. The body is hidden
+     while closed, which takes its controls out of the tab order, and the
+     visibility transition keeps it shown until the closing animation ends.
+     The body carries no padding or border, which 0fr cannot hide; spacing
+     goes on an element inside it. */
+  .ui-collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--ui-duration-slow) ease;
+  }
+  .ui-collapse.open { grid-template-rows: 1fr; }
+  .ui-collapse-body {
+    min-block-size: 0;
+    overflow: hidden;
+    visibility: hidden;
+    transition: visibility var(--ui-duration-slow);
+  }
+  .ui-collapse.open > .ui-collapse-body { visibility: visible; }
+
   /* appearance: none takes the browser's own disabled look away, so the
      controls and their rows draw it here. */
   .ui-check:disabled,
@@ -495,6 +748,132 @@
   .ui-button:is(:disabled, [aria-disabled="true"]) {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  /* The browser's own clear button exists only in Chromium and WebKit, so it
+     goes, and every engine draws the reset button instead. It shows while
+     there is text to clear, read from :placeholder-shown, which is why the
+     input needs a placeholder. These rules sit below the button's so they
+     win on source order. */
+  .ui-search {
+    position: relative;
+    min-inline-size: 0;
+    margin: 0;
+  }
+  .ui-control-row > .ui-search { flex: 1; }
+  .ui-field .ui-search > input {
+    appearance: none;
+    padding-inline-end: var(--ui-control-height);
+  }
+  .ui-search > input::-webkit-search-cancel-button { appearance: none; }
+  .ui-search-clear {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
+    inline-size: var(--ui-control-height);
+    padding: 0;
+    font-size: var(--ui-text-xl);
+    line-height: 1;
+  }
+  .ui-search-clear:focus-visible { outline-offset: calc(-1 * var(--ui-focus-width)); }
+  .ui-search > input:is(:placeholder-shown, :disabled) + .ui-search-clear { display: none; }
+
+  /* A chip is a toggle on a <button>, shaped as a pill so a row of them reads
+     apart from a row of actions. Pressed takes the accent fill, the same pair
+     a primary button uses, so both states sit on colours tools/contrast.py
+     measures. Hover draws a ring, as on a button. */
+  .ui-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ui-space-1);
+    box-sizing: border-box;
+    min-inline-size: 0;
+    margin: 0;
+    padding: var(--ui-space-1) var(--ui-space-3);
+    font: inherit;
+    font-size: var(--ui-text-sm);
+    font-weight: var(--ui-label-weight);
+    color: var(--ui-text);
+    overflow-wrap: anywhere;
+    cursor: pointer;
+    background: var(--ui-control-surface);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-full);
+  }
+  .ui-chip[aria-pressed="true"] {
+    color: var(--ui-on-accent);
+    background: var(--ui-accent);
+    border-color: var(--ui-accent);
+  }
+  .ui-chip:where(:not(:disabled, [aria-disabled="true"])):hover {
+    box-shadow: inset 0 0 0 1px currentColor;
+  }
+  .ui-chip:focus-visible {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: var(--ui-focus-width);
+  }
+  .ui-chip:is(:disabled, [aria-disabled="true"]) {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* A badge is a static label beside a row or a control, with no state and
+     no hover, so it never looks pressable. */
+  .ui-badge {
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0 var(--ui-space-2);
+    font-size: var(--ui-text-xs);
+    font-weight: var(--ui-label-weight);
+    color: var(--ui-muted);
+    overflow-wrap: anywhere;
+    vertical-align: middle;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+  }
+
+  /* A banner sits in the flow rather than over it, so it takes the surface
+     and a line like any panel. The warn variant moves only the start edge,
+     since --ui-warning is measured as a mark, not as a text background. */
+  .ui-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ui-space-2) var(--ui-space-3);
+    box-sizing: border-box;
+    margin: 0;
+    padding: var(--ui-space-3);
+    font-size: var(--ui-text-sm);
+    color: var(--ui-text);
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-border);
+    border-inline-start-width: var(--ui-space-1);
+    border-radius: var(--ui-radius);
+  }
+  .ui-banner-warn {
+    border-inline-start-color: var(--ui-warning);
+  }
+  .ui-banner-text {
+    flex: 1 1 12rem;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+  .ui-banner > .ui-button { flex: none; }
+
+  /* A dot draws a state in the host's colour, which it reads from
+     --ui-dot-color on the dot or an ancestor. */
+  .ui-dot {
+    display: inline-block;
+    flex: none;
+    inline-size: var(--ui-space-2);
+    block-size: var(--ui-space-2);
+    vertical-align: middle;
+    background: var(--ui-dot-color, var(--ui-muted));
+    border-radius: var(--ui-radius-full);
   }
 
   /* display sits on [open] alone, because a display on .ui-dialog would show
@@ -729,6 +1108,58 @@
     cursor: not-allowed;
   }
 
+  /* The row's line is an inset shadow rather than a border, so the current
+     tab's own border is drawn over it, and the row scrolls rather than
+     clipping or wrapping a tab. The focus ring sits inside the tab, since the
+     scrolling row clips whatever sticks out of it. */
+  .ui-tabs {
+    display: flex;
+    box-sizing: border-box;
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    box-shadow: inset 0 -1px 0 var(--ui-dialog-border);
+  }
+  .ui-tab {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ui-space-2);
+    box-sizing: border-box;
+    min-block-size: var(--ui-control-height);
+    margin: 0;
+    padding: var(--ui-space-1) var(--ui-space-3);
+    font: inherit;
+    font-size: var(--ui-text-sm);
+    font-weight: var(--ui-label-weight);
+    color: var(--ui-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    border-block-end: 2px solid transparent;
+    border-radius: 0;
+  }
+  /* The line under the current tab marks it by shape as well as colour, and
+     its label takes full text colour rather than the accent, as the bottom
+     bar's does. */
+  .ui-tab:is([aria-current="page"], [aria-pressed="true"], [aria-selected="true"]) {
+    color: var(--ui-text);
+    border-block-end-color: var(--ui-accent);
+  }
+  .ui-tab:where(:not(:disabled, [aria-disabled="true"])):hover { color: var(--ui-text); }
+  .ui-tab:focus-visible {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: calc(-1 * var(--ui-focus-width));
+  }
+  .ui-tab:is(:disabled, [aria-disabled="true"]) {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   .ui-bottom-bar-float {
     margin: var(--ui-space-3);
     margin-block-end: calc(var(--ui-space-3) + env(safe-area-inset-bottom, 0px));
@@ -867,14 +1298,51 @@
     overflow-wrap: anywhere;
   }
 
+  /* Fixed to the viewport, so it needs no wrapper. The side insets and auto
+     margins centre it without a transform, which would otherwise be left
+     behind the animation. The larger of the bar's space and the corner gap
+     is what keeps it clear of both a bar and a bare rounded display. */
+  .ui-toast {
+    position: fixed;
+    inset-block-end: max(calc(var(--ui-bottom-bar-space) + var(--ui-space-3)),
+      var(--ui-corner-gap), env(safe-area-inset-bottom, 0px));
+    inset-inline: max(var(--ui-corner-gap), env(safe-area-inset-left, 0px))
+      max(var(--ui-corner-gap), env(safe-area-inset-right, 0px));
+    z-index: var(--ui-z-toast);
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-3);
+    box-sizing: border-box;
+    inline-size: fit-content;
+    max-inline-size: 100%;
+    margin: 0 auto;
+    padding: var(--ui-space-2) var(--ui-space-4);
+    font-size: var(--ui-text-sm);
+    color: var(--ui-text);
+    overflow-wrap: anywhere;
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-dialog-border);
+    border-radius: var(--ui-radius-lg);
+    box-shadow: var(--ui-shadow);
+    animation: ui-toast-in var(--ui-duration-base) ease-out;
+  }
+  /* The toast breaks words anywhere so a long message fits, and a shrinking
+     action would break its label letter by letter. */
+  .ui-toast > .ui-button { flex: none; }
+  @keyframes ui-toast-in {
+    from { opacity: 0; transform: translateY(var(--ui-space-2)); }
+  }
+
   /* Every display above beats the browser's own [hidden] rule, so a block
      carrying the hidden attribute would still show. .ui-dialog[open] in the
      list lifts this rule over all of them, whatever their order. */
   :is(.ui-section, .ui-field, .ui-field-label, .ui-field-row, .ui-control-row,
-      .ui-toggle-row, .ui-toggle-text, .ui-choice-list, .ui-choice, .ui-button,
+      .ui-toggle-row, .ui-toggle-text, .ui-choice-list, .ui-choice-segmented,
+      .ui-choice-pills, .ui-choice, .ui-disclosure, .ui-collapse, .ui-button,
+      .ui-chip, .ui-badge, .ui-dot, .ui-banner, .ui-empty,
       .ui-dialog[open], .ui-dialog-head, .ui-dialog-actions, .ui-bottom-bar,
-      .ui-bottom-bar-item, .ui-menu-anchor, .ui-menu, .ui-popover,
-      .ui-menu-item)[hidden] {
+      .ui-bottom-bar-item, .ui-tabs, .ui-tab, .ui-menu-anchor, .ui-menu, .ui-popover,
+      .ui-menu-item, .ui-toast)[hidden] {
     display: none;
   }
 
@@ -884,9 +1352,13 @@
     .ui-dialog::backdrop,
     .ui-dialog-sheet[open],
     .ui-menu,
-    .ui-popover { animation: none; }
+    .ui-popover,
+    .ui-toast { animation: none; }
     .ui-toggle-row > input[type="checkbox"],
     .ui-toggle-row > input[type="checkbox"]::after { transition: none; }
+    .ui-disclosure > summary::after,
+    .ui-collapse,
+    .ui-collapse-body { transition: none; }
   }
 
   /* Forced colours replace every background, which would leave the switch
@@ -913,11 +1385,38 @@
     .ui-check:checked:disabled,
     .ui-toggle-row > input[type="checkbox"]:checked:disabled { background: GrayText; }
     .ui-toggle-row > input[type="checkbox"]:checked:disabled::after { background: Canvas; }
-    :is(.ui-check, .ui-toggle-row > input[type="checkbox"]):focus-visible { outline-color: Highlight; }
+    :is(.ui-check, .ui-toggle-row > input[type="checkbox"], .ui-disclosure > summary):focus-visible { outline-color: Highlight; }
     /* Forced colours drop box-shadow, which is all a hover draws. */
     .ui-button:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: Highlight; }
+    .ui-chip:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: Highlight; }
+    /* The pressed fill is replaced too, so a pressed chip takes the system
+       selection colours. */
+    .ui-chip[aria-pressed="true"] {
+      forced-color-adjust: none;
+      color: HighlightText;
+      background: Highlight;
+      border-color: Highlight;
+    }
+    .ui-chip[aria-pressed="true"]:is(:disabled, [aria-disabled="true"]) {
+      color: Canvas;
+      background: GrayText;
+      border-color: GrayText;
+    }
+    /* A dot would lose its fill, so it keeps its shape in the text colour;
+       the text or label beside it carries the state. */
+    .ui-dot {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
     .ui-bottom-bar-item[aria-current="page"],
     .ui-bottom-bar-item[aria-current="page"] > svg { color: Highlight; }
+    /* Forced colours would draw the transparent line under every tab, so it
+       takes the page colour instead, and only the current one shows. */
+    .ui-tab { border-block-end-color: Canvas; }
+    .ui-tab:is([aria-current="page"], [aria-pressed="true"], [aria-selected="true"]) {
+      color: Highlight;
+      border-block-end-color: Highlight;
+    }
     /* Forced colours replace the fill, so the item turns to the system
        selection colours instead. */
     .ui-menu-item:where(:not(:disabled, [aria-disabled="true"])):hover,
@@ -926,6 +1425,21 @@
       color: HighlightText;
       background: Highlight;
     }
+    /* The checked option's fill is replaced too, so it takes the system
+       selection colours. */
+    @supports selector(:has(*)) {
+      :is(.ui-choice-segmented, .ui-choice-pills) > .ui-choice:has(> input:checked) {
+        forced-color-adjust: none;
+        color: HighlightText;
+        background: Highlight;
+        border-color: Highlight;
+      }
+      :is(.ui-choice-segmented, .ui-choice-pills) > .ui-choice:has(> input:checked:disabled) {
+        color: Canvas;
+        background: GrayText;
+        border-color: GrayText;
+      }
+    }
   }
 
   /* A finger needs a bigger target than a mouse, and only a coarse pointer
@@ -933,11 +1447,16 @@
      they lift, so these win on source order. */
   @media (pointer: coarse) {
     .ui-button,
+    .ui-chip,
     .ui-field :is(input:where(:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"])), select),
     .ui-control-row,
     .ui-toggle-row,
     .ui-choice,
+    .ui-tab,
+    .ui-disclosure > summary,
     .ui-menu-item { min-block-size: var(--ui-touch-target); }
     .ui-dialog-close { inline-size: var(--ui-touch-target); }
+    .ui-search-clear { inline-size: var(--ui-touch-target); }
+    .ui-field .ui-search > input { padding-inline-end: var(--ui-touch-target); }
   }
 }
