@@ -153,6 +153,12 @@ export function bootApp() {
 
 // Confirm a base actually hosts a Ferd API before we commit to it. Empty
 // base = probe same-origin. Short timeout so a dead address fails fast.
+/**
+ * The `/api/health` response.
+ * @typedef {object} HealthData
+ * @property {'ok'} status
+ * @property {string} version
+ */
 /** @param {string} base @param {number} [timeoutMs] */
 export function probeServer(base, timeoutMs) {
   const root = (base || '').replace(/\/+$/, '');
@@ -160,7 +166,7 @@ export function probeServer(base, timeoutMs) {
   const t = setTimeout(function() { ctrl.abort(); }, timeoutMs || 4000);
   return fetch(root + '/api/health', { credentials: 'omit', signal: ctrl.signal })
     .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(j) { return !!(j && j.status === 'ok'); })
+    .then(function(/** @type {HealthData | null} */ j) { return !!(j && j.status === 'ok'); })
     .catch(function() { return false; })
     .finally(function() { clearTimeout(t); });
 }

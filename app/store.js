@@ -28,6 +28,10 @@ import { ROUTE_META_FIELDS, _genId, _splitKey, parseGpxText, stripGpxPiiText } f
  * @typedef {{ keys: string[], regions: string[] }} OpScope
  * @typedef {{ data: any, pos: number }} MemItem
  * @typedef {{ kind: string, id: string, op: string, data?: any }} Change
+ * @typedef {{ kind: string, id: string, pos: number, rev: number, updated_at: number, deleted: boolean, data?: any }} PulledChange
+ * @typedef {{ rev: number, epoch: string, reset: boolean, more: boolean, next: number, changes: PulledChange[] }} SyncPage
+ * @typedef {{ kind: string, id: string, rev: number | null, status: 'applied' | 'noop' }} BatchResult
+ * @typedef {{ ok: true, rev: number, epoch: string, results: BatchResult[] }} SyncBatchResult
  */
 
 export const places = signal(/** @type {any[]} */ ([]));
@@ -493,7 +497,7 @@ function labelChanges(incoming) {
 // change still waiting to be pushed keep the local version. `changed`
 // counts items whose data differs from the copy here, so the echo of this
 // device's own pushed edits does not count as news.
-/** @param {any} page */
+/** @param {SyncPage} page */
 function applyPull(page) {
   /** @type {DbWrite} */
   const w = { items: [], delItems: [] };
@@ -834,6 +838,7 @@ async function pull(ns) {
   let since = syncState.rev, epoch = syncState.epoch, changed = 0;
   for (;;) {
     const qs = '?since=' + since + '&limit=5000' + (epoch ? '&epoch=' + encodeURIComponent(epoch) : '');
+    /** @type {SyncPage} */
     const page = await api('GET', '/sync/changes' + qs);
     if (ns !== NS) return 0;
     const pulled = applyPull(page), w = pulled.w;
