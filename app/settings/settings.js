@@ -448,14 +448,16 @@ function ImportSection({ ids, modeName, modes, replaceBody, run }) {
  * @param {string} mimeType
  */
 export async function saveDownload(blob, fname, mimeType) {
-  if (window.FerdAndroid && typeof window.FerdAndroid.exportFile === 'function') {
+  const android = window.FerdAndroid;
+  if (android && typeof android.exportFile === 'function') {
+    const exportFile = android.exportFile.bind(android);
     await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onerror = () => reject(new Error(t('backup.exportRead')));
       reader.onloadend = () => {
         const b64 = String(reader.result).split(',')[1] || '';
-        window.FerdAndroid.exportFile(fname, blob.type || mimeType, b64);
-        resolve();
+        exportFile(fname, blob.type || mimeType, b64);
+        resolve(undefined);
       };
       reader.readAsDataURL(blob);
     });
