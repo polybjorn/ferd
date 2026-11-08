@@ -44,8 +44,13 @@ for (const theme of THEMES) {
       };
 
       await signIn(page);
-      // Colour transitions would let axe read a half-way colour as the contrast.
-      await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; animation: none !important; }' });
+      // Colour transitions would let axe read a half-way colour as the
+      // contrast. A constructed sheet, since style-src 'self' refuses a <style>.
+      await page.evaluate(() => {
+        const sheet = new CSSStyleSheet();
+        sheet.replaceSync('*, *::before, *::after { transition: none !important; animation: none !important; }');
+        document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+      });
       await expect(page.locator('.leaflet-container').first()).toBeVisible();
       await check('map');
 
