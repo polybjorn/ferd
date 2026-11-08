@@ -130,14 +130,14 @@
       <div class="auth-widget" id="auth-widget"></div>
     </div>
   </nav>
-  <div id="pwa-offline-banner" class="pwa-banner offline">You're offline. Changes save here and sync when you reconnect.</div>
-  <div id="pwa-sync-issues" class="pwa-banner issues">
+  <div id="pwa-offline-banner" class="pwa-banner offline" role="status">You're offline. Changes save here and sync when you reconnect.</div>
+  <div id="pwa-sync-issues" class="pwa-banner issues" role="status">
     <span id="pwa-sync-issues-text"></span>
     <button id="pwa-sync-issues-btn" type="button">Review</button>
   </div>
-  <div id="pwa-sync-toast" class="pwa-update-toast"></div>
-  <div id="pwa-update-banner" class="pwa-update-toast">
-    <span>Update available.</span>
+  <div id="pwa-sync-toast" class="pwa-update-toast" role="status"></div>
+  <div id="pwa-update-banner" class="pwa-update-toast" role="region" aria-labelledby="pwa-update-text">
+    <span id="pwa-update-text">Update available.</span>
     <button id="pwa-update-btn" type="button">Reload</button>
   </div>
   <nav class="ui-bottom-bar ui-bottom-bar-float bottom-bar" id="bottom-bar" aria-label="Views">
