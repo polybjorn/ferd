@@ -206,26 +206,6 @@
 1	app/server.js	TS7006	Parameter 'tok' implicitly has an 'any' type.
 1	app/server.js	TS7006	Parameter 'url' implicitly has an 'any' type.
 1	app/server.js	TS7034	Variable '_routeColorCache' implicitly has type 'any' in some locations where its type cannot be determined.
-3	app/settings/account.js	TS7005	Variable 'reloadAdminCatalog' implicitly has an 'any' type.
-1	app/settings/account.js	TS7006	Parameter 'err' implicitly has an 'any' type.
-1	app/settings/account.js	TS7006	Parameter 'extra' implicitly has an 'any' type.
-1	app/settings/account.js	TS7006	Parameter 'label' implicitly has an 'any' type.
-1	app/settings/account.js	TS7006	Parameter 'list' implicitly has an 'any' type.
-4	app/settings/account.js	TS7006	Parameter 'n' implicitly has an 'any' type.
-2	app/settings/account.js	TS7006	Parameter 'name' implicitly has an 'any' type.
-2	app/settings/account.js	TS7006	Parameter 's' implicitly has an 'any' type.
-1	app/settings/account.js	TS7006	Parameter 'title' implicitly has an 'any' type.
-1	app/settings/account.js	TS7006	Parameter 'tok' implicitly has an 'any' type.
-5	app/settings/account.js	TS7006	Parameter 'u' implicitly has an 'any' type.
-1	app/settings/account.js	TS7031	Binding element 'isSelf' implicitly has an 'any' type.
-2	app/settings/account.js	TS7031	Binding element 'onChanged' implicitly has an 'any' type.
-2	app/settings/account.js	TS7031	Binding element 'onRevoked' implicitly has an 'any' type.
-1	app/settings/account.js	TS7031	Binding element 's' implicitly has an 'any' type.
-1	app/settings/account.js	TS7031	Binding element 'tok' implicitly has an 'any' type.
-1	app/settings/account.js	TS7031	Binding element 'u' implicitly has an 'any' type.
-4	app/settings/account.js	TS7031	Binding element 'version' implicitly has an 'any' type.
-1	app/settings/account.js	TS7034	Variable 'reloadAdminCatalog' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/settings/account.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
 1	app/settings/catalog.js	TS7006	Parameter '_' implicitly has an 'any' type.
 1	app/settings/catalog.js	TS7006	Parameter 'a' implicitly has an 'any' type.
 1	app/settings/catalog.js	TS7006	Parameter 'b' implicitly has an 'any' type.
