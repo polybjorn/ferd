@@ -20,15 +20,14 @@ export const html = htm.bind(h);
  * @param {(() => void) | null} [onClose]
  */
 export function openViewModal(view, opts, onClose) {
-  return openModal('', (/** @type {HTMLDialogElement} */ dialog) => {
+  return openModal((/** @type {HTMLDialogElement} */ dialog) => {
     dialog.replaceChildren();
     render(view, dialog);
     dialog.addEventListener('close', () => render(null, dialog));
   }, onClose, opts);
 }
 
-// Replaces everything in `el` with a view, as an innerHTML write did: what
-// was there goes, Preact's or not, with the listeners on it. For markup that
+// Replaces everything in `el` with a view: what was there goes, Preact's or not, with the listeners on it. For markup that
 // imperative code redraws whole and flips in place between redraws.
 /** @param {any} view @param {Element} el */
 export function renderFresh(view, el) {
@@ -38,7 +37,7 @@ export function renderFresh(view, el) {
 }
 
 // A list page is one Preact tree under #app. The router unmounts it before
-// any page writes #app, so effects clean up and a page that sets innerHTML
+// any page writes #app, so effects clean up and a page that replaces #app
 // never sits on top of a live tree.
 let pageMounted = false;
 /** @param {any} view */

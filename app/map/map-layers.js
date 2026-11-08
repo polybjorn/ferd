@@ -1,4 +1,4 @@
-import { escapeHtml, state } from '../core.js';
+import { state } from '../core.js';
 import { t } from '../i18n.js';
 import { BASE_LAYER_NAMES, getDefaultTileLayer, getShowTilePicker } from '../prefs.js';
 
@@ -164,6 +164,13 @@ export function parseOverlays(list) {
 }
 // OVERLAY-CFG-END
 
+// Leaflet's layers control parses each name as HTML, so a name from the
+// site config is escaped here.
+/** @param {string} s */
+function leafletLabel(s) {
+  return s.replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';');
+}
+
 function createOverlayLayers() {
   /** @type {Record<string, LeafletLayer>} */
   const out = {};
@@ -189,7 +196,7 @@ function createOverlayLayers() {
       layer = L.tileLayer(ov.url, opts);
     }
     layer._ferdOverlay = ov.name;
-    out[escapeHtml(ov.name)] = layer;
+    out[leafletLabel(ov.name)] = layer;
   }
   return out;
 }

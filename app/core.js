@@ -222,13 +222,6 @@ export const state = {
   _pendingSearchResult: /** @type {{ dataset: Record<string, string | undefined> } | null} */ (null),
 };
 
-/** @param {string} str */
-export function escapeHtml(str) {
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
-}
-
 /** @param {string} slug */
 function categoryFallbackLabel(slug) {
   return slug.replace(/-/g, ' ').replace(/^./, function(/** @type {string} */ c) { return c.toUpperCase(); });

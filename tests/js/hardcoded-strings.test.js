@@ -24,7 +24,6 @@ const TEMPLATES = {};
 const LITERALS = {
 };
 const INNER_HTML = {
-  'app/modal.js': 1,
 };
 
 const TEXT_NODE = />\s*[A-Z][a-z]/g;

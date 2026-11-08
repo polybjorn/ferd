@@ -1,6 +1,3 @@
-import { escapeHtml } from './core.js';
-import { getShowField } from './prefs.js';
-
 // Parse a comma-separated input into a trimmed, de-blanked array, or null if empty.
 /**
  * @param {string} str
@@ -48,12 +45,6 @@ export function normalizePlaceTags(place) {
     if (t.length) place.tags = t; else delete place.tags;
   }
   return place;
-}
-// Pill badges for list cards; cls is the wrapper class (place-tags / route-meta-tags).
-/** @param {string[] | undefined} tags @param {string} cls */
-export function tagPillsHtml(tags, cls) {
-  return (getShowField('tags') && Array.isArray(tags) && tags.length)
-    ? '<div class="' + cls + '">' + tags.map(t => '<span class="tag">#' + escapeHtml(t) + '</span>').join('') + '</div>' : '';
 }
 // Unique tags across items (case-insensitive, first-seen casing kept), sorted.
 /**

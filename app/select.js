@@ -1,5 +1,5 @@
 import {
-  assignCategoryColors, assignPlaceSlugs, assignTrailSlugs, escapeHtml, state,
+  assignCategoryColors, assignPlaceSlugs, assignTrailSlugs, state,
 } from './core.js';
 import { areaHasGeometry } from './area-geo.js';
 import { closeTopModal, modalStack, popoverHost } from './modal.js';
@@ -266,57 +266,6 @@ function openSelectList(sel) {
     }
   };
   armSelectPopover(pop, sel, onKey);
-}
-
-// Every modal's head row: the title, or the Add modal's tabs, and the
-// close button. The title is escaped; opts.titleHtml is markup for a title
-// that carries more than text (the catalog manager's count).
-/**
- * @param {string} title
- * @param {{ tabsHtml?: string, titleHtml?: string | null }} [opts]
- */
-export function modalHeaderHtml(title, opts) {
-  const o = opts || {};
-  const lead = o.tabsHtml
-    ? o.tabsHtml
-    : '<h2 class="ui-dialog-title">' + (o.titleHtml != null ? o.titleHtml : escapeHtml(title)) + '</h2>';
-  return '<div class="ui-dialog-head">' + lead +
-    '<button type="button" class="ui-button ui-button-quiet ui-dialog-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>' +
-  '</div>';
-}
-
-// The empty error box every form modal toggles via `.visible`.
-/** @param {string} id */
-export function modalErrorHtml(id) {
-  return '<div class="form-error" id="' + id + '"></div>';
-}
-
-// A null id labels a group of controls, which a <label for> can't point at.
-/**
- * @param {string | null} id
- * @param {string} label
- * @param {string} control
- * @param {{ required?: boolean }} [opts]
- */
-export function uiFieldHtml(id, label, control, opts) {
-  const labelClass = 'ui-field-label' + (opts && opts.required ? ' ui-required' : '');
-  const labelHtml = id
-    ? '<label class="' + labelClass + '" for="' + id + '">' + label + '</label>'
-    : '<span class="' + labelClass + '">' + label + '</span>';
-  return '<div class="ui-field">' + labelHtml + control + '</div>';
-}
-
-/**
- * @param {string} id
- * @param {string} label
- * @param {{ title?: string, checked?: boolean }} [opts]
- */
-export function uiToggleHtml(id, label, opts) {
-  const o = opts || {};
-  return '<label class="ui-toggle-row"' + (o.title ? ' title="' + escapeHtml(o.title) + '"' : '') + '>' +
-    '<span class="ui-toggle-text">' + label + '</span>' +
-    '<input type="checkbox" id="' + id + '"' + (o.checked ? ' checked' : '') + '>' +
-  '</label>';
 }
 
 /**

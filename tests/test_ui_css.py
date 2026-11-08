@@ -305,7 +305,7 @@ class TargetsAndFocus(unittest.TestCase):
     self.assertNotIn("min-width", self.body("button"))
 
   def test_a_toggle_row_is_one_target(self):
-    self.assertIn("""'<label class="ui-toggle-row\"""", FRONTEND)
+    self.assertIn('<label class="ui-toggle-row"', FRONTEND)
     self.assertNotIn("settings-toggle", FRONTEND)
 
   def test_the_start_marker_reaches_the_minimum(self):
