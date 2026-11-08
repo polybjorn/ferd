@@ -17,7 +17,7 @@ function parseFocus(hash) {
   if (base.startsWith('#/place/')) {
     const slug = decodeURIComponent(base.slice('#/place/'.length));
     const place = (state.places || []).find(p => p._slug === slug || p.name === slug);
-    return { type: 'place', name: place ? place.name : slug, slug: place ? place._slug : slug };
+    return { type: 'place', name: place ? place.name : slug, slug: (place && place._slug) || slug };
   }
   if (base.startsWith('#/route/')) {
     const slug = decodeURIComponent(base.slice('#/route/'.length));

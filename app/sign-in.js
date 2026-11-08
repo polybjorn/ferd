@@ -85,7 +85,7 @@ function bindSignInForm(opts) {
       .then(res => { if (res && res.session_token) setBearerToken(res.session_token); })
       .then(() => refreshAuthState())
       .then(() => loadSyncedPrefs())
-      .then(() => { if (opts.onSuccess) return opts.onSuccess(); })
+      .then(() => opts.onSuccess ? opts.onSuccess() : undefined)
       .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
   }
 }
