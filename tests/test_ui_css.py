@@ -92,7 +92,7 @@ class IndexLayers(unittest.TestCase):
     # The role sits in the shipped markup, hidden and empty, so it is in
     # place before the text changes; a role added along with the text is
     # not announced. The banner that blocks is an alert.
-    for el in ('<div id="pwa-offline-banner" class="ui-banner pwa-banner" role="status" hidden>',
+    for el in ('<div id="pwa-offline-banner" class="ui-banner ui-banner-warn pwa-banner" role="status" hidden>',
                '<div id="pwa-sync-issues" class="ui-banner ui-banner-warn pwa-banner" role="alert" hidden>',
                '<div id="pwa-sync-toast" class="ui-toast pwa-toast" role="status" hidden></div>'):
       self.assertIn(el, INDEX)
