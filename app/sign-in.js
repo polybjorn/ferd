@@ -10,7 +10,7 @@ import { bootApp, loadDataAndRender, probeServer } from './main.js';
 function signInFormHtml(includeClose) {
   const canRegister = state.auth.registration_open;
   return (includeClose
-      ? modalHeaderHtml(null, {titleHtml: '<span id="modal-title">Sign in</span>'})
+      ? modalHeaderHtml('', {titleHtml: '<span id="modal-title">Sign in</span>'})
       : '<h2><span id="modal-title">Sign in</span></h2>') +
     (canRegister
       ? '<div class="ui-tabs" id="auth-tabs">' +
@@ -43,29 +43,29 @@ function bindSignInForm(opts) {
   let mode = state.auth.has_users ? 'login' : 'register';
   setMode(mode);
   /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#auth-tabs button[data-mode]')).forEach(b => {
-    b.addEventListener('click', function() { setMode(this.dataset.mode); });
+    b.addEventListener('click', function() { setMode(this.dataset.mode || 'login'); });
   });
-  document.getElementById('auth-form').addEventListener('submit', function(e) {
+  /** @type {HTMLElement} */ (document.getElementById('auth-form')).addEventListener('submit', function(e) {
     e.preventDefault();
     submit();
   });
-  document.getElementById('auth-username').focus();
+  /** @type {HTMLElement} */ (document.getElementById('auth-username')).focus();
 
-  /** @param {string | undefined} m */
+  /** @param {string} m */
   function setMode(m) {
     mode = m;
     /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#auth-tabs button[data-mode]')).forEach(b => {
       b.setAttribute('aria-pressed', String(b.dataset.mode === m));
     });
-    document.getElementById('modal-title').textContent = m === 'register' ? 'Register' : 'Sign in';
-    document.getElementById('auth-submit').textContent = m === 'register' ? 'Register' : 'Sign in';
-    document.getElementById('auth-password').setAttribute('autocomplete', m === 'register' ? 'new-password' : 'current-password');
-    const hint = document.getElementById('auth-hint');
+    /** @type {HTMLElement} */ (document.getElementById('modal-title')).textContent = m === 'register' ? 'Register' : 'Sign in';
+    /** @type {HTMLElement} */ (document.getElementById('auth-submit')).textContent = m === 'register' ? 'Register' : 'Sign in';
+    /** @type {HTMLElement} */ (document.getElementById('auth-password')).setAttribute('autocomplete', m === 'register' ? 'new-password' : 'current-password');
+    const hint = /** @type {HTMLElement} */ (document.getElementById('auth-hint'));
     hint.textContent = m === 'register' ? 'Password must be at least 12 characters.' : '';
     hint.hidden = m !== 'register';
-    const tokenRow = document.getElementById('setup-token-row');
+    const tokenRow = /** @type {HTMLElement} */ (document.getElementById('setup-token-row'));
     const tokenInput = /** @type {HTMLInputElement | null} */ (document.getElementById('auth-setup-token'));
-    const needsToken = m === 'register' && state.auth.requires_setup_token;
+    const needsToken = m === 'register' && !!state.auth.requires_setup_token;
     tokenRow.hidden = !needsToken;
     if (tokenInput) tokenInput.required = needsToken;
   }
@@ -118,7 +118,7 @@ function normalizeServerUrl(raw) {
 /** @param {{ error?: string }} [opts] */
 export function renderServerPicker(opts) {
   opts = opts || {};
-  const app = document.getElementById('app');
+  const app = /** @type {HTMLElement} */ (document.getElementById('app'));
   document.body.classList.add('signin-only');
   const current = serverBase();
   app.innerHTML =
@@ -143,8 +143,8 @@ export function renderServerPicker(opts) {
   const localBtn = document.getElementById('srv-local');
   if (localBtn) localBtn.addEventListener('click', enterLocalMode);
   const input = /** @type {HTMLInputElement} */ (document.getElementById('srv-url'));
-  const errBox = document.getElementById('srv-error');
-  const warn = document.getElementById('srv-warn');
+  const errBox = /** @type {HTMLElement} */ (document.getElementById('srv-error'));
+  const warn = /** @type {HTMLElement} */ (document.getElementById('srv-warn'));
   const btn = /** @type {HTMLButtonElement} */ (document.getElementById('srv-connect'));
   /** @param {string} msg */
   function fail(msg) {
@@ -180,7 +180,7 @@ export function renderServerPicker(opts) {
 }
 
 export function renderSignInPage() {
-  const app = document.getElementById('app');
+  const app = /** @type {HTMLElement} */ (document.getElementById('app'));
   document.body.classList.add('signin-only');
   const brand = (state.config && state.config.brand) || 'Ferd';
   app.innerHTML =
@@ -206,7 +206,7 @@ export function renderSignInPage() {
       host.className = 'signin-server-host';
       host.title = serverBase();
       host.textContent = serverBase().replace(/^https?:\/\//, '');
-      actions.parentNode.insertBefore(host, actions.nextSibling);
+      actions.after(host);
       // Change server pushed left of the actions row; Sign in stays right.
       const changeBtn = document.createElement('button');
       changeBtn.type = 'button';
@@ -227,7 +227,7 @@ export function renderSignInPage() {
   // Surface any published maps as a collapsible list inside the
   // sign-in card. Starts collapsed so the card stays compact even
   // with a long roster; the toggle button shows the count.
-  fetchJson(apiUrl('/public-maps'), { usernames: [] }).then(function(resp) {
+  fetchJson(apiUrl('/public-maps'), /** @type {{ usernames: string[] }} */ ({ usernames: [] })).then(function(resp) {
     const names = (resp && resp.usernames) || [];
     if (!names.length) return;
     const box = document.getElementById('signin-public-maps');
@@ -247,8 +247,8 @@ export function renderSignInPage() {
           '</div>' +
         '</div></div>' +
       '</div>';
-    const toggle = box.querySelector('.signin-public-toggle');
-    const list = document.getElementById('signin-public-collapsible');
+    const toggle = /** @type {HTMLElement} */ (box.querySelector('.signin-public-toggle'));
+    const list = /** @type {HTMLElement} */ (document.getElementById('signin-public-collapsible'));
     toggle.addEventListener('click', function() {
       const open = list.classList.toggle('open');
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');

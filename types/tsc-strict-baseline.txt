@@ -50,30 +50,10 @@
 1	app/prefs.js	TS2345	Argument of type 'string | null' is not assignable to parameter of type 'string'.
 1	app/select.js	TS18047	'state.areas' is possibly 'null'.
 3	app/server.js	TS2345	Argument of type 'string | null' is not assignable to parameter of type 'string | number | boolean'.
-1	app/settings/categories.js	TS18047	'state.places' is possibly 'null'.
-1	app/settings/categories.js	TS18048	'a' is possibly 'undefined'.
-1	app/settings/categories.js	TS2322	Type '{...}[]' is not assignable to type 'CategoryRowData[]'.
-1	app/settings/categories.js	TS2345	Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
-1	app/settings/categories.js	TS2488	Type 'Place[] | null' must have a '[Symbol.iterator]()' method that returns an iterator.
-13	app/settings/categories.js	TS2538	Type 'undefined' cannot be used as an index type.
-1	app/settings/categories.js	TS2769	No overload matches this call.
 1	app/settings/settings.js	TS18048	'window.FerdAndroid' is possibly 'undefined'.
 2	app/settings/settings.js	TS2345	Argument of type 'string | null' is not assignable to parameter of type 'string'.
 1	app/settings/settings.js	TS2722	Cannot invoke an object which is possibly 'undefined'.
 1	app/settings/settings.js	TS2810	Expected 1 argument, but got 0. 'new Promise()' needs a JSDoc hint to produce a 'resolve' that can be called without arguments.
-1	app/sign-in.js	TS18047	'actions.parentNode' is possibly 'null'.
-3	app/sign-in.js	TS18047	'app' is possibly 'null'.
-3	app/sign-in.js	TS18047	'errBox' is possibly 'null'.
-2	app/sign-in.js	TS18047	'hint' is possibly 'null'.
-1	app/sign-in.js	TS18047	'list' is possibly 'null'.
-2	app/sign-in.js	TS18047	'toggle' is possibly 'null'.
-1	app/sign-in.js	TS18047	'tokenRow' is possibly 'null'.
-1	app/sign-in.js	TS18047	'warn' is possibly 'null'.
-1	app/sign-in.js	TS2322	Type 'boolean | undefined' is not assignable to type 'boolean'.
-1	app/sign-in.js	TS2322	Type 'string | undefined' is not assignable to type 'string'.
-1	app/sign-in.js	TS2345	Argument of type 'null' is not assignable to parameter of type 'string'.
-5	app/sign-in.js	TS2531	Object is possibly 'null'.
-1	app/sign-in.js	TS7005	Variable 'names' implicitly has an 'any[]' type.
 4	app/theme.js	TS2345	Argument of type 'string | null' is not assignable to parameter of type 'string'.
 4	app/theme.js	TS2538	Type 'null' cannot be used as an index type.
 1	app/view.js	TS18047	'ref.current' is possibly 'null'.
