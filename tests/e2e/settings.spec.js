@@ -55,3 +55,26 @@ test('a theme switch applies at once and after a reload', async ({ page, baseURL
   expect(fenced.external).toEqual([]);
   expect(fenced.errors).toEqual([]);
 });
+
+test('a language switch redraws open views at once and survives a reload', async ({ page, baseURL }, info) => {
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  await signUp(page, info);
+  const root = page.locator('html');
+  await expect(root).toHaveAttribute('lang', 'en');
+
+  await openSettings(page);
+  await page.locator('#s-language').selectOption('nb', { force: true });
+  await expect(root).toHaveAttribute('lang', 'nb');
+  await expect(page.locator('#settings-tabs [data-tab="general"]')).toHaveText('Generelt');
+  await expect(page.getByRole('heading', { name: 'Språk' })).toBeVisible();
+  // A key the Norwegian table lacks shows in English, not as the key.
+  await expect(page.getByRole('heading', { name: 'Language' })).toHaveCount(0);
+  await expect(page.locator('body')).not.toContainText('settings.general.');
+
+  await page.reload();
+  await expect(page.locator('#auth-menu-btn:visible, #bar-add:visible')).toBeVisible();
+  await expect(root).toHaveAttribute('lang', 'nb');
+
+  expect(fenced.external).toEqual([]);
+  expect(fenced.errors).toEqual([]);
+});

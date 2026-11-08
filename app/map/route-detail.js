@@ -1,3 +1,4 @@
+import { render } from 'preact';
 import {
   GPX_NS, ROUTE_COLOR, TRACK_COLORS, displayRegion, domainFromUrl, escapeHtml, formatDistance,
   formatElevation, setActiveTab, setCrumb, state,
@@ -20,7 +21,7 @@ import { getTrailWeightFactor } from '../theme.js';
 import { wrappedRouter } from '../router.js';
 import { t } from '../i18n.js';
 import { routes } from '../store.js';
-import { html as vhtml, mountExtra, useEffect, useRef } from '../view.js';
+import { AppError, html as vhtml, mountExtra, mountPage, useEffect, useRef } from '../view.js';
 
 /** @typedef {import('./route-layer.js').LeafletMap} LeafletMap */
 /** @typedef {import('./route-layer.js').LeafletLayer} LeafletLayer */
@@ -44,7 +45,7 @@ export function parseGpxTracks(xmlText) {
   for (let i = 0; i < tracks.length; i++) {
     const trk = tracks[i];
     const nameEl = trk.getElementsByTagNameNS(GPX_NS, 'name')[0] || trk.getElementsByTagName('name')[0];
-    const name = nameEl ? nameEl.textContent || '' : 'Track ' + (i + 1);
+    const name = nameEl ? nameEl.textContent || '' : t('routeDetail.track', { n: i + 1 });
     /** @type {GpxPoint[]} */
     const points = [];
     let trkpts = trk.getElementsByTagNameNS(GPX_NS, 'trkpt');
@@ -151,8 +152,7 @@ function trackToGeoJSON(track) {
 export function renderTrailDetail(routeKey) {
   setActiveTab('routes', 'route');
   cleanupMap();
-  const app = /** @type {HTMLElement} */ (document.getElementById('app'));
-  if (!state.manifest) { app.innerHTML = '<div class="app-state" aria-busy="true"><p class="ui-hint" role="status">Loading routes...</p></div>'; return; }
+  if (!state.manifest) { mountPage(vhtml`<${RouteLoading} />`); return; }
 
   /** @type {import('../core.js').ManifestRoute | null} */
   let route = null;
@@ -163,7 +163,7 @@ export function renderTrailDetail(routeKey) {
     }
     if (route) break;
   }
-  if (!route) { setCrumb('Not found', true); app.innerHTML = '<div class="app-state"><p class="app-error" role="alert">Route not found</p></div>'; return; }
+  if (!route) { setCrumb(t('routeDetail.notFoundCrumb'), true); mountPage(vhtml`<${AppError} msg=${t('routeDetail.notFound')} />`); return; }
   setCrumb(route.name, true);
 
   const color = ROUTE_COLOR;
@@ -172,37 +172,18 @@ export function renderTrailDetail(routeKey) {
   // the map and graphs are built once for this route's GPX.
   // The old top stats bar is gone; stats live on the elevation header now.
   const navStatsEl = document.getElementById('nav-stats-dynamic');
-  if (navStatsEl) navStatsEl.innerHTML = '';
+  if (navStatsEl) navStatsEl.replaceChildren();
 
-  const isMultiTrack = route.trackCount && route.trackCount > 1;
-
-  let html = '<div class="detail-layout">';
-  html += '<div id="map"></div>';
-  if (isMultiTrack) {
-    // Any multi-segment route: a fixed graph on top (whole route by
-    // default) over a collapsible segment list. renderMultiTrack fills this
-    // in after the GPX parses, so render a same-height shell now (title +
-    // 174px graph + toggle bar). Otherwise the container is 0-height until
-    // the parse lands, the flex-grow map fills the gap, and populating it
-    // shrinks + re-fits the map - a jarring "reload" a second or two in.
-    html += '<div id="multi-elevation-container" class="elev-dropdown-host">' +
-      '<div class="detail-elev-title"><span class="detail-elev-title-text">Whole route</span></div>' +
-      '<div class="detail-elev-graph"></div>' +
-      '<div class="elev-segments"><button type="button" class="elev-segments-toggle collapsed"><span class="elev-toggle-label">Elevation by segment</span></button></div>' +
-    '</div>';
-  } else if (route.hasElevation) {
-    // Single-track: same collapsible graph-title + graph as the
-    // many-segment view, so single and multi look and behave alike.
-    html += '<div class="detail-elev-title" id="single-elev-title" role="button" tabindex="0" title="Show or hide the graph"><span class="detail-elev-title-text">Elevation</span><span class="seg-stat" id="single-elev-stats"></span></div>';
-    html += '<div class="detail-elev-graph" id="elevation-container" style="--track-color:' + color + '"></div>';
-  } else {
-    html += '<div class="detail-elev-statbar"><span class="seg-stat" id="single-elev-stats"></span></div>';
-    html += '<div class="no-elevation-notice">No elevation data available for this route</div>';
-  }
-  html += '<div id="route-meta-mount"></div>';
-  html += '</div>';
-  app.innerHTML = html;
-  mountExtra(vhtml`<${RouteMeta} routeKey=${routeKey} />`, /** @type {HTMLElement} */ (document.getElementById('route-meta-mount')));
+  const isMultiTrack = !!(route.trackCount && route.trackCount > 1);
+  mountPage(vhtml`<${RouteDetailLayout} routeKey=${routeKey} multi=${isMultiTrack} hasElevation=${!!route.hasElevation} />`);
+  // Any multi-segment route: a fixed graph on top (whole route by default)
+  // over a collapsible segment list. renderMultiTrack fills this in after the
+  // GPX parses, so render a same-height shell now (title + 174px graph +
+  // toggle bar). Otherwise the container is 0-height until the parse lands,
+  // the flex-grow map fills the gap, and populating it shrinks + re-fits the
+  // map - a jarring "reload" a second or two in.
+  const multiEl = document.getElementById('multi-elevation-container');
+  if (multiEl) mountExtra(vhtml`<${MultiElevation} />`, multiEl);
 
   const dvt = state.config.default_view_routes || DEFAULT_CONFIG.default_view_routes;
   const map = L.map('map', {
@@ -285,21 +266,15 @@ export function renderTrailDetail(routeKey) {
     onAdd: function() {
       const btn = L.DomUtil.create('a', 'leaflet-bar leaflet-control map-expand-btn');
       btn.href = '#';
-      btn.title = 'Expand map';
+      btn.title = t('routeDetail.expandMap');
       btn.setAttribute('role', 'button');
-      btn.setAttribute('aria-label', 'Expand map');
-      btn.innerHTML =
-        '<svg class="icon-expand" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-        + '<polyline points="2,6 2,2 6,2"/><polyline points="14,6 14,2 10,2"/><polyline points="2,10 2,14 6,14"/><polyline points="14,10 14,14 10,14"/>'
-        + '</svg>'
-        + '<svg class="icon-collapse" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-        + '<polyline points="6,2 6,6 2,6"/><polyline points="10,2 10,6 14,6"/><polyline points="6,14 6,10 2,10"/><polyline points="10,14 10,10 14,10"/>'
-        + '</svg>';
+      btn.setAttribute('aria-label', btn.title);
+      mountExtra(vhtml`<${ExpandIcons} />`, btn);
       L.DomEvent.disableClickPropagation(btn);
       L.DomEvent.on(btn, 'click', function(/** @type {Event} */ e) {
         L.DomEvent.preventDefault(e);
         const expanded = layoutEl.classList.toggle('map-expanded');
-        btn.title = expanded ? 'Collapse map' : 'Expand map';
+        btn.title = t(expanded ? 'routeDetail.collapseMap' : 'routeDetail.expandMap');
         btn.setAttribute('aria-label', btn.title);
         const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (reduce) {
@@ -367,7 +342,7 @@ function renderSingleTrack(map, route, color, sched) {
       height: 200,
       imperial: isImperial(),
       slope: false, speed: false, acceleration: false, time: false,
-      legend: false, summary: false, ruler: false, downloadLink: false,
+      legend: false, summary: false, ruler: false, downloadLink: false, closeBtn: false,
       almostOver: false, distanceMarkers: false, autofitBounds: false, fitBounds: false,
       polyline: { color: color, opacity: 0.9, weight: 5 * getTrailWeightFactor() },
     }).addTo(map);
@@ -436,17 +411,10 @@ function renderSingleTrack(map, route, color, sched) {
     map.on('zoomend', function() { simplifyRouteForZoom(gpx, map.getZoom()); });
 
     const dist = gpx.get_distance();
-    /** @type {{ dist: number, status: string, completed: boolean, region: string, gain?: number }} */
-    const stats = { dist: dist, status: route.completed ? 'Completed' : 'Planned', completed: route.completed, region: route.key.split('/')[0] };
-    if (route.hasElevation) {
-      stats.gain = gpx.get_elevation_gain();
-    }
+    const gain = route.hasElevation ? gpx.get_elevation_gain() : undefined;
     // Length + climb columns, matching the multi-segment header format.
     const sStatsEl = document.getElementById('single-elev-stats');
-    if (sStatsEl) {
-      sStatsEl.innerHTML = '<span class="seg-dist">' + formatDistance(stats.dist) + '</span>'
-        + (stats.gain != null ? '<span class="seg-gain">+' + formatElevation(stats.gain) + '</span>' : '');
-    }
+    if (sStatsEl) mountExtra(vhtml`<${StatParts} dist=${dist} gain=${gain} />`, sStatsEl);
   })).on('addline', sched.live(function(/** @type {any} */ e) {
     if (!elevationControl) return;
     // For a very large track, stride the elevation series the same way the
@@ -499,7 +467,7 @@ function renderMultiTrack(map, route, sched) {
           height: elevHeight,
           imperial: isImperial(),
           slope: false, speed: false, acceleration: false, time: false,
-          legend: false, summary: false, ruler: false, downloadLink: false,
+          legend: false, summary: false, ruler: false, downloadLink: false, closeBtn: false,
           almostOver: false, distanceMarkers: false, autofitBounds: false, fitBounds: false,
           polyline: false,
         }).addTo(map);
@@ -520,50 +488,12 @@ function renderMultiTrack(map, route, sched) {
         // collapsible list of segments below. Clicking a segment swaps the
         // graph in place, marks the row active, and highlights that segment
         // on the map; clicking it again returns to the whole-route profile.
-        const segStatHtml = function(/** @type {TrackStats} */ s) {
-          return '<span class="seg-stat"><span class="seg-dist">' + formatDistance(s.distance) + '</span>'
-            + (s.gain > 0 ? '<span class="seg-gain">+' + formatElevation(s.gain) + '</span>' : '') + '</span>';
-        };
-        const totalDist = allStats.reduce(function(a, s) { return a + s.distance; }, 0);
-        const totalGain = allStats.reduce(function(a, s) { return a + (s.gain > 0 ? s.gain : 0); }, 0);
-        // GPX track names often carry their own leading number ("001: ...").
-        // Pull it into a dedicated # column and strip it from the name;
-        // fall back to the row index when a name has no number prefix.
-        const padW = String(tracks.length).length;
-        const segNumName = function(/** @type {string | undefined} */ raw, /** @type {number} */ idx) {
-          const m = /^\s*(\d{1,3})[:.)]\s+(.+)$/.exec(raw || '');
-          if (m) return { num: m[1], name: m[2] };
-          return { num: String(idx + 1).padStart(padW, '0'), name: raw || ('Segment ' + (idx + 1)) };
-        };
-        let rowsHtml = '';
-        for (let i = 0; i < tracks.length; i++) {
-          const tc = TRACK_COLORS[i % TRACK_COLORS.length];
-          const nn = segNumName(tracks[i].name, i);
-          rowsHtml += '<div class="seg-row" data-seg="' + i + '" style="--track-color:' + tc + '">';
-          rowsHtml += '<span class="seg-num">' + escapeHtml(nn.num) + '</span>';
-          rowsHtml += '<span class="color-dot" style="background:' + tc + '"></span>';
-          rowsHtml += '<span class="seg-name">' + escapeHtml(nn.name) + '</span>';
-          rowsHtml += segStatHtml(allStats[i]);
-          rowsHtml += '</div>';
-        }
         // The segment list is an absolute dropdown (out of flow) so opening
         // it never changes the container height: that would resize the
         // flex-grow map (a visible tile reload) and overflow the 70vh cap.
         // The whole-route totals live on the toggle bar (right side) and act
         // as the click-to-show-whole-route control.
-        container.classList.add('elev-dropdown-host');
-        container.innerHTML =
-          '<div class="detail-elev-title" id="detail-elev-title" role="button" tabindex="0" title="Show or hide the graph"><span class="detail-elev-title-text" id="detail-elev-title-text">Whole route</span></div>'
-          + '<div class="detail-elev-graph" id="detail-elev-graph" style="--track-color:' + ROUTE_COLOR + '"></div>'
-          + '<div class="elev-segments">'
-          + '<button type="button" class="elev-segments-toggle collapsed" id="elev-seg-toggle">'
-          + '<span class="elev-toggle-label">Elevation by segment (' + tracks.length + ')</span>'
-          + '<span class="seg-stat elev-toggle-stats" id="elev-toggle-stats" title="Show whole route">'
-          + '<span class="seg-dist">' + formatDistance(totalDist) + '</span>'
-          + (totalGain > 0 ? '<span class="seg-gain">+' + formatElevation(totalGain) + '</span>' : '')
-          + '</span></button>'
-          + '<div class="elev-segments-list collapsed" id="elev-seg-list">' + rowsHtml + '</div>'
-          + '</div>';
+        mountExtra(vhtml`<${MultiElevation} tracks=${tracks} stats=${allStats} />`, container);
 
         // Whole-route and per-segment elevation features (strided).
         /** @type {number[][]} */
@@ -622,7 +552,7 @@ function renderMultiTrack(map, route, sched) {
           });
           // Whole-route state is reflected on the toggle-bar totals.
           if (toggleStatsEl) toggleStatsEl.classList.toggle('active', activeSeg === null);
-          if (activeSeg === null) { setGraph(wholeFeat, ROUTE_COLOR, 'Whole route'); highlightSeg(null); }
+          if (activeSeg === null) { setGraph(wholeFeat, ROUTE_COLOR, t('routeDetail.wholeRoute')); highlightSeg(null); }
           else {
             setGraph(segFeat(activeSeg), TRACK_COLORS[activeSeg % TRACK_COLORS.length], tracks[activeSeg].name);
             highlightSeg(activeSeg);
@@ -713,8 +643,8 @@ function renderMultiTrack(map, route, sched) {
 export function addStartEndMarkers(map, startLatLng, endLatLng) {
   const startIcon = L.divIcon({ className: 'marker-start', html: '<svg viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="6" fill="#00e05a" stroke="#fff" stroke-width="2"/></svg>', iconSize: [24, 24], iconAnchor: [12, 12] });
   const endIcon = L.divIcon({ className: 'marker-end', html: '<svg viewBox="0 0 32 32" width="32" height="32"><rect x="4" y="2" width="2" height="28" rx="1" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><path d="M6 3h12c1 0 1.5.5 1 1.5L17 8l2 3.5c.5 1 0 1.5-1 1.5H6V3z" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><rect x="7" y="4" width="4.5" height="4" fill="#2d333b"/><rect x="11.5" y="4" width="4.5" height="4" fill="#fff"/><rect x="7" y="8" width="4.5" height="4" fill="#fff"/><rect x="11.5" y="8" width="4.5" height="4" fill="#2d333b"/></svg>', iconSize: [32, 32], iconAnchor: [5, 30] });
-  L.marker(startLatLng, { icon: startIcon }).bindPopup('Start').addTo(map);
-  L.marker(endLatLng, { icon: endIcon }).bindPopup('End').addTo(map);
+  L.marker(startLatLng, { icon: startIcon }).bindPopup(t('routeDetail.start')).addTo(map);
+  L.marker(endLatLng, { icon: endIcon }).bindPopup(t('routeDetail.end')).addTo(map);
 }
 
 function detailKeyInHash() {
@@ -746,13 +676,8 @@ function RouteMeta({ routeKey }) {
   useEffect(() => {
     const nav = document.getElementById('nav-actions');
     if (!nav || !canEdit) return;
-    nav.innerHTML = '<button type="button" id="route-edit-btn" class="nav-action-btn">Edit</button>';
-    const btn = nav.querySelector('#route-edit-btn');
-    if (btn) btn.addEventListener('click', e => {
-      e.preventDefault();
-      openEditTrailMetadataModal(cur.current.route, cur.current.region.name);
-    });
-    return () => { nav.innerHTML = ''; };
+    render(vhtml`<${EditButton} onEdit=${() => openEditTrailMetadataModal(cur.current.route, cur.current.region.name)} />`, nav);
+    return () => render(null, nav);
   }, [canEdit]);
   // Gone for good (deleted, or removed by a pull): leave the way the delete
   // flow always has, through the router's not-found view. A move is not that,
@@ -782,7 +707,7 @@ function RouteMeta({ routeKey }) {
   const tagsOn = getShowField('tags') && Array.isArray(route.tags) && route.tags.length > 0;
   const notes = !!route.notes && getShowField('note');
   const facts = [
-    vhtml`<span class="fact"><span class="dot" style=${'background:' + (route.completed ? 'var(--status-completed)' : 'var(--status-planned)')}></span>${route.completed ? 'Completed' : 'Planned'}</span>`,
+    vhtml`<span class="fact"><span class="dot" style=${'background:' + (route.completed ? 'var(--status-completed)' : 'var(--status-planned)')}></span>${t(route.completed ? 'routes.completed' : 'routes.planned')}</span>`,
     vhtml`<span class="fact">${displayRegion(region.name)}</span>`,
   ];
   if (route.difficulty) facts.push(vhtml`<span class="fact">${DIFFICULTY_LABELS[route.difficulty] || route.difficulty}</span>`);
@@ -797,4 +722,97 @@ function RouteMeta({ routeKey }) {
     </div>
     ${notes && vhtml`<div class="route-meta-notes"><span class="route-meta-notes-label">${t('routeDetail.notes')}</span>${route.notes}</div>`}
   </div>`;
+}
+
+// The rest of the page's markup. The map, the GPX parse and the elevation
+// charts stay imperative and are built once into these; nothing below reads
+// the store, so they never redraw over what Leaflet added.
+
+function RouteLoading() {
+  return vhtml`<div class="app-state" aria-busy="true"><p class="ui-hint" role="status">${t('routes.loading')}</p></div>`;
+}
+
+/** @param {{ routeKey: string, multi: boolean, hasElevation: boolean }} props */
+function RouteDetailLayout({ routeKey, multi, hasElevation }) {
+  let elevation;
+  if (multi) {
+    elevation = vhtml`<div id="multi-elevation-container" class="elev-dropdown-host"></div>`;
+  } else if (hasElevation) {
+    // Single-track: same collapsible graph-title + graph as the
+    // many-segment view, so single and multi look and behave alike.
+    elevation = vhtml`<div class="detail-elev-title" id="single-elev-title" role="button" tabindex="0" title=${t('routeDetail.toggleGraph')}><span class="detail-elev-title-text">${t('routeDetail.elevation')}</span><span class="seg-stat" id="single-elev-stats"></span></div>
+      <div class="detail-elev-graph" id="elevation-container" style=${'--track-color:' + ROUTE_COLOR}></div>`;
+  } else {
+    elevation = vhtml`<div class="detail-elev-statbar"><span class="seg-stat" id="single-elev-stats"></span></div>
+      <div class="no-elevation-notice">${t('routeDetail.noElevation')}</div>`;
+  }
+  return vhtml`<div class="detail-layout">
+    <div id="map"></div>
+    ${elevation}
+    <div id="route-meta-mount"><${RouteMeta} routeKey=${routeKey} /></div>
+  </div>`;
+}
+
+// Length and climb, the columns of the elevation headers and segment rows.
+/** @param {{ dist: number, gain?: number | undefined }} props */
+function StatParts({ dist, gain }) {
+  return vhtml`<span class="seg-dist">${formatDistance(dist)}</span>${gain != null && vhtml`<span class="seg-gain">+${formatElevation(gain)}</span>`}`;
+}
+
+/** @param {number} n */
+const gainIfAny = n => (n > 0 ? n : undefined);
+
+// The multi-segment graph's title, toggle bar and segment list. Rendered
+// without tracks it is the same-height shell the page shows while the GPX
+// parses; renderMultiTrack renders it again with them and then wires the
+// rows, the toggle and the graph to the map.
+/** @param {{ tracks?: GpxTrack[], stats?: TrackStats[] }} props */
+function MultiElevation({ tracks, stats }) {
+  if (!tracks || !stats) {
+    return vhtml`<div class="detail-elev-title"><span class="detail-elev-title-text">${t('routeDetail.wholeRoute')}</span></div>
+      <div class="detail-elev-graph"></div>
+      <div class="elev-segments"><button type="button" class="elev-segments-toggle collapsed"><span class="elev-toggle-label">${t('routeDetail.bySegment')}</span></button></div>`;
+  }
+  const totalDist = stats.reduce((a, s) => a + s.distance, 0);
+  const totalGain = stats.reduce((a, s) => a + (s.gain > 0 ? s.gain : 0), 0);
+  // GPX track names often carry their own leading number ("001: ...").
+  // Pull it into a dedicated # column and strip it from the name;
+  // fall back to the row index when a name has no number prefix.
+  const padW = String(tracks.length).length;
+  const rows = tracks.map((track, i) => {
+    const tc = TRACK_COLORS[i % TRACK_COLORS.length];
+    const m = /^\s*(\d{1,3})[:.)]\s+(.+)$/.exec(track.name || '');
+    const num = m ? m[1] : String(i + 1).padStart(padW, '0');
+    const name = m ? m[2] : track.name || t('routeDetail.segment', { n: i + 1 });
+    return vhtml`<div class="seg-row" data-seg=${i} style=${'--track-color:' + tc}>
+      <span class="seg-num">${num}</span>
+      <span class="color-dot" style=${'background:' + tc}></span>
+      <span class="seg-name">${name}</span>
+      <span class="seg-stat"><${StatParts} dist=${stats[i].distance} gain=${gainIfAny(stats[i].gain)} /></span>
+    </div>`;
+  });
+  return vhtml`<div class="detail-elev-title" id="detail-elev-title" role="button" tabindex="0" title=${t('routeDetail.toggleGraph')}><span class="detail-elev-title-text" id="detail-elev-title-text">${t('routeDetail.wholeRoute')}</span></div>
+    <div class="detail-elev-graph" id="detail-elev-graph" style=${'--track-color:' + ROUTE_COLOR}></div>
+    <div class="elev-segments">
+      <button type="button" class="elev-segments-toggle collapsed" id="elev-seg-toggle">
+        <span class="elev-toggle-label">${t('routeDetail.bySegmentCount', { count: tracks.length })}</span>
+        <span class="seg-stat elev-toggle-stats" id="elev-toggle-stats" title=${t('routeDetail.showWholeRoute')}><${StatParts} dist=${totalDist} gain=${gainIfAny(totalGain)} /></span>
+      </button>
+      <div class="elev-segments-list collapsed" id="elev-seg-list">${rows}</div>
+    </div>`;
+}
+
+/** @param {{ onEdit: () => void }} props */
+function EditButton({ onEdit }) {
+  return vhtml`<button type="button" id="route-edit-btn" class="nav-action-btn" onClick=${(/** @type {Event} */ e) => { e.preventDefault(); onEdit(); }}>${t('routeDetail.edit')}</button>`;
+}
+
+// The expand-map control's two icons; CSS shows the one for its state.
+function ExpandIcons() {
+  return vhtml`<svg class="icon-expand" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="2,6 2,2 6,2"/><polyline points="14,6 14,2 10,2"/><polyline points="2,10 2,14 6,14"/><polyline points="14,10 14,14 10,14"/>
+    </svg>
+    <svg class="icon-collapse" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="6,2 6,6 2,6"/><polyline points="10,2 10,6 14,6"/><polyline points="6,14 6,10 2,10"/><polyline points="10,14 10,10 14,10"/>
+    </svg>`;
 }

@@ -9,7 +9,7 @@ import { focusHash } from '../router.js';
 import { attachContextMenu } from '../context-menu.js';
 import { openAddModal } from '../add/add.js';
 import {
-  NAME_COLLATOR, findCatalogUpdate, groupAndSort, isCatalogOrphan, letterBucket, openCatalogBulkUpdateModal,
+  findCatalogUpdate, groupAndSort, isCatalogOrphan, letterBucket, openCatalogBulkUpdateModal,
   openCatalogUpdateModal, placesWithCatalogUpdates,
 } from '../places-list.js';
 import { CategoryDot, IndexControls, FilterSelect, ListTabs, TagFilterButton, useFilters, useNavAdd, withCurrent } from '../list-controls.js';

@@ -483,13 +483,6 @@ export function attachGLRoutes(map) {
   if (!init()) { canvas.remove(); return; } // no WebGL: keep SVG routes (fallback)
   // GL is up: hide the SVG route lines so only the GL layer shows on this map.
   map.getContainer().classList.add('gl-routes-active');
-  if (!document.getElementById('gl-routes-style')) {
-    const st = document.createElement('style');
-    st.id = 'gl-routes-style';
-    st.textContent = '.gl-routes-active path.route-line{opacity:0 !important;}'
-      + '.gl-routes-active path.area-shape{stroke-opacity:0 !important;}';
-    document.head.appendChild(st);
-  }
   rebuild(); draw();
   // Selection/highlight + weight-pref changes go through applyRouteHighlight.
   state._glRoutesDirty = function () { rebuildSoon(); };

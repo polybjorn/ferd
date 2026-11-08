@@ -15,7 +15,7 @@ vm.createContext(ctx);
 vm.runInContext(m[0] + '\nglobalThis.__stars = ratingStarsText;', ctx);
 
 test('a partial rating fades the empty stars', () => {
-  assert.equal(ctx.__stars(3), '★★★<span style="opacity:0.35">★★</span>');
+  assert.equal(ctx.__stars(3), '★★★<span class="stars-empty">★★</span>');
   assert.equal(ctx.__stars(5), '★★★★★');
   assert.equal(ctx.__stars(0), '');
 });

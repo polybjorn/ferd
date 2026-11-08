@@ -1,4 +1,4 @@
-import { escapeHtml, reduceMotion, state } from '../core.js';
+import { colourClass, escapeHtml, reduceMotion, state } from '../core.js';
 import { easeLeaflet } from './map-layers.js';
 import { getClusterPlaces, placesEnabled, routesEnabled } from '../prefs.js';
 import { applyAreaFilters, MAP_FADE_MS, revealArea } from './area-layer.js';
@@ -571,7 +571,7 @@ function resultRow(data, marker, name, meta) {
 }
 /** @param {string} category */
 function dotMarker(category) {
-  return '<span class="result-dot" style="background:' + /** @type {Record<string, string>} */ (state.categoryColors)[category] + '"></span>';
+  return '<span class="result-dot ' + colourClass(/** @type {Record<string, string>} */ (state.categoryColors)[category]) + '"></span>';
 }
 /** @param {Place} p */
 function placeRow(p) {

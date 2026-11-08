@@ -15,6 +15,7 @@ APP_CSS = (ROOT / "app" / "app.css").read_text(encoding="utf-8")
 FRONTEND = "\n".join(p.read_text(encoding="utf-8")
                      for p in [ROOT / "index.html", *sorted((ROOT / "app").rglob("*"))] if p.is_file())
 SW = (ROOT / "sw.js").read_text(encoding="utf-8")
+NOTICE_CSS = (ROOT / "webview-notice.css").read_text(encoding="utf-8")
 
 
 def strip_comments(css):
@@ -71,16 +72,19 @@ class IndexLayers(unittest.TestCase):
     head = INDEX.split("</head>", 1)[0]
     links = re.findall(r'<link rel="stylesheet" href="([^"]+)">', head)
     self.assertEqual(links, ["/app/app.css?v=__FERD_CACHE_VERSION__",
-                            "/ui.css?v=__FERD_CACHE_VERSION__"])
+                            "/ui.css?v=__FERD_CACHE_VERSION__",
+                            "/webview-notice.css?v=__FERD_CACHE_VERSION__"])
 
   def test_ui_css_loads_after_the_app_rules(self):
     head = INDEX.split("</head>", 1)[0]
     self.assertGreater(head.index('href="/ui.css?'), head.index('href="/app/app.css?'))
 
   def test_only_the_webview_notice_is_unlayered(self):
-    styles = head_styles(INDEX)
-    self.assertEqual(len(styles), 1)
-    for stmt in top_level_statements(styles[0]):
+    # Its own file, not a <style> element, so style-src needs no 'unsafe-inline'.
+    self.assertEqual(head_styles(INDEX), [])
+    statements = list(top_level_statements(NOTICE_CSS))
+    self.assertTrue(statements)
+    for stmt in statements:
       self.assertTrue(stmt.startswith("#webview-notice"), stmt[:80])
 
   def test_webview_notice(self):
@@ -390,7 +394,7 @@ class AccountMenu(unittest.TestCase):
   def test_menu_button_pattern(self):
     for needle in ('class="ui-menu-anchor"', 'aria-haspopup="menu"', 'aria-controls="auth-menu"',
                    'class="ui-menu ui-menu-end" id="auth-menu" role="menu"', 'class="ui-menu-head"',
-                   'role="menuitem"', '<hr class="ui-menu-sep">', "'ui-menu-item-danger'"):
+                   'role="menuitem"', '<hr class="ui-menu-sep"', "'ui-menu-item-danger'"):
       self.assertIn(needle, self.AUTH)
 
   def test_no_menu_code_of_its_own(self):
@@ -479,7 +483,7 @@ class PhoneWidth(unittest.TestCase):
 class TextFloor(unittest.TestCase):
   """Text stays at 0.75rem or above, in a rule or in a style the script builds."""
   FLOOR_REM = 0.75
-  SOURCES = FRONTEND + UI_CSS
+  SOURCES = FRONTEND + UI_CSS + NOTICE_CSS
 
   def under_floor(self, matches):
     rems = [(float(n) / 16 if unit == "px" else float(n), n + unit) for n, unit in matches]
@@ -550,7 +554,7 @@ class NoInlineScript(unittest.TestCase):
   def test_scripts_ship_everywhere(self):
     gradle = (ROOT / "android" / "app" / "build.gradle.kts").read_text(encoding="utf-8")
     install = (ROOT / "deploy" / "install.sh").read_text(encoding="utf-8")
-    for name in ("theme-init.js", "webview-check.js"):
+    for name in ("theme-init.js", "webview-check.js", "webview-notice.css"):
       self.assertIn(f"'/{name}'", SW)
       self.assertIn(f"url.pathname === '/{name}'", SW)
       self.assertIn(f'"{name}"', gradle)
