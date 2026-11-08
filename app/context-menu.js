@@ -10,9 +10,13 @@ import { popoverHost } from './modal.js';
 // Generic floating context menu. Pass `items` as an array of
 // { label, onClick, danger? } objects, or `null` to insert a divider.
 // Auto-closes on click outside, Escape, scroll, or window blur.
+/** @type {HTMLDivElement | null} */
 let _ctxMenuEl = null;
+// Every way the menu closes comes through here, so every one of them takes the
+// dismissal listeners with it.
 function closeContextMenu() {
   if (_ctxMenuEl) { _ctxMenuEl.remove(); _ctxMenuEl = null; }
+  _ctxTeardown();
 }
 function copyShareLink(type, slug) {
   const url = location.origin + location.pathname + focusHash(type, slug);
@@ -106,6 +110,8 @@ function openContextMenu({ x, y, items }) {
   _ctxMenuEl = menu;
   // Dismissal listeners (next tick so the opening click doesn't fire them).
   setTimeout(function() {
+    // Closed (or replaced) before this tick: nothing left to dismiss.
+    if (_ctxMenuEl !== menu) return;
     document.addEventListener('click', _ctxOutsideClick, true);
     document.addEventListener('contextmenu', _ctxOutsideClick, true);
     document.addEventListener('keydown', _ctxKey, true);
@@ -117,10 +123,9 @@ function _ctxOutsideClick(e) {
   if (!_ctxMenuEl) return;
   if (_ctxMenuEl.contains(e.target)) return;
   closeContextMenu();
-  _ctxTeardown();
 }
 function _ctxKey(e) {
-  if (e.key === 'Escape') { closeContextMenu(); _ctxTeardown(); }
+  if (e.key === 'Escape') closeContextMenu();
 }
 function _ctxTeardown() {
   document.removeEventListener('click', _ctxOutsideClick, true);
