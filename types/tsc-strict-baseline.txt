@@ -79,14 +79,6 @@
 1	app/map/map-markers.js	TS7006	Parameter 'e' implicitly has an 'any' type.
 1	app/map/map-markers.js	TS7006	Parameter 'gpxLayer' implicitly has an 'any' type.
 1	app/map/map-markers.js	TS7006	Parameter 'visited' implicitly has an 'any' type.
-1	app/map/map-panel.js	TS7006	Parameter 'acc' implicitly has an 'any' type.
-1	app/map/map-panel.js	TS7006	Parameter 'btn' implicitly has an 'any' type.
-4	app/map/map-panel.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/map/map-panel.js	TS7006	Parameter 'id' implicitly has an 'any' type.
-1	app/map/map-panel.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-1	app/map/map-panel.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
-1	app/map/map-panel.js	TS7006	Parameter 'pop' implicitly has an 'any' type.
-5	app/map/map-panel.js	TS7006	Parameter 's' implicitly has an 'any' type.
 4	app/map/map-phone.js	TS2339	Property '_pendingSearchResult' does not exist on type '{...}'.
 1	app/map/map-phone.js	TS7006	Parameter 'map' implicitly has an 'any' type.
 1	app/map/pick-coords.js	TS7006	Parameter 'e' implicitly has an 'any' type.
