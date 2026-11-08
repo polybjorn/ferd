@@ -26,10 +26,8 @@ const LITERALS = {
   'app/map/map-panel.js': 2,
   'app/map/route-detail.js': 4,
   'app/places-list.js': 7,
-  'app/sign-in.js': 11,
 };
 const INNER_HTML = {
-  'app/auth.js': 2,
   'app/list-controls.js': 2,
   'app/map/home-map.js': 8,
   'app/map/map-panel.js': 1,
@@ -37,7 +35,6 @@ const INNER_HTML = {
   'app/map/place-layer.js': 2,
   'app/map/route-detail.js': 9,
   'app/modal.js': 1,
-  'app/sign-in.js': 3,
 };
 
 const TEXT_NODE = />\s*[A-Z][a-z]/g;

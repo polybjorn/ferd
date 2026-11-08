@@ -25,12 +25,22 @@ function tabbedViews() {
   return found;
 }
 
-test('the Add and Settings dialogs are the tabbed views', () => {
+// Sign-in's tabs switch the one form between sign in and register, and the
+// form has no select to theme.
+const SELECTLESS = new Set(['SignInForm']);
+
+test('the Add, Settings and sign-in dialogs are the tabbed views', () => {
   const names = tabbedViews().map(v => v.name).sort();
-  assert.deepEqual(names, ['AddDialog', 'SettingsView']);
+  assert.deepEqual(names, ['AddDialog', 'SettingsView', 'SignInForm']);
 });
 
 for (const v of tabbedViews()) {
+  if (SELECTLESS.has(v.name)) {
+    test(`${v.name} has no select to theme`, () => {
+      assert.doesNotMatch(v.body, /<select|Select\b/, `${v.file}: ${v.name} gained a select, so it needs the tab effect`);
+    });
+    continue;
+  }
   test(`${v.name} themes its selects on every tab switch`, () => {
     assert.match(v.body, /useEffect\(\(\) => \{ enhanceSelectsIn\((\w+)\.current\); \}, \[tab\]\);/,
       `${v.file}: ${v.name} needs useEffect(() => { enhanceSelectsIn(<ref>.current); }, [tab])`);
