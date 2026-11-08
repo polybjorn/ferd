@@ -35,6 +35,8 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
 [data-mode="light"] { color-scheme: light; }
 /* Inherited, so one declaration reaches every scrolling list and modal. */
 :root { scrollbar-color: var(--muted) transparent; }
+/* The bar shows only on a phone, so a toast clears no bar elsewhere. */
+:root { --ui-bottom-bar-space: 0px; }
 
 :root {
   --bg:           #2e3440;
@@ -533,11 +535,11 @@ a:hover { opacity: 0.8; }
 /* A phone gives the map and the lists the whole screen: the bar floats over
    them, names the current tab and holds Add, and You stands in for the menu.
    A route keeps the header, which is the only place its name shows.
-   --shell-bar-space is the floating bar's share of the bottom edge. */
+   --ui-bottom-bar-space is the floating bar's share of the bottom edge, which
+   the toast clears. */
 @media (max-width: 600px) {
-  :root { --shell-bar-space: calc(var(--ui-bottom-bar-height) + 2 * var(--ui-space-3) + env(safe-area-inset-bottom, 0px)); }
+  :root { --ui-bottom-bar-space: var(--ui-bottom-bar-float-space); }
   .bottom-bar { --ui-bottom-bar-display: flex; }
-  body:not(.signin-only) .pwa-update-toast { bottom: calc(var(--shell-bar-space) + var(--ui-space-3)); }
 
   body:not([data-view="route"]) .app-nav {
     position: fixed;
@@ -550,14 +552,14 @@ a:hover { opacity: 0.8; }
   body:not([data-view="route"]) #app {
     height: 100vh;
     height: 100dvh;
-    padding-bottom: calc(var(--shell-bar-space) + var(--ui-space-6));
+    padding-bottom: calc(var(--ui-bottom-bar-space) + var(--ui-space-6));
   }
-  body[data-view="route"] .detail-layout { padding-bottom: var(--shell-bar-space); }
+  body[data-view="route"] .detail-layout { padding-bottom: var(--ui-bottom-bar-space); }
   /* The bar's Add takes over from the nav's. A route's Edit stays in its
      header. */
   body:not([data-view="route"]) .nav-actions { display: none; }
 
-  #app > #map .leaflet-bottom { bottom: var(--shell-bar-space); }
+  #app > #map .leaflet-bottom { bottom: var(--ui-bottom-bar-space); }
 }
 /* Add is the bar's one action among its destinations, so it is filled. */
 .bottom-bar .bar-add > svg { color: var(--fab-text); background: var(--accent); }
@@ -700,8 +702,8 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 /* Empty-state message must span both columns; otherwise it sits in one
    column with the other empty, which looks like off-center alignment. */
-.category-grid > .loading,
-.region-grid > .loading { column-span: all; }
+.category-grid > :is(.ui-empty, .app-state),
+.region-grid > :is(.ui-empty, .app-state) { column-span: all; }
 
 .category-group,
 .region-group {
@@ -1706,22 +1708,21 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 .elev-segments .seg-dist, .detail-elev-title .seg-dist { width: 5.2rem; }
 .elev-segments .seg-gain, .detail-elev-title .seg-gain { width: 6rem; }
 
-.loading {
+/* Loading and failure fill a page-sized box; an empty list is a ui-empty. */
+.app-state {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 200px;
-  color: var(--muted);
-  font-size: var(--ui-text-sm);
 }
+.category-grid > .ui-empty,
+.region-grid > .ui-empty,
+.history-list > .ui-empty { min-block-size: 200px; justify-content: center; }
+.app-state .ui-hint { font-size: var(--ui-text-sm); }
+.app-error { margin: 0; color: var(--ui-danger); font-size: var(--ui-text-sm); }
 body.signin-only .app-nav,
-body.signin-only #pwa-offline-banner,
-body.signin-only #pwa-sync-issues,
-body.signin-only #pwa-update-banner,
-body.app-booting .app-nav,
-body.app-booting #pwa-offline-banner,
-body.app-booting #pwa-sync-issues,
-body.app-booting #pwa-update-banner { display: none; }
+body.app-booting .app-nav { display: none; }
+body:is(.signin-only, .app-booting) .pwa-notices { display: none; }
 body.signin-only #app {
   height: 100vh;
   height: 100dvh;
@@ -2991,79 +2992,24 @@ button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
   box-shadow: 0 2px 8px var(--shadow);
   cursor: pointer;
 }
+/* ui.css draws the banner; this only pins it under the nav. */
 .pwa-banner {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  gap: var(--ui-space-3);
-  padding: var(--ui-space-2) var(--ui-space-4);
-  font-size: var(--ui-text-sm);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
   position: sticky;
   top: 50px;
   z-index: var(--ui-z-sticky);
 }
-.pwa-banner.visible { display: flex; }
-.pwa-banner.offline,
-.pwa-banner.issues { background: #fff3cd; color: #663c00; border-bottom-color: #f0d27a; }
 .sync-issues { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ui-space-3); }
 .sync-issues li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--ui-space-2); }
 .sync-issues .sync-issue-error { color: var(--muted); font-size: var(--ui-text-sm); overflow-wrap: anywhere; }
 .sync-issue-actions { display: flex; gap: var(--ui-space-2); }
-/* Floating "Update available" toast: detached from the sticky stack,
-   centered with side padding so it doesn't reach edges, and slides
-   down on appear. */
-.pwa-update-toast {
-  display: none;
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  align-items: center;
-  gap: var(--ui-space-3);
-  padding: var(--ui-space-2) var(--ui-space-2) var(--ui-space-2) var(--ui-space-4);
-  max-width: calc(100vw - 2rem);
-  font-size: var(--ui-text-sm);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--ui-radius-full);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.18);
-  z-index: var(--ui-z-toast);
+/* Between a phone and a desktop the map's search panel sits at the bottom
+   left, where a centred toast lands on it. The toast reads this as the bar's
+   space, so the panel is treated as the bar and the toast rides above it. */
+@media (min-width: 601px) and (max-width: 900px) {
+  body:has(#map-panel) { --ui-bottom-bar-space: 7rem; }
 }
-/* On a narrow screen a bottom toast lands on the map's search panel, and the
-   update banner stays until the user reloads. Only the map moves it: the top
-   of a list page holds its search and filters. Up there it shares the offline
-   bar's spot, and an update can wait until the app is back online. */
-@media (max-width: 900px) {
-  body:has(#map-panel) .pwa-update-toast { top: calc(50px + var(--ui-space-2)); bottom: auto; width: max-content; }
-  body:has(#map-panel) #pwa-offline-banner.visible ~ #pwa-update-banner { display: none; }
-}
-.pwa-update-toast.visible {
-  display: flex;
-  animation: pwa-update-toast-in var(--ui-duration-base) ease-out;
-}
-@keyframes pwa-update-toast-in {
-  from { opacity: 0; transform: translate(-50%, 16px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pwa-update-toast.visible { animation: none; }
-  .ui-dialog button:not(.ui-dialog-close) { transition: none; }
-}
-.pwa-banner button,
-.pwa-update-toast button {
-  padding: var(--ui-space-1) var(--ui-space-4);
-  font-size: var(--ui-text-sm);
-  font-weight: 500;
-  border: 1px solid var(--accent);
-  background: var(--accent);
-  color: var(--bg);
-  border-radius: var(--ui-radius-full);
-  cursor: pointer;
-}
-.pwa-banner button:hover,
-.pwa-update-toast button:hover { opacity: 0.85; }
+/* The notices stay out of layout so the banners keep sticking to the page. */
+.pwa-notices { display: contents; }
 
 :root {
   --ui-text:    var(--text);

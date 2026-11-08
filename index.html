@@ -130,15 +130,19 @@
       <div class="auth-widget" id="auth-widget"></div>
     </div>
   </nav>
-  <div id="pwa-offline-banner" class="pwa-banner offline" role="status">You're offline. Changes save here and sync when you reconnect.</div>
-  <div id="pwa-sync-issues" class="pwa-banner issues" role="status">
-    <span id="pwa-sync-issues-text"></span>
-    <button id="pwa-sync-issues-btn" type="button">Review</button>
+  <div class="pwa-notices">
+  <div id="pwa-offline-banner" class="ui-banner pwa-banner" role="status" hidden>
+    <span id="pwa-offline-text" class="ui-banner-text"></span>
   </div>
-  <div id="pwa-sync-toast" class="pwa-update-toast" role="status"></div>
-  <div id="pwa-update-banner" class="pwa-update-toast" role="region" aria-labelledby="pwa-update-text">
-    <span id="pwa-update-text">Update available.</span>
-    <button id="pwa-update-btn" type="button">Reload</button>
+  <div id="pwa-sync-issues" class="ui-banner ui-banner-warn pwa-banner" role="alert" hidden>
+    <span id="pwa-sync-issues-text" class="ui-banner-text"></span>
+    <button id="pwa-sync-issues-btn" type="button" class="ui-button">Review</button>
+  </div>
+  <div id="pwa-sync-toast" class="ui-toast pwa-toast" role="status" hidden></div>
+  <div id="pwa-update-banner" class="ui-toast pwa-toast" role="status" hidden>
+    <span id="pwa-update-text"></span>
+    <button id="pwa-update-btn" type="button" class="ui-button ui-button-primary">Reload</button>
+  </div>
   </div>
   <nav class="ui-bottom-bar ui-bottom-bar-float bottom-bar" id="bottom-bar" aria-label="Views">
     <a class="ui-bottom-bar-item" href="#/" id="bar-map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg><span>Map</span></a>
@@ -147,7 +151,7 @@
     <button type="button" class="ui-bottom-bar-item" id="bar-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><span>Search</span></button>
     <a class="ui-bottom-bar-item" href="#/you" id="bar-you"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg><span>You</span></a>
   </nav>
-  <div id="app"><div class="loading">Loading...</div></div>
+  <div id="app"><div class="app-state" aria-busy="true"><p class="ui-hint" role="status">Loading...</p></div></div>
   <div id="modal-root"></div>
 
   <script src="/vendor/leaflet/leaflet.js"></script>

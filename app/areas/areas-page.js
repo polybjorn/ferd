@@ -122,8 +122,8 @@ function AreasPage() {
         <//>
       <//>`} />
     <div class="category-grid" id="area-list">
-      ${!rows.length && html`<div class="loading">No areas yet.</div>`}
-      ${rows.length > 0 && keys.length === 0 && html`<div class="loading">No matches</div>`}
+      ${!rows.length && html`<div class="ui-empty" role="status"><p>No areas yet.</p></div>`}
+      ${rows.length > 0 && keys.length === 0 && html`<div class="ui-empty" role="status"><p>No matches</p></div>`}
       ${keys.map(key => {
         const items = /** @type {Record<string, any[]>} */ (grouped)[key];
         const visited = items.filter(r => r.visited).length;

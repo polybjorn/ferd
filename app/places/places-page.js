@@ -211,7 +211,7 @@ function PlacesPage() {
   const listRef = useRef(/** @type {HTMLDivElement | null} */ (null));
   useHeaderAlignment(listRef);
   const canAdd = useNavAdd('add-place-btn', 'Add place', () => openAddModal(null, 'place'));
-  if (!state.places) return html`<div class="loading">Loading places...</div>`;
+  if (!state.places) return html`<div class="app-state" aria-busy="true"><p class="ui-hint" role="status">Loading places...</p></div>`;
 
   const all = state.places;
   const view = listView('places');
@@ -277,7 +277,7 @@ function PlacesPage() {
 
   return html`<${ListTabs} current="places" />${controls}
     <div class=${'category-grid' + (view !== 'grid' ? ' view-' + view : '')} id="place-list" ref=${listRef}>
-      ${keys.length === 0 && html`<div class="loading">No matches</div>`}
+      ${keys.length === 0 && html`<div class="ui-empty" role="status"><p>No matches</p></div>`}
       ${keys.map(key => {
         const items = /** @type {Record<string, any[]>} */ (grouped)[key];
         const visited = items.filter((/** @type {any} */ p) => p.visited).length;

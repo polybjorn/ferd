@@ -93,7 +93,7 @@ function dbOpen() {
     // from before v6 never lets go of it, so the upgrade waits until that
     // tab closes. The boot screen says why.
     r.onblocked = () => {
-      const el = document.querySelector('#app .loading');
+      const el = document.querySelector('#app .app-state .ui-hint');
       if (el) el.textContent = 'Ferd is open in another tab. Close it to finish updating.';
     };
     r.onsuccess = () => {
@@ -103,8 +103,7 @@ function dbOpen() {
       db.onversionchange = () => {
         db.close();
         _dbPromise = null;
-        const banner = document.getElementById('pwa-update-banner');
-        if (banner) banner.classList.add('visible');
+        showUpdatePrompt();
       };
       resolve(db);
     };
@@ -1258,17 +1257,29 @@ export function localLogClear() {
 // owners see how many changes wait; offline public viewers see read-only copy.
 export function updateOfflineBanner() {
   const el = document.getElementById('pwa-offline-banner');
-  if (!el) return;
-  if (!hasServer() || navigator.onLine) { el.classList.remove('visible'); return; }
+  const text = document.getElementById('pwa-offline-text');
+  if (!el || !text) return;
+  if (!hasServer() || navigator.onLine) { el.hidden = true; return; }
+  // Unhidden first: a live region announces a text change, and text that
+  // arrives with the region does not count.
+  el.hidden = false;
   if (isReadOnly()) {
-    el.textContent = "You're offline. Showing the last loaded map.";
+    text.textContent = "You're offline. Showing the last loaded map.";
   } else {
     const n = pendingCount.value;
-    el.textContent = n > 0
+    text.textContent = n > 0
       ? "You're offline. " + n + ' change' + (n === 1 ? '' : 's') + ' will sync when you reconnect.'
       : "You're offline. Changes save here and sync when you reconnect.";
   }
-  el.classList.add('visible');
+}
+// The update prompt is a toast with an action, so it has no timer: it stays
+// until the user reloads. Its words are set on showing, for the live region.
+export function showUpdatePrompt() {
+  const el = document.getElementById('pwa-update-banner');
+  const text = document.getElementById('pwa-update-text');
+  if (!el || !text) return;
+  el.hidden = false;
+  text.textContent = 'Update available.';
 }
 let _syncToastTimer = /** @type {ReturnType<typeof setTimeout> | null} */ (null);
 /** @param {number} synced @param {number} skipped @param {string[]} kept */
@@ -1278,8 +1289,8 @@ function showSyncToast(synced, skipped, kept) {
   let msg = synced ? ('Synced ' + synced + ' change' + (synced === 1 ? '' : 's')) : 'Sync complete';
   if (skipped) msg += ', ' + skipped + ' refused by the server';
   if (kept.length) msg += '. Kept on this device to save: ' + kept.map(f => f.split('/').pop()).join(', ');
+  el.hidden = false;
   el.textContent = msg;
-  el.classList.add('visible');
   if (_syncToastTimer) clearTimeout(_syncToastTimer);
-  _syncToastTimer = setTimeout(() => el.classList.remove('visible'), 4500);
+  _syncToastTimer = setTimeout(() => { el.hidden = true; }, 4500);
 }

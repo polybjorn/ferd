@@ -89,18 +89,18 @@ class IndexLayers(unittest.TestCase):
                   "document.getElementById('webview-notice').hidden = false;", INDEX)
 
   def test_status_notices_are_announced(self):
-    # The role sits in the shipped markup, so it is in place before the
-    # text changes; a role added along with the text is not announced.
-    for el in ('<div id="pwa-offline-banner" class="pwa-banner offline" role="status">',
-               '<div id="pwa-sync-issues" class="pwa-banner issues" role="status">',
-               '<div id="pwa-sync-toast" class="pwa-update-toast" role="status"></div>'):
+    # The role sits in the shipped markup, hidden and empty, so it is in
+    # place before the text changes; a role added along with the text is
+    # not announced. The banner that blocks is an alert.
+    for el in ('<div id="pwa-offline-banner" class="ui-banner pwa-banner" role="status" hidden>',
+               '<div id="pwa-sync-issues" class="ui-banner ui-banner-warn pwa-banner" role="alert" hidden>',
+               '<div id="pwa-sync-toast" class="ui-toast pwa-toast" role="status" hidden></div>'):
       self.assertIn(el, INDEX)
 
-  def test_update_prompt_is_a_labelled_region(self):
-    self.assertIn('<div id="pwa-update-banner" class="pwa-update-toast" role="region" '
-                  'aria-labelledby="pwa-update-text">\n'
-                  '    <span id="pwa-update-text">Update available.</span>\n'
-                  '    <button id="pwa-update-btn" type="button">Reload</button>', INDEX)
+  def test_update_prompt_is_a_toast_with_an_action(self):
+    self.assertIn('<div id="pwa-update-banner" class="ui-toast pwa-toast" role="status" hidden>\n'
+                  '    <span id="pwa-update-text"></span>\n'
+                  '    <button id="pwa-update-btn" type="button" class="ui-button ui-button-primary">Reload</button>', INDEX)
 
 
 def relative_luminance(colour):

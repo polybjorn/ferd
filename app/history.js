@@ -172,10 +172,10 @@ export function HistoryPage() {
   const wantRoutes = routesEnabled();
   const byKind = wantPlaces && wantRoutes;
   useNavAdd('hist-add-btn', byKind ? 'Add place or route' : (wantPlaces ? 'Add place' : 'Add route'), () => openAddModal(null));
-  if ((wantPlaces && !state.places) || (wantRoutes && !state.manifest)) return html`<div class="loading">Loading history...</div>`;
+  if ((wantPlaces && !state.places) || (wantRoutes && !state.manifest)) return html`<div class="app-state" aria-busy="true"><p class="ui-hint" role="status">Loading history...</p></div>`;
 
   const all = historyEntries(wantPlaces, wantRoutes);
-  if (!all.length) return html`<div class="history-list"><div class="loading">No visited places or completed routes yet.</div></div>`;
+  if (!all.length) return html`<div class="history-list"><div class="ui-empty" role="status"><p>No visited places or completed routes yet.</p></div></div>`;
 
   const view = listView('history');
   const show = { image: getShowField('image'), note: getShowField('note'), rating: getShowField('rating'), date: getShowField('date') };
@@ -226,7 +226,7 @@ export function HistoryPage() {
             </div>
           </div>`)}
         </div>`
-      : html`<div class="history-list"><div class="loading">No matching history.</div></div>`}`;
+      : html`<div class="history-list"><div class="ui-empty" role="status"><p>No matching history.</p></div></div>`}`;
 }
 
 const LIST_VIEWS = [['grid', 'Grid'], ['compact', 'Compact'], ['gallery', 'Gallery']];

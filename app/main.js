@@ -3,7 +3,7 @@ import { applyAuth, fetchJson, hasServer, isReadOnly, serverBase, serverFileUrl 
 import { effect } from '@preact/signals';
 import {
   authCacheKey, discardOp, dismissKept, issueText, loadPublic, metaGet, metaSet,
-  open as openStore, sync, syncIssues, synced as storeSynced, updateOfflineBanner,
+  open as openStore, sync, syncIssues, synced as storeSynced, updateOfflineBanner, showUpdatePrompt,
 } from './store.js';
 import { DialogHead, html, openViewModal, useState } from './view.js';
 import { t } from './i18n.js';
@@ -81,11 +81,11 @@ export function loadDataAndRender() {
       document.body.classList.remove('app-booting', 'signin-only');
       if (v.mode === 'public') {
         document.getElementById('app').innerHTML = loaded === null
-          ? "<div class=\"loading\">Can't reach the server, and this map hasn't been opened on this device before.</div>"
-          : '<div class="loading">Map not found, or owner has not published it.</div>';
+          ? "<div class=\"app-state\"><p class=\"app-error\" role=\"alert\">Can't reach the server, and this map hasn't been opened on this device before.</p></div>"
+          : '<div class="app-state"><p class="app-error" role="alert">Map not found, or owner has not published it.</p></div>';
         return;
       }
-      document.getElementById('app').innerHTML = '<div class="loading">Failed to load data</div>';
+      document.getElementById('app').innerHTML = '<div class="app-state"><p class="app-error" role="alert">Failed to load data</p></div>';
       return;
     }
     // Apply the (now-synced) theme and reveal the app chrome in the same
@@ -204,7 +204,6 @@ startup();
 
 // PWA: offline indicator + service worker registration + update toast.
 (function() {
-  const updateBanner = document.getElementById('pwa-update-banner');
   const updateBtn = document.getElementById('pwa-update-btn');
 
   window.addEventListener('online', () => { updateOfflineBanner(); sync(); });
@@ -218,8 +217,8 @@ startup();
     const parts = [];
     if (stuck.length) parts.push(t('syncIssues.bannerStuck', { count: stuck.length }));
     if (kept.length) parts.push(t('syncIssues.bannerKept', { count: kept.length }));
+    issuesBanner.hidden = parts.length === 0;
     issuesText.textContent = parts.join(' ');
-    issuesBanner.classList.toggle('visible', parts.length > 0);
   });
   document.getElementById('pwa-sync-issues-btn').addEventListener('click', () => openViewModal(html`<${SyncIssues} />`));
 
@@ -241,7 +240,7 @@ startup();
   let pendingReg = null;
   function promptUpdate(reg) {
     pendingReg = reg;
-    updateBanner.classList.add('visible');
+    showUpdatePrompt();
   }
   updateBtn.onclick = () => {
     // Re-resolve the waiting worker at click time. A captured worker

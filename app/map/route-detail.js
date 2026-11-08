@@ -116,7 +116,7 @@ export function renderTrailDetail(routeKey) {
   setActiveTab('routes', 'route');
   cleanupMap();
   const app = document.getElementById('app');
-  if (!state.manifest) { app.innerHTML = '<div class="loading">Loading routes...</div>'; return; }
+  if (!state.manifest) { app.innerHTML = '<div class="app-state" aria-busy="true"><p class="ui-hint" role="status">Loading routes...</p></div>'; return; }
 
   let route = null, regionName = '';
   for (const region of state.manifest.regions) {
@@ -125,7 +125,7 @@ export function renderTrailDetail(routeKey) {
     }
     if (route) break;
   }
-  if (!route) { setCrumb('Not found', true); app.innerHTML = '<div class="loading">Route not found</div>'; return; }
+  if (!route) { setCrumb('Not found', true); app.innerHTML = '<div class="app-state"><p class="app-error" role="alert">Route not found</p></div>'; return; }
   setCrumb(route.name, true);
 
   const color = ROUTE_COLOR;

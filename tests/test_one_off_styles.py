@@ -18,7 +18,7 @@ FRONTEND = "\n".join(p.read_text(encoding="utf-8")
 # Lower these as one-off styles move out. Never raise them.
 MAX_INLINE_STYLES = 69
 MAX_IMPORTANT = 71
-MAX_HARDCODED_COLOURS = 11
+MAX_HARDCODED_COLOURS = 7
 
 COLOUR = re.compile(r"#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?)\(")
 # A theme block defines tokens, so its literals are the theme itself.

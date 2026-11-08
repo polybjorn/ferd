@@ -106,7 +106,7 @@ function RoutesPage() {
   useEffect(() => {
     for (const file of files ? files.split('\n') : []) fetchGpxText(gpxUrlFor(file)).catch(() => { /* ignore */ });
   }, [files]);
-  if (!state.manifest) return html`<div class="loading">Loading routes...</div>`;
+  if (!state.manifest) return html`<div class="app-state" aria-busy="true"><p class="ui-hint" role="status">Loading routes...</p></div>`;
 
   const regions = state.manifest.regions;
   const view = listView('routes');
