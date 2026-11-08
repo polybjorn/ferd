@@ -57,7 +57,6 @@ if (barSearch) barSearch.addEventListener('click', openSearchView);
 // has a map too, so the main map is told apart by its filter button.
 export function openSearchView() {
   openModal(
-    '',
     function(dialog) {
       // The view renders its own head and body, as openViewModal's do; the
       // input and the list are then driven by hand.
@@ -141,7 +140,6 @@ export function openFilterSheet() {
   // Reset takes the close button's place in the head: a swipe down, Back,
   // Escape or a tap on the dimmed map still closes the sheet.
   openSheetModal(
-    '',
     function(dialog) {
       renderFresh(html`<${FilterSheet} />`, dialog);
       bindFilterSheet(dialog);

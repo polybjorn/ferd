@@ -16,26 +16,6 @@ import { closeSelectPopover, enhanceSelectsIn } from './select.js';
 /** @type {ModalEntry[]} */
 export const modalStack = [];
 
-// A dialog is a head, a body that scrolls and an action row that stays in
-// view. The markup gives the head (modalHeaderHtml) and the action row
-// (.ui-dialog-actions, last); everything between them goes into the body
-// here. When that is a single <form>, the body goes inside it, so the
-// submit button stays in the form.
-/** @param {HTMLDialogElement} dialog */
-function wrapDialogBody(dialog) {
-  const rest = [...dialog.children].filter(c => !c.classList.contains('ui-dialog-head'));
-  const box = rest.length === 1 && rest[0].tagName === 'FORM' ? rest[0] : dialog;
-  const body = document.createElement('div');
-  body.className = 'ui-dialog-body';
-  const last = box.lastElementChild;
-  const actions = last && last.classList.contains('ui-dialog-actions') ? last : null;
-  [...box.childNodes].forEach(n => {
-    if (n === actions || (n instanceof Element && n.classList.contains('ui-dialog-head'))) return;
-    body.appendChild(n);
-  });
-  box.insertBefore(body, actions);
-}
-
 // A press on the backdrop lands on the dialog itself, since its head, body
 // and actions fill it. A drag between two of those also clicks the dialog,
 // their nearest shared ancestor, so the press has to have started there.
@@ -103,23 +83,19 @@ phoneQuery.addEventListener('change', () => {
   fitModalsToKeyboard();
 });
 
+// The dialog starts empty: onMount renders its head, its .ui-dialog-body and
+// its action row, and a sheet's handle too, since ui.css shows that only
+// while the dialog is a sheet.
 /**
- * @param {string} html
  * @param {((dialog: HTMLDialogElement) => void) | null} [onMount]
  * @param {(() => void) | null} [onClose]
  * @param {ModalOptions} [opts]
  * @returns {HTMLDialogElement}
  */
-export function openModal(html, onMount, onClose, opts) {
+export function openModal(onMount, onClose, opts) {
   const root = document.getElementById('modal-root');
   const dialog = document.createElement('dialog');
   dialog.className = 'ui-dialog';
-  dialog.innerHTML = html;
-  wrapDialogBody(dialog);
-  // ui.css shows the handle only while the dialog is a sheet.
-  if (opts && opts.phone === 'sheet') {
-    dialog.insertAdjacentHTML('afterbegin', '<div class="ui-dialog-handle" aria-hidden="true"></div>');
-  }
   /** @type {HTMLElement} */ (root).appendChild(dialog);
   /** @type {ModalEntry} */
   const entry = {
@@ -157,20 +133,11 @@ export function openModal(html, onMount, onClose, opts) {
 }
 
 /**
- * @param {string} html
  * @param {((dialog: HTMLDialogElement) => void) | null} [onMount]
  * @param {(() => void) | null} [onClose]
  */
-export function openFullScreenModal(html, onMount, onClose) {
-  return openModal(html, onMount, onClose, { phone: 'fullscreen' });
-}
-/**
- * @param {string} html
- * @param {((dialog: HTMLDialogElement) => void) | null} [onMount]
- * @param {(() => void) | null} [onClose]
- */
-export function openSheetModal(html, onMount, onClose) {
-  return openModal(html, onMount, onClose, { phone: 'sheet' });
+export function openSheetModal(onMount, onClose) {
+  return openModal(onMount, onClose, { phone: 'sheet' });
 }
 
 export function closeTopModal() {
