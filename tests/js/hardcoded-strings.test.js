@@ -24,7 +24,6 @@ const TEMPLATES = {};
 const LITERALS = {
   'app/map/home-map.js': 4,
   'app/map/map-panel.js': 2,
-  'app/map/route-detail.js': 4,
   'app/places-list.js': 7,
   'app/sign-in.js': 11,
 };
@@ -35,7 +34,6 @@ const INNER_HTML = {
   'app/map/map-panel.js': 1,
   'app/map/map-phone.js': 4,
   'app/map/place-layer.js': 2,
-  'app/map/route-detail.js': 9,
   'app/modal.js': 1,
   'app/sign-in.js': 3,
 };
