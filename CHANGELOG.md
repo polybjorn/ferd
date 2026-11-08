@@ -14,6 +14,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The Country field on the place forms is now a searchable list, so a name always matches. It finds common alternatives too, such as Norge or USA. An older place keeps its existing name until you change it.
 - Places carry a `country_code` (ISO 3166-1 alpha-2) that the server sets from the Country field on every save. Existing places get one when the server starts.
 - A place's popup has an Edit button, so editing no longer depends on finding the right-click or long-press menu. It shows when you're signed in, and never on a public map.
+- `HEAD` requests for static files, so `curl -I` shows their headers.
 
 ### Changed
 - The offline and sync issues banners, the sync notice and the update prompt use the shared banner and toast styles. The sync issues banner now announces as an alert, since it asks for action, and the update prompt reads as a status line with its Reload button. Banners are white cards with a warning edge instead of a yellow bar, and toasts clear the phone's floating bar and a rounded screen corner. On the map the update prompt stays at the bottom, above the search panel on a mid-size screen, instead of jumping to the top. Empty lists show a centred message, loading screens say they are busy, and a failed load shows in the error colour.
@@ -90,10 +91,15 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The CyclOSM base map. Its host's conditions cover public, non-profit sites, which Ferd cannot vouch for on every install, so it is now a documented overlay example in `docs/configure.md` that an install can add if it fits them. A map that defaulted to CyclOSM now opens on OpenTopoMap.
 - The Satellite base map. Its imagery's terms do not allow it in an app like Ferd, or its offline caching, so it is gone until a free imagery source with fitting terms turns up. A map that defaulted to Satellite now opens on OpenTopoMap, and the default can be changed in Settings > Map.
 
+### Security
+- The server sends a Content-Security-Policy on the page and the service worker, and `X-Content-Type-Options: nosniff` on every static file, so the Docker image carries them with no proxy in front. It ships report-only: browsers report what it would block to the new `POST /api/csp-report`, which logs one line per violation, and block nothing until `FERD_CSP_MODE=enforce` is set. `FERD_CSP` replaces the policy, for example to list only your own tile hosts. A proxy that serves `index.html` and `sw.js` from disk drops the header, so the nginx and Caddy examples now send those two through the API. The Android app applies the same policy to its bundled page. See [docs/configure.md](docs/configure.md#content-security-policy).
+
 ## [1.5.0] - 2026-11-05
 
 ### Added
 - Beta releases. The Android beta installs as a separate "Ferd beta" app beside the stable one, with its own data, and the Docker image ships as `:beta`. The stable app, `:latest` and the version tags never receive a beta.
+
+- `HEAD` requests for static files, so `curl -I` shows their headers.
 
 ### Changed
 - The Android app targets Android 16 (API 36) and draws edge-to-edge: the system bars are transparent over a dark frame, and the page is kept clear of the bars, the camera cutout and the keyboard. Building it needs the Android SDK platform 37.
@@ -117,6 +123,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Added
 - `trusted_proxies` config field (env `FERD_TRUSTED_PROXIES`). When set to the reverse proxy's address, the API resolves the real client IP from `X-Real-IP` / `X-Forwarded-For` for the login rate limit, session records, audit log, and access log. Without it, every request behind a proxy counts as the proxy's own IP, so all clients share a single rate-limit bucket and the audit trail carries no per-client information. Off by default; forwarded headers from unlisted peers are ignored as before.
+
+- `HEAD` requests for static files, so `curl -I` shows their headers.
 
 ### Changed
 - Deleting a route from the index map removes just that route in place instead of rebuilding the whole map (no blink or refit).
@@ -153,6 +161,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The route highlight animates over ~150ms instead of snapping (respects reduced-motion).
 - Categories, regions, and place/route statuses can be hidden by default (eye toggles in Manage categories/regions, status defaults in Settings > Appearance); the filter panel still shows them for the session.
 - Settings > Appearance > On-map controls can hide the route detail view's expand button.
+
+- `HEAD` requests for static files, so `curl -I` shows their headers.
 
 ### Changed
 - The multi-segment route detail view is now one whole-route elevation graph above a collapsible "Elevation by segment" list; pick a segment from the list or the map for its own profile, or click again for the whole route. Replaces the old per-track accordion.
@@ -191,6 +201,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - An on-device activity log for local mode (Menu > Logs).
 - The Add modal's Browse tab works offline from the bundled catalog in local mode; curating stays server-only.
 - Per-device toggles in Settings > General to show or hide History, Catalog, and Logs.
+
+- `HEAD` requests for static files, so `curl -I` shows their headers.
 
 ### Changed
 - History moved from the Menu to a top-nav tab beside Places and Routes.
@@ -240,6 +252,8 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Right-click (or long-press) a place pin or route on the map for the same context menu as the list.
 - Manage categories: drag to reorder (persisted); "Reset colors" assigns palette colors in display order.
 - Places list (Group by category): section headers show a dot in the category color.
+
+- `HEAD` requests for static files, so `curl -I` shows their headers.
 
 ### Changed
 - All user-facing settings now sync per-user across devices, not just theme: map toggles, tile layer, units, local-name display, and grouping follow you to a new browser or install. Per-device state (last view, feature hiding) stays local.

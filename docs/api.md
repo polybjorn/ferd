@@ -142,6 +142,12 @@ Anyone can call these for a user with `published=1`. Other users return `404`. N
 
 The browser-facing public URL is `/u/<username>/` (no `/api` prefix); the static handler serves `index.html` for any such path and the SPA fetches from `/api/u/<username>/...`.
 
+## Browser reports
+
+| Method | Path | Notes |
+|---|---|---|
+| `POST` | `/csp-report` | Content-Security-Policy violation reports, as `application/csp-report` or `application/reports+json`. No auth. Logs one line per violation and returns `204`; bodies over 8 KiB get `413`, other content types `400`, and more than 30 reports a minute from one IP `429`. |
+
 ## Common shapes
 
 **Place object** (as returned by `/places` and sent as a `place` change to `/sync/batch`):

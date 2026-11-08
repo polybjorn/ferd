@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import sys
 from http import HTTPStatus
 from pathlib import Path
 from urllib.parse import unquote
 
-from ..common import ValidationError, resolve_under
+from .. import csp
+from ..common import BodyTooLarge, ValidationError, resolve_under
 from ..static import APP_VERSION_PLACEHOLDER, STATIC_MIME, SW_VERSION_PLACEHOLDER, get_app_version, get_sw_version
 
 
@@ -69,5 +71,40 @@ class StaticMixin:
     self.send_header("Content-Type", ctype)
     self.send_header("Content-Length", str(len(data)))
     self.send_header("Cache-Control", "no-cache")
+    self.send_header("X-Content-Type-Options", "nosniff")
+    # The policy acts on the document and on the service worker script; every
+    # other response would carry it for nothing.
+    if rel == "index.html":
+      for k, v in csp.headers(csp.importmap_hash(data)):
+        self.send_header(k, v)
+    elif rel == "sw.js":
+      for k, v in csp.headers(csp.importmap_hash_for(base / "index.html")):
+        self.send_header(k, v)
     self.end_headers()
-    self.wfile.write(data)
+    if self.command != "HEAD":
+      self.wfile.write(data)
+
+  def _h_csp_report(self):
+    """Log a CSP violation report as one line. Nothing is stored and nothing
+    is checked but size and rate, since a browser sends these unauthenticated."""
+    ip = self._client_ip()
+    if self.csp_limiter.is_blocked(ip):
+      return self._send_plain(HTTPStatus.TOO_MANY_REQUESTS, b"too many reports")
+    self.csp_limiter.record_failure(ip)
+    try:
+      raw = self._read_raw(csp.REPORT_MAX_BYTES)
+    except BodyTooLarge:
+      return self._send_plain(HTTPStatus.REQUEST_ENTITY_TOO_LARGE, b"too large")
+    except ValueError:
+      return self._send_plain(HTTPStatus.BAD_REQUEST, b"bad report")
+    ctype = (self.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+    try:
+      reports = csp.parse_reports(raw, ctype)
+    except ValueError:
+      return self._send_plain(HTTPStatus.BAD_REQUEST, b"bad report")
+    for r in reports:
+      sys.stderr.write(f"[api] csp-violation {ip} directive={r['directive']} "
+                       f"blocked={r['blocked']} source={r['source']}:{r['line']}\n")
+    self.send_response(HTTPStatus.NO_CONTENT)
+    self.send_header("Content-Length", "0")
+    self.end_headers()
