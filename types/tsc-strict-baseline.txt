@@ -1,0 +1,86 @@
+1	app/add/browse.js	TS2322	Type '(HTMLElement | null)[]' is not assignable to type 'ValueElement[]'.
+1	app/area-geo.js	TS2322	Type '(PolygonRings | null)[]' is not assignable to type 'PolygonRings[]'.
+1	app/area-geo.js	TS2488	Type 'number[] | undefined' must have a '[Symbol.iterator]()' method that returns an iterator.
+1	app/area-geo.js	TS2769	No overload matches this call.
+1	app/areas/add-area.js	TS2345	Argument of type 'Set<string | undefined>' is not assignable to parameter of type 'Set<string>'.
+1	app/auth.js	TS18048	'opts.headers' is possibly 'undefined'.
+1	app/auth.js	TS2345	Argument of type 'string | null' is not assignable to parameter of type 'string'.
+1	app/auth.js	TS2531	Object is possibly 'null'.
+1	app/context-menu.js	TS18048	'place.sources' is possibly 'undefined'.
+4	app/core.js	TS2538	Type 'undefined' cannot be used as an index type.
+2	app/countries.js	TS18047	'modal' is possibly 'null'.
+3	app/countries.js	TS2532	Object is possibly 'undefined'.
+2	app/gpx-text.js	TS2345	Argument of type 'string | null' is not assignable to parameter of type 'string'.
+9	app/history.js	TS18047	'ctx' is possibly 'null'.
+2	app/history.js	TS2345	Argument of type 'string | null' is not assignable to parameter of type 'string'.
+1	app/main.js	TS18047	'issuesBanner' is possibly 'null'.
+1	app/main.js	TS18047	'issuesText' is possibly 'null'.
+1	app/main.js	TS18047	'updateBtn' is possibly 'null'.
+1	app/main.js	TS2345	Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+4	app/main.js	TS2345	Argument of type 'string | null' is not assignable to parameter of type 'string'.
+2	app/main.js	TS2345	Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+3	app/main.js	TS2531	Object is possibly 'null'.
+1	app/map/area-layer.js	TS2538	Type 'undefined' cannot be used as an index type.
+1	app/map/home-map.js	TS18047	'app' is possibly 'null'.
+1	app/map/home-map.js	TS2322	Type 'string | null | undefined' is not assignable to type 'string | null'.
+1	app/map/home-map.js	TS2345	Argument of type 'string | null' is not assignable to parameter of type 'string'.
+1	app/map/home-map.js	TS2345	Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+2	app/map/home-map.js	TS2531	Object is possibly 'null'.
+1	app/map/home-map.js	TS2538	Type 'undefined' cannot be used as an index type.
+1	app/map/map-actions.js	TS2322	Type 'string | undefined' is not assignable to type 'string'.
+1	app/map/map-phone.js	TS2531	Object is possibly 'null'.
+3	app/map/pick-coords.js	TS2531	Object is possibly 'null'.
+5	app/map/place-layer.js	TS18047	'results' is possibly 'null'.
+1	app/map/place-layer.js	TS18048	'a.category' is possibly 'undefined'.
+1	app/map/place-layer.js	TS18048	'f.properties.place' is possibly 'undefined'.
+1	app/map/place-layer.js	TS18048	'l.properties.place' is possibly 'undefined'.
+1	app/map/place-layer.js	TS18048	'p.category' is possibly 'undefined'.
+1	app/map/place-layer.js	TS2345	Argument of type 'HTMLElement | null' is not assignable to parameter of type 'HTMLElement'.
+5	app/map/place-layer.js	TS2345	Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+1	app/map/route-detail.js	TS18048	'route.tags' is possibly 'undefined'.
+1	app/map/route-detail.js	TS2322	Type '(number | null)[][]' is not assignable to type 'number[][]'.
+1	app/map/route-detail.js	TS2345	Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+4	app/map/route-layer.js	TS18047	'_glColCtx' is possibly 'null'.
+4	app/map/route-layer.js	TS18047	'originRef' is possibly 'null'.
+1	app/map/route-layer.js	TS2322	Type 'WebGLRenderingContext | null' is not assignable to type 'WebGLRenderingContext'.
+1	app/map/route-layer.js	TS2322	Type 'WebGLUniformLocation | null' is not assignable to type 'WebGLUniformLocation'.
+4	app/map/route-layer.js	TS2345	Argument of type 'WebGLShader | null' is not assignable to parameter of type 'WebGLShader'.
+1	app/map/route-layer.js	TS2722	Cannot invoke an object which is possibly 'undefined'.
+1	app/modal.js	TS18047	'root' is possibly 'null'.
+1	app/modal.js	TS2322	Type 'null' is not assignable to type '() => void'.
+1	app/places-list.js	TS18047	'list' is possibly 'null'.
+4	app/places-list.js	TS18047	'r' is possibly 'null'.
+2	app/places-list.js	TS2322	Type 'string | undefined' is not assignable to type 'string'.
+2	app/places-list.js	TS2345	Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+1	app/places-list.js	TS2538	Type 'undefined' cannot be used as an index type.
+1	app/prefs.js	TS2345	Argument of type 'string | null' is not assignable to parameter of type 'string'.
+1	app/select.js	TS18047	'state.areas' is possibly 'null'.
+3	app/server.js	TS2345	Argument of type 'string | null' is not assignable to parameter of type 'string | number | boolean'.
+1	app/settings/categories.js	TS18047	'state.places' is possibly 'null'.
+1	app/settings/categories.js	TS18048	'a' is possibly 'undefined'.
+1	app/settings/categories.js	TS2322	Type '{...}[]' is not assignable to type 'CategoryRowData[]'.
+1	app/settings/categories.js	TS2345	Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+1	app/settings/categories.js	TS2488	Type 'Place[] | null' must have a '[Symbol.iterator]()' method that returns an iterator.
+13	app/settings/categories.js	TS2538	Type 'undefined' cannot be used as an index type.
+1	app/settings/categories.js	TS2769	No overload matches this call.
+1	app/settings/settings.js	TS18048	'window.FerdAndroid' is possibly 'undefined'.
+2	app/settings/settings.js	TS2345	Argument of type 'string | null' is not assignable to parameter of type 'string'.
+1	app/settings/settings.js	TS2722	Cannot invoke an object which is possibly 'undefined'.
+1	app/settings/settings.js	TS2810	Expected 1 argument, but got 0. 'new Promise()' needs a JSDoc hint to produce a 'resolve' that can be called without arguments.
+1	app/sign-in.js	TS18047	'actions.parentNode' is possibly 'null'.
+3	app/sign-in.js	TS18047	'app' is possibly 'null'.
+3	app/sign-in.js	TS18047	'errBox' is possibly 'null'.
+2	app/sign-in.js	TS18047	'hint' is possibly 'null'.
+1	app/sign-in.js	TS18047	'list' is possibly 'null'.
+2	app/sign-in.js	TS18047	'toggle' is possibly 'null'.
+1	app/sign-in.js	TS18047	'tokenRow' is possibly 'null'.
+1	app/sign-in.js	TS18047	'warn' is possibly 'null'.
+1	app/sign-in.js	TS2322	Type 'boolean | undefined' is not assignable to type 'boolean'.
+1	app/sign-in.js	TS2322	Type 'string | undefined' is not assignable to type 'string'.
+1	app/sign-in.js	TS2345	Argument of type 'null' is not assignable to parameter of type 'string'.
+5	app/sign-in.js	TS2531	Object is possibly 'null'.
+1	app/sign-in.js	TS7005	Variable 'names' implicitly has an 'any[]' type.
+4	app/theme.js	TS2345	Argument of type 'string | null' is not assignable to parameter of type 'string'.
+4	app/theme.js	TS2538	Type 'null' cannot be used as an index type.
+1	app/view.js	TS18047	'ref.current' is possibly 'null'.
+2	app/view.js	TS2345	Argument of type 'number | null' is not assignable to parameter of type 'number | undefined'.

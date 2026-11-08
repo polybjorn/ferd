@@ -1,10 +1,11 @@
 {
   // The strict flags, one at a time, held to types/tsc-strict-baseline.txt
-  // until that is empty. Add the next flag (strictNullChecks, then
-  // "strict": true) only once the baseline for the current set is down to
-  // nothing, or rewrite the baseline in the same commit that adds it.
+  // until that is empty. Add the next flag ("strict": true) only once the
+  // baseline for the current set is down to nothing, or rewrite the baseline
+  // in the same commit that adds it.
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "strictNullChecks": true
   }
 }
