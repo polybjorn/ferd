@@ -1,10 +1,11 @@
-import { escapeHtml, state } from './core.js';
+import { state } from './core.js';
 import { fetchJson, isCrossOrigin, serverBase, setBearerToken, setServerBase } from './server.js';
 import { loadSyncedPrefs } from './prefs.js';
 import { api, apiUrl, enterLocalMode, refreshAuthState } from './auth.js';
-import { modalErrorHtml, modalHeaderHtml, uiFieldHtml } from './select.js';
-import { closeModal, openFullScreenModal, showModalError } from './modal.js';
+import { closeModal } from './modal.js';
 import { bootApp, loadDataAndRender, probeServer } from './main.js';
+import { t } from './i18n.js';
+import { DialogHead, ErrorBox, Field, html, mountPage, openViewModal, useEffect, useRef, useState } from './view.js';
 
 /**
  * The `/api/public-maps` response.
@@ -22,94 +23,96 @@ import { bootApp, loadDataAndRender, probeServer } from './main.js';
  * @property {'Bearer'} [token_type]
  */
 
-/** @param {boolean} includeClose */
-function signInFormHtml(includeClose) {
-  const canRegister = state.auth.registration_open;
-  return (includeClose
-      ? modalHeaderHtml('', {titleHtml: '<span id="modal-title">Sign in</span>'})
-      : '<h2><span id="modal-title">Sign in</span></h2>') +
-    (canRegister
-      ? '<div class="ui-tabs" id="auth-tabs">' +
-          '<button type="button" class="ui-tab" data-mode="login" aria-pressed="true">Sign in</button>' +
-          '<button type="button" class="ui-tab" data-mode="register" aria-pressed="false">Register</button>' +
-        '</div>'
-      : '') +
-    '<form id="auth-form">' +
-      '<div class="ui-section">' +
-        uiFieldHtml('auth-username', 'Username',
-          '<input type="text" id="auth-username" autocomplete="username" required>') +
-        uiFieldHtml('auth-password', 'Password',
-          '<input type="password" id="auth-password" autocomplete="current-password" required>' +
-          '<p class="ui-hint" id="auth-hint"></p>') +
-        '<div id="setup-token-row" hidden>' +
-          uiFieldHtml('auth-setup-token', 'Setup token',
-            '<input type="text" id="auth-setup-token" autocomplete="off">' +
-            '<p class="ui-hint">Required for first registration. Check the API server logs.</p>') +
-        '</div>' +
-      '</div>' +
-      modalErrorHtml('auth-error') +
-      '<div class="' + (includeClose ? 'ui-dialog-actions' : 'form-actions') + '">' +
-        '<button type="submit" class="ui-button ui-button-primary" id="auth-submit">Sign in</button>' +
-      '</div>' +
-    '</form>';
-}
+/** @param {Event} e */
+const valueOf = e => /** @type {HTMLInputElement} */ (e.target).value;
 
-/** @param {{ onSuccess?: () => unknown }} opts */
-function bindSignInForm(opts) {
-  let mode = state.auth.has_users ? 'login' : 'register';
-  setMode(mode);
-  /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#auth-tabs button[data-mode]')).forEach(b => {
-    b.addEventListener('click', function() { setMode(this.dataset.mode || 'login'); });
-  });
-  /** @type {HTMLElement} */ (document.getElementById('auth-form')).addEventListener('submit', function(e) {
+// The sign-in form, in a dialog (inDialog) or on the sign-in page. On the
+// page, a cross-origin client also gets a way to change server.
+/** @param {{ inDialog?: boolean, onSuccess: () => unknown }} props */
+function SignInForm({ inDialog, onSuccess }) {
+  const canRegister = !!state.auth.registration_open;
+  const [mode, setMode] = useState(state.auth.has_users ? 'login' : 'register');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [setupToken, setSetupToken] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  /** @type {{current: HTMLInputElement | null}} */
+  const usernameRef = useRef(null);
+  useEffect(() => { if (usernameRef.current) usernameRef.current.focus(); }, []);
+
+  const register = mode === 'register';
+  const needsToken = register && !!state.auth.requires_setup_token;
+  const title = register ? t('signIn.register') : t('signIn.signIn');
+
+  const submit = (/** @type {Event} */ e) => {
     e.preventDefault();
-    submit();
-  });
-  /** @type {HTMLElement} */ (document.getElementById('auth-username')).focus();
-
-  /** @param {string} m */
-  function setMode(m) {
-    mode = m;
-    /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#auth-tabs button[data-mode]')).forEach(b => {
-      b.setAttribute('aria-pressed', String(b.dataset.mode === m));
-    });
-    /** @type {HTMLElement} */ (document.getElementById('modal-title')).textContent = m === 'register' ? 'Register' : 'Sign in';
-    /** @type {HTMLElement} */ (document.getElementById('auth-submit')).textContent = m === 'register' ? 'Register' : 'Sign in';
-    /** @type {HTMLElement} */ (document.getElementById('auth-password')).setAttribute('autocomplete', m === 'register' ? 'new-password' : 'current-password');
-    const hint = /** @type {HTMLElement} */ (document.getElementById('auth-hint'));
-    hint.textContent = m === 'register' ? 'Password must be at least 12 characters.' : '';
-    hint.hidden = m !== 'register';
-    const tokenRow = /** @type {HTMLElement} */ (document.getElementById('setup-token-row'));
-    const tokenInput = /** @type {HTMLInputElement | null} */ (document.getElementById('auth-setup-token'));
-    const needsToken = m === 'register' && !!state.auth.requires_setup_token;
-    tokenRow.hidden = !needsToken;
-    if (tokenInput) tokenInput.required = needsToken;
-  }
-  function submit() {
-    const u = /** @type {HTMLInputElement} */ (document.getElementById('auth-username')).value.trim();
-    const p = /** @type {HTMLInputElement} */ (document.getElementById('auth-password')).value;
-    const payload = /** @type {{ username: string, password: string, setup_token?: string, token?: boolean }} */ ({ username: u, password: p });
-    if (mode === 'register' && state.auth.requires_setup_token) {
-      payload.setup_token = /** @type {HTMLInputElement} */ (document.getElementById('auth-setup-token')).value.trim();
-    }
+    const payload = /** @type {{ username: string, password: string, setup_token?: string, token?: boolean }} */ ({ username: username.trim(), password });
+    if (needsToken) payload.setup_token = setupToken.trim();
     // Cross-origin clients can't use the session cookie, so ask for the
     // session token in the response body and store it for bearer auth.
     if (isCrossOrigin()) payload.token = true;
-    const submitBtn = /** @type {HTMLButtonElement} */ (document.getElementById('auth-submit'));
-    submitBtn.disabled = true;
+    setBusy(true);
+    setError('');
     api('POST', '/' + mode, payload)
       .then((/** @type {SignInResult} */ res) => { if (res && res.session_token) setBearerToken(res.session_token); })
       .then(() => refreshAuthState())
       .then(() => loadSyncedPrefs())
-      .then(() => opts.onSuccess ? opts.onSuccess() : undefined)
-      .catch(err => { submitBtn.disabled = false; showModalError(err.message); });
+      .then(() => onSuccess())
+      .catch(err => { setBusy(false); setError(err.message); });
+  };
+
+  const tabs = canRegister && html`<div class="ui-tabs" id="auth-tabs">
+      ${['login', 'register'].map(m => html`<button type="button" class="ui-tab" data-mode=${m} aria-pressed=${String(mode === m)}
+        onClick=${() => setMode(m)}>${m === 'register' ? t('signIn.register') : t('signIn.signIn')}</button>`)}
+    </div>`;
+  const fields = html`<div class="ui-section">
+      <${Field} id="auth-username" label=${t('signIn.username')}>
+        <input type="text" id="auth-username" autocomplete="username" required ref=${usernameRef}
+          value=${username} onInput=${(/** @type {Event} */ e) => setUsername(valueOf(e))} />
+      <//>
+      <${Field} id="auth-password" label=${t('signIn.password')}>
+        <input type="password" id="auth-password" autocomplete=${register ? 'new-password' : 'current-password'} required
+          value=${password} onInput=${(/** @type {Event} */ e) => setPassword(valueOf(e))} />
+        <p class="ui-hint" id="auth-hint" hidden=${!register}>${register ? t('signIn.passwordHint') : ''}</p>
+      <//>
+      <div id="setup-token-row" hidden=${!needsToken}>
+        <${Field} id="auth-setup-token" label=${t('signIn.setupToken')}>
+          <input type="text" id="auth-setup-token" autocomplete="off" required=${needsToken}
+            value=${setupToken} onInput=${(/** @type {Event} */ e) => setSetupToken(valueOf(e))} />
+          <p class="ui-hint">${t('signIn.setupTokenHint')}</p>
+        <//>
+      </div>
+    </div>
+    <${ErrorBox} id="auth-error" msg=${error} />`;
+  const submitButton = html`<button type="submit" class="ui-button ui-button-primary" id="auth-submit" disabled=${busy}>${title}</button>`;
+
+  if (inDialog) {
+    return html`<${DialogHead} title=${title} />
+      <form id="auth-form" onSubmit=${submit}>
+        <div class="ui-dialog-body">${tabs}${fields}</div>
+        <div class="ui-dialog-actions">${submitButton}</div>
+      </form>`;
   }
+  // In cross-origin mode (native/bundled shell) let the user retarget the
+  // server from the sign-in screen: Change server sits left of Sign in, and
+  // the host on its own centered row below, so it reads as a status footnote.
+  const cross = isCrossOrigin();
+  return html`<h2>${title}</h2>
+    ${tabs}
+    <form id="auth-form" onSubmit=${submit}>
+      ${fields}
+      <div class="form-actions">
+        ${cross && html`<button type="button" id="signin-change-server" class="ui-button signin-change-server"
+          onClick=${() => { document.body.classList.remove('signin-only'); renderServerPicker({}); }}>${t('signIn.changeServer')}</button>`}
+        ${submitButton}
+      </div>
+      ${cross && html`<div class="signin-server-host" title=${serverBase()}>${serverBase().replace(/^https?:\/\//, '')}</div>`}
+    </form>`;
 }
 
 export function openSignInModal() {
-  openFullScreenModal(signInFormHtml(true), function() {
-    bindSignInForm({ onSuccess: () => { closeModal(); return loadDataAndRender(); } });
-  });
+  openViewModal(html`<${SignInForm} inDialog onSuccess=${() => { closeModal(); return loadDataAndRender(); }} />`, { phone: 'fullscreen' });
 }
 
 // Normalize a user-entered server address into an origin (+ optional path)
@@ -128,146 +131,112 @@ function normalizeServerUrl(raw) {
   return (u.origin + u.pathname).replace(/\/+$/, '');
 }
 
-// First-run / reconnect screen for picking which Ferd server to talk to.
-// Shown when there's no same-origin API (bundled/native shell) or the
-// configured server is unreachable. opts.error preseeds an error message.
-/** @param {{ error?: string }} [opts] */
-export function renderServerPicker(opts) {
-  opts = opts || {};
-  const app = /** @type {HTMLElement} */ (document.getElementById('app'));
-  document.body.classList.add('signin-only');
+/** @param {{ brand: string, localId: string, children?: any }} props */
+function SignInShell({ brand, localId, children }) {
+  return html`<div class="signin-page">
+    <img class="signin-logo" src="/icons/favicon.svg" alt="" />
+    <div class="signin-brand">${brand}</div>
+    <div class="signin-card">
+      ${children}
+      <div class="signin-alt"><button type="button" id=${localId} onClick=${enterLocalMode}>${t('signIn.continueLocal')}</button></div>
+    </div>
+  </div>`;
+}
+
+/** @param {{ error: string }} props */
+function ServerPicker({ error: initialError }) {
   const current = serverBase();
-  app.innerHTML =
-    '<div class="signin-page">' +
-      '<img class="signin-logo" src="/icons/favicon.svg" alt="">' +
-      '<div class="signin-brand">Ferd</div>' +
-      '<div class="signin-card">' +
-        '<h2>Connect to a server</h2>' +
-        '<div class="ui-section">' +
-          uiFieldHtml('srv-url', 'Server address',
-            '<input type="url" id="srv-url" inputmode="url" autocomplete="url" placeholder="https://ferd.example.com" value="' + escapeHtml(current) + '">' +
-            '<p class="ui-hint">Enter the address of your Ferd server.</p>' +
-            '<p class="srv-warn" id="srv-warn" hidden>Unencrypted connection (http). Your sign-in token will be sent in clear text. Only connect over a network you trust.</p>') +
-        '</div>' +
-        '<div class="form-error' + (opts.error ? ' visible' : '') + '" id="srv-error">' + escapeHtml(opts.error || '') + '</div>' +
-        '<div class="form-actions">' +
-          '<button type="button" class="ui-button ui-button-primary" id="srv-connect">Connect</button>' +
-        '</div>' +
-        '<div class="signin-alt"><button type="button" id="srv-local">Continue without signing in</button></div>' +
-      '</div>' +
-    '</div>';
-  const localBtn = document.getElementById('srv-local');
-  if (localBtn) localBtn.addEventListener('click', enterLocalMode);
-  const input = /** @type {HTMLInputElement} */ (document.getElementById('srv-url'));
-  const errBox = /** @type {HTMLElement} */ (document.getElementById('srv-error'));
-  const warn = /** @type {HTMLElement} */ (document.getElementById('srv-warn'));
-  const btn = /** @type {HTMLButtonElement} */ (document.getElementById('srv-connect'));
-  /** @param {string} msg */
-  function fail(msg) {
-    errBox.textContent = msg;
-    errBox.classList.add('visible');
-    btn.disabled = false;
-    btn.textContent = 'Connect';
-  }
-  function syncWarn() {
-    const base = normalizeServerUrl(input.value);
-    warn.hidden = !(base && base.slice(0, 7) === 'http://');
-  }
-  function connect() {
-    const base = normalizeServerUrl(input.value);
-    if (!base) return fail('Enter a valid server address.');
-    btn.disabled = true;
-    btn.textContent = 'Connecting…';
-    errBox.classList.remove('visible');
+  const [url, setUrl] = useState(current);
+  const [error, setError] = useState(initialError);
+  const [busy, setBusy] = useState(false);
+  /** @type {{current: HTMLInputElement | null}} */
+  const inputRef = useRef(null);
+  useEffect(() => { if (inputRef.current) inputRef.current.focus(); }, []);
+  const parsed = normalizeServerUrl(url);
+  const insecure = !!parsed && parsed.slice(0, 7) === 'http://';
+
+  const connect = () => {
+    const base = normalizeServerUrl(url);
+    if (!base) { setError(t('server.invalid')); return; }
+    setBusy(true);
+    setError('');
     probeServer(base, 8000).then(function(ok) {
-      if (!ok) return fail("Couldn't reach a Ferd server at that address.");
+      if (!ok) { setBusy(false); setError(t('server.unreachable')); return; }
       // A new target invalidates any token minted by the old one.
       if (base !== current) setBearerToken('');
       setServerBase(base);
       document.body.classList.remove('signin-only');
       bootApp();
     });
-  }
-  btn.addEventListener('click', connect);
-  input.addEventListener('keydown', function(e) { if (e.key === 'Enter') connect(); });
-  input.addEventListener('input', syncWarn);
-  syncWarn();
-  input.focus();
+  };
+
+  return html`<h2>${t('server.title')}</h2>
+    <div class="ui-section">
+      <${Field} id="srv-url" label=${t('server.address')}>
+        <input type="url" id="srv-url" inputmode="url" autocomplete="url" placeholder=${t('server.addressPlaceholder')} ref=${inputRef}
+          value=${url} onInput=${(/** @type {Event} */ e) => setUrl(valueOf(e))}
+          onKeyDown=${(/** @type {KeyboardEvent} */ e) => { if (e.key === 'Enter') connect(); }} />
+        <p class="ui-hint">${t('server.addressHint')}</p>
+        <p class="srv-warn" id="srv-warn" hidden=${!insecure}>${t('server.insecure')}</p>
+      <//>
+    </div>
+    <${ErrorBox} id="srv-error" msg=${error} />
+    <div class="form-actions">
+      <button type="button" class="ui-button ui-button-primary" id="srv-connect" disabled=${busy} onClick=${connect}>
+        ${busy ? t('server.connecting') : t('server.connect')}</button>
+    </div>`;
+}
+
+// A key per render, so a page shown again starts from fresh state rather
+// than keeping a busy button or an old error.
+let mounts = 0;
+
+// First-run / reconnect screen for picking which Ferd server to talk to.
+// Shown when there's no same-origin API (bundled/native shell) or the
+// configured server is unreachable. opts.error preseeds an error message.
+/** @param {{ error?: string }} [opts] */
+export function renderServerPicker(opts) {
+  document.body.classList.add('signin-only');
+  mountPage(html`<${SignInShell} brand="Ferd" localId="srv-local" key=${++mounts}>
+    <${ServerPicker} error=${(opts && opts.error) || ''} />
+  <//>`);
+}
+
+// Published maps as a collapsible list inside the sign-in card. Starts
+// collapsed so the card stays compact even with a long roster; the toggle
+// shows the count.
+function PublicMaps() {
+  const [names, setNames] = useState(/** @type {string[]} */ ([]));
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    fetchJson(apiUrl('/public-maps'), /** @type {PublicMaps} */ ({ usernames: [] }))
+      .then(resp => setNames((resp && resp.usernames) || []));
+  }, []);
+  return html`<div id="signin-public-maps" hidden=${!names.length}>
+    ${names.length > 0 && html`<button type="button" class="signin-public-toggle" aria-expanded=${open ? 'true' : 'false'}
+        aria-controls="signin-public-collapsible" onClick=${() => setOpen(!open)}>
+        <span>${t('signIn.publicMaps', { count: names.length })}</span>
+        <span class="signin-public-chevron" aria-hidden="true">▼</span>
+      </button>
+      <div class=${'ui-collapse' + (open ? ' open' : '')} id="signin-public-collapsible">
+        <div class="ui-collapse-body"><div class="collapse-inner">
+          <div class="public-maps-list">
+            ${names.map((/** @type {string} */ u) => html`<a class="public-maps-item" href=${'/u/' + encodeURIComponent(u) + '/'}>${u}</a>`)}
+          </div>
+        </div></div>
+      </div>`}
+  </div>`;
 }
 
 export function renderSignInPage() {
-  const app = /** @type {HTMLElement} */ (document.getElementById('app'));
   document.body.classList.add('signin-only');
   const brand = (state.config && state.config.brand) || 'Ferd';
-  app.innerHTML =
-    '<div class="signin-page">' +
-      '<img class="signin-logo" src="/icons/favicon.svg" alt="">' +
-      '<div class="signin-brand">' + escapeHtml(brand) + '</div>' +
-      '<div class="signin-card">' +
-        signInFormHtml(false) +
-        '<div id="signin-public-maps" hidden></div>' +
-        '<div class="signin-alt"><button type="button" id="signin-local">Continue without signing in</button></div>' +
-      '</div>' +
-    '</div>';
-  const signinLocalBtn = document.getElementById('signin-local');
-  if (signinLocalBtn) signinLocalBtn.addEventListener('click', enterLocalMode);
-  // In cross-origin mode (native/bundled shell) let the user retarget the
-  // server from the sign-in screen. Tucked into the Sign in button row so
-  // it reads as a status footnote, not a competing action.
-  if (isCrossOrigin()) {
-    const actions = app.querySelector('#auth-form .form-actions');
-    if (actions) {
-      // Host on its own centered row below the buttons.
-      const host = document.createElement('div');
-      host.className = 'signin-server-host';
-      host.title = serverBase();
-      host.textContent = serverBase().replace(/^https?:\/\//, '');
-      actions.after(host);
-      // Change server pushed left of the actions row; Sign in stays right.
-      const changeBtn = document.createElement('button');
-      changeBtn.type = 'button';
-      changeBtn.id = 'signin-change-server';
-      changeBtn.className = 'ui-button signin-change-server';
-      changeBtn.textContent = 'Change server';
-      changeBtn.addEventListener('click', function() {
-        document.body.classList.remove('signin-only');
-        renderServerPicker({});
-      });
-      actions.insertBefore(changeBtn, actions.firstChild);
-    }
-  }
-  bindSignInForm({ onSuccess: () => {
+  const onSuccess = () => {
     document.body.classList.remove('signin-only');
     return loadDataAndRender();
-  } });
-  // Surface any published maps as a collapsible list inside the
-  // sign-in card. Starts collapsed so the card stays compact even
-  // with a long roster; the toggle button shows the count.
-  fetchJson(apiUrl('/public-maps'), /** @type {PublicMaps} */ ({ usernames: [] })).then(function(resp) {
-    const names = (resp && resp.usernames) || [];
-    if (!names.length) return;
-    const box = document.getElementById('signin-public-maps');
-    if (!box) return;
-    box.hidden = false;
-    box.innerHTML =
-      '<button type="button" class="signin-public-toggle" aria-expanded="false" aria-controls="signin-public-collapsible">' +
-        '<span>Public maps (' + names.length + ')</span>' +
-        '<span class="signin-public-chevron" aria-hidden="true">&#x25BC;</span>' +
-      '</button>' +
-      '<div class="ui-collapse" id="signin-public-collapsible">' +
-        '<div class="ui-collapse-body"><div class="collapse-inner">' +
-          '<div class="public-maps-list">' +
-            names.map(u =>
-              '<a class="public-maps-item" href="/u/' + encodeURIComponent(u) + '/">' + escapeHtml(u) + '</a>'
-            ).join('') +
-          '</div>' +
-        '</div></div>' +
-      '</div>';
-    const toggle = /** @type {HTMLElement} */ (box.querySelector('.signin-public-toggle'));
-    const list = /** @type {HTMLElement} */ (document.getElementById('signin-public-collapsible'));
-    toggle.addEventListener('click', function() {
-      const open = list.classList.toggle('open');
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
-  });
+  };
+  mountPage(html`<${SignInShell} brand=${brand} localId="signin-local" key=${++mounts}>
+    <${SignInForm} onSuccess=${onSuccess} />
+    <${PublicMaps} />
+  <//>`);
 }
