@@ -21,24 +21,39 @@ import { wrappedRouter } from '../router.js';
 import { routes } from '../store.js';
 import { html as vhtml, mountExtra, useEffect, useRef } from '../view.js';
 
+/** @typedef {import('./route-layer.js').LeafletMap} LeafletMap */
+/** @typedef {import('./route-layer.js').LeafletLayer} LeafletLayer */
+/** @typedef {{ lat: number, lon: number, ele: number | null }} GpxPoint */
+/** @typedef {{ name: string, points: GpxPoint[] }} GpxTrack */
+/** @typedef {{ lat: number, lon: number, sym: string, name: string, desc: string }} GpxWaypoint */
+/** @typedef {{ distance: number, gain: number, loss: number, maxEle: number }} TrackStats */
+/** @typedef {ReturnType<typeof mapScheduler>} MapScheduler */
+/** @typedef {{ type: 'Feature', geometry: { type: 'LineString', coordinates: number[][] }, properties: {} }} ElevFeature */
+
+/**
+ * @param {string} xmlText
+ * @returns {GpxTrack[]}
+ */
 export function parseGpxTracks(xmlText) {
   const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
   let tracks = doc.getElementsByTagNameNS(GPX_NS, 'trk');
   if (tracks.length === 0) tracks = doc.getElementsByTagName('trk');
+  /** @type {GpxTrack[]} */
   const result = [];
   for (let i = 0; i < tracks.length; i++) {
     const trk = tracks[i];
     const nameEl = trk.getElementsByTagNameNS(GPX_NS, 'name')[0] || trk.getElementsByTagName('name')[0];
-    const name = nameEl ? nameEl.textContent : 'Track ' + (i + 1);
+    const name = nameEl ? nameEl.textContent || '' : 'Track ' + (i + 1);
+    /** @type {GpxPoint[]} */
     const points = [];
     let trkpts = trk.getElementsByTagNameNS(GPX_NS, 'trkpt');
     if (trkpts.length === 0) trkpts = trk.getElementsByTagName('trkpt');
     for (let j = 0; j < trkpts.length; j++) {
       const pt = trkpts[j];
-      const lat = parseFloat(pt.getAttribute('lat'));
-      const lon = parseFloat(pt.getAttribute('lon'));
+      const lat = parseFloat(pt.getAttribute('lat') || '');
+      const lon = parseFloat(pt.getAttribute('lon') || '');
       const eleEl = pt.getElementsByTagNameNS(GPX_NS, 'ele')[0] || pt.getElementsByTagName('ele')[0];
-      const ele = eleEl ? parseFloat(eleEl.textContent) : null;
+      const ele = eleEl ? parseFloat(eleEl.textContent || '') : null;
       points.push({ lat, lon, ele });
     }
     result.push({ name, points });
@@ -46,28 +61,33 @@ export function parseGpxTracks(xmlText) {
   return result;
 }
 
+/**
+ * @param {string} xmlText
+ * @returns {GpxWaypoint[]}
+ */
 function parseGpxWaypoints(xmlText) {
   const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
   let wpts = doc.getElementsByTagNameNS(GPX_NS, 'wpt');
   if (wpts.length === 0) wpts = doc.getElementsByTagName('wpt');
+  /** @type {GpxWaypoint[]} */
   const out = [];
   for (let i = 0; i < wpts.length; i++) {
     const w = wpts[i];
-    const lat = parseFloat(w.getAttribute('lat'));
-    const lon = parseFloat(w.getAttribute('lon'));
+    const lat = parseFloat(w.getAttribute('lat') || '');
+    const lon = parseFloat(w.getAttribute('lon') || '');
     if (!isFinite(lat) || !isFinite(lon)) continue;
     // Only render waypoints with an explicit <sym>; waypoints without
     // are typically routing artifacts from tools like gpx.studio or
     // Google Maps (geocoded via-points), not user-marked POIs.
     const symEl = w.getElementsByTagNameNS(GPX_NS, 'sym')[0] || w.getElementsByTagName('sym')[0];
-    const sym = symEl ? symEl.textContent.trim() : '';
+    const sym = symEl ? (symEl.textContent || '').trim() : '';
     if (!sym) continue;
     const nameEl = w.getElementsByTagNameNS(GPX_NS, 'name')[0] || w.getElementsByTagName('name')[0];
     const descEl = w.getElementsByTagNameNS(GPX_NS, 'desc')[0] || w.getElementsByTagName('desc')[0];
     out.push({
       lat, lon, sym,
-      name: nameEl ? nameEl.textContent : '',
-      desc: descEl ? descEl.textContent : '',
+      name: nameEl ? nameEl.textContent || '' : '',
+      desc: descEl ? descEl.textContent || '' : '',
     });
   }
   return out;
@@ -77,6 +97,12 @@ function parseGpxWaypoints(xmlText) {
 // they don't visually collide with the start/end markers (common for
 // loop routes where the GPX records the start point as a waypoint).
 const WAYPOINT_ENDPOINT_SUPPRESS_M = 75;
+/**
+ * @param {LeafletMap} map
+ * @param {GpxWaypoint[]} waypoints
+ * @param {LeafletLayer | null} startLatLng
+ * @param {LeafletLayer | null} endLatLng
+ */
 function addGpxWaypoints(map, waypoints, startLatLng, endLatLng) {
   for (const w of waypoints) {
     const ll = L.latLng(w.lat, w.lon);
@@ -89,6 +115,10 @@ function addGpxWaypoints(map, waypoints, startLatLng, endLatLng) {
   }
 }
 
+/**
+ * @param {GpxPoint[]} points
+ * @returns {TrackStats}
+ */
 function computeTrackStats(points) {
   let distance = 0, gain = 0, loss = 0, maxEle = -Infinity;
   for (let i = 1; i < points.length; i++) {
@@ -104,6 +134,10 @@ function computeTrackStats(points) {
   return { distance, gain, loss, maxEle };
 }
 
+/**
+ * @param {GpxTrack} track
+ * @returns {ElevFeature}
+ */
 function trackToGeoJSON(track) {
   return {
     type: 'Feature',
@@ -112,13 +146,16 @@ function trackToGeoJSON(track) {
   };
 }
 
+/** @param {string} routeKey */
 export function renderTrailDetail(routeKey) {
   setActiveTab('routes', 'route');
   cleanupMap();
-  const app = document.getElementById('app');
+  const app = /** @type {HTMLElement} */ (document.getElementById('app'));
   if (!state.manifest) { app.innerHTML = '<div class="app-state" aria-busy="true"><p class="ui-hint" role="status">Loading routes...</p></div>'; return; }
 
-  let route = null, regionName = '';
+  /** @type {import('../core.js').ManifestRoute | null} */
+  let route = null;
+  let regionName = '';
   for (const region of state.manifest.regions) {
     for (const r of region.routes) {
       if (r.key === routeKey) { route = r; regionName = region.name; break; }
@@ -164,7 +201,7 @@ export function renderTrailDetail(routeKey) {
   html += '<div id="route-meta-mount"></div>';
   html += '</div>';
   app.innerHTML = html;
-  mountExtra(vhtml`<${RouteMeta} routeKey=${routeKey} />`, document.getElementById('route-meta-mount'));
+  mountExtra(vhtml`<${RouteMeta} routeKey=${routeKey} />`, /** @type {HTMLElement} */ (document.getElementById('route-meta-mount')));
 
   const dvt = state.config.default_view_routes || DEFAULT_CONFIG.default_view_routes;
   const map = L.map('map', {
@@ -212,7 +249,7 @@ export function renderTrailDetail(routeKey) {
       // Repaint vector layers only. Redrawing the tile layer here forces a
       // full tile reload (a visible flash) on every resize - e.g. when the
       // graph section is collapsed - which invalidateSize already handles.
-      map.eachLayer(function(l) { if (typeof l.redraw === 'function' && !(l instanceof L.TileLayer)) l.redraw(); });
+      map.eachLayer(function(/** @type {LeafletLayer} */ l) { if (typeof l.redraw === 'function' && !(l instanceof L.TileLayer)) l.redraw(); });
       adjustTrailStrokes();
     });
     ro.observe(map.getContainer());
@@ -241,7 +278,7 @@ export function renderTrailDetail(routeKey) {
   });
 
   // Expand-map toggle: hides the elevation chart and metadata panel.
-  const layoutEl = document.querySelector('.detail-layout');
+  const layoutEl = /** @type {HTMLElement} */ (document.querySelector('.detail-layout'));
   const ExpandControl = L.Control.extend({
     options: { position: 'topright' },
     onAdd: function() {
@@ -258,7 +295,7 @@ export function renderTrailDetail(routeKey) {
         + '<polyline points="6,2 6,6 2,6"/><polyline points="10,2 10,6 14,6"/><polyline points="6,14 6,10 2,10"/><polyline points="10,14 10,10 14,10"/>'
         + '</svg>';
       L.DomEvent.disableClickPropagation(btn);
-      L.DomEvent.on(btn, 'click', function(e) {
+      L.DomEvent.on(btn, 'click', function(/** @type {Event} */ e) {
         L.DomEvent.preventDefault(e);
         const expanded = layoutEl.classList.toggle('map-expanded');
         btn.title = expanded ? 'Collapse map' : 'Expand map';
@@ -268,7 +305,7 @@ export function renderTrailDetail(routeKey) {
           map.invalidateSize();
         } else {
           const start = performance.now();
-          const tick = function(now) {
+          const tick = function(/** @type {number} */ now) {
             map.invalidateSize({ animate: false, pan: false });
             if (now - start < 320) sched.frame(tick);
           };
@@ -281,14 +318,14 @@ export function renderTrailDetail(routeKey) {
   map.addControl(new ExpandControl());
 
   if (route.plannedFile && route.completed) {
-    fetchGpxText(gpxUrlFor(route.plannedFile)).then(sched.live(function(plannedText) {
+    fetchGpxText(gpxUrlFor(route.plannedFile)).then(sched.live(function(/** @type {string} */ plannedText) {
       const plannedLayer = new L.GPX(plannedText, {
         async: true,
         polyline_options: { color: ROUTE_COLOR, opacity: 0.35, weight: 4 * getTrailWeightFactor(), dashArray: '8 6' },
         markers: { startIcon: null, endIcon: null, wptIcons: { '': WAYPOINT_PLACEHOLDER_ICON } },
       });
       attachWaypointHandlers(plannedLayer);
-      plannedLayer.on('loaded', sched.live(function(e) {
+      plannedLayer.on('loaded', sched.live(function(/** @type {any} */ e) {
         applyNonScalingStroke(e.target);
       })).addTo(map);
     })).catch(function() {});
@@ -298,6 +335,12 @@ export function renderTrailDetail(routeKey) {
   else renderSingleTrack(map, route, color, sched);
 }
 
+/**
+ * @param {LeafletMap} map
+ * @param {import('../core.js').ManifestRoute} route
+ * @param {string} color
+ * @param {MapScheduler} sched
+ */
 function renderSingleTrack(map, route, color, sched) {
   // Collapsible graph title, mirroring the multi-segment view: clicking it
   // hides the chart and the map grows to fill the space.
@@ -309,10 +352,11 @@ function renderSingleTrack(map, route, color, sched) {
       sGraph.classList.toggle('collapsed', c);
     };
     sTitle.addEventListener('click', toggleGraph);
-    sTitle.addEventListener('keydown', function(e) {
+    sTitle.addEventListener('keydown', function(/** @type {KeyboardEvent} */ e) {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGraph(); }
     });
   }
+  /** @type {any} */
   let elevationControl = null;
   if (route.hasElevation) {
     elevationControl = L.control.elevation({
@@ -332,14 +376,14 @@ function renderSingleTrack(map, route, color, sched) {
   // Pre-fetch the GPX text (auth-aware, SW-cached) rather than handing
   // L.GPX a URL: its internal XHR can't carry the bearer token a
   // cross-origin client needs.
-  fetchGpxText(gpxUrlFor(route.file)).then(sched.live(function(gpxText) {
+  fetchGpxText(gpxUrlFor(route.file)).then(sched.live(function(/** @type {string} */ gpxText) {
   const singleGpx = new L.GPX(gpxText, {
     async: true,
     polyline_options: { color: color, opacity: 0.9, weight: 5 * getTrailWeightFactor() },
     markers: { startIcon: null, endIcon: null, wptIcons: { '': WAYPOINT_PLACEHOLDER_ICON } },
   });
   attachWaypointHandlers(singleGpx);
-  singleGpx.on('loaded', sched.live(function(e) {
+  singleGpx.on('loaded', sched.live(function(/** @type {any} */ e) {
     const gpx = e.target;
     const bounds = gpx.getBounds();
     if (bounds.isValid() && !state._lastTrailBounds) {
@@ -350,16 +394,17 @@ function renderSingleTrack(map, route, color, sched) {
     // Register the GPX polylines for per-frame re-projection so their
     // stroke stays a constant width through zoom (see adjustTrailStrokes).
     state._detailPolylines = [gpx];
-    gpx.eachLayer(function(l) { if (!state._detailRenderer && l._renderer) state._detailRenderer = l._renderer; });
+    gpx.eachLayer(function(/** @type {LeafletLayer} */ l) { if (!state._detailRenderer && l._renderer) state._detailRenderer = l._renderer; });
     // Polylines may be in the SVG DOM with correct coords but unpainted
     // until the renderer next ticks. Force a redraw, then renormalize
     // stroke widths in case adjustTrailStrokes ran mid-zoom-animation
     // and left them counter-scaled against a now-stale scale value.
-    gpx.eachLayer(function(l) { if (typeof l.redraw === 'function') l.redraw(); });
+    gpx.eachLayer(function(/** @type {LeafletLayer} */ l) { if (typeof l.redraw === 'function') l.redraw(); });
     adjustTrailStrokes();
 
+    /** @type {LeafletLayer[]} */
     const layers = [];
-    gpx.eachLayer(function(layer) { if (layer.getLatLngs) layers.push(layer); });
+    gpx.eachLayer(function(/** @type {LeafletLayer} */ layer) { if (layer.getLatLngs) layers.push(layer); });
     if (layers.length > 0) {
       const latlngs = layers[0].getLatLngs();
       const flat = Array.isArray(latlngs[0]) ? latlngs.flat() : latlngs;
@@ -369,7 +414,7 @@ function renderSingleTrack(map, route, color, sched) {
         addStartEndMarkers(map, startLL, endLL);
         // Drop waypoints that are routing artifacts (no <sym>) or sit
         // on top of the start/end markers.
-        gpx.eachLayer(function(layer) {
+        gpx.eachLayer(function(/** @type {LeafletLayer} */ layer) {
           if (!layer.options || layer.options.type !== 'waypoint' || !layer.getLatLng) return;
           if (!layer._ferdSym) { gpx.removeLayer(layer); return; }
           const ll = layer.getLatLng();
@@ -390,6 +435,7 @@ function renderSingleTrack(map, route, color, sched) {
     map.on('zoomend', function() { simplifyRouteForZoom(gpx, map.getZoom()); });
 
     const dist = gpx.get_distance();
+    /** @type {{ dist: number, status: string, completed: boolean, region: string, gain?: number }} */
     const stats = { dist: dist, status: route.completed ? 'Completed' : 'Planned', completed: route.completed, region: route.key.split('/')[0] };
     if (route.hasElevation) {
       stats.gain = gpx.get_elevation_gain();
@@ -400,7 +446,7 @@ function renderSingleTrack(map, route, color, sched) {
       sStatsEl.innerHTML = '<span class="seg-dist">' + formatDistance(stats.dist) + '</span>'
         + (stats.gain != null ? '<span class="seg-gain">+' + formatElevation(stats.gain) + '</span>' : '');
     }
-  })).on('addline', sched.live(function(e) {
+  })).on('addline', sched.live(function(/** @type {any} */ e) {
     if (!elevationControl) return;
     // For a very large track, stride the elevation series the same way the
     // multi-segment view does, so the chart stays cheap. leaflet-gpx
@@ -410,15 +456,20 @@ function renderSingleTrack(map, route, color, sched) {
     // Snapshot the coordinates now: addData defers until the chart's
     // modules load, and by then simplifyRouteForZoom has swapped the
     // line's latlngs for thinned copies that carry no meta.ele.
-    const coords = flat.map(function(ll) { return [ll.lng, ll.lat, (ll.meta && ll.meta.ele != null) ? ll.meta.ele : 0]; });
+    const coords = flat.map(function(/** @type {any} */ ll) { return [ll.lng, ll.lat, (ll.meta && ll.meta.ele != null) ? ll.meta.ele : 0]; });
     elevationControl.addData({ type: 'Feature', geometry: { type: 'LineString', coordinates: flat.length > MAX_ELEV_POINTS ? decimateCoords(coords, MAX_ELEV_POINTS) : coords }, properties: {} });
   })).addTo(map);
   })).catch(function(err) { console.warn('[ferd] gpx load failed', err); });
 }
 
+/**
+ * @param {LeafletMap} map
+ * @param {import('../core.js').ManifestRoute} route
+ * @param {MapScheduler} sched
+ */
 function renderMultiTrack(map, route, sched) {
   fetchGpxText(gpxUrlFor(route.file))
-    .then(sched.live(function(xmlText) {
+    .then(sched.live(function(/** @type {string} */ xmlText) {
       const tracks = parseGpxTracks(xmlText);
       if (tracks.length === 0) return;
       {
@@ -431,13 +482,15 @@ function renderMultiTrack(map, route, sched) {
       }
 
       const elevHeight = 200;
-      const elevControls = [];
+      /** @type {TrackStats[]} */
       const allStats = [];
       const bounds = L.latLngBounds();
+      /** @type {LeafletLayer[]} */
       const detailPolylines = [];
 
       const container = document.getElementById('multi-elevation-container');
 
+      /** @param {string} divSel */
       function makeElevationControl(divSel) {
         return L.control.elevation({
           theme: 'custom-theme', detached: true,
@@ -466,7 +519,7 @@ function renderMultiTrack(map, route, sched) {
         // collapsible list of segments below. Clicking a segment swaps the
         // graph in place, marks the row active, and highlights that segment
         // on the map; clicking it again returns to the whole-route profile.
-        const segStatHtml = function(s) {
+        const segStatHtml = function(/** @type {TrackStats} */ s) {
           return '<span class="seg-stat"><span class="seg-dist">' + formatDistance(s.distance) + '</span>'
             + (s.gain > 0 ? '<span class="seg-gain">+' + formatElevation(s.gain) + '</span>' : '') + '</span>';
         };
@@ -476,7 +529,7 @@ function renderMultiTrack(map, route, sched) {
         // Pull it into a dedicated # column and strip it from the name;
         // fall back to the row index when a name has no number prefix.
         const padW = String(tracks.length).length;
-        const segNumName = function(raw, idx) {
+        const segNumName = function(/** @type {string | undefined} */ raw, /** @type {number} */ idx) {
           const m = /^\s*(\d{1,3})[:.)]\s+(.+)$/.exec(raw || '');
           if (m) return { num: m[1], name: m[2] };
           return { num: String(idx + 1).padStart(padW, '0'), name: raw || ('Segment ' + (idx + 1)) };
@@ -512,11 +565,14 @@ function renderMultiTrack(map, route, sched) {
           + '</div>';
 
         // Whole-route and per-segment elevation features (strided).
+        /** @type {number[][]} */
         const wholeCoords = [];
         for (const tr of tracks) for (const p of tr.points) if (p.ele !== null) wholeCoords.push([p.lon, p.lat, p.ele]);
+        /** @type {ElevFeature | null} */
         const wholeFeat = wholeCoords.length > 1
           ? { type: 'Feature', geometry: { type: 'LineString', coordinates: decimateCoords(wholeCoords, MAX_ELEV_POINTS) }, properties: {} }
           : null;
+        /** @param {number} i */
         function segFeat(i) {
           const f = trackToGeoJSON(tracks[i]);
           f.geometry.coordinates = decimateCoords(f.geometry.coordinates, MAX_ELEV_POINTS);
@@ -525,6 +581,11 @@ function renderMultiTrack(map, route, sched) {
 
         const graphCtrl = makeElevationControl('#detail-elev-graph');
         state.currentElevation = graphCtrl;
+        /**
+         * @param {ElevFeature | null} feat
+         * @param {string} color
+         * @param {string} title
+         */
         function setGraph(feat, color, title) {
           const div = document.getElementById('detail-elev-graph');
           if (div) div.style.setProperty('--track-color', color);
@@ -533,6 +594,7 @@ function renderMultiTrack(map, route, sched) {
           try { graphCtrl.clear(); } catch (e) {}
           if (feat) graphCtrl.addData(feat);
         }
+        /** @param {number | null} active */
         function highlightSeg(active) {
           for (let k = 0; k < detailPolylines.length; k++) {
             const on = k === active;
@@ -548,12 +610,14 @@ function renderMultiTrack(map, route, sched) {
 
         const listEl = document.getElementById('elev-seg-list');
         const toggleStatsEl = document.getElementById('elev-toggle-stats');
+        /** @type {number | null} */
         let activeSeg = null;
+        /** @param {number | null} i */
         function selectSeg(i) {
           if (i === activeSeg) i = null;   // click the active row to clear
           activeSeg = i;
           if (listEl) listEl.querySelectorAll('.seg-row').forEach(function(r) {
-            r.classList.toggle('active', parseInt(r.getAttribute('data-seg'), 10) === activeSeg);
+            r.classList.toggle('active', parseInt(r.getAttribute('data-seg') || '', 10) === activeSeg);
           });
           // Whole-route state is reflected on the toggle-bar totals.
           if (toggleStatsEl) toggleStatsEl.classList.toggle('active', activeSeg === null);
@@ -564,19 +628,19 @@ function renderMultiTrack(map, route, sched) {
           }
         }
         if (listEl) listEl.querySelectorAll('.seg-row').forEach(function(row) {
-          row.addEventListener('click', function() { selectSeg(parseInt(row.getAttribute('data-seg'), 10)); });
+          row.addEventListener('click', function() { selectSeg(parseInt(row.getAttribute('data-seg') || '', 10)); });
         });
         // Default: whole-route profile.
         selectSeg(null);
 
-        const toggle = document.getElementById('elev-seg-toggle');
+        const toggle = /** @type {HTMLElement} */ (document.getElementById('elev-seg-toggle'));
         toggle.addEventListener('click', function() {
           const opening = toggle.classList.contains('collapsed');
           toggle.classList.toggle('collapsed', !opening);
           if (listEl) listEl.classList.toggle('collapsed', !opening);
         });
         // Clicking the totals shows the whole route without toggling the list.
-        if (toggleStatsEl) toggleStatsEl.addEventListener('click', function(e) {
+        if (toggleStatsEl) toggleStatsEl.addEventListener('click', function(/** @type {Event} */ e) {
           e.stopPropagation();
           selectSeg(null);
         });
@@ -596,7 +660,7 @@ function renderMultiTrack(map, route, sched) {
             graphDiv.classList.toggle('collapsed', collapsed);
           };
           titleBar.addEventListener('click', toggleGraph);
-          titleBar.addEventListener('keydown', function(e) {
+          titleBar.addEventListener('keydown', function(/** @type {KeyboardEvent} */ e) {
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGraph(); }
           });
         }
@@ -604,7 +668,7 @@ function renderMultiTrack(map, route, sched) {
         // Clicking a segment on the map selects it (same as its list row),
         // revealing the graph if it was collapsed.
         detailPolylines.forEach(function(pl, i) {
-          pl.on('click', function(e) {
+          pl.on('click', function(/** @type {any} */ e) {
             if (e.originalEvent) L.DomEvent.stopPropagation(e.originalEvent);
             expandGraph();
             selectSeg(i);
@@ -628,7 +692,7 @@ function renderMultiTrack(map, route, sched) {
       // scaling with the SVG transform mid-zoom (matches the index map).
       state._detailPolylines = detailPolylines;
       state._detailRenderer = detailPolylines.length ? detailPolylines[0]._renderer : null;
-      map.eachLayer(function(l) { if (typeof l.redraw === 'function') l.redraw(); });
+      map.eachLayer(function(/** @type {LeafletLayer} */ l) { if (typeof l.redraw === 'function') l.redraw(); });
       adjustTrailStrokes();
       const firstTrack = tracks[0];
       const lastTrack = tracks[tracks.length - 1];
@@ -640,6 +704,11 @@ function renderMultiTrack(map, route, sched) {
     }));
 }
 
+/**
+ * @param {LeafletMap} map
+ * @param {LeafletLayer} startLatLng
+ * @param {LeafletLayer} endLatLng
+ */
 export function addStartEndMarkers(map, startLatLng, endLatLng) {
   const startIcon = L.divIcon({ className: 'marker-start', html: '<svg viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="6" fill="#00e05a" stroke="#fff" stroke-width="2"/></svg>', iconSize: [24, 24], iconAnchor: [12, 12] });
   const endIcon = L.divIcon({ className: 'marker-end', html: '<svg viewBox="0 0 32 32" width="32" height="32"><rect x="4" y="2" width="2" height="28" rx="1" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><path d="M6 3h12c1 0 1.5.5 1 1.5L17 8l2 3.5c.5 1 0 1.5-1 1.5H6V3z" fill="#fff" stroke="#2d333b" stroke-width="0.5"/><rect x="7" y="4" width="4.5" height="4" fill="#2d333b"/><rect x="11.5" y="4" width="4.5" height="4" fill="#fff"/><rect x="7" y="8" width="4.5" height="4" fill="#fff"/><rect x="11.5" y="8" width="4.5" height="4" fill="#2d333b"/></svg>', iconSize: [32, 32], iconAnchor: [5, 30] });
