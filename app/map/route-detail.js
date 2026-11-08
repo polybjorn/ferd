@@ -28,7 +28,7 @@ import { html as vhtml, mountExtra, useEffect, useRef } from '../view.js';
 /** @typedef {{ lat: number, lon: number, sym: string, name: string, desc: string }} GpxWaypoint */
 /** @typedef {{ distance: number, gain: number, loss: number, maxEle: number }} TrackStats */
 /** @typedef {ReturnType<typeof mapScheduler>} MapScheduler */
-/** @typedef {{ type: 'Feature', geometry: { type: 'LineString', coordinates: number[][] }, properties: {} }} ElevFeature */
+/** @typedef {{ type: 'Feature', geometry: { type: 'LineString', coordinates: Array<Array<number | null>> }, properties: {} }} ElevFeature */
 
 /**
  * @param {string} xmlText
@@ -788,11 +788,11 @@ function RouteMeta({ routeKey }) {
   if (route.rating && getShowField('rating')) facts.push(vhtml`<span class="fact" title=${route.rating + '/5'} dangerouslySetInnerHTML=${metaHtml(ratingStarsText(route.rating))}></span>`);
   if (route.date_completed && getShowField('date')) facts.push(vhtml`<span class="fact">${route.date_completed}</span>`);
   // Source link moved here from the removed top stats bar.
-  if (href) facts.push(vhtml`<a class="fact fact-source" href=${href} target="_blank" rel="noopener noreferrer">${domainFromUrl(route.source) + ' '}<span dangerouslySetInnerHTML=${metaHtml(EXTERNAL_ICON_SVG)}></span></a>`);
+  if (href) facts.push(vhtml`<a class="fact fact-source" href=${href} target="_blank" rel="noopener noreferrer">${domainFromUrl(/** @type {string} */ (route.source)) + ' '}<span dangerouslySetInnerHTML=${metaHtml(EXTERNAL_ICON_SVG)}></span></a>`);
   return vhtml`<div class="route-meta-panel">
     <div class="route-meta-header">
       <div class="route-meta-line">${facts.map((f, i) => vhtml`${i > 0 && vhtml`<span class="sep">\u00b7</span>`}${f}`)}</div>
-      ${tagsOn && vhtml`<div class="route-meta-tags">${route.tags.map((/** @type {string} */ t) => vhtml`<span class="tag" key=${t}>${'#' + t}</span>`)}</div>`}
+      ${tagsOn && vhtml`<div class="route-meta-tags">${/** @type {string[]} */ (route.tags).map((/** @type {string} */ t) => vhtml`<span class="tag" key=${t}>${'#' + t}</span>`)}</div>`}
     </div>
     ${notes && vhtml`<div class="route-meta-notes"><span class="route-meta-notes-label">Notes</span>${route.notes}</div>`}
   </div>`;

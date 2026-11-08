@@ -379,7 +379,7 @@ export function bindStoreToState() {
     const data = store.areas.value;
     untracked(() => {
       state.areas = data.filter(areaHasGeometry);
-      for (const a of state.areas) { if (a.category == null) a.category = ''; }
+      for (const a of /** @type {import('./core.js').Area[]} */ (state.areas)) { if (a.category == null) a.category = ''; }
       recolor();
     });
   });

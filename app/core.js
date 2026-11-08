@@ -293,7 +293,7 @@ export function assignCategoryColors(places) {
   // category-labels.json. Unstored slugs get the next free index
   // (highest stored + 1, mod palette length) so adding a new category
   // never reshuffles the existing ones.
-  const cats = [...new Set(/** @type {Array<Place | Area>} */ (places).concat(state.areas || []).map(p => p.category))]
+  const cats = /** @type {string[]} */ ([...new Set(/** @type {Array<Place | Area>} */ (places).concat(state.areas || []).map(p => p.category))])
     .filter(c => c !== '').sort();
   const labels = (state.config && state.config.category_labels) || {};
   let nextIdx = 0;

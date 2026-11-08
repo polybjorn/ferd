@@ -44,7 +44,7 @@ export function openMapPlaceContextMenu(place, oe, map) {
     history.replaceState(null, '', focusHash('place', place._slug || place.name));
   } });
   if (Array.isArray(place.sources) && place.sources.length) {
-    items.push({ label: 'Go to source', onClick: function() { window.open(place.sources[0], '_blank', 'noopener'); } });
+    items.push({ label: 'Go to source', onClick: function() { window.open(/** @type {string[]} */ (place.sources)[0], '_blank', 'noopener'); } });
   }
   if (!isReadOnly() && state.auth && state.auth.authenticated) {
     items.push({ label: 'Edit', onClick: function() { openEditPlaceModal(place); } });

@@ -30,7 +30,7 @@ export function apiUrl(path) {
 export function api(method, path, body) {
   const opts = applyAuth({ method });
   if (body !== undefined && !(body instanceof Blob)) {
-    opts.headers['Content-Type'] = 'application/json';
+    /** @type {Record<string, string>} */ (opts.headers)['Content-Type'] = 'application/json';
     opts.body = JSON.stringify(body);
   } else if (body instanceof Blob) {
     opts.body = body;
@@ -67,7 +67,7 @@ export function renderAuthWidget() {
   if (!el) return;
   if (!state.auth.authenticated) {
     el.innerHTML = '<button id="auth-signin">Sign in</button>';
-    document.getElementById('auth-signin').addEventListener('click', openSignInModal);
+    /** @type {HTMLElement} */ (document.getElementById('auth-signin')).addEventListener('click', openSignInModal);
     return;
   }
   const local = !hasServer();
@@ -78,7 +78,7 @@ export function renderAuthWidget() {
       '<div class="ui-menu ui-menu-end" id="auth-menu" role="menu" aria-labelledby="auth-menu-head" hidden>' +
         (local
           ? '<p class="ui-menu-head" id="auth-menu-head">Local map</p>'
-          : '<p class="ui-menu-head" id="auth-menu-head">Signed in as <strong>' + escapeHtml(state.auth.username) + '</strong></p>') +
+          : '<p class="ui-menu-head" id="auth-menu-head">Signed in as <strong>' + escapeHtml(/** @type {string} */ (state.auth.username)) + '</strong></p>') +
         menuEntriesHtml(local, true) +
       '</div>' +
     '</div>';

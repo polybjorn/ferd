@@ -105,13 +105,13 @@ export function detectViewer() {
 /** @param {'places' | 'areas' | 'routes' | 'metadata'} kind */
 export function dataUrl(kind) {
   const v = state.viewer;
-  if (v && v.mode === 'public') return apiUrl('/u/' + encodeURIComponent(v.username) + '/' + kind);
+  if (v && v.mode === 'public') return apiUrl('/u/' + encodeURIComponent(/** @type {string} */ (v.username)) + '/' + kind);
   return apiUrl('/' + kind);
 }
 
 export function categoryLabelsUrl() {
   const v = state.viewer;
-  if (v && v.mode === 'public') return apiUrl('/u/' + encodeURIComponent(v.username) + '/category-labels');
+  if (v && v.mode === 'public') return apiUrl('/u/' + encodeURIComponent(/** @type {string} */ (v.username)) + '/category-labels');
   return apiUrl('/me/category-labels');
 }
 
@@ -119,7 +119,7 @@ export function categoryLabelsUrl() {
 export function gpxUrlFor(file) {
   if (!hasServer()) return 'local:' + file;
   const v = state.viewer;
-  if (v && v.mode === 'public') return apiUrl('/u/' + encodeURIComponent(v.username) + '/gpx/' + file);
+  if (v && v.mode === 'public') return apiUrl('/u/' + encodeURIComponent(/** @type {string} */ (v.username)) + '/gpx/' + file);
   return apiUrl('/gpx/' + file);
 }
 

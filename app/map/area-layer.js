@@ -54,7 +54,7 @@ export function initAreaLayers(map) {
 export function areaStyle(a, visited) {
   // The colour map's literal types it as {}; the store fills it by category key.
   const colors = /** @type {Record<string, string>} */ (state.categoryColors);
-  const color = colors[a.category] || colors[''];
+  const color = colors[/** @type {string} */ (a.category)] || colors[''];
   return visited
     ? { color, weight: 2, opacity: 0.9, fillColor: color, fillOpacity: 0.22, dashArray: null }
     : { color, weight: 2, opacity: 0.7, fillColor: color, fillOpacity: 0.08, dashArray: '6 6' };

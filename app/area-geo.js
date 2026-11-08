@@ -85,7 +85,7 @@ function _areaPolygon(rings) {
 function _areaPolygons(g) {
   if (!g || !Array.isArray(g.coordinates)) return [];
   const raw = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
-  return raw.map(_areaPolygon).filter(Boolean);
+  return /** @type {PolygonRings[]} */ (raw.map(_areaPolygon).filter(Boolean));
 }
 // A local-only import has no server to refuse a malformed area, and one
 // that reaches the map stops every area from drawing.
@@ -177,7 +177,7 @@ function _simplifyLine(points, tolSq) {
   keep[0] = keep[points.length - 1] = 1;
   const stack = [[0, points.length - 1]];
   while (stack.length) {
-    const [lo, hi] = stack.pop();
+    const [lo, hi] = /** @type {number[]} */ (stack.pop());
     let worst = 0, at = -1;
     for (let i = lo + 1; i < hi; i++) {
       const d = _segDistSq(points[i], points[lo], points[hi]);
@@ -229,7 +229,7 @@ function _simplifyPolygons(polygons, tolSq, largest) {
   for (const rings of polygons) {
     const outer = _simplifyRing(rings[0], tolSq, rings === largest);
     if (!outer) continue;
-    const holes = rings.slice(1).map(r => _simplifyRing(r, tolSq, false)).filter(Boolean);
+    const holes = /** @type {Position[][]} */ (rings.slice(1).map(r => _simplifyRing(r, tolSq, false)).filter(Boolean));
     out.push([outer].concat(holes));
   }
   return out;

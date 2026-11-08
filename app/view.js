@@ -78,7 +78,7 @@ export function ErrorBox({ id, msg }) {
   /** @type {{current: HTMLDivElement | null}} */
   const ref = useRef(null);
   useEffect(() => {
-    if (msg) ref.current.scrollIntoView({ block: 'nearest' });
+    if (msg) /** @type {HTMLDivElement} */ (ref.current).scrollIntoView({ block: 'nearest' });
   }, [msg]);
   return html`<div class=${'form-error' + (msg ? ' visible' : '')} id=${id} ref=${ref}>${msg || ''}</div>`;
 }
@@ -146,13 +146,13 @@ export function CopyButton({ target, ...rest }) {
   const [copied, setCopied] = useState(false);
   /** @type {{current: ReturnType<typeof setTimeout> | null}} */
   const timer = useRef(null);
-  useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(() => () => clearTimeout(/** @type {number | undefined} */ (timer.current)), []);
   const copy = () => {
     const input = target.current;
     if (!input) return;
     const done = () => {
       setCopied(true);
-      clearTimeout(timer.current);
+      clearTimeout(/** @type {number | undefined} */ (timer.current));
       timer.current = setTimeout(() => setCopied(false), 1500);
     };
     navigator.clipboard.writeText(input.value).then(done).catch(() => {

@@ -22,7 +22,7 @@ export function parseGpxText(text) {
   for (const tag of ['trkpt', 'rtept', 'wpt']) {
     const els = doc.getElementsByTagNameNS('*', tag);
     for (let i = 0; i < els.length; i++) {
-      const lat = parseFloat(els[i].getAttribute('lat')), lon = parseFloat(els[i].getAttribute('lon'));
+      const lat = parseFloat(/** @type {string} */ (els[i].getAttribute('lat'))), lon = parseFloat(/** @type {string} */ (els[i].getAttribute('lon')));
       if (isNaN(lat) || isNaN(lon)) continue;
       if (lat < mnLat) mnLat = lat; if (lon < mnLon) mnLon = lon;
       if (lat > mxLat) mxLat = lat; if (lon > mxLon) mxLon = lon;

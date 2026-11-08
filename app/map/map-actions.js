@@ -161,7 +161,7 @@ function deletePlaceNow(place, { animate, deleted, after, onError }) {
   const prevColors = Object.assign({}, state.categoryColors);
   const slug = place._slug || '';
   const anim = animate ? animatePlaceCardOut(slug) : Promise.resolve();
-  return dataLayer.deletePlace({ id: place.id })
+  return dataLayer.deletePlace({ id: /** @type {string} */ (place.id) })
     .then(() => {
       if (deleted) deleted();
       const layer = state._placeClusterGroup;

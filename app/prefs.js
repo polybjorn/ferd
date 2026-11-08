@@ -191,7 +191,7 @@ const RECENT_PICKS_KEY = 'search-recent';
 const RECENT_PICKS_MAX = 5;
 export function getRecentPicks() {
   try {
-    const v = JSON.parse(localStorage.getItem(RECENT_PICKS_KEY));
+    const v = JSON.parse(/** @type {string} */ (localStorage.getItem(RECENT_PICKS_KEY)));
     return Array.isArray(v) ? v : [];
   } catch { return []; }
 }

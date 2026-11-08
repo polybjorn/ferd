@@ -97,7 +97,7 @@ export function openSearchView() {
       };
       input.addEventListener('input', render);
       // method="dialog" would close this dialog on Enter with no row active.
-      dialog.querySelector('#map-search-view-form').addEventListener('submit', (/** @type {Event} */ e) => e.preventDefault());
+      /** @type {HTMLElement} */ (dialog.querySelector('#map-search-view-form')).addEventListener('submit', (/** @type {Event} */ e) => e.preventDefault());
       render();
       list.addEventListener('click', function(e) {
         const target = /** @type {Element} */ (e.target);

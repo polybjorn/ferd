@@ -249,7 +249,7 @@ export function AddArea() {
     items.reduce((chain, area) => chain.then(() => dataLayer.createArea(area)), Promise.resolve())
       .then(() => {
         closeModal();
-        fitAddedAreas(before);
+        fitAddedAreas(/** @type {Set<string>} */ (before));
       })
       .catch((/** @type {Error} */ err) => { setBusy(false); setError(err.message); });
   };

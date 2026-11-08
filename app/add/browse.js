@@ -71,7 +71,7 @@ function BrowseList({ entries }) {
       btn: el('browse-filter-btn'),
       pop: el('browse-filter-popover'),
       clear: el('browse-clear'),
-      sels: ['bf-category', 'bf-country', 'bf-tag'].map(el).filter(Boolean),
+      sels: /** @type {import('../map/map-panel.js').ValueElement[]} */ (['bf-category', 'bf-country', 'bf-tag'].map(el).filter(Boolean)),
       keyById: { 'bf-category': 'category', 'bf-country': 'country', 'bf-tag': 'tag' },
       filters: filters.current, searchInput: el('browse-filter'), searchKey: 'q',
       onApply: () => setF((/** @type {any} */ prev) => ({ ...prev, ...filters.current })),

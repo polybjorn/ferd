@@ -40,7 +40,7 @@ export function enterPickCoordsMode(onPick) {
 document.addEventListener('keydown', function(e) {
   if (e.key !== ' ' && e.code !== 'Space') return;
   if (!state.currentMap) return;
-  if (document.getElementById('modal-root').children.length) return;
+  if (/** @type {HTMLElement} */ (document.getElementById('modal-root')).children.length) return;
   const t = /** @type {HTMLElement} */ (e.target);
   const tag = t && t.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
@@ -55,7 +55,7 @@ document.addEventListener('keydown', function(e) {
 document.addEventListener('keydown', function(e) {
   if (e.key !== 's' && e.key !== 'S') return;
   if (e.ctrlKey || e.metaKey || e.altKey) return;
-  if (document.getElementById('modal-root').children.length) return;
+  if (/** @type {HTMLElement} */ (document.getElementById('modal-root')).children.length) return;
   const t = /** @type {HTMLElement} */ (e.target);
   const tag = t && t.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
@@ -110,7 +110,7 @@ document.addEventListener('pointerdown', function(e) { lastPointerType = e.point
 document.addEventListener('contextmenu', function(e) {
   if (lastPointerType !== 'touch' && lastPointerType !== 'pen') return;
   if (!state.currentMap) return;
-  if (document.getElementById('modal-root').children.length) return;
+  if (/** @type {HTMLElement} */ (document.getElementById('modal-root')).children.length) return;
   const t = /** @type {HTMLElement} */ (e.target);
   if (!t.closest('.leaflet-container')) return;
   if (t.closest('.leaflet-marker-icon, .leaflet-control, .leaflet-popup, .map-panel')) return;

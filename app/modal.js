@@ -120,15 +120,16 @@ export function openModal(html, onMount, onClose, opts) {
   if (opts && opts.phone === 'sheet') {
     dialog.insertAdjacentHTML('afterbegin', '<div class="ui-dialog-handle" aria-hidden="true"></div>');
   }
-  root.appendChild(dialog);
+  /** @type {HTMLElement} */ (root).appendChild(dialog);
   /** @type {ModalEntry} */
-  const entry = { backdrop: dialog, onClose: null, phone: opts ? opts.phone : undefined };
+  const entry = {
+    backdrop: dialog,
+    // Default close behavior: tear down this dialog. onClose overrides
+    // run instead and may call closeModal()/closeTopModal() themselves.
+    onClose: onClose ? () => onClose() : () => closeTopModal(),
+    phone: opts ? opts.phone : undefined,
+  };
   applyPhoneLayout(entry);
-  // Default close behavior: tear down this dialog. onClose overrides
-  // run instead and may call closeModal()/closeTopModal() themselves.
-  entry.onClose = onClose
-    ? () => onClose()
-    : () => closeTopModal();
   modalStack.push(entry);
   closeOnBackdropClick(dialog, () => entry.onClose());
   if (entry.phone === 'sheet') dragToClose(dialog, () => entry.onClose());
