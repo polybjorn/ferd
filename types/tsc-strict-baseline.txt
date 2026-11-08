@@ -8,21 +8,6 @@
 1	app/backup.js	TS7006	Parameter 'bytes' implicitly has an 'any' type.
 1	app/backup.js	TS7006	Parameter 'files' implicitly has an 'any' type.
 2	app/backup.js	TS7006	Parameter 'n' implicitly has an 'any' type.
-2	app/context-menu.js	TS7005	Variable 'pressTimer' implicitly has an 'any' type.
-1	app/context-menu.js	TS7006	Parameter 'buildItems' implicitly has an 'any' type.
-5	app/context-menu.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/context-menu.js	TS7006	Parameter 'el' implicitly has an 'any' type.
-2	app/context-menu.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-2	app/context-menu.js	TS7006	Parameter 'oe' implicitly has an 'any' type.
-1	app/context-menu.js	TS7006	Parameter 'place' implicitly has an 'any' type.
-1	app/context-menu.js	TS7006	Parameter 'regionName' implicitly has an 'any' type.
-1	app/context-menu.js	TS7006	Parameter 'route' implicitly has an 'any' type.
-1	app/context-menu.js	TS7006	Parameter 'slug' implicitly has an 'any' type.
-1	app/context-menu.js	TS7006	Parameter 'type' implicitly has an 'any' type.
-1	app/context-menu.js	TS7031	Binding element 'items' implicitly has an 'any' type.
-1	app/context-menu.js	TS7031	Binding element 'x' implicitly has an 'any' type.
-1	app/context-menu.js	TS7031	Binding element 'y' implicitly has an 'any' type.
-1	app/context-menu.js	TS7034	Variable 'pressTimer' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/core.js	TS2339	Property 'order' does not exist on type '{...}'.
 1	app/core.js	TS7006	Parameter 'alwaysShow' implicitly has an 'any' type.
 1	app/core.js	TS7006	Parameter 'c' implicitly has an 'any' type.

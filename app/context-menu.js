@@ -7,6 +7,11 @@ import { findCatalogUpdate, openCatalogUpdateModal } from './places-list.js';
 import { focusHash } from './router.js';
 import { popoverHost } from './modal.js';
 
+/** @typedef {import('./core.js').Place} Place */
+/** @typedef {import('./core.js').ManifestRoute} ManifestRoute */
+/** @typedef {import('./map/route-layer.js').LeafletMap} LeafletMap */
+/** A menu entry, or `null` for a divider. @typedef {{ label: string, onClick: () => void, danger?: boolean } | null} ContextMenuItem */
+
 // Generic floating context menu. Pass `items` as an array of
 // { label, onClick, danger? } objects, or `null` to insert a divider.
 // Auto-closes on click outside, Escape, scroll, or window blur.
@@ -18,6 +23,7 @@ function closeContextMenu() {
   if (_ctxMenuEl) { _ctxMenuEl.remove(); _ctxMenuEl = null; }
   _ctxTeardown();
 }
+/** @param {string} type @param {string} slug */
 function copyShareLink(type, slug) {
   const url = location.origin + location.pathname + focusHash(type, slug);
   const fallback = () => prompt('Copy this link:', url);
@@ -29,7 +35,9 @@ function copyShareLink(type, slug) {
 }
 
 // Place pin right-click on the home map.
+/** @param {Place} place @param {MouseEvent} oe @param {LeafletMap} map */
 export function openMapPlaceContextMenu(place, oe, map) {
+  /** @type {ContextMenuItem[]} */
   const items = [];
   items.push({ label: 'Open', onClick: function() {
     openPlacePopup(map, place);
@@ -57,7 +65,9 @@ export function openMapPlaceContextMenu(place, oe, map) {
 // Route polyline right-click on the home map. regionName is the route's
 // region as a plain string ('' for no-region); routeLayers records carry
 // region as the name, not the manifest region object.
+/** @param {ManifestRoute} route @param {string} regionName @param {MouseEvent} oe @param {LeafletMap} map */
 export function openMapRouteContextMenu(route, regionName, oe, map) {
+  /** @type {ContextMenuItem[]} */
   const items = [];
   const slug = route._slug || route.key;
   items.push({ label: 'Open', onClick: function() { location.hash = '#/routes/route/' + encodeURIComponent(route.key); } });
@@ -77,6 +87,7 @@ export function openMapRouteContextMenu(route, regionName, oe, map) {
   openContextMenu({ x: oe.clientX, y: oe.clientY, items });
 }
 
+/** @param {{ x: number, y: number, items: ContextMenuItem[] }} opts */
 function openContextMenu({ x, y, items }) {
   closeContextMenu();
   const menu = document.createElement('div');
@@ -119,11 +130,13 @@ function openContextMenu({ x, y, items }) {
     window.addEventListener('blur', closeContextMenu);
   }, 0);
 }
+/** @param {Event} e */
 function _ctxOutsideClick(e) {
   if (!_ctxMenuEl) return;
-  if (_ctxMenuEl.contains(e.target)) return;
+  if (_ctxMenuEl.contains(/** @type {Node | null} */ (e.target))) return;
   closeContextMenu();
 }
+/** @param {KeyboardEvent} e */
 function _ctxKey(e) {
   if (e.key === 'Escape') closeContextMenu();
 }
@@ -137,6 +150,10 @@ function _ctxTeardown() {
 
 // Wire contextmenu (desktop right-click) and long-press (touch) on an
 // element to invoke `buildItems(event)` and open a context menu.
+/**
+ * @param {HTMLElement} el
+ * @param {(e: MouseEvent | TouchEvent) => ContextMenuItem[] | null | undefined} buildItems
+ */
 export function attachContextMenu(el, buildItems) {
   el.addEventListener('contextmenu', function(e) {
     e.preventDefault();
@@ -144,6 +161,7 @@ export function attachContextMenu(el, buildItems) {
     if (items && items.length) openContextMenu({ x: e.clientX, y: e.clientY, items });
   });
   // Touch long-press (~400ms). Suppress the click that follows.
+  /** @type {ReturnType<typeof setTimeout> | null} */
   let pressTimer = null;
   let pressX = 0, pressY = 0;
   let firedLongPress = false;
