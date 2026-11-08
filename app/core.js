@@ -160,6 +160,9 @@ export const state = {
   _countryRenderer: /** @type {any} */ (null),
   _detailRenderer: /** @type {any} */ (null),
   _detailPolylines: /** @type {any[] | null} */ (null),
+  // Set by route-detail.js for the open route's map.
+  _currentMapResizeObserver: /** @type {ResizeObserver | null} */ (null),
+  _lastTrailBounds: /** @type {any} */ (null),
   // Highlight animation: undefined _hlFrom/_hlTo mean "follow the selection".
   _hlFrom: /** @type {string | null | undefined} */ (undefined),
   _hlTo: /** @type {string | null | undefined} */ (undefined),
