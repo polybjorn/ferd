@@ -58,32 +58,6 @@
 2	app/core.js	TS7018	Object literal's property 'tags' implicitly has an 'any[]' type.
 5	app/core.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
 14	app/core.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
-5	app/countries.js	TS2339	Property '_countryData' does not exist on type '{...}'.
-5	app/countries.js	TS2339	Property '_countryPick' does not exist on type '{...}'.
-4	app/countries.js	TS7005	Variable 'rows' implicitly has an 'any[]' type.
-1	app/countries.js	TS7006	Parameter 'a' implicitly has an 'any' type.
-1	app/countries.js	TS7006	Parameter 'b' implicitly has an 'any' type.
-2	app/countries.js	TS7006	Parameter 'browse' implicitly has an 'any' type.
-4	app/countries.js	TS7006	Parameter 'c' implicitly has an 'any' type.
-1	app/countries.js	TS7006	Parameter 'code' implicitly has an 'any' type.
-2	app/countries.js	TS7006	Parameter 'countries' implicitly has an 'any' type.
-4	app/countries.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/countries.js	TS7006	Parameter 'err' implicitly has an 'any' type.
-1	app/countries.js	TS7006	Parameter 'f' implicitly has an 'any' type.
-3	app/countries.js	TS7006	Parameter 'i' implicitly has an 'any' type.
-1	app/countries.js	TS7006	Parameter 'id' implicitly has an 'any' type.
-1	app/countries.js	TS7006	Parameter 'input' implicitly has an 'any' type.
-2	app/countries.js	TS7006	Parameter 'name' implicitly has an 'any' type.
-3	app/countries.js	TS7006	Parameter 'names' implicitly has an 'any' type.
-1	app/countries.js	TS7006	Parameter 'p' implicitly has an 'any' type.
-1	app/countries.js	TS7006	Parameter 'pick' implicitly has an 'any' type.
-1	app/countries.js	TS7006	Parameter 'query' implicitly has an 'any' type.
-1	app/countries.js	TS7006	Parameter 'r' implicitly has an 'any' type.
-1	app/countries.js	TS7006	Parameter 'typed' implicitly has an 'any' type.
-1	app/countries.js	TS7006	Parameter 'value' implicitly has an 'any' type.
-1	app/countries.js	TS7031	Binding element 'countries' implicitly has an 'any' type.
-1	app/countries.js	TS7031	Binding element 'names' implicitly has an 'any' type.
-1	app/countries.js	TS7034	Variable 'rows' implicitly has type 'any[]' in some locations where its type cannot be determined.
 1	app/history.js	TS7006	Parameter 'canvas' implicitly has an 'any' type.
 1	app/history.js	TS7006	Parameter 'name' implicitly has an 'any' type.
 2	app/history.js	TS7006	Parameter 'parent' implicitly has an 'any' type.
@@ -121,10 +95,7 @@
 1	app/map/area-layer.js	TS7053	Element implicitly has an 'any' type because expression of type '""' can't be used to index type '{...}'.
 1	app/map/area-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
 2	app/map/country-layer.js	TS2339	Property '_countryGroup' does not exist on type '{...}'.
-1	app/map/country-layer.js	TS7006	Parameter 'err' implicitly has an 'any' type.
 1	app/map/country-layer.js	TS7006	Parameter 'f' implicitly has an 'any' type.
-1	app/map/country-layer.js	TS7031	Binding element 'names' implicitly has an 'any' type.
-1	app/map/country-layer.js	TS7031	Binding element 'shapes' implicitly has an 'any' type.
 2	app/map/home-map.js	TS2339	Property '_navByHash' does not exist on type '{...}'.
 2	app/map/home-map.js	TS7005	Variable '_routeEvalTimer' implicitly has an 'any' type.
 1	app/map/home-map.js	TS7005	Variable 'found' implicitly has an 'any' type.
