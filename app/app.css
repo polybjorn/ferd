@@ -1274,7 +1274,9 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   gap: var(--ui-space-2);
   color: var(--text);
 }
-.map-search-result:hover { background: var(--surface2); }
+/* active is the row the arrow keys have reached. */
+.map-search-result:hover,
+.map-search-result.active { background: var(--surface2); }
 .map-search-result .result-dot,
 .map-search-result .result-line {
   flex-shrink: 0;
@@ -1324,7 +1326,8 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 .map-search-head .map-search-field { flex: 1; }
 /* The dialog body's padding is the gap above the list. */
-.map-search-list > :is(.map-search-heading, .map-search-heading-row):first-child { margin-top: 0; }
+.map-search-list > :is(.map-search-heading, .map-search-heading-row):first-child,
+.map-search-list > :first-child > :first-child > .map-search-heading:first-child { margin-top: 0; }
 .map-search-heading-row {
   display: flex;
   align-items: center;
