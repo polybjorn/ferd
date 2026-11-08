@@ -1,4 +1,4 @@
-/* ui.css 1.9.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.10.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -37,7 +37,12 @@
                   has to stand out against its surface and a frame does not.
                   The bottom bar draws its top edge with it too
         sheet     --ui-sheet-width caps a sheet on a wide screen, and
-                  --ui-radius-xl rounds its top corners
+                  --ui-radius-xl rounds its top corners. --ui-corner-gap is
+                  how far a sheet's or full-screen view's actions sit from the
+                  screen's side and bottom edges, clear of a rounded display
+                  corner; it is in px and stays off the spacing scale, since a
+                  display corner does not shrink with a denser app. A host's
+                  own last row in either reads it too
         bar       --ui-bottom-bar-height, --ui-bottom-bar-display; the bar
                   shows while --ui-bottom-bar-display is flex, so a host sets
                   it to none in its own media query wherever the bar should
@@ -123,6 +128,7 @@
     --ui-backdrop: rgb(0 0 0 / 50%);
     --ui-shadow: 0 10px 40px rgb(0 0 0 / 30%);
     --ui-sheet-width: 40rem;
+    --ui-corner-gap: 24px;
 
     --ui-bottom-bar-height: 3.5rem;
     --ui-bottom-bar-display: flex;
@@ -601,6 +607,16 @@
     border: 0;
     border-radius: 0;
     box-shadow: none;
+  }
+  /* A display corner curves over roughly the last 40 to 50px of each edge,
+     and the actions row sits on the bottom edge, so its outer buttons move
+     inside the curve. The safe-area inset counts toward the gap below: it is
+     0 in a page without viewport-fit=cover, and Android reports no inset for
+     its corners at all. */
+  :is(.ui-dialog-sheet, .ui-dialog-fullscreen) .ui-dialog-actions {
+    padding-inline: var(--ui-corner-gap);
+    padding-block-end: max(var(--ui-space-3),
+      calc(var(--ui-corner-gap) - env(safe-area-inset-bottom, 0px)));
   }
 
   /* min-inline-size: 0 because the items' labels never wrap, and without it
