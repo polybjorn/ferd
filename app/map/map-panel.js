@@ -35,7 +35,8 @@ export function wirePopover(btn, pop) {
 // count on the button, per-select change handlers that write into
 // filters[keyById[id]], the search box, and a Clear button that resets every
 // select + the search. onApply re-renders the list after any change/clear.
-// Shared by the Places, Routes, and History list pages.
+// Shared by the Places, Routes, and History list pages. Returns the cleanup
+// from wirePopover, which a page that unmounts must call.
 export function wireFilterPopover(opts) {
   const { btn, pop, clear, sels, keyById, filters, searchInput, searchKey, onApply, tagOptions, tagsKey, tagMsBtn } = opts;
   function tagsActive() { return !!(tagsKey && filters[tagsKey] && filters[tagsKey].length); }
@@ -69,7 +70,7 @@ export function wireFilterPopover(opts) {
     if (_selPopover) { closeSelectPopover(); return; }
     openMultiSelectList(tagMsBtn, tagOptions, () => filters[tagsKey] || [], function(arr) { filters[tagsKey] = arr; apply(); });
   });
-  wirePopover(btn, pop);
+  const cleanup = wirePopover(btn, pop);
   if (clear) clear.addEventListener('click', function() {
     const hasSearch = searchInput && searchInput.value !== '';
     const hasFilter = sels.some(s => s.value !== 'all') || tagsActive();
@@ -81,6 +82,7 @@ export function wireFilterPopover(opts) {
     apply();
   });
   updateLabel();
+  return cleanup;
 }
 
 function panelTabsHtml() {
