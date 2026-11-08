@@ -33,6 +33,9 @@ test('t fills slots and picks the plural by count', async () => {
   assert.equal(t('common.failed', { message: 'x' }), 'Failed: x');
   assert.equal(t('regions.clearWarning', { count: 1 }), '1 route will lose its region');
   assert.equal(t('regions.clearWarning', { count: 2 }), '2 routes will lose their region');
+  assert.equal(t('areas.placesStat', { count: 1, done: 0 }), '1 place, 0 visited');
+  assert.equal(t('areas.placesStat', { count: 14, done: 9 }), '14 places, 9 visited');
+  assert.equal(t('areas.routesStat', { count: 1, done: 0 }), '1 route, 0 completed');
   assert.equal(t('no.such.key'), 'no.such.key');
   assert.deepEqual(tx('categories.slugPreview', { slug: 'S' }), ['Will be saved as slug ', 'S', '.']);
 });

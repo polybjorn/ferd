@@ -540,6 +540,10 @@ const STRINGS = {
 
   'areas.filter': 'Filter areas…',
   'areas.empty': 'No areas yet.',
+  'areas.placesStat.one': '{count} place, {done} visited',
+  'areas.placesStat.other': '{count} places, {done} visited',
+  'areas.routesStat.one': '{count} route, {done} completed',
+  'areas.routesStat.other': '{count} routes, {done} completed',
 
   'history.title': 'History',
   'history.loading': 'Loading history…',
