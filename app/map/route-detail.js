@@ -18,6 +18,7 @@ import { EXTERNAL_ICON_SVG } from './map-popups.js';
 import { DIFFICULTY_LABELS, findRouteByKey, openEditTrailMetadataModal, ratingStarsText, routeIsMoving } from '../routes/route-meta.js';
 import { getTrailWeightFactor } from '../theme.js';
 import { wrappedRouter } from '../router.js';
+import { t } from '../i18n.js';
 import { routes } from '../store.js';
 import { html as vhtml, mountExtra, useEffect, useRef } from '../view.js';
 
@@ -792,8 +793,8 @@ function RouteMeta({ routeKey }) {
   return vhtml`<div class="route-meta-panel">
     <div class="route-meta-header">
       <div class="route-meta-line">${facts.map((f, i) => vhtml`${i > 0 && vhtml`<span class="sep">\u00b7</span>`}${f}`)}</div>
-      ${tagsOn && vhtml`<div class="route-meta-tags">${/** @type {string[]} */ (route.tags).map((/** @type {string} */ t) => vhtml`<span class="tag" key=${t}>${'#' + t}</span>`)}</div>`}
+      ${tagsOn && vhtml`<div class="route-meta-tags">${/** @type {string[]} */ (route.tags).map((/** @type {string} */ tag) => vhtml`<span class="tag" key=${tag}>${'#' + tag}</span>`)}</div>`}
     </div>
-    ${notes && vhtml`<div class="route-meta-notes"><span class="route-meta-notes-label">Notes</span>${route.notes}</div>`}
+    ${notes && vhtml`<div class="route-meta-notes"><span class="route-meta-notes-label">${t('routeDetail.notes')}</span>${route.notes}</div>`}
   </div>`;
 }

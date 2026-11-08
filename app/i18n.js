@@ -583,6 +583,8 @@ const STRINGS = {
   'map.overlayOpacity': '{name} opacity',
   'map.pickCoords': 'Click on the map to set coordinates (or click here to cancel)',
   'countries.noMatch': 'No matching country',
+
+  'routeDetail.notes': 'Notes',
 };
 
 // Splits a template at its {name} slots, so a slot can hold a vnode as well
