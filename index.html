@@ -7,23 +7,17 @@
   <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
   <link rel="manifest" href="/icons/manifest.webmanifest">
   <meta name="theme-color" content="#6aaeee">
+  <!-- The app version, swapped in by the static handler at serve time so the
+       frontend knows it without /api/state (local-only mode). Left as the
+       placeholder when served without the API. -->
+  <meta name="ferd-version" content="__FERD_APP_VERSION__">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Ferd">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="/app/app.css?v=__FERD_CACHE_VERSION__">
   <link rel="stylesheet" href="/ui.css?v=__FERD_CACHE_VERSION__">
-  <script>
-    // Modules run after first paint, so the saved theme goes on here or the
-    // page shows the default one first.
-    try {
-      const root = document.documentElement;
-      const mode = localStorage.getItem('mode') || 'system';
-      root.dataset.theme = localStorage.getItem('theme') || 'nord';
-      root.dataset.mode = mode !== 'system' ? mode
-        : matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    } catch {}
-  </script>
+  <script src="/theme-init.js?v=__FERD_CACHE_VERSION__"></script>
   <!-- Firefox ignores an import map that comes after a module preload. -->
   <script type="importmap">
     { "imports": { "preact": "/vendor/preact/preact.js", "preact/hooks": "/vendor/preact/hooks.js", "htm": "/vendor/htm/htm.js", "@preact/signals": "/vendor/signals/signals.js", "@preact/signals-core": "/vendor/signals/signals-core.js" } }
@@ -113,9 +107,7 @@
     <h1>Update your browser to use Ferd</h1>
     <p>Ferd needs Chrome 99 or a newer browser. On Android, update Android System WebView and Chrome from the Play Store, then reopen Ferd.</p>
   </div>
-  <script>
-    if (!('CSSLayerBlockRule' in window)) document.getElementById('webview-notice').hidden = false;
-  </script>
+  <script src="/webview-check.js?v=__FERD_CACHE_VERSION__"></script>
   <nav class="app-nav">
     <span class="nav-brand">
       <a href="#/" id="nav-home"><span id="nav-brand-text">Ferd</span></a><span id="nav-crumb"></span>
@@ -159,14 +151,6 @@
   <script src="/vendor/supercluster/supercluster.min.js"></script>
   <script src="/vendor/leaflet-gpx/gpx.js"></script>
   <script src="/vendor/leaflet-elevation/leaflet-elevation.js"></script>
-  <script>
-    // App version baked in by the static handler at serve time (mirrors the
-    // sw.js CACHE_VERSION substitution), so the frontend can report its own
-    // version without /api/state - e.g. in local-only mode. Left as the literal
-    // placeholder when served without the API; the Android shell uses its own
-    // FerdAndroid.appVersion() instead.
-    const FERD_BAKED_VERSION = '__FERD_APP_VERSION__';
-  </script>
   <script src="/ui.js?v=__FERD_CACHE_VERSION__" defer></script>
   <script type="module" src="/app/main.js"></script>
 </body>

@@ -85,7 +85,7 @@ kotlin {
   }
 }
 
-// Copy the served frontend (../index.html, ../ui.css, ../ui.js, ../app, ../sw.js, ../vendor, ../icons) into a
+// Copy the served frontend (../index.html, ../ui.css, ../ui.js, ../theme-init.js, ../webview-check.js, ../app, ../sw.js, ../vendor, ../icons) into a
 // generated assets dir, mapped to the WebView's app origin root at runtime.
 abstract class CopyWebAssets @Inject constructor(
   private val fs: FileSystemOperations,
@@ -97,7 +97,7 @@ abstract class CopyWebAssets @Inject constructor(
   @get:PathSensitive(PathSensitivity.RELATIVE)
   val webSources: FileCollection
     get() = repoRoot.get().asFileTree.matching {
-      include("index.html", "ui.css", "ui.js", "app/**", "sw.js", "catalog.json", "vendor/**", "icons/**")
+      include("index.html", "ui.css", "ui.js", "theme-init.js", "webview-check.js", "app/**", "sw.js", "catalog.json", "vendor/**", "icons/**")
     }
 
   @get:OutputDirectory

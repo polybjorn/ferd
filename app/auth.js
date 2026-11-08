@@ -189,7 +189,11 @@ function confirmLeaveLocal() {
 }
 
 export function openAboutModal() {
-  const baked = FERD_BAKED_VERSION.indexOf('__FERD') === 0 ? '' : FERD_BAKED_VERSION;
+  // index.html's ferd-version meta, filled in by the static handler; still the
+  // placeholder when served without the API.
+  const meta = /** @type {HTMLMetaElement | null} */ (document.querySelector('meta[name="ferd-version"]'));
+  const metaVersion = meta ? meta.content : '';
+  const baked = metaVersion.indexOf('__FERD') === 0 ? '' : metaVersion;
   const version = state.auth.version || baked || 'unknown';
   // In the Android shell the bundled build version (e.g. "1.0.1-dev+177")
   // is the relevant one; split it into a clean version + a muted build line.

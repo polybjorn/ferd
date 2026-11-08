@@ -132,6 +132,18 @@ export function findCatalogUpdate(place) {
   return changes.length ? { entry, changes } : null;
 }
 
+// A diff image that fails to load is swapped for its URL. error does not
+// bubble, so this listens in the capture phase; an inline onerror would need
+// 'unsafe-inline' in the CSP.
+document.addEventListener('error', e => {
+  const img = e.target;
+  if (!(img instanceof HTMLImageElement) || !img.classList.contains('catalog-diff-image')) return;
+  const span = document.createElement('span');
+  span.textContent = img.title;
+  span.style.cssText = 'color:var(--muted);font-size:var(--ui-text-xs);word-break:break-all';
+  img.replaceWith(span);
+}, true);
+
 /**
  * @param {any} v
  * @param {string} field
@@ -146,7 +158,7 @@ function formatCatalogDiffValue(v, field, focus) {
       : '';
     return '<img class="catalog-diff-image" src="' + escapeHtml(url) + '"' + focusAttr +
       ' alt="" loading="lazy" referrerpolicy="no-referrer" title="' + escapeHtml(url) +
-      '" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{textContent:this.title,style:\'color:var(--muted);font-size:var(--ui-text-xs);word-break:break-all\'}))">';
+      '">';
   }
   if (Array.isArray(v)) return v.map(x => escapeHtml(String(x))).join('<br>');
   return escapeHtml(String(v));

@@ -3,7 +3,6 @@
 // which are vendored without type declarations.
 declare const L: any;
 declare const Supercluster: any;
-declare const FERD_BAKED_VERSION: string;
 
 interface FerdAndroidBridge {
   appVersion?(): string;

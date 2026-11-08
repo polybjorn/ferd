@@ -86,7 +86,11 @@ class IndexLayers(unittest.TestCase):
   def test_webview_notice(self):
     self.assertIn('<div id="webview-notice" role="alert" hidden>', INDEX)
     self.assertIn("if (!('CSSLayerBlockRule' in window)) "
-                  "document.getElementById('webview-notice').hidden = false;", INDEX)
+                  "document.getElementById('webview-notice').hidden = false;",
+                  (ROOT / "webview-check.js").read_text(encoding="utf-8"))
+    # Blocking and classic, right after the notice, so a pre-99 browser runs it.
+    self.assertIn('<script src="/webview-check.js?v=__FERD_CACHE_VERSION__"></script>', INDEX)
+    self.assertLess(INDEX.index('id="webview-notice"'), INDEX.index('src="/webview-check.js?'))
 
   def test_status_notices_are_announced(self):
     # The role sits in the shipped markup, hidden and empty, so it is in
@@ -517,3 +521,37 @@ class ModuleLists(unittest.TestCase):
     # A module left out still works, one network round trip slower per level.
     for path in sorted((ROOT / "app").rglob("*.js")):
       self.assertIn(f'<link rel="modulepreload" href="/app/{path.relative_to(ROOT / "app")}">', INDEX)
+
+
+class NoInlineScript(unittest.TestCase):
+  """A strict script-src allows only same-origin files plus the import map's hash."""
+
+  def test_only_the_import_map_is_inline(self):
+    inline = re.findall(r"<script(?![^>]*\bsrc=)([^>]*)>", INDEX)
+    self.assertEqual(inline, [' type="importmap"'])
+
+  def test_no_event_handler_attributes(self):
+    files = [ROOT / "index.html", ROOT / "ui.js", ROOT / "theme-init.js", ROOT / "webview-check.js",
+             *sorted((ROOT / "app").rglob("*.js")), *sorted((ROOT / "app").rglob("*.html"))]
+    for f in files:
+      text = f.read_text(encoding="utf-8")
+      self.assertNotRegex(text, r"""<[a-zA-Z][^<>]*\son[a-z]+\s*=\s*["'\\]""", f.name)
+
+  def test_theme_set_before_first_paint(self):
+    head = INDEX.split("</head>", 1)[0]
+    tag = '<script src="/theme-init.js?v=__FERD_CACHE_VERSION__"></script>'
+    self.assertIn(tag, head)
+    self.assertLess(head.index(tag), head.index('type="importmap"'))
+
+  def test_version_meta(self):
+    self.assertIn('<meta name="ferd-version" content="__FERD_APP_VERSION__">', INDEX)
+    self.assertNotIn("FERD_BAKED_VERSION", FRONTEND)
+
+  def test_scripts_ship_everywhere(self):
+    gradle = (ROOT / "android" / "app" / "build.gradle.kts").read_text(encoding="utf-8")
+    install = (ROOT / "deploy" / "install.sh").read_text(encoding="utf-8")
+    for name in ("theme-init.js", "webview-check.js"):
+      self.assertIn(f"'/{name}'", SW)
+      self.assertIn(f"url.pathname === '/{name}'", SW)
+      self.assertIn(f'"{name}"', gradle)
+      self.assertIn(f" {name} ", install)
