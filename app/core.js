@@ -153,6 +153,7 @@ export const state = {
   _routeGroupPlanned: null,
   _syncRoutesOnMap: /** @type {(() => void) | null} */ (null), // index-map: applies the routes signal (home-map.js)
   _areaGroup: /** @type {any} */ (null),
+  _searchDocClickBound: false, // place-layer: the outside-click dismiss is bound once
   _areaLayers: /** @type {any[] | null} */ (null), // [{ area, visited, layer }]
   // Set by the map modules: Leaflet renderers and the route highlight and GL hooks.
   _areaRenderer: /** @type {any} */ (null),
