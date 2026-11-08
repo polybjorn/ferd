@@ -15,7 +15,6 @@ const dir = path.join(__dirname, '..', '..', 'app');
 
 // Lower these as views move to t(). Never raise them, and drop a line at 0.
 const CEILINGS = {
-  'app/map/popups.js': 3,
   'app/map/route-detail.js': 1,
 };
 

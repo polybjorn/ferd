@@ -5,6 +5,7 @@ import { PlacePopup, popupElement } from './popups.js';
 import { openEditPlaceModal } from '../places/edit-place.js';
 import { getMarkerSize, getPinStyle } from '../theme.js';
 import { openConfirmModal } from '../select.js';
+import { t } from '../i18n.js';
 
 /** @typedef {import('../core.js').Place} Place */
 /** @typedef {import('../core.js').ManifestRoute} ManifestRoute */
@@ -171,7 +172,7 @@ function deletePlaceNow(place, { animate, deleted, after, onError }) {
     .then(() => { if (after) after(prevColors); })
     .catch(err => {
       if (animate) restorePlaceCard(slug);
-      (onError || function(/** @type {Error} */ e) { alert('Delete failed: ' + e.message); })(err);
+      (onError || function(/** @type {Error} */ e) { alert(t('popup.deleteFailed', { message: e.message })); })(err);
     });
 }
 
@@ -181,9 +182,9 @@ function deletePlaceNow(place, { animate, deleted, after, onError }) {
  */
 export function deletePlaceItem(place, opts) {
   return openConfirmModal({
-    title: 'Delete place',
-    body: 'Delete "' + place.name + '"? This cannot be undone.',
-    confirmLabel: 'Delete',
+    title: t('popup.deletePlaceTitle'),
+    body: t('popup.deletePlaceBody', { name: place.name }),
+    confirmLabel: t('common.delete'),
     danger: true,
   }).then(function(ok) { return ok ? deletePlaceNow(place, opts) : undefined; });
 }
@@ -195,15 +196,15 @@ export function deletePlaceItem(place, opts) {
  */
 export function deleteRouteItem(route, regionName, after) {
   return openConfirmModal({
-    title: 'Delete route',
-    body: 'Delete "' + route.name + '" (' + displayRegion(regionName) + ')? This removes the GPX file.',
-    confirmLabel: 'Delete',
+    title: t('popup.deleteRouteTitle'),
+    body: t('popup.deleteRouteBody', { name: route.name, region: displayRegion(regionName) }),
+    confirmLabel: t('common.delete'),
     danger: true,
   }).then(function(ok) {
     if (!ok) return;
     return dataLayer.deleteGpx({ region: regionName, name: route.name })
       .then(() => after())
-      .catch(err => alert('Delete failed: ' + err.message));
+      .catch(err => alert(t('popup.deleteFailed', { message: err.message })));
   });
 }
 

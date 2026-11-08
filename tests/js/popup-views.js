@@ -23,14 +23,16 @@ function styleText(v) {
 // Globals the block reads (state, getShowField and the like) come in
 // `globals`; `prelude` is more app source to run first in the same context.
 async function loadPopupViews(globals, prelude = '') {
-  const [{ h, Fragment }, { default: htm }] = await Promise.all([
+  const [{ h, Fragment }, { default: htm }, { t }] = await Promise.all([
     import(path.join(VENDOR, 'preact', 'preact.js')),
     import(path.join(VENDOR, 'htm', 'htm.js')),
+    import(path.join(__dirname, '..', '..', 'app', 'i18n.js')),
   ]);
   const m = /POPUP-VIEWS-BEGIN[^\n]*\n([\s\S]*?)\n\/\/ POPUP-VIEWS-END/.exec(app);
   if (!m) throw new Error('POPUP-VIEWS markers not found in app/');
   const ctx = Object.assign({
     html: htm.bind(h),
+    t,
     useState: init => [init, () => {}],
     useEffect: () => {},
   }, globals);
