@@ -8,21 +8,6 @@
 1	app/backup.js	TS7006	Parameter 'bytes' implicitly has an 'any' type.
 1	app/backup.js	TS7006	Parameter 'files' implicitly has an 'any' type.
 2	app/backup.js	TS7006	Parameter 'n' implicitly has an 'any' type.
-2	app/context-menu.js	TS7005	Variable 'pressTimer' implicitly has an 'any' type.
-1	app/context-menu.js	TS7006	Parameter 'buildItems' implicitly has an 'any' type.
-5	app/context-menu.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/context-menu.js	TS7006	Parameter 'el' implicitly has an 'any' type.
-2	app/context-menu.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-2	app/context-menu.js	TS7006	Parameter 'oe' implicitly has an 'any' type.
-1	app/context-menu.js	TS7006	Parameter 'place' implicitly has an 'any' type.
-1	app/context-menu.js	TS7006	Parameter 'regionName' implicitly has an 'any' type.
-1	app/context-menu.js	TS7006	Parameter 'route' implicitly has an 'any' type.
-1	app/context-menu.js	TS7006	Parameter 'slug' implicitly has an 'any' type.
-1	app/context-menu.js	TS7006	Parameter 'type' implicitly has an 'any' type.
-1	app/context-menu.js	TS7031	Binding element 'items' implicitly has an 'any' type.
-1	app/context-menu.js	TS7031	Binding element 'x' implicitly has an 'any' type.
-1	app/context-menu.js	TS7031	Binding element 'y' implicitly has an 'any' type.
-1	app/context-menu.js	TS7034	Variable 'pressTimer' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/core.js	TS2339	Property 'order' does not exist on type '{...}'.
 1	app/core.js	TS7006	Parameter 'alwaysShow' implicitly has an 'any' type.
 1	app/core.js	TS7006	Parameter 'c' implicitly has an 'any' type.
@@ -107,17 +92,6 @@
 1	app/router.js	TS7006	Parameter 'hash' implicitly has an 'any' type.
 1	app/router.js	TS7006	Parameter 'slug' implicitly has an 'any' type.
 1	app/router.js	TS7006	Parameter 'type' implicitly has an 'any' type.
-3	app/server.js	TS7005	Variable '_routeColorCache' implicitly has an 'any' type.
-1	app/server.js	TS7006	Parameter 'base' implicitly has an 'any' type.
-1	app/server.js	TS7006	Parameter 'completed' implicitly has an 'any' type.
-1	app/server.js	TS7006	Parameter 'fallback' implicitly has an 'any' type.
-2	app/server.js	TS7006	Parameter 'file' implicitly has an 'any' type.
-1	app/server.js	TS7006	Parameter 'init' implicitly has an 'any' type.
-1	app/server.js	TS7006	Parameter 'kind' implicitly has an 'any' type.
-1	app/server.js	TS7006	Parameter 'pathname' implicitly has an 'any' type.
-1	app/server.js	TS7006	Parameter 'tok' implicitly has an 'any' type.
-1	app/server.js	TS7006	Parameter 'url' implicitly has an 'any' type.
-1	app/server.js	TS7034	Variable '_routeColorCache' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/settings/logs.js	TS7006	Parameter 'beforeId' implicitly has an 'any' type.
 1	app/settings/logs.js	TS7006	Parameter 'mode' implicitly has an 'any' type.
 1	app/settings/logs.js	TS7006	Parameter 'n' implicitly has an 'any' type.
@@ -134,7 +108,6 @@
 1	app/sign-in.js	TS7006	Parameter 'msg' implicitly has an 'any' type.
 2	app/sign-in.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
 1	app/sign-in.js	TS7006	Parameter 'raw' implicitly has an 'any' type.
-1	app/sign-in.js	TS7006	Parameter 'u' implicitly has an 'any' type.
 1	app/theme.js	TS7006	Parameter 'mode' implicitly has an 'any' type.
 1	app/theme.js	TS7006	Parameter 'theme' implicitly has an 'any' type.
 1	app/theme.js	TS7006	Parameter 'v' implicitly has an 'any' type.
