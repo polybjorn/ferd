@@ -807,8 +807,8 @@ export function bindFilterPanel() {
   // Section tabs: accordion. Clicking a collapsed tab expands it and
   // collapses the other; clicking the open tab collapses everything.
   document.querySelectorAll('.panel-head').forEach(function(tab) {
-    tab.addEventListener('click', function() {
-      const section = document.getElementById(this.getAttribute('aria-controls'));
+    tab.addEventListener('click', /** @this {HTMLElement} */ function() {
+      const section = document.getElementById(/** @type {string} */ (this.getAttribute('aria-controls')));
       if (!section) return;
       const wasClosed = !section.classList.contains('open');
       document.querySelectorAll('.panel-head').forEach(t => {

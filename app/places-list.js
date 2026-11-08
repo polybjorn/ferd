@@ -288,8 +288,8 @@ export function openCatalogBulkUpdateModal() {
         applyBtn.disabled = !checks.some(c => c.checked);
       }
       backdrop.querySelectorAll('.catalog-bulk-place-toggle').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const sec = this.closest('.catalog-bulk-place');
+        btn.addEventListener('click', /** @this {HTMLElement} */ function() {
+          const sec = /** @type {Element} */ (this.closest('.catalog-bulk-place'));
           const checks = /** @type {NodeListOf<HTMLInputElement>} */ (sec.querySelectorAll('.catalog-diff-check'));
           const anyOn = Array.from(checks).some(c => c.checked);
           checks.forEach(c => { c.checked = !anyOn; });

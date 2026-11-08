@@ -66,7 +66,7 @@ export function fetchGpxText(url) {
 // call sites that still pass URLs directly.
 if (window.L && L.GPX && L.GPX.prototype && !L.GPX.prototype._parse_gpx_data._ferdPatched) {
   const orig = L.GPX.prototype._parse_gpx_data;
-  /** @param {Document | null} xml @param {any} options */
+  /** @this {unknown} @param {Document | null} xml @param {any} options */
   const patched = function(xml, options) {
     if (!xml) return null;
     return orig.call(this, xml, options);

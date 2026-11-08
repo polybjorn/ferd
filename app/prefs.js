@@ -109,7 +109,7 @@ export function loadSyncedPrefs() {
  */
 export function bindRadioPref(name, prefKey, onChange) {
   document.querySelectorAll('input[name="' + name + '"]').forEach(r => {
-    r.addEventListener('change', function() {
+    r.addEventListener('change', /** @this {HTMLInputElement} */ function() {
       if (!this.checked) return;
       setPref(prefKey, this.value);
       if (onChange) onChange(this.value);

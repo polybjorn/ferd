@@ -1,11 +1,9 @@
 {
-  // The strict flags, one at a time, held to types/tsc-strict-baseline.txt
-  // until that is empty. Add the next flag ("strict": true) only once the
-  // baseline for the current set is down to nothing, or rewrite the baseline
-  // in the same commit that adds it.
+  // Full strict mode, held to types/tsc-strict-baseline.txt. A TypeScript
+  // bump can add flags to "strict", so a bump that raises new errors
+  // rewrites the baseline in the same commit.
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "noImplicitAny": true,
-    "strictNullChecks": true
+    "strict": true
   }
 }

@@ -48,7 +48,7 @@ npx -p typescript@5.9.3 tsc -p . --pretty false > /tmp/tsc.out
 python3 scripts/typecheck.py /tmp/tsc.out            # add --update after fixing errors
 ```
 
-A second run turns the strict flags on one at a time. `tsconfig.strict.json` extends `tsconfig.json` with the flags staged so far (`noImplicitAny` first, then `strictNullChecks`, then `strict`), and its errors are held to `types/tsc-strict-baseline.txt` the same way. The next flag goes on once this baseline is empty.
+A second run checks `app/` in TypeScript's full strict mode (`tsconfig.strict.json`) and holds its errors to `types/tsc-strict-baseline.txt` the same way.
 
 ```sh
 npx -p typescript@5.9.3 tsc -p tsconfig.strict.json --pretty false > /tmp/tsc-strict.out

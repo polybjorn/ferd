@@ -316,7 +316,7 @@ export function mapScheduler(map) {
     cancelFrame: function (id) { frames.delete(id); cancelAnimationFrame(id); },
     /** @param {Function} fn */
     live: function (fn) {
-      return function () { if (!removed) return fn.apply(this, arguments); };
+      return /** @this {unknown} */ function () { if (!removed) return fn.apply(this, arguments); };
     },
   };
 }

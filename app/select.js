@@ -53,7 +53,7 @@ export function enhanceSelectsIn(container) {
   // which doubles as the closed-state label. Hide it from the open list so
   // it isn't offered as a pickable value (reset a filter via "Clear
   // filters"); keep it selected so it still shows as the closed label.
-  container.querySelectorAll('.filter-popover select').forEach(function(/** @type {HTMLSelectElement} */ s) {
+  /** @type {NodeListOf<HTMLSelectElement>} */ (container.querySelectorAll('.filter-popover select')).forEach(function(s) {
     const first = s.options[0];
     if (first && first.value === 'all') {
       first.hidden = true;

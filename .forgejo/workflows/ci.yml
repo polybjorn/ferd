@@ -74,8 +74,8 @@ jobs:
           out="${RUNNER_TEMP:-/tmp}/tsc.out"
           npx --yes -p typescript@5.9.3 tsc -p . --pretty false > "$out" || true
           python3 scripts/typecheck.py "$out"
-      # The strict flags, staged in tsconfig.strict.json, against their own
-      # baseline. The next flag goes on once types/tsc-strict-baseline.txt is empty.
+      # Full strict mode from tsconfig.strict.json, against its own baseline in
+      # types/tsc-strict-baseline.txt.
       - name: Type-check the frontend, strict
         run: |
           out="${RUNNER_TEMP:-/tmp}/tsc-strict.out"
