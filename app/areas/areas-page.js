@@ -1,7 +1,7 @@
 import { displayCategory, manifestRoutes, setActiveTab, setCrumb, state } from '../core.js';
 import { isReadOnly } from '../server.js';
 import { areas, labels, places, routes } from '../store.js';
-import { areaStatText, placesInArea } from '../area-geo.js';
+import { placesInArea } from '../area-geo.js';
 import { cleanupMap, routesInArea, showResultOnMap } from '../map/index.js';
 import { routesEnabled, setPref } from '../prefs.js';
 import { groupAndSort } from '../places-list.js';
@@ -87,8 +87,8 @@ function AreasPage() {
       // Only what the area holds: a list of "No places. No routes" says
       // less than the bare names.
       note: [
-        inside.length ? areaStatText(inside.length, 'place', placesDone, 'visited') : '',
-        withRoutes && rc && rc.count ? areaStatText(rc.count, 'route', rc.done, 'completed') : '',
+        inside.length ? t('areas.placesStat', { count: inside.length, done: placesDone }) : '',
+        withRoutes && rc && rc.count ? t('areas.routesStat', { count: rc.count, done: rc.done }) : '',
       ].filter(Boolean).join('. '),
     };
   });

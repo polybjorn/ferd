@@ -24,10 +24,9 @@ test('the shell loads offline and an offline edit syncs on reconnect', async ({ 
   const name = 'E2E offline place';
   const errors = /** @type {string[]} */ ([]);
   // WebKit raises a page error for each request the worker cannot answer
-  // offline: tiles never viewed before (docs/pwa.md says those need network)
-  // and, since app/main.js calls reg.update() without handling the
-  // rejection, the worker's own script. Neither is the target under test.
-  const expected = /Response served by service worker is an error|Cannot load \.|sw\.js load failed/;
+  // offline: tiles never viewed before (docs/pwa.md says those need network).
+  // That is not the target under test.
+  const expected = /Response served by service worker is an error|Cannot load \./;
   page.on('pageerror', err => {
     if (!expected.test(err.message)) errors.push(`page error: ${err.message}`);
   });

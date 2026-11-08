@@ -5,6 +5,8 @@ import { closeTransientOverlays } from './map-actions.js';
 import { initUnifiedSearch } from './place-layer.js';
 import { _selPopover, closeSelectPopover, openMultiSelectList } from '../select.js';
 import { wrappedRouter } from '../router.js';
+import { html, renderFresh } from '../view.js';
+import { t } from '../i18n.js';
 
 /** @typedef {import('./route-layer.js').LeafletMap} LeafletMap */
 /** @typedef {Record<string, any>} FilterState */
@@ -72,7 +74,7 @@ export function wireFilterPopover(opts) {
   function syncTagLabel() {
     if (!tagMsBtn) return;
     const sel = (tagsKey && filters[tagsKey]) || [];
-    tagMsBtn.textContent = sel.length ? sel.join(', ') : 'Tags';
+    tagMsBtn.textContent = sel.length ? sel.join(', ') : t('lists.tags');
     tagMsBtn.classList.toggle('filter-active', sel.length > 0);
   }
   function updateLabel() {
@@ -114,38 +116,36 @@ export function wireFilterPopover(opts) {
   return cleanup;
 }
 
-function panelTabsHtml() {
-  const chevron = '<span class="section-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>';
-  /** @param {string} id @param {string} label */
-  const head = (id, label) => '<button type="button" class="ui-button ui-button-quiet panel-head" aria-expanded="false" aria-controls="' + id + '-section">' + label + chevron + '</button>';
-  let h = '<div class="panel-heads">';
-  if (placesEnabled()) h += head('places', 'Places');
-  if (routesEnabled()) h += head('routes', 'Routes');
-  h += '</div>';
-  return h;
-}
+const chevron = () => html`<span class="section-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>`;
+const clearIcon = () => html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
+
+/** @param {string} id @param {string} label */
+const panelHead = (id, label) =>
+  html`<button type="button" class="ui-button ui-button-quiet panel-head" aria-expanded="false" aria-controls=${id + '-section'}>${label}${chevron()}</button>`;
 
 /** @param {string} id */
-function panelBodyHtml(id) {
-  return '<div class="ui-collapse" id="' + id + '-section">' +
-    '<div class="ui-collapse-body"><div class="panel-section-body" id="' + id + '-body"></div></div>' +
-    '</div>';
-}
+const panelBody = id =>
+  html`<div class="ui-collapse" id=${id + '-section'}><div class="ui-collapse-body"><div class="panel-section-body" id=${id + '-body'}></div></div></div>`;
 
-// Full inner markup of the filter panel. Used both when the control is
-// first added and when a feature is toggled (which adds/removes a tab).
-export function panelInnerHtml() {
-  return '<div class="panel-search" id="map-search">' +
-    '<div class="ui-field"><form class="ui-search" method="dialog">' +
-      '<input type="search" id="map-search-input" aria-label="Search" placeholder="Search..." autocomplete="off">' +
-      '<button class="ui-button ui-button-quiet ui-search-clear" type="reset" aria-label="Clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>' +
-    '</form></div>' +
-    '<div class="map-search-results" id="map-search-results" role="listbox" aria-label="Results"></div>' +
-    '</div>' +
-    (placesEnabled() ? panelBodyHtml('places') : '') +
-    (routesEnabled() ? panelBodyHtml('routes') : '') +
-    '<div class="legend-status panel-status" id="panel-status"></div>' +
-    panelTabsHtml();
+// The filter panel's markup. The section bodies and the status row stay
+// empty here: refreshFilterPanel fills them, and bindFilterPanel opens and
+// closes the sections in place. Rendered fresh when the control is first
+// added and when a feature is toggled (which adds or removes a tab).
+export function MapPanel() {
+  return html`<div class="panel-search" id="map-search">
+      <div class="ui-field"><form class="ui-search" method="dialog">
+        <input type="search" id="map-search-input" aria-label=${t('mapSearch.label')} placeholder=${t('mapSearch.placeholder')} autocomplete="off" />
+        <button class="ui-button ui-button-quiet ui-search-clear" type="reset" aria-label=${t('mapSearch.clear')}>${clearIcon()}</button>
+      </form></div>
+      <div class="map-search-results" id="map-search-results" role="listbox" aria-label=${t('mapSearch.results')}></div>
+    </div>
+    ${placesEnabled() ? panelBody('places') : null}
+    ${routesEnabled() ? panelBody('routes') : null}
+    <div class="legend-status panel-status" id="panel-status"></div>
+    <div class="panel-heads">
+      ${placesEnabled() ? panelHead('places', t('mapFilter.places')) : null}
+      ${routesEnabled() ? panelHead('routes', t('mapFilter.routes')) : null}
+    </div>`;
 }
 
 // A credit across a phone's map covers more than it needs to. OpenStreetMap's
@@ -161,7 +161,7 @@ export function collapseCreditOnPhone(map) {
   const toggle = L.DomUtil.create('button', 'leaflet-control map-credit-toggle', credit.parentElement);
   toggle.type = 'button';
   toggle.textContent = 'i';
-  toggle.setAttribute('aria-label', 'Map credits');
+  toggle.setAttribute('aria-label', t('mapFilter.credits'));
   L.DomEvent.disableClickPropagation(toggle);
   const collapse = function() {
     clearTimeout(timer);
@@ -193,7 +193,7 @@ export function rebuildMapFilterPanel() {
   div.style.display = on ? '' : 'none';
   if (buttons) buttons.style.display = on ? '' : 'none';
   if (!on) return;
-  div.innerHTML = panelInnerHtml();
+  renderFresh(html`<${MapPanel} />`, div);
   bindFilterPanel();
   refreshFilterPanel();
   if (state.currentMap) initUnifiedSearch(state.currentMap);

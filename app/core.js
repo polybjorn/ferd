@@ -430,9 +430,14 @@ const BAR_ITEM = /** @type {Record<string, string>} */ ({
 
 // A wide screen's Add, in the nav. A phone adds from the bar instead.
 /** @param {string} id @param {string} [title] */
-export function addButtonHtml(id, title) {
-  return '<button type="button" id="' + id + '" class="nav-action-btn nav-action-add"' +
-    (title ? ' title="' + escapeHtml(title) + '"' : '') + '>Add</button>';
+export function addButton(id, title) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.id = id;
+  btn.className = 'nav-action-btn nav-action-add';
+  if (title) btn.title = title;
+  btn.textContent = t('common.add');
+  return btn;
 }
 
 let _crumbText = '';
