@@ -235,24 +235,6 @@
 2	app/settings/logs.js	TS7031	Binding element 'local' implicitly has an 'any' type.
 1	app/settings/logs.js	TS7031	Binding element 'r' implicitly has an 'any' type.
 1	app/settings/logs.js	TS7031	Binding element 'version' implicitly has an 'any' type.
-1	app/settings/regions.js	TS7005	Variable 'renames' implicitly has an 'any[]' type.
-1	app/settings/regions.js	TS7006	Parameter 'a' implicitly has an 'any' type.
-1	app/settings/regions.js	TS7006	Parameter 'b' implicitly has an 'any' type.
-1	app/settings/regions.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/settings/regions.js	TS7006	Parameter 'from' implicitly has an 'any' type.
-1	app/settings/regions.js	TS7006	Parameter 'i' implicitly has an 'any' type.
-2	app/settings/regions.js	TS7006	Parameter 'list' implicitly has an 'any' type.
-3	app/settings/regions.js	TS7006	Parameter 'n' implicitly has an 'any' type.
-9	app/settings/regions.js	TS7006	Parameter 'r' implicitly has an 'any' type.
-1	app/settings/regions.js	TS7006	Parameter 'region' implicitly has an 'any' type.
-1	app/settings/regions.js	TS7006	Parameter 'v' implicitly has an 'any' type.
-1	app/settings/regions.js	TS7031	Binding element 'edited' implicitly has an 'any' type.
-1	app/settings/regions.js	TS7031	Binding element 'index' implicitly has an 'any' type.
-1	app/settings/regions.js	TS7031	Binding element 'onName' implicitly has an 'any' type.
-1	app/settings/regions.js	TS7031	Binding element 'onRemove' implicitly has an 'any' type.
-1	app/settings/regions.js	TS7031	Binding element 'region' implicitly has an 'any' type.
-1	app/settings/regions.js	TS7031	Binding element 'regions' implicitly has an 'any' type.
-1	app/settings/regions.js	TS7034	Variable 'renames' implicitly has type 'any[]' in some locations where its type cannot be determined.
 1	app/sign-in.js	TS2339	Property 'setup_token' does not exist on type '{...}'.
 1	app/sign-in.js	TS2339	Property 'token' does not exist on type '{...}'.
 1	app/sign-in.js	TS7006	Parameter 'includeClose' implicitly has an 'any' type.
