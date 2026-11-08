@@ -5,7 +5,7 @@ import { cleanupMap, deletePlaceItem, deleteRouteItem, fetchGpxText } from './ma
 import { getPref, getShowField, placesEnabled, routesEnabled } from './prefs.js';
 import { openEditTrailMetadataModal, ratingStarsText } from './routes/route-meta.js';
 import { openEditPlaceModal } from './places/edit-place.js';
-import { NAME_COLLATOR, findCatalogUpdate, openCatalogUpdateModal } from './places-list.js';
+import { nameCollator, findCatalogUpdate, openCatalogUpdateModal } from './places-list.js';
 import { focusHash } from './router.js';
 import { attachContextMenu } from './context-menu.js';
 import { openAddModal } from './add/add.js';
@@ -194,7 +194,7 @@ export function HistoryPage() {
     if (!groups.length || groups[groups.length - 1].label !== year) groups.push({ label: year, items: [] });
     groups[groups.length - 1].items.push(e);
   }
-  const noDate = shown.filter(e => !e.date).sort((a, b) => NAME_COLLATOR.compare(a.name, b.name));
+  const noDate = shown.filter(e => !e.date).sort((a, b) => nameCollator().compare(a.name, b.name));
   if (noDate.length) groups.push({ label: t('history.noDate'), items: noDate });
 
   const filterCount = (byKind && f.kind !== 'all' ? 1 : 0) + (f.year !== 'all' ? 1 : 0) + (f.rating !== 'all' ? 1 : 0);

@@ -9,7 +9,7 @@ import { AppError, DialogHead, html, mountPage, openViewModal, useState } from '
 import { t } from './i18n.js';
 import {
   DEFAULT_CONFIG, applyControlVisibility, catalogEnabled, getDefaultShow, getJsonListPref,
-  loadSyncedPrefs, refreshTabVisibility,
+  applyLanguage, loadSyncedPrefs, refreshTabVisibility,
 } from './prefs.js';
 import { fetchCatalog } from './places-list.js';
 import {
@@ -77,6 +77,7 @@ export function loadDataAndRender() {
   const v = state.viewer;
   return loadData().then(function(loaded) {
     loadSyncedPrefs();
+    applyLanguage();
     refreshTabVisibility();
     if (!loaded) {
       document.body.classList.remove('app-booting', 'signin-only');
@@ -204,6 +205,7 @@ function startup() {
   });
 }
 
+applyLanguage();
 bindStoreToState();
 bindMapToStore();
 startup();

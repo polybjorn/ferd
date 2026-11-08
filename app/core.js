@@ -1,6 +1,7 @@
 import { detectViewer, isReadOnly } from './server.js';
 import { dataLayer, syncSettled } from './store.js';
 import { DEFAULT_CONFIG, isImperial } from './prefs.js';
+import { language, t } from './i18n.js';
 
 // Tableau 20 categorical palette, reordered: indices 0-9 are the saturated
 // hues in hue-spread order (blue, orange, green, red, teal, purple, gold,
@@ -365,23 +366,24 @@ function persistAssignedCategoryColors(newAssignments) {
   });
 }
 
-// Thousand-separated number formatting (en-US grouping: 7,340.9 / 101,424).
+// Thousand-separated number formatting in the active language's locale
+// (7,340.9 in English, 7 340,9 in Norwegian).
 /** @param {number} n @param {number} [decimals] */
 export function grpNum(n, decimals) {
-  return n.toLocaleString('en-US', { minimumFractionDigits: decimals || 0, maximumFractionDigits: decimals || 0 });
+  return n.toLocaleString(language(), { minimumFractionDigits: decimals || 0, maximumFractionDigits: decimals || 0 });
 }
 /** @param {number} m metres */
 export function formatDistance(m) {
   if (isImperial()) {
     const mi = m / 1609.344;
-    return mi >= 0.1 ? grpNum(mi, 1) + ' mi' : grpNum(Math.round(m * 3.28084)) + ' ft';
+    return mi >= 0.1 ? t('unit.mi', { n: grpNum(mi, 1) }) : t('unit.ft', { n: grpNum(Math.round(m * 3.28084)) });
   }
-  return m >= 1000 ? grpNum(m / 1000, 1) + ' km' : grpNum(Math.round(m)) + ' m';
+  return m >= 1000 ? t('unit.km', { n: grpNum(m / 1000, 1) }) : t('unit.m', { n: grpNum(Math.round(m)) });
 }
 /** @param {number} m metres */
 export function formatElevation(m) {
-  if (isImperial()) return grpNum(Math.round(m * 3.28084)) + ' ft';
-  return grpNum(Math.round(m)) + ' m';
+  if (isImperial()) return t('unit.ft', { n: grpNum(Math.round(m * 3.28084)) });
+  return t('unit.m', { n: grpNum(Math.round(m)) });
 }
 
 // screen names a page below a view, such as one route under Routes. The
