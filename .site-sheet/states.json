@@ -16,10 +16,10 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#map-add-btn"
+        "click": "#map-add-btn:visible, #bar-add:visible"
       },
       {
         "wait": "#add-tabs"
@@ -43,10 +43,10 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#map-add-btn"
+        "click": "#map-add-btn:visible, #bar-add:visible"
       },
       {
         "wait": "#add-tabs"
@@ -76,10 +76,10 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#map-add-btn"
+        "click": "#map-add-btn:visible, #bar-add:visible"
       },
       {
         "wait": "#add-tabs"
@@ -109,10 +109,10 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#map-add-btn"
+        "click": "#map-add-btn:visible, #bar-add:visible"
       },
       {
         "wait": "#add-tabs"
@@ -142,16 +142,19 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#auth-menu-btn"
+        "click": "#auth-menu-btn:visible, #bar-you:visible"
       },
       {
-        "click": "#auth-menu [data-action=settings]"
+        "click": "#auth-menu [data-action=settings]:visible, #you-gear:visible"
       },
       {
-        "wait": ".ui-dialog h2:has-text(\"Settings\")"
+        "click": ".account-sheet [data-action=settings]:visible, #settings-tabs .active"
+      },
+      {
+        "wait": "#settings-tabs [data-tab=\"general\"].active"
       }
     ]
   },
@@ -172,16 +175,19 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#auth-menu-btn"
+        "click": "#auth-menu-btn:visible, #bar-you:visible"
       },
       {
-        "click": "#auth-menu [data-action=settings]"
+        "click": "#auth-menu [data-action=settings]:visible, #you-gear:visible"
       },
       {
-        "wait": ".ui-dialog h2:has-text(\"Settings\")"
+        "click": ".account-sheet [data-action=settings]:visible, #settings-tabs .active"
+      },
+      {
+        "wait": "#settings-tabs [data-tab=\"general\"].active"
       },
       {
         "click": "#settings-tabs [data-tab=\"appearance\"]"
@@ -208,19 +214,16 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#auth-menu-btn"
+        "click": "#auth-menu-btn:visible, #bar-you:visible"
       },
       {
-        "click": "#auth-menu [data-action=settings]"
+        "click": "#auth-menu [data-action=account]:visible, #you-gear:visible"
       },
       {
-        "wait": ".ui-dialog h2:has-text(\"Settings\")"
-      },
-      {
-        "click": "#settings-tabs [data-tab=\"account\"]"
+        "click": ".account-sheet [data-action=account]:visible, #settings-tabs .active"
       },
       {
         "wait": "#settings-tabs [data-tab=\"account\"].active"
@@ -244,16 +247,19 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#auth-menu-btn"
+        "click": "#auth-menu-btn:visible, #bar-you:visible"
       },
       {
-        "click": "#auth-menu [data-action=settings]"
+        "click": "#auth-menu [data-action=account]:visible, #you-gear:visible"
       },
       {
-        "wait": ".ui-dialog h2:has-text(\"Settings\")"
+        "click": ".account-sheet [data-action=account]:visible, #settings-tabs .active"
+      },
+      {
+        "wait": "#settings-tabs [data-tab=\"account\"].active"
       },
       {
         "click": "#settings-tabs [data-tab=\"security\"]"
@@ -280,22 +286,19 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#auth-menu-btn"
+        "click": "#auth-menu-btn:visible, #bar-you:visible"
       },
       {
-        "click": "#auth-menu [data-action=settings]"
+        "click": "#auth-menu [data-action=admin]:visible, #you-gear:visible"
       },
       {
-        "wait": ".ui-dialog h2:has-text(\"Settings\")"
+        "click": ".account-sheet [data-action=admin]:visible, .ui-dialog h2:has-text(\"Admin\")"
       },
       {
-        "click": "#settings-tabs [data-tab=\"admin\"]"
-      },
-      {
-        "wait": "#settings-tabs [data-tab=\"admin\"].active"
+        "wait": ".ui-dialog h2:has-text(\"Admin\")"
       }
     ]
   },
@@ -316,16 +319,19 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#auth-menu-btn"
+        "click": "#auth-menu-btn:visible, #bar-you:visible"
       },
       {
-        "click": "#auth-menu [data-action=settings]"
+        "click": "#auth-menu [data-action=settings]:visible, #you-gear:visible"
       },
       {
-        "wait": ".ui-dialog h2:has-text(\"Settings\")"
+        "click": ".account-sheet [data-action=settings]:visible, #settings-tabs .active"
+      },
+      {
+        "wait": "#settings-tabs [data-tab=\"general\"].active"
       },
       {
         "click": "#s-manage-cats"
@@ -352,16 +358,19 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#auth-menu-btn"
+        "click": "#auth-menu-btn:visible, #bar-you:visible"
       },
       {
-        "click": "#auth-menu [data-action=settings]"
+        "click": "#auth-menu [data-action=settings]:visible, #you-gear:visible"
       },
       {
-        "wait": ".ui-dialog h2:has-text(\"Settings\")"
+        "click": ".account-sheet [data-action=settings]:visible, #settings-tabs .active"
+      },
+      {
+        "wait": "#settings-tabs [data-tab=\"general\"].active"
       },
       {
         "click": "#s-manage-regions"
@@ -388,22 +397,19 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#auth-menu-btn"
+        "click": "#auth-menu-btn:visible, #bar-you:visible"
       },
       {
-        "click": "#auth-menu [data-action=settings]"
+        "click": "#auth-menu [data-action=admin]:visible, #you-gear:visible"
       },
       {
-        "wait": ".ui-dialog h2:has-text(\"Settings\")"
+        "click": ".account-sheet [data-action=admin]:visible, .ui-dialog h2:has-text(\"Admin\")"
       },
       {
-        "click": "#settings-tabs [data-tab=\"admin\"]"
-      },
-      {
-        "wait": "#settings-tabs [data-tab=\"admin\"].active"
+        "wait": ".ui-dialog h2:has-text(\"Admin\")"
       },
       {
         "click": "#s-catalog-manage"
@@ -430,22 +436,19 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#auth-menu-btn"
+        "click": "#auth-menu-btn:visible, #bar-you:visible"
       },
       {
-        "click": "#auth-menu [data-action=settings]"
+        "click": "#auth-menu [data-action=admin]:visible, #you-gear:visible"
       },
       {
-        "wait": ".ui-dialog h2:has-text(\"Settings\")"
+        "click": ".account-sheet [data-action=admin]:visible, .ui-dialog h2:has-text(\"Admin\")"
       },
       {
-        "click": "#settings-tabs [data-tab=\"admin\"]"
-      },
-      {
-        "wait": "#settings-tabs [data-tab=\"admin\"].active"
+        "wait": ".ui-dialog h2:has-text(\"Admin\")"
       },
       {
         "click": "#s-catalog-add"
@@ -472,16 +475,19 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#auth-menu-btn"
+        "click": "#auth-menu-btn:visible, #bar-you:visible"
       },
       {
-        "click": "#auth-menu [data-action=settings]"
+        "click": "#auth-menu [data-action=settings]:visible, #you-gear:visible"
       },
       {
-        "wait": ".ui-dialog h2:has-text(\"Settings\")"
+        "click": ".account-sheet [data-action=settings]:visible, #settings-tabs .active"
+      },
+      {
+        "wait": "#settings-tabs [data-tab=\"general\"].active"
       },
       {
         "click": "label:has(#s-feat-logs)"
@@ -490,10 +496,10 @@
         "press": "Escape"
       },
       {
-        "click": "#auth-menu-btn"
+        "click": "#auth-menu-btn:visible, #you-gear:visible"
       },
       {
-        "click": "#auth-menu [data-action=logs]"
+        "click": "#auth-menu [data-action=logs]:visible, .account-sheet [data-action=logs]:visible"
       },
       {
         "wait": ".ui-dialog h2:has-text(\"Audit log\")"
@@ -517,13 +523,16 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#auth-menu-btn"
+        "click": "#auth-menu-btn:visible, #bar-you:visible"
       },
       {
-        "click": "#auth-menu [data-action=about]"
+        "click": "#auth-menu [data-action=about]:visible, #you-gear:visible"
+      },
+      {
+        "click": ".account-sheet [data-action=about]:visible, .ui-dialog h2:has-text(\"About\")"
       },
       {
         "wait": ".ui-dialog h2:has-text(\"About\")"
@@ -547,13 +556,16 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#auth-menu-btn"
+        "click": "#auth-menu-btn:visible, #bar-you:visible"
       },
       {
-        "click": "#auth-menu [data-action=signout]"
+        "click": "#auth-menu [data-action=signout]:visible, #you-gear:visible"
+      },
+      {
+        "click": ".account-sheet [data-action=signout]:visible, .ui-dialog h2:has-text(\"Sign out?\")"
       },
       {
         "wait": ".ui-dialog h2:has-text(\"Sign out?\")"
@@ -566,7 +578,10 @@
     "label": "Sign in",
     "steps": [
       {
-        "click": "#auth-signin"
+        "click": "#auth-signin:visible, #bar-you:visible"
+      },
+      {
+        "click": "#you-signin:visible, .ui-dialog h2:has-text(\"Sign in\")"
       },
       {
         "wait": ".ui-dialog h2:has-text(\"Sign in\")"
@@ -590,13 +605,13 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#tab-places:visible, #auth-menu-btn"
+        "click": "#tab-places:visible, #bar-lists:visible"
       },
       {
-        "click": "#tab-places:visible, #auth-menu [data-action=nav-places]"
+        "click": "#tab-places:visible, .list-tab[href=\"#/places\"]:visible"
       },
       {
         "wait": ".place-card"
@@ -630,13 +645,13 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#tab-routes:visible, #auth-menu-btn"
+        "click": "#tab-routes:visible, #bar-lists:visible"
       },
       {
-        "click": "#tab-routes:visible, #auth-menu [data-action=nav-routes]"
+        "click": "#tab-routes:visible, .list-tab[href=\"#/routes\"]:visible"
       },
       {
         "wait": ".route-card"
@@ -669,10 +684,13 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "fill": "#map-search-input",
+        "click": "#map-search-input:visible, #bar-search:visible"
+      },
+      {
+        "fill": "#map-search-input:visible, #map-search-view-input:visible",
         "value": "Birch"
       },
       {
@@ -703,13 +721,13 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#tab-places:visible, #auth-menu-btn"
+        "click": "#tab-places:visible, #bar-lists:visible"
       },
       {
-        "click": "#tab-places:visible, #auth-menu [data-action=nav-places]"
+        "click": "#tab-places:visible, .list-tab[href=\"#/places\"]:visible"
       },
       {
         "wait": ".catalog-mark"
@@ -739,22 +757,25 @@
         "click": "#auth-submit"
       },
       {
-        "wait": "#auth-menu-btn"
+        "wait": "#auth-menu-btn:visible, #bar-add:visible"
       },
       {
-        "click": "#tab-places:visible, #auth-menu-btn"
+        "click": "#tab-places:visible, #bar-lists:visible"
       },
       {
-        "click": "#tab-places:visible, #auth-menu [data-action=nav-places]"
+        "click": "#tab-places:visible, .list-tab[href=\"#/places\"]:visible"
       },
       {
         "wait": ".catalog-mark"
       },
       {
-        "click": "#auth-menu-btn"
+        "click": "#catalog-update-review:visible, #bar-you:visible"
       },
       {
-        "click": "#catalog-update-review:visible, #menu-catalog-updates:visible"
+        "click": ".ui-dialog h2:has-text(\"Catalog updates\"), #you-gear:visible"
+      },
+      {
+        "click": ".account-sheet [data-action=catalog-updates]:visible, .ui-dialog h2:has-text(\"Catalog updates\")"
       },
       {
         "wait": ".ui-dialog h2:has-text(\"Catalog updates\")"
