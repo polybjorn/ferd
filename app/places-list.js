@@ -1,4 +1,16 @@
 import { escapeHtml, state } from './core.js';
+
+/** @typedef {import('./core.js').Place} Place */
+/**
+ * A catalog entry: a place plus the `_source` the server tags it with.
+ * @typedef {Place & { _source?: string }} CatalogEntry
+ */
+/**
+ * @typedef {object} CatalogChange
+ * @property {keyof Place} field
+ * @property {any} before the place's value
+ * @property {any} after the catalog's value
+ */
 import { fetchJson, hasServer } from './server.js';
 import { dataLayer } from './store.js';
 import { refreshOpenPlacePopup, redrawPlaces, refreshPlacesPresentation } from './map/index.js';
@@ -8,7 +20,9 @@ import { closeModal, openFullScreenModal } from './modal.js';
 
 // Fields the catalog "owns" - personal status (visited / date_visited /
 // rating / from_catalog / runtime annotations) is preserved on refresh.
+/** @type {(keyof Place)[]} */
 const CATALOG_TRACKED_FIELDS = ['name', 'lat', 'lon', 'category', 'country', 'local_name', 'note', 'image', 'image_focus', 'sources', 'tags'];
+/** @type {Record<string, string>} */
 const CATALOG_FIELD_LABELS = { name: 'Name', lat: 'Latitude', lon: 'Longitude', category: 'Category', country: 'Country', local_name: 'Local name', note: 'Note', image: 'Image', image_focus: 'Image focus', sources: 'Sources', tags: 'Tags' };
 
 // Returns { entry, changes: [{field, before, after}] } when the upstream
@@ -19,6 +33,10 @@ const CATALOG_FIELD_LABELS = { name: 'Name', lat: 'Latitude', lon: 'Longitude', 
 // the stored name (from_catalog); falls back to matching the catalog
 // entry's primary source against the place's own sources, so a catalog
 // rename doesn't break the link (the source URL is stable across renames).
+/**
+ * @param {Place | null | undefined} place
+ * @returns {CatalogEntry | null}
+ */
 function catalogEntryFor(place) {
   if (!place || !place.from_catalog || !Array.isArray(state._catalogCache)) return null;
   let entry = state._catalogCache.find(e => e && e.name === place.from_catalog);
@@ -33,6 +51,7 @@ function catalogEntryFor(place) {
 // An imported place whose catalog entry no longer exists (removed from the
 // catalog) - distinct from a rename, which re-links via catalogEntryFor.
 // Only meaningful once the catalog cache has loaded.
+/** @param {Place | null | undefined} place */
 export function isCatalogOrphan(place) {
   return !!(place && place.from_catalog && Array.isArray(state._catalogCache) && !catalogEntryFor(place));
 }
@@ -66,12 +85,21 @@ export function reloadCatalogCache() {
 // Catalog fields compare as equal when they differ only by surrounding
 // whitespace or by empty-vs-missing, so a cosmetic upstream edit does not
 // surface as an update.
+/**
+ * @param {unknown} v
+ * @returns {unknown}
+ */
 function catalogNorm(v) {
   if (v === undefined || v === null) return null;
   if (typeof v === 'string') return v.trim() || null;
   if (Array.isArray(v)) return v.length ? v.map(catalogNorm) : null;
   return v;
 }
+/**
+ * @param {unknown} a
+ * @param {unknown} b
+ * @returns {boolean}
+ */
 function catalogEq(a, b) {
   if (a === b) return true;
   if (a === null || b === null) return a === b;
@@ -79,12 +107,17 @@ function catalogEq(a, b) {
   return false;
 }
 
+/**
+ * @param {Place | null | undefined} place
+ * @returns {{ entry: CatalogEntry, changes: CatalogChange[] } | null}
+ */
 export function findCatalogUpdate(place) {
   if (!place || !place.from_catalog) return null;
   if (!Array.isArray(state._catalogCache)) return null;
   const entry = catalogEntryFor(place);
   if (!entry) return null;
   const skip = (place && place.catalog_skip) || {};
+  /** @type {CatalogChange[]} */
   const changes = [];
   for (const f of CATALOG_TRACKED_FIELDS) {
     const a = catalogNorm(place[f]);
@@ -99,6 +132,11 @@ export function findCatalogUpdate(place) {
   return changes.length ? { entry, changes } : null;
 }
 
+/**
+ * @param {any} v
+ * @param {string} field
+ * @param {any} [focus]
+ */
 function formatCatalogDiffValue(v, field, focus) {
   if (v === null || v === undefined || v === '') return '<em style="color:var(--muted)">(none)</em>';
   if (field === 'image') {
@@ -114,6 +152,10 @@ function formatCatalogDiffValue(v, field, focus) {
   return escapeHtml(String(v));
 }
 
+/**
+ * @param {CatalogChange[]} changes
+ * @param {{ selectable?: boolean, place?: Place, entry?: CatalogEntry }} [opts]
+ */
 function renderCatalogDiff(changes, opts) {
   const selectable = !!(opts && opts.selectable);
   // Pair image with its focus so the thumbnail previews the actual crop.
@@ -150,7 +192,15 @@ export function placesWithCatalogUpdates() {
 // `catalog_skip` so we don't re-prompt until the catalog changes again.
 // When `applyFields` is omitted, every catalog-tracked field is applied
 // (used by the bulk-refresh path).
+/**
+ * @param {Place} place
+ * @param {CatalogEntry} entry
+ * @param {CatalogChange[] | undefined} changes
+ * @param {Set<string> | undefined} [applyFields]
+ * @returns {Record<string, any>}
+ */
 function buildCatalogRefreshPayload(place, entry, changes, applyFields) {
+  /** @type {Record<string, any>} */
   const next = {};
   const applyAll = !applyFields;
   for (const f of CATALOG_TRACKED_FIELDS) {
@@ -171,10 +221,11 @@ function buildCatalogRefreshPayload(place, entry, changes, applyFields) {
   // applied (no longer needed) or where the catalog has moved away from
   // the recorded snapshot (it will surface as a fresh diff next round).
   const prevSkip = place.catalog_skip || {};
+  /** @type {Record<string, any>} */
   const nextSkip = {};
   for (const f in prevSkip) {
     if (applyAll || applyFields.has(f)) continue;
-    if (!catalogEq(catalogNorm(prevSkip[f]), catalogNorm(entry[f]))) continue;
+    if (!catalogEq(catalogNorm(prevSkip[f]), catalogNorm(entry[/** @type {keyof Place} */ (f)]))) continue;
     nextSkip[f] = prevSkip[f];
   }
   // Add new skips for the currently-shown diff fields the user kept local.
@@ -214,11 +265,13 @@ export function openCatalogBulkUpdateModal() {
       '<span class="action-spacer"></span>' +
       '<button type="button" class="ui-button ui-button-primary" id="catalog-bulk-apply" disabled>Apply</button>' +
     '</div>',
+    /** @param {HTMLDialogElement} backdrop */
     function(backdrop) {
       const list = document.getElementById('catalog-bulk-list');
       const toggleAllBtn = /** @type {HTMLButtonElement} */ (document.getElementById('catalog-bulk-toggle-all'));
       const applyBtn = /** @type {HTMLButtonElement} */ (document.getElementById('catalog-bulk-apply'));
       const allChecks = () => /** @type {HTMLInputElement[]} */ (Array.from(backdrop.querySelectorAll('.catalog-diff-check')));
+      /** @param {Element} sec */
       function syncPlaceToggle(sec) {
         const btn = sec.querySelector('.catalog-bulk-place-toggle');
         if (!btn) return;
@@ -236,7 +289,7 @@ export function openCatalogBulkUpdateModal() {
       backdrop.querySelectorAll('.catalog-bulk-place-toggle').forEach(btn => {
         btn.addEventListener('click', function() {
           const sec = this.closest('.catalog-bulk-place');
-          const checks = sec.querySelectorAll('.catalog-diff-check');
+          const checks = /** @type {NodeListOf<HTMLInputElement>} */ (sec.querySelectorAll('.catalog-diff-check'));
           const anyOn = Array.from(checks).some(c => c.checked);
           checks.forEach(c => { c.checked = !anyOn; });
           syncPlaceToggle(sec); syncActions();
@@ -262,10 +315,13 @@ export function openCatalogBulkUpdateModal() {
         const btn = this;
         // Snapshot selections so the still-open modal DOM isn't re-queried
         // per place (and ids needn't be selector-escaped).
+        /** @type {Record<string, Set<string>>} */
         const selByPlace = {};
-        backdrop.querySelectorAll('.catalog-bulk-place').forEach(sec => {
+        backdrop.querySelectorAll('.catalog-bulk-place').forEach(el => {
+          const sec = /** @type {HTMLElement} */ (el);
+          /** @type {Set<string>} */
           const set = new Set();
-          sec.querySelectorAll('.catalog-diff-check:checked').forEach(cb => set.add(cb.dataset.field));
+          /** @type {NodeListOf<HTMLInputElement>} */ (sec.querySelectorAll('.catalog-diff-check:checked')).forEach(cb => set.add(cb.dataset.field));
           selByPlace[sec.dataset.placeId] = set;
         });
         const items = pending
@@ -274,6 +330,7 @@ export function openCatalogBulkUpdateModal() {
         if (!items.length) return;
         btn.disabled = true;
         toggleAllBtn.disabled = true;
+        /** @type {string[]} */
         const errors = [];
         let i = 0;
         (function next() {
@@ -296,6 +353,7 @@ export function openCatalogBulkUpdateModal() {
   );
 }
 
+/** @param {Place} place */
 export function openCatalogUpdateModal(place) {
   const result = findCatalogUpdate(place);
   if (!result) {
@@ -316,12 +374,14 @@ export function openCatalogUpdateModal(place) {
         '<span class="lbl-alt">Apply</span>' +
       '</button>' +
     '</div>',
+    /** @param {HTMLDialogElement} backdrop */
     function(backdrop) {
       const applyBtn = /** @type {HTMLButtonElement} */ (document.getElementById('catalog-update-confirm'));
       const skipBtn = /** @type {HTMLButtonElement} */ (document.getElementById('catalog-update-skip'));
       function selectedFields() {
+        /** @type {Set<string>} */
         const set = new Set();
-        backdrop.querySelectorAll('.catalog-diff-check').forEach(cb => {
+        /** @type {NodeListOf<HTMLInputElement>} */ (backdrop.querySelectorAll('.catalog-diff-check')).forEach(cb => {
           if (cb.checked) set.add(cb.dataset.field);
         });
         return set;
@@ -334,6 +394,10 @@ export function openCatalogUpdateModal(place) {
         skipBtn.disabled = any;
       }
       backdrop.querySelectorAll('.catalog-diff-check').forEach(cb => cb.addEventListener('change', syncButtons));
+      /**
+       * @param {Set<string>} applyFields
+       * @param {HTMLButtonElement} btn
+       */
       function submit(applyFields, btn) {
         btn.disabled = true;
         dataLayer.updatePlace({ id: place.id, place: buildCatalogRefreshPayload(place, entry, changes, applyFields) })
@@ -358,6 +422,7 @@ export function openCatalogUpdateModal(place) {
 // Bucket key for "Group by letter". Keep the first character as-is for any
 // Unicode letter (no folding) so non-Latin scripts get their own buckets
 // alongside Latin ones. Non-letter starts (digits, punctuation) go in "#".
+/** @param {string | null | undefined} name */
 export function letterBucket(name) {
   const raw = (name || '').charAt(0);
   if (!raw) return '#';
@@ -367,6 +432,10 @@ export function letterBucket(name) {
 // ordering they expect (Norwegian: Æ Ø Å after Z; Swedish: Å Ä Ö; etc.).
 // "#" bucket always last.
 export const NAME_COLLATOR = new Intl.Collator(undefined, { sensitivity: 'base' });
+/**
+ * @param {string} a
+ * @param {string} b
+ */
 function compareLetterKeys(a, b) {
   if (a === '#' && b === '#') return 0;
   if (a === '#') return 1;
@@ -378,7 +447,17 @@ function compareLetterKeys(a, b) {
 // and return the bucket keys sorted. byLetter sorts keys with compareLetterKeys
 // (the "#" bucket lands last); otherwise sortKeyFn if given, else default order.
 // Shared by the Places and Routes list groupers.
+/**
+ * @template T
+ * @param {T[]} items
+ * @param {(item: T) => string} keyFn
+ * @param {(item: T) => string} nameFn
+ * @param {boolean} [byLetter]
+ * @param {((a: string, b: string) => number) | null} [sortKeyFn]
+ * @returns {{ grouped: Record<string, T[]>, keys: string[] }}
+ */
 export function groupAndSort(items, keyFn, nameFn, byLetter, sortKeyFn) {
+  /** @type {Record<string, T[]>} */
   const grouped = {};
   for (const item of items) {
     const key = keyFn(item);
