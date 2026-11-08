@@ -206,28 +206,6 @@
 4	app/settings/account.js	TS7031	Binding element 'version' implicitly has an 'any' type.
 1	app/settings/account.js	TS7034	Variable 'reloadAdminCatalog' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/settings/account.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-1	app/settings/catalog.js	TS7006	Parameter '_' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7006	Parameter 'a' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7006	Parameter 'b' implicitly has an 'any' type.
-5	app/settings/catalog.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7006	Parameter 'err' implicitly has an 'any' type.
-6	app/settings/catalog.js	TS7006	Parameter 'i' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7006	Parameter 'n' implicitly has an 'any' type.
-2	app/settings/catalog.js	TS7006	Parameter 'on' implicitly has an 'any' type.
-3	app/settings/catalog.js	TS7006	Parameter 'p' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7006	Parameter 'parts' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7006	Parameter 'picks' implicitly has an 'any' type.
-2	app/settings/catalog.js	TS7006	Parameter 'prev' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7006	Parameter 'q' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7031	Binding element 'checked' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7031	Binding element 'e' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7031	Binding element 'note' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7031	Binding element 'onChanged' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7031	Binding element 'onPick' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7031	Binding element 'p' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7031	Binding element 'places' implicitly has an 'any' type.
-2	app/settings/catalog.js	TS7031	Binding element 'shown' implicitly has an 'any' type.
-1	app/settings/catalog.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/settings/logs.js	TS7006	Parameter 'beforeId' implicitly has an 'any' type.
 1	app/settings/logs.js	TS7006	Parameter 'mode' implicitly has an 'any' type.
 1	app/settings/logs.js	TS7006	Parameter 'n' implicitly has an 'any' type.
