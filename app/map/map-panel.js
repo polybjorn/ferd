@@ -108,7 +108,7 @@ export function panelInnerHtml() {
   return '<div class="panel-search" id="map-search">' +
     '<div class="ui-field"><form class="ui-search" method="dialog">' +
       '<input type="search" id="map-search-input" aria-label="Search" placeholder="Search..." autocomplete="off">' +
-      '<button class="ui-button ui-button-quiet ui-search-clear" type="reset" aria-label="Clear">&times;</button>' +
+      '<button class="ui-button ui-button-quiet ui-search-clear" type="reset" aria-label="Clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>' +
     '</form></div>' +
     '<div class="map-search-results" id="map-search-results" role="listbox" aria-label="Results"></div>' +
     '</div>' +

@@ -248,7 +248,7 @@ export function modalHeaderHtml(title, opts) {
     ? o.tabsHtml
     : '<h2 class="ui-dialog-title">' + (o.titleHtml != null ? o.titleHtml : escapeHtml(title)) + '</h2>';
   return '<div class="ui-dialog-head">' + lead +
-    '<button type="button" class="ui-button ui-button-quiet ui-dialog-close" aria-label="Close">&times;</button>' +
+    '<button type="button" class="ui-button ui-button-quiet ui-dialog-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>' +
   '</div>';
 }
 

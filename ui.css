@@ -1,4 +1,4 @@
-/* ui.css 1.13.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.13.1: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -80,7 +80,9 @@
    element takes it. The top layer covers everything outside the dialog, so a
    popover or menu opened from a dialog must mount inside it, with
    position: fixed so the scrolling body does not clip it. A <form> that holds
-   the body and the actions can sit directly inside the dialog.
+   the body and the actions can sit directly inside the dialog. A
+   .ui-dialog-close is a .ui-button-quiet with an aria-label, holding the
+   Lucide x icon as an <svg aria-hidden="true">.
    .ui-dialog-sheet, .ui-dialog-top and .ui-dialog-fullscreen change where a
    dialog sits and
    nothing about how it opens or closes, so a host picks one per screen size
@@ -164,8 +166,9 @@
 
    Search contract: a .ui-search is a <form> inside a .ui-field that holds
    one <input type="search"> with a placeholder, then a .ui-search-clear
-   <button type="reset"> on a .ui-button-quiet with an aria-label. The reset
-   clears the field with no script, back to its value attribute, so the input
+   <button type="reset"> on a .ui-button-quiet with an aria-label, holding
+   the Lucide x icon as an <svg aria-hidden="true">. The reset clears the
+   field with no script, back to its value attribute, so the input
    carries none and a starting value is set from script. A reset fires no
    input event, and the button hides once the field is empty, so focus falls
    back to the page. ui.js covers both: the field fires input once it has
@@ -772,8 +775,6 @@
     inset-inline-end: 0;
     inline-size: var(--ui-control-height);
     padding: 0;
-    font-size: var(--ui-text-xl);
-    line-height: 1;
   }
   .ui-search-clear:focus-visible { outline-offset: calc(-1 * var(--ui-focus-width)); }
   .ui-search > input:is(:placeholder-shown, :disabled) + .ui-search-clear { display: none; }
@@ -935,14 +936,18 @@
     font-weight: var(--ui-label-weight);
     overflow-wrap: anywhere;
   }
-  /* Sits on a .ui-button-quiet, so it keeps that block's states. The glyph
-     takes the largest text step: at body size a × is a few pixels across. */
+  /* Sits on a .ui-button-quiet, so it keeps that block's states. */
   .ui-dialog-close {
     flex: none;
     inline-size: var(--ui-control-height);
     padding: 0;
-    font-size: var(--ui-text-xl);
-    line-height: 1;
+  }
+  /* The x is an icon, not a × character: a font draws that glyph below the
+     middle of its line box, so it never centres in the button. */
+  :is(.ui-dialog-close, .ui-search-clear) > svg {
+    flex: none;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
   }
   .ui-dialog-body {
     flex: 1 1 auto;
