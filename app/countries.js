@@ -2,6 +2,12 @@ import { state } from './core.js';
 import { featureVisible, placesEnabled } from './prefs.js';
 import { _selectCoarsePointer } from './select.js';
 
+/** @typedef {import('./core.js').Place} Place */
+/** @typedef {{ code: string, name: string }} Country */
+/** Normalised country names and aliases, each to its ISO code. @typedef {Object<string, string>} CountryNames */
+/** @typedef {{ countries: Country[], names: CountryNames }} CountryPick */
+/** @typedef {{ shapes: object, names: CountryNames }} CountryData */
+
 // Visited countries: an opt-in fill under the areas for each country that
 // holds a visited place. The boundaries (Natural Earth, about 650 KB
 // gzipped) are fetched only once the layer is on; the service worker then
@@ -12,6 +18,7 @@ export const COUNTRY_MAX_ZOOM = 6;
 export function countriesEnabled() { return placesEnabled() && featureVisible('countries'); }
 // COUNTRY-MATCH-BEGIN
 // Mirrors normalise_country_name in tools/ferd_api/places.py.
+/** @param {string} name */
 function normCountryName(name) {
   let s = String(name).normalize('NFKD').replace(/\p{Mn}/gu, '').toLowerCase();
   s = s.replace(/&/g, ' and ').replace(/[.'\u2019]/g, '').replace(/,/g, ' ').split(/\s+/).filter(Boolean).join(' ');
@@ -19,10 +26,18 @@ function normCountryName(name) {
 }
 // Aliases rank below every name match, so the rows read as names first,
 // yet "Norge" or "USA" still find their country.
+/**
+ * @param {string} query
+ * @param {Country[]} countries
+ * @param {CountryNames} names
+ * @returns {Country[]}
+ */
 function countryMatches(query, countries, names) {
   const q = normCountryName(query);
   if (!q) return countries;
+  /** @type {Map<string, number>} */
   const rank = new Map();
+  /** @param {string} code @param {number} r */
   const note = (code, r) => { if (!(rank.get(code) <= r)) rank.set(code, r); };
   if (names[q]) note(names[q], 0);
   for (const c of countries) {
@@ -34,18 +49,26 @@ function countryMatches(query, countries, names) {
   for (const key in names) if (key.startsWith(q)) note(names[key], 4);
   return countries.filter(c => rank.has(c.code)).sort((a, b) => rank.get(a.code) - rank.get(b.code));
 }
+/**
+ * @param {string} value
+ * @param {Country[]} countries
+ * @param {CountryNames} names
+ * @returns {string | null}
+ */
 function canonicalCountry(value, countries, names) {
   const q = normCountryName(value);
   const hit = countries.find(c => c.code === names[q] || normCountryName(c.name) === q);
   return hit ? hit.name : null;
 }
 // COUNTRY-MATCH-END
+/** @param {string} f @returns {Promise<any>} */
 function fetchCountryFile(f) {
   return fetch(COUNTRY_DATA_URL + f).then(r => {
     if (!r.ok) throw new Error(f + ': HTTP ' + r.status);
     return r.json();
   });
 }
+/** @returns {Promise<CountryPick>} */
 function loadCountryPick() {
   if (!state._countryPick) {
     state._countryPick = Promise.all(['country-list.json', 'country-names.json'].map(fetchCountryFile))
@@ -60,15 +83,21 @@ function loadCountryPick() {
 }
 // A field whose list cannot load stays plain text, since the server takes
 // any country and a failed fetch must not block saving a place.
+/** @param {string} id */
 export function wireCountryPicker(id) {
-  const input = document.getElementById(id);
+  const input = /** @type {HTMLInputElement | null} */ (document.getElementById(id));
   if (!input) return;
   loadCountryPick().then(pick => { if (input.isConnected) mountCountryPicker(input, pick); })
     .catch(err => console.warn('[ferd] country list:', err.message));
 }
+/**
+ * @param {HTMLInputElement} input
+ * @param {CountryPick} pick
+ */
 function mountCountryPicker(input, { countries, names }) {
   // An older place can hold a name off the list; it stays until replaced.
   let accepted = input.value.trim();
+  /** @type {Country[]} */
   let rows = [];
   let active = -1;
   const list = document.createElement('div');
@@ -82,6 +111,7 @@ function mountCountryPicker(input, { countries, names }) {
   input.setAttribute('aria-controls', list.id);
   input.setAttribute('aria-expanded', 'false');
   input.autocomplete = 'off';
+  /** @param {number} i */
   const setActive = i => {
     const els = list.querySelectorAll('[role="option"]');
     if (els[active]) els[active].classList.remove('active');
@@ -94,12 +124,13 @@ function mountCountryPicker(input, { countries, names }) {
       input.removeAttribute('aria-activedescendant');
     }
   };
+  /** @param {Country} c @param {number} i @param {string} typed */
   const optionEl = (c, i, typed) => {
     const el = document.createElement('div');
     el.id = list.id + '-' + c.code;
     el.className = 'select-option';
     el.setAttribute('role', 'option');
-    el.dataset.index = i;
+    el.dataset.index = String(i);
     const at = typed ? c.name.toLowerCase().indexOf(typed) : -1;
     if (at < 0) {
       el.textContent = c.name;
@@ -110,6 +141,7 @@ function mountCountryPicker(input, { countries, names }) {
     }
     return el;
   };
+  /** @param {boolean} browse */
   const render = browse => {
     const typed = input.value.trim().toLowerCase();
     rows = browse ? countries : countryMatches(input.value, countries, names);
@@ -124,6 +156,7 @@ function mountCountryPicker(input, { countries, names }) {
       list.replaceChildren(none);
     }
   };
+  /** @param {boolean} browse */
   const open = browse => {
     const opening = list.hidden;
     render(browse);
@@ -137,6 +170,7 @@ function mountCountryPicker(input, { countries, names }) {
     input.setAttribute('aria-expanded', 'false');
     input.removeAttribute('aria-activedescendant');
   };
+  /** @param {string} name */
   const accept = name => {
     const changed = input.value !== name;
     input.value = name;
@@ -200,6 +234,7 @@ function mountCountryPicker(input, { countries, names }) {
   });
   if (document.activeElement === input && input.value.trim()) open(false);
 }
+/** @returns {Promise<CountryData>} */
 export function loadCountryData() {
   if (!state._countryData) {
     state._countryData = Promise.all(['countries.geo.json', 'country-names.json'].map(fetchCountryFile))
@@ -210,6 +245,11 @@ export function loadCountryData() {
 }
 // The server stores country_code; the name lookup covers local mode and
 // edits still queued offline, which have not been through the server.
+/**
+ * @param {Place} p
+ * @param {CountryNames} names
+ * @returns {string | null}
+ */
 export function placeCountryCode(p, names) {
   return p.country_code || (p.country ? names[normCountryName(p.country)] : null) || null;
 }

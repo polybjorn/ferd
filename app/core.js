@@ -177,6 +177,10 @@ export const state = {
   _glRoutesDirty: /** @type {(() => void) | null} */ (null),
   _glRoutesRebuild: /** @type {(() => void) | null} */ (null),
   _glRoutesDraw: /** @type {(() => void) | null} */ (null),
+  // Set by countries.js: the picker's list and the map layer's boundaries,
+  // each fetched once per page load.
+  _countryPick: /** @type {Promise<import('./countries.js').CountryPick> | null} */ (null),
+  _countryData: /** @type {Promise<import('./countries.js').CountryData> | null} */ (null),
 };
 
 export function escapeHtml(str) {
