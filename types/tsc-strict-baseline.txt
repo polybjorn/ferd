@@ -193,8 +193,6 @@
 1	app/map/home-map.js	TS7034	Variable 'found' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/map/home-map.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
 1	app/map/home-map.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
-5	app/map/index.js	TS2339	Property 'tilePickerCtrl' does not exist on type '{...}'.
-1	app/map/index.js	TS2339	Property 'tilePickerLayers' does not exist on type '{...}'.
 1	app/map/map-actions.js	TS7005	Variable 'layers' implicitly has an 'any[]' type.
 1	app/map/map-actions.js	TS7006	Parameter 'after' implicitly has an 'any' type.
 2	app/map/map-actions.js	TS7006	Parameter 'cls' implicitly has an 'any' type.
@@ -218,32 +216,6 @@
 1	app/map/map-actions.js	TS7031	Binding element 'deleted' implicitly has an 'any' type.
 1	app/map/map-actions.js	TS7031	Binding element 'onError' implicitly has an 'any' type.
 1	app/map/map-actions.js	TS7034	Variable 'layers' implicitly has type 'any[]' in some locations where its type cannot be determined.
-2	app/map/map-layers.js	TS2339	Property 'format' does not exist on type '{...}'.
-2	app/map/map-layers.js	TS2339	Property 'layers' does not exist on type '{...}'.
-4	app/map/map-layers.js	TS2339	Property 'maxZoom' does not exist on type '{...}'.
-1	app/map/map-layers.js	TS2339	Property 'overlays' does not exist on type '{...}'.
-2	app/map/map-layers.js	TS2339	Property 'styles' does not exist on type '{...}'.
-4	app/map/map-layers.js	TS2339	Property 'subdomains' does not exist on type '{...}'.
-3	app/map/map-layers.js	TS2339	Property 'tilePickerCtrl' does not exist on type '{...}'.
-3	app/map/map-layers.js	TS2339	Property 'tilePickerLayers' does not exist on type '{...}'.
-3	app/map/map-layers.js	TS2339	Property 'tilePickerOverlays' does not exist on type '{...}'.
-2	app/map/map-layers.js	TS2339	Property 'transparent' does not exist on type '{...}'.
-2	app/map/map-layers.js	TS2339	Property 'version' does not exist on type '{...}'.
-2	app/map/map-layers.js	TS7005	Variable 'OverlayLayersControl' implicitly has an 'any' type.
-1	app/map/map-layers.js	TS7006	Parameter 'container' implicitly has an 'any' type.
-2	app/map/map-layers.js	TS7006	Parameter 'coords' implicitly has an 'any' type.
-1	app/map/map-layers.js	TS7006	Parameter 'el' implicitly has an 'any' type.
-1	app/map/map-layers.js	TS7006	Parameter 'err' implicitly has an 'any' type.
-3	app/map/map-layers.js	TS7006	Parameter 'fn' implicitly has an 'any' type.
-2	app/map/map-layers.js	TS7006	Parameter 'id' implicitly has an 'any' type.
-1	app/map/map-layers.js	TS7006	Parameter 'list' implicitly has an 'any' type.
-3	app/map/map-layers.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-1	app/map/map-layers.js	TS7006	Parameter 'ms' implicitly has an 'any' type.
-1	app/map/map-layers.js	TS7006	Parameter 'obj' implicitly has an 'any' type.
-1	app/map/map-layers.js	TS7006	Parameter 'tile' implicitly has an 'any' type.
-1	app/map/map-layers.js	TS7034	Variable 'OverlayLayersControl' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map/map-layers.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-4	app/map/map-layers.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/map/map-markers.js	TS7006	Parameter 'color' implicitly has an 'any' type.
 1	app/map/map-markers.js	TS7006	Parameter 'e' implicitly has an 'any' type.
 1	app/map/map-markers.js	TS7006	Parameter 'gpxLayer' implicitly has an 'any' type.

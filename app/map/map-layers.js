@@ -1,11 +1,29 @@
 import { escapeHtml, state } from '../core.js';
 import { BASE_LAYER_NAMES, getDefaultTileLayer, getShowTilePicker } from '../prefs.js';
 
+/** @typedef {import('./route-layer.js').LeafletMap} LeafletMap */
+/** @typedef {import('./route-layer.js').LeafletLayer} LeafletLayer */
+/**
+ * One overlay from site-config.json `overlays`, after parseOverlays.
+ * @typedef {object} OverlayConfig
+ * @property {string} name
+ * @property {'xyz' | 'wms'} type
+ * @property {string} url
+ * @property {string} attribution
+ * @property {number} [maxZoom]
+ * @property {string} [subdomains] xyz only
+ * @property {string} [layers] wms only, as are format, styles, version and transparent
+ * @property {string} [format]
+ * @property {string} [styles]
+ * @property {string} [version]
+ * @property {boolean} [transparent]
+ */
+
 // Raise the map's minimum zoom to the smallest level whose Web Mercator
 // world (a 256*2^z px square) still covers the larger viewport dimension,
 // so the map can never zoom out into the empty background (the dark bands
 // above/below the world on tall screens). Re-run on resize/rotation.
-/** @param {any} map */
+/** @param {LeafletMap} map */
 export function applyCoverMinZoom(map) {
   const size = map.getSize();
   const px = Math.max(size.x, size.y);
@@ -41,6 +59,10 @@ if (window.L && L.TileLayer && L.TileLayer.mergeOptions) {
   if (!_isTouch) {
     const addTile = L.GridLayer.prototype._addTile;
     L.GridLayer.include({
+      /**
+       * @param {any} coords
+       * @param {any} container
+       */
       _addTile(coords, container) {
         addTile.call(this, coords, container);
         const tile = this._tiles[this._tileCoordsToKey(coords)].el;
@@ -54,11 +76,17 @@ if (window.L && L.TileLayer && L.TileLayer.mergeOptions) {
     const tileReady = L.TileLayer.prototype._tileReady;
     const onOpaqueTile = L.TileLayer.prototype._onOpaqueTile;
     L.TileLayer.include({
+      /**
+       * @param {any} coords
+       * @param {any} err
+       * @param {any} el
+       */
       _tileReady(coords, err, el) {
         tileReady.call(this, coords, err, el);
         const tile = this._map && this._tiles[this._tileCoordsToKey(coords)];
         if (tile && !err) this._onOpaqueTile(tile);
       },
+      /** @param {any} tile */
       _onOpaqueTile(tile) {
         if (tile.dumped) return;
         tile.dumped = true;
@@ -73,6 +101,7 @@ const OSM_CREDIT = '&copy; <a href="https://openstreetmap.org/copyright">OpenStr
 export const TOPO_CREDIT = OSM_CREDIT + ', SRTM | &copy; <a href="https://opentopomap.org">OpenTopoMap</a> ' +
   '(<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)';
 
+/** @returns {Record<string, LeafletLayer>} */
 function createTileLayers() {
   return {
     'OpenTopoMap': L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
@@ -96,8 +125,13 @@ function createTileLayers() {
 // Overlays from site-config.json `overlays`. An entry without a name or an
 // http(s) URL, a repeated name, an unknown type, or a WMS entry without
 // `layers` is dropped rather than failing the map.
+/**
+ * @param {unknown} list
+ * @returns {OverlayConfig[]}
+ */
 export function parseOverlays(list) {
   if (!Array.isArray(list)) return [];
+  /** @type {OverlayConfig[]} */
   const out = [];
   const seen = new Set();
   for (const o of list) {
@@ -108,6 +142,7 @@ export function parseOverlays(list) {
     if (!name || seen.has(name) || !/^https?:\/\/[^/]/i.test(url)) continue;
     if (type !== 'xyz' && type !== 'wms') continue;
     if (type === 'wms' && !(typeof o.layers === 'string' && o.layers.trim())) continue;
+    /** @type {OverlayConfig} */
     const ov = {
       name, type, url,
       attribution: typeof o.attribution === 'string' ? o.attribution : '',
@@ -129,8 +164,12 @@ export function parseOverlays(list) {
 // OVERLAY-CFG-END
 
 function createOverlayLayers() {
+  /** @type {Record<string, LeafletLayer>} */
   const out = {};
-  for (const ov of parseOverlays(state.config && state.config.overlays)) {
+  // `overlays` is not in DEFAULT_CONFIG; it only arrives with site-config.json.
+  const config = /** @type {typeof state.config & { overlays?: unknown }} */ (state.config);
+  for (const ov of parseOverlays(config && config.overlays)) {
+    /** @type {Record<string, any>} */
     const opts = {
       attribution: ov.attribution,
       opacity: state.overlayLevels.get(ov.name) || 0,
@@ -156,10 +195,12 @@ function createOverlayLayers() {
 
 // The layers control with an opacity slider under each overlay, where 0 is
 // off. The control already stops touch and click from reaching the map.
+/** @type {any} */
 let OverlayLayersControl = null;
 function overlayLayersControlClass() {
   if (OverlayLayersControl) return OverlayLayersControl;
   return OverlayLayersControl = L.Control.Layers.extend({
+    /** @param {any} obj */
     _addItem(obj) {
       const label = L.Control.Layers.prototype._addItem.call(this, obj);
       const name = obj.overlay && obj.layer._ferdOverlay;
@@ -198,6 +239,7 @@ function overlayLayersControlClass() {
   });
 }
 
+/** @param {LeafletMap} map */
 export function addTilePicker(map) {
   const overlays = state.tilePickerOverlays;
   const Ctrl = overlayLayersControlClass();
@@ -211,6 +253,7 @@ export function addTilePicker(map) {
   return ctrl;
 }
 
+/** @param {LeafletMap} map */
 export function addTileLayersToMap(map) {
   const layers = createTileLayers();
   const def = getDefaultTileLayer();
@@ -232,6 +275,7 @@ export function addTileLayersToMap(map) {
 // deletes its panes, after which Leaflet throws on any position read, so
 // its 'unload' cancels everything still pending and refuses new work.
 // A promise can't be cancelled, so live() wraps its continuation instead.
+/** @param {LeafletMap} map */
 export function mapScheduler(map) {
   const timers = new Set(), frames = new Set();
   let removed = false;
@@ -249,20 +293,28 @@ export function mapScheduler(map) {
     map.invalidateSize = function () { return map; };
   });
   return {
+    /**
+     * @param {() => void} fn
+     * @param {number} ms
+     */
     timeout: function (fn, ms) {
       if (removed) return 0;
       const id = setTimeout(function () { timers.delete(id); fn(); }, ms);
       timers.add(id);
       return id;
     },
+    /** @param {number} id */
     clearTimeout: function (id) { timers.delete(id); clearTimeout(id); },
+    /** @param {(t: number) => void} fn */
     frame: function (fn) {
       if (removed) return 0;
       const id = requestAnimationFrame(function (t) { frames.delete(id); fn(t); });
       frames.add(id);
       return id;
     },
+    /** @param {number} id */
     cancelFrame: function (id) { frames.delete(id); cancelAnimationFrame(id); },
+    /** @param {Function} fn */
     live: function (fn) {
       return function () { if (!removed) return fn.apply(this, arguments); };
     },
