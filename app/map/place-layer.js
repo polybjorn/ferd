@@ -5,6 +5,7 @@ import { applyAreaFilters, MAP_FADE_MS, revealArea } from './area-layer.js';
 import { goToPlace, goToRoute, openPlacePopup, placeMarkerRadius } from './map-actions.js';
 import { focusHash } from '../router.js';
 import { getMarkerSize, getPinStyle } from '../theme.js';
+import { bindSearchKeys } from './search-keys.js';
 
 // Canvas-rendered place layer. Owns clustering via supercluster, draws
 // all places and clusters to a single <canvas>, hit-tests clicks and
@@ -534,7 +535,7 @@ export function searchMatches(q) {
 }
 
 function resultRow(data, marker, name, meta) {
-  return '<div class="map-search-result" ' + data + '>' + marker +
+  return '<div class="map-search-result" role="option" ' + data + '>' + marker +
     '<span class="result-name">' + escapeHtml(name) + '</span>' +
     '<span class="result-meta">' + escapeHtml(meta) + '</span></div>';
 }
@@ -557,7 +558,10 @@ function routeRow(route, region) {
 export function searchResultsHtml(m, headed) {
   const group = function(title, rows) {
     if (!rows.length) return '';
-    return (headed ? '<h3 class="map-search-heading">' + title + '</h3>' : '') + rows.join('');
+    if (!headed) return rows.join('');
+    // A listbox holds options and groups only, so the heading names its group.
+    return '<div role="group" aria-label="' + title + '"><h3 class="map-search-heading" aria-hidden="true">' + title + '</h3>' +
+      rows.join('') + '</div>';
   };
   return group('Places', m.places.map(placeRow)) +
     group('Areas', m.areas.map(areaRow)) +
@@ -601,26 +605,36 @@ export function goToSearchResult(map, row) {
 export function initUnifiedSearch(map) {
   const input = /** @type {HTMLInputElement} */ (document.getElementById('map-search-input'));
   const results = document.getElementById('map-search-results');
+  const close = function() {
+    results.classList.remove('visible');
+    keys.refresh(false);
+  };
+  /** @param {HTMLElement} row */
+  const pick = function(row) {
+    goToSearchResult(map, row);
+    input.value = '';
+    results.innerHTML = '';
+    close();
+  };
+  const keys = bindSearchKeys(input, results, { pick, close });
 
   function render(q) {
     const html = q ? searchResultsHtml(searchMatches(q)) : '';
     results.innerHTML = html;
     results.classList.toggle('visible', html !== '');
+    keys.refresh(html !== '');
   }
 
   input.addEventListener('input', function() { render(this.value.trim()); });
 
   results.addEventListener('click', function(e) {
-    const row = /** @type {Element} */ (e.target).closest('.map-search-result');
+    const row = /** @type {HTMLElement | null} */ (/** @type {Element} */ (e.target).closest('.map-search-result'));
     if (!row) return;
     // Emptying the list below detaches the row from the panel, so Leaflet
     // no longer sees the panel's click guard and takes this for a map
     // click, which closes the popup just opened.
     e.stopPropagation();
-    goToSearchResult(map, row);
-    input.value = '';
-    results.classList.remove('visible');
-    results.innerHTML = '';
+    pick(row);
   });
 
   // Bind the outside-click dismiss once; it looks up the current results
@@ -629,7 +643,10 @@ export function initUnifiedSearch(map) {
     state._searchDocClickBound = true;
     document.addEventListener('click', function(e) {
       const r = document.getElementById('map-search-results');
-      if (r && !/** @type {Element} */ (e.target).closest('#map-search')) r.classList.remove('visible');
+      if (!r || /** @type {Element} */ (e.target).closest('#map-search')) return;
+      r.classList.remove('visible');
+      const input = document.getElementById('map-search-input');
+      if (input) input.setAttribute('aria-expanded', 'false');
     });
   }
 }

@@ -104,8 +104,8 @@ function panelBodyHtml(id) {
 // first added and when a feature is toggled (which adds/removes a tab).
 export function panelInnerHtml() {
   return '<div class="panel-search" id="map-search">' +
-    '<input type="text" id="map-search-input" placeholder="Search...">' +
-    '<div class="map-search-results" id="map-search-results"></div>' +
+    '<input type="text" id="map-search-input" aria-label="Search" placeholder="Search..." autocomplete="off">' +
+    '<div class="map-search-results" id="map-search-results" role="listbox" aria-label="Results"></div>' +
     '</div>' +
     (placesEnabled() ? panelBodyHtml('places') : '') +
     (routesEnabled() ? panelBodyHtml('routes') : '') +
