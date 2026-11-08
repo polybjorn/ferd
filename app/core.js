@@ -165,6 +165,7 @@ export const state = {
   _areaRenderer: /** @type {any} */ (null),
   _routeRenderer: /** @type {any} */ (null),
   _countryRenderer: /** @type {any} */ (null),
+  _countryGroup: /** @type {any} */ (null),
   _detailRenderer: /** @type {any} */ (null),
   _detailPolylines: /** @type {any[] | null} */ (null),
   // Set by route-detail.js for the open route's map.

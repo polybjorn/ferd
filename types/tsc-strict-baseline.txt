@@ -75,26 +75,6 @@
 1	app/main.js	TS7006	Parameter 'timeoutMs' implicitly has an 'any' type.
 1	app/main.js	TS7011	Function expression, which lacks return-type annotation, implicitly has an 'any' return type.
 1	app/main.js	TS7034	Variable 'pendingReg' implicitly has type 'any' in some locations where its type cannot be determined.
-2	app/map/area-layer.js	TS2339	Property '_countryGroup' does not exist on type '{...}'.
-1	app/map/area-layer.js	TS7006	Parameter '_' implicitly has an 'any' type.
-1	app/map/area-layer.js	TS7006	Parameter 'a' implicitly has an 'any' type.
-4	app/map/area-layer.js	TS7006	Parameter 'area' implicitly has an 'any' type.
-2	app/map/area-layer.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/map/area-layer.js	TS7006	Parameter 'i' implicitly has an 'any' type.
-1	app/map/area-layer.js	TS7006	Parameter 'id' implicitly has an 'any' type.
-1	app/map/area-layer.js	TS7006	Parameter 'layer' implicitly has an 'any' type.
-5	app/map/area-layer.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-2	app/map/area-layer.js	TS7006	Parameter 'part' implicitly has an 'any' type.
-1	app/map/area-layer.js	TS7006	Parameter 'r' implicitly has an 'any' type.
-3	app/map/area-layer.js	TS7006	Parameter 'route' implicitly has an 'any' type.
-1	app/map/area-layer.js	TS7006	Parameter 'routes' implicitly has an 'any' type.
-1	app/map/area-layer.js	TS7006	Parameter 'shape' implicitly has an 'any' type.
-2	app/map/area-layer.js	TS7006	Parameter 'visited' implicitly has an 'any' type.
-1	app/map/area-layer.js	TS7006	Parameter 'x' implicitly has an 'any' type.
-1	app/map/area-layer.js	TS7006	Parameter 'y' implicitly has an 'any' type.
-1	app/map/area-layer.js	TS7053	Element implicitly has an 'any' type because expression of type '""' can't be used to index type '{...}'.
-1	app/map/area-layer.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-2	app/map/country-layer.js	TS2339	Property '_countryGroup' does not exist on type '{...}'.
 1	app/map/country-layer.js	TS7006	Parameter 'f' implicitly has an 'any' type.
 2	app/map/home-map.js	TS2339	Property '_navByHash' does not exist on type '{...}'.
 2	app/map/home-map.js	TS7005	Variable '_routeEvalTimer' implicitly has an 'any' type.
