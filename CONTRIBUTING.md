@@ -28,7 +28,7 @@ npx playwright test
 
 They run in Firefox and Chromium at 1280px, Chromium with Pixel emulation and WebKit with iPhone emulation (`playwright.config.js`), with tiles stubbed so nothing leaves the machine. `npx playwright test --project=chromium` runs one. Playwright is pinned to the release the CI image carries, so bump `package.json` and that image together.
 
-They cover the flows a test plan used to check by hand: signing in and out, adding a place and finding it in the list and on the map, editing and deleting it, importing a GPX route and its elevation graph, the map's filter panel and a list's "Clear filters", a settings radio and the theme surviving a reload, Esc closing a modal and handing focus back, and on the phone projects the bottom bar and a modal's phone layout at 320px and 412px. A test that only reads signs in as the demo account; one that writes signs up an empty account of its own (`tests/e2e/helpers.js`), because the projects run at once against one server. A change to one of these flows updates its test in the same PR.
+They cover the flows a test plan used to check by hand: signing in and out, adding a place and finding it in the list and on the map, editing and deleting it, importing a GPX route and its elevation graph, the map's filter panel and a list's "Clear filters", a settings radio and the theme surviving a reload, picking a place's position on the map from the Add and Edit dialogs, changing the password, revoking one session or all the others, Esc closing a modal and handing focus back, and on the phone projects the bottom bar and a modal's phone layout at 320px and 412px. A test that only reads signs in as the demo account; one that writes signs up an empty account of its own (`tests/e2e/helpers.js`), because the projects run at once against one server. A change to one of these flows updates its test in the same PR.
 
 ## Where to look
 
@@ -75,7 +75,7 @@ site-sheet capture "" / /tmp/ferd-sheet --states .site-sheet/states.json --origi
 
 A new modal needs a state here; `tests/test_site_sheet.py` fails on a modal title no state waits for.
 
-The browser tests stand in for the old by-hand walk through the app, so a PR's test plan names them rather than repeating it. It keeps a "works on the preview" check only for a visual change, where a passing test does not show that it looks right. Picking a place's position on the map, changing your password and revoking a session are not covered yet; a change to one of those still checks it by hand on the dev server above.
+The browser tests stand in for the old by-hand walk through the app, so a PR's test plan names them rather than repeating it. It keeps a "works on the preview" check only for a visual change, where a passing test does not show that it looks right.
 
 ## Reporting issues
 
