@@ -101,6 +101,15 @@ export const DATA_FILES = { siteConfig: 'site-config.json' };
  */
 
 /**
+ * A category's stored label, palette index and list position, keyed by
+ * slug in category-labels.json.
+ * @typedef {{ label?: string, color?: number, order?: number }} CategoryLabel
+ */
+/** @typedef {Object<string, CategoryLabel>} CategoryLabels */
+/** @typedef {import('./map/route-layer.js').LeafletMap} LeafletMap */
+/** @typedef {import('./map/route-layer.js').RouteRecord} RouteRecord */
+
+/**
  * The `/api/routes` response.
  * @typedef {object} Manifest
  * @property {ManifestRegion[]} regions
@@ -111,8 +120,9 @@ export const state = {
   /** @type {AuthState} */
   auth: { authenticated: false, username: null, is_admin: false, published: false, registration_open: true, publishing_open: true, catalog_baseline_open: true, has_users: false, requires_setup_token: false },
   viewer: detectViewer(),
-  currentMap: null,
-  currentElevation: null,
+  currentMap: /** @type {LeafletMap | null} */ (null),
+  // The open route's elevation chart control (route-detail.js).
+  currentElevation: /** @type {any} */ (null),
   // Set by map-layers.js for the current map's tile picker.
   tilePickerCtrl: /** @type {any} */ (null),
   tilePickerLayers: /** @type {Record<string, any> | null} */ (null),
@@ -128,15 +138,15 @@ export const state = {
   areas: null,
   /** @type {Manifest | null} */
   manifest: null,
-  categoryColors: {},
-  categoryColorsLight: {},
+  categoryColors: /** @type {Record<string, string>} */ ({}),
+  categoryColorsLight: /** @type {Record<string, string>} */ ({}),
   // browse-list state
   groupBy: (function(){ try { return localStorage.getItem('places-group-by') || 'category'; } catch { return 'category'; } })(),
   trailsGroupBy: (function(){ try { return localStorage.getItem('trails-group-by') || 'region'; } catch { return 'region'; } })(),
   // Filter values are kept in memory only — they survive in-page re-renders
   // (catalog refresh, CRUD writes) but reset on a full page reload.
-  placeFilters: { search: '', status: 'all', category: 'all', country: 'all', tags: [], catalog: 'all' },
-  trailFilters: { search: '', status: 'all', region: 'all', difficulty: 'all', rating: 'all', tags: [] },
+  placeFilters: { search: '', status: 'all', category: 'all', country: 'all', tags: /** @type {string[]} */ ([]), catalog: 'all' },
+  trailFilters: { search: '', status: 'all', region: 'all', difficulty: 'all', rating: 'all', tags: /** @type {string[]} */ ([]) },
   historyFilters: { search: '', kind: 'all', year: 'all', rating: 'all' },
   areaFilters: { search: '', status: 'all', category: 'all' },
   // unified-map filter state
@@ -149,12 +159,12 @@ export const state = {
   showPlaces: true,
   showTrails: true,
   // unified-map layer refs
-  _placeRecords: null,
-  _placeClusterGroup: null,
-  _routeLayers: null,        // [{ route, layer, completed }]
-  _selectedRouteKey: null,   // index-map: highlighted route (click-to-distinguish overlaps)
-  _routeGroupCompleted: null,
-  _routeGroupPlanned: null,
+  _placeRecords: /** @type {Place[] | null} */ (null),
+  _placeClusterGroup: /** @type {any} */ (null),
+  _routeLayers: /** @type {RouteRecord[] | null} */ (null),
+  _selectedRouteKey: /** @type {string | null} */ (null), // index-map: highlighted route (click-to-distinguish overlaps)
+  _routeGroupCompleted: /** @type {any} */ (null),
+  _routeGroupPlanned: /** @type {any} */ (null),
   _navByHash: false, // router: true while a hash navigation re-renders, so the map can tell an in-app click from a reload
   _syncRoutesOnMap: /** @type {(() => void) | null} */ (null), // index-map: applies the routes signal (home-map.js)
   // Mirrors the catalogCache signal (store.js bindCatalogCache), null until fetched.
@@ -185,16 +195,19 @@ export const state = {
   _countryData: /** @type {Promise<import('./countries.js').CountryData> | null} */ (null),
 };
 
+/** @param {string} str */
 export function escapeHtml(str) {
   const d = document.createElement('div');
   d.textContent = str;
   return d.innerHTML;
 }
 
+/** @param {string} slug */
 function categoryFallbackLabel(slug) {
-  return slug.replace(/-/g, ' ').replace(/^./, function(c) { return c.toUpperCase(); });
+  return slug.replace(/-/g, ' ').replace(/^./, function(/** @type {string} */ c) { return c.toUpperCase(); });
 }
 
+/** @param {string | null | undefined} cat */
 export function displayCategory(cat) {
   if (!cat) return 'Uncategorized';
   const labels = (state.config && state.config.category_labels) || {};
@@ -203,15 +216,18 @@ export function displayCategory(cat) {
   return categoryFallbackLabel(cat);
 }
 
+/** @param {string | null | undefined} name */
 export function displayRegion(name) {
   return name || 'No region';
 }
 
+/** @param {string} url */
 export function domainFromUrl(url) {
   try { return new URL(url).hostname.replace(/^www\./, ''); }
   catch { return url; }
 }
 
+/** @param {string} s */
 function slugify(s) {
   if (!s) return '';
   const cleaned = s
@@ -224,6 +240,7 @@ function slugify(s) {
   return cleaned || encodeURIComponent(s.toLowerCase());
 }
 
+/** @param {Place[] | null} places */
 export function assignPlaceSlugs(places) {
   if (!places) return;
   const used = new Set();
@@ -237,6 +254,7 @@ export function assignPlaceSlugs(places) {
   }
 }
 
+/** @param {Manifest | null} manifest */
 export function assignTrailSlugs(manifest) {
   if (!manifest || !manifest.regions) return;
   const used = new Set();
@@ -253,6 +271,7 @@ export function assignTrailSlugs(manifest) {
   }
 }
 
+/** @param {string[] | undefined} sources */
 function renderSources(sources) {
   if (!sources || sources.length === 0) return '';
   return sources.map(s => {
@@ -265,6 +284,10 @@ function renderSources(sources) {
 
 // Sort category slugs alphabetically, but always push uncategorized ('') last
 // so legends/filters don't lead with the fallback bucket.
+/**
+ * @param {Iterable<string>} slugs
+ * @returns {string[]}
+ */
 export function sortedCategorySlugs(slugs) {
   return [...slugs].sort((a, b) => {
     if (a === '') return 1;
@@ -273,12 +296,13 @@ export function sortedCategorySlugs(slugs) {
   });
 }
 
+/** @param {Place[]} places */
 export function assignCategoryColors(places) {
   // Colors are stable per slug: stored alongside the label in
   // category-labels.json. Unstored slugs get the next free index
   // (highest stored + 1, mod palette length) so adding a new category
   // never reshuffles the existing ones.
-  const cats = [...new Set(places.concat(state.areas || []).map(p => p.category))]
+  const cats = [...new Set(/** @type {Array<Place | Area>} */ (places).concat(state.areas || []).map(p => p.category))]
     .filter(c => c !== '').sort();
   const labels = (state.config && state.config.category_labels) || {};
   let nextIdx = 0;
@@ -286,7 +310,11 @@ export function assignCategoryColors(places) {
     const c = labels[slug] && labels[slug].color;
     if (typeof c === 'number' && c + 1 > nextIdx) nextIdx = c + 1;
   }
-  const dark = {}, light = {};
+  /** @type {Record<string, string>} */
+  const dark = {};
+  /** @type {Record<string, string>} */
+  const light = {};
+  /** @type {Record<string, number>} */
   const newAssignments = {};
   for (const c of cats) {
     const entry = labels[c];
@@ -308,13 +336,16 @@ export function assignCategoryColors(places) {
   return { dark, light };
 }
 
+/** @param {Record<string, number>} newAssignments slug to palette index */
 function persistAssignedCategoryColors(newAssignments) {
   if (isReadOnly()) return;
   if (!state.auth || !state.auth.authenticated) return;
   // Until a sync has brought the whole set, the owner's labels may still be
   // on their way; select.js recolours again once it has.
   if (!syncSettled.peek()) return;
+  /** @type {CategoryLabels} */
   const labels = state.config.category_labels = state.config.category_labels || {};
+  /** @type {CategoryLabels} */
   const payload = {};
   for (const slug in labels) {
     const lbl = (labels[slug] && labels[slug].label) || categoryFallbackLabel(slug);
@@ -325,6 +356,7 @@ function persistAssignedCategoryColors(newAssignments) {
   for (const slug in newAssignments) {
     const existing = labels[slug] || {};
     const existingLabel = existing.label || categoryFallbackLabel(slug);
+    /** @type {CategoryLabel} */
     const merged = { label: existingLabel, color: newAssignments[slug] };
     if (typeof existing.order === 'number') merged.order = existing.order;
     labels[slug] = merged;
@@ -337,9 +369,11 @@ function persistAssignedCategoryColors(newAssignments) {
 }
 
 // Thousand-separated number formatting (en-US grouping: 7,340.9 / 101,424).
+/** @param {number} n @param {number} [decimals] */
 export function grpNum(n, decimals) {
   return n.toLocaleString('en-US', { minimumFractionDigits: decimals || 0, maximumFractionDigits: decimals || 0 });
 }
+/** @param {number} m metres */
 export function formatDistance(m) {
   if (isImperial()) {
     const mi = m / 1609.344;
@@ -347,6 +381,7 @@ export function formatDistance(m) {
   }
   return m >= 1000 ? grpNum(m / 1000, 1) + ' km' : grpNum(Math.round(m)) + ' m';
 }
+/** @param {number} m metres */
 export function formatElevation(m) {
   if (isImperial()) return grpNum(Math.round(m * 3.28084)) + ' ft';
   return grpNum(Math.round(m)) + ' m';
@@ -354,6 +389,7 @@ export function formatElevation(m) {
 
 // screen names a page below a view, such as one route under Routes. The
 // phone keeps a header bar only there, where the page has no title of its own.
+/** @param {string} view @param {string} [screen] */
 export function setActiveTab(view, screen) {
   document.body.dataset.view = screen || view;
   ['places', 'routes', 'history'].forEach(v => {
@@ -376,6 +412,7 @@ const BAR_ITEM = /** @type {Record<string, string>} */ ({
 });
 
 // A wide screen's Add, in the nav. A phone adds from the bar instead.
+/** @param {string} id @param {string} [title] */
 export function addButtonHtml(id, title) {
   return '<button type="button" id="' + id + '" class="nav-action-btn nav-action-add"' +
     (title ? ' title="' + escapeHtml(title) + '"' : '') + '>Add</button>';
@@ -383,6 +420,7 @@ export function addButtonHtml(id, title) {
 
 let _crumbText = '';
 let _crumbAlways = false;
+/** @param {string} text @param {boolean} [alwaysShow] */
 export function setCrumb(text, alwaysShow) {
   _crumbText = text || '';
   _crumbAlways = !!alwaysShow;

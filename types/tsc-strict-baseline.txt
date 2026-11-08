@@ -8,40 +8,6 @@
 1	app/backup.js	TS7006	Parameter 'bytes' implicitly has an 'any' type.
 1	app/backup.js	TS7006	Parameter 'files' implicitly has an 'any' type.
 2	app/backup.js	TS7006	Parameter 'n' implicitly has an 'any' type.
-1	app/core.js	TS2339	Property 'order' does not exist on type '{...}'.
-1	app/core.js	TS7006	Parameter 'alwaysShow' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'c' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'cat' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'decimals' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'id' implicitly has an 'any' type.
-2	app/core.js	TS7006	Parameter 'm' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'manifest' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'n' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'name' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'newAssignments' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'p' implicitly has an 'any' type.
-2	app/core.js	TS7006	Parameter 'places' implicitly has an 'any' type.
-2	app/core.js	TS7006	Parameter 's' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'screen' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'slug' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'slugs' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'sources' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'str' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'text' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'title' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'url' implicitly has an 'any' type.
-1	app/core.js	TS7006	Parameter 'view' implicitly has an 'any' type.
-1	app/core.js	TS7018	Object literal's property '_placeClusterGroup' implicitly has an 'any' type.
-1	app/core.js	TS7018	Object literal's property '_placeRecords' implicitly has an 'any' type.
-1	app/core.js	TS7018	Object literal's property '_routeGroupCompleted' implicitly has an 'any' type.
-1	app/core.js	TS7018	Object literal's property '_routeGroupPlanned' implicitly has an 'any' type.
-1	app/core.js	TS7018	Object literal's property '_routeLayers' implicitly has an 'any' type.
-1	app/core.js	TS7018	Object literal's property '_selectedRouteKey' implicitly has an 'any' type.
-1	app/core.js	TS7018	Object literal's property 'currentElevation' implicitly has an 'any' type.
-1	app/core.js	TS7018	Object literal's property 'currentMap' implicitly has an 'any' type.
-2	app/core.js	TS7018	Object literal's property 'tags' implicitly has an 'any[]' type.
-5	app/core.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-14	app/core.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/history.js	TS7006	Parameter 'canvas' implicitly has an 'any' type.
 1	app/history.js	TS7006	Parameter 'name' implicitly has an 'any' type.
 2	app/history.js	TS7006	Parameter 'parent' implicitly has an 'any' type.

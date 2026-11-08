@@ -7,7 +7,7 @@ export const DEFAULT_CONFIG = {
   features: { places: true, routes: true },
   default_view: { center: [45, 10], zoom: 4 },
   default_view_routes: { center: [59.5, 6.5], zoom: 10 },
-  category_labels: {},
+  category_labels: /** @type {import('./core.js').CategoryLabels} */ ({}),
   api_base: '/api',
 };
 
