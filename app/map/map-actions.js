@@ -65,9 +65,9 @@ export function revealPlaceMarker(map, place) {
   }
 }
 
-// Close transient floating overlays (the account menu and any filter/view
-// popover) so only one is open at a time. Pass the element being opened to
-// keep it open.
+// Close any open filter or view popover, so only one is open at a time. Pass
+// the popover being opened to keep it open. The account menu closes itself
+// (ui.js) on a click outside it.
 export function closeTransientOverlays(keepEl) {
   /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.filter-popover')).forEach(function(p) {
     if (p === keepEl || p.hidden) return;
@@ -75,10 +75,6 @@ export function closeTransientOverlays(keepEl) {
     const b = p.parentElement && p.parentElement.querySelector('.filter-btn');
     if (b) b.setAttribute('aria-expanded', 'false');
   });
-  const menu = /** @type {(HTMLElement & { _close?: () => void }) | null} */ (document.getElementById('auth-menu'));
-  if (menu && menu !== keepEl && !menu.hidden && typeof menu._close === 'function') {
-    menu._close();
-  }
 }
 
 // Force a style recalc so a class change is observed as a transition start

@@ -35,7 +35,6 @@
 1	app/auth.js	TS2339	Property 'overlays' does not exist on type '{...}'.
 1	app/auth.js	TS7006	Parameter 'backdrop' implicitly has an 'any' type.
 1	app/auth.js	TS7006	Parameter 'body' implicitly has an 'any' type.
-1	app/auth.js	TS7006	Parameter 'ev' implicitly has an 'any' type.
 1	app/auth.js	TS7006	Parameter 'method' implicitly has an 'any' type.
 2	app/auth.js	TS7006	Parameter 'path' implicitly has an 'any' type.
 1	app/backup.js	TS7006	Parameter 'arrs' implicitly has an 'any' type.

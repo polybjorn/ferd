@@ -2248,7 +2248,7 @@ body.signin-only #app {
   font-size: var(--ui-text-xs);
   position: relative;
 }
-.auth-widget button, .auth-widget a {
+.auth-widget .ui-menu-anchor > button, .auth-widget > :is(button, a) {
   background: transparent;
   border: 1px solid var(--control-border);
   color: var(--muted);
@@ -2266,76 +2266,11 @@ body.signin-only #app {
   align-items: center;
   gap: var(--ui-space-1);
 }
-.auth-widget button:hover, .auth-widget a:hover {
+.auth-widget .ui-menu-anchor > button:hover, .auth-widget > :is(button, a):hover {
   color: var(--text);
   border-color: var(--muted);
   opacity: 1;
 }
-.auth-widget { position: relative; }
-.auth-menu {
-  position: absolute;
-  top: calc(100% + 0.4rem);
-  right: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-  /* Hug the widest item (e.g. "Connect to server") so padding is even on
-     both sides, capped so a long username can't blow it out. */
-  width: max-content;
-  max-width: 16rem;
-  z-index: var(--ui-z-dropdown);
-  padding: var(--ui-space-1);
-}
-.auth-menu[hidden] { display: none; }
-.auth-menu .auth-menu-header {
-  padding: var(--ui-space-2) var(--ui-space-3) var(--ui-space-2);
-  font-size: var(--ui-text-xs);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  border-bottom: 1px solid var(--border);
-  margin-bottom: var(--ui-space-1);
-}
-.auth-menu .auth-menu-header strong {
-  color: var(--text);
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  font-size: var(--ui-text-md);
-  display: block;
-  margin-top: var(--ui-space-1);
-}
-.auth-menu button {
-  display: flex;
-  width: 100%;
-  background: transparent;
-  border: none;
-  color: var(--text);
-  font-family: inherit;
-  font-size: var(--ui-text-sm);
-  text-align: left;
-  padding: var(--ui-space-2) var(--ui-space-3);
-  border-radius: var(--ui-radius-sm);
-  cursor: pointer;
-  align-items: center;
-  justify-content: flex-start;
-  white-space: nowrap;
-}
-.auth-menu button:hover {
-  background: var(--surface2);
-  color: var(--text);
-  border-color: transparent;
-}
-.auth-menu button.auth-menu-foot {
-  /* Sign out ends the session, so a gap keeps a tap meant for About off it. */
-  margin-top: var(--ui-space-3);
-  padding-top: var(--ui-space-2);
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  border-radius: 0 0 var(--ui-radius-sm) var(--ui-radius-sm);
-}
-.auth-menu button.auth-menu-foot:hover { color: var(--text); }
 @media (max-width: 600px) {
   /* The bar takes over from the tabs, and its You page from the menu. */
   .app-nav .view-tabs,
@@ -3166,7 +3101,6 @@ body.force-show-map-filter .map-panel {
   .select-popover { font-size: var(--ui-text-sm); }
   .select-popover .select-option { padding: var(--ui-space-3) var(--ui-space-3); }
   .modal .modal-tabs button:not(.modal-close) { min-height: var(--ui-touch-target); font-size: var(--ui-text-md); }
-  .auth-menu button { min-height: var(--ui-touch-target); font-size: var(--ui-text-md); }
 }
 .row-note {
   display: block; max-height: 0; opacity: 0; overflow: hidden; margin-top: 0;
