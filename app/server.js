@@ -1,6 +1,8 @@
 import { state } from './core.js';
 import { apiUrl } from './auth.js';
 
+/** A fetch init whose headers are a plain object, so the auth header can be added to it. @typedef {RequestInit & { headers?: Record<string, string> }} AuthInit */
+
 // When the frontend is bundled in a native/WebView shell it has no
 // same-origin API, so it stores which Ferd server to talk to. Empty means
 // same-origin (the normal web/PWA deploy): every URL stays relative and
@@ -28,6 +30,7 @@ export function serverBase() {
   try { return (localStorage.getItem(SERVER_KEY) || '').replace(/\/+$/, ''); }
   catch { return ''; }
 }
+/** @param {string} base empty to use the page's own origin */
 export function setServerBase(base) {
   try {
     if (base) localStorage.setItem(SERVER_KEY, base.replace(/\/+$/, ''));
@@ -38,6 +41,7 @@ function bearerToken() {
   try { return localStorage.getItem(TOKEN_KEY) || ''; }
   catch { return ''; }
 }
+/** @param {string} tok empty to clear it */
 export function setBearerToken(tok) {
   try {
     if (tok) localStorage.setItem(TOKEN_KEY, tok);
@@ -54,6 +58,7 @@ export function isCrossOrigin() {
 }
 // Absolute URL for a static file on the configured server (site-config.json
 // lives next to the API root, not under api_base).
+/** @param {string} file */
 export function serverFileUrl(file) {
   const b = serverBase();
   return b ? b + '/' + file : file;
@@ -63,6 +68,10 @@ export function serverFileUrl(file) {
 // HttpOnly cookie; cross-origin omits cookies (they don't cross origins)
 // and presents the stored session token as a bearer. Mutates and returns
 // the init so call sites can keep their own method/body/headers.
+/**
+ * @param {AuthInit} [init]
+ * @returns {AuthInit}
+ */
 export function applyAuth(init) {
   init = init || {};
   init.headers = Object.assign({}, init.headers);
@@ -81,6 +90,7 @@ export function applyAuth(init) {
 // VIEWER-BEGIN
 // Leading slashes are tolerated: a link built by joining a base ending in
 // '/' with '/u/...' reaches the shell as '//u/...', which the server serves.
+/** @param {string} pathname */
 function viewerOf(pathname) {
   const m = (pathname || '/').match(/^\/+u\/([A-Za-z0-9_-]+)(?:\/|$)/);
   if (m) return { mode: 'public', username: m[1] };
@@ -92,8 +102,8 @@ export function detectViewer() {
   return viewerOf(location.pathname);
 }
 
+/** @param {'places' | 'areas' | 'routes' | 'metadata'} kind */
 export function dataUrl(kind) {
-  // kind: 'places' | 'areas' | 'routes' | 'metadata'
   const v = state.viewer;
   if (v && v.mode === 'public') return apiUrl('/u/' + encodeURIComponent(v.username) + '/' + kind);
   return apiUrl('/' + kind);
@@ -105,6 +115,7 @@ export function categoryLabelsUrl() {
   return apiUrl('/me/category-labels');
 }
 
+/** @param {string} file */
 export function gpxUrlFor(file) {
   if (!hasServer()) return 'local:' + file;
   const v = state.viewer;
@@ -122,7 +133,9 @@ export function canEditPopup() {
 }
 // POPUP-EDIT-END
 
+/** @type {{ completed: string, planned: string } | null} */
 let _routeColorCache = null;
+/** @param {boolean} completed */
 export function routeStatusColor(completed) {
   // Cache both values per theme; applyTheme() invalidates. Avoids one
   // getComputedStyle (and forced style recalc) per polyline draw.
@@ -137,6 +150,13 @@ export function routeStatusColor(completed) {
 }
 export function clearRouteColorCache() { _routeColorCache = null; }
 
+/**
+ * The parsed body, or `fallback` on a network error or a non-OK status.
+ * @template T
+ * @param {string} url
+ * @param {T} fallback
+ * @returns {Promise<T>}
+ */
 export function fetchJson(url, fallback) {
   return fetch(url, applyAuth({})).then(r => r.ok ? r.json() : fallback).catch(() => fallback);
 }
