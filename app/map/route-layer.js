@@ -25,7 +25,7 @@ let _gpxActive = 0;
 function _gpxPump() {
   while (_gpxActive < GPX_CONCURRENCY && _gpxQueue.length > 0) {
     _gpxActive++;
-    const task = _gpxQueue.shift();
+    const task = /** @type {() => Promise<unknown>} */ (_gpxQueue.shift());
     task().finally(function() { _gpxActive--; _gpxPump(); });
   }
 }
@@ -215,7 +215,8 @@ export function adjustTrailStrokes() {
 // Desktop and any touch device without WebGL keep the SVG path (fallback).
 const _glColCanvas = document.createElement('canvas');
 _glColCanvas.width = _glColCanvas.height = 1;
-const _glColCtx = _glColCanvas.getContext('2d');
+// A fresh canvas always yields a 2d context.
+const _glColCtx = /** @type {CanvasRenderingContext2D} */ (_glColCanvas.getContext('2d'));
 /** @type {Record<string, number[]>} */
 const _glColCache = {};
 /** @param {string} c */
@@ -244,7 +245,7 @@ export function attachGLRoutes(map) {
   let originRef = null;
   /** @type {Record<string, number>} */
   const attrLoc = {};
-  /** @type {Record<string, WebGLUniformLocation>} */
+  /** @type {Record<string, WebGLUniformLocation | null>} */
   const uniLoc = {};
   const sched = mapScheduler(map);
   const canvas = document.createElement('canvas');
@@ -294,17 +295,18 @@ export function attachGLRoutes(map) {
 
   /** @param {number} type @param {string} src */
   function compile(type, src) {
-    const s = gl.createShader(type);
+    const s = /** @type {WebGLShader} */ (gl.createShader(type));
     gl.shaderSource(s, src); gl.compileShader(s);
     if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { console.warn('[gl-routes] shader', gl.getShaderInfoLog(s)); return null; }
     return s;
   }
   function init() {
-    gl = canvas.getContext('webgl', { antialias: true, premultipliedAlpha: true });
+    // Null on failure; the check below handles it.
+    gl = /** @type {WebGLRenderingContext} */ (canvas.getContext('webgl', { antialias: true, premultipliedAlpha: true }));
     if (!gl) return false;
     const vs = compile(gl.VERTEX_SHADER, VS), fs = compile(gl.FRAGMENT_SHADER, FS);
     if (!vs || !fs) return false;
-    program = gl.createProgram();
+    program = /** @type {WebGLProgram} */ (gl.createProgram());
     gl.attachShader(program, vs); gl.attachShader(program, fs); gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) { console.warn('[gl-routes] link', gl.getProgramInfoLog(program)); return false; }
     gl.useProgram(program);
@@ -325,7 +327,8 @@ export function attachGLRoutes(map) {
   const V6 = [[0, 1], [0, -1], [1, 1], [0, -1], [1, -1], [1, 1]];
   function rebuild() {
     if (!gl) return;
-    originRef = map.project(map.getCenter(), GL_ROUTE_REFZOOM);
+    const origin = map.project(map.getCenter(), GL_ROUTE_REFZOOM);
+    originRef = origin;
     const base4 = 4 * getTrailWeightFactor();
     const sel = state._selectedRouteKey;
     // From/to selection keys for the highlight animation. The shader lerps
@@ -360,7 +363,7 @@ export function attachGLRoutes(map) {
           let prev = null, dist = 0;
           for (const [lon, lat] of ring) {
             const p = map.project([lat, lon], GL_ROUTE_REFZOOM);
-            const x = p.x - originRef.x, y = p.y - originRef.y;
+            const x = p.x - origin.x, y = p.y - origin.y;
             if (prev) {
               pushSeg(areaArr, prev[0], prev[1], x, y, rgb, style.opacity, style.opacity, hw, hw, style.dashArray ? dist : -1);
               dist += Math.hypot(x - prev[0], y - prev[1]);
@@ -387,7 +390,7 @@ export function attachGLRoutes(map) {
           let prev = null;
           for (const ll of flat) {
             const p = map.project(ll, GL_ROUTE_REFZOOM);
-            const x = p.x - originRef.x, y = p.y - originRef.y;
+            const x = p.x - origin.x, y = p.y - origin.y;
             if (prev) pushSeg(arr, prev[0], prev[1], x, y, rgb, opF, opT, wF, wT);
             prev = [x, y];
           }
