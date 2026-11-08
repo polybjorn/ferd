@@ -247,14 +247,15 @@ export function listView(kind) {
 // Split a GPX into separate point arrays, one per track segment (and per
 // track when a track has no <trkseg>). Keeping segments apart stops the
 // silhouette from drawing a straight line between disjoint paths.
+/** @param {string} text */
 function gpxSegments(text) {
   const doc = new DOMParser().parseFromString(text, 'text/xml');
-  const tags = function(parent, name) {
+  const tags = function(/** @type {Document | Element} */ parent, /** @type {string} */ name) {
     let els = parent.getElementsByTagNameNS(GPX_NS, name);
     if (!els.length) els = parent.getElementsByTagName(name);
     return els;
   };
-  const readPts = function(parent) {
+  const readPts = function(/** @type {Element} */ parent) {
     const arr = [];
     const pts = tags(parent, 'trkpt');
     for (let i = 0; i < pts.length; i++) {
@@ -283,6 +284,7 @@ function gpxSegments(text) {
 
 // Shared silhouette renderer: draw a route's GPX track shape onto a canvas,
 // normalized to fill the box with padding. Each segment is its own subpath.
+/** @param {HTMLCanvasElement} canvas @param {import('./core.js').ManifestRoute} route */
 export function drawRouteSilhouette(canvas, route) {
   if (!canvas || !route || !route.file) return;
   fetchGpxText(gpxUrlFor(route.file)).then(function(text) {

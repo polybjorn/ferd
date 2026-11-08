@@ -16,11 +16,17 @@ import { openSignInModal } from './sign-in.js';
  * @typedef {Error & { status?: number, body?: any, offline?: boolean }} ApiError
  */
 
+/** @param {string} path */
 export function apiUrl(path) {
   const apiBase = (state.config.api_base || '/api').replace(/\/$/, '');
   return serverBase() + apiBase + path;
 }
 
+/**
+ * @param {string} method
+ * @param {string} path
+ * @param {unknown} [body]
+ */
 export function api(method, path, body) {
   const opts = applyAuth({ method });
   if (body !== undefined && !(body instanceof Blob)) {
@@ -201,7 +207,7 @@ export function openAboutModal() {
     if (plus >= 0) buildLabel = 'build ' + appVersion.slice(plus + 1);
   }
   const brand = (state.config && state.config.brand) || 'Ferd';
-  const overlayCredits = parseOverlays(state.config && state.config.overlays)
+  const overlayCredits = parseOverlays(state.config && /** @type {typeof state.config & { overlays?: unknown }} */ (state.config).overlays)
     .map(ov => ov.attribution).filter(Boolean);
   openSheetModal(
     modalHeaderHtml('About') +

@@ -11,17 +11,20 @@ const _crcTable = (() => {
   for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; }
   return t;
 })();
+/** @param {Uint8Array} b */
 function _crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = _crcTable[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+/** @param {Uint8Array[]} arrs */
 function _concatBytes(arrs) {
   let len = 0; for (const a of arrs) len += a.length;
   const out = new Uint8Array(len); let o = 0;
   for (const a of arrs) { out.set(a, o); o += a.length; }
   return out;
 }
+/** @param {{ name: string, data: Uint8Array }[]} files */
 function _zipStore(files) {
   const enc = new TextEncoder();
-  const u16 = n => { const b = new Uint8Array(2); new DataView(b.buffer).setUint16(0, n & 0xFFFF, true); return b; };
-  const u32 = n => { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0, n >>> 0, true); return b; };
+  const u16 = (/** @type {number} */ n) => { const b = new Uint8Array(2); new DataView(b.buffer).setUint16(0, n & 0xFFFF, true); return b; };
+  const u32 = (/** @type {number} */ n) => { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0, n >>> 0, true); return b; };
   const locals = [], central = []; let offset = 0;
   for (const f of files) {
     const name = enc.encode(f.name), data = f.data, crc = _crc32(data);
@@ -34,10 +37,12 @@ function _zipStore(files) {
   const eocd = _concatBytes([u32(0x06054b50), u16(0), u16(0), u16(files.length), u16(files.length), u32(cd.length), u32(offset), u16(0)]);
   return new Blob([_concatBytes(locals), cd, eocd], { type: 'application/zip' });
 }
+/** @param {Uint8Array<ArrayBuffer>} bytes */
 function _inflateRaw(bytes) {
   const ds = new DecompressionStream('deflate-raw');
   return new Response(new Blob([bytes]).stream().pipeThrough(ds)).arrayBuffer().then(b => new Uint8Array(b));
 }
+/** @param {ArrayBuffer} buf */
 async function _zipRead(buf) {
   const dv = new DataView(buf), bytes = new Uint8Array(buf);
   let p = buf.byteLength - 22;

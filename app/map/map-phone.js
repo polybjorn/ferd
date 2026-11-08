@@ -11,6 +11,7 @@ const FILTER_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 // become a button under the tile picker that opens a sheet, and search moves
 // to the bottom bar. CSS shows the button or the panel by width, so a resize
 // needs no rebuild.
+/** @param {import('./route-layer.js').LeafletMap} map */
 export function addPhoneMapButtons(map) {
   const Ctrl = L.Control.extend({
     options: { position: 'topright' },
@@ -24,7 +25,7 @@ export function addPhoneMapButtons(map) {
     }
   });
   map.addControl(new Ctrl());
-  document.getElementById('map-filter-btn').addEventListener('click', openFilterSheet);
+  /** @type {HTMLElement} */ (document.getElementById('map-filter-btn')).addEventListener('click', openFilterSheet);
   syncFilterDot();
   if (state._pendingSearchResult) {
     const row = state._pendingSearchResult;

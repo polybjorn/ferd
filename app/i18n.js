@@ -468,25 +468,28 @@ const STRINGS = {
 
 // Splits a template at its {name} slots, so a slot can hold a vnode as well
 // as text. A `count` var picks the .one or .other variant of the key.
+/** @param {string} key @param {Record<string, unknown>} [vars] */
 function parts(key, vars) {
   let k = key;
   if (vars && typeof vars.count === 'number') {
     const variant = key + (vars.count === 1 ? '.one' : '.other');
     if (variant in STRINGS) k = variant;
   }
-  const template = k in STRINGS ? STRINGS[k] : key;
+  const template = k in STRINGS ? /** @type {Record<string, string>} */ (STRINGS)[k] : key;
   return template.split(/\{(\w+)\}/).map((piece, i) => {
     if (i % 2 === 0) return piece;
     return vars && piece in vars ? vars[piece] : '{' + piece + '}';
   }).filter(piece => piece !== '');
 }
 
+/** @param {string} key @param {Record<string, unknown>} [vars] */
 export function t(key, vars) {
   return parts(key, vars).join('');
 }
 
 // Like t, but the vars may be vnodes: returns the pieces for a template to
 // render, for text that wraps a part of itself in an element.
+/** @param {string} key @param {Record<string, unknown>} [vars] */
 export function tx(key, vars) {
   return parts(key, vars);
 }

@@ -183,6 +183,8 @@ export const state = {
   // each fetched once per page load.
   _countryPick: /** @type {Promise<import('./countries.js').CountryPick> | null} */ (null),
   _countryData: /** @type {Promise<import('./countries.js').CountryData> | null} */ (null),
+  // map-phone: a search pick made off the map, replayed once the map is up.
+  _pendingSearchResult: /** @type {{ dataset: Record<string, string | undefined> } | null} */ (null),
 };
 
 export function escapeHtml(str) {

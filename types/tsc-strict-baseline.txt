@@ -1,13 +1,3 @@
-1	app/auth.js	TS2339	Property 'overlays' does not exist on type '{...}'.
-1	app/auth.js	TS7006	Parameter 'body' implicitly has an 'any' type.
-1	app/auth.js	TS7006	Parameter 'method' implicitly has an 'any' type.
-2	app/auth.js	TS7006	Parameter 'path' implicitly has an 'any' type.
-1	app/backup.js	TS7006	Parameter 'arrs' implicitly has an 'any' type.
-1	app/backup.js	TS7006	Parameter 'b' implicitly has an 'any' type.
-1	app/backup.js	TS7006	Parameter 'buf' implicitly has an 'any' type.
-1	app/backup.js	TS7006	Parameter 'bytes' implicitly has an 'any' type.
-1	app/backup.js	TS7006	Parameter 'files' implicitly has an 'any' type.
-2	app/backup.js	TS7006	Parameter 'n' implicitly has an 'any' type.
 1	app/core.js	TS2339	Property 'order' does not exist on type '{...}'.
 1	app/core.js	TS7006	Parameter 'alwaysShow' implicitly has an 'any' type.
 1	app/core.js	TS7006	Parameter 'c' implicitly has an 'any' type.
@@ -42,44 +32,3 @@
 2	app/core.js	TS7018	Object literal's property 'tags' implicitly has an 'any[]' type.
 5	app/core.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
 14	app/core.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
-1	app/history.js	TS7006	Parameter 'canvas' implicitly has an 'any' type.
-1	app/history.js	TS7006	Parameter 'name' implicitly has an 'any' type.
-2	app/history.js	TS7006	Parameter 'parent' implicitly has an 'any' type.
-1	app/history.js	TS7006	Parameter 'route' implicitly has an 'any' type.
-1	app/history.js	TS7006	Parameter 'text' implicitly has an 'any' type.
-1	app/i18n.js	TS7006	Parameter 'i' implicitly has an 'any' type.
-3	app/i18n.js	TS7006	Parameter 'key' implicitly has an 'any' type.
-2	app/i18n.js	TS7006	Parameter 'piece' implicitly has an 'any' type.
-3	app/i18n.js	TS7006	Parameter 'vars' implicitly has an 'any' type.
-1	app/i18n.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-3	app/main.js	TS7005	Variable 'pendingReg' implicitly has an 'any' type.
-1	app/main.js	TS7006	Parameter 'base' implicitly has an 'any' type.
-1	app/main.js	TS7006	Parameter 'cfg' implicitly has an 'any' type.
-1	app/main.js	TS7006	Parameter 'reg' implicitly has an 'any' type.
-1	app/main.js	TS7006	Parameter 'timeoutMs' implicitly has an 'any' type.
-1	app/main.js	TS7011	Function expression, which lacks return-type annotation, implicitly has an 'any' return type.
-1	app/main.js	TS7034	Variable 'pendingReg' implicitly has type 'any' in some locations where its type cannot be determined.
-1	app/map/country-layer.js	TS7006	Parameter 'f' implicitly has an 'any' type.
-1	app/map/map-markers.js	TS7006	Parameter 'color' implicitly has an 'any' type.
-1	app/map/map-markers.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/map/map-markers.js	TS7006	Parameter 'gpxLayer' implicitly has an 'any' type.
-1	app/map/map-markers.js	TS7006	Parameter 'visited' implicitly has an 'any' type.
-4	app/map/map-phone.js	TS2339	Property '_pendingSearchResult' does not exist on type '{...}'.
-1	app/map/map-phone.js	TS7006	Parameter 'map' implicitly has an 'any' type.
-1	app/map/pick-coords.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-2	app/map/pick-coords.js	TS7006	Parameter 'ev' implicitly has an 'any' type.
-1	app/map/pick-coords.js	TS7006	Parameter 'onPick' implicitly has an 'any' type.
-1	app/router.js	TS7006	Parameter 'hash' implicitly has an 'any' type.
-1	app/router.js	TS7006	Parameter 'slug' implicitly has an 'any' type.
-1	app/router.js	TS7006	Parameter 'type' implicitly has an 'any' type.
-1	app/sign-in.js	TS2339	Property 'setup_token' does not exist on type '{...}'.
-1	app/sign-in.js	TS2339	Property 'token' does not exist on type '{...}'.
-1	app/sign-in.js	TS7006	Parameter 'includeClose' implicitly has an 'any' type.
-1	app/sign-in.js	TS7006	Parameter 'm' implicitly has an 'any' type.
-1	app/sign-in.js	TS7006	Parameter 'msg' implicitly has an 'any' type.
-2	app/sign-in.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
-1	app/sign-in.js	TS7006	Parameter 'raw' implicitly has an 'any' type.
-1	app/theme.js	TS7006	Parameter 'mode' implicitly has an 'any' type.
-1	app/theme.js	TS7006	Parameter 'theme' implicitly has an 'any' type.
-1	app/theme.js	TS7006	Parameter 'v' implicitly has an 'any' type.
-4	app/theme.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.

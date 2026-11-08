@@ -49,6 +49,7 @@ if (window.matchMedia) {
     if (getStoredMode() === 'system') applyTheme(getStoredTheme(), 'system');
   });
 }
+/** @param {Record<string, any> | null} [cfg] */
 function applyConfig(cfg) {
   state.config = Object.assign({}, DEFAULT_CONFIG, cfg || {});
   state.config.features = Object.assign({}, DEFAULT_CONFIG.features, (cfg && cfg.features) || {});
@@ -133,7 +134,7 @@ export function bootApp() {
       return fetch(apiUrl('/state'), applyAuth({})).then(
         r => {
           if (!r.ok) return null;
-          return r.json().then(s => { metaSet(authCacheKey(), s); return s; }, () => null);
+          return r.json().then(s => { metaSet(authCacheKey(), s); return s; }, /** @returns {null} */ () => null);
         },
         () => metaGet(authCacheKey()).then(s => s || null)
       );
@@ -152,6 +153,7 @@ export function bootApp() {
 
 // Confirm a base actually hosts a Ferd API before we commit to it. Empty
 // base = probe same-origin. Short timeout so a dead address fails fast.
+/** @param {string} base @param {number} [timeoutMs] */
 export function probeServer(base, timeoutMs) {
   const root = (base || '').replace(/\/+$/, '');
   const ctrl = new AbortController();
@@ -237,7 +239,8 @@ startup();
     window.location.reload();
   });
 
-  let pendingReg = null;
+  let pendingReg = /** @type {ServiceWorkerRegistration | null} */ (null);
+  /** @param {ServiceWorkerRegistration} reg */
   function promptUpdate(reg) {
     pendingReg = reg;
     showUpdatePrompt();

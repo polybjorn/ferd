@@ -28,7 +28,7 @@ export function syncCountriesOnMap() {
       renderer: state._countryRenderer,
       pane: 'countriesPane',
       interactive: false,
-      filter: f => codes.has(f.properties.code),
+      filter: (/** @type {{ properties: { code: string } }} */ f) => codes.has(f.properties.code),
       // No outline: a fill scales with the pinch correctly, but an SVG stroke
       // thickens and shakes through it, and the GL layer that holds route and
       // area widths would have to carry every country's coast.

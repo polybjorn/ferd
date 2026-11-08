@@ -8,8 +8,10 @@ import { renderAreasIndex } from './areas/areas-page.js';
 import { renderYouPage } from './you.js';
 import { unmountPage } from './view.js';
 
+/** @param {string} type @param {string} slug */
 export function focusHash(type, slug) { return '#/' + type + '/' + slug; }
 
+/** @param {string} hash */
 function parseFocus(hash) {
   const base = hash.split('?')[0];
   if (base.startsWith('#/place/')) {
