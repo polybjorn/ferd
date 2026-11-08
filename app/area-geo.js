@@ -355,14 +355,4 @@ export function tracksTouchArea(geometry, tracks) {
   const box = areaBbox(geometry);
   return tracks.some(t => t.points.some(pt => _inArea(geometry, box, pt.lon, pt.lat)));
 }
-/**
- * @param {number} total
- * @param {string} noun
- * @param {number} done
- * @param {string} doneLabel
- */
-export function areaStatText(total, noun, done, doneLabel) {
-  if (!total) return 'No ' + noun + 's';
-  return total + ' ' + noun + (total === 1 ? '' : 's') + ', ' + done + ' ' + doneLabel;
-}
 // AREA-GEO-END

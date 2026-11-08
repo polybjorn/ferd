@@ -1,4 +1,4 @@
-import { addButtonHtml, state } from './core.js';
+import { addButton, state } from './core.js';
 import { isReadOnly } from './server.js';
 import { listKinds, setPref } from './prefs.js';
 import { wirePopover } from './map/index.js';
@@ -29,10 +29,10 @@ export function useNavAdd(id, title, onClick) {
   useEffect(() => {
     const nav = document.getElementById('nav-actions');
     if (!nav || !canAdd) return;
-    nav.innerHTML = addButtonHtml(id, title);
-    const btn = document.getElementById(id);
-    if (btn) btn.addEventListener('click', onClick);
-    return () => { nav.innerHTML = ''; };
+    const btn = addButton(id, title);
+    btn.addEventListener('click', onClick);
+    nav.replaceChildren(btn);
+    return () => { nav.replaceChildren(); };
   }, [canAdd]);
   return canAdd;
 }
