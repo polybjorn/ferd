@@ -47,9 +47,6 @@ class ParseTest(unittest.TestCase):
         # Empty once the last error went; it must still read without raising.
         self.assertIsInstance(typecheck.read_baseline(typecheck.BASELINE), Counter)
 
-    def test_committed_strict_baseline_parses(self):
-        self.assertIsInstance(typecheck.read_baseline(typecheck.STRICT_BASELINE), Counter)
-
 
 class MainTest(unittest.TestCase):
     def test_baseline_option_reads_and_writes_the_named_file(self):

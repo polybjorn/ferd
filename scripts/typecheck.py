@@ -10,9 +10,9 @@ the baseline has to come down with it, in the same commit.
     python3 scripts/typecheck.py tsc.out            # check
     python3 scripts/typecheck.py tsc.out --update   # rewrite the baseline
 
---baseline PATH holds a second run to its own file: CI checks
-tsconfig.strict.json against types/tsc-strict-baseline.txt, so the strict
-flags come on one at a time without failing the default check.
+--baseline PATH reads and writes another file in place of the committed one.
+The baseline is empty now, but stays: a TypeScript bump that adds a flag to
+"strict" records the errors it raises there, in the same commit.
 """
 import re
 import sys
@@ -21,7 +21,6 @@ from pathlib import Path
 
 TYPES = Path(__file__).resolve().parent.parent / 'types'
 BASELINE = TYPES / 'tsc-baseline.txt'
-STRICT_BASELINE = TYPES / 'tsc-strict-baseline.txt'
 FILE_ERROR = re.compile(r'^(?P<file>.+?)\(\d+,\d+\): error (?P<code>TS\d+): (?P<msg>.*)$')
 GLOBAL_ERROR = re.compile(r'^error (?P<code>TS\d+): (?P<msg>.*)$')
 

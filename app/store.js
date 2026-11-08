@@ -1208,7 +1208,7 @@ export async function importLocal(data, mode) {
   const putKeys = new Set((w.items || []).map(r => pkey(r.kind, r.id)));
   w.delItems = (w.delItems || []).filter(k => !putKeys.has(pkey(k[1], k[2])));
   w.delGpx = (extra.delGpx || []).filter(k => !(extra.gpx || []).some(g => g.file === k[1]));
-  w.gpx = extra.gpx;
+  w.gpx = extra.gpx || [];
   publish(kinds);
   await dbWrite(w);
   localLog('local.import', '', { places: nPlaces, areas: nAreas, gpx: nRoutes, mode });

@@ -185,7 +185,7 @@ export function deletePlaceItem(place, opts) {
     body: 'Delete "' + place.name + '"? This cannot be undone.',
     confirmLabel: 'Delete',
     danger: true,
-  }).then(function(ok) { if (ok) return deletePlaceNow(place, opts); });
+  }).then(function(ok) { return ok ? deletePlaceNow(place, opts) : undefined; });
 }
 
 /**

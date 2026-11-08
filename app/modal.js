@@ -127,8 +127,8 @@ export function openModal(html, onMount, onClose, opts) {
     // Default close behavior: tear down this dialog. onClose overrides
     // run instead and may call closeModal()/closeTopModal() themselves.
     onClose: onClose ? () => onClose() : () => closeTopModal(),
-    phone: opts ? opts.phone : undefined,
   };
+  if (opts && opts.phone) entry.phone = opts.phone;
   applyPhoneLayout(entry);
   modalStack.push(entry);
   closeOnBackdropClick(dialog, () => entry.onClose());
