@@ -49,7 +49,7 @@ export function renderUnifiedMap(focus) {
   const storedView = (!prevView && getRememberView() && !anyFilterActive) ? loadStoredView() : null;
   cleanupMap();
 
-  const app = document.getElementById('app');
+  const app = /** @type {HTMLElement} */ (document.getElementById('app'));
   app.innerHTML = '<div id="map"></div>';
 
   // An in-app place click is a "take me there" intent: initialize the map
@@ -146,7 +146,7 @@ export function renderUnifiedMap(focus) {
   /** @type {RouteRecord[]} */
   const routeLayers = [];
   const routeBounds = L.latLngBounds();
-  let focusTrailKey = (focus && focus.type === 'route') ? focus.name : null;
+  let focusTrailKey = (focus && focus.type === 'route' && focus.name) || null;
   let focusTrailLayer = null;
   // Arriving with a route focus (e.g. back from its detail view) highlights
   // that route on the index map too, matching the click behavior.
@@ -540,7 +540,7 @@ export function renderUnifiedMap(focus) {
       ? 'Add place or route'
       : (placesEnabled() ? 'Add place' : 'Add route');
     navActionsEl.innerHTML = addButtonHtml('map-add-btn', title);
-    document.getElementById('map-add-btn').addEventListener('click', function() { openAddModal(null); });
+    /** @type {HTMLElement} */ (document.getElementById('map-add-btn')).addEventListener('click', function() { openAddModal(null); });
   }
 }
 
@@ -600,7 +600,7 @@ export function refreshFilterPanel() {
   if (routesBody) routesBody.innerHTML = routesLegendHtml();
   renderPanelStatus();
   /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.filter-sheet [data-sheet-section]')).forEach(el => {
-    el.innerHTML = sheetSectionHtml(el.dataset.sheetSection);
+    el.innerHTML = sheetSectionHtml(el.dataset.sheetSection || '');
   });
   syncFilterSheet();
   syncFilterDot();
@@ -667,12 +667,12 @@ function syncFilterSheet() {
     ? state.manifest.regions.flatMap(r => r.routes.map(t => ({ region: r.name, completed: t.completed })))
     : [];
   /** @type {Record<string, number[]>} */
-  const counts = {
+  const counts = /** @type {Record<string, number[]>} */ ({
     places: state._placeRecords ? [state._placeRecords.filter(placeShown).length, state._placeRecords.length] : [0, 0],
     routes: [routes.filter(routeShown).length, routes.length],
-  };
+  });
   /** @type {NodeListOf<HTMLElement>} */ (sheet.querySelectorAll('[data-count]')).forEach(el => {
-    const [shown, total] = counts[el.dataset.count];
+    const [shown, total] = counts[el.dataset.count || ''];
     el.textContent = total ? shown + ' of ' + total + ' shown' : '';
   });
   /** @type {NodeListOf<HTMLElement>} */ (sheet.querySelectorAll('[data-toggle-all]')).forEach(el => {
@@ -813,7 +813,8 @@ export function bindFilterPanel() {
       const wasClosed = !section.classList.contains('open');
       document.querySelectorAll('.panel-head').forEach(t => {
         t.setAttribute('aria-expanded', 'false');
-        document.getElementById(t.getAttribute('aria-controls')).classList.remove('open');
+        const body = document.getElementById(t.getAttribute('aria-controls') || '');
+        if (body) body.classList.remove('open');
       });
       if (wasClosed) {
         section.classList.add('open');

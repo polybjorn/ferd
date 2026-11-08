@@ -38,7 +38,7 @@ function countryMatches(query, countries, names) {
   /** @type {Map<string, number>} */
   const rank = new Map();
   /** @param {string} code @param {number} r */
-  const note = (code, r) => { if (!(rank.get(code) <= r)) rank.set(code, r); };
+  const note = (code, r) => { const had = rank.get(code); if (had === undefined || had > r) rank.set(code, r); };
   if (names[q]) note(names[q], 0);
   for (const c of countries) {
     const n = normCountryName(c.name);
@@ -47,7 +47,7 @@ function countryMatches(query, countries, names) {
     else if (n.includes(q)) note(c.code, 3);
   }
   for (const key in names) if (key.startsWith(q)) note(names[key], 4);
-  return countries.filter(c => rank.has(c.code)).sort((a, b) => rank.get(a.code) - rank.get(b.code));
+  return countries.filter(c => rank.has(c.code)).sort((a, b) => (rank.get(a.code) ?? 0) - (rank.get(b.code) ?? 0));
 }
 /**
  * @param {string} value
@@ -188,6 +188,7 @@ function mountCountryPicker(input, { countries, names }) {
   // is fixed to the viewport. Only the modal's own scroll moves here.
   const lift = () => {
     const modal = input.closest('.ui-dialog-body');
+    if (!modal) return;
     modal.scrollTop += input.getBoundingClientRect().top - modal.getBoundingClientRect().top - 40;
   };
   input.addEventListener('focus', () => { if (_selectCoarsePointer) lift(); });

@@ -249,6 +249,7 @@ export function openCatalogBulkUpdateModal() {
   if (!pending.length) { alert('No catalog updates available.'); return; }
   const sections = pending.map(p => {
     const r = findCatalogUpdate(p);
+    if (!r) return '';
     return '<div class="catalog-bulk-place" data-place-id="' + escapeHtml(String(p.id)) + '">' +
       '<h3 class="settings-h" style="display:flex;align-items:baseline;gap:var(--ui-space-2)">' +
         '<span>' + escapeHtml(p.name) + '</span>' +
@@ -267,7 +268,7 @@ export function openCatalogBulkUpdateModal() {
     '</div>',
     /** @param {HTMLDialogElement} backdrop */
     function(backdrop) {
-      const list = document.getElementById('catalog-bulk-list');
+      const list = /** @type {HTMLElement} */ (document.getElementById('catalog-bulk-list'));
       const toggleAllBtn = /** @type {HTMLButtonElement} */ (document.getElementById('catalog-bulk-toggle-all'));
       const applyBtn = /** @type {HTMLButtonElement} */ (document.getElementById('catalog-bulk-apply'));
       const allChecks = () => /** @type {HTMLInputElement[]} */ (Array.from(backdrop.querySelectorAll('.catalog-diff-check')));
@@ -321,12 +322,15 @@ export function openCatalogBulkUpdateModal() {
           const sec = /** @type {HTMLElement} */ (el);
           /** @type {Set<string>} */
           const set = new Set();
-          /** @type {NodeListOf<HTMLInputElement>} */ (sec.querySelectorAll('.catalog-diff-check:checked')).forEach(cb => set.add(cb.dataset.field));
-          selByPlace[sec.dataset.placeId] = set;
+          /** @type {NodeListOf<HTMLInputElement>} */ (sec.querySelectorAll('.catalog-diff-check:checked')).forEach(cb => { if (cb.dataset.field) set.add(cb.dataset.field); });
+          selByPlace[sec.dataset.placeId || ''] = set;
         });
         const items = pending
-          .map(p => ({ p, r: findCatalogUpdate(p), fields: selByPlace[String(p.id)] || new Set() }))
-          .filter(x => x.r && x.fields.size > 0);
+          .flatMap(p => {
+            const r = findCatalogUpdate(p);
+            const fields = selByPlace[String(p.id)] || new Set();
+            return r && fields.size > 0 ? [{ p, r, fields }] : [];
+          });
         if (!items.length) return;
         btn.disabled = true;
         toggleAllBtn.disabled = true;
@@ -344,7 +348,7 @@ export function openCatalogBulkUpdateModal() {
           }
           const { p, r, fields } = items[i];
           btn.textContent = 'Applying ' + (i + 1) + ' of ' + items.length + '…';
-          dataLayer.updatePlace({ id: p.id, place: buildCatalogRefreshPayload(p, r.entry, r.changes, fields) })
+          dataLayer.updatePlace({ id: String(p.id), place: buildCatalogRefreshPayload(p, r.entry, r.changes, fields) })
             .catch(err => errors.push(p.name + ': ' + err.message))
             .then(() => { i++; next(); });
         })();
@@ -382,7 +386,7 @@ export function openCatalogUpdateModal(place) {
         /** @type {Set<string>} */
         const set = new Set();
         /** @type {NodeListOf<HTMLInputElement>} */ (backdrop.querySelectorAll('.catalog-diff-check')).forEach(cb => {
-          if (cb.checked) set.add(cb.dataset.field);
+          if (cb.checked && cb.dataset.field) set.add(cb.dataset.field);
         });
         return set;
       }
@@ -400,7 +404,7 @@ export function openCatalogUpdateModal(place) {
        */
       function submit(applyFields, btn) {
         btn.disabled = true;
-        dataLayer.updatePlace({ id: place.id, place: buildCatalogRefreshPayload(place, entry, changes, applyFields) })
+        dataLayer.updatePlace({ id: String(place.id), place: buildCatalogRefreshPayload(place, entry, changes, applyFields) })
           .then(() => {
             closeModal();
             redrawPlaces();
