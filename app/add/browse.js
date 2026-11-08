@@ -67,7 +67,7 @@ function BrowseList({ entries }) {
     enhanceSelectsIn(root);
     /** @param {string} id */
     const el = id => /** @type {HTMLElement | null} */ (document.getElementById(id));
-    wireFilterPopover({
+    return wireFilterPopover({
       btn: el('browse-filter-btn'),
       pop: el('browse-filter-popover'),
       clear: el('browse-clear'),

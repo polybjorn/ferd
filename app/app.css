@@ -1274,7 +1274,9 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   gap: var(--ui-space-2);
   color: var(--text);
 }
-.map-search-result:hover { background: var(--surface2); }
+/* active is the row the arrow keys have reached. */
+.map-search-result:hover,
+.map-search-result.active { background: var(--surface2); }
 .map-search-result .result-dot,
 .map-search-result .result-line {
   flex-shrink: 0;
@@ -1324,7 +1326,8 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 .map-search-head .map-search-field { flex: 1; }
 /* The dialog body's padding is the gap above the list. */
-.map-search-list > :is(.map-search-heading, .map-search-heading-row):first-child { margin-top: 0; }
+.map-search-list > :is(.map-search-heading, .map-search-heading-row):first-child,
+.map-search-list > :first-child > :first-child > .map-search-heading:first-child { margin-top: 0; }
 .map-search-heading-row {
   display: flex;
   align-items: center;
@@ -2703,6 +2706,18 @@ body.force-show-map-filter .map-panel {
 .ui-dialog.narrow-dialog { --ui-dialog-width: 380px; }
 .ui-dialog .ui-dialog-title { letter-spacing: 0.05em; }
 .ui-dialog .ui-dialog-actions { align-items: center; }
+/* A sheet or full-screen view with no action row ends on Ferd's own last
+   row: the Settings sheet's Sign out, a confirm's button, About's credits.
+   ui.css keeps its actions row clear of a rounded display corner with
+   --ui-corner-gap, and the contract asks a host's own last row to read it
+   too. The body's ui-layer padding outranks this layer, so the row takes the
+   rest of the gap as margin, counting the safe-area inset the sheet already
+   pads by toward it, as ui.css does for its actions. */
+.ui-dialog:is(.ui-dialog-sheet, .ui-dialog-fullscreen) .ui-dialog-body:not(:has(~ .ui-dialog-actions)) > :last-child {
+  margin-inline: calc(var(--ui-corner-gap) - var(--ui-space-4));
+  margin-block-end: max(0px,
+    calc(var(--ui-corner-gap) - var(--ui-space-4) - env(safe-area-inset-bottom, 0px)));
+}
 .ui-dialog .action-spacer { flex: 1; }
 .ui-dialog .title-count { color: var(--muted); margin-left: var(--ui-space-2); }
 /* The Add modal's tabs are its head. */

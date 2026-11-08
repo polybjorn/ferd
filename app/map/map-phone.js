@@ -1,6 +1,7 @@
 import { closeModal, openModal, openSheetModal } from '../modal.js';
 import { bindFilterSheet, filterSheetHtml, refreshFilterPanel, syncFilterDot } from './home-map.js';
 import { goToSearchResult, recentResultsHtml, searchMatches, searchResultsHtml } from './place-layer.js';
+import { bindSearchKeys } from './search-keys.js';
 import { addRecentPick, clearRecentPicks, getRecentPicks, placesEnabled, routesEnabled } from '../prefs.js';
 import { state } from '../core.js';
 
@@ -62,17 +63,33 @@ export function openSearchView() {
     function(dialog) {
       const input = dialog.querySelector('#map-search-view-input');
       const list = dialog.querySelector('#map-search-view-list');
+      /** @param {HTMLElement} row */
+      const pick = function(row) {
+        addRecentPick({ ...row.dataset });
+        closeModal();
+        showResultOnMap({ ...row.dataset });
+      };
+      // Escape is left to the modal, which closes the whole view.
+      const keys = bindSearchKeys(input, list, { pick, controls: 'map-search-view-options' });
+      // The rows sit in a listbox of their own, as the Clear button and the
+      // hints beside them are not options.
+      /** @param {string} rows */
+      const options = function(rows) {
+        return '<div role="listbox" id="map-search-view-options" aria-label="Results">' + rows + '</div>';
+      };
       const render = function() {
         const q = input.value.trim();
-        if (q) {
-          list.innerHTML = searchResultsHtml(searchMatches(q), true) || '<p class="map-search-empty">No matches</p>';
-          return;
+        const found = q ? searchResultsHtml(searchMatches(q), true) : '';
+        const recent = q ? '' : recentResultsHtml(getRecentPicks());
+        if (found) {
+          list.innerHTML = options(found);
+        } else if (recent) {
+          list.innerHTML = '<div class="map-search-heading-row"><h3 class="map-search-heading">Recent</h3>' +
+            '<button type="button" class="map-search-clear" data-clear-recent>Clear</button></div>' + options(recent);
+        } else {
+          list.innerHTML = '<p class="map-search-empty">' + (q ? 'No matches' : 'Find a place, area or route by name') + '</p>';
         }
-        const recent = recentResultsHtml(getRecentPicks());
-        list.innerHTML = recent
-          ? '<div class="map-search-heading-row"><h3 class="map-search-heading">Recent</h3>' +
-            '<button type="button" class="map-search-clear" data-clear-recent>Clear</button></div>' + recent
-          : '<p class="map-search-empty">Find a place, area or route by name</p>';
+        keys.refresh(!!(found || recent));
       };
       input.addEventListener('input', render);
       render();
@@ -84,10 +101,7 @@ export function openSearchView() {
           return;
         }
         const row = e.target.closest('.map-search-result');
-        if (!row) return;
-        addRecentPick({ ...row.dataset });
-        closeModal();
-        showResultOnMap({ ...row.dataset });
+        if (row) pick(row);
       });
       input.focus();
       // The keyboard going down shows as the visible height growing back.

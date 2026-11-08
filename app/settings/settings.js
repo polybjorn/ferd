@@ -24,10 +24,10 @@ import { openManageRegionsModal } from './regions.js';
 import {
   AdminCatalog, AdminStats, AdminUsers, Sessions, Tokens, renderAdminCatalog,
 } from './account.js';
-import { openConfirmModal } from '../select.js';
+import { enhanceSelectsIn, openConfirmModal } from '../select.js';
 import { sync } from '../store.js';
 import {
-  CopyButton, DialogHead, ErrorBox, Field, RadioPills, Toggle, html, openViewModal, useRef, useState,
+  CopyButton, DialogHead, ErrorBox, Field, RadioPills, Toggle, html, openViewModal, useEffect, useRef, useState,
 } from '../view.js';
 import { wrappedRouter } from '../router.js';
 
@@ -138,6 +138,10 @@ function SettingsView({ tabs, env }) {
   const [tab, setTab] = useState(tabs[0]);
   // The password form is on Account and the session list on Security.
   const [sessionsVersion, setSessionsVersion] = useState(0);
+  const body = useRef(/** @type {HTMLDivElement | null} */ (null));
+  // A select a tab renders after the dialog opened would keep the system
+  // picker, so each tab switch themes the panels again, as the Add dialog does.
+  useEffect(() => { enhanceSelectsIn(body.current); }, [tab]);
   // The menu item already named the dialog, so tabs take the title's place.
   const lead = tabs.length > 1 && html`<div class="modal-tabs" id="settings-tabs">
     ${tabs.map(name => html`<button key=${name} data-tab=${name} class=${name === tab ? 'active' : undefined} onClick=${() => setTab(name)}>${t(SETTINGS_TAB_LABELS[name])}</button>`)}
@@ -147,7 +151,7 @@ function SettingsView({ tabs, env }) {
     html`<div data-panel=${name} hidden=${name !== tab}>${body}</div>`;
   return html`
     <${DialogHead} title=${t(SETTINGS_TAB_LABELS[tabs[0]])} lead=${lead} />
-    <div class="ui-dialog-body">
+    <div class="ui-dialog-body" ref=${body}>
       ${panel('general', html`<${GeneralPanel} env=${env} />`)}
       ${panel('backup', html`<${BackupPanel} />`)}
       ${panel('appearance', html`<${AppearancePanel} env=${env} />`)}

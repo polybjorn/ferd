@@ -51,6 +51,7 @@ const SHELL_ASSETS = [
   '/app/map/popups.js',
   '/app/map/route-detail.js',
   '/app/map/route-layer.js',
+  '/app/map/search-keys.js',
   '/app/map/sync.js',
   '/app/modal.js',
   '/app/places-list.js',
