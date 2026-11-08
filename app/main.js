@@ -318,6 +318,6 @@ function SyncIssues() {
         <button type="button" disabled=${busy} onClick=${() => run(() => dismissKept(it.key))}>${t('syncIssues.dismiss')}</button>
       </div>
     </li>`)}</ul>` : null}
-    <div class=${'modal-error' + (error ? ' visible' : '')}>${error}</div>
+    <div class=${'form-error' + (error ? ' visible' : '')}>${error}</div>
   </div>`;
 }

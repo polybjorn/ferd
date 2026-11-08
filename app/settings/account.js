@@ -240,7 +240,7 @@ export function AdminCatalog() {
   else {
     const n = Array.isArray(res.data) ? res.data.length : 0;
     body = html`<div style="display:flex;align-items:center;gap:var(--ui-space-2)">
-      <span class="modal-desc" style="margin:0;flex:1">${t('admin.catalogHint')}</span>
+      <span class="dialog-desc" style="margin:0;flex:1">${t('admin.catalogHint')}</span>
       ${n ? html`<button type="button" class="primary" id="s-catalog-manage" onClick=${openCatalogManager}>${t('common.manage')}</button>` : ''}
       <button type="button" class="primary" id="s-catalog-add" onClick=${openCatalogPicker}>${t('common.add')}</button>
     </div>`;

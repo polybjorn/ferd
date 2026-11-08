@@ -174,12 +174,12 @@ class ThemeContrast(unittest.TestCase):
 
   def test_a_tint_of_a_colour_carries_body_text(self):
     # The colour measured on a surface falls short on a tint of itself.
-    for rule in (r"\.modal \.modal-success-box \{", r"\.modal \.user-flag\.on \{",
-                 r"\.modal \.danger-btn:not\(h2 \.modal-close\):hover:not\(:disabled\) \{"):
+    for rule in (r"\.ui-dialog \.success-box \{", r"\.ui-dialog \.user-flag\.on \{",
+                 r"\.ui-dialog \.danger-btn:not\(h2 \.ui-dialog-close\):hover:not\(:disabled\) \{"):
       self.assertRegex(FRONTEND, rule + r"[^}]*\n\s*color: var\(--text\);")
 
   def test_settings_hints_use_the_measured_colour(self):
-    self.assertRegex(FRONTEND, r"\.modal \.hint \{[^}]*color: var\(--muted\);")
+    self.assertRegex(FRONTEND, r"\.ui-dialog \.hint \{[^}]*color: var\(--muted\);")
     self.assertIn('<div class="hint">${t(\'settings.general.countriesHint\')}</div>', FRONTEND)
 
   def test_placeholders_use_the_measured_colour(self):
@@ -224,7 +224,7 @@ class ControlEdges(unittest.TestCase):
         if ".primary" in part:
           self.assertNotRegex(body, r"(?:^|[\s;])(?:color|opacity):", part.strip())
         else:
-          self.assertNotRegex(part.strip(), r"^\.modal button:not\(\.modal-close\):hover")
+          self.assertNotRegex(part.strip(), r"^\.ui-dialog button:not\(\.ui-dialog-close\):hover")
 
 
 class TargetsAndFocus(unittest.TestCase):
@@ -257,7 +257,7 @@ class TargetsAndFocus(unittest.TestCase):
     self.assertIn("padding-inline: 4px", body)
 
   def test_a_growing_form_keeps_its_width_when_the_scrollbar_appears(self):
-    body = self.body(".modal .ui-dialog-body:has(#add-body, textarea)")
+    body = self.body(".ui-dialog .ui-dialog-body:has(#add-body, textarea)")
     self.assertIn("scrollbar-gutter: stable", body)
 
   def test_the_map_credit_reads_without_a_box(self):
@@ -277,7 +277,7 @@ class TargetsAndFocus(unittest.TestCase):
     self.assertIn("min-height: 24px", self.body("button"))
 
   def test_narrow_controls_reach_the_minimum_width(self):
-    body = self.body(":is(.modal-close, .popup-edit, .catalog-mark)")
+    body = self.body(":is(.ui-dialog-close, .popup-edit, .catalog-mark)")
     self.assertIn("min-width: 24px", body)
 
   def test_a_button_width_floor_stays_off_flex_items(self):
@@ -331,13 +331,26 @@ class Shipping(unittest.TestCase):
     self.assertIn("url.pathname === '/ui.css'", SW)
 
 
+class NoModalKit(unittest.TestCase):
+  # Every dialog is a ui-dialog, so the old modal classes are gone. The Add
+  # and Settings tabs keep modal-tabs until ui.css has a tabs block.
+  def test_no_rule_selects_a_modal_class(self):
+    found = re.findall(r"\.modal(?:-[\w-]+)?\b", strip_comments(APP_CSS))
+    self.assertEqual(sorted(set(found) - {".modal-tabs"}), [])
+
+  def test_no_markup_adds_a_modal_class(self):
+    js = re.sub(r"\.modal-tabs\b|['\"]modal-tabs\b", "", FRONTEND.replace(APP_CSS, ""))
+    self.assertNotRegex(js, r"class(?:Name)?\s*=\s*\$?\{?['\"`][^'\"`]*\bmodal\b(?!-)")
+    self.assertNotRegex(js, r"\bmodal-(?!tabs\b|root\b|title\b)[a-z]+\b[^(]")
+
+
 class ModalHeight(unittest.TestCase):
   def test_modals_size_to_the_visible_screen(self):
-    self.assertNotRegex(FRONTEND, r"\.modal[^{}]*\{[^{}]*height: calc\(100vh")
+    self.assertNotRegex(FRONTEND, r"\.ui-dialog[^{}]*\{[^{}]*height: calc\(100vh")
     # Insets on the fixed dialog follow the visible screen, where 100vh would
     # count the space behind a phone browser's toolbar.
     # A full-screen view fills the screen instead.
-    self.assertRegex(FRONTEND, r"\.modal:not\(\.ui-dialog-fullscreen\):is\([^{}]*\) \{ inset-block: 3rem; \}")
+    self.assertRegex(FRONTEND, r"\.ui-dialog:not\(\.ui-dialog-fullscreen\):is\([^{}]*\) \{ inset-block: 3rem; \}")
 
   def test_a_scrolling_list_keeps_a_floor(self):
     self.assertRegex(FRONTEND, r"#catalog-bulk-list\) \{\s+flex: 1 1 auto;\s+min-height: 4rem")

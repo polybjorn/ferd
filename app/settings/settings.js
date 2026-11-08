@@ -431,7 +431,7 @@ function ImportSection({ ids, modeName, modes, replaceBody, run }) {
       <button type="button" class="primary" id=${ids.start} disabled=${busy} onClick=${start}>${busy ? t('transfer.importing') : t('transfer.import')}</button>
     </div>
     <${ErrorBox} id=${ids.error} msg=${error} />
-    <div class="modal-success-box" id=${ids.success} hidden=${!done}>${done}</div>
+    <div class="success-box" id=${ids.success} hidden=${!done}>${done}</div>
   </div>`;
 }
 
@@ -632,7 +632,7 @@ function PasswordForm({ onChanged }) {
       <button type="submit" class="primary" id="s-submit" disabled=${busy}>${t('account.changePassword')}</button>
     </div>
     <${ErrorBox} id="s-error" msg=${error} />
-    <div class="modal-success" id="s-pw-success" hidden=${!done}>${done}</div>
+    <div class="success-note" id="s-pw-success" hidden=${!done}>${done}</div>
   </form>`;
 }
 
@@ -692,7 +692,7 @@ function TokenForm({ onCreated }) {
       <button type="submit" class="primary" id="s-token-create" disabled=${busy}>${t('security.createToken')}</button>
     </div>
     <${ErrorBox} id="s-token-error" msg=${error} />
-    <div id="s-token-new" class="modal-success-box" hidden=${!token}>
+    <div id="s-token-new" class="success-box" hidden=${!token}>
       ${token && html`
         <div style="margin-bottom:var(--ui-space-2)">${t('security.tokenCreated')}</div>
         <div style="display:flex;align-items:center;gap:var(--ui-space-2)">

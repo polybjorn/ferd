@@ -85,7 +85,7 @@ phoneQuery.addEventListener('change', () => {
 export function openModal(html, onMount, onClose, opts) {
   const root = document.getElementById('modal-root');
   const dialog = document.createElement('dialog');
-  dialog.className = 'ui-dialog modal';
+  dialog.className = 'ui-dialog';
   dialog.innerHTML = html;
   wrapDialogBody(dialog);
   // ui.css shows the handle only while the dialog is a sheet.
@@ -121,7 +121,7 @@ export function openModal(html, onMount, onClose, opts) {
   dialog.showModal();
   if (onMount) onMount(dialog);
   // After onMount, which may render the head itself (openViewModal).
-  dialog.querySelectorAll('.modal-close').forEach(el => el.addEventListener('click', () => entry.onClose()));
+  dialog.querySelectorAll('.ui-dialog-close').forEach(el => el.addEventListener('click', () => entry.onClose()));
   enhanceSelectsIn(dialog);
   return dialog;
 }
@@ -218,6 +218,6 @@ export function showErrorBox(el, msg) {
 }
 
 export function showModalError(msg) {
-  const el = document.querySelector('.modal-error');
+  const el = document.querySelector('.form-error');
   if (el) showErrorBox(el, msg);
 }

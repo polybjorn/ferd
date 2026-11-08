@@ -248,13 +248,13 @@ export function modalHeaderHtml(title, opts) {
     ? o.tabsHtml
     : '<h2 class="ui-dialog-title">' + (o.titleHtml != null ? o.titleHtml : escapeHtml(title)) + '</h2>';
   return '<div class="ui-dialog-head">' + lead +
-    '<button type="button" class="ui-button ui-button-quiet ui-dialog-close modal-close" aria-label="Close">&times;</button>' +
+    '<button type="button" class="ui-button ui-button-quiet ui-dialog-close" aria-label="Close">&times;</button>' +
   '</div>';
 }
 
 // The empty error box every form modal toggles via `.visible`.
 export function modalErrorHtml(id) {
-  return '<div class="modal-error" id="' + id + '"></div>';
+  return '<div class="form-error" id="' + id + '"></div>';
 }
 
 // A null id labels a group of controls, which a <label for> can't point at.
@@ -292,7 +292,7 @@ export function openConfirmModal({ title, body, confirmLabel, danger }) {
     const html =
       modalHeaderHtml(title) +
       '<div class="confirm-row">' +
-        (body ? '<div class="modal-desc">' + escapeHtml(body) + '</div>' : '') +
+        (body ? '<div class="dialog-desc">' + escapeHtml(body) + '</div>' : '') +
         '<button type="button" class="ui-button ' + (danger ? 'ui-button-danger' : 'ui-button-primary') + '" data-role="ok">' + escapeHtml(confirmLabel || 'Confirm') + '</button>' +
       '</div>';
     openSheetModal(html, backdrop => {

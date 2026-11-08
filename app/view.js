@@ -51,11 +51,11 @@ export function unmountPage() {
   if (app) render(null, app);
 }
 
-// openModal wires .modal-close to its own close handling.
+// openModal wires .ui-dialog-close to its own close handling.
 export function DialogHead({ title, lead }) {
   return html`<div class="ui-dialog-head">
     ${lead || html`<h2 class="ui-dialog-title">${title}</h2>`}
-    <button type="button" class="ui-button ui-button-quiet ui-dialog-close modal-close" aria-label=${t('common.close')}>×</button>
+    <button type="button" class="ui-button ui-button-quiet ui-dialog-close" aria-label=${t('common.close')}>×</button>
   </div>`;
 }
 
@@ -73,7 +73,7 @@ export function ErrorBox({ id, msg }) {
   useEffect(() => {
     if (msg) ref.current.scrollIntoView({ block: 'nearest' });
   }, [msg]);
-  return html`<div class=${'modal-error' + (msg ? ' visible' : '')} id=${id} ref=${ref}>${msg || ''}</div>`;
+  return html`<div class=${'form-error' + (msg ? ' visible' : '')} id=${id} ref=${ref}>${msg || ''}</div>`;
 }
 
 // Preact checks `checked` against the live element on every render, so a

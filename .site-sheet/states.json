@@ -151,7 +151,7 @@
         "click": "#auth-menu [data-action=settings]"
       },
       {
-        "wait": ".modal h2:has-text(\"Settings\")"
+        "wait": ".ui-dialog h2:has-text(\"Settings\")"
       }
     ]
   },
@@ -181,7 +181,7 @@
         "click": "#auth-menu [data-action=settings]"
       },
       {
-        "wait": ".modal h2:has-text(\"Settings\")"
+        "wait": ".ui-dialog h2:has-text(\"Settings\")"
       },
       {
         "click": "#settings-tabs [data-tab=\"appearance\"]"
@@ -217,7 +217,7 @@
         "click": "#auth-menu [data-action=settings]"
       },
       {
-        "wait": ".modal h2:has-text(\"Settings\")"
+        "wait": ".ui-dialog h2:has-text(\"Settings\")"
       },
       {
         "click": "#settings-tabs [data-tab=\"account\"]"
@@ -253,7 +253,7 @@
         "click": "#auth-menu [data-action=settings]"
       },
       {
-        "wait": ".modal h2:has-text(\"Settings\")"
+        "wait": ".ui-dialog h2:has-text(\"Settings\")"
       },
       {
         "click": "#settings-tabs [data-tab=\"security\"]"
@@ -289,7 +289,7 @@
         "click": "#auth-menu [data-action=settings]"
       },
       {
-        "wait": ".modal h2:has-text(\"Settings\")"
+        "wait": ".ui-dialog h2:has-text(\"Settings\")"
       },
       {
         "click": "#settings-tabs [data-tab=\"admin\"]"
@@ -325,13 +325,13 @@
         "click": "#auth-menu [data-action=settings]"
       },
       {
-        "wait": ".modal h2:has-text(\"Settings\")"
+        "wait": ".ui-dialog h2:has-text(\"Settings\")"
       },
       {
         "click": "#s-manage-cats"
       },
       {
-        "wait": ".modal h2:has-text(\"Manage categories\")"
+        "wait": ".ui-dialog h2:has-text(\"Manage categories\")"
       }
     ]
   },
@@ -361,13 +361,13 @@
         "click": "#auth-menu [data-action=settings]"
       },
       {
-        "wait": ".modal h2:has-text(\"Settings\")"
+        "wait": ".ui-dialog h2:has-text(\"Settings\")"
       },
       {
         "click": "#s-manage-regions"
       },
       {
-        "wait": ".modal h2:has-text(\"Manage regions\")"
+        "wait": ".ui-dialog h2:has-text(\"Manage regions\")"
       }
     ]
   },
@@ -397,7 +397,7 @@
         "click": "#auth-menu [data-action=settings]"
       },
       {
-        "wait": ".modal h2:has-text(\"Settings\")"
+        "wait": ".ui-dialog h2:has-text(\"Settings\")"
       },
       {
         "click": "#settings-tabs [data-tab=\"admin\"]"
@@ -409,7 +409,7 @@
         "click": "#s-catalog-manage"
       },
       {
-        "wait": ".modal h2:has-text(\"Manage catalog\")"
+        "wait": ".ui-dialog h2:has-text(\"Manage catalog\")"
       }
     ]
   },
@@ -439,7 +439,7 @@
         "click": "#auth-menu [data-action=settings]"
       },
       {
-        "wait": ".modal h2:has-text(\"Settings\")"
+        "wait": ".ui-dialog h2:has-text(\"Settings\")"
       },
       {
         "click": "#settings-tabs [data-tab=\"admin\"]"
@@ -451,7 +451,7 @@
         "click": "#s-catalog-add"
       },
       {
-        "wait": ".modal h2:has-text(\"Add to catalog\")"
+        "wait": ".ui-dialog h2:has-text(\"Add to catalog\")"
       }
     ]
   },
@@ -481,7 +481,7 @@
         "click": "#auth-menu [data-action=settings]"
       },
       {
-        "wait": ".modal h2:has-text(\"Settings\")"
+        "wait": ".ui-dialog h2:has-text(\"Settings\")"
       },
       {
         "click": "label:has(#s-feat-logs)"
@@ -496,7 +496,7 @@
         "click": "#auth-menu [data-action=logs]"
       },
       {
-        "wait": ".modal h2:has-text(\"Audit log\")"
+        "wait": ".ui-dialog h2:has-text(\"Audit log\")"
       }
     ]
   },
@@ -526,7 +526,7 @@
         "click": "#auth-menu [data-action=about]"
       },
       {
-        "wait": ".modal h2:has-text(\"About\")"
+        "wait": ".ui-dialog h2:has-text(\"About\")"
       }
     ]
   },
@@ -556,7 +556,7 @@
         "click": "#auth-menu [data-action=signout]"
       },
       {
-        "wait": ".modal h2:has-text(\"Sign out?\")"
+        "wait": ".ui-dialog h2:has-text(\"Sign out?\")"
       }
     ]
   },
@@ -569,7 +569,7 @@
         "click": "#auth-signin"
       },
       {
-        "wait": ".modal h2:has-text(\"Sign in\")"
+        "wait": ".ui-dialog h2:has-text(\"Sign in\")"
       }
     ]
   },
@@ -609,7 +609,7 @@
         "click": ".context-menu button:text-is(\"Edit\")"
       },
       {
-        "wait": ".modal h2:has-text(\"Edit place\")"
+        "wait": ".ui-dialog h2:has-text(\"Edit place\")"
       }
     ]
   },
@@ -648,7 +648,7 @@
         "click": "#route-edit-btn"
       },
       {
-        "wait": ".modal h2:has-text(\"Edit route\")"
+        "wait": ".ui-dialog h2:has-text(\"Edit route\")"
       }
     ]
   },
@@ -682,7 +682,7 @@
         "click": ".popup-edit"
       },
       {
-        "wait": ".modal h2:has-text(\"Edit area\")"
+        "wait": ".ui-dialog h2:has-text(\"Edit area\")"
       }
     ]
   },
@@ -718,7 +718,7 @@
         "click": ".catalog-mark"
       },
       {
-        "wait": ".modal h2:has-text(\"Update from catalog\")"
+        "wait": ".ui-dialog h2:has-text(\"Update from catalog\")"
       }
     ]
   },
@@ -757,7 +757,7 @@
         "click": "#catalog-update-review:visible, #menu-catalog-updates:visible"
       },
       {
-        "wait": ".modal h2:has-text(\"Catalog updates\")"
+        "wait": ".ui-dialog h2:has-text(\"Catalog updates\")"
       }
     ]
   }

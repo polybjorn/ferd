@@ -15,7 +15,7 @@
 /* WCAG 2.2 target size minimum. Width is set per control, since a min-width
    here would let a flex item shrink below its label. */
 button { min-height: 24px; }
-:is(.modal-close, .popup-edit, .catalog-mark) { min-width: 24px; }
+:is(.ui-dialog-close, .popup-edit, .catalog-mark) { min-width: 24px; }
 
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 /* Drawn inside the box, since scrolling panels and the map clip whatever
@@ -659,11 +659,11 @@ a:hover { opacity: 0.8; }
 .you-signin svg { width: 56px; height: 56px; color: var(--muted); }
 .you-signin p { margin: var(--ui-space-2) 0 var(--ui-space-4); color: var(--muted); }
 .you-rows { max-width: 480px; margin: 0 auto; }
-/* The sheet's selectors carry .modal and :not() to outrank
-   `.modal button:not(.modal-close)`, which would draw the rows as buttons. */
+/* The sheet's selectors carry .ui-dialog and :not() to outrank
+   `.ui-dialog button:not(.ui-dialog-close)`, which would draw the rows as buttons. */
 :is(.account-sheet, .you-rows) { display: flex; flex-direction: column; }
 .you-rows button,
-.modal .account-sheet button:not(.modal-close) {
+.ui-dialog .account-sheet button:not(.ui-dialog-close) {
   display: flex;
   align-items: center;
   width: 100%;
@@ -680,11 +680,11 @@ a:hover { opacity: 0.8; }
   cursor: pointer;
 }
 .you-rows button:last-child,
-.modal .account-sheet button:not(.modal-close):is(:last-child, :has(+ .auth-menu-foot)) { border-bottom: 0; }
+.ui-dialog .account-sheet button:not(.ui-dialog-close):is(:last-child, :has(+ .auth-menu-foot)) { border-bottom: 0; }
 .you-rows button:hover,
-.modal .account-sheet button:not(.modal-close):hover { background: var(--surface2); }
+.ui-dialog .account-sheet button:not(.ui-dialog-close):hover { background: var(--surface2); }
 /* Sign out ends the session, so a gap keeps a tap meant for About off it. */
-.modal .account-sheet button.auth-menu-foot:not(.modal-close) {
+.ui-dialog .account-sheet button.auth-menu-foot:not(.ui-dialog-close) {
   margin-top: var(--ui-space-4);
   border-top: 1px solid var(--border);
   color: var(--muted);
@@ -1111,7 +1111,7 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   column-gap: var(--ui-space-3);
 }
 .catalog-diff-field,
-.modal label.catalog-diff-field {
+.ui-dialog label.catalog-diff-field {
   display: grid;
   grid-template-columns: subgrid;
   grid-column: 1 / -1;
@@ -1119,7 +1119,7 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   margin: 0;
 }
 .catalog-diff-field.selectable,
-.modal label.catalog-diff-field.selectable { cursor: pointer; }
+.ui-dialog label.catalog-diff-field.selectable { cursor: pointer; }
 .catalog-diff-field + .catalog-diff-field { margin-top: var(--ui-space-2); padding-top: var(--ui-space-2); border-top: 1px dashed var(--border); }
 .catalog-diff-check { margin: var(--ui-space-1) 0 0; cursor: pointer; accent-color: var(--accent); width: 1rem; height: 1rem; }
 .catalog-diff-label { color: var(--muted); font-size: var(--ui-text-xs); padding-top: 0.1rem; }
@@ -1341,9 +1341,9 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 .map-search-heading-row .map-search-heading { margin: 0; }
 /* Set like the heading it shares a row with, in the accent so it reads as
-   an action. Outranks `.modal button:not(.modal-close)`, which would draw
+   an action. Outranks `.ui-dialog button:not(.ui-dialog-close)`, which would draw
    it as a button. */
-.modal button.map-search-clear:not(.modal-close) {
+.ui-dialog button.map-search-clear:not(.ui-dialog-close) {
   position: relative;
   padding: 0;
   font-size: var(--ui-text-xs);
@@ -1353,7 +1353,7 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   background: transparent;
   border: 0;
 }
-.modal button.map-search-clear:not(.modal-close):hover { color: var(--text); }
+.ui-dialog button.map-search-clear:not(.ui-dialog-close):hover { color: var(--text); }
 /* Name over meta, beside a marker that centres on both lines. */
 .map-search-list .map-search-result {
   display: grid;
@@ -1381,9 +1381,9 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 .filter-sheet-sec-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-3); }
 .filter-sheet-title { margin: 0; font-size: var(--ui-text-sm); font-weight: 600; }
 .filter-sheet-count { margin-left: var(--ui-space-2); color: var(--muted); font-size: var(--ui-text-xs); font-weight: 400; }
-/* Selectors carry button and :not() to outrank `.modal button:not(.modal-close)`,
+/* Selectors carry button and :not() to outrank `.ui-dialog button:not(.ui-dialog-close)`,
    which would draw the links and chips as plain buttons. */
-.modal button.filter-sheet-link:not(.modal-close) {
+.ui-dialog button.filter-sheet-link:not(.ui-dialog-close) {
   padding: var(--ui-space-2) var(--ui-space-1);
   font-size: var(--ui-text-sm);
   font-weight: 600;
@@ -1394,7 +1394,7 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 .filter-chips { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); }
 .filter-chips + .filter-chips { margin-top: var(--ui-space-2); }
-.modal button.filter-chip:not(.modal-close) {
+.ui-dialog button.filter-chip:not(.ui-dialog-close) {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -1406,9 +1406,9 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   white-space: nowrap;
   border-radius: var(--ui-radius-lg);
 }
-.modal button.filter-chip[aria-pressed="true"]:not(.modal-close) { color: var(--text); background: var(--surface2); border-color: transparent; }
+.ui-dialog button.filter-chip[aria-pressed="true"]:not(.ui-dialog-close) { color: var(--text); background: var(--surface2); border-color: transparent; }
 @supports (background: color-mix(in srgb, red 50%, transparent)) {
-  .modal button.filter-chip[aria-pressed="true"]:not(.modal-close) { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+  .ui-dialog button.filter-chip[aria-pressed="true"]:not(.ui-dialog-close) { background: color-mix(in srgb, var(--accent) 22%, transparent); }
 }
 .filter-chip[aria-pressed="false"] :is(.legend-dot, .status-dot) { opacity: 0.35; }
 .filter-chip .legend-dot { margin: 0; }
@@ -1420,7 +1420,7 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   /* A chip stays small to keep the set short, and takes a taller hit area
      that reaches halfway into the gap on each side. */
   .filter-chip::after { content: ''; position: absolute; inset: calc(var(--ui-space-2) / -2); }
-  .modal button.filter-sheet-link:not(.modal-close) { min-block-size: var(--ui-touch-target); }
+  .ui-dialog button.filter-sheet-link:not(.ui-dialog-close) { min-block-size: var(--ui-touch-target); }
   /* Clear stays one line of small caps, so the row keeps its height, and
      takes a full-height hit area that overlaps the space around it. */
   .map-search-clear::after {
@@ -1877,7 +1877,7 @@ body.signin-only #app {
   color: var(--text);
   margin-bottom: var(--ui-space-1);
 }
-.signin-page .modal {
+.signin-card {
   max-width: 360px;
   box-shadow: 0 10px 40px var(--shadow);
 }
@@ -1906,7 +1906,7 @@ body.signin-only #app {
    the buttons (so a long domain wraps cleanly rather than crowding the
    row), and "Change server" is pushed to the left of the actions row via
    margin-right:auto, leaving the filled Sign in at the right. The button
-   keeps the default outlined modal-button style. */
+   is a ui-button. */
 .signin-server-host {
   margin-top: var(--ui-space-3);
   text-align: center;
@@ -1919,7 +1919,7 @@ body.signin-only #app {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.modal .modal-actions .signin-change-server { margin-right: auto; }
+.form-actions .signin-change-server { margin-right: auto; }
 /* "Continue without signing in" entry on the sign-in / server-picker cards. */
 .signin-alt {
   margin-top: var(--ui-space-3);
@@ -1939,7 +1939,7 @@ body.signin-only #app {
 .signin-alt button:hover { color: var(--text); }
 /* Plain-http caution in the server picker. Non-blocking: Connect stays
    enabled; this just informs that the token travels unencrypted. */
-.modal .srv-warn {
+.srv-warn {
   margin: var(--ui-space-2) 0 0;
   font-size: var(--ui-text-xs);
   line-height: 1.35;
@@ -2444,7 +2444,7 @@ body.force-show-map-filter .map-panel {
 .select-or-new .new-input[hidden] { display: none; }
 
 /* Settings modal sub-sections */
-.modal h3.settings-h {
+.ui-dialog h3.settings-h {
   font-size: var(--ui-text-md);
   font-weight: 600;
   color: var(--text);
@@ -2453,7 +2453,7 @@ body.force-show-map-filter .map-panel {
   padding-top: var(--ui-space-4);
   border-top: 1px solid var(--border-hover, var(--border));
 }
-.modal [data-panel] > h3.settings-h:first-child {
+.ui-dialog [data-panel] > h3.settings-h:first-child {
   border-top: none;
   padding-top: 0;
   margin-top: 0;
@@ -2543,7 +2543,7 @@ body.force-show-map-filter .map-panel {
 }
 .catalog-eye-btn:hover:not(:disabled) { color: var(--text); border-color: var(--muted); }
 .catalog-eye-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.modal input.dirty { border-color: var(--accent); }
+.ui-dialog input.dirty { border-color: var(--accent); }
 .row-tag {
   font-size: var(--ui-text-xs);
   color: var(--muted);
@@ -2700,36 +2700,36 @@ body.force-show-map-filter .map-panel {
 /* Modal: a ui.css dialog. The shell, head, body and action row come
    from ui.css; these rules size particular modals and fit Ferd's own
    content into them. */
-.modal.narrow-dialog { --ui-dialog-width: 380px; }
-.modal .ui-dialog-title { letter-spacing: 0.05em; }
-.modal .ui-dialog-actions { align-items: center; }
-.modal .action-spacer { flex: 1; }
-.modal .modal-title-count { color: var(--muted); margin-left: var(--ui-space-2); }
+.ui-dialog.narrow-dialog { --ui-dialog-width: 380px; }
+.ui-dialog .ui-dialog-title { letter-spacing: 0.05em; }
+.ui-dialog .ui-dialog-actions { align-items: center; }
+.ui-dialog .action-spacer { flex: 1; }
+.ui-dialog .title-count { color: var(--muted); margin-left: var(--ui-space-2); }
 /* The Add modal's tabs are its head. */
-.modal .ui-dialog-head > .modal-tabs { flex: 1; min-width: 0; margin: 0 0 calc(-1 * var(--ui-space-2) - 1px); border-bottom: 0; }
+.ui-dialog .ui-dialog-head > .modal-tabs { flex: 1; min-width: 0; margin: 0 0 calc(-1 * var(--ui-space-2) - 1px); border-bottom: 0; }
 
 /* Tall modals keep 3rem clear above and below. The insets size the dialog
    to the visible screen, where 100vh would count the space behind a phone
    browser's toolbar. Settings, Add and the catalog lists fit their content
    up to that height, held at the top edge so the tabs and filter box stay
    put when a tab or a filter result is shorter. */
-.modal:not(.ui-dialog-fullscreen):is(:has([data-panel]), :has(#add-tabs), :has(#add-body), :has(#cat-rows),
+.ui-dialog:not(.ui-dialog-fullscreen):is(:has([data-panel]), :has(#add-tabs), :has(#add-body), :has(#cat-rows),
           :has(#rgn-rows), :has(#cat-list), :has(#cat-mgr-list), :has(#catalog-bulk-list)) { inset-block: 3rem; }
-.modal:not(.ui-dialog-fullscreen):is(:has([data-panel]), :has(#add-tabs), :has(#cat-list), :has(#cat-mgr-list)) {
+.ui-dialog:not(.ui-dialog-fullscreen):is(:has([data-panel]), :has(#add-tabs), :has(#cat-list), :has(#cat-mgr-list)) {
   inset-block: 3rem auto;
   --ui-dialog-max-height: calc(100% - 6rem);
 }
 /* A note dragged taller or a longer tab brings the scrollbar in, and the
    fields must not narrow when it does. */
-.modal .ui-dialog-body:has(#add-body, textarea) { scrollbar-gutter: stable; }
+.ui-dialog .ui-dialog-body:has(#add-body, textarea) { scrollbar-gutter: stable; }
 /* A list scrolls inside the body, so the filter or form above it stays put.
    The floor keeps its rows reachable in a modal too short to fit it, which
    the body scrolls instead. */
-.modal .ui-dialog-body:has(> :is(#cat-rows, #rgn-rows, #cat-list, #cat-mgr-list, #catalog-bulk-list)) {
+.ui-dialog .ui-dialog-body:has(> :is(#cat-rows, #rgn-rows, #cat-list, #cat-mgr-list, #catalog-bulk-list)) {
   display: flex;
   flex-direction: column;
 }
-.modal .ui-dialog-body > :is(#cat-rows, #rgn-rows, #cat-list, #cat-mgr-list, #catalog-bulk-list) {
+.ui-dialog .ui-dialog-body > :is(#cat-rows, #rgn-rows, #cat-list, #cat-mgr-list, #catalog-bulk-list) {
   flex: 1 1 auto;
   min-height: 4rem;
   max-height: none;
@@ -2745,23 +2745,23 @@ body.force-show-map-filter .map-panel {
 .filter-dropdown .filter-btn.catalog-update-chip { border-color: var(--accent); color: var(--accent); }
 /* Desktop-only chip; on phones the action moves into the Menu instead. */
 @media (max-width: 600px) { .catalog-update-chip-wrap { display: none; } }
-.modal [data-panel]:not([hidden]) { animation: tab-fade-in var(--ui-duration-base) ease-out; }
+.ui-dialog [data-panel]:not([hidden]) { animation: tab-fade-in var(--ui-duration-base) ease-out; }
 @keyframes tab-fade-in {
   from { opacity: 0; transform: translateY(2px); }
   to { opacity: 1; transform: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .modal [data-panel]:not([hidden]) { animation: none !important; transition: none !important; }
+  .ui-dialog [data-panel]:not([hidden]) { animation: none !important; transition: none !important; }
 }
 /* The sign-in page draws its form as a card, outside any dialog. */
-.signin-page .modal {
+.signin-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   width: 100%;
   padding: var(--ui-space-5) var(--ui-space-5);
 }
-.signin-page .modal h2 {
+.signin-card h2 {
   font-size: var(--ui-text-md);
   font-weight: 400;
   letter-spacing: 0.05em;
@@ -2773,32 +2773,31 @@ body.force-show-map-filter .map-panel {
   border-bottom: 1px solid var(--border);
   margin-bottom: var(--ui-space-4);
 }
-.modal .modal-desc { font-size: var(--ui-text-sm); color: var(--text); margin-top: var(--ui-space-2); }
-.signin-page .modal .modal-desc { margin-bottom: var(--ui-space-2); }
-.modal .confirm-row { align-items: center; display: flex; gap: var(--ui-space-3); margin-top: var(--ui-space-3); }
-.modal .confirm-row .modal-desc { flex: 1; margin-top: 0; min-width: 0; overflow-wrap: anywhere; }
-.modal .confirm-row button { flex: none; margin-left: auto; }
-.modal .file-picker { display: flex; align-items: center; gap: var(--ui-space-2); margin-top: var(--ui-space-2); }
+.ui-dialog .dialog-desc { font-size: var(--ui-text-sm); color: var(--text); margin-top: var(--ui-space-2); }
+.ui-dialog .confirm-row { align-items: center; display: flex; gap: var(--ui-space-3); margin-top: var(--ui-space-3); }
+.ui-dialog .confirm-row .dialog-desc { flex: 1; margin-top: 0; min-width: 0; overflow-wrap: anywhere; }
+.ui-dialog .confirm-row button { flex: none; margin-left: auto; }
+.ui-dialog .file-picker { display: flex; align-items: center; gap: var(--ui-space-2); margin-top: var(--ui-space-2); }
 /* Choose file, its name and Import overrun a phone, so Import takes a second row. */
 .settings-file-row { flex-wrap: wrap; }
 .settings-file-row > .file-picker { flex: 1; margin: 0; }
 .ui-control-row > .ui-hint { flex: 1; }
-.modal .area-search-label {
+.ui-dialog .area-search-label {
   align-items: center;
   display: flex;
   gap: var(--ui-space-1);
   position: relative;
 }
 /* The negative margin keeps the tap area from making the row taller. */
-.modal button.area-search-info:not(.modal-close) {
+.ui-dialog button.area-search-info:not(.ui-dialog-close) {
   border: none;
   display: flex;
   margin: -0.5rem 0;
   padding: var(--ui-space-2);
 }
-.modal button.area-search-info:not(.modal-close):hover:not(:disabled),
-.modal button.area-search-info[aria-expanded="true"]:not(.modal-close) { color: var(--accent); }
-.modal .area-search-note {
+.ui-dialog button.area-search-info:not(.ui-dialog-close):hover:not(:disabled),
+.ui-dialog button.area-search-info[aria-expanded="true"]:not(.ui-dialog-close) { color: var(--accent); }
+.ui-dialog .area-search-note {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -2816,15 +2815,15 @@ body.force-show-map-filter .map-panel {
   visibility: hidden;
   z-index: var(--ui-z-dropdown);
 }
-.modal .area-search-note.open { opacity: 1; transform: none; visibility: visible; }
+.ui-dialog .area-search-note.open { opacity: 1; transform: none; visibility: visible; }
 @media (prefers-reduced-motion: reduce) {
-  .modal .area-search-note { transition: none; }
+  .ui-dialog .area-search-note { transition: none; }
 }
-.modal .area-results { display: flex; flex-direction: column; gap: var(--ui-space-1); margin-top: var(--ui-space-2); }
-.modal .area-results[hidden] { display: none; }
-/* Selectors carry button and :not() to outrank `.modal button:not(.modal-close)`
+.ui-dialog .area-results { display: flex; flex-direction: column; gap: var(--ui-space-1); margin-top: var(--ui-space-2); }
+.ui-dialog .area-results[hidden] { display: none; }
+/* Selectors carry button and :not() to outrank `.ui-dialog button:not(.ui-dialog-close)`
    and its hover rule, which sit later and would restyle the row as a button. */
-.modal button.area-result:not(.modal-close) {
+.ui-dialog button.area-result:not(.ui-dialog-close) {
   background: var(--surface2);
   color: var(--text);
   display: grid;
@@ -2835,14 +2834,14 @@ body.force-show-map-filter .map-panel {
   padding: var(--ui-space-2) var(--ui-space-2);
   text-align: left;
 }
-.modal button.area-result[aria-pressed="true"]:not(.modal-close):not(:disabled) {
+.ui-dialog button.area-result[aria-pressed="true"]:not(.ui-dialog-close):not(:disabled) {
   background: color-mix(in srgb, var(--accent) 12%, var(--surface2));
   border-color: var(--accent);
 }
-.modal button.area-result[hidden]:not(.modal-close),
-.modal button.area-results-more[hidden]:not(.modal-close) { display: none; }
+.ui-dialog button.area-result[hidden]:not(.ui-dialog-close),
+.ui-dialog button.area-results-more[hidden]:not(.ui-dialog-close) { display: none; }
 .area-results-foot { align-items: center; display: flex; gap: var(--ui-space-3); justify-content: space-between; }
-.modal button.area-results-more:not(.modal-close) {
+.ui-dialog button.area-results-more:not(.ui-dialog-close) {
   border: none;
   font-size: var(--ui-text-sm);
   letter-spacing: normal;
@@ -2850,12 +2849,12 @@ body.force-show-map-filter .map-panel {
   padding: var(--ui-space-1) 0;
 }
 .area-results-credit { color: var(--muted); font-size: var(--ui-text-xs); margin-left: auto; margin-top: var(--ui-space-1); }
-.modal button.area-results-more:not(.modal-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
+.ui-dialog button.area-results-more:not(.ui-dialog-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
 .area-result-name { font-weight: 600; }
 .area-result-kind, .area-result-detail { color: var(--muted); font-size: var(--ui-text-xs); }
 .area-result-kind::first-letter { text-transform: uppercase; }
 .area-result-detail { grid-column: 1 / -1; }
-.modal .file-picker .file-name { font-size: var(--ui-text-sm); color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-dialog .file-picker .file-name { font-size: var(--ui-text-sm); color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Collapsible block. Toggle the .expanded class to animate height + opacity.
    Uses grid-template-rows 0fr -> 1fr (smooth, no max-height guessing). */
 .collapsible {
@@ -2867,14 +2866,14 @@ body.force-show-map-filter .map-panel {
 }
 .collapsible.expanded { grid-template-rows: 1fr; opacity: 1; visibility: visible; }
 .collapsible > .collapsible-inner { overflow: hidden; min-height: 0; }
-.modal input[type="file"].file-input-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+.ui-dialog input[type="file"].file-input-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
 #p-coords-manual { line-height: 24px; }
-.modal .backup-sub { font-size: var(--ui-text-xs); font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-.modal .modal-success { font-size: var(--ui-text-sm); color: var(--green, #6db26d); margin-top: var(--ui-space-2); }
-.modal h3.sessions-h { display: flex; align-items: baseline; gap: var(--ui-space-3); }
-.modal button.sessions-revoke-others:not(h2 .modal-close) { margin-left: auto; font-size: var(--ui-text-xs); font-weight: 400; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0; letter-spacing: 0; }
-.modal button.sessions-revoke-others:not(h2 .modal-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
-.modal .modal-tabs button:not(.modal-close) {
+.ui-dialog .backup-sub { font-size: var(--ui-text-xs); font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.ui-dialog .success-note { font-size: var(--ui-text-sm); color: var(--green, #6db26d); margin-top: var(--ui-space-2); }
+.ui-dialog h3.sessions-h { display: flex; align-items: baseline; gap: var(--ui-space-3); }
+.ui-dialog button.sessions-revoke-others:not(h2 .ui-dialog-close) { margin-left: auto; font-size: var(--ui-text-xs); font-weight: 400; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0; letter-spacing: 0; }
+.ui-dialog button.sessions-revoke-others:not(h2 .ui-dialog-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
+:is(.ui-dialog, .signin-card) .modal-tabs button:not(.ui-dialog-close) {
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
@@ -2886,24 +2885,24 @@ body.force-show-map-filter .map-panel {
   cursor: pointer;
   letter-spacing: 0.05em;
 }
-.modal .modal-tabs button:not(.modal-close).active { color: var(--text); border-bottom-color: var(--accent); }
-.modal .modal-tabs button:not(.modal-close):hover:not(.active) { color: var(--text); }
-.modal label {
+:is(.ui-dialog, .signin-card) .modal-tabs button:not(.ui-dialog-close).active { color: var(--text); border-bottom-color: var(--accent); }
+:is(.ui-dialog, .signin-card) .modal-tabs button:not(.ui-dialog-close):hover:not(.active) { color: var(--text); }
+.ui-dialog label {
   display: block;
   font-size: var(--ui-text-sm);
   color: var(--text);
   margin-bottom: var(--ui-space-1);
   margin-top: var(--ui-space-3);
 }
-.modal input[type="text"],
-.modal input[type="password"],
-.modal input[type="number"],
-.modal input[type="file"],
-.modal input[type="url"],
-.modal input[type="email"],
-.modal input[type="date"],
-.modal textarea,
-.modal select {
+.ui-dialog input[type="text"],
+.ui-dialog input[type="password"],
+.ui-dialog input[type="number"],
+.ui-dialog input[type="file"],
+.ui-dialog input[type="url"],
+.ui-dialog input[type="email"],
+.ui-dialog input[type="date"],
+.ui-dialog textarea,
+.ui-dialog select {
   width: 100%;
   padding: var(--ui-space-2) var(--ui-space-3);
   background: var(--surface2);
@@ -2919,7 +2918,7 @@ body.force-show-map-filter .map-panel {
    the native widget paints a lighter control background that doesn't match the
    themed text inputs. Draw the chevron from two gradients so its colour follows
    var(--muted) across every theme. */
-.modal select {
+.ui-dialog select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -2931,18 +2930,18 @@ body.force-show-map-filter .map-panel {
   background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
 }
-.modal input:focus, .modal textarea:focus, .modal select:focus { border-color: var(--accent); }
+.ui-dialog input:focus, .ui-dialog textarea:focus, .ui-dialog select:focus { border-color: var(--accent); }
 /* Suppress the browser-native spinner on number inputs (Lat/Long) — the
    up/down arrows aren't theme-aware and look out of place. */
-.modal input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
-.modal input[type="number"]::-webkit-inner-spin-button,
-.modal input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-.modal textarea { min-height: 60px; resize: vertical; }
-.modal .row { display: flex; gap: var(--ui-space-2); }
-.modal .row > * { flex: 1; }
-.modal .checkbox-row { display: flex; align-items: center; gap: var(--ui-space-2); margin-top: var(--ui-space-3); }
-.modal .checkbox-row input { width: auto; }
-.modal .checkbox-row label { margin: 0; text-transform: none; letter-spacing: 0; font-size: var(--ui-text-sm); color: var(--text); }
+.ui-dialog input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+.ui-dialog input[type="number"]::-webkit-inner-spin-button,
+.ui-dialog input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.ui-dialog textarea { min-height: 60px; resize: vertical; }
+.ui-dialog .row { display: flex; gap: var(--ui-space-2); }
+.ui-dialog .row > * { flex: 1; }
+.ui-dialog .checkbox-row { display: flex; align-items: center; gap: var(--ui-space-2); margin-top: var(--ui-space-3); }
+.ui-dialog .checkbox-row input { width: auto; }
+.ui-dialog .checkbox-row label { margin: 0; text-transform: none; letter-spacing: 0; font-size: var(--ui-text-sm); color: var(--text); }
 .feature-pills { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); margin-top: var(--ui-space-2); }
 /* The pills default to a flexible row (content-sized, growing to fill).
    When the modal itself gets narrow enough that the row would wrap and a
@@ -2973,7 +2972,7 @@ body.force-show-map-filter .map-panel {
   transition: border-color var(--ui-duration-fast), color var(--ui-duration-fast), background var(--ui-duration-fast);
 }
 .feature-pill { position: relative; }
-.modal label.feature-pill {
+.ui-dialog label.feature-pill {
   display: inline-flex;
   font-size: var(--ui-text-sm);
   text-transform: none;
@@ -2981,7 +2980,7 @@ body.force-show-map-filter .map-panel {
   color: var(--muted);
   margin: 0;
 }
-.modal label.feature-pill.active { color: var(--text); }
+.ui-dialog label.feature-pill.active { color: var(--text); }
 .feature-pill > input[type="checkbox"] { display: none !important; }
 .feature-pill:hover { border-color: var(--muted); color: var(--text); }
 .feature-pill.active {
@@ -2998,7 +2997,7 @@ body.force-show-map-filter .map-panel {
   text-align: center;
   white-space: nowrap;
 }
-.modal .modal-error {
+.form-error {
   margin-top: var(--ui-space-3);
   padding: var(--ui-space-2) var(--ui-space-3);
   background: rgba(255,95,87,0.1);
@@ -3008,8 +3007,8 @@ body.force-show-map-filter .map-panel {
   font-size: var(--ui-text-xs);
   display: none;
 }
-.modal .modal-error.visible { display: block; }
-.modal .modal-success-box {
+.form-error.visible { display: block; }
+.ui-dialog .success-box {
   margin-top: var(--ui-space-3);
   padding: var(--ui-space-2) var(--ui-space-3);
   background: color-mix(in srgb, var(--green) 12%, transparent);
@@ -3020,7 +3019,7 @@ body.force-show-map-filter .map-panel {
 }
 
 /* Admin: stats grid + users list */
-.modal .stats-grid {
+.ui-dialog .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, auto);
@@ -3028,27 +3027,27 @@ body.force-show-map-filter .map-panel {
   gap: var(--ui-space-2);
   margin-top: var(--ui-space-2);
 }
-.modal .stat-card {
+.ui-dialog .stat-card {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--ui-space-2) var(--ui-space-3);
   background: var(--surface2);
   min-width: 0;
 }
-.modal .stat-card .stat-val { font-size: var(--ui-text-lg); color: var(--text); }
-.modal .stat-card .stat-lbl {
+.ui-dialog .stat-card .stat-val { font-size: var(--ui-text-lg); color: var(--text); }
+.ui-dialog .stat-card .stat-lbl {
   font-size: var(--ui-text-xs);
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-top: var(--ui-space-1);
 }
-.modal .user-list {
+.ui-dialog .user-list {
   list-style: none;
   padding: 0;
   margin: var(--ui-space-2) 0 0;
 }
-.modal .user-row {
+.ui-dialog .user-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -3057,8 +3056,8 @@ body.force-show-map-filter .map-panel {
   border-bottom: 1px solid var(--border);
   font-size: var(--ui-text-sm);
 }
-.modal .user-row:last-child { border-bottom: none; }
-.modal .user-group-h {
+.ui-dialog .user-row:last-child { border-bottom: none; }
+.ui-dialog .user-group-h {
   font-size: var(--ui-text-xs);
   font-weight: 400;
   color: var(--muted);
@@ -3066,8 +3065,8 @@ body.force-show-map-filter .map-panel {
   letter-spacing: 0.08em;
   margin: var(--ui-space-3) 0 0.1rem;
 }
-.modal .user-group-h:first-child { margin-top: var(--ui-space-1); }
-.modal .user-row .user-name {
+.ui-dialog .user-group-h:first-child { margin-top: var(--ui-space-1); }
+.ui-dialog .user-row .user-name {
   color: var(--text);
   min-width: 0;
   overflow: hidden;
@@ -3075,8 +3074,8 @@ body.force-show-map-filter .map-panel {
   white-space: nowrap;
   font-size: var(--ui-text-sm);
 }
-.modal .user-row.self .user-name { color: var(--accent); font-weight: 500; }
-.modal .user-row .user-counts {
+.ui-dialog .user-row.self .user-name { color: var(--accent); font-weight: 500; }
+.ui-dialog .user-row .user-counts {
   grid-column: 1 / -1;
   color: var(--muted);
   font-size: var(--ui-text-xs);
@@ -3085,18 +3084,18 @@ body.force-show-map-filter .map-panel {
   flex-wrap: wrap;
   gap: var(--ui-space-3);
 }
-.modal .user-row .user-counts b { color: var(--text); font-weight: 500; margin-right: var(--ui-space-1); }
-.modal .user-actions {
+.ui-dialog .user-row .user-counts b { color: var(--text); font-weight: 500; margin-right: var(--ui-space-1); }
+.ui-dialog .user-actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--ui-space-1);
   justify-content: flex-end;
 }
-.modal .user-actions button:not(.modal-close) {
+.ui-dialog .user-actions button:not(.ui-dialog-close) {
   padding: var(--ui-space-1) var(--ui-space-2);
   font-size: var(--ui-text-xs);
 }
-.modal .user-flag {
+.ui-dialog .user-flag {
   display: inline-block;
   font-size: var(--ui-text-xs);
   padding: 0.05rem var(--ui-space-2);
@@ -3106,7 +3105,7 @@ body.force-show-map-filter .map-panel {
   white-space: nowrap;
   margin-left: var(--ui-space-2);
 }
-.modal .log-list {
+.ui-dialog .log-list {
   list-style: none;
   padding: 0;
   margin: var(--ui-space-2) 0 0;
@@ -3114,7 +3113,7 @@ body.force-show-map-filter .map-panel {
   border-radius: var(--radius);
   background: var(--surface2);
 }
-.modal .log-row {
+.ui-dialog .log-row {
   padding: var(--ui-space-2) var(--ui-space-3);
   border-bottom: 1px solid var(--border);
   font-size: var(--ui-text-xs);
@@ -3150,7 +3149,7 @@ body.force-show-map-filter .map-panel {
   .cat-swatches.open { max-height: 16rem; }
   .select-popover { font-size: var(--ui-text-sm); }
   .select-popover .select-option { padding: var(--ui-space-3) var(--ui-space-3); }
-  .modal .modal-tabs button:not(.modal-close) { min-height: var(--ui-touch-target); font-size: var(--ui-text-md); }
+  :is(.ui-dialog, .signin-card) .modal-tabs button:not(.ui-dialog-close) { min-height: var(--ui-touch-target); font-size: var(--ui-text-md); }
   .auth-menu button { min-height: var(--ui-touch-target); font-size: var(--ui-text-md); }
 }
 .row-note {
@@ -3170,54 +3169,54 @@ body.force-show-map-filter .map-panel {
   padding: 0; font-size: var(--ui-text-xs); letter-spacing: 0;
 }
 .row-notes-toggle:hover { color: var(--text); text-decoration: underline; }
-.modal .log-row:last-child { border-bottom: none; }
-.modal .log-row .log-head {
+.ui-dialog .log-row:last-child { border-bottom: none; }
+.ui-dialog .log-row .log-head {
   display: flex;
   align-items: baseline;
   gap: var(--ui-space-2);
   flex-wrap: wrap;
 }
-.modal .log-row .log-msg { color: var(--text); flex: 1; min-width: 0; }
-.modal .log-row .log-name { color: var(--accent); font-weight: 500; }
-.modal .log-row .log-name.muted { color: var(--muted); font-weight: 400; font-style: italic; }
-.modal .log-row .log-time {
+.ui-dialog .log-row .log-msg { color: var(--text); flex: 1; min-width: 0; }
+.ui-dialog .log-row .log-name { color: var(--accent); font-weight: 500; }
+.ui-dialog .log-row .log-name.muted { color: var(--muted); font-weight: 400; font-style: italic; }
+.ui-dialog .log-row .log-time {
   margin-left: auto;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
   font-size: var(--ui-text-xs);
 }
-.modal .log-row .log-details {
+.ui-dialog .log-row .log-details {
   color: var(--muted);
   font-size: var(--ui-text-xs);
   margin-top: var(--ui-space-1);
   word-break: break-word;
 }
-.modal .log-row.log-fail .log-msg { color: var(--danger); }
-.modal .log-more {
+.ui-dialog .log-row.log-fail .log-msg { color: var(--danger); }
+.ui-dialog .log-more {
   display: block;
   width: 100%;
   margin-top: var(--ui-space-2);
   padding: var(--ui-space-2);
   font-size: var(--ui-text-xs);
 }
-.modal .user-flag.on {
+.ui-dialog .user-flag.on {
   color: var(--text);
   border-color: color-mix(in srgb, var(--accent) 40%, transparent);
   background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
-.modal .danger-btn:not(h2 .modal-close) {
+.ui-dialog .danger-btn:not(h2 .ui-dialog-close) {
   color: var(--danger);
   border-color: color-mix(in srgb, var(--danger) 40%, transparent);
 }
-.modal .danger-btn:not(h2 .modal-close):hover:not(:disabled) {
+.ui-dialog .danger-btn:not(h2 .ui-dialog-close):hover:not(:disabled) {
   color: var(--text);
   background: color-mix(in srgb, var(--danger) 12%, transparent);
 }
-.modal select:disabled {
+.ui-dialog select:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
-.modal .modal-actions {
+.form-actions {
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -3225,7 +3224,7 @@ body.force-show-map-filter .map-panel {
   margin-top: var(--ui-space-5);
 }
 /* Inline warning that sits to the left of the action buttons. */
-.modal .action-warning {
+.ui-dialog .action-warning {
   min-width: 0;
   font-size: var(--ui-text-xs);
   font-weight: 400;
@@ -3233,11 +3232,11 @@ body.force-show-map-filter .map-panel {
   margin: 0;
 }
 /* All non-close buttons inside a modal get the bordered look. The
-   :not(.modal-close) excludes both the in-h2 close (set up via
-   .modal h2 .modal-close below) and any free-standing close (e.g. the
-   floating one used by the Add modal). Adding a new .modal-close anywhere
+   :not(.ui-dialog-close) excludes both the in-h2 close (set up via
+   .ui-dialog h2 .ui-dialog-close below) and any free-standing close (e.g. the
+   floating one used by the Add modal). Adding a new .ui-dialog-close anywhere
    in a modal is intentionally enough to opt out of this styling. */
-.modal button:not(.modal-close) {
+.ui-dialog button:not(.ui-dialog-close) {
   background: transparent;
   border: 1px solid var(--control-border);
   color: var(--muted);
@@ -3265,14 +3264,14 @@ button.primary {
 }
 button.primary:hover:not(:disabled) { box-shadow: inset 0 0 0 1px var(--fab-text); }
 button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
-.modal button.primary:not(h2 .modal-close) {
+.ui-dialog button.primary:not(h2 .ui-dialog-close) {
   background: var(--accent);
   color: var(--fab-text);
   border-color: var(--accent);
 }
-.modal button:not(.modal-close):not(.primary):hover:not(:disabled) { color: var(--text); border-color: var(--muted); }
-.modal button:not(.modal-close):disabled { opacity: 0.4; cursor: not-allowed; }
-.modal .hint {
+.ui-dialog button:not(.ui-dialog-close):not(.primary):hover:not(:disabled) { color: var(--text); border-color: var(--muted); }
+.ui-dialog button:not(.ui-dialog-close):disabled { opacity: 0.4; cursor: not-allowed; }
+.ui-dialog .hint {
   font-size: var(--ui-text-xs);
   color: var(--muted);
   margin-top: var(--ui-space-2);
@@ -3349,7 +3348,7 @@ button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 @media (prefers-reduced-motion: reduce) {
   .pwa-update-toast.visible { animation: none; }
-  .modal button:not(.modal-close) { transition: none; }
+  .ui-dialog button:not(.ui-dialog-close) { transition: none; }
 }
 .pwa-banner button,
 .pwa-update-toast button {

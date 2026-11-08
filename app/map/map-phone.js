@@ -56,7 +56,7 @@ export function openSearchView() {
   openModal(
     '<div class="ui-dialog-head map-search-head">' +
       '<div class="ui-field map-search-field"><input type="search" id="map-search-view-input" aria-label="Search" placeholder="Search places, areas and routes" enterkeyhint="search" autocomplete="off"></div>' +
-      '<button type="button" class="ui-button ui-button-quiet ui-dialog-close modal-close" aria-label="Close">&times;</button>' +
+      '<button type="button" class="ui-button ui-button-quiet ui-dialog-close" aria-label="Close">&times;</button>' +
     '</div>' +
     '<div class="map-search-list" id="map-search-view-list"></div>',
     function(dialog) {

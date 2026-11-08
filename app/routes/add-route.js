@@ -77,7 +77,7 @@ export function AddRoute() {
         rating=${v.rating} onRating=${(/** @type {number} */ rating) => patch({ rating })} />
     </div>
     <${ErrorBox} id="add-error" msg=${error} />
-    <div class="modal-actions">
+    <div class="form-actions">
       <button type="submit" class="ui-button ui-button-primary" id="gpx-submit" disabled=${busy}>${t('route.upload')}</button>
     </div>
   </form>`;

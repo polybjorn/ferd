@@ -296,7 +296,7 @@ export function AddArea() {
       <${AreaFields} prefix="a" v=${v} patch=${patch} extraCategories=${extraCategory ? [extraCategory] : []} />
     </div>
     <${ErrorBox} id="area-error" msg=${error} />
-    <div class="modal-actions">
+    <div class="form-actions">
       <button type="submit" class="ui-button ui-button-primary" id="area-submit" disabled=${busy}>${t('area.add')}</button>
     </div>
   </form>`;

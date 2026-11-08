@@ -103,7 +103,7 @@ export function AddPlace({ prefillCoords, draft, reopen }) {
         rating=${v.rating} onRating=${(/** @type {number} */ rating) => patch({ rating })} />
     </div>
     <${ErrorBox} id="add-error" msg=${error} />
-    <div class="modal-actions">
+    <div class="form-actions">
       <button type="submit" class="ui-button ui-button-primary" id="place-submit" disabled=${busy}>${t('place.add')}</button>
     </div>
   </form>`;

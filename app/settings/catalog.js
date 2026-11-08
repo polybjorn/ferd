@@ -106,7 +106,7 @@ function CatalogManager() {
           shown=${matches([e.name || t('common.unnamed'), metaOf(e), (e.note || '').trim()], q)} />`)}</ul>`
       : html`<div class="hint">${t('catalog.empty')}</div>`;
   }
-  const lead = html`<h2 class="ui-dialog-title">${t('catalog.manageTitle')}<span id="cat-mgr-count" class="modal-title-count">${items.length ? '(' + items.length + ')' : ''}</span></h2>`;
+  const lead = html`<h2 class="ui-dialog-title">${t('catalog.manageTitle')}<span id="cat-mgr-count" class="title-count">${items.length ? '(' + items.length + ')' : ''}</span></h2>`;
   return html`
     <${DialogHead} lead=${lead} />
     <div class="ui-dialog-body">

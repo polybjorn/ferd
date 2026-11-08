@@ -171,7 +171,7 @@ function BrowseList({ entries }) {
       })}
     </div>
     <${ErrorBox} id="add-error" msg=${error} />
-    <div class="modal-actions" style="display:flex;align-items:center;gap:var(--ui-space-2)">
+    <div class="form-actions" style="display:flex;align-items:center;gap:var(--ui-space-2)">
       <button type="button" class="ui-button ui-button-quiet" id="browse-notes-toggle" onClick=${() => setNotes(!notes)}>${notes ? t('common.hideNotes') : t('common.showNotes')}</button>
       <button type="button" class="ui-button ui-button-quiet" id="browse-select-all" disabled=${visible.length === 0} onClick=${selectAll}>${allVisible ? t('browse.clearSelection') : t('browse.selectAll')}</button>
       <span class="action-spacer"></span>

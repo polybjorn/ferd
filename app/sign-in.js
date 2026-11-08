@@ -31,7 +31,7 @@ function signInFormHtml(includeClose) {
         '</div>' +
       '</div>' +
       modalErrorHtml('auth-error') +
-      '<div class="' + (includeClose ? 'ui-dialog-actions' : 'modal-actions') + '">' +
+      '<div class="' + (includeClose ? 'ui-dialog-actions' : 'form-actions') + '">' +
         '<button type="submit" class="ui-button ui-button-primary" id="auth-submit">Sign in</button>' +
       '</div>' +
     '</form>';
@@ -120,15 +120,17 @@ export function renderServerPicker(opts) {
     '<div class="signin-page">' +
       '<img class="signin-logo" src="/icons/favicon.svg" alt="">' +
       '<div class="signin-brand">Ferd</div>' +
-      '<div class="modal">' +
+      '<div class="signin-card">' +
         '<h2>Connect to a server</h2>' +
-        '<div class="modal-desc">Enter the address of your Ferd server.</div>' +
-        '<div class="modal-error' + (opts.error ? ' visible' : '') + '" id="srv-error">' + escapeHtml(opts.error || '') + '</div>' +
-        uiFieldHtml('srv-url', 'Server address',
-          '<input type="url" id="srv-url" inputmode="url" autocomplete="url" placeholder="https://ferd.example.com" value="' + escapeHtml(current) + '">') +
-        '<div class="srv-warn" id="srv-warn" hidden>Unencrypted connection (http). Your sign-in token will be sent in clear text. Only connect over a network you trust.</div>' +
-        '<div class="modal-actions">' +
-          '<button type="button" class="primary" id="srv-connect">Connect</button>' +
+        '<div class="ui-section">' +
+          uiFieldHtml('srv-url', 'Server address',
+            '<input type="url" id="srv-url" inputmode="url" autocomplete="url" placeholder="https://ferd.example.com" value="' + escapeHtml(current) + '">' +
+            '<p class="ui-hint">Enter the address of your Ferd server.</p>' +
+            '<p class="srv-warn" id="srv-warn" hidden>Unencrypted connection (http). Your sign-in token will be sent in clear text. Only connect over a network you trust.</p>') +
+        '</div>' +
+        '<div class="form-error' + (opts.error ? ' visible' : '') + '" id="srv-error">' + escapeHtml(opts.error || '') + '</div>' +
+        '<div class="form-actions">' +
+          '<button type="button" class="ui-button ui-button-primary" id="srv-connect">Connect</button>' +
         '</div>' +
         '<div class="signin-alt"><button type="button" id="srv-local">Continue without signing in</button></div>' +
       '</div>' +
@@ -179,7 +181,7 @@ export function renderSignInPage() {
     '<div class="signin-page">' +
       '<img class="signin-logo" src="/icons/favicon.svg" alt="">' +
       '<div class="signin-brand">' + escapeHtml(brand) + '</div>' +
-      '<div class="modal">' +
+      '<div class="signin-card">' +
         signInFormHtml(false) +
         '<div id="signin-public-maps" hidden></div>' +
         '<div class="signin-alt"><button type="button" id="signin-local">Continue without signing in</button></div>' +
@@ -191,7 +193,7 @@ export function renderSignInPage() {
   // server from the sign-in screen. Tucked into the Sign in button row so
   // it reads as a status footnote, not a competing action.
   if (isCrossOrigin()) {
-    const actions = app.querySelector('#auth-form .modal-actions');
+    const actions = app.querySelector('#auth-form .form-actions');
     if (actions) {
       // Host on its own centered row below the buttons.
       const host = document.createElement('div');
@@ -203,7 +205,7 @@ export function renderSignInPage() {
       const changeBtn = document.createElement('button');
       changeBtn.type = 'button';
       changeBtn.id = 'signin-change-server';
-      changeBtn.className = 'signin-change-server';
+      changeBtn.className = 'ui-button signin-change-server';
       changeBtn.textContent = 'Change server';
       changeBtn.addEventListener('click', function() {
         document.body.classList.remove('signin-only');
