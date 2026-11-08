@@ -6,10 +6,19 @@ import { openConfirmModal } from '../select.js';
 import { DialogHead, html, openViewModal, useEffect, useState } from '../view.js';
 import { timeAgo } from './settings.js';
 
-const name = text => html`<span class="log-name">${text}</span>`;
+/**
+ * One audit or activity event, as /admin/logs and the local log return it.
+ * `details` varies by action.
+ * @typedef {{ id: number, ts: number, action: string, actor?: string | null,
+ *   target?: string | null, details?: Record<string, any> }} LogEntry
+ */
+/** @typedef {{ logs?: LogEntry[], next_before_id?: number | null }} LogPage */
+
+const name = (/** @type {string} */ text) => html`<span class="log-name">${text}</span>`;
 
 // What a log row says and its detail line. Server events have an actor;
 // the local activity log is one device and has none.
+/** @param {LogEntry} r */
 function formatLogRow(r) {
   const d = r.details || {};
   const actor = r.actor ? name(r.actor) : html`<span class="log-name muted">${t('logs.anon')}</span>`;
@@ -17,7 +26,7 @@ function formatLogRow(r) {
   const reason = d.reason === 'no_such_user' ? t('logs.unknownUser')
                : d.reason === 'bad_password' ? t('logs.wrongPassword')
                : (d.reason || '').replace(/_/g, ' ');
-  const open = mode => mode === 'open';
+  const open = (/** @type {string} */ mode) => mode === 'open';
   let msg, detail = '';
   switch (r.action) {
     case 'auth.login_success':
@@ -99,6 +108,7 @@ function formatLogRow(r) {
   return { msg, detail };
 }
 
+/** @param {{ r: LogEntry }} props */
 function LogRow({ r }) {
   const { msg, detail } = formatLogRow(r);
   return html`<li class=${'log-row' + (r.action === 'auth.login_failure' ? ' log-fail' : '')}>
@@ -112,16 +122,18 @@ function LogRow({ r }) {
 
 // `version` reloads from the newest event, which the Clear button bumps.
 // "Load older" adds the next page below.
+/** @param {{ local: boolean, version: number }} props */
 function LogList({ local, version }) {
-  const [rows, setRows] = useState(null);
-  const [next, setNext] = useState(null);
+  const [rows, setRows] = /** @type {[LogEntry[] | null, (next: (prev: LogEntry[] | null) => LogEntry[]) => void]} */ (useState(null));
+  const [next, setNext] = /** @type {[number | null, (v: number | null) => void]} */ (useState(null));
   const [status, setStatus] = useState('loading');
   const [more, setMore] = useState(false);
+  /** @param {number | null} beforeId */
   const load = beforeId => {
     const append = beforeId != null;
     const source = local ? localLogPage(beforeId)
       : api('GET', '/admin/logs?limit=100' + (append ? '&before_id=' + beforeId : ''));
-    return source.then(data => {
+    return source.then((/** @type {LogPage} */ data) => {
       setRows(prev => (append ? (prev || []) : []).concat(data.logs || []));
       setNext(data.next_before_id || null);
       setStatus('ok');
@@ -133,13 +145,14 @@ function LogList({ local, version }) {
   let body;
   if (status === 'loading') body = html`<div class="hint">${t('common.loading')}</div>`;
   else if (status === 'error') body = html`<div class="hint">${t('logs.couldNotLoad')}</div>`;
-  else if (!rows.length) body = html`<div class="hint">${t('logs.none')}</div>`;
+  else if (!rows || !rows.length) body = html`<div class="hint">${t('logs.none')}</div>`;
   else body = html`
     <ul class="log-list">${rows.map(r => html`<${LogRow} key=${r.id} r=${r} />`)}</ul>
     ${next && html`<button type="button" class="log-more" disabled=${more} onClick=${loadOlder}>${t('logs.loadOlder')}</button>`}`;
   return html`<div id="s-admin-logs">${body}</div>`;
 }
 
+/** @param {{ local: boolean }} props */
 function LogsView({ local }) {
   const [version, setVersion] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -153,7 +166,7 @@ function LogsView({ local }) {
       if (!ok) return;
       setBusy(true);
       (local ? localLogClear() : api('DELETE', '/admin/logs'))
-        .then(() => setVersion(n => n + 1))
+        .then(() => setVersion((/** @type {number} */ n) => n + 1))
         .catch(err => alert(t('common.failed', { message: err.message })))
         .then(() => setBusy(false));
     });
