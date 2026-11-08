@@ -18,6 +18,16 @@ To start completely fresh, delete `tools/app.db*` and `users/` (both gitignored)
 
 Edits to `index.html` and `app/` show up on reload.
 
+The browser tests start their own throwaway server with the demo dataset, so they need none of the above. They need Node 20 or newer and one install of Playwright and its browsers:
+
+```sh
+npm ci
+npx playwright install
+npx playwright test
+```
+
+They run in Firefox and Chromium at 1280px, Chromium with Pixel emulation and WebKit with iPhone emulation (`playwright.config.js`), with tiles stubbed so nothing leaves the machine. `npx playwright test --project=chromium` runs one. Playwright is pinned to the release the CI image carries, so bump `package.json` and that image together.
+
 ## Where to look
 
 This page covers the workflow (run, test, submit). The deeper material lives in topic-specific docs:

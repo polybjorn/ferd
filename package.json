@@ -1,0 +1,11 @@
+{
+  "name": "ferd-e2e",
+  "private": true,
+  "description": "Dev-only browser tests. Nothing here ships: the app has no build step.",
+  "scripts": {
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0"
+  }
+}

@@ -23,3 +23,8 @@ data/
 
 # Compose environment overrides (secrets / per-deployment values)
 .env
+
+# Browser tests (dev-only, see CONTRIBUTING.md)
+node_modules/
+test-results/
+playwright-report/

@@ -115,6 +115,7 @@ Two-person threshold: the project is small enough that a build step would cost m
 - Plain JS for the frontend, with Preact and htm for views (see below). The map stays plain Leaflet.
 - Stdlib only for the API. No `pip install` to run the server.
 - No dependency for something that fits in fifty lines.
+- The browser tests (`package.json`, `playwright.config.js`, `tests/e2e/`) are a dev-only dependency. Playwright drives the app as it is served; nothing it installs ships, and the Docker image leaves it out.
 
 If you're proposing a change that breaks one of these, lead the PR with the why.
 
