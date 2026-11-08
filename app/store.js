@@ -1,5 +1,6 @@
 import { batch, signal } from '@preact/signals';
 import { state } from './core.js';
+import { t } from './i18n.js';
 import { applyAuth, categoryLabelsUrl, dataUrl, hasServer, isReadOnly } from './server.js';
 import { api, apiUrl } from './auth.js';
 import { normalizePlaceTags, normalizeTags } from './tags.js';
@@ -94,7 +95,7 @@ function dbOpen() {
     // tab closes. The boot screen says why.
     r.onblocked = () => {
       const el = document.querySelector('#app .app-state .ui-hint');
-      if (el) el.textContent = 'Ferd is open in another tab. Close it to finish updating.';
+      if (el) el.textContent = t('app.otherTab');
     };
     r.onsuccess = () => {
       const db = r.result;
@@ -1264,12 +1265,10 @@ export function updateOfflineBanner() {
   // arrives with the region does not count.
   el.hidden = false;
   if (isReadOnly()) {
-    text.textContent = "You're offline. Showing the last loaded map.";
+    text.textContent = t('pwa.offlineReadOnly');
   } else {
     const n = pendingCount.value;
-    text.textContent = n > 0
-      ? "You're offline. " + n + ' change' + (n === 1 ? '' : 's') + ' will sync when you reconnect.'
-      : "You're offline. Changes save here and sync when you reconnect.";
+    text.textContent = n > 0 ? t('pwa.offlinePending', { count: n }) : t('pwa.offline');
   }
 }
 // The update prompt is a toast with an action, so it has no timer: it stays
@@ -1279,16 +1278,16 @@ export function showUpdatePrompt() {
   const text = document.getElementById('pwa-update-text');
   if (!el || !text) return;
   el.hidden = false;
-  text.textContent = 'Update available.';
+  text.textContent = t('pwa.updateAvailable');
 }
 let _syncToastTimer = /** @type {ReturnType<typeof setTimeout> | null} */ (null);
 /** @param {number} synced @param {number} skipped @param {string[]} kept */
 function showSyncToast(synced, skipped, kept) {
   const el = document.getElementById('pwa-sync-toast');
   if (!el) return;
-  let msg = synced ? ('Synced ' + synced + ' change' + (synced === 1 ? '' : 's')) : 'Sync complete';
-  if (skipped) msg += ', ' + skipped + ' refused by the server';
-  if (kept.length) msg += '. Kept on this device to save: ' + kept.map(f => f.split('/').pop()).join(', ');
+  let msg = synced ? t('pwa.synced', { count: synced }) : t('pwa.syncComplete');
+  if (skipped) msg = t('pwa.refused', { msg, n: skipped });
+  if (kept.length) msg = t('pwa.kept', { msg, files: kept.map(f => f.split('/').pop()).join(', ') });
   el.hidden = false;
   el.textContent = msg;
   if (_syncToastTimer) clearTimeout(_syncToastTimer);

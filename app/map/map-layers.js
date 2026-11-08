@@ -1,4 +1,5 @@
 import { escapeHtml, state } from '../core.js';
+import { t } from '../i18n.js';
 import { BASE_LAYER_NAMES, getDefaultTileLayer, getShowTilePicker } from '../prefs.js';
 
 /** @typedef {import('./route-layer.js').LeafletMap} LeafletMap */
@@ -212,8 +213,8 @@ function overlayLayersControlClass() {
       range.step = '5';
       range.className = 'overlay-opacity';
       range.value = String(Math.round(obj.layer.options.opacity * 100));
-      range.setAttribute('aria-label', name + ' opacity');
-      range.title = 'Opacity';
+      range.setAttribute('aria-label', t('map.overlayOpacity', { name }));
+      range.title = t('map.opacity');
       const input = label.querySelector('input');
       input._ferdRange = range;
       range.addEventListener('input', function() {

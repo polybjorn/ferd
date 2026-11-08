@@ -1,4 +1,5 @@
 import { state } from './core.js';
+import { t } from './i18n.js';
 import { hasServer, isReadOnly } from './server.js';
 import { dataLayer, prefs } from './store.js';
 
@@ -209,8 +210,8 @@ export function refreshTabVisibility() {
   const tabPlaces = document.getElementById('tab-places');
   const tabTrails = document.getElementById('tab-routes');
   // The count sits in the list page's search box, so a tab is its label.
-  if (tabPlaces) { tabPlaces.style.display = placesEnabled() ? '' : 'none'; tabPlaces.textContent = 'Places'; }
-  if (tabTrails) { tabTrails.style.display = routesEnabled() ? '' : 'none'; tabTrails.textContent = 'Routes'; }
+  if (tabPlaces) { tabPlaces.style.display = placesEnabled() ? '' : 'none'; tabPlaces.textContent = t('app.tabPlaces'); }
+  if (tabTrails) { tabTrails.style.display = routesEnabled() ? '' : 'none'; tabTrails.textContent = t('app.tabRoutes'); }
   const tabHistory = document.getElementById('tab-history');
   if (tabHistory) tabHistory.style.display = historyEnabled() ? '' : 'none';
   // Lists and Search both cover places, areas and routes, so they go with

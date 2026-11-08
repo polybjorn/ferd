@@ -1,4 +1,5 @@
 import { state } from './core.js';
+import { t } from './i18n.js';
 import { featureVisible, placesEnabled } from './prefs.js';
 import { _selectCoarsePointer } from './select.js';
 
@@ -152,7 +153,7 @@ function mountCountryPicker(input, { countries, names }) {
     } else {
       const none = document.createElement('div');
       none.className = 'select-option disabled';
-      none.textContent = 'No matching country';
+      none.textContent = t('countries.noMatch');
       list.replaceChildren(none);
     }
   };

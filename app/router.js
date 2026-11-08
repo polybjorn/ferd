@@ -46,7 +46,7 @@ function parseFocus(hash) {
 export function router() {
   unmountPage();
   const navActions = document.getElementById('nav-actions');
-  if (navActions) navActions.innerHTML = '';
+  if (navActions) navActions.replaceChildren();
   const hash = location.hash || '#/';
   const base = hash.split('?')[0];
   if (base.startsWith('#/place/') || base.startsWith('#/route/')) return renderUnifiedMap(parseFocus(hash));
