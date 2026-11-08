@@ -85,3 +85,18 @@ test('a list filter narrows the list and "Clear filters" restores it', async ({ 
   expect(fenced.external).toEqual([]);
   expect(fenced.errors).toEqual([]);
 });
+
+// Typing right after the list mounts re-renders its sections while their fade-in
+// runs, the case that left a section's cards hidden in WebKit (see
+// .category-group.fade-in in app.css), so this takes no wait for the fade.
+test('searching while the list is still fading in keeps the match visible', async ({ page, baseURL }) => {
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  await signIn(page, '#/places');
+
+  await expect(page.locator('.place-card').first()).toBeVisible();
+  await page.locator('#search-input').fill('castle');
+  await expect(page.locator('#result-count')).toHaveText('1');
+  await expect(page.locator('.place-card').first()).toBeVisible();
+
+  expect(fenced.errors).toEqual([]);
+});

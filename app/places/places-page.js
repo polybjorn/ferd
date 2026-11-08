@@ -137,11 +137,9 @@ function showOnlyCategory(cat) {
 // moving edge, so shift each header to share the leftmost card's left (and,
 // by symmetry, right) inset, measured from the actual card.
 //
-// Sections use content-visibility, so measuring an off-screen one would
-// force it to render and undo the resize savings. An IntersectionObserver
-// tracks which sections are on screen; only those are measured, and a
-// section gets aligned as it scrolls into view. Reads are batched ahead of
-// writes to keep it to about one reflow.
+// An IntersectionObserver tracks which sections are on screen; only those are
+// measured per resize frame, and a section gets aligned as it scrolls into
+// view. Reads are batched ahead of writes to keep it to about one reflow.
 /** @param {{ current: HTMLElement | null }} listRef */
 function useHeaderAlignment(listRef) {
   const visible = useRef(/** @type {Set<HTMLElement>} */ (new Set()));
@@ -182,7 +180,7 @@ function useHeaderAlignment(listRef) {
     const groups = /** @type {NodeListOf<HTMLElement>} */ (list.querySelectorAll('.category-group'));
     visible.current.clear();
     if (typeof IntersectionObserver === 'undefined') {
-      // Older browsers also lack content-visibility, so there is nothing to defeat.
+      // Without the observer there is nothing to track, so align every section.
       groups.forEach(g => visible.current.add(g));
       align();
       return;
