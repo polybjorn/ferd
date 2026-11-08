@@ -4,6 +4,7 @@ import { openSearchView } from './map-phone.js';
 
 // onPick is called with the chosen latlng. If omitted, the default
 // behavior opens the Add modal pre-filled with those coordinates.
+/** @param {(latlng: { lat: number, lng: number }) => void} [onPick] */
 export function enterPickCoordsMode(onPick) {
   // Make sure we're on the unified map. If not, navigate there first.
   const base = (location.hash || '#/').split('?')[0];
@@ -21,7 +22,7 @@ export function enterPickCoordsMode(onPick) {
   document.body.appendChild(banner);
   const map = state.currentMap;
   if (!map) { cleanup(); return; }
-  function onClick(e) {
+  function onClick(/** @type {{ latlng: { lat: number, lng: number } }} */ e) {
     cleanup();
     if (typeof onPick === 'function') onPick(e.latlng);
     else openAddModal(e.latlng);
@@ -90,11 +91,12 @@ document.addEventListener('keydown', function(e) {
       document.removeEventListener('mousedown', onOutside, true);
       mapInput.removeEventListener('keydown', onEsc);
     };
-    const onOutside = function(ev) {
-      if (ev.target.closest && ev.target.closest('.map-panel')) return;
+    const onOutside = function(/** @type {MouseEvent} */ ev) {
+      const target = /** @type {Element} */ (ev.target);
+      if (target.closest && target.closest('.map-panel')) return;
       restore();
     };
-    const onEsc = function(ev) {
+    const onEsc = function(/** @type {KeyboardEvent} */ ev) {
       if (ev.key === 'Escape') { mapInput.blur(); restore(); }
     };
     document.addEventListener('mousedown', onOutside, true);

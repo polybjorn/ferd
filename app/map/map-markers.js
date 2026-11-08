@@ -2,6 +2,7 @@ import { state } from '../core.js';
 import { getMarkerSize, getPinStyle } from '../theme.js';
 import { wrappedRouter } from '../router.js';
 
+/** @param {string} color @param {boolean} visited */
 function createMarkerIcon(color, visited) {
   const size = getMarkerSize(), cx = size / 2, cy = size / 2;
   const style = getPinStyle();
@@ -88,8 +89,9 @@ export function makeWaypointIcon() {
   });
 }
 export const WAYPOINT_PLACEHOLDER_ICON = makeWaypointIcon();
+/** @param {import('./route-layer.js').LeafletLayer} gpxLayer */
 export function attachWaypointHandlers(gpxLayer) {
-  gpxLayer.on('addpoint', function(e) {
+  gpxLayer.on('addpoint', function(/** @type {any} */ e) {
     if (e.point_type !== 'waypoint') return;
     const m = e.point;
     const symEl = e.element && (e.element.getElementsByTagName('sym')[0]);

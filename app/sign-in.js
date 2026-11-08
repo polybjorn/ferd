@@ -6,6 +6,7 @@ import { modalErrorHtml, modalHeaderHtml, uiFieldHtml } from './select.js';
 import { closeModal, openFullScreenModal, showModalError } from './modal.js';
 import { bootApp, loadDataAndRender, probeServer } from './main.js';
 
+/** @param {boolean} includeClose */
 function signInFormHtml(includeClose) {
   const canRegister = state.auth.registration_open;
   return (includeClose
@@ -37,6 +38,7 @@ function signInFormHtml(includeClose) {
     '</form>';
 }
 
+/** @param {{ onSuccess?: () => unknown }} opts */
 function bindSignInForm(opts) {
   let mode = state.auth.has_users ? 'login' : 'register';
   setMode(mode);
@@ -49,6 +51,7 @@ function bindSignInForm(opts) {
   });
   document.getElementById('auth-username').focus();
 
+  /** @param {string | undefined} m */
   function setMode(m) {
     mode = m;
     /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('#auth-tabs button[data-mode]')).forEach(b => {
@@ -69,7 +72,7 @@ function bindSignInForm(opts) {
   function submit() {
     const u = /** @type {HTMLInputElement} */ (document.getElementById('auth-username')).value.trim();
     const p = /** @type {HTMLInputElement} */ (document.getElementById('auth-password')).value;
-    const payload = { username: u, password: p };
+    const payload = /** @type {{ username: string, password: string, setup_token?: string, token?: boolean }} */ ({ username: u, password: p });
     if (mode === 'register' && state.auth.requires_setup_token) {
       payload.setup_token = /** @type {HTMLInputElement} */ (document.getElementById('auth-setup-token')).value.trim();
     }
@@ -98,6 +101,7 @@ export function openSignInModal() {
 // is assumed when no scheme is typed; plain http is allowed (common for LAN
 // self-hosting) but the picker warns that the session token then travels
 // unencrypted. Only http(s) schemes are accepted.
+/** @param {string | null | undefined} raw */
 function normalizeServerUrl(raw) {
   let s = (raw || '').trim();
   if (!s) return null;
@@ -111,6 +115,7 @@ function normalizeServerUrl(raw) {
 // First-run / reconnect screen for picking which Ferd server to talk to.
 // Shown when there's no same-origin API (bundled/native shell) or the
 // configured server is unreachable. opts.error preseeds an error message.
+/** @param {{ error?: string }} [opts] */
 export function renderServerPicker(opts) {
   opts = opts || {};
   const app = document.getElementById('app');
@@ -141,6 +146,7 @@ export function renderServerPicker(opts) {
   const errBox = document.getElementById('srv-error');
   const warn = document.getElementById('srv-warn');
   const btn = /** @type {HTMLButtonElement} */ (document.getElementById('srv-connect'));
+  /** @param {string} msg */
   function fail(msg) {
     errBox.textContent = msg;
     errBox.classList.add('visible');

@@ -26,6 +26,7 @@ export function getStoredMode() {
     return MODES.includes(v) ? v : 'system';
   } catch { return 'system'; }
 }
+/** @param {string} theme @param {string} mode */
 export function applyTheme(theme, mode) {
   const eff = mode === 'system'
     ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
@@ -44,8 +45,8 @@ export function getPinStyle() {
     return PIN_STYLES.includes(v) ? v : 'ring';
   } catch { return 'ring'; }
 }
-const MARKER_SIZES = { small: 14, default: 18, large: 24 };
-const ROUTE_WEIGHT_FACTORS = { thin: 0.7, default: 1, thick: 1.4 };
+const MARKER_SIZES = /** @type {Record<string, number>} */ ({ small: 14, default: 18, large: 24 });
+const ROUTE_WEIGHT_FACTORS = /** @type {Record<string, number>} */ ({ thin: 0.7, default: 1, thick: 1.4 });
 const TILE_FILTERS = ['none', 'muted', 'grayscale', 'sepia', 'contrast'];
 export function getMarkerSizeKey() {
   try {
@@ -67,4 +68,5 @@ export function getTileFilter() {
     return TILE_FILTERS.includes(v) ? v : 'none';
   } catch { return 'none'; }
 }
+/** @param {string} v */
 export function applyTileFilter(v) { document.documentElement.setAttribute('data-tile-filter', v); }
