@@ -5,7 +5,7 @@ import {
   authCacheKey, discardOp, dismissKept, issueText, loadPublic, metaGet, metaSet,
   open as openStore, sync, syncIssues, synced as storeSynced, updateOfflineBanner, showUpdatePrompt,
 } from './store.js';
-import { DialogHead, html, openViewModal, useState } from './view.js';
+import { AppError, DialogHead, html, mountPage, openViewModal, useState } from './view.js';
 import { t } from './i18n.js';
 import {
   DEFAULT_CONFIG, applyControlVisibility, catalogEnabled, getDefaultShow, getJsonListPref,
@@ -53,9 +53,9 @@ if (window.matchMedia) {
 function applyConfig(cfg) {
   state.config = Object.assign({}, DEFAULT_CONFIG, cfg || {});
   state.config.features = Object.assign({}, DEFAULT_CONFIG.features, (cfg && cfg.features) || {});
-  document.title = state.config.brand || 'Ferd';
+  document.title = state.config.brand || DEFAULT_CONFIG.brand;
   const brandEl = document.getElementById('nav-brand-text');
-  if (brandEl) brandEl.textContent = state.config.brand || 'Ferd';
+  if (brandEl) brandEl.textContent = state.config.brand || DEFAULT_CONFIG.brand;
   refreshTabVisibility();
 }
 
@@ -81,12 +81,10 @@ export function loadDataAndRender() {
     if (!loaded) {
       document.body.classList.remove('app-booting', 'signin-only');
       if (v.mode === 'public') {
-        /** @type {HTMLElement} */ (document.getElementById('app')).innerHTML = loaded === null
-          ? "<div class=\"app-state\"><p class=\"app-error\" role=\"alert\">Can't reach the server, and this map hasn't been opened on this device before.</p></div>"
-          : '<div class="app-state"><p class="app-error" role="alert">Map not found, or owner has not published it.</p></div>';
+        mountPage(html`<${AppError} msg=${t(loaded === null ? 'app.unreachable' : 'app.notPublished')} />`);
         return;
       }
-      /** @type {HTMLElement} */ (document.getElementById('app')).innerHTML = '<div class="app-state"><p class="app-error" role="alert">Failed to load data</p></div>';
+      mountPage(html`<${AppError} msg=${t('app.loadFailed')} />`);
       return;
     }
     // Apply the (now-synced) theme and reveal the app chrome in the same

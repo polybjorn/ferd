@@ -1,4 +1,5 @@
 import { state } from '../core.js';
+import { t } from '../i18n.js';
 import { openAddModal } from '../add/add.js';
 import { openSearchView } from './map-phone.js';
 
@@ -17,7 +18,7 @@ export function enterPickCoordsMode(onPick) {
   }
   const banner = document.createElement('div');
   banner.className = 'pick-coords-banner';
-  banner.textContent = 'Click on the map to set coordinates (or click here to cancel)';
+  banner.textContent = t('map.pickCoords');
   banner.addEventListener('click', cleanup);
   document.body.appendChild(banner);
   const map = state.currentMap;

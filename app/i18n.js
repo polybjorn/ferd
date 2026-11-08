@@ -560,6 +560,31 @@ const STRINGS = {
   'you.signedInAs': 'Signed in as',
   'you.noAccount': 'No account',
   'you.settings': 'Settings and account',
+
+  'app.unreachable': "Can't reach the server, and this map hasn't been opened on this device before.",
+  'app.notPublished': 'Map not found, or owner has not published it.',
+  'app.loadFailed': 'Failed to load data',
+  'app.otherTab': 'Ferd is open in another tab. Close it to finish updating.',
+  'app.tabPlaces': 'Places',
+  'app.tabRoutes': 'Routes',
+
+  'pwa.offlineReadOnly': "You're offline. Showing the last loaded map.",
+  'pwa.offlinePending.one': "You're offline. {count} change will sync when you reconnect.",
+  'pwa.offlinePending.other': "You're offline. {count} changes will sync when you reconnect.",
+  'pwa.offline': "You're offline. Changes save here and sync when you reconnect.",
+  'pwa.updateAvailable': 'Update available.',
+  'pwa.synced.one': 'Synced {count} change',
+  'pwa.synced.other': 'Synced {count} changes',
+  'pwa.syncComplete': 'Sync complete',
+  'pwa.refused': '{msg}, {n} refused by the server',
+  'pwa.kept': '{msg}. Kept on this device to save: {files}',
+
+  'map.opacity': 'Opacity',
+  'map.overlayOpacity': '{name} opacity',
+  'map.pickCoords': 'Click on the map to set coordinates (or click here to cancel)',
+  'countries.noMatch': 'No matching country',
+
+  'routeDetail.notes': 'Notes',
 };
 
 // Splits a template at its {name} slots, so a slot can hold a vnode as well

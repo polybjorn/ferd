@@ -55,6 +55,12 @@ export function unmountPage() {
   if (app) render(null, app);
 }
 
+// The whole-page error state, in place of a page that could not load.
+/** @param {{msg: string}} props */
+export function AppError({ msg }) {
+  return html`<div class="app-state"><p class="app-error" role="alert">${msg}</p></div>`;
+}
+
 // openModal wires .ui-dialog-close to its own close handling.
 /** @param {{title?: string, lead?: any}} props */
 export function DialogHead({ title, lead }) {
