@@ -1,5 +1,5 @@
 import { state } from './core.js';
-import { t } from './i18n.js';
+import { matchLanguage, setLanguage, t } from './i18n.js';
 import { hasServer, isReadOnly } from './server.js';
 import { dataLayer, prefs } from './store.js';
 
@@ -72,7 +72,7 @@ export function getPref(key, def) {
 // at defaults. Per-device state (last-view, hidden-features) stays local.
 const SYNCED_PREF_KEYS = new Set([
   'theme', 'mode', 'pin-style', 'marker-size', 'route-weight', 'tile-filter',
-  'tile-layer', 'units', 'show-local-name',
+  'tile-layer', 'units', 'lang', 'show-local-name',
   'cluster-places', 'tile-picker', 'map-filter', 'map-zoom', 'map-zoom-touch', 'map-expand', 'remember-view',
   'places-group-by', 'trails-group-by', 'history-view',
   'places-view', 'routes-view',
@@ -168,6 +168,14 @@ export function setDefaultHidden(key, id, hidden) {
 /** @param {string} status */
 export function getDefaultShow(status) { return getPref('default-show-' + status, 'true') !== 'false'; }
 export function getUnits() { return getPref('units', 'metric'); }
+// The UI language. Until one is picked it follows the browser, and a browser
+// language with no table reads English.
+export function getLanguage() {
+  return matchLanguage(getPref('lang', (typeof navigator !== 'undefined' && navigator.language) || 'en'));
+}
+// Points t(), number formatting and sorting at the saved language, and sets
+// <html lang> to match.
+export function applyLanguage() { setLanguage(getLanguage()); }
 export function getClusterPlaces() { return getPref('cluster-places', 'true') !== 'false'; }
 // Optional form fields — let the user hide ones they never use. All default ON.
 /** @param {string} name */

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 import re
 import sys
@@ -47,6 +49,43 @@ class TestPolicy(unittest.TestCase):
     android = "".join(re.findall(r'"((?:[^"\\]|\\.)*)"', block))
     expected = csp.DEFAULT_POLICY.replace("connect-src 'self' https:;", "connect-src 'self' https: http:;")
     self.assertEqual(android, expected)
+
+
+class TestShellNeedsNoInline(unittest.TestCase):
+  """What the shell ships has to fit the default policy with no 'unsafe-inline'."""
+
+  INDEX = (REPO_ROOT / "index.html").read_text(encoding="utf-8")
+  SCRIPTS = [REPO_ROOT / "ui.js", REPO_ROOT / "theme-init.js", REPO_ROOT / "webview-check.js",
+             *sorted((REPO_ROOT / "app").rglob("*.js"))]
+
+  def test_style_src_is_self(self):
+    self.assertIn("style-src 'self';", csp.DEFAULT_POLICY)
+    self.assertNotIn("'unsafe-inline'", csp.DEFAULT_POLICY)
+    self.assertNotIn("'unsafe-eval'", csp.DEFAULT_POLICY)
+
+  def test_served_policy_allows_the_shipped_import_map(self):
+    # Hashed here independently of csp.importmap_hash, so a change to the
+    # tag that its pattern no longer matches fails rather than serving no hash.
+    text = self.INDEX.split('<script type="importmap">', 1)[1].split("</script>", 1)[0]
+    digest = base64.b64encode(hashlib.sha256(text.encode("utf-8")).digest()).decode("ascii")
+    value = csp.policy(csp.importmap_hash((REPO_ROOT / "index.html").read_bytes()), {})
+    self.assertIn(f"script-src 'self' 'sha256-{digest}';", value)
+
+  def test_no_inline_script_but_the_import_map(self):
+    inline = re.findall(r"<script(?![^>]*\bsrc=)([^>]*)>", self.INDEX)
+    self.assertEqual(inline, [' type="importmap"'])
+
+  def test_no_event_handler_attribute(self):
+    self.assertNotRegex(self.INDEX, r"<[a-zA-Z][^<>]*\son[a-z]+\s*=")
+
+  def test_no_javascript_url(self):
+    for f in [REPO_ROOT / "index.html", *self.SCRIPTS]:
+      self.assertNotRegex(f.read_text(encoding="utf-8"), r"(?i)javascript:", f.name)
+
+  def test_no_style_element(self):
+    self.assertNotIn("<style", self.INDEX)
+    for f in self.SCRIPTS:
+      self.assertNotRegex(f.read_text(encoding="utf-8"), r"createElement\(\s*['\"]style['\"]", f.name)
 
 
 class TestParseReports(unittest.TestCase):

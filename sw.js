@@ -19,6 +19,7 @@ const SHELL_ASSETS = [
   '/ui.js',
   '/theme-init.js',
   '/webview-check.js',
+  '/webview-notice.css',
   '/app/add/add.js',
   '/app/add/browse.js',
   '/app/app.css',
@@ -236,6 +237,7 @@ self.addEventListener('fetch', (event) => {
 
   if (url.pathname === '/ui.css' || url.pathname === '/ui.js' ||
       url.pathname === '/theme-init.js' || url.pathname === '/webview-check.js' ||
+      url.pathname === '/webview-notice.css' ||
       url.pathname.startsWith('/app/')) {
     event.respondWith(networkThenShell(req));
     return;

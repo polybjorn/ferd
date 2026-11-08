@@ -88,7 +88,7 @@ if confirm "  proceed?"; then
     install -d -m 0755 -o "$SVC_USER" -g "$SVC_USER" "$PREFIX"
     install -d -m 0755 -o "$SVC_USER" -g "$SVC_USER" "$PREFIX/tools" "$PREFIX/deploy" "$PREFIX/gpx" "$PREFIX/app" "$PREFIX/icons" "$PREFIX/scripts" "$PREFIX/vendor"
 
-    for f in index.html ui.css ui.js theme-init.js webview-check.js sw.js catalog.json VERSION site-config.example.json LICENSE; do
+    for f in index.html ui.css ui.js theme-init.js webview-check.js webview-notice.css sw.js catalog.json VERSION site-config.example.json LICENSE; do
         if [ -f "$SRC_DIR/$f" ]; then
             install -m 0644 -o "$SVC_USER" -g "$SVC_USER" "$SRC_DIR/$f" "$PREFIX/$f"
         fi

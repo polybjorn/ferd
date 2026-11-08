@@ -15,6 +15,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places carry a `country_code` (ISO 3166-1 alpha-2) that the server sets from the Country field on every save. Existing places get one when the server starts.
 - A place's popup has an Edit button, so editing no longer depends on finding the right-click or long-press menu. It shows when you're signed in, and never on a public map.
 - `HEAD` requests for static files, so `curl -I` shows their headers.
+- A language setting under Settings > General. It starts from the browser's language and falls back to English, syncs to your account, and applies at once without a reload. Numbers group in that language's style (7 340,9 in Norwegian) and lists sort in its alphabetical order. Norwegian bokmål is offered with a first few strings translated; anything not yet translated shows in English.
 
 ### Changed
 - Catalog updates report a failed save inside their dialog instead of a browser alert. A bulk review that applies with errors stays open, names each place that failed, and lists the places still waiting.
@@ -94,6 +95,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Security
 - The server sends a Content-Security-Policy on the page and the service worker, and `X-Content-Type-Options: nosniff` on every static file, so the Docker image carries them with no proxy in front. It ships report-only: browsers report what it would block to the new `POST /api/csp-report`, which logs one line per violation, and block nothing until `FERD_CSP_MODE=enforce` is set. `FERD_CSP` replaces the policy, for example to list only your own tile hosts. A proxy that serves `index.html` and `sw.js` from disk drops the header, so the nginx and Caddy examples now send those two through the API. The Android app applies the same policy to its bundled page. See [docs/configure.md](docs/configure.md#content-security-policy).
+- The default Content-Security-Policy drops `'unsafe-inline'` from `style-src`, so it allows only the app's own stylesheets, in the server's policy and the Android app's alike. The app no longer needs inline styles: the update notice for old browsers takes its styles from `/webview-notice.css`, and category dots, rating stars and the map's WebGL route layer use classes. The policy still ships report-only, so nothing is blocked until `FERD_CSP_MODE=enforce`; a `FERD_CSP` set by hand keeps its own `style-src`. A setup that serves the files from a proxy or installs them by hand needs the new `webview-notice.css` beside `webview-check.js`.
 
 ## [1.5.0] - 2026-11-05
 
