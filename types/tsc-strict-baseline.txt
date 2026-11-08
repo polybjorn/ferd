@@ -128,7 +128,6 @@
 2	app/i18n.js	TS7006	Parameter 'piece' implicitly has an 'any' type.
 3	app/i18n.js	TS7006	Parameter 'vars' implicitly has an 'any' type.
 1	app/i18n.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-2	app/main.js	TS2339	Property '_catalogCache' does not exist on type '{...}'.
 3	app/main.js	TS7005	Variable 'pendingReg' implicitly has an 'any' type.
 1	app/main.js	TS7006	Parameter 'base' implicitly has an 'any' type.
 1	app/main.js	TS7006	Parameter 'cfg' implicitly has an 'any' type.
@@ -337,35 +336,6 @@
 1	app/modal.js	TS7018	Object literal's property 'onClose' implicitly has an 'any' type.
 1	app/modal.js	TS7034	Variable 'start' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/modal.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-6	app/places-list.js	TS2339	Property '_catalogCache' does not exist on type '{...}'.
-1	app/places-list.js	TS7005	Variable 'errors' implicitly has an 'any[]' type.
-3	app/places-list.js	TS7006	Parameter 'a' implicitly has an 'any' type.
-2	app/places-list.js	TS7006	Parameter 'applyFields' implicitly has an 'any' type.
-3	app/places-list.js	TS7006	Parameter 'b' implicitly has an 'any' type.
-2	app/places-list.js	TS7006	Parameter 'backdrop' implicitly has an 'any' type.
-2	app/places-list.js	TS7006	Parameter 'btn' implicitly has an 'any' type.
-1	app/places-list.js	TS7006	Parameter 'byLetter' implicitly has an 'any' type.
-3	app/places-list.js	TS7006	Parameter 'c' implicitly has an 'any' type.
-3	app/places-list.js	TS7006	Parameter 'cb' implicitly has an 'any' type.
-2	app/places-list.js	TS7006	Parameter 'changes' implicitly has an 'any' type.
-2	app/places-list.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/places-list.js	TS7006	Parameter 'entry' implicitly has an 'any' type.
-1	app/places-list.js	TS7006	Parameter 'field' implicitly has an 'any' type.
-1	app/places-list.js	TS7006	Parameter 'focus' implicitly has an 'any' type.
-1	app/places-list.js	TS7006	Parameter 'items' implicitly has an 'any' type.
-1	app/places-list.js	TS7006	Parameter 'keyFn' implicitly has an 'any' type.
-1	app/places-list.js	TS7006	Parameter 'name' implicitly has an 'any' type.
-1	app/places-list.js	TS7006	Parameter 'nameFn' implicitly has an 'any' type.
-1	app/places-list.js	TS7006	Parameter 'opts' implicitly has an 'any' type.
-5	app/places-list.js	TS7006	Parameter 'place' implicitly has an 'any' type.
-2	app/places-list.js	TS7006	Parameter 'sec' implicitly has an 'any' type.
-1	app/places-list.js	TS7006	Parameter 'sortKeyFn' implicitly has an 'any' type.
-2	app/places-list.js	TS7006	Parameter 'v' implicitly has an 'any' type.
-1	app/places-list.js	TS7023	'catalogEq' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
-1	app/places-list.js	TS7023	'catalogNorm' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
-1	app/places-list.js	TS7034	Variable 'errors' implicitly has type 'any[]' in some locations where its type cannot be determined.
-5	app/places-list.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-5	app/places-list.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/prefs.js	TS7006	Parameter 'def' implicitly has an 'any' type.
 2	app/prefs.js	TS7006	Parameter 'hidden' implicitly has an 'any' type.
 2	app/prefs.js	TS7006	Parameter 'id' implicitly has an 'any' type.
@@ -413,7 +383,6 @@
 4	app/settings/account.js	TS7031	Binding element 'version' implicitly has an 'any' type.
 1	app/settings/account.js	TS7034	Variable 'reloadAdminCatalog' implicitly has type 'any' in some locations where its type cannot be determined.
 1	app/settings/account.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-1	app/settings/catalog.js	TS2339	Property '_catalogCache' does not exist on type '{...}'.
 1	app/settings/catalog.js	TS7006	Parameter '_' implicitly has an 'any' type.
 1	app/settings/catalog.js	TS7006	Parameter 'a' implicitly has an 'any' type.
 1	app/settings/catalog.js	TS7006	Parameter 'b' implicitly has an 'any' type.

@@ -152,6 +152,8 @@ export const state = {
   _routeGroupCompleted: null,
   _routeGroupPlanned: null,
   _syncRoutesOnMap: /** @type {(() => void) | null} */ (null), // index-map: applies the routes signal (home-map.js)
+  // Mirrors the catalogCache signal (store.js bindCatalogCache), null until fetched.
+  _catalogCache: /** @type {import('./places-list.js').CatalogEntry[] | null} */ (null),
   _areaGroup: /** @type {any} */ (null),
   _areaLayers: /** @type {any[] | null} */ (null), // [{ area, visited, layer }]
   // Set by the map modules: Leaflet renderers and the route highlight and GL hooks.
