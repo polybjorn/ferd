@@ -425,7 +425,9 @@ html, body {
 }
 
 
-a:hover { opacity: 0.8; }
+/* Dimming a link lowers its text below 4.5:1 in some themes. Components with
+   their own hover (tabs, bottom bar, menus) keep it; a bare link underlines. */
+a:not([class]):hover { text-decoration: underline; }
 
 /* Nav */
 .app-nav {
@@ -600,6 +602,7 @@ a:hover { opacity: 0.8; }
     text-decoration: none;
     border-bottom: 3px solid transparent;
   }
+  .list-tab:hover { color: var(--text); }
   .list-tab[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
 }
 

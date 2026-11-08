@@ -36,9 +36,7 @@ for (const theme of THEMES) {
       /** Check the view that is open now, in the theme under test. */
       const check = async (/** @type {string} */ view) => {
         await applyTheme(page, theme, mode);
-        // The click that opened a view leaves the pointer on its tab, and
-        // `a:hover { opacity: .8 }` in app.css then dims it below 4.5:1 in some
-        // themes. That is a hover finding, reported apart from this target.
+        // Park the pointer off the tabs; the hover case below covers them.
         await page.mouse.move(0, 0);
         found.push(...await violations(page, `${view} (${theme} ${mode})`));
       };
@@ -91,6 +89,40 @@ for (const theme of THEMES) {
       await check('settings');
 
       expect(fenced.external).toEqual([]);
+      expect(found).toEqual([]);
+    });
+  }
+}
+
+// The pointer stays on a tab after a click, and on a phone after a tap. Scan
+// with it there, since a hover cue that dims the label fails contrast.
+for (const theme of THEMES) {
+  for (const mode of MODES) {
+    test(`no serious or critical violations with a hovered tab in ${theme} ${mode}`, async ({ page, baseURL }, info) => {
+      await fence(page, /** @type {string} */ (baseURL));
+      const phone = isPhone(info);
+      const found = [];
+      await signIn(page);
+      await page.evaluate(() => {
+        const sheet = new CSSStyleSheet();
+        sheet.replaceSync('*, *::before, *::after { transition: none !important; animation: none !important; }');
+        document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+      });
+      await expect(page.locator('.leaflet-container').first()).toBeVisible();
+      if (phone) await page.locator('#bar-lists').click();
+      for (const view of ['places', 'routes']) {
+        const tab = phone ? page.locator(`.list-tab[href="#/${view}"]`) : page.locator(`#tab-${view}`);
+        await tab.click();
+        await expect(tab).toHaveAttribute('aria-current', 'page');
+        await applyTheme(page, theme, mode);
+        await tab.hover();
+        await expect(tab).toBeVisible();
+        found.push(...await violations(page, `${view} tab hovered (${theme} ${mode})`));
+        // The other tab hovered while this one is current.
+        const other = phone ? page.locator(`.list-tab[href="#/${view === 'places' ? 'routes' : 'places'}"]`) : page.locator(`#tab-${view === 'places' ? 'routes' : 'places'}`);
+        await other.hover();
+        found.push(...await violations(page, `${view} other tab hovered (${theme} ${mode})`));
+      }
       expect(found).toEqual([]);
     });
   }
