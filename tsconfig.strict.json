@@ -1,9 +1,0 @@
-{
-  // Full strict mode, held to types/tsc-strict-baseline.txt. A TypeScript
-  // bump can add flags to "strict", so a bump that raises new errors
-  // rewrites the baseline in the same commit.
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "strict": true
-  }
-}

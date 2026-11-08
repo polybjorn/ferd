@@ -41,18 +41,11 @@ The frontend has its own tests, among them the on-device store and its sync queu
 node --test tests/js/*.test.js
 ```
 
-CI also type-checks `app/` with TypeScript reading the JSDoc (`tsconfig.json`, `strict` off). Nothing ships compiled; TypeScript is fetched in CI only. The errors that predate the check are listed in `types/tsc-baseline.txt`, and CI fails when the list changes either way, so a fix lowers it in the same commit. To run it locally:
+CI also type-checks `app/` with TypeScript reading the JSDoc, in full strict mode plus `noFallthroughCasesInSwitch`, `noImplicitOverride`, `noImplicitReturns` and `exactOptionalPropertyTypes` (`tsconfig.json`). Nothing ships compiled; TypeScript is fetched in CI only. Errors are held to `types/tsc-baseline.txt`, which is empty, and CI fails when the list changes either way. A TypeScript bump that adds a flag to `strict` records the errors it raises there in the same commit, and a fix lowers it the same way. To run it locally:
 
 ```sh
 npx -p typescript@5.9.3 tsc -p . --pretty false > /tmp/tsc.out
 python3 scripts/typecheck.py /tmp/tsc.out            # add --update after fixing errors
-```
-
-A second run checks `app/` in TypeScript's full strict mode (`tsconfig.strict.json`) and holds its errors to `types/tsc-strict-baseline.txt` the same way.
-
-```sh
-npx -p typescript@5.9.3 tsc -p tsconfig.strict.json --pretty false > /tmp/tsc-strict.out
-python3 scripts/typecheck.py /tmp/tsc-strict.out --baseline types/tsc-strict-baseline.txt
 ```
 
 Type API responses and shared state with JSDoc `@typedef` where they are defined (`AuthState` in `app/core.js` is the pattern). Globals from the classic scripts and the Android bridge are declared in `types/globals.d.ts`.

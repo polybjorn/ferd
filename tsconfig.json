@@ -1,9 +1,16 @@
 {
+  // Full strict mode, held to types/tsc-baseline.txt. A TypeScript bump can
+  // add flags to "strict", so a bump that raises new errors records them in
+  // the baseline in the same commit.
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
     "noEmit": true,
-    "strict": false,
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "exactOptionalPropertyTypes": true,
     "target": "es2022",
     "module": "es2022",
     "moduleResolution": "bundler",
