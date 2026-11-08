@@ -1,7 +1,7 @@
 import { effect } from '@preact/signals';
 import { auth, catalogCache, places } from './store.js';
 import { catalogUpdatesPending } from './auth.js';
-import { openAddModal } from './add/add.js';
+import { openAddModal } from './lazy-open.js';
 
 // The phone bar's own buttons. Its links are plain hashes, Search is wired in
 // map-phone.js, and refreshTabVisibility shows and hides the items.

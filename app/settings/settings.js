@@ -19,6 +19,7 @@ import {
 import { api, apiUrl, refreshAuthState, renderAuthWidget } from '../auth.js';
 import { LANGUAGES, t } from '../i18n.js';
 import { localBackup } from '../backup.js';
+import { saveDownload } from '../download.js';
 import { openManageCategoriesModal } from './categories.js';
 import { openManageRegionsModal } from './regions.js';
 import {
@@ -473,40 +474,6 @@ function ImportSection({ ids, modeName, modes, replaceBody, run }) {
     <${ErrorBox} id=${ids.error} msg=${error} />
     <div class="success-box" id=${ids.success} hidden=${!done}>${done}</div>
   </div>`;
-}
-
-// Hands a downloaded file to the user. The Android shell's WebView drops
-// blob and anchor downloads, so there the bytes go to native, which opens the
-// system "Save to..." picker.
-/**
- * @param {Blob} blob
- * @param {string} fname
- * @param {string} mimeType
- */
-export async function saveDownload(blob, fname, mimeType) {
-  const android = window.FerdAndroid;
-  if (android && typeof android.exportFile === 'function') {
-    const exportFile = android.exportFile.bind(android);
-    await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onerror = () => reject(new Error(t('backup.exportRead')));
-      reader.onloadend = () => {
-        const b64 = String(reader.result).split(',')[1] || '';
-        exportFile(fname, blob.type || mimeType, b64);
-        resolve(undefined);
-      };
-      reader.readAsDataURL(blob);
-    });
-    return;
-  }
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fname;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
 }
 
 // Without a server, the export is the only durable copy.

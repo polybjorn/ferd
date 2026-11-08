@@ -15,7 +15,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Places carry a `country_code` (ISO 3166-1 alpha-2) that the server sets from the Country field on every save. Existing places get one when the server starts.
 - A place's popup has an Edit button, so editing no longer depends on finding the right-click or long-press menu. It shows when you're signed in, and never on a public map.
 - `HEAD` requests for static files, so `curl -I` shows their headers.
-- A language setting under Settings > General. It starts from the browser's language and falls back to English, syncs to your account, and applies at once without a reload. Numbers group in that language's style (7 340,9 in Norwegian) and lists sort in its alphabetical order. Norwegian bokmål is offered with a first few strings translated; anything not yet translated shows in English.
+- A language setting under Settings > General. It starts from the browser's language and falls back to English, syncs to your account, and applies at once without a reload. Numbers group in that language's style (7 340,9 in Norwegian) and lists sort in its alphabetical order. Norwegian bokmål is offered with the whole interface translated. What you entered yourself, such as names, notes and categories, and catalog entries keep their own wording, and dates show as 2026-11-08 in every language.
 
 ### Changed
 - The icon buttons in Settings and on You, the tag pills, the session and token rows, the public map list on the sign-in page and the load error use the shared ui-foundation 1.14.0 blocks. The remove, drag and eye buttons in Settings are as tall as the other controls, the This device label is a rounded pill in the theme's green, and a failed load reads in the small hint size.

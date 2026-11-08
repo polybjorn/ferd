@@ -73,6 +73,14 @@ test('the shell loads offline and an offline edit syncs on reconnect', async ({ 
   await expect(page.locator('.place-card').filter({ hasText: name })).toHaveCount(1);
   await expect(page.locator('#pwa-offline-text')).toContainText('1');
 
+  // The settings group is a lazy import; the worker has to hold it too.
+  await page.locator('#auth-menu-btn:visible, #bar-you:visible').click();
+  await page.locator('#auth-menu [data-action=settings]:visible, #you-gear:visible').click();
+  await page.locator('.account-sheet [data-action=settings]:visible, #settings-tabs [aria-pressed="true"]').first().click();
+  await expect(page.locator('#settings-tabs [data-tab="general"]')).toHaveAttribute('aria-pressed', 'true');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.ui-dialog[open]')).toHaveCount(0);
+
   // Reconnect: the edit reaches the API and the banner goes.
   await context.setOffline(false);
   // Firefox under Playwright flips navigator.onLine without firing the

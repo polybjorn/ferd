@@ -8,7 +8,7 @@ import { openEditTrailMetadataModal } from './route-meta.js';
 import { groupAndSort, letterBucket } from '../places-list.js';
 import { drawRouteSilhouette, listView } from '../history.js';
 import { attachContextMenu } from '../context-menu.js';
-import { openAddModal } from '../add/add.js';
+import { openAddModal } from '../lazy-open.js';
 import { IndexControls, FilterSelect, ListTabs, TagFilterButton, useFilters, useNavAdd, withCurrent } from '../list-controls.js';
 import { Fragment, html, mountPage, useEffect, useRef } from '../view.js';
 import { t } from '../i18n.js';

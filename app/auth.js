@@ -4,8 +4,7 @@ import { applyAuth, hasServer, isReadOnly, serverBase, setBearerToken, setServer
 import { clearRecentPicks, logsEnabled, refreshTabVisibility } from './prefs.js';
 import { closeTransientOverlays, parseOverlays, TOPO_CREDIT } from './map/index.js';
 import { openCatalogBulkUpdateModal, placesWithCatalogUpdates } from './places-list.js';
-import { openSettingsModal } from './settings/settings.js';
-import { openLogsModal } from './settings/logs.js';
+import { openLogsModal, openSettingsModal } from './lazy-open.js';
 import { openConfirmModal } from './select.js';
 import { closeModal } from './modal.js';
 import { openSignInModal } from './sign-in.js';

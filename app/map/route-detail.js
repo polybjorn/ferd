@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import {
-  GPX_NS, ROUTE_COLOR, TRACK_COLORS, displayRegion, domainFromUrl, escapeHtml, formatDistance,
+  GPX_NS, ROUTE_COLOR, TRACK_COLORS, displayRegion, domainFromUrl, formatDistance,
   formatElevation, setActiveTab, setCrumb, state,
 } from '../core.js';
 import { gpxUrlFor, isReadOnly } from '../server.js';
@@ -111,7 +111,10 @@ function addGpxWaypoints(map, waypoints, startLatLng, endLatLng) {
     if (startLatLng && ll.distanceTo(startLatLng) < WAYPOINT_ENDPOINT_SUPPRESS_M) continue;
     if (endLatLng && ll.distanceTo(endLatLng) < WAYPOINT_ENDPOINT_SUPPRESS_M) continue;
     const m = L.marker(ll, { icon: makeWaypointIcon() });
-    const body = '<b>' + escapeHtml(w.name) + '</b>' + (w.desc ? '<br>' + escapeHtml(w.desc) : '');
+    // An element, so Leaflet shows the GPX's text as text.
+    const body = document.createElement('div');
+    body.appendChild(document.createElement('b')).textContent = w.name;
+    if (w.desc) body.append(document.createElement('br'), w.desc);
     m.bindPopup(body, { closeButton: false });
     m.addTo(map);
   }

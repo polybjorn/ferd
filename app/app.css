@@ -664,20 +664,18 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   column-gap: var(--ui-space-5);
 }
 /* Places: one full-width column of country/category sections; cards inside
-   are width-capped and centered, up to 3 per row (see .place-grid). Plain
-   block (columns: auto, not multicol) so content-visibility on each section
-   is honored - containment is ignored inside a multicol context. */
+   are width-capped and centered, up to 3 per row (see .place-grid). */
 .category-grid { columns: auto; }
 /* Cap the section just under where a 4th 320px card would fit (4x320 + gaps
    > 1300), so rows top out at 3; margin-inline centers it in the page.
-   content-visibility skips layout for sections scrolled out of view, so a
-   window resize only reflows what's on screen; contain-intrinsic-size keeps
-   the scrollbar stable (auto remembers each real height once seen). */
+   No content-visibility: auto here. WebKit leaves an on-screen section
+   skipped (zero height, cards hidden) after a re-render shrinks the list
+   around it, a filter or a search, until the viewport changes. Without it a
+   resize lays out every section; forced layout measured 0.3ms against 3ms at
+   2400 cards and 8ms at 9600, far above a real list. */
 .category-group {
   max-width: 1300px;
   margin-inline: auto;
-  content-visibility: auto;
-  contain-intrinsic-size: auto 240px;
 }
 /* Empty-state message must span both columns; otherwise it sits in one
    column with the other empty, which looks like off-center alignment. */
