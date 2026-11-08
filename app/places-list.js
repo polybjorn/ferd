@@ -1,4 +1,4 @@
-import { escapeHtml, state } from './core.js';
+import { state } from './core.js';
 
 /** @typedef {import('./core.js').Place} Place */
 /**
@@ -15,15 +15,23 @@ import { fetchJson, hasServer } from './server.js';
 import { dataLayer } from './store.js';
 import { refreshOpenPlacePopup, redrawPlaces, refreshPlacesPresentation } from './map/index.js';
 import { api } from './auth.js';
-import { modalHeaderHtml } from './select.js';
-import { closeModal, openFullScreenModal } from './modal.js';
+import { closeModal } from './modal.js';
+import { t } from './i18n.js';
+import {
+  DialogHead, ErrorBox, html, openViewModal, useEffect, useRef, useState,
+} from './view.js';
 
 // Fields the catalog "owns" - personal status (visited / date_visited /
 // rating / from_catalog / runtime annotations) is preserved on refresh.
 /** @type {(keyof Place)[]} */
 const CATALOG_TRACKED_FIELDS = ['name', 'lat', 'lon', 'category', 'country', 'local_name', 'note', 'image', 'image_focus', 'sources', 'tags'];
+// The t() key that labels each field in the diff.
 /** @type {Record<string, string>} */
-const CATALOG_FIELD_LABELS = { name: 'Name', lat: 'Latitude', lon: 'Longitude', category: 'Category', country: 'Country', local_name: 'Local name', note: 'Note', image: 'Image', image_focus: 'Image focus', sources: 'Sources', tags: 'Tags' };
+const CATALOG_FIELD_LABELS = {
+  name: 'form.name', lat: 'form.latitude', lon: 'form.longitude', category: 'form.category', country: 'form.country',
+  local_name: 'form.localName', note: 'form.note', image: 'catalogUpdate.fieldImage',
+  image_focus: 'catalogUpdate.fieldImageFocus', sources: 'form.sources', tags: 'form.tags',
+};
 
 // Returns { entry, changes: [{field, before, after}] } when the upstream
 // catalog entry for a place's from_catalog has diverged from the local
@@ -132,66 +140,48 @@ export function findCatalogUpdate(place) {
   return changes.length ? { entry, changes } : null;
 }
 
-// A diff image that fails to load is swapped for its URL. error does not
-// bubble, so this listens in the capture phase; an inline onerror would need
-// 'unsafe-inline' in the CSP.
-document.addEventListener('error', e => {
-  const img = e.target;
-  if (!(img instanceof HTMLImageElement) || !img.classList.contains('catalog-diff-image')) return;
-  const span = document.createElement('span');
-  span.textContent = img.title;
-  span.style.cssText = 'color:var(--muted);font-size:var(--ui-text-xs);word-break:break-all';
-  img.replaceWith(span);
-}, true);
-
-/**
- * @param {any} v
- * @param {string} field
- * @param {any} [focus]
- */
-function formatCatalogDiffValue(v, field, focus) {
-  if (v === null || v === undefined || v === '') return '<em style="color:var(--muted)">(none)</em>';
-  if (field === 'image') {
-    const url = String(v);
-    const focusAttr = focus && /^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$/.test(String(focus).trim())
-      ? ' style="object-position: ' + String(focus).trim() + '"'
-      : '';
-    return '<img class="catalog-diff-image" src="' + escapeHtml(url) + '"' + focusAttr +
-      ' alt="" loading="lazy" referrerpolicy="no-referrer" title="' + escapeHtml(url) +
-      '">';
-  }
-  if (Array.isArray(v)) return v.map(x => escapeHtml(String(x))).join('<br>');
-  return escapeHtml(String(v));
+// A diff image that fails to load is swapped for its URL.
+const FOCUS_RE = /^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$/;
+/** @param {{ url: string, focus?: any }} props */
+function DiffImage({ url, focus }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return html`<span class="catalog-diff-image-url">${url}</span>`;
+  const f = focus ? String(focus).trim() : '';
+  return html`<img class="catalog-diff-image" src=${url} style=${FOCUS_RE.test(f) ? 'object-position: ' + f : undefined}
+    alt="" loading="lazy" referrerpolicy="no-referrer" title=${url} onError=${() => setFailed(true)} />`;
 }
 
+/** @param {{ v: any, field: string, focus?: any }} props */
+function DiffValue({ v, field, focus }) {
+  if (v === null || v === undefined || v === '') return html`<em class="catalog-diff-none">${t('catalogUpdate.none')}</em>`;
+  if (field === 'image') return html`<${DiffImage} url=${String(v)} focus=${focus} />`;
+  if (Array.isArray(v)) return v.map((x, i) => html`${i ? html`<br />` : null}${String(x)}`);
+  return String(v);
+}
+
+// One checkbox per changed field; `picked` holds the ticked ones.
 /**
- * @param {CatalogChange[]} changes
- * @param {{ selectable?: boolean, place?: Place, entry?: CatalogEntry }} [opts]
+ * @param {{ changes: CatalogChange[], place: Place, entry: CatalogEntry, picked: Set<string>,
+ *   onPick: (field: string, on: boolean) => void }} props
  */
-function renderCatalogDiff(changes, opts) {
-  const selectable = !!(opts && opts.selectable);
+function CatalogDiff({ changes, place, entry, picked, onPick }) {
   // Pair image with its focus so the thumbnail previews the actual crop.
   // `before` focus comes from the place (current state), `after` from the catalog entry.
   const focusChange = changes.find(c => c.field === 'image_focus');
-  const place = opts && opts.place;
-  const entry = opts && opts.entry;
-  const beforeFocus = focusChange ? focusChange.before : (place ? place.image_focus : undefined);
-  const afterFocus = focusChange ? focusChange.after : (entry ? entry.image_focus : undefined);
-  return '<div class="catalog-diff">' + changes.map(c => {
-    const check = selectable
-      ? '<input type="checkbox" class="catalog-diff-check" data-field="' + escapeHtml(c.field) + '">'
-      : '';
-    const bf = c.field === 'image' ? beforeFocus : undefined;
-    const af = c.field === 'image' ? afterFocus : undefined;
-    return '<label class="catalog-diff-field' + (selectable ? ' selectable' : '') + '">' +
-      check +
-      '<span class="catalog-diff-label">' + escapeHtml(CATALOG_FIELD_LABELS[c.field] || c.field) + '</span>' +
-      '<span>' +
-        '<div class="catalog-diff-old">' + formatCatalogDiffValue(c.before, c.field, bf) + '</div>' +
-        '<div class="catalog-diff-new">' + formatCatalogDiffValue(c.after, c.field, af) + '</div>' +
-      '</span>' +
-    '</label>';
-  }).join('') + '</div>';
+  const beforeFocus = focusChange ? focusChange.before : place.image_focus;
+  const afterFocus = focusChange ? focusChange.after : entry.image_focus;
+  return html`<div class="catalog-diff">${changes.map(c => {
+    const isImage = c.field === 'image';
+    return html`<label key=${c.field} class="catalog-diff-field selectable">
+      <input type="checkbox" class="catalog-diff-check" data-field=${c.field} checked=${picked.has(c.field)}
+        onChange=${(/** @type {Event} */ e) => onPick(c.field, /** @type {HTMLInputElement} */ (e.currentTarget).checked)} />
+      <span class="catalog-diff-label">${CATALOG_FIELD_LABELS[c.field] ? t(CATALOG_FIELD_LABELS[c.field]) : c.field}</span>
+      <span>
+        <div class="catalog-diff-old"><${DiffValue} v=${c.before} field=${c.field} focus=${isImage ? beforeFocus : undefined} /></div>
+        <div class="catalog-diff-new"><${DiffValue} v=${c.after} field=${c.field} focus=${isImage ? afterFocus : undefined} /></div>
+      </span>
+    </label>`;
+  })}</div>`;
 }
 
 export function placesWithCatalogUpdates() {
@@ -252,121 +242,115 @@ function buildCatalogRefreshPayload(place, entry, changes, applyFields) {
   return next;
 }
 
+// A save can settle after its dialog was closed by hand, when closing it again
+// would take the modal below.
+function useLive() {
+  const live = useRef(true);
+  useEffect(() => () => { live.current = false; }, []);
+  return live;
+}
+
+/** @typedef {{ p: Place, r: { entry: CatalogEntry, changes: CatalogChange[] } }} PendingUpdate */
+/** @returns {PendingUpdate[]} */
+function pendingUpdates() {
+  return placesWithCatalogUpdates().flatMap(p => {
+    const r = findCatalogUpdate(p);
+    return r ? [{ p, r }] : [];
+  });
+}
+
 // Bulk review: every pending place's field-level diff in one modal, each
 // field an unchecked checkbox. Additive - Apply touches only places where
 // a field was ticked (ticked applied, unticked-in-a-touched-place kept like
 // the per-place modal); untouched places stay pending for a later pass.
 export function openCatalogBulkUpdateModal() {
-  const pending = placesWithCatalogUpdates();
-  if (!pending.length) { alert('No catalog updates available.'); return; }
-  const sections = pending.map(p => {
-    const r = findCatalogUpdate(p);
-    if (!r) return '';
-    return '<div class="catalog-bulk-place" data-place-id="' + escapeHtml(String(p.id)) + '">' +
-      '<h3 class="settings-h" style="display:flex;align-items:baseline;gap:var(--ui-space-2)">' +
-        '<span>' + escapeHtml(p.name) + '</span>' +
-        '<button type="button" class="sessions-revoke-others catalog-bulk-place-toggle" style="margin-left:auto">Select all</button>' +
-      '</h3>' +
-      renderCatalogDiff(r.changes, { selectable: true, place: p, entry: r.entry }) +
-    '</div>';
-  }).join('');
-  openFullScreenModal(
-    modalHeaderHtml('Catalog updates (' + pending.length + ')') +
-    '<div id="catalog-bulk-list">' + sections + '</div>' +
-    '<div class="ui-dialog-actions">' +
-      '<button type="button" class="ui-button" id="catalog-bulk-toggle-all">Check all</button>' +
-      '<span class="action-spacer"></span>' +
-      '<button type="button" class="ui-button ui-button-primary" id="catalog-bulk-apply" disabled>Apply</button>' +
-    '</div>',
-    /** @param {HTMLDialogElement} backdrop */
-    function(backdrop) {
-      const list = /** @type {HTMLElement} */ (document.getElementById('catalog-bulk-list'));
-      const toggleAllBtn = /** @type {HTMLButtonElement} */ (document.getElementById('catalog-bulk-toggle-all'));
-      const applyBtn = /** @type {HTMLButtonElement} */ (document.getElementById('catalog-bulk-apply'));
-      const allChecks = () => /** @type {HTMLInputElement[]} */ (Array.from(backdrop.querySelectorAll('.catalog-diff-check')));
-      /** @param {Element} sec */
-      function syncPlaceToggle(sec) {
-        const btn = sec.querySelector('.catalog-bulk-place-toggle');
-        if (!btn) return;
-        const anyOn = /** @type {HTMLInputElement[]} */ (Array.from(sec.querySelectorAll('.catalog-diff-check'))).some(c => c.checked);
-        btn.textContent = anyOn ? 'Clear' : 'Select all';
-      }
-      // Check-all label reflects state; Apply enables only with a selection
-      // (matches the catalog import flow, which gates its Add button too).
-      function syncActions() {
-        const checks = allChecks();
-        const allOn = checks.length && checks.every(c => c.checked);
-        toggleAllBtn.textContent = allOn ? 'Uncheck all' : 'Check all';
-        applyBtn.disabled = !checks.some(c => c.checked);
-      }
-      backdrop.querySelectorAll('.catalog-bulk-place-toggle').forEach(btn => {
-        btn.addEventListener('click', /** @this {HTMLElement} */ function() {
-          const sec = /** @type {Element} */ (this.closest('.catalog-bulk-place'));
-          const checks = /** @type {NodeListOf<HTMLInputElement>} */ (sec.querySelectorAll('.catalog-diff-check'));
-          const anyOn = Array.from(checks).some(c => c.checked);
-          checks.forEach(c => { c.checked = !anyOn; });
-          syncPlaceToggle(sec); syncActions();
-        });
-      });
-      toggleAllBtn.addEventListener('click', function() {
-        const checks = allChecks();
-        const allOn = checks.length && checks.every(c => c.checked);
-        checks.forEach(c => { c.checked = !allOn; });
-        backdrop.querySelectorAll('.catalog-bulk-place').forEach(syncPlaceToggle);
-        syncActions();
-      });
-      list.addEventListener('change', function(e) {
-        const tgt = /** @type {HTMLElement} */ (e.target);
-        if (!tgt.classList || !tgt.classList.contains('catalog-diff-check')) return;
-        const sec = tgt.closest('.catalog-bulk-place');
-        if (sec) syncPlaceToggle(sec);
-        syncActions();
-      });
-      backdrop.querySelectorAll('.catalog-bulk-place').forEach(syncPlaceToggle);
-      syncActions();
-      applyBtn.addEventListener('click', function() {
-        const btn = this;
-        // Snapshot selections so the still-open modal DOM isn't re-queried
-        // per place (and ids needn't be selector-escaped).
-        /** @type {Record<string, Set<string>>} */
-        const selByPlace = {};
-        backdrop.querySelectorAll('.catalog-bulk-place').forEach(el => {
-          const sec = /** @type {HTMLElement} */ (el);
-          /** @type {Set<string>} */
-          const set = new Set();
-          /** @type {NodeListOf<HTMLInputElement>} */ (sec.querySelectorAll('.catalog-diff-check:checked')).forEach(cb => { if (cb.dataset.field) set.add(cb.dataset.field); });
-          selByPlace[sec.dataset.placeId || ''] = set;
-        });
-        const items = pending
-          .flatMap(p => {
-            const r = findCatalogUpdate(p);
-            const fields = selByPlace[String(p.id)] || new Set();
-            return r && fields.size > 0 ? [{ p, r, fields }] : [];
-          });
-        if (!items.length) return;
-        btn.disabled = true;
-        toggleAllBtn.disabled = true;
-        /** @type {string[]} */
-        const errors = [];
-        let i = 0;
-        (function next() {
-          if (i >= items.length) {
-            Promise.resolve().then(() => {
-              refreshPlacesPresentation();
-              closeModal();
-              if (errors.length) alert('Applied with errors:\n' + errors.join('\n'));
-            }).catch(err => { btn.disabled = false; toggleAllBtn.disabled = false; btn.textContent = 'Apply'; alert('Failed: ' + err.message); });
-            return;
-          }
-          const { p, r, fields } = items[i];
-          btn.textContent = 'Applying ' + (i + 1) + ' of ' + items.length + '…';
-          dataLayer.updatePlace({ id: String(p.id), place: buildCatalogRefreshPayload(p, r.entry, r.changes, fields) })
-            .catch(err => errors.push(p.name + ': ' + err.message))
-            .then(() => { i++; next(); });
-        })();
-      });
+  if (!placesWithCatalogUpdates().length) { alert(t('catalogUpdate.noneAvailable')); return; }
+  openViewModal(html`<${CatalogBulkUpdate} />`, { phone: 'fullscreen' });
+}
+
+function CatalogBulkUpdate() {
+  const [rows, setRows] = /** @type {[PendingUpdate[], (next: PendingUpdate[]) => void]} */ (useState(pendingUpdates));
+  /** @typedef {Record<string, Set<string>>} Picks */
+  const [picked, setPicked] = /** @type {[Picks, (next: Picks | ((prev: Picks) => Picks)) => void]} */ (useState({}));
+  const [progress, setProgress] = useState('');
+  const [error, setError] = useState('');
+  const live = useLive();
+  const fieldsOf = (/** @type {PendingUpdate} */ { r }) => r.changes.map(c => c.field);
+  const pickedOf = (/** @type {PendingUpdate} */ { p }) => picked[String(p.id)] || new Set();
+  const total = rows.reduce((n, row) => n + row.r.changes.length, 0);
+  const ticked = rows.reduce((n, row) => n + pickedOf(row).size, 0);
+  const allOn = total > 0 && ticked === total;
+  /** @param {PendingUpdate} row @param {Set<string>} set */
+  const setRow = (row, set) => setPicked(prev => ({ ...prev, [String(row.p.id)]: set }));
+  /** @param {PendingUpdate} row @param {string} field @param {boolean} on */
+  const pickOne = (row, field, on) => {
+    const set = new Set(pickedOf(row));
+    if (on) set.add(field); else set.delete(field);
+    setRow(row, set);
+  };
+  const toggleAll = () => setPicked(Object.fromEntries(rows.map(row => [String(row.p.id), new Set(allOn ? [] : fieldsOf(row))])));
+
+  // Runs one place at a time, so the button can count them off.
+  const apply = () => {
+    const items = rows.filter(row => pickedOf(row).size > 0);
+    if (!items.length) return;
+    setError('');
+    /** @type {string[]} */
+    const errors = [];
+    /** @param {number} i */
+    const step = i => {
+      if (i >= items.length) { finish(errors); return; }
+      const { p, r } = items[i];
+      setProgress(t('catalogUpdate.applying', { i: i + 1, n: items.length }));
+      dataLayer.updatePlace({ id: String(p.id), place: buildCatalogRefreshPayload(p, r.entry, r.changes, pickedOf(items[i])) })
+        .catch((/** @type {Error} */ err) => { errors.push(t('catalogUpdate.placeError', { name: p.name, message: err.message })); })
+        .then(() => step(i + 1));
+    };
+    step(0);
+  };
+  // The places that failed are still pending, so the list is rebuilt from what
+  // is left and the errors stay on screen above the actions.
+  /** @param {string[]} errors */
+  const finish = errors => {
+    try {
+      refreshPlacesPresentation();
+    } catch (err) {
+      setProgress('');
+      setError(t('common.failed', { message: /** @type {Error} */ (err).message }));
+      return;
     }
-  );
+    if (!live.current) return;
+    if (!errors.length) { closeModal(); return; }
+    setRows(pendingUpdates());
+    setPicked({});
+    setProgress('');
+    setError(t('catalogUpdate.appliedWithErrors', { errors: errors.join('\n') }));
+  };
+
+  return html`
+    <${DialogHead} title=${t('catalogUpdate.bulkTitle', { n: rows.length })} />
+    <div class="ui-dialog-body">
+      <div id="catalog-bulk-list">
+        ${rows.map(row => {
+          const set = pickedOf(row);
+          return html`<div class="catalog-bulk-place" key=${String(row.p.id)} data-place-id=${String(row.p.id)}>
+            <h3 class="settings-h" style="display:flex;align-items:baseline;gap:var(--ui-space-2)">
+              <span>${row.p.name}</span>
+              <button type="button" class="sessions-revoke-others catalog-bulk-place-toggle" style="margin-left:auto"
+                onClick=${() => setRow(row, new Set(set.size ? [] : fieldsOf(row)))}>${set.size ? t('catalogUpdate.clear') : t('catalog.selectAll')}</button>
+            </h3>
+            <${CatalogDiff} changes=${row.r.changes} place=${row.p} entry=${row.r.entry} picked=${set}
+              onPick=${(/** @type {string} */ f, /** @type {boolean} */ on) => pickOne(row, f, on)} />
+          </div>`;
+        })}
+      </div>
+      <${ErrorBox} id="catalog-bulk-error" msg=${error} />
+    </div>
+    <div class="ui-dialog-actions">
+      <button type="button" class="ui-button" id="catalog-bulk-toggle-all" disabled=${!!progress} onClick=${toggleAll}>${allOn ? t('catalogUpdate.uncheckAll') : t('catalogUpdate.checkAll')}</button>
+      <span class="action-spacer"></span>
+      <button type="button" class="ui-button ui-button-primary" id="catalog-bulk-apply" disabled=${!!progress || !ticked} onClick=${apply}>${progress || t('catalogUpdate.apply')}</button>
+    </div>`;
 }
 
 /** @param {Place} place */
@@ -375,64 +359,53 @@ export function openCatalogUpdateModal(place) {
   if (!result) {
     // Badge was tagged update-available but the cache shifted (admin
     // toggled baseline off, or another tab refreshed). Treat as no-op.
-    alert('No catalog updates for this place.');
+    alert(t('catalogUpdate.noneForPlace'));
     return;
   }
-  const { entry, changes } = result;
-  openFullScreenModal(
-    modalHeaderHtml('Update from catalog') +
-    renderCatalogDiff(changes, { selectable: true, place, entry }) +
-    '<div class="ui-dialog-actions">' +
-      '<button type="button" class="ui-button ui-button-primary" id="catalog-update-skip">Keep all</button>' +
-      '<span class="action-spacer"></span>' +
-      '<button type="button" class="ui-button ui-button-primary" id="catalog-update-confirm">' +
-        '<span class="lbl-default">Apply all</span>' +
-        '<span class="lbl-alt">Apply</span>' +
-      '</button>' +
-    '</div>',
-    /** @param {HTMLDialogElement} backdrop */
-    function(backdrop) {
-      const applyBtn = /** @type {HTMLButtonElement} */ (document.getElementById('catalog-update-confirm'));
-      const skipBtn = /** @type {HTMLButtonElement} */ (document.getElementById('catalog-update-skip'));
-      function selectedFields() {
-        /** @type {Set<string>} */
-        const set = new Set();
-        /** @type {NodeListOf<HTMLInputElement>} */ (backdrop.querySelectorAll('.catalog-diff-check')).forEach(cb => {
-          if (cb.checked && cb.dataset.field) set.add(cb.dataset.field);
-        });
-        return set;
-      }
-      function syncButtons() {
-        const any = selectedFields().size > 0;
-        applyBtn.classList.add('ui-button-primary');
-        applyBtn.classList.toggle('has-selection', any);
-        skipBtn.classList.toggle('ui-button-primary', !any);
-        skipBtn.disabled = any;
-      }
-      backdrop.querySelectorAll('.catalog-diff-check').forEach(cb => cb.addEventListener('change', syncButtons));
-      /**
-       * @param {Set<string>} applyFields
-       * @param {HTMLButtonElement} btn
-       */
-      function submit(applyFields, btn) {
-        btn.disabled = true;
-        dataLayer.updatePlace({ id: String(place.id), place: buildCatalogRefreshPayload(place, entry, changes, applyFields) })
-          .then(() => {
-            closeModal();
-            redrawPlaces();
-            refreshOpenPlacePopup();
-          })
-          .catch(err => { btn.disabled = false; alert('Failed: ' + err.message); });
-      }
-      applyBtn.addEventListener('click', function() {
-        // No selection means "Apply all" - apply every shown change.
-        const sel = selectedFields();
-        const fields = sel.size ? sel : new Set(changes.map(c => c.field));
-        submit(fields, this);
-      });
-      skipBtn.addEventListener('click', function() { submit(new Set(), this); });
-    }
-  );
+  openViewModal(html`<${CatalogUpdate} place=${place} entry=${result.entry} changes=${result.changes} />`, { phone: 'fullscreen' });
+}
+
+/** @param {{ place: Place, entry: CatalogEntry, changes: CatalogChange[] }} props */
+function CatalogUpdate({ place, entry, changes }) {
+  const [picked, setPicked] = /** @type {[Set<string>, (next: (prev: Set<string>) => Set<string>) => void]} */ (useState(() => new Set()));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const live = useLive();
+  const any = picked.size > 0;
+  /** @param {string} field @param {boolean} on */
+  const pickOne = (field, on) => setPicked(prev => {
+    const next = new Set(prev);
+    if (on) next.add(field); else next.delete(field);
+    return next;
+  });
+  /** @param {Set<string>} applyFields */
+  const submit = applyFields => {
+    setBusy(true);
+    setError('');
+    dataLayer.updatePlace({ id: String(place.id), place: buildCatalogRefreshPayload(place, entry, changes, applyFields) })
+      .then(() => {
+        if (live.current) closeModal();
+        redrawPlaces();
+        refreshOpenPlacePopup();
+      })
+      .catch((/** @type {Error} */ err) => { setBusy(false); setError(t('common.failed', { message: err.message })); });
+  };
+  // No selection means "Apply all" - apply every shown change.
+  const applyClick = () => submit(any ? picked : new Set(changes.map(c => c.field)));
+  return html`
+    <${DialogHead} title=${t('catalogUpdate.title')} />
+    <div class="ui-dialog-body">
+      <${CatalogDiff} changes=${changes} place=${place} entry=${entry} picked=${picked} onPick=${pickOne} />
+      <${ErrorBox} id="catalog-update-error" msg=${error} />
+    </div>
+    <div class="ui-dialog-actions">
+      <button type="button" class=${'ui-button' + (any ? '' : ' ui-button-primary')} id="catalog-update-skip" disabled=${any || busy} onClick=${() => submit(new Set())}>${t('catalogUpdate.keepAll')}</button>
+      <span class="action-spacer"></span>
+      <button type="button" class=${'ui-button ui-button-primary' + (any ? ' has-selection' : '')} id="catalog-update-confirm" disabled=${busy} onClick=${applyClick}>
+        <span class="lbl-default">${t('catalogUpdate.applyAll')}</span>
+        <span class="lbl-alt">${t('catalogUpdate.apply')}</span>
+      </button>
+    </div>`;
 }
 
 // Bucket key for "Group by letter". Keep the first character as-is for any

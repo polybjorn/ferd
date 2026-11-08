@@ -6,6 +6,9 @@ import { openEditPlaceModal } from './places/edit-place.js';
 import { findCatalogUpdate, openCatalogUpdateModal } from './places-list.js';
 import { focusHash } from './router.js';
 import { popoverHost } from './modal.js';
+import { t } from './i18n.js';
+import { html } from './view.js';
+import { render } from 'preact';
 
 /** @typedef {import('./core.js').Place} Place */
 /** @typedef {import('./core.js').ManifestRoute} ManifestRoute */
@@ -20,13 +23,13 @@ let _ctxMenuEl = null;
 // Every way the menu closes comes through here, so every one of them takes the
 // dismissal listeners with it.
 function closeContextMenu() {
-  if (_ctxMenuEl) { _ctxMenuEl.remove(); _ctxMenuEl = null; }
+  if (_ctxMenuEl) { render(null, _ctxMenuEl); _ctxMenuEl.remove(); _ctxMenuEl = null; }
   _ctxTeardown();
 }
 /** @param {string} type @param {string} slug */
 function copyShareLink(type, slug) {
   const url = location.origin + location.pathname + focusHash(type, slug);
-  const fallback = () => prompt('Copy this link:', url);
+  const fallback = () => prompt(t('menu.copyPrompt'), url);
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(url).catch(fallback);
   } else {
@@ -39,23 +42,23 @@ function copyShareLink(type, slug) {
 export function openMapPlaceContextMenu(place, oe, map) {
   /** @type {ContextMenuItem[]} */
   const items = [];
-  items.push({ label: 'Open', onClick: function() {
+  items.push({ label: t('menu.open'), onClick: function() {
     openPlacePopup(map, place);
     history.replaceState(null, '', focusHash('place', place._slug || place.name));
   } });
   if (Array.isArray(place.sources) && place.sources.length) {
-    items.push({ label: 'Go to source', onClick: function() { window.open(/** @type {string[]} */ (place.sources)[0], '_blank', 'noopener'); } });
+    items.push({ label: t('popup.source'), onClick: function() { window.open(/** @type {string[]} */ (place.sources)[0], '_blank', 'noopener'); } });
   }
   if (!isReadOnly() && state.auth && state.auth.authenticated) {
-    items.push({ label: 'Edit', onClick: function() { openEditPlaceModal(place); } });
+    items.push({ label: t('lists.edit'), onClick: function() { openEditPlaceModal(place); } });
   }
   if (place.from_catalog && findCatalogUpdate(place)) {
-    items.push({ label: 'Apply catalog update', onClick: function() { openCatalogUpdateModal(place); } });
+    items.push({ label: t('lists.applyCatalogUpdate'), onClick: function() { openCatalogUpdateModal(place); } });
   }
-  items.push({ label: 'Copy link', onClick: function() { copyShareLink('place', place._slug || place.name); } });
+  items.push({ label: t('menu.copyLink'), onClick: function() { copyShareLink('place', place._slug || place.name); } });
   if (!isReadOnly() && state.auth && state.auth.authenticated) {
     items.push(null);
-    items.push({ label: 'Delete', danger: true, onClick: function() {
+    items.push({ label: t('common.delete'), danger: true, onClick: function() {
       deletePlaceItem(place, {});
     }});
   }
@@ -70,17 +73,17 @@ export function openMapRouteContextMenu(route, regionName, oe, map) {
   /** @type {ContextMenuItem[]} */
   const items = [];
   const slug = route._slug || route.key;
-  items.push({ label: 'Open', onClick: function() { location.hash = '#/routes/route/' + encodeURIComponent(route.key); } });
+  items.push({ label: t('menu.open'), onClick: function() { location.hash = '#/routes/route/' + encodeURIComponent(route.key); } });
   if (route.source) {
-    items.push({ label: 'Go to source', onClick: function() { window.open(route.source, '_blank', 'noopener'); } });
+    items.push({ label: t('popup.source'), onClick: function() { window.open(route.source, '_blank', 'noopener'); } });
   }
   if (!isReadOnly() && state.auth && state.auth.authenticated) {
-    items.push({ label: 'Edit', onClick: function() { openEditTrailMetadataModal(route, regionName); } });
+    items.push({ label: t('lists.edit'), onClick: function() { openEditTrailMetadataModal(route, regionName); } });
   }
-  items.push({ label: 'Copy link', onClick: function() { copyShareLink('route', slug); } });
+  items.push({ label: t('menu.copyLink'), onClick: function() { copyShareLink('route', slug); } });
   if (!isReadOnly() && state.auth && state.auth.authenticated) {
     items.push(null);
-    items.push({ label: 'Delete', danger: true, onClick: function() {
+    items.push({ label: t('common.delete'), danger: true, onClick: function() {
       deleteRouteItem(route, regionName, function() { /* the map follows the store */ });
     }});
   }
@@ -92,24 +95,8 @@ function openContextMenu({ x, y, items }) {
   closeContextMenu();
   const menu = document.createElement('div');
   menu.className = 'context-menu';
-  for (const item of items) {
-    if (item === null) {
-      const sep = document.createElement('div');
-      sep.className = 'ctx-divider';
-      menu.appendChild(sep);
-      continue;
-    }
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.textContent = item.label;
-    if (item.danger) btn.className = 'danger';
-    btn.addEventListener('click', function() {
-      closeContextMenu();
-      try { item.onClick(); } catch (e) { console.error(e); }
-    });
-    menu.appendChild(btn);
-  }
   popoverHost().appendChild(menu);
+  render(html`<${ContextMenu} items=${items} />`, menu);
   // Clamp to viewport (measure after mount).
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -129,6 +116,17 @@ function openContextMenu({ x, y, items }) {
     window.addEventListener('scroll', closeContextMenu, true);
     window.addEventListener('blur', closeContextMenu);
   }, 0);
+}
+// The menu's own box stays imperative, since it is placed by measuring it;
+// Preact renders the entries inside it.
+/** @param {{ items: ContextMenuItem[] }} props */
+function ContextMenu({ items }) {
+  return items.map((item, i) => item === null
+    ? html`<div key=${i} class="ctx-divider"></div>`
+    : html`<button key=${i} type="button" class=${item.danger ? 'danger' : undefined} onClick=${() => {
+      closeContextMenu();
+      try { item.onClick(); } catch (e) { console.error(e); }
+    }}>${item.label}</button>`);
 }
 /** @param {Event} e */
 function _ctxOutsideClick(e) {

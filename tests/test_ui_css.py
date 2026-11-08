@@ -390,7 +390,7 @@ class AccountMenu(unittest.TestCase):
   def test_menu_button_pattern(self):
     for needle in ('class="ui-menu-anchor"', 'aria-haspopup="menu"', 'aria-controls="auth-menu"',
                    'class="ui-menu ui-menu-end" id="auth-menu" role="menu"', 'class="ui-menu-head"',
-                   'role="menuitem"', '<hr class="ui-menu-sep">', "'ui-menu-item-danger'"):
+                   'role="menuitem"', '<hr class="ui-menu-sep"', "'ui-menu-item-danger'"):
       self.assertIn(needle, self.AUTH)
 
   def test_no_menu_code_of_its_own(self):

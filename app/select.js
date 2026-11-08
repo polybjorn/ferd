@@ -2,7 +2,9 @@ import {
   assignCategoryColors, assignPlaceSlugs, assignTrailSlugs, escapeHtml, state,
 } from './core.js';
 import { areaHasGeometry } from './area-geo.js';
-import { closeTopModal, modalStack, openSheetModal, popoverHost } from './modal.js';
+import { closeTopModal, modalStack, popoverHost } from './modal.js';
+import { DialogHead, html, openViewModal } from './view.js';
+import { t } from './i18n.js';
 import { effect, untracked } from '@preact/signals';
 import * as store from './store.js';
 
@@ -332,24 +334,23 @@ export function openConfirmModal({ title, body, confirmLabel, danger }) {
       closeTopModal();
       resolve(ok);
     };
-    const html =
-      modalHeaderHtml(title) +
-      '<div class="confirm-row">' +
-        (body ? '<div class="dialog-desc">' + escapeHtml(body) + '</div>' : '') +
-        '<button type="button" class="ui-button ' + (danger ? 'ui-button-danger' : 'ui-button-primary') + '" data-role="ok">' + escapeHtml(confirmLabel || 'Confirm') + '</button>' +
-      '</div>';
-    openSheetModal(html, (/** @type {HTMLElement} */ backdrop) => {
-      backdrop.classList.add('narrow-dialog');
-      /** @type {HTMLElement} */ (backdrop.querySelector('[data-role="ok"]')).addEventListener('click', () => finish(true));
-      // Enter to confirm: only while this confirm is the topmost modal.
-      onEnter = (/** @type {KeyboardEvent} */ e) => {
-        if (e.key !== 'Enter') return;
-        if (modalStack[modalStack.length - 1] && modalStack[modalStack.length - 1].backdrop !== backdrop) return;
-        e.preventDefault();
-        finish(true);
-      };
-      document.addEventListener('keydown', onEnter, true);
-    }, () => finish(false));
+    // A sheet's handle is the dialog's first child, which a view renders itself.
+    const dialog = openViewModal(html`
+      <div class="ui-dialog-handle" aria-hidden="true"></div>
+      <${DialogHead} title=${title} />
+      <div class="ui-dialog-body"><div class="confirm-row">
+        ${body ? html`<div class="dialog-desc">${body}</div>` : null}
+        <button type="button" class=${'ui-button ' + (danger ? 'ui-button-danger' : 'ui-button-primary')} data-role="ok" onClick=${() => finish(true)}>${confirmLabel || t('common.confirm')}</button>
+      </div></div>`, { phone: 'sheet' }, () => finish(false));
+    dialog.classList.add('narrow-dialog');
+    // Enter to confirm: only while this confirm is the topmost modal.
+    onEnter = (/** @type {KeyboardEvent} */ e) => {
+      if (e.key !== 'Enter') return;
+      if (modalStack[modalStack.length - 1] && modalStack[modalStack.length - 1].backdrop !== dialog) return;
+      e.preventDefault();
+      finish(true);
+    };
+    document.addEventListener('keydown', onEnter, true);
   });
 }
 
