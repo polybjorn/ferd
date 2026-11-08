@@ -8,6 +8,20 @@ import {
   DialogHead, ErrorBox, HideToggle, RowTag, html, openViewModal, useRef, useState,
 } from '../view.js';
 
+/**
+ * One editable line of the dialog. `original*` hold the values the dialog
+ * opened with, which is how a row knows it is edited.
+ * @typedef {object} CategoryRowData
+ * @property {string} slug
+ * @property {string} display
+ * @property {string} original
+ * @property {number} color index into COLORS
+ * @property {number} originalColor
+ * @property {number} originalOrder
+ * @property {number} count
+ */
+
+/** @param {string | null | undefined} s */
 function slugifyCategory(s) {
   return (s || '').toLowerCase().trim()
     .replace(/[^a-z0-9_-]+/g, '-')
@@ -15,8 +29,20 @@ function slugifyCategory(s) {
     .slice(0, 64);
 }
 
+/**
+ * @param {CategoryRowData} r
+ * @param {number} i
+ */
 const rowDirty = (r, i) => r.display !== r.original || r.color !== r.originalColor || r.originalOrder !== i;
 
+/**
+ * @param {{
+ *   r: CategoryRowData, index: number, open: boolean,
+ *   onToggleSwatches: () => void, onColor: (ci: number) => void,
+ *   onDisplay: (v: string) => void, onRemove: () => void,
+ *   onDragStart: (e: PointerEvent, index: number) => void,
+ * }} props
+ */
 function CategoryRow({ r, index, open, onToggleSwatches, onColor, onDisplay, onRemove, onDragStart }) {
   const labelDirty = r.display !== r.original;
   const dirty = rowDirty(r, index);
@@ -24,13 +50,13 @@ function CategoryRow({ r, index, open, onToggleSwatches, onColor, onDisplay, onR
   return html`<div class="cat-row" data-i=${index} style="margin-top:var(--ui-space-2)">
     <div style="display:flex;gap:var(--ui-space-2);align-items:center">
       <button type="button" class="cat-drag btn-x" data-i=${index} aria-label=${t('categories.drag')} title=${t('categories.drag')}
-        style="flex:0 0 auto;cursor:grab;touch-action:none" onPointerDown=${e => onDragStart(e, index)}>☰</button>
+        style="flex:0 0 auto;cursor:grab;touch-action:none" onPointerDown=${(/** @type {PointerEvent} */ e) => onDragStart(e, index)}>☰</button>
       <button type="button" class=${'cat-color-dot' + (open ? ' open' : '')} data-i=${index} title=${t('categories.changeColor')}
         style=${'background:' + COLORS[r.color % COLORS.length]} onClick=${onToggleSwatches}></button>
       <span class="cat-input-wrap" style="position:relative;flex:1;min-width:0;display:block">
         <input type="text" data-i=${index} class=${'cat-display' + (labelDirty ? ' dirty' : '')} value=${r.display}
           placeholder=${t('categories.labelPlaceholder')} title=${t('categories.slugTitle', { slug: r.slug })} style="width:100%"
-          onInput=${e => onDisplay(e.currentTarget.value)} />
+          onInput=${(/** @type {Event} */ e) => onDisplay(/** @type {HTMLInputElement} */ (e.currentTarget).value)} />
         <${RowTag} text=${tag} dirty=${dirty} inInput />
       </span>
       <${HideToggle} prefKey="default-hidden-categories" id=${r.slug} hiddenSet=${state.hiddenCategories} className="cat-hide" attrs=${{ 'data-slug': r.slug }} />
@@ -48,13 +74,20 @@ function CategoryRow({ r, index, open, onToggleSwatches, onColor, onDisplay, onR
 // final position to `commit`. Preact never sees the live moves, so the rows
 // go back to their rendered order and lose the drag styles first; the state
 // change then reorders them.
+/**
+ * @param {PointerEvent} ev
+ * @param {number} startIdx
+ * @param {HTMLElement} container
+ * @param {() => void} onStart
+ * @param {(from: number, to: number) => void} commit
+ */
 function dragRow(ev, startIdx, container, onStart, commit) {
   ev.preventDefault();
-  const rowEls = Array.from(container.querySelectorAll('.cat-row'));
+  const rowEls = /** @type {HTMLElement[]} */ (Array.from(container.querySelectorAll('.cat-row')));
   const rowEl = rowEls[startIdx];
   if (!rowEl) return;
   const rendered = rowEls.slice();
-  const handle = ev.currentTarget;
+  const handle = /** @type {HTMLElement} */ (ev.currentTarget);
   const offsetY = ev.clientY - rowEl.getBoundingClientRect().top;
   let curIdx = startIdx;
   onStart();
@@ -65,6 +98,7 @@ function dragRow(ev, startIdx, container, onStart, commit) {
   rowEl.style.opacity = '0.85';
   handle.style.cursor = 'grabbing';
   document.body.style.cursor = 'grabbing';
+  /** @param {PointerEvent} e */
   function onMove(e) {
     // Compare the cursor against the adjacent neighbour's centre.
     let newIdx = curIdx;
@@ -81,6 +115,7 @@ function dragRow(ev, startIdx, container, onStart, commit) {
       // old position.
       const lo = Math.min(curIdx, newIdx);
       const hi = Math.max(curIdx, newIdx);
+      /** @type {{ el: HTMLElement, oldTop: number }[]} */
       const affected = [];
       for (let k = lo; k <= hi; k++) {
         if (k === curIdx) continue;
@@ -115,7 +150,7 @@ function dragRow(ev, startIdx, container, onStart, commit) {
     document.body.style.cursor = '';
     handle.style.cursor = '';
     rendered.forEach(el => container.appendChild(el));
-    for (const p of ['position', 'zIndex', 'pointerEvents', 'opacity', 'transform']) rowEl.style[p] = '';
+    for (const p of /** @type {const} */ (['position', 'zIndex', 'pointerEvents', 'opacity', 'transform'])) rowEl.style[p] = '';
     rowEl.classList.remove('dragging');
     commit(startIdx, curIdx);
   }
@@ -124,20 +159,25 @@ function dragRow(ev, startIdx, container, onStart, commit) {
   document.addEventListener('pointercancel', onUp);
 }
 
+/** @param {{ initial: CategoryRowData[], inUse: Set<string> }} props */
 function CategoriesView({ initial, inUse }) {
+  /** @type {[CategoryRowData[], (next: CategoryRowData[] | ((list: CategoryRowData[]) => CategoryRowData[])) => void]} */
   const [rows, setRows] = useState(initial);
   const [initialKeys] = useState(() => new Set(initial.map(r => r.slug)));
   // In-use slugs the user removed, bulk-cleared on Save.
+  /** @type {[string[], (next: string[] | ((list: string[]) => string[])) => void]} */
   const [cleared, setCleared] = useState([]);
+  /** @type {[string | null, (next: string | null) => void]} */
   const [openSwatch, setOpenSwatch] = useState(null);
   const [newText, setNewText] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const listRef = useRef(null);
+  const listRef = useRef(/** @type {HTMLElement | null} */ (null));
   const newSlug = slugifyCategory(newText);
   const changed = cleared.length > 0 || rows.length !== initialKeys.size ||
     rows.some((r, i) => !initialKeys.has(r.slug) || rowDirty(r, i));
   const lost = cleared.length ? state.places.filter(p => cleared.includes(p.category)).length : 0;
+  /** @type {(slug: string, fields: Partial<CategoryRowData>) => void} */
   const patch = (slug, fields) => setRows(list => list.map(r => (r.slug === slug ? { ...r, ...fields } : r)));
 
   const add = () => {
@@ -150,6 +190,7 @@ function CategoriesView({ initial, inUse }) {
     setRows(list => list.concat({ slug, display, original: '', color: 0, originalColor: 0, originalOrder: list.length, count: 0 }));
     setNewText('');
   };
+  /** @param {string} slug */
   const remove = slug => {
     if (inUse.has(slug)) setCleared(list => list.concat(slug));
     setRows(list => list.filter(r => r.slug !== slug));
@@ -160,6 +201,7 @@ function CategoriesView({ initial, inUse }) {
     setRows(list => list.map((r, i) => ({ ...r, color: i % COLORS.length })));
     setOpenSwatch(null);
   };
+  /** @type {(from: number, to: number) => void} */
   const reorder = (from, to) => {
     if (from === to) return;
     setRows(list => {
@@ -171,6 +213,7 @@ function CategoriesView({ initial, inUse }) {
 
   const doSave = () => {
     setBusy(true);
+    /** @type {Record<string, { label: string, color: number, order: number }>} */
     const payload = {};
     rows.forEach((r, i) => {
       const label = r.display.trim();
@@ -205,7 +248,7 @@ function CategoriesView({ initial, inUse }) {
     <div class="ui-dialog-body">
       <h3 class="settings-h" style="margin-top:var(--ui-space-3)">${t('categories.add')}</h3>
       <div class="row" style="margin-top:var(--ui-space-1)">
-        <input type="text" id="cat-new-display" placeholder=${t('categories.newPlaceholder')} value=${newText} onInput=${e => setNewText(e.currentTarget.value)} />
+        <input type="text" id="cat-new-display" placeholder=${t('categories.newPlaceholder')} value=${newText} onInput=${(/** @type {Event} */ e) => setNewText(/** @type {HTMLInputElement} */ (e.currentTarget).value)} />
         <button type="button" class="primary" id="cat-add" style="flex:0 0 auto" onClick=${add}>${t('categories.add')}</button>
       </div>
       <div class="hint" id="cat-new-slug-preview" hidden=${!newSlug}>${newSlug && tx('categories.slugPreview', { slug: html`<code>${newSlug}</code>` })}</div>
@@ -215,10 +258,10 @@ function CategoriesView({ initial, inUse }) {
       <div id="cat-rows" ref=${listRef}>
         ${rows.length ? rows.map((r, i) => html`<${CategoryRow} key=${r.slug} r=${r} index=${i} open=${openSwatch === r.slug}
           onToggleSwatches=${() => setOpenSwatch(openSwatch === r.slug ? null : r.slug)}
-          onColor=${ci => { patch(r.slug, { color: ci }); setOpenSwatch(null); }}
-          onDisplay=${v => patch(r.slug, { display: v })}
+          onColor=${(/** @type {number} */ ci) => { patch(r.slug, { color: ci }); setOpenSwatch(null); }}
+          onDisplay=${(/** @type {string} */ v) => patch(r.slug, { display: v })}
           onRemove=${() => remove(r.slug)}
-          onDragStart=${(e, idx) => dragRow(e, idx, listRef.current, () => setOpenSwatch(null), reorder)} />`)
+          onDragStart=${(/** @type {PointerEvent} */ e, /** @type {number} */ idx) => dragRow(e, idx, /** @type {HTMLElement} */ (listRef.current), () => setOpenSwatch(null), reorder)} />`)
           : html`<div class="hint">${t('categories.empty')}</div>`}
       </div>
     </div>
@@ -230,6 +273,7 @@ function CategoriesView({ initial, inUse }) {
 }
 
 export function openManageCategoriesModal() {
+  /** @type {Record<string, { label?: string, color?: number, order?: number }>} */
   const labels = state.config.category_labels || {};
   // Uncategorized ('') isn't a manageable slug, so it is dropped.
   const slugsFromPlaces = [...new Set([...(state.places || []), ...(state.areas || [])].map(p => p.category).filter(Boolean))];
@@ -242,17 +286,20 @@ export function openManageCategoriesModal() {
     if (oa !== ob) return oa - ob;
     return a.localeCompare(b);
   });
+  /** @type {Record<string, number>} */
   const placeCountBySlug = {};
   for (const p of state.places || []) {
     if (!p.category) continue;
     placeCountBySlug[p.category] = (placeCountBySlug[p.category] || 0) + 1;
   }
+  const categoryColors = /** @type {Record<string, string>} */ (state.categoryColors);
+  /** @type {CategoryRowData[]} */
   const initial = allSlugs.map((slug, i) => {
     const display = (labels[slug] && labels[slug].label) || '';
     // Without a stored colour the dot shows the one the map currently uses.
     let color = (labels[slug] && typeof labels[slug].color === 'number') ? labels[slug].color : -1;
     if (color < 0) {
-      const cur = state.categoryColors && state.categoryColors[slug];
+      const cur = categoryColors && categoryColors[slug];
       color = cur ? COLORS.indexOf(cur) : 0;
       if (color < 0) color = 0;
     }

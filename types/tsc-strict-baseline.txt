@@ -510,35 +510,6 @@
 1	app/settings/catalog.js	TS7031	Binding element 'places' implicitly has an 'any' type.
 2	app/settings/catalog.js	TS7031	Binding element 'shown' implicitly has an 'any' type.
 1	app/settings/catalog.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
-1	app/settings/categories.js	TS7006	Parameter 'ci' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7006	Parameter 'commit' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7006	Parameter 'container' implicitly has an 'any' type.
-5	app/settings/categories.js	TS7006	Parameter 'e' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7006	Parameter 'ev' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7006	Parameter 'fields' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7006	Parameter 'from' implicitly has an 'any' type.
-5	app/settings/categories.js	TS7006	Parameter 'i' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7006	Parameter 'idx' implicitly has an 'any' type.
-6	app/settings/categories.js	TS7006	Parameter 'list' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7006	Parameter 'onStart' implicitly has an 'any' type.
-9	app/settings/categories.js	TS7006	Parameter 'r' implicitly has an 'any' type.
-2	app/settings/categories.js	TS7006	Parameter 's' implicitly has an 'any' type.
-3	app/settings/categories.js	TS7006	Parameter 'slug' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7006	Parameter 'startIdx' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7006	Parameter 'to' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7006	Parameter 'v' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7031	Binding element 'inUse' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7031	Binding element 'index' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7031	Binding element 'initial' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7031	Binding element 'onColor' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7031	Binding element 'onDisplay' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7031	Binding element 'onDragStart' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7031	Binding element 'onRemove' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7031	Binding element 'onToggleSwatches' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7031	Binding element 'open' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7031	Binding element 'r' implicitly has an 'any' type.
-1	app/settings/categories.js	TS7053	Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{...}'.
-15	app/settings/categories.js	TS7053	Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{...}'.
 1	app/settings/logs.js	TS7006	Parameter 'beforeId' implicitly has an 'any' type.
 1	app/settings/logs.js	TS7006	Parameter 'mode' implicitly has an 'any' type.
 1	app/settings/logs.js	TS7006	Parameter 'n' implicitly has an 'any' type.
