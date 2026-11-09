@@ -3,7 +3,6 @@
    go in a layer too; only the WebView notice below stays unlayered. */
 @layer ui-tokens, reset, vendor, app, ui;
 @import url("/vendor/leaflet/leaflet.css") layer(vendor);
-@import url("/vendor/leaflet-elevation/leaflet-elevation.css") layer(vendor);
 
 /* Below vendor, or these replace the margins, padding and link colours Leaflet sets. */
 @layer reset {

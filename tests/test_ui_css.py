@@ -520,7 +520,7 @@ class ModuleLists(unittest.TestCase):
   LAZY = {
     "add/add.js", "add/browse.js", "areas/add-area.js", "places/add-place.js", "routes/add-route.js",
     "backup.js", "settings/account.js", "settings/catalog.js", "settings/categories.js",
-    "settings/logs.js", "settings/regions.js", "settings/settings.js",
+    "settings/logs.js", "settings/regions.js", "settings/settings.js", "map/route-detail.js",
   }
 
   def test_every_module_is_preloaded(self):

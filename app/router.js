@@ -1,6 +1,6 @@
 import { state } from './core.js';
 import { historyEnabled, listsHash, placesEnabled, routesEnabled } from './prefs.js';
-import { renderTrailDetail, renderUnifiedMap } from './map/index.js';
+import { renderUnifiedMap, showTrailDetail } from './map/index.js';
 import { renderPlacesIndex } from './places/places-page.js';
 import { renderHistoryIndex } from './history.js';
 import { renderTrailsIndex } from './routes/routes-page.js';
@@ -64,7 +64,7 @@ export function router() {
   if (base.startsWith('#/routes/route/')) {
     if (!routesEnabled()) { location.hash = '#/'; return; }
     const key = decodeURIComponent(base.replace('#/routes/route/', ''));
-    return renderTrailDetail(key);
+    return showTrailDetail(key);
   }
   if (base === '#/areas') {
     if (!placesEnabled()) { location.hash = '#/'; return; }

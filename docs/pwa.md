@@ -5,7 +5,7 @@ Ferd is meant to be installed on your phone as a standalone app with offline rea
 ## What works offline
 
 - App shell: HTML, CSS, JS, vendored Leaflet and plugins, PWA icons.
-- Elevation chart and its deps (leaflet-elevation's own modular handlers, components and bundled libs). All vendored under `vendor/` and precached on install.
+- Elevation chart and its deps (leaflet-elevation's own modular handlers, components and bundled libs). All vendored under `vendor/` and precached on install, though the page loads the plugin only when the first route page opens.
 - Your places, areas, routes, route details, category labels and synced settings. The app keeps its own copy in IndexedDB, reads from it at every start and brings it up to date through `/api/sync/changes` when the server answers, so a start offline shows the map as last synced. A public map keeps the copy from its last load. `/api/gpx/*.gpx` is cached with `stale-while-revalidate`.
 - Editing. Adding/editing/deleting places and areas, completing/editing/moving/deleting routes, uploading new GPX, and managing regions and category labels all work offline. Edits apply to the on-device copy first, so they show at once and survive a reload. Online they reach the server within a moment; offline they wait on the device and go when the connection returns: item edits through `/api/sync/batch`, and GPX uploads, moves and region changes as the calls they are. The last write to an item wins; an edit the server refuses is skipped and reported. The offline banner shows how many changes are waiting; a toast reports the result after a sync.
 - OpenTopoMap tiles you've previously viewed, and those of overlays set to `offline: true` (see [configure.md](configure.md#overlays)). Cap is ~50 MB with LRU eviction.
@@ -57,7 +57,7 @@ If a user doesn't see your latest change after a deploy:
 
 ### Vendored assets
 
-Add a path to `SHELL_ASSETS` in `sw.js` for any new `vendor/` file the app needs at startup, otherwise it only works online. Drop the path and delete the file when removing. The content hash picks up both cases automatically; old shell caches get evicted on next activate.
+Add a path to `SHELL_ASSETS` in `sw.js` for any new `vendor/` file the app needs, including one loaded lazily after startup, otherwise it only works online. Drop the path and delete the file when removing. The content hash picks up both cases automatically; old shell caches get evicted on next activate.
 
 ### Tile cap
 

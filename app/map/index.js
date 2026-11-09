@@ -4,6 +4,8 @@
 // map through the store's signals (sync.js), so a write never has to tell
 // the map about itself.
 import { state } from '../core.js';
+import { t } from '../i18n.js';
+import { AppError, html as vhtml, mountPage } from '../view.js';
 import { addTilePicker } from './map-layers.js';
 import { playEnter, playLeave } from './map-actions.js';
 import { rebuildMapFilterPanel } from './map-panel.js';
@@ -29,9 +31,66 @@ export {
 } from './map-popups.js';
 export { enterPickCoordsMode } from './pick-coords.js';
 export { swapPlaceClusterGroup } from './place-layer.js';
-export { renderTrailDetail } from './route-detail.js';
 export { fetchGpxText, refreshTrailWeights } from './route-layer.js';
 export { bindMapToStore, homeMapMounted } from './sync.js';
+
+/** @param {string} href */
+function loadStyle(href) {
+  return new Promise((resolve, reject) => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.onload = resolve;
+    link.onerror = () => { link.remove(); reject(new Error(href)); };
+    document.head.appendChild(link);
+  });
+}
+
+/** @param {string} src */
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const el = document.createElement('script');
+    el.src = src;
+    el.onload = resolve;
+    el.onerror = () => { el.remove(); reject(new Error(src)); };
+    document.head.appendChild(el);
+  });
+}
+
+// route-detail.js and the elevation plugin are only needed on a route's page,
+// so they load on the first one. The plugin's stylesheet goes in the vendor
+// layer through a wrapper file; a plain link would be unlayered and beat the
+// app and ui layers. The promise is shared so a second click doesn't load
+// twice, and cleared on failure so a later visit retries.
+/** @type {Promise<typeof import('./route-detail.js')> | null} */
+let routeDetailLoad = null;
+function loadRouteDetail() {
+  if (!routeDetailLoad) {
+    routeDetailLoad = Promise.all([
+      import('./route-detail.js'),
+      loadStyle('/app/map/elevation.css'),
+      loadScript('/vendor/leaflet-elevation/leaflet-elevation.js'),
+    ]).then(([mod]) => mod);
+    routeDetailLoad.catch(() => { routeDetailLoad = null; });
+  }
+  return routeDetailLoad;
+}
+
+// Only the latest call renders, and only if the hash is still the one it was
+// asked for, since the router has already moved on otherwise.
+let trailDetailCall = 0;
+/** @param {string} routeKey */
+export function showTrailDetail(routeKey) {
+  const call = ++trailDetailCall;
+  const hash = location.hash;
+  return loadRouteDetail().then(mod => {
+    if (call !== trailDetailCall || location.hash !== hash) return;
+    mod.renderTrailDetail(routeKey);
+  }, () => {
+    if (call !== trailDetailCall || location.hash !== hash) return;
+    mountPage(vhtml`<${AppError} msg=${t('routeDetail.loadFailed')} />`);
+  });
+}
 
 // Settings toggled Places or Routes: apply it in place, since a rebuild would
 // blink behind the open dialog. False when no map is on screen.
