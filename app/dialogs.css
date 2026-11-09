@@ -18,7 +18,7 @@
   gap: var(--ui-space-2);
 }
 .session-device { font-size: var(--ui-text-xs); color: var(--text); display: flex; align-items: center; gap: var(--ui-space-2); }
-.session-row { --ui-surface: var(--surface2); --ui-border: var(--border); }
+.session-row { --ui-list-item-fill: var(--surface2); --ui-list-item-border: var(--border); }
 .session-current { letter-spacing: 0.1em; text-transform: uppercase; }
 .session-sub { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); }
 /* Default-visibility eye toggle (Manage categories/regions): shown = text,
@@ -120,7 +120,8 @@
 }
 .ui-dialog .area-results { display: flex; flex-direction: column; gap: var(--ui-space-1); margin-top: var(--ui-space-2); }
 .ui-dialog .area-results[hidden] { display: none; }
-/* A ui-list-item on the dialog's raised surface. */
+/* A ui-list-item on the dialog's raised surface. Not --ui-list-item-fill: the
+   picked row's tint mixes --ui-surface, so that token has to move. */
 .ui-dialog .area-result { --ui-surface: var(--surface2); }
 .ui-dialog button.area-results-more[hidden] { display: none; }
 .area-results-foot { align-items: center; display: flex; gap: var(--ui-space-3); justify-content: space-between; }

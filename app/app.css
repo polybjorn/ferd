@@ -879,9 +879,8 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 .map-phone-buttons { background: var(--surface); border-radius: var(--radius); }
 .map-phone-btn {
   position: relative;
-  --ui-control-height: var(--map-btn-size);
-  --ui-touch-target: var(--map-btn-size);
-  --ui-border: var(--border);
+  --ui-button-icon-size: var(--map-btn-size);
+  --ui-button-border: var(--border);
 }
 .map-phone-btn svg { width: 20px; height: 20px; }
 /* The sheet is closed most of the time, and a filter left on hides things
@@ -1208,7 +1207,7 @@ body.signin-only #app {
 .signin-public-toggle[aria-expanded="true"] .signin-public-chevron { transform: rotate(180deg); }
 #signin-public-collapsible.open .collapse-inner { padding-top: var(--ui-space-2); max-height: 40vh; overflow-y: auto; }
 .public-maps-list { display: flex; flex-direction: column; gap: var(--ui-space-2); }
-.public-maps-item { --ui-surface: var(--surface2); }
+.public-maps-item { --ui-list-item-fill: var(--surface2); }
 .public-maps-item:hover { --ui-text: var(--accent); }
 
 /* Leaflet overrides */

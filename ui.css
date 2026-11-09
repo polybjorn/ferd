@@ -1,4 +1,4 @@
-/* ui.css 1.14.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.15.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -64,6 +64,12 @@
         touch     --ui-touch-target, the smallest height a control takes
                   under a coarse pointer. 3rem meets Android's 48dp and
                   Apple's 44pt
+        hooks     --ui-<part>-<hook>, such as --ui-button-fill, are left
+                  unset, and each block reads its own with a fallback that
+                  is the value it had before the hook, so a host that sets
+                  none renders as before. A host sets one on its own class,
+                  in its own layer, to restyle one block. docs/blocks.md in
+                  bjorn/ui-foundation lists every hook per block
 
    Markup contract: classes and plain HTML only, with no on*= or style=
    attributes, so a page with a strict CSP can use it. specimen.html in
@@ -84,8 +90,15 @@
    Icon button contract: .ui-button-icon on a .ui-button, with any of its
    looks, makes it a square that holds one icon as an
    <svg aria-hidden="true">, with an aria-label on the button for its name.
-   .ui-button-icon-round makes the square a circle. A colour on hover, such
-   as danger on a delete, stays in the host.
+   .ui-button-icon-round makes the square a circle. A filled icon button,
+   such as a settings gear on a disc, sets --ui-button-fill on the host's
+   own class rather than a background, so the button keeps its states.
+   A colour on hover, such as danger on a delete, stays in the host. --ui-button-icon-size sets the
+   square's side, --ui-control-height when unset; under a coarse pointer the
+   side never drops below --ui-touch-target. --ui-button-display sets any
+   .ui-button's display, inline-flex when unset, so a host can set it to none
+   in a media query to show a button in one layout only; the hidden
+   attribute still hides the button whatever the token says.
 
    List contract: a .ui-list-item is a bordered row on an <li>, an <a> or a
    <button>: an <li> is static, an <a> goes to a place, a <button> acts and
@@ -96,7 +109,14 @@
    sits on an <li>. Hover and pressed draw the accent line, and only on an <a>
    or <button>. A .ui-list-head is the small uppercase label over a group of
    rows, on whatever element fits, a heading or a <p>. Space between rows and
-   around a head stays in the host, as does a status stripe on a row.
+   around a head stays in the host. --ui-list-item-padding sets a row's
+   padding, --ui-space-2 --ui-space-3 when unset. --ui-list-item-stripe
+   colours a row's start edge for a status, such as delivered or returned:
+   unset, the edge is the 1px border like the others; set, it is that colour
+   and --ui-list-item-stripe-width wide, 3px when unset. The extra width is an
+   inset shadow inside the border, so a striped row's text lines up with an
+   unstriped one, and hover and pressed keep the stripe. Forced colours drop
+   the shadow and the colour, so the row's text says the status too.
 
    Dialog contract: open a .ui-dialog with showModal(), never show() or the
    open attribute, because only showModal() gives the top layer and an inert
@@ -314,13 +334,20 @@
 }
 
 @layer ui {
+  /* Each block opens at a `block:` comment naming it, by its main class
+     without the ui- prefix, and the blocks its markup also needs. It runs to
+     the next `block:` or `shared:` comment. A `shared:` section serves several
+     blocks and keeps its place after them, since it wins on source order, so
+     a cut of some blocks keeps every shared section and the blocks' order. */
+  /* block: section */
   .ui-section {
     font: inherit;
-    display: grid;
+    display: var(--ui-section-display, grid);
     gap: var(--ui-space-3);
     min-inline-size: 0;
     margin: 0;
-    padding: 0;
+    background: var(--ui-section-fill, transparent);
+    padding: var(--ui-section-padding, 0);
     border: 0;
   }
   .ui-section + .ui-section { margin-block-start: var(--ui-space-5); }
@@ -328,7 +355,7 @@
   /* A legend is placed on the fieldset border unless it floats. */
   .ui-section-title {
     font: inherit;
-    float: left;
+    float: inline-start;
     inline-size: 100%;
     margin: 0;
     padding: 0;
@@ -339,9 +366,10 @@
     color: var(--ui-muted);
   }
 
+  /* block: field */
   .ui-field {
     font: inherit;
-    display: grid;
+    display: var(--ui-field-display, grid);
     gap: var(--ui-space-1);
     min-inline-size: 0;
     margin: 0;
@@ -362,13 +390,13 @@
     font: inherit;
     box-sizing: border-box;
     inline-size: 100%;
-    min-block-size: var(--ui-control-height);
+    min-block-size: var(--ui-field-size, var(--ui-control-height));
     margin: 0;
-    padding: var(--ui-space-1) var(--ui-space-3);
+    padding: var(--ui-field-padding, var(--ui-space-1) var(--ui-space-3));
     font-size: var(--ui-text-sm);
-    color: var(--ui-text);
-    background-color: var(--ui-control-surface);
-    border: 1px solid var(--ui-border);
+    color: var(--ui-field-color, var(--ui-text));
+    background-color: var(--ui-field-fill, var(--ui-control-surface));
+    border: 1px solid var(--ui-field-border, var(--ui-border));
     border-radius: var(--ui-radius);
   }
   /* The first line sits where a one-line input centres its text, so the
@@ -394,6 +422,11 @@
     background-size: 6px 6px;
     background-repeat: no-repeat;
   }
+  /* background-position has no logical form. The halves swap as well as
+     move, so the chevron keeps its point. */
+  .ui-field select:not([multiple]):dir(rtl) {
+    background-position: left 0.75rem center, left 1.05rem center;
+  }
   /* Drawn inside the box, since a reveal clips whatever sticks out of it. */
   .ui-field :is(input, select, textarea):focus-visible {
     outline: var(--ui-focus-width) solid var(--ui-focus-color);
@@ -407,17 +440,24 @@
   .ui-field:has(:is(input, select, textarea):disabled) .ui-field-label { color: var(--ui-muted); }
   .ui-field-invalid .ui-hint { color: var(--ui-danger); }
 
+  .ui-required::after {
+    content: " *";
+    color: var(--ui-muted);
+  }
+
+  /* block: field-row */
   .ui-field-row {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--ui-space-2);
+    gap: var(--ui-field-row-gap, var(--ui-space-2));
     min-inline-size: 0;
   }
 
+  /* block: control-row */
   .ui-control-row {
     display: flex;
     align-items: center;
-    gap: var(--ui-space-3);
+    gap: var(--ui-control-row-gap, var(--ui-space-3));
     min-inline-size: 0;
     min-block-size: var(--ui-control-height);
   }
@@ -433,11 +473,7 @@
   }
   a.ui-control-text { text-decoration: underline; }
 
-  .ui-required::after {
-    content: " *";
-    color: var(--ui-muted);
-  }
-
+  /* block: hint */
   .ui-hint {
     font: inherit;
     margin: 0;
@@ -446,22 +482,24 @@
     font-weight: var(--ui-text-weight);
     letter-spacing: normal;
     text-transform: none;
-    color: var(--ui-muted);
+    color: var(--ui-hint-color, var(--ui-muted));
   }
   /* After .ui-hint, which it overrides at the same specificity. */
   .ui-hint-error { color: var(--ui-danger); }
 
+  /* block: empty */
   /* Muted and centred so it reads as an absence, not as content. The gap and
      padding come off the spacing scale, so a dense app tightens it. */
   .ui-empty {
-    display: flex;
+    display: var(--ui-empty-display, flex);
     flex-direction: column;
     align-items: center;
     gap: var(--ui-space-2);
     box-sizing: border-box;
     min-inline-size: 0;
     margin: 0;
-    padding: var(--ui-space-6) var(--ui-space-4);
+    background: var(--ui-empty-fill, transparent);
+    padding: var(--ui-empty-padding, var(--ui-space-6) var(--ui-space-4));
     font-size: var(--ui-text-sm);
     color: var(--ui-muted);
     text-align: center;
@@ -475,19 +513,7 @@
   }
   .ui-empty-action { margin-block-start: var(--ui-space-2); }
 
-  .ui-toggle-row {
-    font: inherit;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--ui-space-3);
-    min-block-size: var(--ui-control-height);
-    margin: 0;
-    padding: 0;
-    font-size: var(--ui-text-sm);
-    color: var(--ui-text);
-    cursor: pointer;
-  }
+  /* block: check */
   /* accent-color only reaches the checked state, so the box is drawn to theme
      the unchecked one too. */
   .ui-check {
@@ -495,11 +521,11 @@
     box-sizing: border-box;
     position: relative;
     flex: none;
-    inline-size: 16px;
-    block-size: 16px;
+    inline-size: var(--ui-check-size, 16px);
+    block-size: var(--ui-check-size, 16px);
     margin: 0;
-    background: var(--ui-control-surface);
-    border: 1px solid var(--ui-muted);
+    background: var(--ui-check-fill, var(--ui-control-surface));
+    border: 1px solid var(--ui-check-border, var(--ui-muted));
     border-radius: var(--ui-radius-sm);
     cursor: pointer;
   }
@@ -507,11 +533,12 @@
     background: var(--ui-accent);
     border-color: var(--ui-accent);
   }
+  /* Physical, as a tick does not mirror in a right-to-left page. */
   .ui-check:checked::after {
     content: '';
     position: absolute;
     inset-block-start: 1px;
-    inset-inline-start: 4px;
+    left: 4px;
     inline-size: 4px;
     block-size: 8px;
     border: solid var(--ui-surface);
@@ -523,6 +550,20 @@
     outline-offset: var(--ui-focus-width);
   }
 
+  /* block: toggle-row */
+  .ui-toggle-row {
+    font: inherit;
+    display: var(--ui-toggle-row-display, flex);
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-3);
+    min-block-size: var(--ui-toggle-row-size, var(--ui-control-height));
+    margin: 0;
+    padding: var(--ui-toggle-row-padding, 0);
+    font-size: var(--ui-text-sm);
+    color: var(--ui-toggle-row-color, var(--ui-text));
+    cursor: pointer;
+  }
   .ui-toggle-text {
     display: grid;
     gap: var(--ui-space-1);
@@ -534,8 +575,8 @@
     position: relative;
     inline-size: 36px;
     block-size: 20px;
-    background: transparent;
-    border: 1px solid var(--ui-muted);
+    background: var(--ui-toggle-row-fill, transparent);
+    border: 1px solid var(--ui-toggle-row-border, var(--ui-muted));
     border-radius: var(--ui-radius-full);
     cursor: pointer;
     transition: background var(--ui-duration-fast), border-color var(--ui-duration-fast);
@@ -549,7 +590,7 @@
     block-size: 16px;
     background: var(--ui-muted);
     border-radius: 50%;
-    transition: transform var(--ui-duration-fast), background var(--ui-duration-fast);
+    transition: inset-inline-start var(--ui-duration-fast), background var(--ui-duration-fast);
   }
   .ui-toggle-row > input[type="checkbox"]:checked {
     background: var(--ui-accent);
@@ -557,33 +598,34 @@
   }
   .ui-toggle-row > input[type="checkbox"]:checked::after {
     background: var(--ui-surface);
-    transform: translateX(16px);
+    inset-inline-start: 17px;
   }
 
+  /* block: choice-list */
   .ui-choice-list {
     font: inherit;
     display: grid;
-    gap: var(--ui-space-1);
+    gap: var(--ui-choice-list-gap, var(--ui-space-1));
     min-inline-size: 0;
     margin: 0;
     padding: 0;
     border: 0;
   }
   .ui-choice-list > legend {
-    float: left;
+    float: inline-start;
     inline-size: 100%;
     margin-block-end: var(--ui-space-1);
   }
   .ui-choice {
     font: inherit;
-    display: flex;
+    display: var(--ui-choice-display, flex);
     align-items: center;
     gap: var(--ui-space-2);
-    min-block-size: var(--ui-control-height);
+    min-block-size: var(--ui-choice-size, var(--ui-control-height));
     margin: 0;
-    padding: 0;
+    padding: var(--ui-choice-padding, 0);
     font-size: var(--ui-text-sm);
-    color: var(--ui-text);
+    color: var(--ui-choice-color, var(--ui-text));
     cursor: pointer;
   }
 
@@ -609,18 +651,18 @@
       display: flex;
       flex-wrap: wrap;
     }
-    .ui-choice-segmented { gap: 0; }
-    .ui-choice-pills { gap: var(--ui-space-2); }
+    .ui-choice-segmented { gap: var(--ui-choice-list-gap, 0); }
+    .ui-choice-pills { gap: var(--ui-choice-list-gap, var(--ui-space-2)); }
     :is(.ui-choice-segmented, .ui-choice-pills) > .ui-choice {
       position: relative;
       box-sizing: border-box;
       justify-content: center;
       min-inline-size: 0;
-      padding: var(--ui-space-1) var(--ui-space-3);
+      padding: var(--ui-choice-padding, var(--ui-space-1) var(--ui-space-3));
       text-align: center;
       overflow-wrap: anywhere;
-      background: var(--ui-control-surface);
-      border: 1px solid var(--ui-border);
+      background: var(--ui-choice-fill, var(--ui-control-surface));
+      border: 1px solid var(--ui-choice-border, var(--ui-border));
     }
     .ui-choice-segmented > .ui-choice { flex: 1 1 0; }
     .ui-choice-segmented > .ui-choice + .ui-choice { border-inline-start-width: 0; }
@@ -656,24 +698,26 @@
     }
   }
 
+  /* block: disclosure */
   /* A disclosure is a native <details>, which opens and closes without
      script. The browser's own marker sits at the start and points a
      different way per engine, so it goes and a chevron at the end takes its
      place: down when closed, up when open, the same in either writing
      direction. Drawn from two borders in currentColor, so forced colours keep
      it. */
-  .ui-disclosure { display: block; }
+  .ui-disclosure { display: var(--ui-disclosure-display, block); }
   .ui-disclosure > summary {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--ui-space-2);
     box-sizing: border-box;
-    min-block-size: var(--ui-control-height);
-    padding: var(--ui-space-1) 0;
+    min-block-size: var(--ui-disclosure-size, var(--ui-control-height));
+    padding: var(--ui-disclosure-padding, var(--ui-space-1) 0);
     font-size: var(--ui-text-sm);
     font-weight: var(--ui-label-weight);
-    color: var(--ui-text);
+    color: var(--ui-disclosure-color, var(--ui-text));
+    background: var(--ui-disclosure-fill, transparent);
     overflow-wrap: anywhere;
     cursor: pointer;
     list-style: none;
@@ -699,6 +743,7 @@
     outline-offset: var(--ui-focus-width);
   }
 
+  /* block: collapse */
   /* A collapse opens when the host's script adds .open, for a panel that app
      state drives. Rows from 0fr to 1fr animate to the content's own height
      with no measuring; a browser without grid-template-rows interpolation,
@@ -721,6 +766,7 @@
   }
   .ui-collapse.open > .ui-collapse-body { visibility: visible; }
 
+  /* shared: disabled checks, toggles and choices */
   /* appearance: none takes the browser's own disabled look away, so the
      controls and their rows draw it here. */
   .ui-check:disabled,
@@ -730,25 +776,26 @@
   }
   :is(.ui-toggle-row, .ui-choice) > input:disabled { cursor: not-allowed; }
 
+  /* block: button */
   /* Hover draws a ring instead of changing the fill or opacity, either of
      which would take the label below its contrast floor on some hosts. */
   .ui-button {
-    display: inline-flex;
+    display: var(--ui-button-display, inline-flex);
     align-items: center;
     justify-content: center;
     gap: var(--ui-space-2);
     box-sizing: border-box;
-    min-block-size: var(--ui-control-height);
+    min-block-size: var(--ui-button-size, var(--ui-control-height));
     margin: 0;
-    padding: var(--ui-space-1) var(--ui-space-3);
+    padding: var(--ui-button-padding, var(--ui-space-1) var(--ui-space-3));
     font: inherit;
     font-size: var(--ui-text-sm);
     font-weight: var(--ui-label-weight);
-    color: var(--ui-text);
+    color: var(--ui-button-color, var(--ui-text));
     text-decoration: none;
     cursor: pointer;
-    background: transparent;
-    border: 1px solid var(--ui-border);
+    background: var(--ui-button-fill, transparent);
+    border: 1px solid var(--ui-button-border, var(--ui-border));
     border-radius: var(--ui-radius);
     transition: box-shadow var(--ui-duration-fast), color var(--ui-duration-fast);
   }
@@ -782,16 +829,19 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
+  /* block: button-icon, needs: button */
   /* An icon button is square, as tall as any control, and holds one icon.
      It changes the shape only, so it sits on any button look, quiet or
      bordered, and keeps that look's states. */
   .ui-button-icon {
     flex: none;
-    inline-size: var(--ui-control-height);
+    inline-size: var(--ui-button-icon-size, var(--ui-control-height));
+    min-block-size: var(--ui-button-icon-size, var(--ui-control-height));
     padding: 0;
   }
   .ui-button-icon-round { border-radius: var(--ui-radius-full); }
 
+  /* block: search, needs: field button */
   /* The browser's own clear button exists only in Chromium and WebKit, so it
      goes, and every engine draws the reset button instead. It shows while
      there is text to clear, read from :placeholder-shown, which is why the
@@ -818,27 +868,29 @@
   .ui-search-clear:focus-visible { outline-offset: calc(-1 * var(--ui-focus-width)); }
   .ui-search > input:is(:placeholder-shown, :disabled) + .ui-search-clear { display: none; }
 
+  /* block: chip */
   /* A chip is a toggle on a <button>, shaped as a pill so a row of them reads
      apart from a row of actions. Pressed takes the accent fill, the same pair
      a primary button uses, so both states sit on colours tools/contrast.py
      measures. Hover draws a ring, as on a button. */
   .ui-chip {
-    display: inline-flex;
+    display: var(--ui-chip-display, inline-flex);
     align-items: center;
     justify-content: center;
     gap: var(--ui-space-1);
     box-sizing: border-box;
     min-inline-size: 0;
     margin: 0;
-    padding: var(--ui-space-1) var(--ui-space-3);
+    min-block-size: var(--ui-chip-size, auto);
+    padding: var(--ui-chip-padding, var(--ui-space-1) var(--ui-space-3));
     font: inherit;
     font-size: var(--ui-text-sm);
     font-weight: var(--ui-label-weight);
-    color: var(--ui-text);
+    color: var(--ui-chip-color, var(--ui-text));
     overflow-wrap: anywhere;
     cursor: pointer;
-    background: var(--ui-control-surface);
-    border: 1px solid var(--ui-border);
+    background: var(--ui-chip-fill, var(--ui-control-surface));
+    border: 1px solid var(--ui-chip-border, var(--ui-border));
     border-radius: var(--ui-radius-full);
   }
   .ui-chip[aria-pressed="true"] {
@@ -858,6 +910,7 @@
     cursor: not-allowed;
   }
 
+  /* block: badge */
   /* A badge is a static label beside a row or a control, with no state and
      no hover, so it never looks pressable. */
   .ui-badge {
@@ -869,7 +922,7 @@
     padding: 0 var(--ui-space-2);
     font-size: var(--ui-text-xs);
     font-weight: var(--ui-label-weight);
-    color: var(--ui-muted);
+    color: var(--ui-badge-color, var(--ui-muted));
     overflow-wrap: anywhere;
     vertical-align: middle;
     border: 1px solid var(--ui-border);
@@ -881,29 +934,37 @@
     border-color: var(--ui-success);
   }
 
+  /* block: list-item */
   /* A row is one bordered box with its text and an optional trailing cell, so
      the same markup serves a static entry, a link and a pick. Only a link or
      a button reacts, so a plain row never looks pressable. A button is
      stretched to the width a block row has, and the aria-pressed fill is a
      tint of the accent that keeps --ui-text on --ui-surface readable. */
   .ui-list-item {
-    display: flex;
+    display: var(--ui-list-item-display, flex);
     align-items: center;
     gap: var(--ui-space-3);
     box-sizing: border-box;
     inline-size: 100%;
     min-inline-size: 0;
     margin: 0;
-    padding: var(--ui-space-2) var(--ui-space-3);
+    min-block-size: var(--ui-list-item-size, auto);
+    padding: var(--ui-list-item-padding, var(--ui-space-2) var(--ui-space-3));
     font: inherit;
     font-size: var(--ui-text-sm);
     text-align: start;
     text-decoration: none;
     list-style: none;
-    color: var(--ui-text);
-    background: var(--ui-surface);
-    border: 1px solid var(--ui-border);
+    color: var(--ui-list-item-color, var(--ui-text));
+    background: var(--ui-list-item-fill, var(--ui-surface));
+    border: 1px solid var(--ui-list-item-border, var(--ui-border));
+    border-inline-start-color: var(--ui-list-item-stripe, var(--ui-list-item-border, var(--ui-border)));
     border-radius: var(--ui-radius);
+    box-shadow: inset calc(var(--ui-list-item-stripe-width, 3px) - 1px) 0 0 var(--ui-list-item-stripe, transparent);
+  }
+  /* A shadow has no logical offset, so a right-to-left row flips it. */
+  .ui-list-item:dir(rtl) {
+    box-shadow: inset calc(1px - var(--ui-list-item-stripe-width, 3px)) 0 0 var(--ui-list-item-stripe, transparent);
   }
   .ui-list-item-main {
     flex: 1;
@@ -912,7 +973,10 @@
   }
   .ui-list-item-end { flex: none; }
   :is(a, button).ui-list-item { cursor: pointer; }
-  :is(a, button).ui-list-item:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: var(--ui-accent); }
+  :is(a, button).ui-list-item:where(:not(:disabled, [aria-disabled="true"])):hover {
+    border-color: var(--ui-accent);
+    border-inline-start-color: var(--ui-list-item-stripe, var(--ui-accent));
+  }
   :is(a, button).ui-list-item:focus-visible {
     outline: var(--ui-focus-width) solid var(--ui-focus-color);
     outline-offset: var(--ui-focus-width);
@@ -920,6 +984,7 @@
   .ui-list-item[aria-pressed="true"] {
     background: color-mix(in srgb, var(--ui-accent) 12%, var(--ui-surface));
     border-color: var(--ui-accent);
+    border-inline-start-color: var(--ui-list-item-stripe, var(--ui-accent));
   }
   .ui-list-item:is(:disabled, [aria-disabled="true"]) {
     opacity: 0.5;
@@ -932,24 +997,25 @@
     font-weight: 400;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--ui-muted);
+    color: var(--ui-list-head-color, var(--ui-muted));
     overflow-wrap: anywhere;
   }
 
+  /* block: banner */
   /* A banner sits in the flow rather than over it, so it takes the surface
      and a line like any panel. The warn variant moves only the start edge,
      since --ui-warning is measured as a mark, not as a text background. */
   .ui-banner {
-    display: flex;
+    display: var(--ui-banner-display, flex);
     flex-wrap: wrap;
     align-items: center;
     gap: var(--ui-space-2) var(--ui-space-3);
     box-sizing: border-box;
     margin: 0;
-    padding: var(--ui-space-3);
+    padding: var(--ui-banner-padding, var(--ui-space-3));
     font-size: var(--ui-text-sm);
     color: var(--ui-text);
-    background: var(--ui-surface);
+    background: var(--ui-banner-fill, var(--ui-surface));
     border: 1px solid var(--ui-border);
     border-inline-start-width: var(--ui-space-1);
     border-radius: var(--ui-radius);
@@ -964,6 +1030,7 @@
   }
   .ui-banner > .ui-button { flex: none; }
 
+  /* block: dot */
   /* A dot draws a state in the host's colour, which it reads from
      --ui-dot-color on the dot or an ancestor. */
   .ui-dot {
@@ -976,6 +1043,7 @@
     border-radius: var(--ui-radius-full);
   }
 
+  /* block: dialog, needs: button */
   /* display sits on [open] alone, because a display on .ui-dialog would show
      a closed dialog. overflow stays hidden so the corners clip the scrolling
      body, which is why a popover inside has to be position: fixed. */
@@ -988,7 +1056,7 @@
     padding: 0;
     overflow: hidden;
     color: var(--ui-text);
-    background: var(--ui-surface);
+    background: var(--ui-dialog-fill, var(--ui-surface));
     border: 1px solid var(--ui-dialog-border);
     border-radius: var(--ui-radius-lg);
     box-shadow: var(--ui-shadow);
@@ -1051,7 +1119,7 @@
   .ui-dialog-body {
     flex: 1 1 auto;
     min-block-size: 0;
-    padding: var(--ui-space-4);
+    padding: var(--ui-dialog-padding, var(--ui-space-4));
     overflow-y: auto;
     overscroll-behavior: contain;
   }
@@ -1065,6 +1133,7 @@
     border-block-start: 1px solid var(--ui-dialog-border);
   }
 
+  /* block: dialog-sheet, needs: dialog */
   /* margin-block-start stays auto from .ui-dialog, which is what holds the
      sheet to the bottom edge. The bottom padding keeps the last control
      above a phone's gesture bar. */
@@ -1094,6 +1163,7 @@
     from { transform: translateY(100%); }
   }
 
+  /* block: dialog-top, needs: dialog */
   /* The bottom margin stays auto, which holds the panel to the top edge, and
      its height follows the content, so with a phone keyboard down the page
      shows below it. The top padding keeps the head below a notch. */
@@ -1110,6 +1180,7 @@
     border-end-end-radius: var(--ui-radius-xl);
   }
 
+  /* block: dialog-fullscreen, needs: dialog */
   .ui-dialog-fullscreen {
     box-sizing: border-box;
     inline-size: 100%;
@@ -1123,6 +1194,7 @@
     border-radius: 0;
     box-shadow: none;
   }
+  /* shared: corner gap for sheet and full-screen actions */
   /* A display corner curves over roughly the last 40 to 50px of each edge,
      and the actions row sits on the bottom edge, so its outer buttons move
      inside the curve. The safe-area inset counts toward the gap below: it is
@@ -1134,6 +1206,7 @@
       calc(var(--ui-corner-gap) - env(safe-area-inset-bottom, 0px)));
   }
 
+  /* block: bottom-bar */
   /* min-inline-size: 0 because the items' labels never wrap, and without it
      a bar inside a grid or flex column widens that column to fit them all.
      The end items sit in a rounded display's corners, so the bar moves them
@@ -1148,12 +1221,12 @@
     padding: 0 max(var(--ui-corner-gap), env(safe-area-inset-right, 0px))
       max(var(--ui-corner-gap), env(safe-area-inset-bottom, 0px))
       max(var(--ui-corner-gap), env(safe-area-inset-left, 0px));
-    background: var(--ui-surface);
+    background: var(--ui-bottom-bar-fill, var(--ui-surface));
     border-block-start: 1px solid var(--ui-dialog-border);
   }
   /* Equal widths, so an item never moves when the active one changes. */
   .ui-bottom-bar-item {
-    display: flex;
+    display: var(--ui-bottom-bar-item-display, flex);
     flex: 1 1 0;
     flex-direction: column;
     align-items: center;
@@ -1163,14 +1236,14 @@
     min-inline-size: 0;
     min-block-size: var(--ui-bottom-bar-height);
     margin: 0;
-    padding: 0 var(--ui-space-2);
+    padding: var(--ui-bottom-bar-item-padding, 0 var(--ui-space-2));
     font: inherit;
     font-size: var(--ui-text-xs);
     font-weight: var(--ui-label-weight);
-    color: var(--ui-muted);
+    color: var(--ui-bottom-bar-item-color, var(--ui-muted));
     text-decoration: none;
     cursor: pointer;
-    background: transparent;
+    background: var(--ui-bottom-bar-item-fill, transparent);
     border: 0;
   }
   /* The pill behind the icon marks the current item by shape as well as
@@ -1212,58 +1285,6 @@
     cursor: not-allowed;
   }
 
-  /* The row's line is an inset shadow rather than a border, so the current
-     tab's own border is drawn over it, and the row scrolls rather than
-     clipping or wrapping a tab. The focus ring sits inside the tab, since the
-     scrolling row clips whatever sticks out of it. */
-  .ui-tabs {
-    display: flex;
-    box-sizing: border-box;
-    min-inline-size: 0;
-    margin: 0;
-    padding: 0;
-    overflow-x: auto;
-    box-shadow: inset 0 -1px 0 var(--ui-dialog-border);
-  }
-  .ui-tab {
-    display: inline-flex;
-    flex: none;
-    align-items: center;
-    justify-content: center;
-    gap: var(--ui-space-2);
-    box-sizing: border-box;
-    min-block-size: var(--ui-control-height);
-    margin: 0;
-    padding: var(--ui-space-1) var(--ui-space-3);
-    font: inherit;
-    font-size: var(--ui-text-sm);
-    font-weight: var(--ui-label-weight);
-    color: var(--ui-muted);
-    text-decoration: none;
-    white-space: nowrap;
-    cursor: pointer;
-    background: transparent;
-    border: 0;
-    border-block-end: 2px solid transparent;
-    border-radius: 0;
-  }
-  /* The line under the current tab marks it by shape as well as colour, and
-     its label takes full text colour rather than the accent, as the bottom
-     bar's does. */
-  .ui-tab:is([aria-current="page"], [aria-pressed="true"], [aria-selected="true"]) {
-    color: var(--ui-text);
-    border-block-end-color: var(--ui-accent);
-  }
-  .ui-tab:where(:not(:disabled, [aria-disabled="true"])):hover { color: var(--ui-text); }
-  .ui-tab:focus-visible {
-    outline: var(--ui-focus-width) solid var(--ui-focus-color);
-    outline-offset: calc(-1 * var(--ui-focus-width));
-  }
-  .ui-tab:is(:disabled, [aria-disabled="true"]) {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
   .ui-bottom-bar-float {
     margin: var(--ui-space-3);
     margin-block-end: calc(var(--ui-space-3) + env(safe-area-inset-bottom, 0px));
@@ -1290,6 +1311,61 @@
     }
   }
 
+  /* block: tabs */
+  /* The row's line is an inset shadow rather than a border, so the current
+     tab's own border is drawn over it, and the row scrolls rather than
+     clipping or wrapping a tab. The focus ring sits inside the tab, since the
+     scrolling row clips whatever sticks out of it. */
+  .ui-tabs {
+    display: var(--ui-tabs-display, flex);
+    box-sizing: border-box;
+    min-inline-size: 0;
+    margin: 0;
+    background: var(--ui-tabs-fill, transparent);
+    padding: var(--ui-tabs-padding, 0);
+    overflow-x: auto;
+    box-shadow: inset 0 -1px 0 var(--ui-dialog-border);
+  }
+  .ui-tab {
+    display: var(--ui-tab-display, inline-flex);
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ui-space-2);
+    box-sizing: border-box;
+    min-block-size: var(--ui-tab-size, var(--ui-control-height));
+    margin: 0;
+    padding: var(--ui-tab-padding, var(--ui-space-1) var(--ui-space-3));
+    font: inherit;
+    font-size: var(--ui-text-sm);
+    font-weight: var(--ui-label-weight);
+    color: var(--ui-tab-color, var(--ui-muted));
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    background: var(--ui-tab-fill, transparent);
+    border: 0;
+    border-block-end: 2px solid transparent;
+    border-radius: 0;
+  }
+  /* The line under the current tab marks it by shape as well as colour, and
+     its label takes full text colour rather than the accent, as the bottom
+     bar's does. */
+  .ui-tab:is([aria-current="page"], [aria-pressed="true"], [aria-selected="true"]) {
+    color: var(--ui-text);
+    border-block-end-color: var(--ui-accent);
+  }
+  .ui-tab:where(:not(:disabled, [aria-disabled="true"])):hover { color: var(--ui-text); }
+  .ui-tab:focus-visible {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: calc(-1 * var(--ui-focus-width));
+  }
+  .ui-tab:is(:disabled, [aria-disabled="true"]) {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* block: menu popover */
   /* The anchor is what an anchored menu is placed against, so the trigger and
      the menu share it. */
   .ui-menu-anchor {
@@ -1303,11 +1379,9 @@
     inset-inline-start: 0;
     z-index: var(--ui-z-dropdown);
     box-sizing: border-box;
-    min-inline-size: 10rem;
     max-inline-size: min(20rem, 100vw - 2 * var(--ui-space-4));
     margin: 0;
     color: var(--ui-text);
-    background: var(--ui-surface);
     border: 1px solid var(--ui-dialog-border);
     border-radius: var(--ui-radius-lg);
     box-shadow: var(--ui-shadow);
@@ -1315,21 +1389,28 @@
   }
   .ui-menu {
     display: grid;
-    padding: var(--ui-space-1);
+    min-inline-size: var(--ui-menu-width, 10rem);
+    padding: var(--ui-menu-padding, var(--ui-space-1));
+    background: var(--ui-menu-fill, var(--ui-surface));
   }
   .ui-popover {
     display: grid;
     gap: var(--ui-space-3);
-    padding: var(--ui-space-3);
+    min-inline-size: var(--ui-popover-width, 10rem);
+    padding: var(--ui-popover-padding, var(--ui-space-3));
+    background: var(--ui-popover-fill, var(--ui-surface));
   }
   /* A fade only: a slide would need a transform, and the centred menu's
-     transform is what centres it. */
+     transform is what centres it. The centring is physical because a
+     translate is: half the width back from a physical 50% is the middle in
+     either direction. */
   @keyframes ui-menu-in {
     from { opacity: 0; }
   }
   .ui-menu-end { inset-inline: auto 0; }
   .ui-menu-center {
-    inset-inline-start: 50%;
+    left: 50%;
+    right: auto;
     transform: translateX(-50%);
   }
   /* Fixed, so a dialog's scrolling body does not clip a menu mounted inside
@@ -1342,21 +1423,21 @@
   }
 
   .ui-menu-item {
-    display: flex;
+    display: var(--ui-menu-item-display, flex);
     align-items: center;
     gap: var(--ui-space-2);
     box-sizing: border-box;
     inline-size: 100%;
-    min-block-size: var(--ui-control-height);
+    min-block-size: var(--ui-menu-item-size, var(--ui-control-height));
     margin: 0;
-    padding: var(--ui-space-1) var(--ui-space-3);
+    padding: var(--ui-menu-item-padding, var(--ui-space-1) var(--ui-space-3));
     font: inherit;
     font-size: var(--ui-text-sm);
-    color: var(--ui-text);
+    color: var(--ui-menu-item-color, var(--ui-text));
     text-align: start;
     text-decoration: none;
     cursor: pointer;
-    background: transparent;
+    background: var(--ui-menu-item-fill, transparent);
     border: 0;
     border-radius: var(--ui-radius-sm);
   }
@@ -1383,7 +1464,8 @@
     box-sizing: border-box;
     inline-size: 0.9em;
     block-size: 0.5em;
-    border-inline-start: 2px solid transparent;
+    /* Physical, as a tick does not mirror in a right-to-left page. */
+    border-left: 2px solid transparent;
     border-block-end: 2px solid transparent;
     /* Lifted, since a rotated L sits below the middle of its box. */
     transform: translateY(-0.1em) rotate(-45deg);
@@ -1402,29 +1484,31 @@
     overflow-wrap: anywhere;
   }
 
+  /* block: toast */
   /* Fixed to the viewport, so it needs no wrapper. The side insets and auto
      margins centre it without a transform, which would otherwise be left
      behind the animation. The larger of the bar's space and the corner gap
-     is what keeps it clear of both a bar and a bare rounded display. */
+     is what keeps it clear of both a bar and a bare rounded display. The
+     sides are physical because the safe-area insets are. */
   .ui-toast {
     position: fixed;
     inset-block-end: max(calc(var(--ui-bottom-bar-space) + var(--ui-space-3)),
       var(--ui-corner-gap), env(safe-area-inset-bottom, 0px));
-    inset-inline: max(var(--ui-corner-gap), env(safe-area-inset-left, 0px))
-      max(var(--ui-corner-gap), env(safe-area-inset-right, 0px));
+    left: max(var(--ui-corner-gap), env(safe-area-inset-left, 0px));
+    right: max(var(--ui-corner-gap), env(safe-area-inset-right, 0px));
     z-index: var(--ui-z-toast);
     display: flex;
     align-items: center;
     gap: var(--ui-space-3);
     box-sizing: border-box;
-    inline-size: fit-content;
+    inline-size: var(--ui-toast-width, fit-content);
     max-inline-size: 100%;
     margin: 0 auto;
-    padding: var(--ui-space-2) var(--ui-space-4);
+    padding: var(--ui-toast-padding, var(--ui-space-2) var(--ui-space-4));
     font-size: var(--ui-text-sm);
     color: var(--ui-text);
     overflow-wrap: anywhere;
-    background: var(--ui-surface);
+    background: var(--ui-toast-fill, var(--ui-surface));
     border: 1px solid var(--ui-dialog-border);
     border-radius: var(--ui-radius-lg);
     box-shadow: var(--ui-shadow);
@@ -1437,6 +1521,7 @@
     from { opacity: 0; transform: translateY(var(--ui-space-2)); }
   }
 
+  /* shared: hidden */
   /* Every display above beats the browser's own [hidden] rule, so a block
      carrying the hidden attribute would still show. .ui-dialog[open] in the
      list lifts this rule over all of them, whatever their order. */
@@ -1450,6 +1535,7 @@
     display: none;
   }
 
+  /* shared: reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .ui-button { transition: none; }
     .ui-dialog[open],
@@ -1465,6 +1551,7 @@
     .ui-collapse-body { transition: none; }
   }
 
+  /* shared: forced colours */
   /* Forced colours replace every background, which would leave the switch
      thumb and the checked fill invisible, so these two controls opt out and
      draw their states in system colours instead. */
@@ -1500,6 +1587,7 @@
       color: HighlightText;
       background: Highlight;
       border-color: Highlight;
+      box-shadow: none;
     }
     .ui-list-item[aria-pressed="true"]:is(:disabled, [aria-disabled="true"]) {
       color: Canvas;
@@ -1559,21 +1647,28 @@
     }
   }
 
+  /* shared: coarse pointer */
   /* A finger needs a bigger target than a mouse, and only a coarse pointer
      gets it, so a desktop layout keeps its density. Selectors match the rules
      they lift, so these win on source order. */
   @media (pointer: coarse) {
-    .ui-button,
-    .ui-chip,
-    :is(a, button).ui-list-item,
-    .ui-field :is(input:where(:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"])), select),
-    .ui-control-row,
-    .ui-toggle-row,
-    .ui-choice,
-    .ui-tab,
-    .ui-disclosure > summary,
-    .ui-menu-item { min-block-size: var(--ui-touch-target); }
-    .ui-button-icon { inline-size: var(--ui-touch-target); }
+    /* A size hook above the touch target keeps its height; below it, the
+       target wins. A block with no height at rest falls back to 0px, since
+       max() takes no auto. */
+    .ui-button { min-block-size: max(var(--ui-button-size, var(--ui-control-height)), var(--ui-touch-target)); }
+    .ui-chip { min-block-size: max(var(--ui-chip-size, 0px), var(--ui-touch-target)); }
+    :is(a, button).ui-list-item { min-block-size: max(var(--ui-list-item-size, 0px), var(--ui-touch-target)); }
+    .ui-field :is(input:where(:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"])), select) { min-block-size: max(var(--ui-field-size, var(--ui-control-height)), var(--ui-touch-target)); }
+    .ui-toggle-row { min-block-size: max(var(--ui-toggle-row-size, var(--ui-control-height)), var(--ui-touch-target)); }
+    .ui-choice { min-block-size: max(var(--ui-choice-size, var(--ui-control-height)), var(--ui-touch-target)); }
+    .ui-tab { min-block-size: max(var(--ui-tab-size, var(--ui-control-height)), var(--ui-touch-target)); }
+    .ui-disclosure > summary { min-block-size: max(var(--ui-disclosure-size, var(--ui-control-height)), var(--ui-touch-target)); }
+    .ui-menu-item { min-block-size: max(var(--ui-menu-item-size, var(--ui-control-height)), var(--ui-touch-target)); }
+    .ui-control-row { min-block-size: var(--ui-touch-target); }
+    .ui-button-icon {
+      inline-size: max(var(--ui-button-icon-size, var(--ui-control-height)), var(--ui-touch-target));
+      min-block-size: max(var(--ui-button-icon-size, var(--ui-control-height)), var(--ui-touch-target));
+    }
     .ui-dialog-close { inline-size: var(--ui-touch-target); }
     .ui-search-clear { inline-size: var(--ui-touch-target); }
     .ui-field .ui-search > input { padding-inline-end: var(--ui-touch-target); }

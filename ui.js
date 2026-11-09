@@ -1,4 +1,4 @@
-/* ui.js 1.14.0: the behaviour behind the ui.css menu and search blocks, for
+/* ui.js 1.15.0: the behaviour behind the ui.css menu and search blocks, for
    an app that wants it rather than its own.
 
    Load it as a plain deferred script, <script src="ui.js" defer></script>,
