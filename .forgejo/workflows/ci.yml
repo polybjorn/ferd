@@ -84,7 +84,7 @@ jobs:
       # What stays off the scales: hairline and negative offsets, px paired with a
       # fixed box, reserved icon room, and the webview notice, which has to work
       # without ui.css. The one-off counts are inline style= in the Preact
-      # templates, !important in app.css and the colours that are not theme
+      # templates, !important in the stylesheets and the colours that are not theme
       # tokens yet. Lower a limit when a value goes; never raise one.
       - name: Check ui.css and ui.js copies, host mapping, contrast, scales and one-offs
         run: |
@@ -92,9 +92,9 @@ jobs:
             --copy ui.css --js-copy ui.js --repo "$GITHUB_SERVER_URL/bjorn/ui-foundation.git" \
             --entry index.html --scripts app/*.js app/*/*.js \
             --contrast-host app/app.css --contrast-theme-re '\[data-theme="[^"]+"\]\[data-mode="[^"]+"\]' \
-            --audit-files index.html webview-notice.css app/app.css \
+            --audit-files index.html webview-notice.css app/*.css app/*/*.css \
             --audit-max font-size=1 spacing=18 radius=0 transition=0 z-index=1 \
-            --one-off-files index.html app/app.css app/*.js app/*/*.js \
+            --one-off-files index.html app/*.css app/*/*.css app/*.js app/*/*.js \
             --one-off-max inline-style=62 important=71 colour=6
 
   # The browser tests, on Microsoft's Playwright image, which carries the

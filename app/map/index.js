@@ -4,6 +4,7 @@
 // map through the store's signals (sync.js), so a write never has to tell
 // the map about itself.
 import { state } from '../core.js';
+import { DIALOG_STYLES, loadStyle } from '../lazy-open.js';
 import { t } from '../i18n.js';
 import { AppError, html as vhtml, mountPage } from '../view.js';
 import { addTilePicker } from './map-layers.js';
@@ -34,18 +35,6 @@ export { swapPlaceClusterGroup } from './place-layer.js';
 export { fetchGpxText, refreshTrailWeights } from './route-layer.js';
 export { bindMapToStore, homeMapMounted } from './sync.js';
 
-/** @param {string} href */
-function loadStyle(href) {
-  return new Promise((resolve, reject) => {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    link.onload = resolve;
-    link.onerror = () => { link.remove(); reject(new Error(href)); };
-    document.head.appendChild(link);
-  });
-}
-
 /** @param {string} src */
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -58,7 +47,8 @@ function loadScript(src) {
 }
 
 // route-detail.js and the elevation plugin are only needed on a route's page,
-// so they load on the first one. The plugin's stylesheet goes in the vendor
+// so they load on the first one, with the page's own rules and the dialog
+// rules its Edit form needs. The plugin's stylesheet goes in the vendor
 // layer through a wrapper file; a plain link would be unlayered and beat the
 // app and ui layers. The promise is shared so a second click doesn't load
 // twice, and cleared on failure so a later visit retries.
@@ -69,6 +59,8 @@ function loadRouteDetail() {
     routeDetailLoad = Promise.all([
       import('./route-detail.js'),
       loadStyle('/app/map/elevation.css'),
+      loadStyle('/app/map/route-detail.css'),
+      loadStyle(DIALOG_STYLES),
       loadScript('/vendor/leaflet-elevation/leaflet-elevation.js'),
     ]).then(([mod]) => mod);
     routeDetailLoad.catch(() => { routeDetailLoad = null; });

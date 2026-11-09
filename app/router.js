@@ -1,6 +1,7 @@
 import { state } from './core.js';
 import { historyEnabled, listsHash, placesEnabled, routesEnabled } from './prefs.js';
 import { renderUnifiedMap, showTrailDetail } from './map/index.js';
+import { DIALOG_STYLES, LIST_STYLES, withStyles } from './lazy-open.js';
 import { unmountPage } from './view.js';
 
 /** @param {string} type @param {string} slug */
@@ -67,11 +68,11 @@ export function router() {
   if (base === '#/lists') { location.replace(listsHash()); return; }
   if (base === '#/places') {
     if (!placesEnabled()) { location.hash = '#/'; return; }
-    return mountLazy(() => import('./places/places-page.js'), seq, m => m.renderPlacesIndex());
+    return mountLazy(() => withStyles(import('./places/places-page.js'), LIST_STYLES, DIALOG_STYLES), seq, m => m.renderPlacesIndex());
   }
   if (base === '#/routes') {
     if (!routesEnabled()) { location.hash = '#/'; return; }
-    return mountLazy(() => import('./routes/routes-page.js'), seq, m => m.renderTrailsIndex());
+    return mountLazy(() => withStyles(import('./routes/routes-page.js'), LIST_STYLES, DIALOG_STYLES), seq, m => m.renderTrailsIndex());
   }
   if (base.startsWith('#/routes/route/')) {
     if (!routesEnabled()) { location.hash = '#/'; return; }
@@ -80,12 +81,12 @@ export function router() {
   }
   if (base === '#/areas') {
     if (!placesEnabled()) { location.hash = '#/'; return; }
-    return mountLazy(() => import('./areas/areas-page.js'), seq, m => m.renderAreasIndex());
+    return mountLazy(() => withStyles(import('./areas/areas-page.js'), LIST_STYLES, DIALOG_STYLES), seq, m => m.renderAreasIndex());
   }
-  if (base === '#/you') return mountLazy(() => import('./you.js'), seq, m => m.renderYouPage());
+  if (base === '#/you') return mountLazy(() => withStyles(import('./you.js'), LIST_STYLES, DIALOG_STYLES), seq, m => m.renderYouPage());
   if (base === '#/history') {
     if (!historyEnabled()) { location.hash = '#/'; return; }
-    return mountLazy(() => import('./history.js'), seq, m => m.renderHistoryIndex());
+    return mountLazy(() => withStyles(import('./history.js'), LIST_STYLES, DIALOG_STYLES), seq, m => m.renderHistoryIndex());
   }
   renderUnifiedMap(null);
 }
