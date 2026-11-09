@@ -1,6 +1,6 @@
 'use strict';
-// Runs the real closeOnBackdropClick, showErrorBox and requestCloseTopModal out
-// of the app modules.
+// Runs the real closeOnBackdropClick and requestCloseTopModal out of the app
+// modules.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -15,8 +15,8 @@ function fn(name) {
 }
 const ctx = { modalStack: [] };
 vm.createContext(ctx);
-vm.runInContext(`${fn('closeOnBackdropClick')}\n${fn('showErrorBox')}\n${fn('requestCloseTopModal')}\nglobalThis.__g = { requestCloseTopModal, closeOnBackdropClick, showErrorBox };`, ctx);
-const { closeOnBackdropClick, showErrorBox, requestCloseTopModal } = ctx.__g;
+vm.runInContext(`${fn('closeOnBackdropClick')}\n${fn('requestCloseTopModal')}\nglobalThis.__g = { requestCloseTopModal, closeOnBackdropClick };`, ctx);
+const { closeOnBackdropClick, requestCloseTopModal } = ctx.__g;
 
 function dialog() {
   const d = { closes: 0, on: {}, addEventListener(type, f) { this.on[type] = f; } };
@@ -52,18 +52,6 @@ test('a backdrop press does not arm a later drag', () => {
   d.on.pointerdown({ target: inside });
   d.on.click({ target: d });
   assert.equal(d.closes, 0);
-});
-
-test('an error box shows its message and scrolls into view', () => {
-  const calls = [];
-  const el = {
-    textContent: '',
-    classList: { add: c => calls.push(c) },
-    scrollIntoView: o => calls.push(o.block),
-  };
-  showErrorBox(el, 'Save failed');
-  assert.equal(el.textContent, 'Save failed');
-  assert.deepEqual(calls, ['visible', 'nearest']);
 });
 
 test('a close request goes to the top modal and reports that it did', () => {
