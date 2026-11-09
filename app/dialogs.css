@@ -4,7 +4,6 @@
 /* In the app layer the @layer line in app.css places, so a sheet added later
    keeps its place in the cascade. */
 @layer app {
-.context-menu .ctx-divider { height: 1px; background: var(--border); margin: var(--ui-space-1) 0; }
 .stars-empty { opacity: 0.35; }
 /* "Add new" toggle for category/region selects */
 .select-or-new { display: flex; flex-direction: column; gap: var(--ui-space-2); }

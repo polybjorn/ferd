@@ -138,9 +138,9 @@ function BrowseList({ entries }) {
   return html`<div>
     <div style="display:flex;gap:var(--ui-space-2);align-items:center;margin-bottom:var(--ui-space-2)" id="browse-controls" ref=${controls}>
       <div class="ui-field" style="flex:1"><input type="text" id="browse-filter" placeholder=${t('common.filter')} onInput=${hasFilters ? undefined : onSearch} /></div>
-      ${hasFilters && html`<div class="filter-dropdown">
-        <button type="button" class="filter-btn" id="browse-filter-btn" aria-haspopup="true" aria-expanded="false">${t('browse.filters')}</button>
-        <div class="filter-popover" id="browse-filter-popover" hidden>
+      ${hasFilters && html`<div class="filter-dropdown ui-menu-anchor">
+        <button type="button" class="filter-btn" id="browse-filter-btn" aria-expanded="false" aria-controls="browse-filter-popover">${t('browse.filters')}</button>
+        <div class="filter-popover ui-popover ui-menu-end" id="browse-filter-popover" role="group" aria-label=${t('browse.filters')} hidden>
           ${fCats.length > 1 && html`<div class="ui-field"><select id="bf-category"><option value="all">${t('form.category')}</option>
             ${fCats.map(c => html`<option key=${c} value=${c}>${displayCategory(c)}</option>`)}</select></div>`}
           ${fCountries.length > 1 && html`<div class="ui-field"><select id="bf-country"><option value="all">${t('form.country')}</option>

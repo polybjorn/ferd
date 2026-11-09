@@ -186,10 +186,7 @@
 }
 .filter-ms-btn[aria-expanded="true"]::after { transform: translateY(-30%) rotate(225deg); }
 .filter-ms-btn.filter-active { border-color: var(--accent); color: var(--accent); }
-#view-popover { min-width: 8rem; gap: var(--ui-space-1); padding: var(--ui-space-2); }
-.filter-popover .view-option { display: block; width: 100%; text-align: left; background: transparent; border: none; border-radius: var(--radius); color: var(--text); font-family: inherit; font-size: var(--ui-text-sm); padding: var(--ui-space-2) var(--ui-space-2); cursor: pointer; }
-.filter-popover .view-option:hover { background: var(--surface2); }
-.filter-popover .view-option.active { color: var(--accent); font-weight: 600; }
+#view-popover { --ui-menu-width: 8rem; }
 .filter-popover .filter-divider { height: 1px; background: var(--border); margin: var(--ui-space-1) -0.25rem; }
 .place-grid {
   display: grid;

@@ -15,17 +15,6 @@ import { render } from 'preact';
 /** @typedef {import('./map/route-layer.js').LeafletMap} LeafletMap */
 /** A menu entry, or `null` for a divider. @typedef {{ label: string, onClick: () => void, danger?: boolean } | null} ContextMenuItem */
 
-// Generic floating context menu. Pass `items` as an array of
-// { label, onClick, danger? } objects, or `null` to insert a divider.
-// Auto-closes on click outside, Escape, scroll, or window blur.
-/** @type {HTMLDivElement | null} */
-let _ctxMenuEl = null;
-// Every way the menu closes comes through here, so every one of them takes the
-// dismissal listeners with it.
-function closeContextMenu() {
-  if (_ctxMenuEl) { render(null, _ctxMenuEl); _ctxMenuEl.remove(); _ctxMenuEl = null; }
-  _ctxTeardown();
-}
 /** @param {string} type @param {string} slug */
 function copyShareLink(type, slug) {
   const url = location.origin + location.pathname + focusHash(type, slug);
@@ -90,60 +79,35 @@ export function openMapRouteContextMenu(route, regionName, oe, map) {
   openContextMenu({ x: oe.clientX, y: oe.clientY, items });
 }
 
+// Generic floating context menu. Pass `items` as an array of
+// { label, onClick, danger? } objects, or `null` to insert a divider. ui.js
+// places it at the point and closes it on a click outside, Escape, scroll,
+// resize or a choice, so nothing here listens for any of those.
 /** @param {{ x: number, y: number, items: ContextMenuItem[] }} opts */
 function openContextMenu({ x, y, items }) {
-  closeContextMenu();
   const menu = document.createElement('div');
-  menu.className = 'context-menu';
+  menu.className = 'ui-menu context-menu';
+  menu.setAttribute('role', 'menu');
+  menu.hidden = true;
   popoverHost().appendChild(menu);
   render(html`<${ContextMenu} items=${items} />`, menu);
-  // Clamp to viewport (measure after mount).
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const rect = menu.getBoundingClientRect();
-  const left = Math.min(x, vw - rect.width - 8);
-  const top  = Math.min(y, vh - rect.height - 8);
-  menu.style.left = Math.max(8, left) + 'px';
-  menu.style.top  = Math.max(8, top) + 'px';
-  _ctxMenuEl = menu;
-  // Dismissal listeners (next tick so the opening click doesn't fire them).
-  setTimeout(function() {
-    // Closed (or replaced) before this tick: nothing left to dismiss.
-    if (_ctxMenuEl !== menu) return;
-    document.addEventListener('click', _ctxOutsideClick, true);
-    document.addEventListener('contextmenu', _ctxOutsideClick, true);
-    document.addEventListener('keydown', _ctxKey, true);
-    window.addEventListener('scroll', closeContextMenu, true);
-    window.addEventListener('blur', closeContextMenu);
-  }, 0);
+  // ui.js hides the menu on every way out and never removes it. The removal
+  // waits a task so a choice's own click handler still reaches its item.
+  const closed = new MutationObserver(() => {
+    if (!menu.hidden) return;
+    closed.disconnect();
+    setTimeout(() => { render(null, menu); menu.remove(); }, 0);
+  });
+  closed.observe(menu, { attributes: true, attributeFilter: ['hidden'] });
+  /** @type {NonNullable<Window['uiFoundation']>} */ (window.uiFoundation).openMenuAt(menu, x, y);
 }
-// The menu's own box stays imperative, since it is placed by measuring it;
-// Preact renders the entries inside it.
 /** @param {{ items: ContextMenuItem[] }} props */
 function ContextMenu({ items }) {
   return items.map((item, i) => item === null
-    ? html`<div key=${i} class="ctx-divider"></div>`
-    : html`<button key=${i} type="button" class=${item.danger ? 'danger' : undefined} onClick=${() => {
-      closeContextMenu();
+    ? html`<hr key=${i} class="ui-menu-sep" />`
+    : html`<button key=${i} type="button" role="menuitem" class=${'ui-menu-item' + (item.danger ? ' ui-menu-item-danger' : '')} onClick=${() => {
       try { item.onClick(); } catch (e) { console.error(e); }
     }}>${item.label}</button>`);
-}
-/** @param {Event} e */
-function _ctxOutsideClick(e) {
-  if (!_ctxMenuEl) return;
-  if (_ctxMenuEl.contains(/** @type {Node | null} */ (e.target))) return;
-  closeContextMenu();
-}
-/** @param {KeyboardEvent} e */
-function _ctxKey(e) {
-  if (e.key === 'Escape') closeContextMenu();
-}
-function _ctxTeardown() {
-  document.removeEventListener('click', _ctxOutsideClick, true);
-  document.removeEventListener('contextmenu', _ctxOutsideClick, true);
-  document.removeEventListener('keydown', _ctxKey, true);
-  window.removeEventListener('scroll', closeContextMenu, true);
-  window.removeEventListener('blur', closeContextMenu);
 }
 
 // Wire contextmenu (desktop right-click) and long-press (touch) on an

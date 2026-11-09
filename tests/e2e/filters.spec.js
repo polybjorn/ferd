@@ -86,6 +86,39 @@ test('a list filter narrows the list and "Clear filters" restores it', async ({ 
   expect(fenced.errors).toEqual([]);
 });
 
+test('the list popovers close on Escape and the View menu checks the chosen view', async ({ page, baseURL }) => {
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  await signIn(page, '#/places');
+  await expect(page.locator('.place-card').first()).toBeVisible();
+
+  await page.locator('#filter-btn').click();
+  await expect(page.locator('#filter-popover')).toBeVisible();
+  await expect(page.locator('#filter-btn')).toHaveAttribute('aria-expanded', 'true');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#filter-popover')).toBeHidden();
+  await expect(page.locator('#filter-btn')).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('#filter-btn')).toBeFocused();
+
+  const menu = page.locator('#view-popover');
+  await page.locator('#view-btn').click();
+  await expect(menu).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await expect(page.locator('#view-btn')).toBeFocused();
+
+  await page.locator('#view-btn').click();
+  await expect(menu.locator('[aria-checked="true"]')).toHaveCount(1);
+  const other = menu.locator('[role="menuitemradio"][aria-checked="false"]').first();
+  const view = await other.getAttribute('data-view');
+  await other.click();
+  await expect(menu).toBeHidden();
+  await page.locator('#view-btn').click();
+  await expect(menu.locator(`[data-view="${view}"]`)).toHaveAttribute('aria-checked', 'true');
+
+  expect(fenced.external).toEqual([]);
+  expect(fenced.errors).toEqual([]);
+});
+
 // Typing right after the list mounts re-renders its sections while their fade-in
 // runs, the case that left a section's cards hidden in WebKit (see
 // .category-group.fade-in in app.css), so this takes no wait for the fade.

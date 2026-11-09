@@ -81,38 +81,34 @@ export function ListTabs({ current }) {
 
 // The popover's open state lives in the DOM (hidden), because wirePopover and
 // the map's overlay closer toggle it there. Preact renders hidden and
-// aria-expanded once and never rewrites them.
+// aria-expanded once and never rewrites them. ui.js opens only a .ui-menu, so a
+// .ui-popover holding selects is still opened by wirePopover.
 /** @param {Record<string, any>} props */
 function FilterPopover({ active, onClear, children }) {
   const btn = useRef(/** @type {HTMLButtonElement | null} */ (null));
   const pop = useRef(/** @type {HTMLDivElement | null} */ (null));
   useEffect(() => wirePopover(btn.current, pop.current), []);
-  return html`<div class="filter-dropdown">
-    <button type="button" class=${'filter-btn' + (active ? ' has-active' : '')} id="filter-btn" aria-haspopup="true" aria-expanded="false" ref=${btn}>${t('lists.filters')}</button>
-    <div class="filter-popover" id="filter-popover" hidden ref=${pop}>
+  return html`<div class="filter-dropdown ui-menu-anchor">
+    <button type="button" class=${'filter-btn' + (active ? ' has-active' : '')} id="filter-btn" aria-expanded="false" aria-controls="filter-popover" ref=${btn}>${t('lists.filters')}</button>
+    <div class="filter-popover ui-popover ui-menu-end" id="filter-popover" role="group" aria-label=${t('lists.filters')} hidden ref=${pop}>
       ${children}
       <button type="button" class="filter-clear" id="filter-clear" onClick=${onClear}>${t('lists.clearFilters')}</button>
     </div>
   </div>`;
 }
 
+// ui.js opens, closes and moves through the menu from this markup and checks
+// the chosen item, so a pick only has to store the view.
 /** @param {{ kind: string, onView: () => void }} props */
 function ViewPopover({ kind, onView }) {
-  const btn = useRef(/** @type {HTMLButtonElement | null} */ (null));
-  const pop = useRef(/** @type {HTMLDivElement | null} */ (null));
-  useEffect(() => wirePopover(btn.current, pop.current), []);
   const cur = listView(kind);
-  /** @param {string} v */
-  const pick = v => {
-    setPref(kind + '-view', v);
-    if (pop.current) pop.current.hidden = true;
-    if (btn.current) btn.current.setAttribute('aria-expanded', 'false');
-    onView();
-  };
-  return html`<div class="filter-dropdown">
-    <button type="button" class="filter-btn" id="view-btn" aria-haspopup="true" aria-expanded="false" ref=${btn}>${t('lists.view')}</button>
-    <div class="filter-popover" id="view-popover" hidden ref=${pop}>
-      ${listViewOptions(kind).map(o => html`<button type="button" key=${o[0]} class=${'view-option' + (cur === o[0] ? ' active' : '')} data-view=${o[0]} onClick=${() => pick(o[0])}>${o[1]}</button>`)}
+  return html`<div class="filter-dropdown ui-menu-anchor">
+    <button type="button" class="filter-btn" id="view-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="view-popover">${t('lists.view')}</button>
+    <div class="ui-menu ui-menu-end" id="view-popover" role="menu" aria-label=${t('lists.view')} hidden>
+      ${listViewOptions(kind).map(o => html`<button type="button" key=${o[0]} class="ui-menu-item" role="menuitemradio" aria-checked=${cur === o[0] ? 'true' : 'false'} data-view=${o[0]} onClick=${() => {
+        setPref(kind + '-view', o[0]);
+        onView();
+      }}>${o[1]}</button>`)}
     </div>
   </div>`;
 }

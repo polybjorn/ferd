@@ -70,11 +70,11 @@ test('the map context menu loads on first use and opens one menu', async ({ page
 
   const menu = page.locator('.context-menu');
   await expect(menu).toHaveCount(1);
-  await expect(menu.getByRole('button', { name: 'Edit' })).toBeVisible();
+  await expect(menu.getByRole('menuitem', { name: 'Edit' })).toBeVisible();
   expect(requested).toHaveLength(1);
 
   // Its Edit entry reaches the lazy dialog.
-  await menu.getByRole('button', { name: 'Edit' }).click();
+  await menu.getByRole('menuitem', { name: 'Edit' }).click();
   await expect(dialog(page).getByRole('textbox', { name: /^Name\b/ })).toHaveValue(NAME);
 
   expect(fenced.external).toEqual([]);

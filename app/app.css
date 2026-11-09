@@ -602,7 +602,7 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   position: relative;
   max-width: none;
 }
-.filter-dropdown { position: relative; flex-shrink: 0; }
+.filter-dropdown { flex-shrink: 0; }
 .filter-dropdown .filter-btn {
   background: var(--surface);
   border: 1px solid var(--control-border);
@@ -625,22 +625,8 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   width: 0.85rem; height: 0.85rem; border: 1px solid var(--control-border); border-radius: var(--ui-radius-sm); box-sizing: border-box;
 }
 .select-popover .select-option-multi.checked::before { background: var(--accent); border-color: var(--accent); }
-.filter-popover {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: var(--ui-z-sticky);
-  min-width: 200px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--ui-space-3);
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-2);
-  box-shadow: 0 8px 24px var(--shadow);
-}
-.filter-popover[hidden] { display: none; }
+/* The box is ui-popover's; the old minimum width rides its hook. */
+.filter-popover { --ui-popover-width: 200px; }
 .filter-popover label { display: block; font-size: var(--ui-text-xs); color: var(--muted); margin-bottom: var(--ui-space-1); text-transform: uppercase; letter-spacing: 0.05em; }
 .filter-popover select { width: 100%; padding: var(--ui-space-2) var(--ui-space-2); background: var(--surface2); border: 1px solid var(--control-border); border-radius: var(--radius); color: var(--text); font-size: var(--ui-text-sm); font-family: inherit; cursor: pointer; }
 .filter-popover select:focus { border-color: var(--accent); }
@@ -660,32 +646,8 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 .filter-popover .filter-clear:hover { background: var(--accent); color: var(--fab-text); }
 
-.context-menu {
-  position: fixed;
-  z-index: var(--ui-z-popover);
-  min-width: 120px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--ui-space-1);
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 8px 24px var(--shadow);
-  font-size: var(--ui-text-sm);
-}
-.context-menu[hidden] { display: none; }
-.context-menu button {
-  background: transparent;
-  border: none;
-  color: var(--text);
-  text-align: left;
-  padding: var(--ui-space-2) var(--ui-space-2);
-  border-radius: calc(var(--radius) - var(--ui-radius-sm));
-  cursor: pointer;
-  font: inherit;
-}
-.context-menu button:hover { background: var(--surface2); }
-.context-menu button.danger { color: var(--danger); }
+/* The box and items are ui-menu's; the old minimum width rides its hook. */
+.context-menu { --ui-menu-width: 7.5rem; }
 /* Themed replacement for the native <select> popup (which the OS renders and
    CSS can't reach). The closed control stays the real <select>; this floats
    over it while open. */

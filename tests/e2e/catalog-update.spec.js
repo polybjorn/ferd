@@ -63,8 +63,8 @@ test('applies a picked field from one place and keeps all on another', async ({ 
   } else {
     await card('Santoni').click({ button: 'right' });
     const menu = page.locator('.context-menu');
-    await expect(menu.locator('button').filter({ hasText: 'Apply catalog update' })).toBeVisible();
-    await menu.locator('button').filter({ hasText: 'Apply catalog update' }).click();
+    await expect(menu.getByRole('menuitem', { name: 'Apply catalog update' })).toBeVisible();
+    await menu.getByRole('menuitem', { name: 'Apply catalog update' }).click();
     await expect(menu).toHaveCount(0);
   }
   let modal = dialog(page);

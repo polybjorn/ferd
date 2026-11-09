@@ -28,9 +28,10 @@ import { t } from '../i18n.js';
  * @property {HTMLElement | null} [tagMsBtn]
  */
 
-// Toggle a popover open/closed; close on outside click or when another
-// transient overlay opens. Clicks inside are swallowed so selecting a control
-// doesn't dismiss it. Shared by the filter and list-view popovers.
+// Toggle a .ui-popover open/closed; close on outside click, on Escape or when
+// another transient overlay opens. Clicks inside are swallowed so selecting a
+// control doesn't dismiss it. ui.js opens a .ui-menu only, so a popover holding
+// selects is wired here. Shared by the list and Browse filter popovers.
 /**
  * @param {HTMLElement | null | undefined} btn
  * @param {HTMLElement | null | undefined} pop
@@ -53,9 +54,23 @@ export function wirePopover(btn, pop) {
   };
   document.addEventListener('click', outside);
   pop.addEventListener('click', function(/** @type {MouseEvent} */ e) { e.stopPropagation(); });
+  // On the document, since a button tapped in Safari takes no focus and a
+  // key then goes to the body. Capture, so a dialog holding the popover does
+  // not close first; an open themed select list takes the key itself.
+  const escape = function(/** @type {KeyboardEvent} */ e) {
+    if (e.key !== 'Escape' || pop.hidden || _selPopover) return;
+    e.stopPropagation();
+    pop.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
+    btn.focus();
+  };
+  document.addEventListener('keydown', escape, true);
   // The document outlives the page; a page that unmounts must take its
   // listener with it.
-  return () => document.removeEventListener('click', outside);
+  return () => {
+    document.removeEventListener('click', outside);
+    document.removeEventListener('keydown', escape, true);
+  };
 }
 
 // Wire a list-page filter popover end to end: open/close, the "Filters (N)"
