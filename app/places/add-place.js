@@ -88,13 +88,13 @@ export function AddPlace({ prefillCoords, draft, reopen }) {
         <${CountryInput} id="p-country" value=${v.country} onInput=${(/** @type {string} */ country) => patch({ country })} />
       <//>
       ${getShowField('note') && html`<${Field} id="p-note" label=${t('form.note')}>
-        <textarea id="p-note" value=${v.note} onInput=${text('note')}></textarea>
+        <textarea rows="3" id="p-note" value=${v.note} onInput=${text('note')}></textarea>
       <//>`}
       ${getShowField('image') && html`<${Field} id="p-image" label=${t('form.imageUrl')}>
         <input type="url" id="p-image" placeholder=${t('form.imagePlaceholder')} value=${v.image} onInput=${text('image')} />
       <//>`}
       <${Field} id="p-sources" label=${t('form.sources')}>
-        <textarea id="p-sources" placeholder=${t('form.sourcesPlaceholder')} value=${v.sources} onInput=${text('sources')}></textarea>
+        <textarea rows="3" id="p-sources" placeholder=${t('form.sourcesPlaceholder')} value=${v.sources} onInput=${text('sources')}></textarea>
       <//>
       <${DoneFields} ids=${{ toggle: 'p-visited', extras: 'p-visited-extras', date: 'p-date-visited', rating: 'p-rating' }}
         label=${t('place.visited')} dateLabel=${t('place.dateVisited')} on=${v.visited}

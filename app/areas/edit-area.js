@@ -26,7 +26,7 @@ export function AreaFields({ prefix, v, patch, extraCategories }) {
         onChange=${(/** @type {any} */ category) => patch({ category })} newPlaceholder=${t('form.newCategory')} />
     <//>
     ${getShowField('note') && html`<${Field} id=${prefix + '-note'} label=${t('form.note')}>
-      <textarea id=${prefix + '-note'} value=${v.note} onInput=${(/** @type {Event} */ e) => patch({ note: valueOf(e) })}></textarea>
+      <textarea rows="3" id=${prefix + '-note'} value=${v.note} onInput=${(/** @type {Event} */ e) => patch({ note: valueOf(e) })}></textarea>
     <//>`}
     <div>
       <${Toggle} id=${prefix + '-visited'} label=${t('area.visited')} initial=${v.visited} onToggle=${(/** @type {boolean} */ visited) => patch({ visited })} />

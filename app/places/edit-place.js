@@ -79,13 +79,13 @@ function EditPlace({ place }) {
             <input type="text" id="e-tags" value=${v.tags} placeholder=${t('place.tagsPlaceholder')} onInput=${text('tags')} />
           <//>`}
           ${getShowField('note') && html`<${Field} id="e-note" label=${t('form.note')}>
-            <textarea id="e-note" value=${v.note} onInput=${text('note')}></textarea>
+            <textarea rows="3" id="e-note" value=${v.note} onInput=${text('note')}></textarea>
           <//>`}
           ${getShowField('image') && html`<${Field} id="e-image" label=${t('form.imageUrl')}>
             <input type="url" id="e-image" value=${v.image} placeholder=${t('form.imagePlaceholder')} onInput=${text('image')} />
           <//>`}
           <${Field} id="e-sources" label=${t('form.sources')}>
-            <textarea id="e-sources" placeholder=${t('form.sourcesPlaceholder')} value=${v.sources} onInput=${text('sources')}></textarea>
+            <textarea rows="3" id="e-sources" placeholder=${t('form.sourcesPlaceholder')} value=${v.sources} onInput=${text('sources')}></textarea>
           <//>
           <${DoneFields} ids=${{ toggle: 'e-visited', extras: 'e-visited-extras', date: 'e-date-visited', rating: 'e-rating' }}
             label=${t('place.visited')} dateLabel=${t('place.dateVisited')} on=${v.visited}

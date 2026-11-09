@@ -132,7 +132,7 @@ function EditRoute({ route, regionName }) {
             <input type="text" id="tm-tags" value=${v.tags} placeholder=${t('route.tagsPlaceholder')} onInput=${text('tags')} />
           <//>`}
           ${getShowField('note') && html`<${Field} id="tm-notes" label=${t('form.notes')}>
-            <textarea id="tm-notes" maxlength="2000" value=${v.notes} onInput=${text('notes')}></textarea>
+            <textarea rows="3" id="tm-notes" maxlength="2000" value=${v.notes} onInput=${text('notes')}></textarea>
           <//>`}
           <${Field} id="tm-source" label=${t('form.sourceUrl')}>
             <input type="url" id="tm-source" value=${v.source} placeholder=${t('route.sourcePlaceholder')} onInput=${text('source')} />

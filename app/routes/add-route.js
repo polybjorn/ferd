@@ -64,7 +64,7 @@ export function AddRoute() {
         <input type="text" id="g-tags" placeholder=${t('route.tagsPlaceholder')} value=${v.tags} onInput=${text('tags')} />
       <//>`}
       ${getShowField('note') && html`<${Field} id="g-notes" label=${t('form.notes')}>
-        <textarea id="g-notes" maxlength="2000" value=${v.notes} onInput=${text('notes')}></textarea>
+        <textarea rows="3" id="g-notes" maxlength="2000" value=${v.notes} onInput=${text('notes')}></textarea>
       <//>`}
       <${Field} id="g-source" label=${t('form.sourceUrl')}>
         <input type="url" id="g-source" placeholder=${t('route.sourcePlaceholder')} value=${v.source} onInput=${text('source')} />
