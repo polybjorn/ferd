@@ -97,7 +97,7 @@ export function ErrorBox({ id, msg }) {
   useEffect(() => {
     if (msg) /** @type {HTMLDivElement} */ (ref.current).scrollIntoView({ block: 'nearest' });
   }, [msg]);
-  return html`<div class=${'form-error' + (msg ? ' visible' : '')} id=${id} ref=${ref}>${msg || ''}</div>`;
+  return html`<div class=${'form-error' + (msg ? ' visible' : '')} id=${id} ref=${ref}><p class="ui-hint ui-hint-error">${msg || ''}</p></div>`;
 }
 
 // Preact checks `checked` against the live element on every render, so a

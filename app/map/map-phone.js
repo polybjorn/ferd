@@ -21,7 +21,7 @@ export function addPhoneMapButtons(map) {
     onAdd: function() {
       const div = L.DomUtil.create('div', 'leaflet-control map-phone-buttons');
       div.id = 'map-phone-buttons';
-      renderFresh(html`<button type="button" class="map-phone-btn" id="map-filter-btn" aria-label=${t('mapFilter.title')} onClick=${openFilterSheet}>${filterIcon()}</button>`, div);
+      renderFresh(html`<button type="button" class="ui-button ui-button-icon map-phone-btn" id="map-filter-btn" aria-label=${t('mapFilter.title')} onClick=${openFilterSheet}>${filterIcon()}</button>`, div);
       L.DomEvent.disableClickPropagation(div);
       return div;
     }

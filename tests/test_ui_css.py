@@ -198,7 +198,8 @@ class ThemeContrast(unittest.TestCase):
     # The colour measured on a surface falls short on a tint of itself.
     for rule in (r"\.ui-dialog \.success-box \{", r"\.ui-dialog \.user-flag\.on \{",
                  r"\.ui-dialog \.danger-btn:not\(h2 \.ui-dialog-close\):hover:not\(:disabled\) \{"):
-      self.assertRegex(FRONTEND, rule + r"[^}]*\n\s*color: var\(--text\);")
+      # A badge takes its text colour from --ui-muted, so the tint sets that.
+      self.assertRegex(FRONTEND, rule + r"[^}]*\n\s*(?:color|--ui-muted): var\(--text\);")
 
   def test_settings_hints_use_the_measured_colour(self):
     self.assertRegex(FRONTEND, r"\.ui-dialog \.hint \{[^}]*color: var\(--muted\);")

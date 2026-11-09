@@ -56,7 +56,7 @@ test('changing the password signs out other sessions and keeps this one', async 
   await next.fill(NEW_PASSWORD);
   await submit.click();
   // The error first, so the server has answered before the note's absence counts.
-  await expect(page.locator('.form-error.visible')).not.toBeEmpty();
+  await expect(page.locator('.form-error.visible .ui-hint-error')).not.toBeEmpty();
   await expect(page.getByText('Password changed')).toBeHidden();
   expect(await authenticated(other), 'a refused change signs nobody out').toBe(true);
 

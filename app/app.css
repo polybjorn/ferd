@@ -1005,12 +1005,9 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 .history-body { min-width: 0; flex: 1; }
 .history-head { display: flex; align-items: center; gap: var(--ui-space-2); flex-wrap: wrap; }
-.history-name { font-size: var(--ui-text-sm); font-weight: 400; color: var(--text); }
-.history-kind {
-  font-size: var(--ui-text-xs); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--muted); border: 1px solid var(--border); border-radius: var(--ui-radius-full);
-  padding: 0.05rem var(--ui-space-2); flex: 0 0 auto; margin-left: auto;
-}
+/* The name takes the free width, which pushes the kind badge to the end. */
+.history-name { flex: 1 1 0; min-width: 0; font-size: var(--ui-text-sm); font-weight: 400; color: var(--text); }
+.history-kind { --ui-label-weight: 600; --ui-border: var(--border); letter-spacing: 0.1em; text-transform: uppercase; }
 .history-meta { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); display: flex; align-items: baseline; gap: var(--ui-space-3); flex-wrap: wrap; }
 .history-stars { color: var(--accent); }
 .stars-empty { opacity: 0.35; }
@@ -1208,21 +1205,15 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 /* One outer size for the tile picker and the phone buttons, so the stack
    lines up and a touch screen grows them together. */
 .leaflet-container { --map-btn-size: 38px; }
+/* The button is a ui-button, which is transparent from the ui layer, so the
+   surface it needs over the map tiles sits on its control instead. */
+.map-phone-buttons { background: var(--surface); border-radius: var(--radius); }
 .map-phone-btn {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--map-btn-size);
-  height: var(--map-btn-size);
-  padding: 0;
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  cursor: pointer;
+  --ui-control-height: var(--map-btn-size);
+  --ui-touch-target: var(--map-btn-size);
+  --ui-border: var(--border);
 }
-.map-phone-btn:hover { background: var(--surface2); }
 .map-phone-btn svg { width: 20px; height: 20px; }
 /* The sheet is closed most of the time, and a filter left on hides things
    from the map without saying so. */
@@ -2449,24 +2440,10 @@ body.force-show-map-filter .map-panel {
 }
 .ui-dialog .area-results { display: flex; flex-direction: column; gap: var(--ui-space-1); margin-top: var(--ui-space-2); }
 .ui-dialog .area-results[hidden] { display: none; }
-/* Selectors carry button and :not() to outrank `.ui-dialog button:not(.ui-dialog-close)`
-   and its hover rule, which sit later and would restyle the row as a button. */
-.ui-dialog button.area-result:not(.ui-dialog-close) {
-  background: var(--surface2);
-  color: var(--text);
-  display: grid;
-  font-size: var(--ui-text-sm);
-  gap: 0.1rem var(--ui-space-2);
-  grid-template-columns: 1fr auto;
-  letter-spacing: normal;
-  padding: var(--ui-space-2) var(--ui-space-2);
-  text-align: left;
-}
-.ui-dialog button.area-result[aria-pressed="true"]:not(.ui-dialog-close):not(:disabled) {
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface2));
-  border-color: var(--accent);
-}
-.ui-dialog button.area-result[hidden]:not(.ui-dialog-close),
+/* A ui-list-item on the dialog's raised surface. The selector carries button
+   and :not() to outrank `.ui-dialog button:not(.ui-dialog-close)`, which sits
+   later and would space the letters out as a button's. */
+.ui-dialog button.area-result:not(.ui-dialog-close) { --ui-surface: var(--surface2); letter-spacing: normal; }
 .ui-dialog button.area-results-more[hidden]:not(.ui-dialog-close) { display: none; }
 .area-results-foot { align-items: center; display: flex; gap: var(--ui-space-3); justify-content: space-between; }
 .ui-dialog button.area-results-more:not(.ui-dialog-close) {
@@ -2481,7 +2458,7 @@ body.force-show-map-filter .map-panel {
 .area-result-name { font-weight: 600; }
 .area-result-kind, .area-result-detail { color: var(--muted); font-size: var(--ui-text-xs); }
 .area-result-kind::first-letter { text-transform: uppercase; }
-.area-result-detail { grid-column: 1 / -1; }
+.area-result-detail { display: block; margin-top: 0.1rem; }
 .ui-dialog .file-picker .file-name { font-size: var(--ui-text-sm); color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ui-dialog input[type="file"].file-input-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
 #p-coords-manual { line-height: 24px; }
@@ -2567,6 +2544,7 @@ body.force-show-map-filter .map-panel {
   text-align: center;
   white-space: nowrap;
 }
+/* The box around a ui-hint-error, which keeps no padding or margin of its own. */
 .form-error {
   margin-top: var(--ui-space-3);
   white-space: pre-line;
@@ -2574,8 +2552,6 @@ body.force-show-map-filter .map-panel {
   background: rgba(255,95,87,0.1);
   border: 1px solid rgba(255,95,87,0.3);
   border-radius: var(--radius);
-  color: var(--danger);
-  font-size: var(--ui-text-xs);
   display: none;
 }
 .form-error.visible { display: block; }
@@ -2599,6 +2575,9 @@ body.force-show-map-filter .map-panel {
   margin-top: var(--ui-space-2);
 }
 .ui-dialog .stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-1);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--ui-space-2) var(--ui-space-3);
@@ -2606,13 +2585,6 @@ body.force-show-map-filter .map-panel {
   min-width: 0;
 }
 .ui-dialog .stat-card .stat-val { font-size: var(--ui-text-lg); color: var(--text); }
-.ui-dialog .stat-card .stat-lbl {
-  font-size: var(--ui-text-xs);
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-top: var(--ui-space-1);
-}
 .ui-dialog .user-list {
   list-style: none;
   padding: 0;
@@ -2628,15 +2600,9 @@ body.force-show-map-filter .map-panel {
   font-size: var(--ui-text-sm);
 }
 .ui-dialog .user-row:last-child { border-bottom: none; }
-.ui-dialog .user-group-h {
-  font-size: var(--ui-text-xs);
-  font-weight: 400;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: var(--ui-space-3) 0 0.1rem;
-}
-.ui-dialog .user-group-h:first-child { margin-top: var(--ui-space-1); }
+/* Each group is its ui-list-head and its rows; the gaps space them. */
+#s-admin-users { display: flex; flex-direction: column; gap: var(--ui-space-3); margin-top: var(--ui-space-1); }
+.ui-dialog .user-group { display: flex; flex-direction: column; gap: 0.1rem; }
 .ui-dialog .user-row .user-name {
   color: var(--text);
   min-width: 0;
@@ -2645,6 +2611,9 @@ body.force-show-map-filter .map-panel {
   white-space: nowrap;
   font-size: var(--ui-text-sm);
 }
+/* An account row's name and its Public badge, spaced by the gap. */
+.ui-dialog .user-row .user-name.user-name-flags { display: flex; align-items: center; gap: var(--ui-space-2); }
+.ui-dialog .user-row .user-name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .ui-dialog .user-row.self .user-name { color: var(--accent); font-weight: 500; }
 .ui-dialog .user-row .user-counts {
   grid-column: 1 / -1;
@@ -2666,16 +2635,7 @@ body.force-show-map-filter .map-panel {
   padding: var(--ui-space-1) var(--ui-space-2);
   font-size: var(--ui-text-xs);
 }
-.ui-dialog .user-flag {
-  display: inline-block;
-  font-size: var(--ui-text-xs);
-  padding: 0.05rem var(--ui-space-2);
-  border-radius: var(--ui-radius-full);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  white-space: nowrap;
-  margin-left: var(--ui-space-2);
-}
+.ui-dialog .user-flag { flex: none; white-space: nowrap; --ui-border: var(--border); }
 .ui-dialog .log-list {
   list-style: none;
   padding: 0;
@@ -2764,8 +2724,8 @@ body.force-show-map-filter .map-panel {
   font-size: var(--ui-text-xs);
 }
 .ui-dialog .user-flag.on {
-  color: var(--text);
-  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  --ui-muted: var(--text);
+  --ui-border: color-mix(in srgb, var(--accent) 40%, transparent);
   background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 .ui-dialog .danger-btn:not(h2 .ui-dialog-close) {
