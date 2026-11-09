@@ -3,7 +3,7 @@ import { gpxUrlFor, isReadOnly } from './server.js';
 import { places, routes } from './store.js';
 import { cleanupMap, deletePlaceItem, deleteRouteItem, fetchGpxText } from './map/index.js';
 import { getPref, getShowField, placesEnabled, routesEnabled } from './prefs.js';
-import { openEditTrailMetadataModal, ratingStarsText } from './routes/route-meta.js';
+import { openEditTrailMetadataModal, ratingStars } from './routes/route-meta.js';
 import { openEditPlaceModal } from './places/edit-place.js';
 import { nameCollator, findCatalogUpdate, openCatalogUpdateModal } from './places-list.js';
 import { focusHash } from './router.js';
@@ -157,7 +157,7 @@ function HistoryCard({ e, view, show }) {
       </div>
       ${(date || stars) && html`<div class="history-meta">
         ${date && html`<span>${e.date}</span>`}
-        ${stars && html`<span class="history-stars" title=${e.rating + '/5'} dangerouslySetInnerHTML=${{ __html: ratingStarsText(e.rating) }}></span>`}
+        ${stars && html`<span class="history-stars" title=${e.rating + '/5'}>${ratingStars(e.rating)}</span>`}
       </div>`}
       ${!!e.note && show.note && html`<div class="history-note">${e.note}</div>`}
     </div>
