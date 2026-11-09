@@ -8,7 +8,7 @@
 const { test, expect } = require('@playwright/test');
 const { fence, signIn } = require('./helpers');
 
-const BUDGET = 943 * 1000;
+const BUDGET = 901 * 1000;
 const COUNTED = /^(text\/(html|css|javascript)|application\/(javascript|x-javascript))\b/;
 
 test('the first load stays under its budget of JS, CSS and HTML', async ({ page, baseURL }) => {
@@ -32,6 +32,9 @@ test('the first load stays under its budget of JS, CSS and HTML', async ({ page,
   const top = [...sizes].sort((a, b) => b[1] - a[1]).slice(0, 8)
     .map(([path, n]) => `${(n / 1000).toFixed(1)} KB ${path}`).join('\n');
   expect(fenced.external).toEqual([]);
+  for (const sheet of ['/app/dialogs.css', '/app/lists.css', '/app/map/route-detail.css']) {
+    expect(sizes.has(sheet), `${sheet} loads with its views, not the first load`).toBe(false);
+  }
   expect(sizes.size, 'responses counted').toBeGreaterThan(0);
   expect(total, `${(total / 1000).toFixed(1)} KB over ${sizes.size} files; largest:\n${top}`).toBeLessThan(BUDGET);
 });

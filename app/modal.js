@@ -217,20 +217,3 @@ function escClose(e) {
   if (e.key !== 'Escape') return;
   if (requestCloseTopModal()) e.preventDefault();
 }
-// The box sits at the end of the scrolling body, and a form saved from a
-// pinned action row may be scrolled well above it.
-/**
- * @param {Element} el
- * @param {string} msg
- */
-export function showErrorBox(el, msg) {
-  el.textContent = msg;
-  el.classList.add('visible');
-  el.scrollIntoView({ block: 'nearest' });
-}
-
-/** @param {string} msg */
-export function showModalError(msg) {
-  const el = document.querySelector('.form-error');
-  if (el) showErrorBox(el, msg);
-}

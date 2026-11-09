@@ -12,6 +12,9 @@ ROOT = Path(__file__).resolve().parent.parent
 UI_CSS = (ROOT / "ui.css").read_text(encoding="utf-8")
 INDEX = (ROOT / "index.html").read_text(encoding="utf-8")
 APP_CSS = (ROOT / "app" / "app.css").read_text(encoding="utf-8")
+# The app-layer rules of the views that load on first use, split out of app.css.
+LAZY_SHEETS = {path: (ROOT / path.lstrip("/")).read_text(encoding="utf-8")
+               for path in ("/app/dialogs.css", "/app/lists.css", "/app/map/route-detail.css")}
 FRONTEND = "\n".join(p.read_text(encoding="utf-8")
                      for p in [ROOT / "index.html", *sorted((ROOT / "app").rglob("*"))] if p.is_file())
 SW = (ROOT / "sw.js").read_text(encoding="utf-8")
@@ -67,6 +70,21 @@ class IndexLayers(unittest.TestCase):
         re.match(r'@import url\("/vendor/[^"]+\.css"\) layer\(vendor\);$', stmt)
         or stmt.startswith(("@layer reset {", "@layer app {")),
         "unlayered rule in the main stylesheet: " + stmt[:80])
+
+  def test_lazy_sheets_sit_in_the_app_layer(self):
+    # The layer order is set once by app.css, so a later sheet keeps its place.
+    for path, css in LAZY_SHEETS.items():
+      statements = list(top_level_statements(css))
+      self.assertEqual(len(statements), 1, path)
+      self.assertTrue(statements[0].startswith("@layer app {"), path)
+
+  def test_lazy_sheets_are_precached_and_loaded(self):
+    for path in LAZY_SHEETS:
+      self.assertIn("'%s'" % path, SW)
+    loaders = FRONTEND.replace(APP_CSS, "")
+    self.assertIn("loadStyle('/app/map/route-detail.css')", loaders)
+    self.assertIn("DIALOG_STYLES = '/app/dialogs.css'", loaders)
+    self.assertIn("LIST_STYLES = '/app/lists.css'", loaders)
 
   def test_no_vendor_stylesheet_links(self):
     head = INDEX.split("</head>", 1)[0]
@@ -216,9 +234,11 @@ class ControlEdges(unittest.TestCase):
               ".public-maps-item", ".row-src", ".cat-color-dot")
 
   def rules(self):
-    stmts = top_level_statements(APP_CSS)
-    app = next(s for s in stmts if s.startswith("@layer app {"))
-    return re.findall(r"([^{}]+)\{([^{}]*)\}", app)
+    found = []
+    for css in (APP_CSS, *LAZY_SHEETS.values()):
+      for app in (s for s in top_level_statements(css) if s.startswith("@layer app {")):
+        found += re.findall(r"([^{}]+)\{([^{}]*)\}", app)
+    return found
 
   def test_every_control_uses_the_measured_edge(self):
     for selector, body in self.rules():
