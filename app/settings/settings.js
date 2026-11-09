@@ -704,10 +704,10 @@ function TokenForm({ onCreated }) {
     <div id="s-token-new" class="success-box" hidden=${!token}>
       ${token && html`
         <div style="margin-bottom:var(--ui-space-2)">${t('security.tokenCreated')}</div>
-        <div style="display:flex;align-items:center;gap:var(--ui-space-2)">
-          <input type="text" id="s-token-value" readonly value=${token} ref=${valueRef} style="flex:1;font-size:var(--ui-text-xs)" />
-          <${CopyButton} id="s-token-copy" target=${valueRef} style="flex:0 0 auto" />
-        </div>`}
+        <div class="ui-field"><div class="ui-control-row">
+          <input type="text" id="s-token-value" readonly value=${token} ref=${valueRef} style="font-size:var(--ui-text-xs)" />
+          <${CopyButton} id="s-token-copy" target=${valueRef} />
+        </div></div>`}
     </div>
   </form>`;
 }

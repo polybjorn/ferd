@@ -118,7 +118,7 @@ function CatalogManager() {
   return html`
     <${DialogHead} lead=${lead} />
     <div class="ui-dialog-body">
-      <input type="text" id="cat-mgr-filter" placeholder=${t('common.filter')} style="margin-bottom:var(--ui-space-2)" value=${filter} onInput=${(/** @type {Event} */ e) => setFilter(/** @type {HTMLInputElement} */ (e.currentTarget).value)} />
+      <div class="ui-field" style="margin-bottom:var(--ui-space-2)"><input type="text" id="cat-mgr-filter" placeholder=${t('common.filter')} value=${filter} onInput=${(/** @type {Event} */ e) => setFilter(/** @type {HTMLInputElement} */ (e.currentTarget).value)} /></div>
       <div id="cat-mgr-list" class=${(animated ? 'notes-anim' : '') + (notes ? ' show-notes' : '') || undefined}>${body}</div>
     </div>
     <div class="ui-dialog-actions">
@@ -230,7 +230,7 @@ function CatalogPicker({ places }) {
   return html`
     <${DialogHead} title=${t('catalog.pickerTitle')} />
     <div class="ui-dialog-body">
-      <input type="text" id="cat-filter" placeholder=${t('common.filter')} style="margin-bottom:var(--ui-space-2)" value=${filter} onInput=${(/** @type {Event} */ e) => setFilter(/** @type {HTMLInputElement} */ (e.currentTarget).value)} />
+      <div class="ui-field" style="margin-bottom:var(--ui-space-2)"><input type="text" id="cat-filter" placeholder=${t('common.filter')} value=${filter} onInput=${(/** @type {Event} */ e) => setFilter(/** @type {HTMLInputElement} */ (e.currentTarget).value)} /></div>
       <div id="cat-list" class=${(animated ? 'notes-anim' : '') + (notes ? ' show-notes' : '') || undefined}>
         ${places.map((p, i) => html`<${PickRow} key=${i} p=${p} shown=${shown[i]} checked=${picked.has(i)} onPick=${(/** @type {boolean} */ on) => setOne(i, on)} />`)}
       </div>

@@ -137,16 +137,16 @@ function BrowseList({ entries }) {
 
   return html`<div>
     <div style="display:flex;gap:var(--ui-space-2);align-items:center;margin-bottom:var(--ui-space-2)" id="browse-controls" ref=${controls}>
-      <input type="text" id="browse-filter" placeholder=${t('common.filter')} style="flex:1;margin:0" onInput=${hasFilters ? undefined : onSearch} />
+      <div class="ui-field" style="flex:1"><input type="text" id="browse-filter" placeholder=${t('common.filter')} onInput=${hasFilters ? undefined : onSearch} /></div>
       ${hasFilters && html`<div class="filter-dropdown">
         <button type="button" class="filter-btn" id="browse-filter-btn" aria-haspopup="true" aria-expanded="false">${t('browse.filters')}</button>
         <div class="filter-popover" id="browse-filter-popover" hidden>
-          ${fCats.length > 1 && html`<select id="bf-category"><option value="all">${t('form.category')}</option>
-            ${fCats.map(c => html`<option key=${c} value=${c}>${displayCategory(c)}</option>`)}</select>`}
-          ${fCountries.length > 1 && html`<select id="bf-country"><option value="all">${t('form.country')}</option>
-            ${fCountries.map(c => html`<option key=${c} value=${c}>${c}</option>`)}</select>`}
-          ${fTags.length > 0 && html`<select id="bf-tag"><option value="all">${t('browse.tag')}</option>
-            ${fTags.map(x => html`<option key=${x} value=${x}>${x}</option>`)}</select>`}
+          ${fCats.length > 1 && html`<div class="ui-field"><select id="bf-category"><option value="all">${t('form.category')}</option>
+            ${fCats.map(c => html`<option key=${c} value=${c}>${displayCategory(c)}</option>`)}</select></div>`}
+          ${fCountries.length > 1 && html`<div class="ui-field"><select id="bf-country"><option value="all">${t('form.country')}</option>
+            ${fCountries.map(c => html`<option key=${c} value=${c}>${c}</option>`)}</select></div>`}
+          ${fTags.length > 0 && html`<div class="ui-field"><select id="bf-tag"><option value="all">${t('browse.tag')}</option>
+            ${fTags.map(x => html`<option key=${x} value=${x}>${x}</option>`)}</select></div>`}
           <button type="button" class="filter-clear" id="browse-clear">${t('browse.clearFilters')}</button>
         </div>
       </div>`}

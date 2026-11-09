@@ -25,7 +25,7 @@ function RegionRow({ index, region, onName, onRemove }) {
   };
   const tag = dirty ? t('common.edited') : empty ? t('regions.emptyTag') : '';
   return html`<div style="display:flex;gap:var(--ui-space-2);align-items:center;margin-top:var(--ui-space-2)">
-    <input type="text" data-i=${index} class=${'rgn-name' + (dirty ? ' dirty' : '')} value=${name} style="flex:1;min-width:0" onInput=${input} />
+    <div class="ui-field" style="flex:1"><input type="text" data-i=${index} class=${'rgn-name' + (dirty ? ' dirty' : '')} value=${name} onInput=${input} /></div>
     <${RowTag} text=${tag} dirty=${dirty} />
     <${HideToggle} prefKey="default-hidden-regions" id=${region.original} hiddenSet=${state.hiddenRegions} className="rgn-hide" attrs=${{ 'data-name': region.original }} />
     <button type="button" data-i=${index} class="ui-button ui-button-icon rgn-remove btn-x x-icon" aria-label=${t('common.remove')}

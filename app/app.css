@@ -2252,7 +2252,7 @@ body.force-show-map-filter .map-panel {
 .btn-x.x-icon::before { transform: translate(-50%, -50%) rotate(45deg); }
 .btn-x.x-icon::after  { transform: translate(-50%, -50%) rotate(-45deg); }
 .catalog-eye-btn:hover:not(:disabled) { --ui-border: var(--muted); --ui-text: var(--text); }
-.ui-dialog input.dirty { border-color: var(--accent); }
+.ui-dialog input.dirty { --ui-border: var(--accent); border-color: var(--accent); }
 .tag-end {
   flex: 0 0 5rem;
   justify-content: flex-end;
@@ -2490,56 +2490,27 @@ body.force-show-map-filter .map-panel {
 .ui-dialog h3.sessions-h { display: flex; align-items: baseline; gap: var(--ui-space-3); }
 .ui-dialog button.sessions-revoke-others:not(h2 .ui-dialog-close) { margin-left: auto; font-size: var(--ui-text-xs); font-weight: 400; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0; letter-spacing: 0; }
 .ui-dialog button.sessions-revoke-others:not(h2 .ui-dialog-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
-.ui-dialog label {
-  display: block;
-  font-size: var(--ui-text-sm);
-  color: var(--text);
-  margin-bottom: var(--ui-space-1);
-  margin-top: var(--ui-space-3);
-}
-.ui-dialog input[type="text"],
-.ui-dialog input[type="password"],
-.ui-dialog input[type="number"],
-.ui-dialog input[type="file"],
-.ui-dialog input[type="url"],
-.ui-dialog input[type="email"],
-.ui-dialog input[type="date"],
-.ui-dialog textarea,
-.ui-dialog select {
+/* The category label input stays outside a .ui-field: its tag sits inside the
+   box, and ui.css's field padding would cover it. */
+.cat-input-wrap > .cat-display {
   width: 100%;
-  padding: var(--ui-space-2) var(--ui-space-3);
+  padding-block: var(--ui-space-2);
+  padding-left: var(--ui-space-3);
   background: var(--surface2);
   border: 1px solid var(--control-border);
   border-radius: var(--radius);
   color: var(--text);
+  font: inherit;
   font-size: var(--ui-text-sm);
-  font-weight: 300;
-  font-family: inherit;
-  transition: border-color var(--ui-duration-fast);
 }
-/* Take the select off native rendering so its fill is exactly var(--surface2);
-   the native widget paints a lighter control background that doesn't match the
-   themed text inputs. Draw the chevron from two gradients so its colour follows
-   var(--muted) across every theme. */
-.ui-dialog select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  padding-right: var(--ui-space-6);
-  background-image:
-    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
-    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-  background-position: right 1.05rem center, right 0.75rem center;
-  background-size: 6px 6px, 6px 6px;
-  background-repeat: no-repeat;
-}
-.ui-dialog input:focus, .ui-dialog textarea:focus, .ui-dialog select:focus { border-color: var(--accent); }
+.cat-input-wrap > .cat-display:focus { border-color: var(--accent); }
+/* A browse row is a <label>, and kept the dialog label's spacing and size. */
+.ui-dialog .browse-row { margin: var(--ui-space-3) 0 var(--ui-space-1); font-size: var(--ui-text-sm); color: var(--text); }
 /* Suppress the browser-native spinner on number inputs (Lat/Long) — the
    up/down arrows aren't theme-aware and look out of place. */
 .ui-dialog input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
 .ui-dialog input[type="number"]::-webkit-inner-spin-button,
 .ui-dialog input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-.ui-dialog textarea { min-height: 60px; resize: vertical; }
 .ui-dialog .row { display: flex; gap: var(--ui-space-2); }
 .ui-dialog .row > * { flex: 1; }
 .feature-pills { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); margin-top: var(--ui-space-2); }

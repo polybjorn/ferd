@@ -95,7 +95,7 @@ jobs:
             --audit-files index.html webview-notice.css app/app.css \
             --audit-max font-size=1 spacing=18 radius=0 transition=0 z-index=1 \
             --one-off-files index.html app/app.css app/*.js app/*/*.js \
-            --one-off-max inline-style=64 important=71 colour=6
+            --one-off-max inline-style=62 important=71 colour=6
 
   # The browser tests, on Microsoft's Playwright image, which carries the
   # browsers for one Playwright release only: package.json pins that release,
