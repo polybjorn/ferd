@@ -674,6 +674,7 @@ export const NB = {
 
   'routeDetail.notes': 'Notater',
   'routeDetail.notFound': 'Fant ikke ruten',
+  'routeDetail.loadFailed': 'Kunne ikke laste rutesiden. Sjekk tilkoblingen og prøv igjen.',
   'routeDetail.notFoundCrumb': 'Ikke funnet',
   'routeDetail.edit': 'Rediger',
   'routeDetail.elevation': 'Høydeprofil',

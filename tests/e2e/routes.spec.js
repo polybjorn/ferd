@@ -163,3 +163,34 @@ test('a route of several tracks graphs each segment on request', async ({ page, 
   expect(fenced.external).toEqual([]);
   expect(fenced.errors).toEqual([]);
 });
+
+// The route page and the elevation plugin load on first use, so this proves
+// the worker's precache covers them: a deep link opened cold and offline
+// still draws the graph.
+test.describe('with the service worker', () => {
+  test.use({ serviceWorkers: 'allow' });
+
+  test('a route page reloads on its link, also offline, and draws its elevation graph', async ({ page, context }, info) => {
+    const name = 'E2E offline route';
+    await signUp(page, info);
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+    await importAndOpen(page, info, name, gpx([name]));
+    const graph = page.locator('#elevation-container');
+    await expect(graph.locator('svg path.area')).toHaveAttribute('d', /\d/);
+    const link = new URL(page.url()).hash;
+    expect(link).toMatch(/^#\/routes\/route\//);
+
+    await page.reload();
+    await expect(graph.locator('svg path.area')).toHaveAttribute('d', /\d/);
+
+    await context.setOffline(true);
+    await page.reload();
+    expect(new URL(page.url()).hash).toBe(link);
+    await expect(graph.locator('svg path.area')).toHaveAttribute('d', /\d/);
+    await context.setOffline(false);
+
+    await deleteOpenRoute(page);
+  });
+});

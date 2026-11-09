@@ -1,4 +1,4 @@
-import { state } from '../core.js';
+import { GPX_NS, state } from '../core.js';
 import { applyAuth, routeStatusColor } from '../server.js';
 import { gpxText } from '../store.js';
 import { _geometryPolygons } from '../area-geo.js';
@@ -6,11 +6,14 @@ import { easeLeaflet, mapScheduler } from './map-layers.js';
 import { areaStyle } from './area-layer.js';
 import { getTrailWeightFactor } from '../theme.js';
 import { wrappedRouter } from '../router.js';
+import { t } from '../i18n.js';
 
 // Leaflet is declared `any` in types/globals.d.ts (the vendored build ships no
 // declarations), so its maps, layers and renderers have no narrower type here.
 /** @typedef {any} LeafletMap */
 /** @typedef {any} LeafletLayer */
+/** @typedef {{ lat: number, lon: number, ele: number | null }} GpxPoint */
+/** @typedef {{ name: string, points: GpxPoint[] }} GpxTrack */
 /** @typedef {{ route: import('../core.js').ManifestRoute, layer: LeafletLayer, completed: boolean, region: string }} RouteRecord */
 
 // Concurrency-limited GPX text fetcher. The index map can have dozens
@@ -590,4 +593,37 @@ export function setSelectedRoute(key) {
 export function refreshTrailWeights() {
   if (!state._routeLayers) { wrappedRouter(); return; }
   applyRouteHighlight();
+}
+
+// Here rather than in route-detail.js, which loads on the first route page and
+// would otherwise be pulled in by the area layer.
+/**
+ * @param {string} xmlText
+ * @returns {GpxTrack[]}
+ */
+export function parseGpxTracks(xmlText) {
+  const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
+  let tracks = doc.getElementsByTagNameNS(GPX_NS, 'trk');
+  if (tracks.length === 0) tracks = doc.getElementsByTagName('trk');
+  /** @type {GpxTrack[]} */
+  const result = [];
+  for (let i = 0; i < tracks.length; i++) {
+    const trk = tracks[i];
+    const nameEl = trk.getElementsByTagNameNS(GPX_NS, 'name')[0] || trk.getElementsByTagName('name')[0];
+    const name = nameEl ? nameEl.textContent || '' : t('routeDetail.track', { n: i + 1 });
+    /** @type {GpxPoint[]} */
+    const points = [];
+    let trkpts = trk.getElementsByTagNameNS(GPX_NS, 'trkpt');
+    if (trkpts.length === 0) trkpts = trk.getElementsByTagName('trkpt');
+    for (let j = 0; j < trkpts.length; j++) {
+      const pt = trkpts[j];
+      const lat = parseFloat(pt.getAttribute('lat') || '');
+      const lon = parseFloat(pt.getAttribute('lon') || '');
+      const eleEl = pt.getElementsByTagNameNS(GPX_NS, 'ele')[0] || pt.getElementsByTagName('ele')[0];
+      const ele = eleEl ? parseFloat(eleEl.textContent || '') : null;
+      points.push({ lat, lon, ele });
+    }
+    result.push({ name, points });
+  }
+  return result;
 }

@@ -1,11 +1,6 @@
 import { state } from './core.js';
 import { historyEnabled, listsHash, placesEnabled, routesEnabled } from './prefs.js';
-import { renderTrailDetail, renderUnifiedMap } from './map/index.js';
-import { renderPlacesIndex } from './places/places-page.js';
-import { renderHistoryIndex } from './history.js';
-import { renderTrailsIndex } from './routes/routes-page.js';
-import { renderAreasIndex } from './areas/areas-page.js';
-import { renderYouPage } from './you.js';
+import { renderUnifiedMap, showTrailDetail } from './map/index.js';
 import { unmountPage } from './view.js';
 
 /** @param {string} type @param {string} slug */
@@ -43,7 +38,24 @@ function parseFocus(hash) {
   return null;
 }
 
+// Bumped on every navigation. A list page arrives through import(), so a
+// second hash change can land before the first page's code does; without this
+// the late page would mount over the one the user is on.
+let navSeq = 0;
+
+/**
+ * Mounts a list page once its module is in, unless another navigation began meanwhile.
+ * @param {() => Promise<any>} load @param {number} seq
+ * @param {(mod: any) => any} mount
+ */
+async function mountLazy(load, seq, mount) {
+  const mod = await load();
+  if (seq !== navSeq) return;
+  return mount(mod);
+}
+
 export function router() {
+  const seq = ++navSeq;
   unmountPage();
   const navActions = document.getElementById('nav-actions');
   if (navActions) navActions.replaceChildren();
@@ -55,25 +67,25 @@ export function router() {
   if (base === '#/lists') { location.replace(listsHash()); return; }
   if (base === '#/places') {
     if (!placesEnabled()) { location.hash = '#/'; return; }
-    return renderPlacesIndex();
+    return mountLazy(() => import('./places/places-page.js'), seq, m => m.renderPlacesIndex());
   }
   if (base === '#/routes') {
     if (!routesEnabled()) { location.hash = '#/'; return; }
-    return renderTrailsIndex();
+    return mountLazy(() => import('./routes/routes-page.js'), seq, m => m.renderTrailsIndex());
   }
   if (base.startsWith('#/routes/route/')) {
     if (!routesEnabled()) { location.hash = '#/'; return; }
     const key = decodeURIComponent(base.replace('#/routes/route/', ''));
-    return renderTrailDetail(key);
+    return showTrailDetail(key);
   }
   if (base === '#/areas') {
     if (!placesEnabled()) { location.hash = '#/'; return; }
-    return renderAreasIndex();
+    return mountLazy(() => import('./areas/areas-page.js'), seq, m => m.renderAreasIndex());
   }
-  if (base === '#/you') return renderYouPage();
+  if (base === '#/you') return mountLazy(() => import('./you.js'), seq, m => m.renderYouPage());
   if (base === '#/history') {
     if (!historyEnabled()) { location.hash = '#/'; return; }
-    return renderHistoryIndex();
+    return mountLazy(() => import('./history.js'), seq, m => m.renderHistoryIndex());
   }
   renderUnifiedMap(null);
 }
@@ -81,7 +93,11 @@ export function router() {
 // Kept as a thin wrapper: callers use wrappedRouter() to re-render the
 // current view. The map's Add action now lives in the nav (renderUnifiedMap
 // populates #nav-actions), so there's no floating button to re-mount.
-export function wrappedRouter() { router(); }
+export function wrappedRouter() {
+  const out = router();
+  // A page whose code cannot be fetched (offline before its first visit) must not surface as an unhandled rejection.
+  if (out && typeof out.catch === 'function') out.catch(err => console.error('Could not open page', err));
+}
 // Flag in-app hash navigations (clicks) vs the initial load (reload), so a
 // place focus from a click centers the map on the pin, while a reload at a
 // place URL keeps the user's prior/remembered view.

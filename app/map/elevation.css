@@ -1,0 +1,4 @@
+/* Loaded with the elevation plugin on the first route page. The import keeps
+   the plugin styles in the vendor layer app.css declares; a plain link would
+   be unlayered and beat the app and ui layers. */
+@import url("/vendor/leaflet-elevation/leaflet-elevation.css") layer(vendor);

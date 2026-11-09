@@ -4,14 +4,13 @@ import {
   areaBbox, areaContains, areaSize, bboxesOverlap, placesInArea, tracksTouchArea,
 } from '../area-geo.js';
 import { placesEnabled } from '../prefs.js';
-import { openEditAreaModal } from '../areas/edit-area.js';
-import { fetchGpxText } from './route-layer.js';
+import { openEditAreaModal } from '../lazy-open.js';
+import { fetchGpxText, parseGpxTracks } from './route-layer.js';
 import { html } from '../view.js';
 import { AreaPopup, popupElement } from './popups.js';
 import { COUNTRY_MAX_ZOOM } from '../countries.js';
 import { syncCountriesOnMap } from './country-layer.js';
 import { goToPlace, goToRoute } from './map-actions.js';
-import { parseGpxTracks } from './route-detail.js';
 
 /** @typedef {import('./route-layer.js').LeafletMap} LeafletMap */
 /** @typedef {import('./route-layer.js').LeafletLayer} LeafletLayer */

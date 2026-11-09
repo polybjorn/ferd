@@ -2,7 +2,7 @@ import { displayRegion, manifestRoutes, state } from '../core.js';
 import { dataLayer } from '../store.js';
 import { html } from '../view.js';
 import { PlacePopup, popupElement } from './popups.js';
-import { openEditPlaceModal } from '../places/edit-place.js';
+import { openEditPlaceModal } from '../lazy-open.js';
 import { getMarkerSize, getPinStyle } from '../theme.js';
 import { openConfirmModal } from '../select.js';
 import { t } from '../i18n.js';

@@ -21,8 +21,7 @@ import { openPlacePopup, pulseChip, revealPlaceMarker } from './map-actions.js';
 import { applyMapFilters, createPlaceLayerGroup, initUnifiedSearch, placeShown, routeShown } from './place-layer.js';
 import { focusHash } from '../router.js';
 import { getTrailWeightFactor } from '../theme.js';
-import { openMapPlaceContextMenu, openMapRouteContextMenu } from '../context-menu.js';
-import { openAddModal } from '../lazy-open.js';
+import { openAddModal, openMapPlaceContextMenu, openMapRouteContextMenu } from '../lazy-open.js';
 
 /** @typedef {import('./route-layer.js').RouteRecord} RouteRecord */
 /** @typedef {import('./place-layer.js').Pt} Pt */

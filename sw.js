@@ -44,6 +44,7 @@ const SHELL_ASSETS = [
   '/app/main.js',
   '/app/map/area-layer.js',
   '/app/map/country-layer.js',
+  '/app/map/elevation.css',
   '/app/map/home-map.js',
   '/app/map/index.js',
   '/app/map/map-actions.js',
