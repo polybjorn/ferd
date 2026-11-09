@@ -27,7 +27,6 @@ import './areas/edit-area.js';
 import './countries.js';
 import './routes/route-meta.js';
 import './places/edit-place.js';
-import './history.js';
 import './router.js';
 import { saveDownload } from './download.js';
 import './context-menu.js';
