@@ -40,7 +40,7 @@ function YouPage() {
         <span>${local ? t('you.localMap') : t('you.signedInAs')}</span>
         <strong>${local ? t('you.noAccount') : state.auth.username}</strong>
       </div>
-      <button type="button" class=${'ui-button ui-button-icon ui-button-icon-round you-gear' + (catalogUpdatesPending() ? ' has-dot' : '')} id="you-gear"
+      <button type="button" class=${'you-gear' + (catalogUpdatesPending() ? ' has-dot' : '')} id="you-gear"
         title=${t('you.settings')} aria-label=${t('you.settings')} onClick=${() => openAccountSheet()}>${ICON(GEAR)}</button>
     </div>
     ${historyEnabled() && html`<${HistoryPage} />`}`;

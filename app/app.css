@@ -605,10 +605,24 @@ a:not([class]):hover { text-decoration: underline; }
 .you-name { min-width: 0; }
 .you-name span { display: block; color: var(--muted); font-size: var(--ui-text-sm); }
 .you-name strong { display: block; color: var(--text); font-size: var(--ui-text-xl); overflow-wrap: anywhere; }
-/* A ui-button-icon-round, so its colours are the block's tokens; the dot
-   hangs off its corner. */
-.you-gear { position: relative; --ui-border: var(--border); }
-.you-gear:hover { --ui-border: var(--muted); }
+/* Not a ui-button-icon: the block's base button is transparent from the ui
+   layer, which an app rule cannot override, and the gear is a filled circle. */
+.you-gear {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--ui-touch-target);
+  height: var(--ui-touch-target);
+  padding: 0;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-full);
+  cursor: pointer;
+}
+.you-gear:hover { border-color: var(--muted); }
+.you-gear svg { width: 22px; height: 22px; }
 .you-signin {
   max-width: 480px;
   margin: 0 auto;
