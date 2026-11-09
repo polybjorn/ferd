@@ -214,6 +214,8 @@ function requestCloseTopModal() {
 window.ferdCloseTopModal = requestCloseTopModal;
 /** @param {KeyboardEvent} e */
 function escClose(e) {
-  if (e.key !== 'Escape') return;
+  // A control that took the key first, such as a ui.js popover in the
+  // dialog, keeps the dialog open.
+  if (e.key !== 'Escape' || e.defaultPrevented) return;
   if (requestCloseTopModal()) e.preventDefault();
 }

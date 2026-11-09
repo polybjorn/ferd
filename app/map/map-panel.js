@@ -1,7 +1,6 @@
 import { state } from '../core.js';
 import { placesEnabled, routesEnabled } from '../prefs.js';
 import { bindFilterPanel, refreshFilterPanel } from './home-map.js';
-import { closeTransientOverlays } from './map-actions.js';
 import { initUnifiedSearch } from './place-layer.js';
 import { _selPopover, closeSelectPopover, openMultiSelectList } from '../select.js';
 import { wrappedRouter } from '../router.js';
@@ -15,7 +14,6 @@ import { t } from '../i18n.js';
 /**
  * @typedef {object} FilterPopoverOptions
  * @property {HTMLElement | null} [btn]
- * @property {HTMLElement | null} [pop]
  * @property {HTMLElement | null} [clear]
  * @property {ValueElement[]} sels
  * @property {Record<string, string>} keyById
@@ -28,63 +26,15 @@ import { t } from '../i18n.js';
  * @property {HTMLElement | null} [tagMsBtn]
  */
 
-// Toggle a .ui-popover open/closed; close on outside click, on Escape or when
-// another transient overlay opens. Clicks inside are swallowed so selecting a
-// control doesn't dismiss it. ui.js opens a .ui-menu only, so a popover holding
-// selects is wired here. Shared by the list and Browse filter popovers.
-/**
- * @param {HTMLElement | null | undefined} btn
- * @param {HTMLElement | null | undefined} pop
- * @returns {() => void}
- */
-export function wirePopover(btn, pop) {
-  if (!btn || !pop) return () => {};
-  btn.addEventListener('click', function(/** @type {MouseEvent} */ e) {
-    e.stopPropagation();
-    const open = pop.hidden;
-    if (open) closeTransientOverlays(pop);
-    pop.hidden = !open;
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-  });
-  const outside = function(/** @type {MouseEvent} */ e) {
-    if (!pop.hidden && !pop.contains(/** @type {Node | null} */ (e.target)) && e.target !== btn) {
-      pop.hidden = true;
-      btn.setAttribute('aria-expanded', 'false');
-    }
-  };
-  document.addEventListener('click', outside);
-  pop.addEventListener('click', function(/** @type {MouseEvent} */ e) { e.stopPropagation(); });
-  // On the document, since a button tapped in Safari takes no focus and a
-  // key then goes to the body. Capture, so a dialog holding the popover does
-  // not close first; an open themed select list takes the key itself.
-  const escape = function(/** @type {KeyboardEvent} */ e) {
-    if (e.key !== 'Escape' || pop.hidden || _selPopover) return;
-    e.stopPropagation();
-    pop.hidden = true;
-    btn.setAttribute('aria-expanded', 'false');
-    btn.focus();
-  };
-  document.addEventListener('keydown', escape, true);
-  // The document outlives the page; a page that unmounts must take its
-  // listener with it.
-  return () => {
-    document.removeEventListener('click', outside);
-    document.removeEventListener('keydown', escape, true);
-  };
-}
-
-// Wire a list-page filter popover end to end: open/close, the "Filters (N)"
-// count on the button, per-select change handlers that write into
-// filters[keyById[id]], the search box, and a Clear button that resets every
-// select + the search. onApply re-renders the list after any change/clear.
-// Shared by the Places, Routes, and History list pages. Returns the cleanup
-// from wirePopover, which a page that unmounts must call.
-/**
- * @param {FilterPopoverOptions} opts
- * @returns {() => void}
- */
+// Wire a filter popover's contents: the active tint on the button,
+// per-select change handlers that write into filters[keyById[id]], the
+// search box, and a Clear button that resets every select + the search.
+// onApply re-renders the list after any change/clear. ui.js opens and closes
+// the popover itself from the button's aria-controls, and closes it on a
+// press outside or Escape, so nothing here outlives the page.
+/** @param {FilterPopoverOptions} opts */
 export function wireFilterPopover(opts) {
-  const { btn, pop, clear, sels, keyById, filters, searchInput, searchKey, onApply, tagOptions, tagsKey, tagMsBtn } = opts;
+  const { btn, clear, sels, keyById, filters, searchInput, searchKey, onApply, tagOptions, tagsKey, tagMsBtn } = opts;
   function tagsActive() { return !!(tagsKey && filters[tagsKey] && filters[tagsKey].length); }
   function syncTagLabel() {
     if (!tagMsBtn) return;
@@ -116,7 +66,6 @@ export function wireFilterPopover(opts) {
     if (_selPopover) { closeSelectPopover(); return; }
     openMultiSelectList(tagMsBtn, tagOptions, () => filters[tagsKey] || [], function(arr) { filters[tagsKey] = arr; apply(); });
   });
-  const cleanup = wirePopover(btn, pop);
   if (clear) clear.addEventListener('click', function() {
     const hasSearch = searchInput && searchInput.value !== '';
     const hasFilter = sels.some(s => s.value !== 'all') || tagsActive();
@@ -128,7 +77,6 @@ export function wireFilterPopover(opts) {
     apply();
   });
   updateLabel();
-  return cleanup;
 }
 
 const chevron = () => html`<span class="section-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>`;
@@ -143,9 +91,10 @@ const panelBody = id =>
   html`<div class="ui-collapse" id=${id + '-section'}><div class="ui-collapse-body"><div class="panel-section-body" id=${id + '-body'}></div></div></div>`;
 
 // The filter panel's markup. The section bodies and the status row stay
-// empty here: refreshFilterPanel fills them, and bindFilterPanel opens and
-// closes the sections in place. Rendered fresh when the control is first
-// added and when a feature is toggled (which adds or removes a tab).
+// empty here: refreshFilterPanel fills them, ui.js opens and closes the
+// sections from their heads, and bindFilterPanel keeps them an accordion.
+// Rendered fresh when the control is first added and when a feature is
+// toggled (which adds or removes a tab).
 export function MapPanel() {
   return html`<div class="panel-search" id="map-search">
       <div class="ui-field"><form class="ui-search" method="dialog">

@@ -1,7 +1,6 @@
 import { addButton, state } from './core.js';
 import { isReadOnly } from './server.js';
 import { listKinds, setPref } from './prefs.js';
-import { wirePopover } from './map/index.js';
 import { _selPopover, closeSelectPopover, enhanceSelectsIn, openMultiSelectList } from './select.js';
 import { listView, listViewOptions } from './history.js';
 import { html, useEffect, useLayoutEffect, useRef, useState } from './view.js';
@@ -79,18 +78,14 @@ export function ListTabs({ current }) {
   </nav>`;
 }
 
-// The popover's open state lives in the DOM (hidden), because wirePopover and
-// the map's overlay closer toggle it there. Preact renders hidden and
-// aria-expanded once and never rewrites them. ui.js opens only a .ui-menu, so a
-// .ui-popover holding selects is still opened by wirePopover.
+// The popover's open state lives in the DOM (hidden), because ui.js opens
+// and closes it from the button's aria-controls. Preact renders hidden and
+// aria-expanded once and never rewrites them.
 /** @param {Record<string, any>} props */
 function FilterPopover({ active, onClear, children }) {
-  const btn = useRef(/** @type {HTMLButtonElement | null} */ (null));
-  const pop = useRef(/** @type {HTMLDivElement | null} */ (null));
-  useEffect(() => wirePopover(btn.current, pop.current), []);
   return html`<div class="filter-dropdown ui-menu-anchor">
-    <button type="button" class=${'filter-btn' + (active ? ' has-active' : '')} id="filter-btn" aria-expanded="false" aria-controls="filter-popover" ref=${btn}>${t('lists.filters')}</button>
-    <div class="filter-popover ui-popover ui-menu-end" id="filter-popover" role="group" aria-label=${t('lists.filters')} hidden ref=${pop}>
+    <button type="button" class=${'filter-btn' + (active ? ' has-active' : '')} id="filter-btn" aria-expanded="false" aria-controls="filter-popover">${t('lists.filters')}</button>
+    <div class="filter-popover ui-popover ui-menu-end" id="filter-popover" role="group" aria-label=${t('lists.filters')} hidden>
       ${children}
       <button type="button" class="filter-clear" id="filter-clear" onClick=${onClear}>${t('lists.clearFilters')}</button>
     </div>

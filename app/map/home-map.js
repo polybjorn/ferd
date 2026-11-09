@@ -722,10 +722,10 @@ function activePanelSection() {
 // section bodies) so they stay put across tab switches; only the leading
 // chip's label swaps Visited<->Completed for the active tab. Hidden when
 // both tabs are collapsed.
-function renderPanelStatus() {
+/** @param {string | null} [active] the open section, read from the DOM when not given */
+function renderPanelStatus(active = activePanelSection()) {
   const el = document.getElementById('panel-status');
   if (!el) return;
-  const active = activePanelSection();
   if (!active) { renderFresh(null, el); el.style.display = 'none'; return; }
   el.style.display = '';
   renderFresh(statusChips(active), el);
@@ -795,23 +795,22 @@ export function bindFilterClicks(el) {
 }
 
 export function bindFilterPanel() {
-  // Section tabs: accordion. Clicking a collapsed tab expands it and
-  // collapses the other; clicking the open tab collapses everything.
+  // Section tabs: an accordion. ui.js opens or closes the clicked section
+  // from its aria-controls, after this listener; this one closes the other
+  // section and renders the status row for the state the click leaves.
   document.querySelectorAll('.panel-head').forEach(function(tab) {
     tab.addEventListener('click', /** @this {HTMLElement} */ function() {
-      const section = document.getElementById(/** @type {string} */ (this.getAttribute('aria-controls')));
+      const id = this.getAttribute('aria-controls') || '';
+      const section = document.getElementById(id);
       if (!section) return;
-      const wasClosed = !section.classList.contains('open');
       document.querySelectorAll('.panel-head').forEach(t => {
+        const other = t.getAttribute('aria-controls') || '';
+        if (other === id) return;
         t.setAttribute('aria-expanded', 'false');
-        const body = document.getElementById(t.getAttribute('aria-controls') || '');
+        const body = document.getElementById(other);
         if (body) body.classList.remove('open');
       });
-      if (wasClosed) {
-        section.classList.add('open');
-        this.setAttribute('aria-expanded', 'true');
-      }
-      renderPanelStatus();
+      renderPanelStatus(section.classList.contains('open') ? null : id.replace(/-section$/, ''));
     });
   });
   ['places-body', 'routes-body', 'panel-status'].forEach(id => {

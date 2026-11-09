@@ -60,6 +60,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Add, Settings and the catalog lists are only as tall as their content, up to the height of the screen. Their top edge stays put, so the tabs and filter box don't move.
 
 ### Fixed
+- A menu opened from a button near the edge of a narrow phone screen, such as a list's View menu, is kept inside the screen instead of running past its edge.
 - The x on close buttons and on the search clear button sits in the middle of the button instead of a few pixels low.
 - Map search results can be picked by keyboard, on the desktop panel and in the phone's search view: the arrow keys move through the results, Enter opens the highlighted one and Escape closes the list. Screen readers now announce the field as a combobox and each result as an option.
 - On a phone with rounded screen corners, the buttons and last row at the bottom of a sheet or full-screen view sit clear of the corners instead of under their curve.

@@ -67,9 +67,8 @@ function BrowseList({ entries }) {
     enhanceSelectsIn(root);
     /** @param {string} id */
     const el = id => /** @type {HTMLElement | null} */ (document.getElementById(id));
-    return wireFilterPopover({
+    wireFilterPopover({
       btn: el('browse-filter-btn'),
-      pop: el('browse-filter-popover'),
       clear: el('browse-clear'),
       sels: /** @type {import('../map/map-panel.js').ValueElement[]} */ (['bf-category', 'bf-country', 'bf-tag'].map(el).filter(Boolean)),
       keyById: { 'bf-category': 'category', 'bf-country': 'country', 'bf-tag': 'tag' },

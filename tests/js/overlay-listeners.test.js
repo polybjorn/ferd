@@ -1,12 +1,10 @@
 'use strict';
-// Runs the real filter popover out of the app modules against a fake document
-// and window that count listeners, and checks that every way of closing it
-// leaves none behind. The context menu closes through ui.js, which adds its
-// listeners once for the page.
+// Runs the filter popover and the map panel's accordion out of the app
+// modules against a fake document. ui.js opens and closes both from their
+// buttons' aria-controls, and adds its listeners once for the page, so the
+// app's part adds none and leaves the clicked panel to it.
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
 const vm = require('node:vm');
 
 const app = require('./app-source');
@@ -46,7 +44,6 @@ function element() {
   });
   return el;
 }
-const outsideEl = element();
 
 function env() {
   const timers = [];
@@ -62,54 +59,58 @@ function env() {
 }
 const count = ctx => ctx.document.ls.length + ctx.window.ls.length;
 
-function filterPopover() {
+test('the filter popover adds no document or window listener and leaves the toggle to ui.js', () => {
   const ctx = env();
-  Object.assign(ctx, {
-    closeTransientOverlays() {}, _selPopover: null, closeSelectPopover() {}, openMultiSelectList() {},
-    btn: element(), pop: element(),
-  });
-  vm.runInContext(`${fn('wirePopover')}
-${fn('wireFilterPopover')}
-globalThis.cleanup = wireFilterPopover({ btn, pop, clear: null, sels: [], keyById: {}, filters: {}, onApply() {} });`, ctx);
-  return ctx;
+  const btn = element(), pop = element();
+  Object.assign(ctx, { _selPopover: null, closeSelectPopover() {}, openMultiSelectList() {}, t: k => k, btn });
+  vm.runInContext(`${fn('wireFilterPopover')}
+globalThis.result = wireFilterPopover({ btn, clear: null, sels: [], keyById: {}, filters: {}, onApply() {} });`, ctx);
+  assert.equal(ctx.result, undefined);
+  ctx.flush();
+  assert.equal(count(ctx), 0);
+  assert.equal(btn.ls.length, 0);
+  assert.equal(pop.hidden, true);
+});
+
+// A panel head and the section its aria-controls names.
+function panelPart(id) {
+  const section = { id, open: false, classList: {
+    contains: c => c === 'open' && section.open,
+    remove: c => { if (c === 'open') section.open = false; },
+  } };
+  const head = target({ attrs: { 'aria-controls': id, 'aria-expanded': 'false' },
+    getAttribute(k) { return this.attrs[k]; }, setAttribute(k, v) { this.attrs[k] = v; } });
+  return { head, section };
 }
 
-test('the filter popover returns a cleanup that removes its document listener', () => {
-  const ctx = filterPopover();
-  assert.equal(typeof ctx.cleanup, 'function');
-  assert.equal(ctx.document.ls.length, 2);
-  ctx.btn.fire('click', { stopPropagation() {} });
-  assert.equal(ctx.pop.hidden, false);
-  ctx.btn.fire('click', { stopPropagation() {} });
-  assert.equal(ctx.pop.hidden, true);
-  ctx.btn.fire('click', { stopPropagation() {} });
-  ctx.document.fire('click', { target: outsideEl });
-  assert.equal(ctx.pop.hidden, true);
-  ctx.cleanup();
-  assert.equal(count(ctx), 0);
-});
+function mapPanel() {
+  const places = panelPart('places-section'), routes = panelPart('routes-section');
+  const status = [];
+  const ctx = {
+    document: {
+      querySelectorAll: sel => (sel === '.panel-head' ? [places.head, routes.head] : []),
+      getElementById: id => [places.section, routes.section].find(s => s.id === id) || null,
+    },
+    renderPanelStatus: a => status.push(a),
+    bindFilterClicks() {},
+  };
+  vm.createContext(ctx);
+  vm.runInContext(`${fn('bindFilterPanel')}\nbindFilterPanel();`, ctx);
+  return { places, routes, status, click: part => { for (const l of part.head.ls) l.f.call(part.head); } };
+}
 
-test('the Browse tab returns the filter popover cleanup from its effect', () => {
-  const src = fs.readFileSync(path.join(__dirname, '..', '..', 'app', 'add', 'browse.js'), 'utf8');
-  assert.match(src, /return wireFilterPopover\(\{/);
-});
-
-test('Escape closes the filter popover and hands focus back', () => {
-  const ctx = filterPopover();
-  ctx.btn.focus = function() { this.focused = true; };
-  ctx.btn.fire('click', { stopPropagation() {} });
-  assert.equal(ctx.pop.hidden, false);
-  let stopped = false;
-  ctx.document.fire('keydown', { key: 'Escape', stopPropagation() { stopped = true; } });
-  assert.equal(ctx.pop.hidden, true);
-  assert.equal(stopped, true);
-  assert.equal(ctx.btn.focused, true);
-  // An open themed select list takes the key and leaves the popover open.
-  ctx.btn.fire('click', { stopPropagation() {} });
-  ctx._selPopover = {};
-  ctx.document.fire('keydown', { key: 'Escape', stopPropagation() {} });
-  assert.equal(ctx.pop.hidden, false);
-  ctx._selPopover = null;
-  ctx.document.fire('keydown', { key: 'ArrowDown', stopPropagation() {} });
-  assert.equal(ctx.pop.hidden, false);
+test('a panel head closes the other section and leaves its own to ui.js', () => {
+  const { places, routes, status, click } = mapPanel();
+  routes.section.open = true;
+  routes.head.attrs['aria-expanded'] = 'true';
+  click(places);
+  assert.equal(routes.section.open, false);
+  assert.equal(routes.head.attrs['aria-expanded'], 'false');
+  assert.equal(places.section.open, false, 'ui.js opens it after this listener');
+  assert.deepEqual(status, ['places']);
+  // The open section's head: the click closes it, so no status row.
+  places.section.open = true;
+  click(places);
+  assert.equal(places.section.open, true, 'ui.js closes it after this listener');
+  assert.deepEqual(status, ['places', null]);
 });

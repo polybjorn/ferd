@@ -1,4 +1,4 @@
-/* ui.js 1.15.0: the behaviour behind the ui.css menu and search blocks, for
+/* ui.js 1.16.0: the behaviour behind the ui.css menu and search blocks, for
    an app that wants it rather than its own.
 
    Load it as a plain deferred script, <script src="ui.js" defer></script>,
@@ -16,7 +16,9 @@
    Arrow keys move through the enabled items and wrap; Home, End and typing
    the start of a label move too. A menu opened inside an open dialog is moved
    into that dialog and placed with .ui-menu-at from its trigger's box, then
-   put back where it was on close.
+   put back where it was on close. An anchored menu that would cross an
+   inline edge of the viewport is shifted back 8px inside it with an inline
+   translate, again on resize while open, and the shift is cleared on close.
 
    uiFoundation.openMenuAt(menu, x, y, origin) opens a menu at a point, for a
    context menu, kept 8px inside the viewport and flipped above or to the
@@ -28,7 +30,61 @@
    fires one input event on its field once the field has cleared, so a filter
    that listens for input alone sees the empty query. A reset from the clear
    button then puts focus in the field, unless a listener moved it somewhere
-   else. A reset the host prevented does neither. */
+   else. A reset the host prevented does neither.
+
+   A .ui-dialog the host opens with showModal() takes three attributes, none
+   needing script of the app's own. data-ui-backdrop closes it on a click that
+   started and ended on the backdrop, as a close request: the dialog's cancel
+   event fires first and a listener that prevents it keeps the dialog open.
+   data-ui-phone="sheet", "fullscreen" or "top" adds ui-dialog-sheet,
+   ui-dialog-fullscreen or ui-dialog-top while the viewport is 600px wide or
+   less, on opening and again when the width crosses that line. Any dialog
+   gets focus back on the element the user last acted on before it opened,
+   when the browser left focus on the page rather than on that element.
+
+   A button with aria-expanded and aria-controls naming a .ui-collapse opens
+   and closes it on click, toggling .open and setting aria-expanded on every
+   button that names it. An app whose own click listener toggles .open is not
+   toggled back, and a click it prevents or stops is left to it. An app that
+   drives the panel from its own state still sets .open itself.
+
+   A button with aria-expanded and aria-controls naming a .ui-popover opens and
+   closes it on click, toggling hidden and setting aria-expanded on every
+   button that names it. A press outside it and Escape close it, Escape
+   returning focus to the opening button; opening a popover or a menu closes
+   the other. A press inside a listbox, menu, tree or grid that a control in
+   the popover has opened (aria-expanded, aria-controls or aria-owns) counts
+   as inside. Escape is read after the page's own handlers, so a control that
+   handles or prevents it keeps it, and a popover in an open modal dialog
+   closes without the dialog. An app whose own click listener toggles hidden
+   is not toggled back, and a click it prevents or stops is left to it.
+
+   A role="tablist" of role="tab" buttons (.ui-tab) selects on click and moves
+   with the arrow keys, Home and End. Left and Right move in the reading
+   direction, so they swap in a right-to-left page; a tablist with
+   aria-orientation="vertical" takes Up and Down instead. Moving wraps, skips
+   a disabled tab and selects the tab it lands on, by clicking it, so an app's
+   own click listener hears a key move too. Selecting sets aria-selected and a
+   roving tabindex on the row and shows the panel each tab's aria-controls
+   names while hiding the others. The markup sets the first state: the tab
+   with aria-selected="true", tabindex="-1" on the rest and hidden on the
+   other panels. An app that sets aria-selected itself, from its own state,
+   is not fought: the script reads the row as it finds it, and a click the
+   app prevents is left to it.
+
+   uiFoundation.toast(text, { action, timeout }) shows a message in one
+   .ui-toast live region that it adds to the body on first use, and replaces
+   whatever toast was showing. action is { label, onClick }: a quiet
+   .ui-button that runs onClick and dismisses the toast. A toast with an
+   action has no timer; one without hides after timeout milliseconds, 4500 by
+   default, and timeout: 0 keeps it until the next toast.
+
+   uiFoundation.confirm({ title, body, confirmLabel, cancelLabel, danger })
+   opens a modal .ui-dialog, a sheet on a phone, and returns a promise of a
+   boolean: true for the confirm button or Enter, false for the cancel
+   button, Escape or a click on the backdrop. danger styles the confirm button
+   as ui-button-danger. Focus starts on the confirm button and returns to the
+   element the user last acted on. title and body are text, never markup. */
 (() => {
   "use strict";
   if (window.uiFoundation) return;
@@ -136,6 +192,26 @@
     put(menu, x, r.bottom + g, altX, r.top - g - h);
   }
 
+  // An anchored menu is placed by ui.css alone, so nothing else keeps it on
+  // screen. The translate is physical, as the measure is, and leaves the
+  // block placement under the trigger. A menu too wide for the viewport keeps
+  // its start edge.
+  /** @param {HTMLElement} menu */
+  function nudge(menu) {
+    menu.style.removeProperty("translate");
+    const vw = document.documentElement.clientWidth;
+    const { left, right } = menu.getBoundingClientRect();
+    let dx = 0;
+    if (getComputedStyle(menu).direction === "rtl") {
+      if (left < EDGE) dx = EDGE - left;
+      if (right + dx > vw - EDGE) dx = vw - EDGE - right;
+    } else {
+      if (right > vw - EDGE) dx = vw - EDGE - right;
+      if (left + dx < EDGE) dx = EDGE - left;
+    }
+    if (dx) menu.style.setProperty("translate", dx + "px 0");
+  }
+
   /**
    * @param {Element} menu
    * @param {"first" | "last"} which
@@ -177,7 +253,7 @@
       if (at) putAtPoint(menu, at.x, at.y);
       // Only openMenu places without a point, and it always has a trigger.
       else putFromTrigger(menu, /** @type {Element} */ (trigger));
-    }
+    } else nudge(menu);
   }
 
   /** @param {boolean} returnFocus */
@@ -192,7 +268,7 @@
     if (s.placed) {
       s.menu.style.removeProperty("--ui-menu-x");
       s.menu.style.removeProperty("--ui-menu-y");
-    }
+    } else s.menu.style.removeProperty("translate");
     if (s.addedAt) s.menu.classList.remove("ui-menu-at");
     if (s.home) {
       const { parent, next } = s.home;
@@ -217,6 +293,7 @@
   function openMenu(trigger, which) {
     const menu = menuOf(trigger);
     if (!menu) return;
+    closePopovers(null);
     show(menu, trigger, null, null);
     focusItem(menu, which);
   }
@@ -228,6 +305,7 @@
    * @param {Element | null} [origin]
    */
   function openMenuAt(menu, x, y, origin) {
+    closePopovers(null);
     const from = origin || document.activeElement;
     show(menu, null, from && from !== document.body ? from : null, { x, y });
     focusItem(menu, "first");
@@ -363,10 +441,15 @@
   });
 
   // A placed menu is fixed, so it would stay put while the page under it
-  // moves.
+  // moves. An anchored one moves with its trigger, and a resize can carry it
+  // across an edge or away from one.
   /** @param {Event} e */
   const dropPlaced = (e) => {
-    if (!current || !current.placed) return;
+    if (!current) return;
+    if (!current.placed) {
+      if (e.type === "resize") nudge(current.menu);
+      return;
+    }
     if (e.type === "scroll" && e.target instanceof Node && current.menu.contains(e.target)) return;
     close(true);
   };
@@ -402,9 +485,450 @@
     });
  }, true);
 
+  // The width ui.css leaves to the host: below it a dialog is a phone's.
+  const PHONE = window.matchMedia("(max-width: 600px)");
+  /** @type {Record<string, string>} */
+  const PHONE_CLASS = { sheet: "ui-dialog-sheet", fullscreen: "ui-dialog-fullscreen", top: "ui-dialog-top" };
+
+  // What a dialog was opened from, and the class placeDialog added, so a
+  // close can return focus and a width change can take the class away
+  // without touching one the host wrote itself.
+  /** @type {WeakMap<Element, Element | null>} */
+  const openers = new WeakMap();
+  /** @type {WeakMap<Element, string>} */
+  const placedAs = new WeakMap();
+  /** @type {Element | null} */
+  let lastActed = null;
+  /** @type {Element | null} */
+  let pressedOn = null;
+
+  /** @param {HTMLElement} dialog */
+  function placeDialog(dialog) {
+    const was = placedAs.get(dialog);
+    const want = PHONE.matches ? PHONE_CLASS[dialog.dataset.uiPhone || ""] : undefined;
+    if (was === want) return;
+    if (was) dialog.classList.remove(was);
+    if (want) dialog.classList.add(want);
+    if (want) placedAs.set(dialog, want);
+    else placedAs.delete(dialog);
+  }
+
+  /** @param {HTMLDialogElement} dialog */
+  function opened(dialog) {
+    const from = lastActed && !dialog.contains(lastActed) && lastActed.isConnected ? lastActed : null;
+    openers.set(dialog, from);
+    placeDialog(dialog);
+  }
+
+  // The element to return to is the one last focused or clicked, since Safari
+  // does not focus a button on a click. Focus that showModal() moves into the
+  // dialog being opened is skipped: it has no opener recorded yet.
+  document.addEventListener("focusin", (e) => {
+    if (!(e.target instanceof Element)) return;
+    const d = e.target.closest("dialog.ui-dialog[open]");
+    if (d && !openers.has(d)) return;
+    lastActed = e.target;
+  }, true);
+  document.addEventListener("click", (e) => {
+    if (e.target instanceof Element) lastActed = e.target.closest("button, a[href], summary, input, select, textarea, [tabindex]") || lastActed;
+  }, true);
+
+  new MutationObserver((records) => {
+    for (const r of records) {
+      const d = r.target;
+      if (d instanceof HTMLDialogElement && d.classList.contains("ui-dialog") && d.open && !openers.has(d)) opened(d);
+    }
+  }).observe(document, { attributes: true, attributeFilter: ["open"], subtree: true });
+  for (const d of document.querySelectorAll("dialog.ui-dialog[open]")) opened(/** @type {HTMLDialogElement} */ (d));
+
+  PHONE.addEventListener("change", () => {
+    for (const d of document.querySelectorAll("dialog.ui-dialog[open][data-ui-phone]")) placeDialog(/** @type {HTMLElement} */ (d));
+  });
+
+  // The close event does not bubble, so only capture sees it. Browsers that
+  // restore focus have done so by now; one that left it on the page does not
+  // get it moved, nor does a dialog whose choice moved focus elsewhere.
+  document.addEventListener("close", (e) => {
+    const d = e.target;
+    if (!(d instanceof HTMLDialogElement) || !openers.has(d)) return; // only .ui-dialog is ever recorded
+    const to = /** @type {HTMLElement | null} */ (openers.get(d));
+    openers.delete(d);
+    const at = document.activeElement;
+    if (to && to.isConnected && (!at || at === document.body || d.contains(at))) to.focus({ preventScroll: true });
+  }, true);
+
+  // A click on the backdrop lands on the dialog itself, as does a drag that
+  // starts in a field and ends outside the box, so the press has to start
+  // there too. Padding is also the dialog itself, hence the box test.
+  document.addEventListener("pointerdown", (e) => {
+    pressedOn = e.target instanceof Element ? e.target : null;
+  }, true);
+  document.addEventListener("click", (e) => {
+    const d = e.target;
+    const pressed = pressedOn;
+    pressedOn = null;
+    if (!(d instanceof HTMLDialogElement) || pressed !== d || !d.open || !d.classList.contains("ui-dialog") || !d.hasAttribute("data-ui-backdrop")) return;
+    const r = d.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) return;
+    // requestClose() is newer than showModal(); the fallback does by hand
+    // what it does, so a cancel listener can still keep the dialog open.
+    if (typeof d.requestClose === "function") d.requestClose();
+    else if (d.dispatchEvent(new Event("cancel", { cancelable: true }))) d.close();
+  }, true);
+
+  // A collapse trigger is any button whose aria-controls names a .ui-collapse;
+  // a menu trigger names a .ui-menu, so the two never overlap.
+  /**
+   * @param {Element} button
+   * @returns {HTMLElement | null}
+   */
+  function collapseOf(button) {
+    const id = button.getAttribute("aria-controls");
+    const el = id && document.getElementById(id);
+    return el && el.classList.contains("ui-collapse") ? el : null;
+  }
+
+  // The state at the click, read in capture, so an app whose own click
+  // listener toggles .open already is not toggled back by the bubbling one.
+  // A click the app prevents, or stops before it reaches the document, is
+  // left to the app.
+  /** @type {{ button: Element, panel: HTMLElement, was: boolean } | null} */
+  let toggling = null;
+  document.addEventListener("click", (e) => {
+    toggling = null;
+    const button = e.target instanceof Element && e.target.closest("button[aria-controls]");
+    const panel = button && collapseOf(button);
+    if (button && panel) toggling = { button, panel, was: panel.classList.contains("open") };
+  }, true);
+  document.addEventListener("click", (e) => {
+    const t = toggling;
+    toggling = null;
+    if (!t || e.defaultPrevented || !t.button.isConnected) return;
+    // Whether or not the app's listener toggled it, the click means the
+    // opposite of what the panel was at the press.
+    const open = !t.was;
+    t.panel.classList.toggle("open", open);
+    for (const b of document.querySelectorAll("button[aria-controls]")) {
+      if (b.getAttribute("aria-controls") === t.panel.id) b.setAttribute("aria-expanded", String(open));
+    }
+  });
+
+  // A popover trigger is a button whose aria-controls names a .ui-popover; a
+  // menu trigger names a .ui-menu and a collapse trigger a .ui-collapse.
+  // Unlike the menu, a popover holds form fields, so it takes no arrow keys,
+  // Home, End or type-ahead, and Tab moves on inside and out of it.
+  // Popups a control inside the popover opens, such as a themed select's
+  // list, are mounted elsewhere in the page.
+  const POPUP = '[role="listbox"], [role="menu"], [role="tree"], [role="grid"]';
+
+  /**
+   * @param {Element} pop
+   * @returns {HTMLButtonElement[]}
+   */
+  function triggersOf(pop) {
+    if (!pop.id) return [];
+    return [.../** @type {NodeListOf<HTMLButtonElement>} */ (document.querySelectorAll(`button[aria-controls="${CSS.escape(pop.id)}"]`))];
+  }
+
+  /**
+   * @param {Element} button
+   * @returns {HTMLElement | null}
+   */
+  function popoverOf(button) {
+    const id = button.getAttribute("aria-controls");
+    const el = id && document.getElementById(id);
+    return el && el.classList.contains("ui-popover") ? el : null;
+  }
+
+  // Only a popover with a trigger is ours: a bare one is the app's.
+  /** @returns {HTMLElement[]} */
+  const openPopovers = () => [.../** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll(".ui-popover:not([hidden])"))]
+    .filter((p) => triggersOf(p).length > 0);
+
+  /** @type {WeakMap<Element, Element>} */
+  const popoverOpener = new WeakMap();
+
+  /**
+   * @param {HTMLElement} pop
+   * @param {boolean} open
+   */
+  function setPopover(pop, open) {
+    pop.hidden = !open;
+    for (const b of triggersOf(pop)) b.setAttribute("aria-expanded", String(open));
+  }
+
+  // Opening one overlay closes the others, as a menu does.
+  /** @param {Element | null} except */
+  function closePopovers(except) {
+    for (const p of openPopovers()) if (p !== except) setPopover(p, false);
+  }
+
+  // Whether a press at target is in a popup that a control of the popover
+  // has opened: one named by aria-controls or aria-owns, or any listbox,
+  // menu, tree or grid while one of its controls is aria-expanded.
+  /**
+   * @param {HTMLElement} pop
+   * @param {Element} target
+   */
+  function ownsPopup(pop, target) {
+    const popup = target.closest(POPUP);
+    if (!popup) return false;
+    return [...pop.querySelectorAll('[aria-expanded="true"], [aria-controls], [aria-owns]')].some((c) =>
+      c.getAttribute("aria-expanded") === "true"
+      || (popup.id !== "" && (c.getAttribute("aria-controls") === popup.id || c.getAttribute("aria-owns") === popup.id)));
+  }
+
+  // Read in capture, as the collapse does, so an app whose own click listener
+  // toggles hidden is not toggled back, and a click it stops or prevents is
+  // left to it.
+  /** @type {{ button: Element, pop: HTMLElement, was: boolean } | null} */
+  let popToggling = null;
+  document.addEventListener("click", (e) => {
+    popToggling = null;
+    const button = e.target instanceof Element && e.target.closest("button[aria-controls]");
+    const pop = button && popoverOf(button);
+    if (button && pop) popToggling = { button, pop, was: !pop.hidden };
+  }, true);
+  document.addEventListener("click", (e) => {
+    const t = popToggling;
+    popToggling = null;
+    if (!t || e.defaultPrevented || !t.button.isConnected) return;
+    const open = !t.was;
+    if (open) {
+      close(false);
+      closePopovers(t.pop);
+      popoverOpener.set(t.pop, t.button);
+    }
+    setPopover(t.pop, open);
+  });
+
+  // A press outside closes the popover and leaves focus to where the press
+  // lands, unless it was inside the popover, which then returns it to the
+  // trigger.
+  document.addEventListener("pointerdown", (e) => {
+    const target = e.target instanceof Element ? e.target : null;
+    for (const pop of openPopovers()) {
+      if (target && (pop.contains(target) || triggersOf(pop).some((b) => b.contains(target)) || ownsPopup(pop, target))) continue;
+      const hadFocus = pop.contains(document.activeElement);
+      setPopover(pop, false);
+      const to = popoverOpener.get(pop) || triggersOf(pop)[0];
+      if (hadFocus && to instanceof HTMLElement && to.isConnected) to.focus({ preventScroll: true });
+    }
+  }, true);
+
+  // Bubble phase, so a control inside the popover that takes Escape first,
+  // such as an open themed select, ends the event before this sees it, and
+  // so does one that only prevents it. On the document, since a button tapped
+  // in Safari takes no focus and the key then goes to the body. Preventing
+  // the default keeps an open modal dialog from closing with the popover.
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || e.defaultPrevented) return;
+    const open = openPopovers();
+    if (!open.length) return;
+    e.preventDefault();
+    const first = open[0];
+    for (const pop of open) setPopover(pop, false);
+    const to = popoverOpener.get(first) || triggersOf(first)[0];
+    if (to instanceof HTMLElement && to.isConnected) to.focus({ preventScroll: true });
+  });
+
+  // A tab belongs to the nearest tablist, so a tablist inside a panel of
+  // another keeps its own tabs.
+  /**
+   * @param {Element} tablist
+   * @returns {HTMLElement[]}
+   */
+  function tabsOf(tablist) {
+    return [...tablist.querySelectorAll('[role="tab"]')].filter(
+      (t) => t.closest('[role="tablist"]') === tablist,
+    ).map((t) => /** @type {HTMLElement} */ (t));
+  }
+
+  /** @param {HTMLElement} tab */
+  function selectTab(tab) {
+    const tablist = tab.closest('[role="tablist"]');
+    if (!tablist) return;
+    for (const t of tabsOf(tablist)) {
+      const on = t === tab;
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+      const id = t.getAttribute("aria-controls");
+      const panel = id && document.getElementById(id);
+      if (panel) panel.hidden = !on;
+    }
+  }
+
+  /** @param {EventTarget | null} target */
+  function tabFrom(target) {
+    const tab = target instanceof Element && target.closest('[role="tab"]');
+    return tab && tab.closest('[role="tablist"]') ? /** @type {HTMLElement} */ (tab) : null;
+  }
+
+  /** @param {Element} el */
+  const tabEnabled = (el) => !(/** @type {HTMLButtonElement} */ (el).disabled) && el.getAttribute("aria-disabled") !== "true";
+
+  document.addEventListener("click", (e) => {
+    const tab = tabFrom(e.target);
+    if (tab && !e.defaultPrevented && tabEnabled(tab)) selectTab(tab);
+  });
+
+  document.addEventListener("keydown", (e) => {
+    const tab = tabFrom(e.target);
+    if (!tab || e.defaultPrevented || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
+    const tablist = /** @type {Element} */ (tab.closest('[role="tablist"]'));
+    const vertical = tablist.getAttribute("aria-orientation") === "vertical";
+    const rtl = getComputedStyle(tablist).direction === "rtl";
+    const step = vertical
+      ? { ArrowDown: 1, ArrowUp: -1 }[e.key]
+      : { ArrowRight: rtl ? -1 : 1, ArrowLeft: rtl ? 1 : -1 }[e.key];
+    const all = tabsOf(tablist).filter(tabEnabled);
+    if (!all.length) return;
+    let next;
+    if (step) {
+      const at = all.indexOf(tab);
+      // A disabled tab holding focus is not in the list: start from the end the key points at.
+      next = at < 0 ? (step > 0 ? all[0] : all[all.length - 1]) : all[(at + step + all.length) % all.length];
+    } else if (e.key === "Home") next = all[0];
+    else if (e.key === "End") next = all[all.length - 1];
+    if (!next) return;
+    e.preventDefault();
+    if (next === tab) return;
+    next.focus();
+    next.click();
+  });
+
+  // One toast element serves every call, so there is one live region and one
+  // toast at a time. The first call adds it hidden and empty and fills it a
+  // moment later, since text already in a region when it arrives is often not
+  // announced.
+  const TOAST_MS = 4500;
+  const TOAST_ANNOUNCE_MS = 100;
+  /** @type {HTMLElement | null} */
+  let toastEl = null;
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  let toastTimer = null;
+  let toastSeq = 0;
+
+  function dismissToast() {
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = null;
+    toastSeq++;
+    if (!toastEl) return;
+    toastEl.hidden = true;
+    toastEl.replaceChildren();
+  }
+
+  /**
+   * @param {string} text
+   * @param {{ action?: { label: string, onClick?: () => void }, timeout?: number }} [options]
+   */
+  function toast(text, options) {
+    const { action, timeout = TOAST_MS } = options || {};
+    const fresh = !toastEl;
+    if (!toastEl) {
+      toastEl = document.createElement("div");
+      toastEl.className = "ui-toast";
+      toastEl.setAttribute("role", "status");
+      toastEl.hidden = true;
+      document.body.append(toastEl);
+    }
+    const el = toastEl;
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = null;
+    const seq = ++toastSeq;
+    const show = () => {
+      if (seq !== toastSeq) return;
+      const span = document.createElement("span");
+      span.textContent = text;
+      el.replaceChildren(span);
+      if (action) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "ui-button ui-button-quiet";
+        button.textContent = action.label;
+        button.addEventListener("click", () => {
+          try {
+            if (action.onClick) action.onClick();
+          } finally {
+            if (seq === toastSeq) dismissToast();
+          }
+        });
+        el.append(button);
+      }
+      el.hidden = false;
+      if (!action && timeout > 0) toastTimer = setTimeout(dismissToast, timeout);
+    };
+    if (fresh) setTimeout(show, TOAST_ANNOUNCE_MS);
+    else show();
+  }
+
+  /**
+   * @param {{ title: string, body?: string, confirmLabel?: string, cancelLabel?: string, danger?: boolean }} options
+   * @returns {Promise<boolean>}
+   */
+  function confirm({ title, body, confirmLabel, cancelLabel, danger }) {
+    const dialog = document.createElement("dialog");
+    dialog.className = "ui-dialog";
+    dialog.dataset.uiBackdrop = "";
+    dialog.dataset.uiPhone = "sheet";
+    const handle = document.createElement("div");
+    handle.className = "ui-dialog-handle";
+    handle.setAttribute("aria-hidden", "true");
+    const head = document.createElement("div");
+    head.className = "ui-dialog-head";
+    const heading = document.createElement("h2");
+    heading.className = "ui-dialog-title";
+    heading.id = `ui-confirm-${++confirms}`;
+    heading.textContent = title;
+    head.append(heading);
+    dialog.setAttribute("aria-labelledby", heading.id);
+    const content = document.createElement("div");
+    content.className = "ui-dialog-body";
+    if (body) {
+      const text = document.createElement("p");
+      text.textContent = body;
+      content.append(text);
+    }
+    const actions = document.createElement("div");
+    actions.className = "ui-dialog-actions";
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "ui-button";
+    cancel.textContent = cancelLabel || "Cancel";
+    const ok = document.createElement("button");
+    ok.type = "button";
+    ok.className = `ui-button ${danger ? "ui-button-danger" : "ui-button-primary"}`;
+    ok.textContent = confirmLabel || "Confirm";
+    actions.append(cancel, ok);
+    dialog.append(handle, head, content, actions);
+
+    return new Promise((resolve) => {
+      cancel.addEventListener("click", () => dialog.close("cancel"));
+      ok.addEventListener("click", () => dialog.close("confirm"));
+      // Enter on a button is that button's click, so only a press elsewhere,
+      // in the text, is read as the confirm.
+      dialog.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter" || e.defaultPrevented || e.target instanceof HTMLButtonElement) return;
+        e.preventDefault();
+        dialog.close("confirm");
+      });
+      dialog.addEventListener("close", () => {
+        resolve(dialog.returnValue === "confirm");
+        dialog.remove();
+      });
+      document.body.append(dialog);
+      dialog.showModal();
+      ok.focus();
+    });
+  }
+
+  let confirms = 0;
+
   window.uiFoundation = Object.freeze({
+    confirm,
     openMenu: (trigger) => openMenu(trigger, "first"),
     openMenuAt,
     closeMenu: () => close(true),
+    toast,
   });
 })();

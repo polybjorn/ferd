@@ -241,6 +241,9 @@ function openSelectList(sel) {
 
   optEls[activeIdx()].classList.add('active');
   optEls[activeIdx()].scrollIntoView({ block: 'nearest' });
+  // An enclosing ui.js popover counts a press in this list as inside only
+  // while a control of its own reads aria-expanded="true".
+  sel.setAttribute('aria-expanded', 'true');
 
   let typeBuf = '', typeTimer = /** @type {ReturnType<typeof setTimeout> | undefined} */ (undefined);
   const onKey = (/** @type {KeyboardEvent} */ e) => {
@@ -265,7 +268,7 @@ function openSelectList(sel) {
       }
     }
   };
-  armSelectPopover(pop, sel, onKey);
+  armSelectPopover(pop, sel, onKey, () => sel.setAttribute('aria-expanded', 'false'));
 }
 
 /**

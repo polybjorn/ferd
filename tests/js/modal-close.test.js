@@ -15,8 +15,8 @@ function fn(name) {
 }
 const ctx = { modalStack: [] };
 vm.createContext(ctx);
-vm.runInContext(`${fn('closeOnBackdropClick')}\n${fn('requestCloseTopModal')}\nglobalThis.__g = { requestCloseTopModal, closeOnBackdropClick };`, ctx);
-const { closeOnBackdropClick, requestCloseTopModal } = ctx.__g;
+vm.runInContext(`${fn('closeOnBackdropClick')}\n${fn('requestCloseTopModal')}\n${fn('escClose')}\nglobalThis.__g = { requestCloseTopModal, closeOnBackdropClick, escClose };`, ctx);
+const { closeOnBackdropClick, requestCloseTopModal, escClose } = ctx.__g;
 
 function dialog() {
   const d = { closes: 0, on: {}, addEventListener(type, f) { this.on[type] = f; } };
@@ -60,6 +60,21 @@ test('a close request goes to the top modal and reports that it did', () => {
   assert.equal(requestCloseTopModal(), true);
   assert.deepEqual(closed, ['top']);
   ctx.modalStack.length = 0;
+});
+
+test('Escape a popover in the dialog already took leaves the dialog open', () => {
+  const closed = [];
+  ctx.modalStack.push({ onClose: () => closed.push('top') });
+  try {
+    let prevented = false;
+    escClose({ key: 'Escape', defaultPrevented: true, preventDefault() { prevented = true; } });
+    assert.deepEqual(closed, []);
+    escClose({ key: 'Escape', defaultPrevented: false, preventDefault() { prevented = true; } });
+    assert.deepEqual(closed, ['top']);
+    assert.equal(prevented, true);
+  } finally {
+    ctx.modalStack.length = 0;
+  }
 });
 
 test('a close request with no modal open reports false, so the app can go back', () => {

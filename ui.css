@@ -1,4 +1,4 @@
-/* ui.css 1.15.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.16.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -20,8 +20,8 @@
         --ui-border, --ui-accent, --ui-on-accent, --ui-danger,
         --ui-success, --ui-warning
       --ui-on-accent is the text on an accent fill. --ui-success colours
-      .ui-badge-success, and --ui-warning is for the host's own status marks
-      and text; like --ui-danger they stay legible as text.
+      .ui-badge-success, --ui-warning colours .ui-badge-warn and is also for
+      the host's own status marks and text; like --ui-danger they stay legible as text.
    3. Override any size token in a host layer. The names are shared; the
       values are per app. Each scale is a short list for the host's own CSS
       to move onto, as well as what the blocks use:
@@ -33,9 +33,10 @@
         stacking  --ui-z-raised, -sticky, -dropdown, -modal, -popover, -toast,
                   in that order from the page up
         dialog    --ui-dialog-width, --ui-dialog-max-height,
-                  --ui-dialog-border, --ui-backdrop, --ui-shadow; a host sets
+                  --ui-dialog-top, --ui-dialog-border, --ui-backdrop, --ui-shadow; a host sets
                   --ui-dialog-width or --ui-dialog-max-height on a dialog's own
-                  class to size that one. --ui-dialog-border draws the frame
+                  class to size that one, and --ui-dialog-top to hold it that
+                  far from the top edge instead of centred. --ui-dialog-border draws the frame
                   and the lines around the head and actions, and follows
                   --ui-border until a host maps it, because a control's border
                   has to stand out against its surface and a frame does not.
@@ -93,12 +94,21 @@
    .ui-button-icon-round makes the square a circle. A filled icon button,
    such as a settings gear on a disc, sets --ui-button-fill on the host's
    own class rather than a background, so the button keeps its states.
-   A colour on hover, such as danger on a delete, stays in the host. --ui-button-icon-size sets the
-   square's side, --ui-control-height when unset; under a coarse pointer the
-   side never drops below --ui-touch-target. --ui-button-display sets any
+   --ui-button-hover-color sets a quiet button's text colour on hover,
+   --ui-text when unset, so a delete can turn danger and an edit accent;
+   the ring on a button that is not quiet stays currentColor.
+   --ui-button-icon-size sets the square's side, --ui-control-height when
+   unset; under a coarse pointer the side never drops below
+   --ui-touch-target. --ui-button-glyph-size sets the icon's side, 1.25rem
+   when unset. --ui-button-display sets any
    .ui-button's display, inline-flex when unset, so a host can set it to none
    in a media query to show a button in one layout only; the hidden
    attribute still hides the button whatever the token says.
+
+   Text button contract: .ui-button-text on a .ui-button draws it as text,
+   with no border or fill, in the accent colour and underlined on hover.
+   --ui-button-color picks another colour, such as var(--ui-muted) for a
+   quiet link. It keeps the button's focus ring and touch target.
 
    List contract: a .ui-list-item is a bordered row on an <li>, an <a> or a
    <button>: an <li> is static, an <a> goes to a place, a <button> acts and
@@ -117,6 +127,20 @@
    inset shadow inside the border, so a striped row's text lines up with an
    unstriped one, and hover and pressed keep the stripe. Forced colours drop
    the shadow and the colour, so the row's text says the status too.
+   --ui-list-item-radius, --ui-list-item-text-size and --ui-list-item-gap set
+   the corner, the font size and the gap between a row's children, falling
+   back to --ui-radius, --ui-text-sm and --ui-space-3. The chosen row's tint
+   mixes the accent into --ui-list-item-fill, so a row filled by the host
+   keeps that fill under the tint.
+
+   Card contract: a .ui-card is a bordered tile that holds whatever the app
+   puts in it, on a <div> or <li> for a static one, an <a> for one that goes
+   to a place or a <button> for one that acts. Only an <a> or <button> reacts,
+   drawing the accent line on hover. aria-pressed="true" or any aria-current
+   other than "false" marks the chosen one with the accent line and a tint of
+   it. Its inner layout, a thumbnail beside the text or on top of it, stays in
+   the host, as do the space between cards and a dimmed state.
+   --ui-card-padding sets the padding, --ui-space-3 --ui-space-4 when unset.
 
    Dialog contract: open a .ui-dialog with showModal(), never show() or the
    open attribute, because only showModal() gives the top layer and an inert
@@ -131,7 +155,7 @@
    .ui-dialog-sheet, .ui-dialog-top and .ui-dialog-fullscreen change where a
    dialog sits and
    nothing about how it opens or closes, so a host picks one per screen size
-   when it opens the dialog.
+   when it opens the dialog, or sets data-ui-phone and lets ui.js pick.
 
    Bottom bar contract: the bar sets no position. A host puts it where the
    layout ends, in the flow below a full-height column or fixed to the
@@ -146,15 +170,16 @@
 
    Toast contract: a .ui-toast is fixed and centred near the bottom edge,
    above the bottom bar, and the host's script shows and hides it by toggling
-   hidden, as it does a menu; ui.js does not. Showing it plays a short entry
+   hidden, as it does a menu, or calls uiFoundation.toast(), which adds one
+   toast and times it. Showing it plays a short entry
    animation, which reduced motion drops. It is a live region, so it carries
    role="status" and is in the page, hidden and empty, before its text is
    set; a toast added to the page already holding its text is often not
    announced. A toast that holds an action, such as a prompt to reload for an
    update, must not time out, since a timer would take the action away from
    whoever has not reached it yet; the host dismisses it when the action is
-   taken or declined. A toast with text only may time out, and that timer is
-   the host's. Its bottom edge sits --ui-space-3 above the bar, using
+   taken or declined; toast() sets no timer for one. A toast with text only
+   may time out, and that timer is the host's or toast()'s. Its bottom edge sits --ui-space-3 above the bar, using
    --ui-bottom-bar-space. A host with a floating bar sets
    --ui-bottom-bar-space: var(--ui-bottom-bar-float-space) in its own layer,
    and one with no bar, or none at a breakpoint, sets it to 0px, where the
@@ -171,7 +196,8 @@
    role="menu", and each .ui-menu-item has role="menuitem",
    "menuitemcheckbox" or "menuitemradio", with aria-checked on the last two.
    A listbox has role="listbox" with option items and aria-selected. A
-   .ui-popover holds a form or text, and its trigger has no aria-haspopup.
+   .ui-popover holds a form or text, and its trigger has no aria-haspopup;
+   ui.js opens and closes it from the trigger's aria-expanded and aria-controls.
    .ui-menu-at opens a menu at a point, for a context menu, at
    --ui-menu-x and --ui-menu-y; a menu inside a dialog uses it too, placed
    from its trigger's box, so the dialog's scrolling body does not clip it.
@@ -183,11 +209,11 @@
    route or a view, and marks the one in view: aria-current="page" on a link,
    as the bottom bar does, or aria-pressed="true" on a button. The row scrolls
    sideways when its tabs do not fit, and a tab's label never wraps. That is
-   all it does: an app that shows panels in place gives the row
+   all the CSS does: an app that shows panels in place gives the row
    role="tablist", each tab role="tab" with aria-selected and aria-controls,
-   and each panel role="tabpanel", and writes the arrow-key focus itself,
-   since ui.js does not. aria-selected="true" draws the same mark, so the
-   look holds when an app adds those roles.
+   and each panel role="tabpanel", and ui.js then moves the arrow-key focus
+   and swaps the panels from that markup. aria-selected="true" draws the same
+   mark as aria-pressed.
 
    Collapse contract: a .ui-disclosure on <details>, with a <summary> as its
    first child, is the default for a section that opens and closes, since it
@@ -203,14 +229,28 @@
    reader hears what the fill shows; flipping it is the host's code. A
    .ui-badge is a static label with no state of its own. .ui-badge-pill
    rounds its ends, and .ui-badge-success draws its text and line in
-   --ui-success, for a label that marks something current or done; its
-   words carry that, never the colour alone. A .ui-dot takes its
+   --ui-success, for a label that marks something current or done.
+   .ui-badge-warn does the same in --ui-warning, for something waiting or
+   unsaved, and .ui-badge-accent draws the accent on a light tint of it, for
+   something chosen or configured. The words carry the meaning, never the
+   colour alone. A .ui-dot takes its
    colour from --ui-dot-color, set by the host on the dot or an ancestor, and
    falls back to --ui-muted. Colour alone carries nothing to a screen reader
    or in forced colours, where every dot draws in the text colour, so the
    state a dot marks needs text beside it or an aria-label on it with
    role="img". Any animation on these, such as a pulse on a change, stays in
    the host.
+
+   Meter contract: a .ui-meter is a <meter> or a <progress> with its value
+   (and max, when it is not 1) set, so the fill's width is the element's own
+   and no inline style is needed. Give it an accessible name with a label or
+   aria-label, since the bar alone says nothing to a screen reader. A <meter>
+   with low, high and optimum draws the browser's sub-optimum fill in
+   --ui-warning and the worst in --ui-danger; a <progress> has no such state,
+   so .ui-meter-warn and .ui-meter-danger set the fill on either, and win over
+   the browser's. Forced colours draw every fill alike, so the number or the
+   words beside the bar carry the state. A <progress> without a value is
+   indeterminate, which only Firefox draws, so set one.
 
    Search contract: a .ui-search is a <form> inside a .ui-field that holds
    one <input type="search"> with a placeholder, then a .ui-search-clear
@@ -816,7 +856,21 @@
     box-shadow: inset 0 0 0 1px currentColor;
   }
   .ui-button-quiet:where(:not(:disabled, [aria-disabled="true"])):hover {
-    color: var(--ui-text);
+    color: var(--ui-button-hover-color, var(--ui-text));
+    box-shadow: none;
+  }
+  /* Reads as a link in the text colour of --ui-button-color, accent when
+     unset. The block size and the border width stay, so it keeps the touch
+     target and the layout of the other looks. */
+  .ui-button-text {
+    padding: var(--ui-button-padding, var(--ui-space-1) 0);
+    color: var(--ui-button-color, var(--ui-accent));
+    background: var(--ui-button-fill, transparent);
+    border-color: transparent;
+    text-underline-offset: 0.2em;
+  }
+  .ui-button-text:where(:not(:disabled, [aria-disabled="true"])):hover {
+    text-decoration: underline;
     box-shadow: none;
   }
   .ui-button:focus-visible {
@@ -933,6 +987,18 @@
     color: var(--ui-success);
     border-color: var(--ui-success);
   }
+  .ui-badge-warn {
+    color: var(--ui-warning);
+    border-color: var(--ui-warning);
+  }
+  /* The tint is a share of the accent over the surface, so it follows both
+     themes, and the text keeps the accent's own contrast on the plain surface
+     with a margin for the tint. */
+  .ui-badge-accent {
+    color: var(--ui-accent);
+    background: color-mix(in srgb, var(--ui-accent) 8%, var(--ui-surface));
+    border-color: color-mix(in srgb, var(--ui-accent) 40%, var(--ui-surface));
+  }
 
   /* block: list-item */
   /* A row is one bordered box with its text and an optional trailing cell, so
@@ -943,7 +1009,7 @@
   .ui-list-item {
     display: var(--ui-list-item-display, flex);
     align-items: center;
-    gap: var(--ui-space-3);
+    gap: var(--ui-list-item-gap, var(--ui-space-3));
     box-sizing: border-box;
     inline-size: 100%;
     min-inline-size: 0;
@@ -951,7 +1017,7 @@
     min-block-size: var(--ui-list-item-size, auto);
     padding: var(--ui-list-item-padding, var(--ui-space-2) var(--ui-space-3));
     font: inherit;
-    font-size: var(--ui-text-sm);
+    font-size: var(--ui-list-item-text-size, var(--ui-text-sm));
     text-align: start;
     text-decoration: none;
     list-style: none;
@@ -959,7 +1025,7 @@
     background: var(--ui-list-item-fill, var(--ui-surface));
     border: 1px solid var(--ui-list-item-border, var(--ui-border));
     border-inline-start-color: var(--ui-list-item-stripe, var(--ui-list-item-border, var(--ui-border)));
-    border-radius: var(--ui-radius);
+    border-radius: var(--ui-list-item-radius, var(--ui-radius));
     box-shadow: inset calc(var(--ui-list-item-stripe-width, 3px) - 1px) 0 0 var(--ui-list-item-stripe, transparent);
   }
   /* A shadow has no logical offset, so a right-to-left row flips it. */
@@ -982,7 +1048,7 @@
     outline-offset: var(--ui-focus-width);
   }
   .ui-list-item[aria-pressed="true"] {
-    background: color-mix(in srgb, var(--ui-accent) 12%, var(--ui-surface));
+    background: color-mix(in srgb, var(--ui-accent) 12%, var(--ui-list-item-fill, var(--ui-surface)));
     border-color: var(--ui-accent);
     border-inline-start-color: var(--ui-list-item-stripe, var(--ui-accent));
   }
@@ -1000,6 +1066,109 @@
     color: var(--ui-list-head-color, var(--ui-muted));
     overflow-wrap: anywhere;
   }
+
+  /* block: card */
+  /* A card is a panel that becomes a control when it is a link or a button,
+     so the same box serves a static tile, a link and a pick. The selected
+     fill is a tint of the accent that keeps --ui-text on --ui-surface
+     readable. Its inside is the host's: thumbnails and rows of meta differ
+     per app. */
+  .ui-card {
+    display: var(--ui-card-display, block);
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-inline-size: 0;
+    min-block-size: var(--ui-card-size, auto);
+    margin: 0;
+    padding: var(--ui-card-padding, var(--ui-space-3) var(--ui-space-4));
+    font: inherit;
+    text-align: start;
+    text-decoration: none;
+    list-style: none;
+    overflow-wrap: anywhere;
+    color: var(--ui-card-color, var(--ui-text));
+    background: var(--ui-card-fill, var(--ui-surface));
+    border: 1px solid var(--ui-card-border, var(--ui-border));
+    border-radius: var(--ui-radius);
+    transition: border-color var(--ui-duration-fast);
+  }
+  :is(a, button).ui-card { cursor: pointer; }
+  :is(a, button).ui-card:where(:not(:disabled, [aria-disabled="true"])):hover {
+    border-color: var(--ui-accent);
+  }
+  :is(a, button).ui-card:focus-visible {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: var(--ui-focus-width);
+  }
+  .ui-card:is([aria-pressed="true"], [aria-current]:not([aria-current="false"])) {
+    background: color-mix(in srgb, var(--ui-accent) 12%, var(--ui-surface));
+    border-color: var(--ui-accent);
+  }
+  .ui-card:is(:disabled, [aria-disabled="true"]) {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* block: kv */
+  /* A <dl> of labelled values. The default lays each pair on one row under a
+     divider, label first, value filling the rest and an optional trailing end
+     cell; ui-kv-tiles lays them out as bordered tiles in a grid, the label
+     over the value. Both are one grid per pair, so the end cell and a long
+     value share a row with the text, never overlap it. */
+  .ui-kv {
+    display: grid;
+    gap: var(--ui-kv-gap, 0);
+    margin: 0;
+    padding: 0;
+  }
+  .ui-kv-tiles {
+    grid-template-columns: repeat(auto-fit, minmax(min(8rem, 100%), 1fr));
+    gap: var(--ui-kv-gap, var(--ui-space-3));
+  }
+  .ui-kv-item {
+    display: var(--ui-kv-item-display, grid);
+    grid-template-columns: var(--ui-kv-label-width, 40%) minmax(0, 1fr) auto;
+    align-items: baseline;
+    box-sizing: border-box;
+    min-inline-size: 0;
+    margin: 0;
+    padding: var(--ui-kv-item-padding, var(--ui-space-2) 0);
+    font-size: var(--ui-text-sm);
+    background: var(--ui-kv-item-fill, transparent);
+    border-block-end: 1px solid var(--ui-border);
+  }
+  .ui-kv-item:last-child { border-block-end-width: 0; }
+  .ui-kv-tiles .ui-kv-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: var(--ui-kv-item-padding, var(--ui-space-3));
+    background: var(--ui-kv-item-fill, var(--ui-surface));
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+  }
+  .ui-kv-label {
+    margin: 0;
+    margin-inline-end: var(--ui-space-3);
+    font-size: var(--ui-text-xs);
+    color: var(--ui-kv-label-color, var(--ui-muted));
+    overflow-wrap: break-word;
+  }
+  .ui-kv-value {
+    min-inline-size: 0;
+    margin: 0;
+    color: var(--ui-kv-value-color, var(--ui-text));
+    overflow-wrap: anywhere;
+  }
+  .ui-kv-tiles .ui-kv-value {
+    font-size: var(--ui-text-lg);
+    font-weight: 600;
+  }
+  .ui-kv-tiles :is(.ui-kv-label, .ui-kv-value) { grid-column: 1; }
+  .ui-kv-end {
+    align-self: center;
+    margin: 0;
+    margin-inline-start: var(--ui-space-3);
+  }
+  .ui-kv-tiles .ui-kv-end { grid-column: 2; grid-row: 1 / span 2; }
 
   /* block: banner */
   /* A banner sits in the flow rather than over it, so it takes the surface
@@ -1043,6 +1212,87 @@
     border-radius: var(--ui-radius-full);
   }
 
+  /* block: meter */
+  /* A meter is a <meter> or <progress> drawn as a thin track and a fill, whose
+     width is the element's own value, so no inline style is needed. Each
+     engine names its track and fill differently and drops a whole rule that
+     holds a pseudo-element it does not know, so every engine has its own
+     rules. A <meter> with low, high and optimum draws its warn and danger fill
+     from the browser's state, and a <progress>, which has none, takes
+     .ui-meter-warn or .ui-meter-danger. Those classes win on both. */
+  .ui-meter {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-inline-size: 0;
+    block-size: var(--ui-meter-size, 0.25rem);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    vertical-align: middle;
+    background: var(--ui-meter-track, var(--ui-border));
+    border: 0;
+    border-radius: var(--ui-radius-full);
+  }
+
+  /* WebKit and Chromium */
+  .ui-meter::-webkit-progress-bar { background: transparent; }
+  .ui-meter::-webkit-progress-value {
+    background: var(--ui-meter-color, var(--ui-accent));
+    border-radius: var(--ui-radius-full);
+  }
+  .ui-meter::-webkit-meter-inner-element { block-size: 100%; }
+  .ui-meter::-webkit-meter-bar {
+    block-size: 100%;
+    background: transparent;
+    border: 0;
+  }
+  .ui-meter::-webkit-meter-optimum-value {
+    background: var(--ui-meter-color, var(--ui-accent));
+    border-radius: var(--ui-radius-full);
+  }
+  .ui-meter::-webkit-meter-suboptimum-value {
+    background: var(--ui-meter-warn, var(--ui-warning));
+    border-radius: var(--ui-radius-full);
+  }
+  .ui-meter::-webkit-meter-even-less-good-value {
+    background: var(--ui-meter-danger, var(--ui-danger));
+    border-radius: var(--ui-radius-full);
+  }
+
+  /* Firefox */
+  .ui-meter::-moz-progress-bar {
+    background: var(--ui-meter-color, var(--ui-accent));
+    border-radius: var(--ui-radius-full);
+  }
+  .ui-meter::-moz-meter-bar {
+    background: var(--ui-meter-color, var(--ui-accent));
+    border-radius: var(--ui-radius-full);
+  }
+  .ui-meter:-moz-meter-sub-optimum::-moz-meter-bar {
+    background: var(--ui-meter-warn, var(--ui-warning));
+  }
+  .ui-meter:-moz-meter-sub-sub-optimum::-moz-meter-bar {
+    background: var(--ui-meter-danger, var(--ui-danger));
+  }
+
+  /* The classes come last and carry two classes, so they win over the browser's
+     own states on the same element. */
+  .ui-meter.ui-meter-warn::-webkit-progress-value,
+  .ui-meter.ui-meter-warn::-webkit-meter-optimum-value,
+  .ui-meter.ui-meter-warn::-webkit-meter-suboptimum-value,
+  .ui-meter.ui-meter-warn::-webkit-meter-even-less-good-value { background: var(--ui-meter-warn, var(--ui-warning)); }
+  .ui-meter.ui-meter-warn::-moz-progress-bar,
+  .ui-meter.ui-meter-warn::-moz-meter-bar { background: var(--ui-meter-warn, var(--ui-warning)); }
+  .ui-meter.ui-meter-danger::-webkit-progress-value,
+  .ui-meter.ui-meter-danger::-webkit-meter-optimum-value,
+  .ui-meter.ui-meter-danger::-webkit-meter-suboptimum-value,
+  .ui-meter.ui-meter-danger::-webkit-meter-even-less-good-value { background: var(--ui-meter-danger, var(--ui-danger)); }
+  .ui-meter.ui-meter-danger::-moz-progress-bar,
+  .ui-meter.ui-meter-danger::-moz-meter-bar { background: var(--ui-meter-danger, var(--ui-danger)); }
+
   /* block: dialog, needs: button */
   /* display sits on [open] alone, because a display on .ui-dialog would show
      a closed dialog. overflow stays hidden so the corners clip the scrolling
@@ -1053,6 +1303,7 @@
     max-inline-size: calc(100% - 2 * var(--ui-space-4));
     max-block-size: var(--ui-dialog-max-height);
     margin: auto;
+    margin-block-start: var(--ui-dialog-top, auto);
     padding: 0;
     overflow: hidden;
     color: var(--ui-text);
@@ -1113,8 +1364,8 @@
      middle of its line box, so it never centres in the button. */
   :is(.ui-button-icon, .ui-dialog-close, .ui-search-clear) > svg {
     flex: none;
-    inline-size: 1.25rem;
-    block-size: 1.25rem;
+    inline-size: var(--ui-button-glyph-size, 1.25rem);
+    block-size: var(--ui-button-glyph-size, 1.25rem);
   }
   .ui-dialog-body {
     flex: 1 1 auto;
@@ -1134,13 +1385,14 @@
   }
 
   /* block: dialog-sheet, needs: dialog */
-  /* margin-block-start stays auto from .ui-dialog, which is what holds the
-     sheet to the bottom edge. The bottom padding keeps the last control
-     above a phone's gesture bar. */
+  /* An auto top margin is what holds the sheet to the bottom edge, so it is
+     set here against a host's --ui-dialog-top. The bottom padding keeps the
+     last control above a phone's gesture bar. */
   .ui-dialog-sheet {
     box-sizing: border-box;
     inline-size: 100%;
     max-inline-size: var(--ui-sheet-width);
+    margin-block-start: auto;
     margin-block-end: 0;
     padding-block-end: env(safe-area-inset-bottom, 0);
     border-block-end: 0;
@@ -1365,6 +1617,131 @@
     cursor: not-allowed;
   }
 
+  /* block: steps */
+  /* The stages of a process on a numbered list, one dot a stage on a line
+     between them. The line is each step's own ::after reaching to the next
+     dot, so the list needs no wrapper and takes no gap: the steps space
+     themselves with padding, which keeps the line unbroken. A step marks its
+     state by shape as well as colour, and the shapes and the line are
+     borders, which forced colours keep: a thin ring is a later step, a thick
+     ring the current one, a solid dot a step done. Done is the steps before
+     the one with aria-current, or a step marked .ui-step-done. A row of six
+     leaves a phone a word's width a step, so at the phone width ui.js uses
+     for dialogs every list is a column. */
+  .ui-steps {
+    --ui-marker-size: 0.875rem;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    box-sizing: border-box;
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .ui-step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ui-space-2);
+    box-sizing: border-box;
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0 var(--ui-space-1);
+    font-size: var(--ui-text-xs);
+    color: var(--ui-step-color, var(--ui-muted));
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  .ui-step::before {
+    content: '';
+    position: relative;
+    z-index: var(--ui-z-raised);
+    flex: none;
+    box-sizing: border-box;
+    inline-size: var(--ui-marker-size);
+    block-size: var(--ui-marker-size);
+    background: var(--ui-surface);
+    border: 2px solid var(--ui-border);
+    border-radius: var(--ui-radius-full);
+  }
+  .ui-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    inset-block-start: calc(var(--ui-marker-size) / 2 - 1px);
+    inset-inline-start: 50%;
+    inline-size: 100%;
+    border: 0 solid var(--ui-border);
+    border-block-start-width: 2px;
+  }
+  .ui-step:is(.ui-step-done, :has(~ [aria-current="step"])) {
+    color: var(--ui-text);
+  }
+  .ui-step:is(.ui-step-done, :has(~ [aria-current="step"]))::before {
+    background: var(--ui-accent);
+    border: calc(var(--ui-marker-size) / 2) solid var(--ui-accent);
+  }
+  .ui-step:is(.ui-step-done, :has(~ [aria-current="step"]))::after {
+    border-color: var(--ui-accent);
+  }
+  .ui-step[aria-current="step"] {
+    color: var(--ui-text);
+    font-weight: 700;
+  }
+  .ui-step[aria-current="step"]::before {
+    border: 4px solid var(--ui-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-accent) 25%, transparent);
+  }
+  .ui-steps-vertical {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+  }
+  .ui-steps-vertical > .ui-step {
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 0 0 var(--ui-space-4);
+    font-size: var(--ui-text-sm);
+    text-align: start;
+  }
+  .ui-steps-vertical > .ui-step:last-child { padding-block-end: 0; }
+  .ui-steps-vertical > .ui-step::before {
+    margin-block-start: calc((1lh - var(--ui-marker-size)) / 2);
+  }
+  .ui-steps-vertical > .ui-step:not(:last-child)::after {
+    inset-block-start: calc((1lh - var(--ui-marker-size)) / 2 + var(--ui-marker-size) / 2);
+    inset-inline-start: calc(var(--ui-marker-size) / 2 - 1px);
+    inline-size: 0;
+    block-size: 100%;
+    border-block-start-width: 0;
+    border-inline-start-width: 2px;
+  }
+  @media (max-width: 600px) {
+    .ui-steps {
+      grid-auto-flow: row;
+      grid-auto-columns: auto;
+    }
+    .ui-steps > .ui-step {
+      flex-direction: row;
+      align-items: flex-start;
+      padding: 0 0 var(--ui-space-4);
+      font-size: var(--ui-text-sm);
+      text-align: start;
+    }
+    .ui-steps > .ui-step:last-child { padding-block-end: 0; }
+    .ui-steps > .ui-step::before {
+      margin-block-start: calc((1lh - var(--ui-marker-size)) / 2);
+    }
+    .ui-steps > .ui-step:not(:last-child)::after {
+      inset-block-start: calc((1lh - var(--ui-marker-size)) / 2 + var(--ui-marker-size) / 2);
+      inset-inline-start: calc(var(--ui-marker-size) / 2 - 1px);
+      inline-size: 0;
+      block-size: 100%;
+      border-block-start-width: 0;
+      border-inline-start-width: 2px;
+    }
+  }
+
   /* block: menu popover */
   /* The anchor is what an anchored menu is placed against, so the trigger and
      the menu share it. */
@@ -1524,20 +1901,57 @@
   /* shared: hidden */
   /* Every display above beats the browser's own [hidden] rule, so a block
      carrying the hidden attribute would still show. .ui-dialog[open] in the
-     list lifts this rule over all of them, whatever their order. */
-  :is(.ui-section, .ui-field, .ui-field-label, .ui-field-row, .ui-control-row,
-      .ui-toggle-row, .ui-toggle-text, .ui-choice-list, .ui-choice-segmented,
-      .ui-choice-pills, .ui-choice, .ui-disclosure, .ui-collapse, .ui-button,
-      .ui-chip, .ui-badge, .ui-dot, .ui-list-item, .ui-list-head, .ui-banner, .ui-empty,
-      .ui-dialog[open], .ui-dialog-head, .ui-dialog-actions, .ui-bottom-bar,
-      .ui-bottom-bar-item, .ui-tabs, .ui-tab, .ui-menu-anchor, .ui-menu, .ui-popover,
-      .ui-menu-item, .ui-toast)[hidden] {
+     list lifts this rule over all of them, whatever their order. One selector
+     a line, sorted, so two branches that each add a block change different
+     lines. */
+  :is(
+    .ui-badge,
+    .ui-banner,
+    .ui-bottom-bar,
+    .ui-bottom-bar-item,
+    .ui-button,
+    .ui-card,
+    .ui-chip,
+    .ui-choice,
+    .ui-choice-list,
+    .ui-choice-pills,
+    .ui-choice-segmented,
+    .ui-collapse,
+    .ui-control-row,
+    .ui-dialog-actions,
+    .ui-dialog-head,
+    .ui-dialog[open],
+    .ui-disclosure,
+    .ui-dot,
+    .ui-empty,
+    .ui-field,
+    .ui-field-label,
+    .ui-field-row,
+    .ui-kv,
+    .ui-kv-item,
+    .ui-list-head,
+    .ui-list-item,
+    .ui-menu,
+    .ui-menu-anchor,
+    .ui-menu-item,
+    .ui-meter,
+    .ui-popover,
+    .ui-section,
+    .ui-step,
+    .ui-steps,
+    .ui-tab,
+    .ui-tabs,
+    .ui-toast,
+    .ui-toggle-row,
+    .ui-toggle-text
+  )[hidden] {
     display: none;
   }
 
   /* shared: reduced motion */
   @media (prefers-reduced-motion: reduce) {
-    .ui-button { transition: none; }
+    .ui-button,
+    .ui-card { transition: none; }
     .ui-dialog[open],
     .ui-dialog::backdrop,
     .ui-dialog-sheet[open],
@@ -1577,10 +1991,38 @@
     .ui-toggle-row > input[type="checkbox"]:checked:disabled { background: GrayText; }
     .ui-toggle-row > input[type="checkbox"]:checked:disabled::after { background: Canvas; }
     :is(.ui-check, .ui-toggle-row > input[type="checkbox"], .ui-disclosure > summary):focus-visible { outline-color: Highlight; }
+    /* Forced colours replace every background, so the track and the fill are
+       set in system colours, the fill apart from the track by colour alone. */
+    .ui-meter {
+      forced-color-adjust: none;
+      background: GrayText;
+    }
+    .ui-meter::-webkit-progress-value,
+    .ui-meter::-webkit-meter-optimum-value,
+    .ui-meter::-webkit-meter-suboptimum-value,
+    .ui-meter::-webkit-meter-even-less-good-value { background: CanvasText; }
+    .ui-meter::-moz-progress-bar,
+    .ui-meter::-moz-meter-bar,
+    .ui-meter:-moz-meter-sub-optimum::-moz-meter-bar,
+    .ui-meter:-moz-meter-sub-sub-optimum::-moz-meter-bar { background: CanvasText; }
     /* Forced colours drop box-shadow, which is all a hover draws. */
     .ui-button:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: Highlight; }
+    .ui-button-text:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: transparent; }
     .ui-chip:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: Highlight; }
     :is(a, button).ui-list-item:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: Highlight; }
+    :is(a, button).ui-card:where(:not(:disabled, [aria-disabled="true"])):hover { border-color: Highlight; }
+    /* The tint is replaced, so a selected card takes the selection colours. */
+    .ui-card:is([aria-pressed="true"], [aria-current]:not([aria-current="false"])) {
+      forced-color-adjust: none;
+      color: HighlightText;
+      background: Highlight;
+      border-color: Highlight;
+    }
+    .ui-card:is([aria-pressed="true"], [aria-current]:not([aria-current="false"])):is(:disabled, [aria-disabled="true"]) {
+      color: Canvas;
+      background: GrayText;
+      border-color: GrayText;
+    }
     /* The tint is replaced, so a pressed row takes the selection colours. */
     .ui-list-item[aria-pressed="true"] {
       forced-color-adjust: none;
@@ -1658,6 +2100,7 @@
     .ui-button { min-block-size: max(var(--ui-button-size, var(--ui-control-height)), var(--ui-touch-target)); }
     .ui-chip { min-block-size: max(var(--ui-chip-size, 0px), var(--ui-touch-target)); }
     :is(a, button).ui-list-item { min-block-size: max(var(--ui-list-item-size, 0px), var(--ui-touch-target)); }
+    :is(a, button).ui-card { min-block-size: max(var(--ui-card-size, 0px), var(--ui-touch-target)); }
     .ui-field :is(input:where(:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"])), select) { min-block-size: max(var(--ui-field-size, var(--ui-control-height)), var(--ui-touch-target)); }
     .ui-toggle-row { min-block-size: max(var(--ui-toggle-row-size, var(--ui-control-height)), var(--ui-touch-target)); }
     .ui-choice { min-block-size: max(var(--ui-choice-size, var(--ui-control-height)), var(--ui-touch-target)); }
