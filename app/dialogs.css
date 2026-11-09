@@ -1,0 +1,398 @@
+/* The Add, Edit, Settings and Logs dialogs and the map context menu, loaded
+   with their module by lazyOpener in lazy-open.js, and with every lazy page
+   or view that can open one of them. */
+/* In the app layer the @layer line in app.css places, so a sheet added later
+   keeps its place in the cascade. */
+@layer app {
+.context-menu .ctx-divider { height: 1px; background: var(--border); margin: var(--ui-space-1) 0; }
+.stars-empty { opacity: 0.35; }
+/* "Add new" toggle for category/region selects */
+.select-or-new { display: flex; flex-direction: column; gap: var(--ui-space-2); }
+.select-or-new .new-input[hidden] { display: none; }
+.session-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-2);
+}
+.session-device { font-size: var(--ui-text-xs); color: var(--text); display: flex; align-items: center; gap: var(--ui-space-2); }
+.session-row { --ui-surface: var(--surface2); --ui-border: var(--border); }
+.session-current { letter-spacing: 0.1em; text-transform: uppercase; }
+.session-sub { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); }
+.session-revoke {
+  background: transparent;
+  border: 1px solid var(--control-border);
+  color: var(--danger);
+  font-size: var(--ui-text-xs);
+  padding: var(--ui-space-1) var(--ui-space-2);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: inherit;
+}
+.session-revoke:hover:not(:disabled) { border-color: var(--danger); }
+.session-revoke:disabled { opacity: 0.5; cursor: not-allowed; }
+/* Default-visibility eye toggle (Manage categories/regions): shown = text,
+   hidden-by-default = muted; hover is accent, not the destructive red. */
+.cat-hide, .rgn-hide { --ui-text: var(--text); }
+.cat-hide.is-hidden, .rgn-hide.is-hidden { --ui-text: var(--muted); }
+.cat-hide:hover:not(:disabled), .rgn-hide:hover:not(:disabled) { --ui-border: var(--accent); --ui-text: var(--accent); }
+.cat-hide .eye-wrap, .rgn-hide .eye-wrap { display: block; line-height: 0; }
+.cat-hide svg, .rgn-hide svg { display: block; width: 1rem; height: 1rem; }
+/* X drawn with two rotated bars (not a font character or SVG) so it centers
+   identically on every OS - the unicode × sits off-center in some system
+   fonts. Button content is empty; `.x-icon` paints the glyph. */
+.btn-x.x-icon { position: relative; }
+.btn-x.x-icon::before, .btn-x.x-icon::after {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  width: 0.85rem; height: 2px; background: currentColor; border-radius: var(--ui-radius-sm);
+}
+.btn-x.x-icon::before { transform: translate(-50%, -50%) rotate(45deg); }
+.btn-x.x-icon::after  { transform: translate(-50%, -50%) rotate(-45deg); }
+.catalog-eye-btn:hover:not(:disabled) { --ui-border: var(--muted); --ui-text: var(--text); }
+.cat-row:not(.dragging) { transition: transform var(--ui-duration-base) ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .cat-row { transition: none !important; }
+}
+.cat-input-wrap > .cat-display { padding-right: var(--ui-space-8); transition: padding-right var(--ui-duration-fast) ease-out; }
+/* While the input is focused, give it full width and snap-hide the badge
+   so the user only sees "edited" after they leave the field. */
+.cat-input-wrap:has(.cat-display:focus) > .cat-display { padding-right: var(--ui-space-3); }
+.cat-input-wrap:has(.cat-display:focus) .tag-inside { display: none; }
+/* Clickable star rating: filled stars use accent, empty are muted.
+   Hovering the row previews the rating up to the cursor via .preview. */
+.star-rating {
+  display: inline-flex;
+  gap: var(--ui-space-1);
+  font-size: var(--ui-text-lg);
+  line-height: 1;
+  user-select: none;
+}
+.star-rating .star { color: var(--muted); cursor: pointer; transition: color var(--ui-duration-fast), transform var(--ui-duration-fast); }
+.star-rating .star.filled,
+.star-rating .star.preview { color: var(--accent); }
+.star-rating .star:hover { transform: scale(1.1); }
+.star-rating .star-clear {
+  align-self: center;
+  margin-left: var(--ui-space-2);
+  font-size: var(--ui-text-xs);
+  color: var(--muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.star-rating .star-clear:hover { color: var(--text); }
+.star-rating[data-value=""] .star-clear { visibility: hidden; }
+.ui-dialog .title-count { color: var(--muted); margin-left: var(--ui-space-2); }
+.ui-dialog .file-picker { display: flex; align-items: center; gap: var(--ui-space-2); margin-top: var(--ui-space-2); }
+/* Choose file, its name and Import overrun a phone, so Import takes a second row. */
+.settings-file-row { flex-wrap: wrap; }
+.settings-file-row > .file-picker { flex: 1; margin: 0; }
+.ui-control-row > .ui-hint { flex: 1; }
+.ui-dialog .area-search-label {
+  align-items: center;
+  display: flex;
+  gap: var(--ui-space-1);
+  position: relative;
+}
+/* The negative margin keeps the tap area from making the row taller. */
+.ui-dialog button.area-search-info:not(.ui-dialog-close) {
+  border: none;
+  display: flex;
+  margin: -0.5rem 0;
+  padding: var(--ui-space-2);
+}
+.ui-dialog .area-search-note {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px var(--shadow);
+  font-size: var(--ui-text-sm);
+  left: 0;
+  line-height: 1.4;
+  opacity: 0;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.4rem);
+  transform: translateY(-0.25rem);
+  transition: opacity var(--ui-duration-fast) ease, transform var(--ui-duration-fast) ease, visibility var(--ui-duration-fast);
+  visibility: hidden;
+  z-index: var(--ui-z-dropdown);
+}
+.ui-dialog .area-search-note.open { opacity: 1; transform: none; visibility: visible; }
+@media (prefers-reduced-motion: reduce) {
+  .ui-dialog .area-search-note { transition: none; }
+}
+.ui-dialog .area-results { display: flex; flex-direction: column; gap: var(--ui-space-1); margin-top: var(--ui-space-2); }
+.ui-dialog .area-results[hidden] { display: none; }
+/* A ui-list-item on the dialog's raised surface. The selector carries button
+   and :not() to outrank `.ui-dialog button:not(.ui-dialog-close)`, which sits
+   later and would space the letters out as a button's. */
+.ui-dialog button.area-result:not(.ui-dialog-close) { --ui-surface: var(--surface2); letter-spacing: normal; }
+.ui-dialog button.area-results-more[hidden]:not(.ui-dialog-close) { display: none; }
+.area-results-foot { align-items: center; display: flex; gap: var(--ui-space-3); justify-content: space-between; }
+.ui-dialog button.area-results-more:not(.ui-dialog-close) {
+  border: none;
+  font-size: var(--ui-text-sm);
+  letter-spacing: normal;
+  margin-top: var(--ui-space-1);
+  padding: var(--ui-space-1) 0;
+}
+.area-results-credit { color: var(--muted); font-size: var(--ui-text-xs); margin-left: auto; margin-top: var(--ui-space-1); }
+.area-result-name { font-weight: 600; }
+.area-result-kind, .area-result-detail { color: var(--muted); font-size: var(--ui-text-xs); }
+.area-result-kind::first-letter { text-transform: uppercase; }
+.area-result-detail { display: block; margin-top: 0.1rem; }
+.ui-dialog .file-picker .file-name { font-size: var(--ui-text-sm); color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-dialog input[type="file"].file-input-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+#p-coords-manual { line-height: 24px; }
+.ui-dialog .success-note { font-size: var(--ui-text-sm); color: var(--green, #6db26d); margin-top: var(--ui-space-2); }
+.ui-dialog h3.sessions-h { display: flex; align-items: baseline; gap: var(--ui-space-3); }
+/* The category label input stays outside a .ui-field: its tag sits inside the
+   box, and ui.css's field padding would cover it. */
+.cat-input-wrap > .cat-display {
+  width: 100%;
+  padding-block: var(--ui-space-2);
+  padding-left: var(--ui-space-3);
+  background: var(--surface2);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--ui-text-sm);
+}
+.cat-input-wrap > .cat-display:focus { border-color: var(--accent); }
+/* A browse row is a <label>, and kept the dialog label's spacing and size. */
+.ui-dialog .browse-row { margin: var(--ui-space-3) 0 var(--ui-space-1); font-size: var(--ui-text-sm); color: var(--text); }
+.feature-pills { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); margin-top: var(--ui-space-2); }
+@container (max-width: 24rem) {
+  [data-panel="general"] .feature-pills:not(.optional-fields) { display: grid; grid-template-columns: repeat(2, 1fr); }
+}
+/* Six optional fields as a fixed 3-column grid (3+3), so they never collapse
+   to one overflowing row or leave a lone trailing pill on a flex wrap. */
+.feature-pills.optional-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ui-space-2); }
+.feature-pills.optional-fields > .feature-pill { padding-left: var(--ui-space-2); padding-right: var(--ui-space-2); }
+.feature-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--control-border);
+  border-radius: var(--ui-radius-full);
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: var(--ui-text-sm);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color var(--ui-duration-fast), color var(--ui-duration-fast), background var(--ui-duration-fast);
+}
+.feature-pill { position: relative; }
+.ui-dialog label.feature-pill {
+  display: inline-flex;
+  font-size: var(--ui-text-sm);
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--muted);
+  margin: 0;
+}
+.ui-dialog label.feature-pill.active { color: var(--text); }
+.feature-pill > input[type="checkbox"] { display: none !important; }
+.feature-pill:hover { border-color: var(--muted); color: var(--text); }
+.feature-pill.active {
+  color: var(--text);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface2));
+}
+/* Stretch pills to fill the row as equal cells, keeping the gaps (so they
+   still read as independent multi-select toggles, unlike the connected
+   segmented bar). Balances short groups like Visible features. */
+.feature-pills > .feature-pill {
+  flex: 1 1 0;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+}
+.ui-dialog .success-box {
+  margin-top: var(--ui-space-3);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  background: color-mix(in srgb, var(--green) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--green) 35%, transparent);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: var(--ui-text-sm);
+}
+/* Admin: stats grid + users list */
+.ui-dialog .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, auto);
+  grid-auto-flow: column;
+  gap: var(--ui-space-2);
+  margin-top: var(--ui-space-2);
+}
+.ui-dialog .stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  background: var(--surface2);
+  min-width: 0;
+}
+.ui-dialog .stat-card .stat-val { font-size: var(--ui-text-lg); color: var(--text); }
+.ui-dialog .user-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--ui-space-2) 0 0;
+}
+.ui-dialog .user-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--ui-space-1) var(--ui-space-3);
+  padding: var(--ui-space-2) 0;
+  border-bottom: 1px solid var(--border);
+  font-size: var(--ui-text-sm);
+}
+.ui-dialog .user-row:last-child { border-bottom: none; }
+/* Each group is its ui-list-head and its rows; the gaps space them. */
+#s-admin-users { display: flex; flex-direction: column; gap: var(--ui-space-3); margin-top: var(--ui-space-1); }
+.ui-dialog .user-group { display: flex; flex-direction: column; gap: 0.1rem; }
+.ui-dialog .user-row .user-name {
+  color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--ui-text-sm);
+}
+/* An account row's name and its Public badge, spaced by the gap. */
+.ui-dialog .user-row .user-name.user-name-flags { display: flex; align-items: center; gap: var(--ui-space-2); }
+.ui-dialog .user-row .user-name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ui-dialog .user-row.self .user-name { color: var(--accent); font-weight: 500; }
+.ui-dialog .user-row .user-counts {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: var(--ui-text-xs);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-3);
+}
+.ui-dialog .user-row .user-counts b { color: var(--text); font-weight: 500; margin-right: var(--ui-space-1); }
+.ui-dialog .user-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-1);
+  justify-content: flex-end;
+}
+.ui-dialog .user-actions button:not(.ui-dialog-close) {
+  padding: var(--ui-space-1) var(--ui-space-2);
+  font-size: var(--ui-text-xs);
+}
+.ui-dialog .user-flag { flex: none; white-space: nowrap; --ui-border: var(--border); }
+.ui-dialog .log-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--ui-space-2) 0 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface2);
+}
+.ui-dialog .log-row {
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--ui-text-xs);
+  line-height: 1.4;
+}
+.cat-color-dot {
+  flex: 0 0 auto; width: 1.5rem; height: 1.5rem; border-radius: 50%;
+  border: 2px solid var(--control-border); padding: 0; cursor: pointer;
+  transition: transform var(--ui-duration-fast) ease-out;
+}
+.cat-color-dot:hover { transform: scale(1.1); }
+.cat-color-dot.open { box-shadow: 0 0 0 2px var(--text); }
+.cat-swatches {
+  display: grid; grid-template-columns: repeat(10, auto);
+  justify-content: center; gap: var(--ui-space-2);
+  max-height: 0; opacity: 0; overflow: hidden; visibility: hidden;
+  padding: 0;
+  transition: max-height var(--ui-duration-base) ease, opacity var(--ui-duration-fast) ease, padding var(--ui-duration-base) ease, visibility var(--ui-duration-base);
+}
+.cat-swatches.open { max-height: 12rem; opacity: 1; padding: var(--ui-space-2) var(--ui-space-1) var(--ui-space-1); visibility: visible; }
+.cat-swatch {
+  width: 1.75rem; height: 1.75rem; border-radius: 50%; padding: 0;
+  border: 2px solid transparent; cursor: pointer;
+}
+.cat-swatch.active { border-color: var(--text); }
+/* Ten swatches overflow a narrow dialog. */
+@media (max-width: 600px) { .cat-swatches { grid-template-columns: repeat(5, auto); } }
+/* On touch devices, bump tap targets to comfortable sizes. */
+@media (pointer: coarse) {
+.cat-color-dot { width: 2rem; height: 2rem; }
+.cat-swatch { width: 2.5rem; height: 2.5rem; }
+.cat-swatches { grid-template-columns: repeat(5, auto); gap: var(--ui-space-2); }
+.cat-swatches.open { max-height: 16rem; }
+}
+.row-note {
+  display: block; max-height: 0; opacity: 0; overflow: hidden; margin-top: 0;
+  font-size: var(--ui-text-xs); color: var(--muted); white-space: pre-wrap; word-break: break-word;
+}
+.show-notes .row-note { max-height: 8rem; opacity: 1; margin-top: var(--ui-space-1); }
+/* Transitions activate only after the user clicks the toggle, so freshly
+   rendered rows don't fire the animation on first paint. */
+.notes-anim .row-note {
+  transition: max-height var(--ui-duration-base) ease, opacity var(--ui-duration-fast) ease, margin-top var(--ui-duration-base) ease;
+}
+.row-src { flex: 0 0 auto; font-size: var(--ui-text-xs); color: var(--muted); text-decoration: none; padding: 0.05rem var(--ui-space-2); border: 1px solid var(--control-border); border-radius: var(--ui-radius-full); }
+.row-src:hover { color: var(--text); border-color: var(--text); }
+.ui-dialog .log-row:last-child { border-bottom: none; }
+.ui-dialog .log-row .log-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ui-space-2);
+  flex-wrap: wrap;
+}
+.ui-dialog .log-row .log-msg { color: var(--text); flex: 1; min-width: 0; }
+.ui-dialog .log-row .log-name { color: var(--accent); font-weight: 500; }
+.ui-dialog .log-row .log-name.muted { color: var(--muted); font-weight: 400; font-style: italic; }
+.ui-dialog .log-row .log-time {
+  margin-left: auto;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--ui-text-xs);
+}
+.ui-dialog .log-row .log-details {
+  color: var(--muted);
+  font-size: var(--ui-text-xs);
+  margin-top: var(--ui-space-1);
+  word-break: break-word;
+}
+.ui-dialog .log-row.log-fail .log-msg { color: var(--danger); }
+.ui-dialog .log-more {
+  display: block;
+  width: 100%;
+  margin-top: var(--ui-space-2);
+  padding: var(--ui-space-2);
+  font-size: var(--ui-text-xs);
+}
+.ui-dialog .user-flag.on {
+  --ui-muted: var(--text);
+  --ui-border: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.ui-dialog .danger-btn:not(h2 .ui-dialog-close) {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+/* Inline warning that sits to the left of the action buttons. */
+.ui-dialog .action-warning {
+  min-width: 0;
+  font-size: var(--ui-text-xs);
+  font-weight: 400;
+  color: var(--danger);
+  margin: 0;
+}
+} /* @layer app */

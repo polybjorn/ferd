@@ -1,0 +1,261 @@
+/* The route page, loaded with route-detail.js by loadRouteDetail in
+   map/index.js. */
+/* In the app layer the @layer line in app.css places, so a sheet added later
+   keeps its place in the cascade. */
+@layer app {
+/* A phone gives the map and the lists the whole screen: the bar floats over
+   them, names the current tab and holds Add, and You stands in for the menu.
+   A route keeps the header, which is the only place its name shows.
+   --ui-bottom-bar-space is the floating bar's share of the bottom edge, which
+   the toast clears. */
+@media (max-width: 600px) {
+body[data-view="route"] .detail-layout { padding-bottom: var(--ui-bottom-bar-space); }
+}
+/* Routes detail view */
+.detail-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+  max-width: none;
+  margin: 0 auto;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+.detail-layout #map {
+  flex: 1 0 320px;
+  min-height: 320px;
+}
+.detail-layout > :not(#map) {
+  transition: max-height var(--ui-duration-slow) ease, opacity var(--ui-duration-base) ease, margin var(--ui-duration-slow) ease, padding var(--ui-duration-slow) ease, border-width var(--ui-duration-slow) ease;
+  max-height: 70vh;
+  overflow: hidden;
+}
+.detail-layout.map-expanded > :not(#map) {
+  max-height: 0 !important;
+  min-height: 0 !important;
+  opacity: 0;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border-top-width: 0 !important;
+  border-bottom-width: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none;
+}
+.detail-layout.map-expanded #map { flex: 1 1 auto; }
+@media (prefers-reduced-motion: reduce) {
+  .detail-layout > :not(#map) { transition: none; }
+}
+.map-expand-btn {
+  position: relative;
+  display: block !important;
+  width: 30px;
+  height: 30px;
+  color: var(--text);
+  background: var(--surface);
+  text-decoration: none;
+}
+.map-expand-btn:hover { background: var(--surface2); color: var(--accent); }
+.map-expand-btn svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -8px 0 0 -8px;
+  transition: opacity var(--ui-duration-base) ease, transform var(--ui-duration-base) ease;
+}
+.map-expand-btn .icon-collapse { opacity: 0; transform: scale(0.7); }
+.detail-layout.map-expanded .map-expand-btn .icon-expand { opacity: 0; transform: scale(0.7); }
+.detail-layout.map-expanded .map-expand-btn .icon-collapse { opacity: 1; transform: scale(1); }
+@media (prefers-reduced-motion: reduce) {
+  .map-expand-btn svg { transition: none; }
+}
+.no-elevation-notice {
+  font-size: var(--ui-text-xs);
+  color: var(--muted);
+  font-style: italic;
+  margin-top: var(--ui-space-3);
+}
+/* Preact's mount point for the panel; it adds no box of its own. */
+#route-meta-mount { display: contents; }
+.route-meta-panel {
+  margin-top: var(--ui-space-2);
+  padding: var(--ui-space-3) var(--ui-space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-2);
+  font-size: var(--ui-text-xs);
+  color: var(--text);
+  flex-shrink: 0;
+}
+.route-meta-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ui-space-2) var(--ui-space-5);
+  justify-content: space-between;
+}
+.route-meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--ui-space-2);
+  line-height: 1.6;
+  color: var(--muted);
+}
+.route-meta-line .fact {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text);
+  white-space: nowrap;
+}
+.route-meta-line .fact .dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: var(--ui-space-2);
+}
+.route-meta-line .sep {
+  color: var(--border);
+  user-select: none;
+}
+.route-meta-notes {
+  font-size: var(--ui-text-xs);
+  color: var(--text);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding-top: var(--ui-space-2);
+  border-top: 1px solid var(--border);
+}
+.route-meta-notes-label {
+  display: block;
+  font-size: var(--ui-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: var(--ui-space-1);
+}
+/* Multi-track elevation: graph + collapsible segment list. */
+#multi-elevation-container {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+  max-height: 50vh;
+}
+.detail-elev-graph .elevation-detached { margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; touch-action: none; }
+.detail-elev-graph .elevation-detached svg { width: 100% !important; display: block; margin-top: -8px; margin-bottom: -20px; }
+.detail-elev-graph .elevation-detached .elevation-summary { display: none !important; }
+.detail-elev-graph .elevation-detached .elevation-toggle-icon { display: none !important; }
+.detail-elev-graph .elevation-control .area { fill: var(--track-color, var(--accent)); fill-opacity: 0.35; stroke: var(--track-color, var(--accent)); }
+/* Many-segment routes: a fixed graph on top (whole route by default), a
+   master-collapsible segment list below that scrolls inside a fixed area
+   so 100+ rows never become a tall wall. Clicking a row swaps the graph. */
+.detail-elev-title {
+  font-size: var(--ui-text-xs); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-bottom: none;
+  padding: var(--ui-space-2) var(--ui-space-2); cursor: pointer; user-select: none;
+  display: flex; align-items: center; gap: var(--ui-space-2);
+}
+.detail-elev-title-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Disclosure chevron (down = open, right = collapsed). */
+.detail-elev-title::after {
+  content: ''; flex: none; box-sizing: border-box; width: 7px; height: 7px;
+  border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
+  transform: translateY(-2px) rotate(45deg); transition: transform var(--ui-duration-fast);
+  margin-left: var(--ui-space-2); margin-right: 2px;
+}
+.detail-elev-title.collapsed::after { transform: translateY(0) rotate(-45deg); }
+.detail-elev-title.collapsed { border-bottom: 1px solid var(--border); }
+/* Stats line shown on the elevation header (single/few-track statbar) or on
+   the graph title (many-segment), replacing the old top stats bar. */
+.detail-elev-statbar {
+  font-size: var(--ui-text-xs); color: var(--muted); background: var(--surface);
+  border: 1px solid var(--border); border-bottom: none;
+  padding: var(--ui-space-2) var(--ui-space-2); overflow: hidden;
+}
+.detail-elev-title .detail-elev-stats { color: var(--text); }
+.fact-source { color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: var(--ui-space-1); }
+.fact-source:hover { text-decoration: underline; }
+.fact-source svg { width: 0.85em; height: 0.85em; }
+/* Reserve the chart height here (not on the container) so collapsing the
+   graph to display:none leaves no blank gap. ~170px matches the rendered
+   chart so there's no extra space under it when expanded. */
+.detail-elev-graph {
+  background: var(--surface); border: 1px solid var(--border);
+  height: 174px; overflow: hidden;
+  /* !important so this wins over the .detail-layout > :not(#map) transition
+     (which omits height) for single-track, whose graph is a direct child. */
+  transition: height var(--ui-duration-base) ease, max-height var(--ui-duration-base) ease, border-width var(--ui-duration-base) ease, opacity var(--ui-duration-base) ease !important;
+}
+.detail-elev-graph.collapsed { height: 0; border-width: 0; opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .detail-elev-graph { transition: none !important; }
+}
+/* The host must not clip the absolute dropdown, and overriding the 70vh
+   cap is safe because its in-flow content is just title + graph + toggle. */
+.detail-layout #multi-elevation-container.elev-dropdown-host { overflow: visible; max-height: none; }
+.elev-segments { position: relative; }
+.elev-segments-toggle {
+  width: 100%; text-align: left; cursor: pointer; font: inherit;
+  font-size: var(--ui-text-xs); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-top: none;
+  padding: var(--ui-space-2) var(--ui-space-4) var(--ui-space-2) var(--ui-space-2); display: flex; align-items: center; gap: var(--ui-space-2);
+}
+/* Chevron on the LEFT so the totals are the rightmost element and align
+   with the rows' columns (a trailing chevron would push them left). */
+.elev-segments-toggle::before {
+  content: ''; flex: none; box-sizing: border-box; width: 7px; height: 7px;
+  border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
+  transform: translateY(-2px) rotate(45deg); transition: transform var(--ui-duration-fast);
+}
+.elev-segments-toggle.collapsed::before { transform: translateY(0) rotate(-45deg); }
+/* Toggle bar: label on the left, whole-route totals on the right (aligned
+   with the row columns), then the chevron. The totals click shows the
+   whole route. */
+.elev-toggle-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.elev-toggle-stats { text-transform: none; letter-spacing: normal; cursor: pointer; }
+.elev-toggle-stats:hover, .elev-toggle-stats.active { color: var(--text); }
+.elev-segments-list {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: var(--ui-z-dropdown);
+  max-height: 340px; overflow-y: auto; transition: max-height var(--ui-duration-base) ease;
+  background: var(--surface); border: 1px solid var(--border); border-top: none;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+.elev-segments-list.collapsed { max-height: 0; overflow: hidden; border: none; box-shadow: none; }
+.seg-row {
+  display: flex; align-items: center; gap: var(--ui-space-2); cursor: pointer;
+  padding: var(--ui-space-1) var(--ui-space-4) var(--ui-space-1) var(--ui-space-2); font-size: var(--ui-text-xs); letter-spacing: 0.03em;
+  color: var(--muted); border-top: 1px solid var(--border);
+}
+.seg-row:first-child { border-top: none; }
+.seg-row:hover { background: var(--surface2); }
+.seg-row.active { background: var(--surface2); color: var(--text); font-weight: 600; }
+.seg-row .color-dot { width: 8px; height: 3px; border-radius: var(--ui-radius-sm); flex: none; }
+/* Aligned columns across the toggle totals, every row, and the single-track
+   title's length+climb: # | name | dist | climb. */
+.elev-segments .seg-num { width: 1.9rem; flex: none; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.elev-segments .seg-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.elev-segments .seg-stat,
+.detail-elev-title .seg-stat { flex: none; color: var(--muted); display: flex; align-items: baseline; font-variant-numeric: tabular-nums; text-transform: none; letter-spacing: normal; }
+.elev-segments .seg-dist, .elev-segments .seg-gain,
+.detail-elev-title .seg-dist, .detail-elev-title .seg-gain { box-sizing: border-box; text-align: right; margin-left: var(--ui-space-2); padding-left: var(--ui-space-2); border-left: 1px solid var(--border); }
+.elev-segments .seg-dist, .detail-elev-title .seg-dist { width: 5.2rem; }
+.elev-segments .seg-gain, .detail-elev-title .seg-gain { width: 6rem; }
+.marker-start, .marker-end { background: none !important; border: none !important; }
+.marker-start { display: flex; align-items: center; justify-content: center; }
+@media (max-width: 900px) {
+.detail-layout { padding: 0; }
+#multi-elevation-container { max-height: 40vh; }
+}
+.map-expand-btn { transition: transform var(--ui-duration-base) ease-out, opacity var(--ui-duration-base) ease-out; }
+} /* @layer app */

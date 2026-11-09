@@ -543,7 +543,6 @@ a:not([class]):hover { text-decoration: underline; }
     height: 100dvh;
     padding-bottom: calc(var(--ui-bottom-bar-space) + var(--ui-space-6));
   }
-  body[data-view="route"] .detail-layout { padding-bottom: var(--ui-bottom-bar-space); }
   /* The bar's Add takes over from the nav's. A route's Edit stays in its
      header. */
   body:not([data-view="route"]) .nav-actions { display: none; }
@@ -566,71 +565,6 @@ a:not([class]):hover { text-decoration: underline; }
   box-shadow: 0 0 0 2px var(--surface);
 }
 .bottom-bar .has-dot::after { top: var(--ui-space-2); left: calc(50% + 0.6rem); }
-.you-gear.has-dot::after { top: 6px; right: 6px; }
-
-/* The phone's Lists tabs. A wide screen has the lists in the nav. */
-.list-tabs { display: none; }
-@media (max-width: 600px) {
-  .list-tabs {
-    display: flex;
-    margin: 0 0 var(--ui-space-3);
-    border-bottom: 1px solid var(--border);
-  }
-  .list-tab {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: var(--ui-touch-target);
-    margin-bottom: -1px;
-    font-size: var(--ui-text-md);
-    font-weight: 500;
-    color: var(--muted);
-    text-decoration: none;
-    border-bottom: 3px solid transparent;
-  }
-  .list-tab:hover { color: var(--text); }
-  .list-tab[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
-}
-
-/* You: who is signed in, with the menu's entries behind the gear. */
-.you-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ui-space-3);
-  margin: 0 0 var(--ui-space-4);
-}
-.you-name { min-width: 0; }
-.you-name span { display: block; color: var(--muted); font-size: var(--ui-text-sm); }
-.you-name strong { display: block; color: var(--text); font-size: var(--ui-text-xl); overflow-wrap: anywhere; }
-/* Not a ui-button-icon: the block's base button is transparent from the ui
-   layer, which an app rule cannot override, and the gear is a filled circle. */
-.you-gear {
-  position: relative;
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: var(--ui-touch-target);
-  height: var(--ui-touch-target);
-  padding: 0;
-  color: var(--text);
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--ui-radius-full);
-  cursor: pointer;
-}
-.you-gear:hover { border-color: var(--muted); }
-.you-gear svg { width: 22px; height: 22px; }
-.you-signin {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: var(--ui-space-6) var(--ui-space-3) var(--ui-space-5);
-  text-align: center;
-}
-.you-signin svg { width: 56px; height: 56px; color: var(--muted); }
-.you-signin p { margin: var(--ui-space-2) 0 var(--ui-space-4); color: var(--muted); }
-.you-rows { max-width: 480px; margin: 0 auto; }
 /* The sheet's selectors carry .ui-dialog and :not() to outrank
    `.ui-dialog button:not(.ui-dialog-close)`, which would draw the rows as buttons. */
 :is(.account-sheet, .you-rows) { display: flex; flex-direction: column; }
@@ -670,118 +604,6 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   position: relative;
   max-width: none;
 }
-
-/* Index grids (places + routes) */
-.region-grid {
-  columns: 2;
-  column-gap: var(--ui-space-5);
-}
-/* Places: one full-width column of country/category sections; cards inside
-   are width-capped and centered, up to 3 per row (see .place-grid). */
-.category-grid { columns: auto; }
-/* Cap the section just under where a 4th 320px card would fit (4x320 + gaps
-   > 1300), so rows top out at 3; margin-inline centers it in the page.
-   No content-visibility: auto here. WebKit leaves an on-screen section
-   skipped (zero height, cards hidden) after a re-render shrinks the list
-   around it, a filter or a search, until the viewport changes. Without it a
-   resize lays out every section; forced layout measured 0.3ms against 3ms at
-   2400 cards and 8ms at 9600, far above a real list. */
-.category-group {
-  max-width: 1300px;
-  margin-inline: auto;
-}
-/* Empty-state message must span both columns; otherwise it sits in one
-   column with the other empty, which looks like off-center alignment. */
-.category-grid > :is(.ui-empty, .app-state),
-.region-grid > :is(.ui-empty, .app-state) { column-span: all; }
-
-.category-group,
-.region-group {
-  margin-bottom: var(--ui-space-5);
-  break-inside: avoid;
-}
-
-.category-group:only-child,
-.region-group:only-child { column-span: all; }
-
-.category-label,
-.region-label {
-  font-size: var(--ui-text-xs);
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--text);
-  padding-bottom: var(--ui-space-2);
-  margin-bottom: var(--ui-space-3);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-2);
-}
-.section-link { cursor: pointer; }
-.section-link:hover { color: var(--accent); }
-.group-color-dot {
-  display: inline-block;
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  flex: 0 0 auto;
-}
-
-.place-count,
-.route-count {
-  font-size: var(--ui-text-xs);
-  color: var(--muted);
-}
-
-@media (max-width: 600px) {
-  .region-grid { columns: 1; }
-}
-
-/* Places index */
-.index-controls {
-  display: flex;
-  gap: var(--ui-space-3);
-  margin-bottom: var(--ui-space-5);
-  align-items: center;
-}
-
-.index-controls input[type="text"] {
-  flex: 1;
-  min-width: 0;
-  padding: var(--ui-space-2) var(--ui-space-3);
-  background: var(--surface);
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-size: var(--ui-text-sm);
-  font-weight: 300;
-  font-family: inherit;
-  transition: border-color var(--ui-duration-fast);
-}
-.index-controls input[type="text"]:focus { border-color: var(--accent); }
-/* Live result count pinned inside the search box: total when unfiltered,
-   the matching count once a search/filter narrows the list. */
-.index-controls .search-wrap { position: relative; flex: 1; min-width: 0; display: flex; }
-.index-controls .search-wrap input[type="text"] { padding-right: var(--ui-space-7); }
-.index-controls .result-count {
-  position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%);
-  font-size: var(--ui-text-xs); color: var(--muted); pointer-events: none;
-  font-variant-numeric: tabular-nums;
-}
-.index-controls select {
-  flex-shrink: 0;
-  padding: var(--ui-space-2) var(--ui-space-3);
-  background: var(--surface);
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-size: var(--ui-text-sm);
-  font-family: inherit;
-  cursor: pointer;
-  transition: border-color var(--ui-duration-fast);
-}
-.index-controls select:focus { border-color: var(--accent); }
 .filter-dropdown { position: relative; flex-shrink: 0; }
 .filter-dropdown .filter-btn {
   background: var(--surface);
@@ -798,21 +620,6 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 .filter-dropdown .filter-btn.has-active { border-color: var(--accent); color: var(--accent); }
 /* A filter select holding a non-default value reads as active. */
 .filter-popover select.filter-active { border-color: var(--accent); color: var(--accent); }
-/* Multi-select tag control: a dropdown button that matches the filter
-   selects and opens the themed listbox in multi-pick mode. */
-.filter-ms-btn {
-  width: 100%; text-align: left; padding: var(--ui-space-2) 1.7rem var(--ui-space-2) var(--ui-space-2);
-  background: var(--surface2); border: 1px solid var(--control-border); border-radius: var(--radius);
-  color: var(--text); font-size: var(--ui-text-sm); font-family: inherit; cursor: pointer; position: relative;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.filter-ms-btn::after {
-  content: ''; position: absolute; right: 0.75rem; top: 50%; width: 6px; height: 6px;
-  border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
-  transform: translateY(-70%) rotate(45deg); transition: transform var(--ui-duration-fast);
-}
-.filter-ms-btn[aria-expanded="true"]::after { transform: translateY(-30%) rotate(225deg); }
-.filter-ms-btn.filter-active { border-color: var(--accent); color: var(--accent); }
 /* Checkbox indicator for the multi-pick listbox options. */
 .select-popover .select-option-multi { position: relative; padding-right: 1.8rem; }
 .select-popover .select-option-multi::before {
@@ -837,10 +644,6 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 .filter-popover[hidden] { display: none; }
 .filter-popover label { display: block; font-size: var(--ui-text-xs); color: var(--muted); margin-bottom: var(--ui-space-1); text-transform: uppercase; letter-spacing: 0.05em; }
-#view-popover { min-width: 8rem; gap: var(--ui-space-1); padding: var(--ui-space-2); }
-.filter-popover .view-option { display: block; width: 100%; text-align: left; background: transparent; border: none; border-radius: var(--radius); color: var(--text); font-family: inherit; font-size: var(--ui-text-sm); padding: var(--ui-space-2) var(--ui-space-2); cursor: pointer; }
-.filter-popover .view-option:hover { background: var(--surface2); }
-.filter-popover .view-option.active { color: var(--accent); font-weight: 600; }
 .filter-popover select { width: 100%; padding: var(--ui-space-2) var(--ui-space-2); background: var(--surface2); border: 1px solid var(--control-border); border-radius: var(--radius); color: var(--text); font-size: var(--ui-text-sm); font-family: inherit; cursor: pointer; }
 .filter-popover select:focus { border-color: var(--accent); }
 .filter-popover .filter-clear {
@@ -858,7 +661,6 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   transition: background-color var(--ui-duration-fast) ease, color var(--ui-duration-fast) ease;
 }
 .filter-popover .filter-clear:hover { background: var(--accent); color: var(--fab-text); }
-.filter-popover .filter-divider { height: 1px; background: var(--border); margin: var(--ui-space-1) -0.25rem; }
 
 .context-menu {
   position: fixed;
@@ -886,7 +688,6 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 .context-menu button:hover { background: var(--surface2); }
 .context-menu button.danger { color: var(--danger); }
-.context-menu .ctx-divider { height: 1px; background: var(--border); margin: var(--ui-space-1) 0; }
 /* Themed replacement for the native <select> popup (which the OS renders and
    CSS can't reach). The closed control stays the real <select>; this floats
    over it while open. */
@@ -925,13 +726,6 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 .country-list:not([hidden]) { animation: country-list-in var(--ui-duration-slow) ease-in-out; }
 @keyframes country-list-in { from { opacity: 0; transform: translateY(-4px); } }
 
-.place-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 460px));
-  gap: var(--ui-space-2);
-  justify-content: center;
-}
-
 .place-card, .route-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -954,79 +748,8 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 .place-card { align-items: flex-start; }
 .place-card .ui-dot { margin-top: var(--ui-space-1); }
-.place-card .place-text { min-width: 0; flex: 1; }
 .place-card .name { font-size: var(--ui-text-sm); font-weight: 300; }
 .place-card .note { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); }
-.place-card .catalog-mark {
-  position: relative;
-  flex: 0 0 auto; color: var(--muted); display: inline-flex;
-  align-items: center; justify-content: center; align-self: center; margin-left: var(--ui-space-2);
-  background: transparent; border: none; padding: var(--ui-space-1); cursor: pointer;
-}
-.place-card .catalog-mark:hover { color: var(--text); }
-/* Orphan: the linked catalog entry was removed. Non-actionable, so it
-   reads as a muted "unlinked" marker rather than a clickable book. */
-.place-card .catalog-mark.orphan { color: var(--muted); opacity: 0.7; cursor: default; }
-.place-card .catalog-mark.orphan:hover { color: var(--muted); }
-.place-card .catalog-mark svg { width: 0.95rem; height: 0.95rem; display: block; }
-.place-card .catalog-mark.update-available::after {
-  content: '';
-  position: absolute;
-  top: 0.05rem;
-  right: 0.05rem;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 2px var(--surface);
-}
-/* History timeline (chronological journal of visited places + completed routes) */
-.history-list { max-width: 720px; margin: 0 auto; }
-.history-group { margin-bottom: var(--ui-space-6); }
-.history-group:last-child { margin-bottom: 0; }
-.history-year {
-  font-size: var(--ui-text-xs); font-weight: 600; letter-spacing: 0.2em;
-  text-transform: uppercase; color: var(--text);
-  padding-bottom: var(--ui-space-2); margin-bottom: var(--ui-space-4);
-  border-bottom: 1px solid var(--border);
-}
-.history-card {
-  display: flex; gap: var(--ui-space-4); align-items: flex-start;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: var(--ui-space-3) var(--ui-space-4);
-  margin-bottom: var(--ui-space-3); cursor: pointer;
-  transition: border-color var(--ui-duration-fast);
-}
-.history-card:hover { border-color: var(--border-hover); }
-.history-image {
-  flex: 0 0 auto; width: 120px; aspect-ratio: 16 / 10;
-  object-fit: cover; border-radius: var(--radius);
-  background: var(--surface2);
-}
-.history-body { min-width: 0; flex: 1; }
-.history-head { display: flex; align-items: center; gap: var(--ui-space-2); flex-wrap: wrap; }
-/* The name takes the free width, which pushes the kind badge to the end. */
-.history-name { flex: 1 1 0; min-width: 0; font-size: var(--ui-text-sm); font-weight: 400; color: var(--text); }
-.history-kind { --ui-label-weight: 600; --ui-border: var(--border); letter-spacing: 0.1em; text-transform: uppercase; }
-.history-meta { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); display: flex; align-items: baseline; gap: var(--ui-space-3); flex-wrap: wrap; }
-.history-stars { color: var(--accent); }
-.stars-empty { opacity: 0.35; }
-.history-note { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); }
-/* Gallery view: single column, image on top and larger. */
-.history-list.gallery .history-cards { display: grid; grid-template-columns: 1fr; gap: var(--ui-space-4); }
-.history-list.gallery .history-card {
-  flex-direction: column; align-items: stretch;
-  gap: 0; padding: 0; margin-bottom: 0; overflow: hidden;
-}
-.history-list.gallery .history-image { width: 100%; aspect-ratio: 16 / 9; }
-.history-list.gallery .history-body { padding: var(--ui-space-3) var(--ui-space-4); }
-/* Compact: reserve the thumbnail's width for media-less entries so text
-   aligns; gallery stacks media on top, so no spacer there. */
-.history-image-spacer { flex: 0 0 auto; width: 120px; }
-.history-list.gallery .history-image-spacer { display: none; }
-@media (max-width: 600px) {
-  .history-image, .history-image-spacer { width: 88px; }
-}
 
 .catalog-diff {
   margin: var(--ui-space-2) 0; padding: var(--ui-space-2) var(--ui-space-3);
@@ -1088,58 +811,6 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 .dot-want { --ui-dot-color: transparent; box-shadow: inset 0 0 0 1.5px var(--text); }
 .dot-completed { --ui-dot-color: var(--status-completed); }
 .dot-planned { --ui-dot-color: transparent; box-shadow: inset 0 0 0 1.5px var(--status-planned); }
-
-/* Routes index */
-.route-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: var(--ui-space-2);
-}
-
-.route-card { align-items: center; }
-.route-card .name {
-  font-size: var(--ui-text-sm);
-  font-weight: 300;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* List view modes. The default ("grid") uses the multi-column styling
-   above; these single-column variants are opted in per list via a class
-   on the grid container. */
-.category-grid.view-compact, .category-grid.view-gallery,
-.region-grid.view-compact, .region-grid.view-gallery { columns: 1; max-width: 720px; margin: 0 auto; }
-.view-compact .place-grid, .view-gallery .place-grid,
-.view-compact .route-grid, .view-gallery .route-grid { grid-template-columns: 1fr; }
-/* Compact: small media thumbnail on the left, body beside it (like History). */
-.view-compact .place-card, .view-compact .route-card { gap: var(--ui-space-4); }
-.view-compact .card-media {
-  flex: 0 0 auto; width: 120px; aspect-ratio: 16 / 10; display: block;
-  object-fit: cover; border-radius: var(--radius); background: var(--surface2);
-}
-.view-compact .card-body { display: flex; gap: var(--ui-space-2); flex: 1; min-width: 0; align-items: flex-start; }
-.view-compact .route-card .card-body { align-items: center; }
-.view-compact .card-media-spacer { flex: 0 0 auto; width: 120px; }
-@media (max-width: 600px) {
-  .view-compact .card-media { width: 88px; }
-  .view-compact .card-media-spacer { width: 88px; }
-}
-/* Gallery: media (image / route silhouette) on top, body below. */
-.view-gallery .place-grid, .view-gallery .route-grid { gap: var(--ui-space-4); }
-.view-gallery .place-card, .view-gallery .route-card {
-  flex-direction: column; align-items: stretch; gap: 0; padding: 0; overflow: hidden;
-}
-.view-gallery .card-media {
-  width: 100%; aspect-ratio: 16 / 9; display: block;
-  object-fit: cover; background: var(--surface2);
-  border-bottom: 1px solid var(--border);
-}
-.view-gallery .card-body { display: flex; gap: var(--ui-space-2); align-items: flex-start; padding: var(--ui-space-3) var(--ui-space-4); }
-.view-gallery .route-card .card-body { align-items: center; }
-.view-gallery .route-card .name { white-space: normal; }
 
 /* Map view */
 #map {
@@ -1414,263 +1085,16 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 @media (prefers-reduced-motion: reduce) {
   .legend-item.pulse, .panel-status .ui-chip.pulse { animation: none !important; }
 }
-
-/* Routes detail view */
-.detail-layout {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 0;
-  max-width: none;
-  margin: 0 auto;
-  box-sizing: border-box;
-  overflow-y: auto;
-}
-.detail-layout #map {
-  flex: 1 0 320px;
-  min-height: 320px;
-}
-.detail-layout > :not(#map) {
-  transition: max-height var(--ui-duration-slow) ease, opacity var(--ui-duration-base) ease, margin var(--ui-duration-slow) ease, padding var(--ui-duration-slow) ease, border-width var(--ui-duration-slow) ease;
-  max-height: 70vh;
-  overflow: hidden;
-}
-.detail-layout.map-expanded > :not(#map) {
-  max-height: 0 !important;
-  min-height: 0 !important;
-  opacity: 0;
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  border-top-width: 0 !important;
-  border-bottom-width: 0 !important;
-  overflow: hidden !important;
-  pointer-events: none;
-}
-.detail-layout.map-expanded #map { flex: 1 1 auto; }
-@media (prefers-reduced-motion: reduce) {
-  .detail-layout > :not(#map) { transition: none; }
-}
-
-.map-expand-btn {
-  position: relative;
-  display: block !important;
-  width: 30px;
-  height: 30px;
-  color: var(--text);
-  background: var(--surface);
-  text-decoration: none;
-}
-.map-expand-btn:hover { background: var(--surface2); color: var(--accent); }
-.map-expand-btn svg {
-  width: 16px;
-  height: 16px;
-  display: block;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin: -8px 0 0 -8px;
-  transition: opacity var(--ui-duration-base) ease, transform var(--ui-duration-base) ease;
-}
-.map-expand-btn .icon-collapse { opacity: 0; transform: scale(0.7); }
-.detail-layout.map-expanded .map-expand-btn .icon-expand { opacity: 0; transform: scale(0.7); }
-.detail-layout.map-expanded .map-expand-btn .icon-collapse { opacity: 1; transform: scale(1); }
-@media (prefers-reduced-motion: reduce) {
-  .map-expand-btn svg { transition: none; }
-}
-
-
-.no-elevation-notice {
-  font-size: var(--ui-text-xs);
-  color: var(--muted);
-  font-style: italic;
-  margin-top: var(--ui-space-3);
-}
-
-/* Preact's mount point for the panel; it adds no box of its own. */
-#route-meta-mount { display: contents; }
-.route-meta-panel {
-  margin-top: var(--ui-space-2);
-  padding: var(--ui-space-3) var(--ui-space-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-2);
-  font-size: var(--ui-text-xs);
-  color: var(--text);
-  flex-shrink: 0;
-}
-.route-meta-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--ui-space-2) var(--ui-space-5);
-  justify-content: space-between;
-}
-.route-meta-line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 var(--ui-space-2);
-  line-height: 1.6;
-  color: var(--muted);
-}
-.route-meta-line .fact {
-  display: inline-flex;
-  align-items: center;
-  color: var(--text);
-  white-space: nowrap;
-}
-.route-meta-line .fact .dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: var(--ui-space-2);
-}
-.route-meta-line .sep {
-  color: var(--border);
-  user-select: none;
-}
 .route-meta-tags, .place-tags {
   display: flex;
   flex-wrap: wrap;
   gap: var(--ui-space-1) var(--ui-space-2);
 }
-.place-tags { margin-top: var(--ui-space-1); }
 .route-meta-tags .tag, .place-tags .tag { background: var(--bg); --ui-border: var(--border); }
-.route-meta-notes {
-  font-size: var(--ui-text-xs);
-  color: var(--text);
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-break: break-word;
-  padding-top: var(--ui-space-2);
-  border-top: 1px solid var(--border);
-}
-.route-meta-notes-label {
-  display: block;
-  font-size: var(--ui-text-xs);
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: var(--ui-space-1);
-}
-
-/* Multi-track elevation: graph + collapsible segment list. */
-#multi-elevation-container {
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  overflow-y: auto;
-  max-height: 50vh;
-}
-.detail-elev-graph .elevation-detached { margin: 0 !important; padding: 0 !important; border: none !important; box-shadow: none !important; touch-action: none; }
-.detail-elev-graph .elevation-detached svg { width: 100% !important; display: block; margin-top: -8px; margin-bottom: -20px; }
-.detail-elev-graph .elevation-detached .elevation-summary { display: none !important; }
-.detail-elev-graph .elevation-detached .elevation-toggle-icon { display: none !important; }
-.detail-elev-graph .elevation-control .area { fill: var(--track-color, var(--accent)); fill-opacity: 0.35; stroke: var(--track-color, var(--accent)); }
 /* Drop leaflet-elevation's default steel-blue plot background; it tints the
    chart and bleeds up behind the graph title. Show the panel surface. */
 .elevation-control .background { background-color: transparent !important; }
-/* Many-segment routes: a fixed graph on top (whole route by default), a
-   master-collapsible segment list below that scrolls inside a fixed area
-   so 100+ rows never become a tall wall. Clicking a row swaps the graph. */
-.detail-elev-title {
-  font-size: var(--ui-text-xs); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
-  color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-bottom: none;
-  padding: var(--ui-space-2) var(--ui-space-2); cursor: pointer; user-select: none;
-  display: flex; align-items: center; gap: var(--ui-space-2);
-}
-.detail-elev-title-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* Disclosure chevron (down = open, right = collapsed). */
-.detail-elev-title::after {
-  content: ''; flex: none; box-sizing: border-box; width: 7px; height: 7px;
-  border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
-  transform: translateY(-2px) rotate(45deg); transition: transform var(--ui-duration-fast);
-  margin-left: var(--ui-space-2); margin-right: 2px;
-}
-.detail-elev-title.collapsed::after { transform: translateY(0) rotate(-45deg); }
-.detail-elev-title.collapsed { border-bottom: 1px solid var(--border); }
-/* Stats line shown on the elevation header (single/few-track statbar) or on
-   the graph title (many-segment), replacing the old top stats bar. */
-.detail-elev-statbar {
-  font-size: var(--ui-text-xs); color: var(--muted); background: var(--surface);
-  border: 1px solid var(--border); border-bottom: none;
-  padding: var(--ui-space-2) var(--ui-space-2); overflow: hidden;
-}
 .detail-elev-stats { font-variant-numeric: tabular-nums; white-space: nowrap; text-transform: none; letter-spacing: normal; }
-.detail-elev-title .detail-elev-stats { color: var(--text); }
-.fact-source { color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: var(--ui-space-1); }
-.fact-source:hover { text-decoration: underline; }
-.fact-source svg { width: 0.85em; height: 0.85em; }
-/* Reserve the chart height here (not on the container) so collapsing the
-   graph to display:none leaves no blank gap. ~170px matches the rendered
-   chart so there's no extra space under it when expanded. */
-.detail-elev-graph {
-  background: var(--surface); border: 1px solid var(--border);
-  height: 174px; overflow: hidden;
-  /* !important so this wins over the .detail-layout > :not(#map) transition
-     (which omits height) for single-track, whose graph is a direct child. */
-  transition: height var(--ui-duration-base) ease, max-height var(--ui-duration-base) ease, border-width var(--ui-duration-base) ease, opacity var(--ui-duration-base) ease !important;
-}
-.detail-elev-graph.collapsed { height: 0; border-width: 0; opacity: 0; }
-@media (prefers-reduced-motion: reduce) {
-  .detail-elev-graph { transition: none !important; }
-}
-/* The host must not clip the absolute dropdown, and overriding the 70vh
-   cap is safe because its in-flow content is just title + graph + toggle. */
-.detail-layout #multi-elevation-container.elev-dropdown-host { overflow: visible; max-height: none; }
-.elev-segments { position: relative; }
-.elev-segments-toggle {
-  width: 100%; text-align: left; cursor: pointer; font: inherit;
-  font-size: var(--ui-text-xs); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
-  color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-top: none;
-  padding: var(--ui-space-2) var(--ui-space-4) var(--ui-space-2) var(--ui-space-2); display: flex; align-items: center; gap: var(--ui-space-2);
-}
-/* Chevron on the LEFT so the totals are the rightmost element and align
-   with the rows' columns (a trailing chevron would push them left). */
-.elev-segments-toggle::before {
-  content: ''; flex: none; box-sizing: border-box; width: 7px; height: 7px;
-  border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
-  transform: translateY(-2px) rotate(45deg); transition: transform var(--ui-duration-fast);
-}
-.elev-segments-toggle.collapsed::before { transform: translateY(0) rotate(-45deg); }
-/* Toggle bar: label on the left, whole-route totals on the right (aligned
-   with the row columns), then the chevron. The totals click shows the
-   whole route. */
-.elev-toggle-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.elev-toggle-stats { text-transform: none; letter-spacing: normal; cursor: pointer; }
-.elev-toggle-stats:hover, .elev-toggle-stats.active { color: var(--text); }
-.elev-segments-list {
-  position: absolute; top: 100%; left: 0; right: 0; z-index: var(--ui-z-dropdown);
-  max-height: 340px; overflow-y: auto; transition: max-height var(--ui-duration-base) ease;
-  background: var(--surface); border: 1px solid var(--border); border-top: none;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-}
-.elev-segments-list.collapsed { max-height: 0; overflow: hidden; border: none; box-shadow: none; }
-.seg-row {
-  display: flex; align-items: center; gap: var(--ui-space-2); cursor: pointer;
-  padding: var(--ui-space-1) var(--ui-space-4) var(--ui-space-1) var(--ui-space-2); font-size: var(--ui-text-xs); letter-spacing: 0.03em;
-  color: var(--muted); border-top: 1px solid var(--border);
-}
-.seg-row:first-child { border-top: none; }
-.seg-row:hover { background: var(--surface2); }
-.seg-row.active { background: var(--surface2); color: var(--text); font-weight: 600; }
-.seg-row .color-dot { width: 8px; height: 3px; border-radius: var(--ui-radius-sm); flex: none; }
-/* Aligned columns across the toggle totals, every row, and the single-track
-   title's length+climb: # | name | dist | climb. */
-.elev-segments .seg-num { width: 1.9rem; flex: none; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
-.elev-segments .seg-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.elev-segments .seg-stat,
-.detail-elev-title .seg-stat { flex: none; color: var(--muted); display: flex; align-items: baseline; font-variant-numeric: tabular-nums; text-transform: none; letter-spacing: normal; }
-.elev-segments .seg-dist, .elev-segments .seg-gain,
-.detail-elev-title .seg-dist, .detail-elev-title .seg-gain { box-sizing: border-box; text-align: right; margin-left: var(--ui-space-2); padding-left: var(--ui-space-2); border-left: 1px solid var(--border); }
-.elev-segments .seg-dist, .detail-elev-title .seg-dist { width: 5.2rem; }
-.elev-segments .seg-gain, .detail-elev-title .seg-gain { width: 6rem; }
 
 /* Loading and failure fill a page-sized box; an empty list is a ui-empty. */
 .app-state {
@@ -1679,9 +1103,6 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   justify-content: center;
   height: 200px;
 }
-.category-grid > .ui-empty,
-.region-grid > .ui-empty,
-.history-list > .ui-empty { min-block-size: 200px; justify-content: center; }
 .app-state .ui-hint { font-size: var(--ui-text-sm); }
 body.signin-only .app-nav,
 body.app-booting .app-nav { display: none; }
@@ -2031,8 +1452,6 @@ body.signin-only #app {
 .leaflet-elevation-pane .elevation-summary { background: var(--surface) !important; color: var(--text) !important; }
 .elevation-control .close-button, .elevation-control .elevation-toggle-icon, .elevation-detached .leaflet-close { display: none !important; }
 .leaflet-overlay-pane .leaflet-interactive { filter: drop-shadow(0 0 3px rgba(0,0,0,0.5)); }
-.marker-start, .marker-end { background: none !important; border: none !important; }
-.marker-start { display: flex; align-items: center; justify-content: center; }
 .gpx-waypoint-icon {
   background: var(--surface);
   border: 1.5px solid var(--text);
@@ -2042,11 +1461,8 @@ body.signin-only #app {
 
 @media (max-width: 900px) {
   #app { padding: var(--ui-space-3) var(--ui-space-5) var(--ui-space-7); }
-  .route-grid { grid-template-columns: 1fr; }
-  .detail-layout { padding: 0; }
   .app-nav { gap: var(--ui-space-2); }
   .nav-stat .label { font-size: var(--ui-text-xs); }
-  #multi-elevation-container { max-height: 40vh; }
   .map-panel { max-width: calc(100vw - 40px); }
 }
 
@@ -2054,7 +1470,6 @@ body.signin-only #app {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.fade-in { animation: fadeIn var(--ui-duration-slow) ease both; }
 
 /* Auth widget in nav */
 .auth-widget {
@@ -2158,7 +1573,6 @@ body.map-chrome-hidden .map-panel { display: none !important; }
 .map-panel { transform-origin: bottom left; transition: transform var(--ui-duration-base) ease-out, opacity var(--ui-duration-base) ease-out; }
 .map-phone-buttons { transform-origin: top right; transition: transform var(--ui-duration-base) ease-out, opacity var(--ui-duration-base) ease-out; }
 .leaflet-control-zoom { transform-origin: top left; transition: transform var(--ui-duration-base) ease-out, opacity var(--ui-duration-base) ease-out; }
-.map-expand-btn { transition: transform var(--ui-duration-base) ease-out, opacity var(--ui-duration-base) ease-out; }
 body.hide-map-filter .map-panel,
 body.hide-map-filter .map-phone-buttons,
 body.hide-map-zoom .leaflet-control-zoom,
@@ -2175,10 +1589,6 @@ body.force-show-map-filter .map-panel {
   pointer-events: auto !important;
 }
 
-/* "Add new" toggle for category/region selects */
-.select-or-new { display: flex; flex-direction: column; gap: var(--ui-space-2); }
-.select-or-new .new-input[hidden] { display: none; }
-
 /* Settings modal sub-sections */
 .ui-dialog h3.settings-h {
   font-size: var(--ui-text-md);
@@ -2194,54 +1604,11 @@ body.force-show-map-filter .map-panel {
   padding-top: 0;
   margin-top: 0;
 }
-
-.session-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-2);
-}
-.session-device { font-size: var(--ui-text-xs); color: var(--text); display: flex; align-items: center; gap: var(--ui-space-2); }
-.session-row { --ui-surface: var(--surface2); --ui-border: var(--border); }
-.session-current { letter-spacing: 0.1em; text-transform: uppercase; }
-.session-sub { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); }
-.session-revoke {
-  background: transparent;
-  border: 1px solid var(--control-border);
-  color: var(--danger);
-  font-size: var(--ui-text-xs);
-  padding: var(--ui-space-1) var(--ui-space-2);
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-family: inherit;
-}
-.session-revoke:hover:not(:disabled) { border-color: var(--danger); }
-.session-revoke:disabled { opacity: 0.5; cursor: not-allowed; }
 /* .btn-x and .catalog-eye-btn sit on ui-button ui-button-icon, which draws
    the square and outranks this layer, so their colours are set through its
    tokens. The hover colour says what the button does. */
 .btn-x, .catalog-eye-btn { --ui-text: var(--muted); }
 .btn-x:hover:not(:disabled) { --ui-border: var(--danger); --ui-text: var(--danger); }
-/* Default-visibility eye toggle (Manage categories/regions): shown = text,
-   hidden-by-default = muted; hover is accent, not the destructive red. */
-.cat-hide, .rgn-hide { --ui-text: var(--text); }
-.cat-hide.is-hidden, .rgn-hide.is-hidden { --ui-text: var(--muted); }
-.cat-hide:hover:not(:disabled), .rgn-hide:hover:not(:disabled) { --ui-border: var(--accent); --ui-text: var(--accent); }
-.cat-hide .eye-wrap, .rgn-hide .eye-wrap { display: block; line-height: 0; }
-.cat-hide svg, .rgn-hide svg { display: block; width: 1rem; height: 1rem; }
-/* X drawn with two rotated bars (not a font character or SVG) so it centers
-   identically on every OS - the unicode × sits off-center in some system
-   fonts. Button content is empty; `.x-icon` paints the glyph. */
-.btn-x.x-icon { position: relative; }
-.btn-x.x-icon::before, .btn-x.x-icon::after {
-  content: ''; position: absolute; top: 50%; left: 50%;
-  width: 0.85rem; height: 2px; background: currentColor; border-radius: var(--ui-radius-sm);
-}
-.btn-x.x-icon::before { transform: translate(-50%, -50%) rotate(45deg); }
-.btn-x.x-icon::after  { transform: translate(-50%, -50%) rotate(-45deg); }
-.catalog-eye-btn:hover:not(:disabled) { --ui-border: var(--muted); --ui-text: var(--text); }
 .ui-dialog input.dirty { --ui-border: var(--accent); border-color: var(--accent); }
 .tag-end {
   flex: 0 0 5rem;
@@ -2262,10 +1629,6 @@ body.force-show-map-filter .map-panel {
   background: var(--surface2);
   padding: 0 var(--ui-space-1);
 }
-.cat-row:not(.dragging) { transition: transform var(--ui-duration-base) ease-out; }
-@media (prefers-reduced-motion: reduce) {
-  .cat-row { transition: none !important; }
-}
 /* The base .tag-dirty animation uses translateX(6px) which would wipe
    the translateY(-50%) that vertical-centers the in-input badge, causing
    it to flash from the lower-right corner. Use a paired-axis keyframe. */
@@ -2274,39 +1637,10 @@ body.force-show-map-filter .map-panel {
   from { opacity: 0; transform: translate(6px, -50%); }
   to   { opacity: 1; transform: translate(0, -50%); }
 }
-.cat-input-wrap > .cat-display { padding-right: var(--ui-space-8); transition: padding-right var(--ui-duration-fast) ease-out; }
-/* While the input is focused, give it full width and snap-hide the badge
-   so the user only sees "edited" after they leave the field. */
-.cat-input-wrap:has(.cat-display:focus) > .cat-display { padding-right: var(--ui-space-3); }
-.cat-input-wrap:has(.cat-display:focus) .tag-inside { display: none; }
 @keyframes rowTagIn {
   from { opacity: 0; transform: translateX(6px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-
-/* Clickable star rating: filled stars use accent, empty are muted.
-   Hovering the row previews the rating up to the cursor via .preview. */
-.star-rating {
-  display: inline-flex;
-  gap: var(--ui-space-1);
-  font-size: var(--ui-text-lg);
-  line-height: 1;
-  user-select: none;
-}
-.star-rating .star { color: var(--muted); cursor: pointer; transition: color var(--ui-duration-fast), transform var(--ui-duration-fast); }
-.star-rating .star.filled,
-.star-rating .star.preview { color: var(--accent); }
-.star-rating .star:hover { transform: scale(1.1); }
-.star-rating .star-clear {
-  align-self: center;
-  margin-left: var(--ui-space-2);
-  font-size: var(--ui-text-xs);
-  color: var(--muted);
-  text-decoration: underline;
-  cursor: pointer;
-}
-.star-rating .star-clear:hover { color: var(--text); }
-.star-rating[data-value=""] .star-clear { visibility: hidden; }
 
 /* Modal: a ui.css dialog. The shell, head, body and action row come
    from ui.css; these rules size particular modals and fit Ferd's own
@@ -2327,7 +1661,6 @@ body.force-show-map-filter .map-panel {
     calc(var(--ui-corner-gap) - var(--ui-space-4) - env(safe-area-inset-bottom, 0px)));
 }
 .ui-dialog .action-spacer { flex: 1; }
-.ui-dialog .title-count { color: var(--muted); margin-left: var(--ui-space-2); }
 /* The Add modal's tabs are its head. */
 .ui-dialog .ui-dialog-head > .ui-tabs { flex: 1; min-width: 0; margin-bottom: 0; box-shadow: none; }
 
@@ -2362,12 +1695,6 @@ body.force-show-map-filter .map-panel {
 #catalog-bulk-list { margin-top: var(--ui-space-2); }
 .catalog-bulk-place { margin-bottom: var(--ui-space-4); }
 .catalog-bulk-place:last-child { margin-bottom: 0; }
-
-/* Self-retiring chip in the Places controls row, accent-bordered to draw
-   the eye, shown only while catalog updates are pending. Shape from .filter-btn. */
-.filter-dropdown .filter-btn.catalog-update-chip { border-color: var(--accent); color: var(--accent); }
-/* Desktop-only chip; on phones the action moves into the Menu instead. */
-@media (max-width: 600px) { .catalog-update-chip-wrap { display: none; } }
 .ui-dialog [data-panel]:not([hidden]) { animation: tab-fade-in var(--ui-duration-base) ease-out; }
 @keyframes tab-fade-in {
   from { opacity: 0; transform: translateY(2px); }
@@ -2396,92 +1723,11 @@ body.force-show-map-filter .map-panel {
 .ui-dialog .confirm-row { align-items: center; display: flex; gap: var(--ui-space-3); margin-top: var(--ui-space-3); }
 .ui-dialog .confirm-row .dialog-desc { flex: 1; margin-top: 0; min-width: 0; overflow-wrap: anywhere; }
 .ui-dialog .confirm-row button { flex: none; margin-left: auto; }
-.ui-dialog .file-picker { display: flex; align-items: center; gap: var(--ui-space-2); margin-top: var(--ui-space-2); }
-/* Choose file, its name and Import overrun a phone, so Import takes a second row. */
-.settings-file-row { flex-wrap: wrap; }
-.settings-file-row > .file-picker { flex: 1; margin: 0; }
-.ui-control-row > .ui-hint { flex: 1; }
-.ui-dialog .area-search-label {
-  align-items: center;
-  display: flex;
-  gap: var(--ui-space-1);
-  position: relative;
-}
-/* The negative margin keeps the tap area from making the row taller. */
-.ui-dialog button.area-search-info:not(.ui-dialog-close) {
-  border: none;
-  display: flex;
-  margin: -0.5rem 0;
-  padding: var(--ui-space-2);
-}
 .ui-dialog button.area-search-info:not(.ui-dialog-close):hover:not(:disabled),
 .ui-dialog button.area-search-info[aria-expanded="true"]:not(.ui-dialog-close) { color: var(--accent); }
-.ui-dialog .area-search-note {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: 0 8px 24px var(--shadow);
-  font-size: var(--ui-text-sm);
-  left: 0;
-  line-height: 1.4;
-  opacity: 0;
-  padding: var(--ui-space-2) var(--ui-space-3);
-  position: absolute;
-  right: 0;
-  top: calc(100% + 0.4rem);
-  transform: translateY(-0.25rem);
-  transition: opacity var(--ui-duration-fast) ease, transform var(--ui-duration-fast) ease, visibility var(--ui-duration-fast);
-  visibility: hidden;
-  z-index: var(--ui-z-dropdown);
-}
-.ui-dialog .area-search-note.open { opacity: 1; transform: none; visibility: visible; }
-@media (prefers-reduced-motion: reduce) {
-  .ui-dialog .area-search-note { transition: none; }
-}
-.ui-dialog .area-results { display: flex; flex-direction: column; gap: var(--ui-space-1); margin-top: var(--ui-space-2); }
-.ui-dialog .area-results[hidden] { display: none; }
-/* A ui-list-item on the dialog's raised surface. The selector carries button
-   and :not() to outrank `.ui-dialog button:not(.ui-dialog-close)`, which sits
-   later and would space the letters out as a button's. */
-.ui-dialog button.area-result:not(.ui-dialog-close) { --ui-surface: var(--surface2); letter-spacing: normal; }
-.ui-dialog button.area-results-more[hidden]:not(.ui-dialog-close) { display: none; }
-.area-results-foot { align-items: center; display: flex; gap: var(--ui-space-3); justify-content: space-between; }
-.ui-dialog button.area-results-more:not(.ui-dialog-close) {
-  border: none;
-  font-size: var(--ui-text-sm);
-  letter-spacing: normal;
-  margin-top: var(--ui-space-1);
-  padding: var(--ui-space-1) 0;
-}
-.area-results-credit { color: var(--muted); font-size: var(--ui-text-xs); margin-left: auto; margin-top: var(--ui-space-1); }
 .ui-dialog button.area-results-more:not(.ui-dialog-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
-.area-result-name { font-weight: 600; }
-.area-result-kind, .area-result-detail { color: var(--muted); font-size: var(--ui-text-xs); }
-.area-result-kind::first-letter { text-transform: uppercase; }
-.area-result-detail { display: block; margin-top: 0.1rem; }
-.ui-dialog .file-picker .file-name { font-size: var(--ui-text-sm); color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ui-dialog input[type="file"].file-input-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
-#p-coords-manual { line-height: 24px; }
-.ui-dialog .success-note { font-size: var(--ui-text-sm); color: var(--green, #6db26d); margin-top: var(--ui-space-2); }
-.ui-dialog h3.sessions-h { display: flex; align-items: baseline; gap: var(--ui-space-3); }
 .ui-dialog button.sessions-revoke-others:not(h2 .ui-dialog-close) { margin-left: auto; font-size: var(--ui-text-xs); font-weight: 400; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0; letter-spacing: 0; }
 .ui-dialog button.sessions-revoke-others:not(h2 .ui-dialog-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
-/* The category label input stays outside a .ui-field: its tag sits inside the
-   box, and ui.css's field padding would cover it. */
-.cat-input-wrap > .cat-display {
-  width: 100%;
-  padding-block: var(--ui-space-2);
-  padding-left: var(--ui-space-3);
-  background: var(--surface2);
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius);
-  color: var(--text);
-  font: inherit;
-  font-size: var(--ui-text-sm);
-}
-.cat-input-wrap > .cat-display:focus { border-color: var(--accent); }
-/* A browse row is a <label>, and kept the dialog label's spacing and size. */
-.ui-dialog .browse-row { margin: var(--ui-space-3) 0 var(--ui-space-1); font-size: var(--ui-text-sm); color: var(--text); }
 /* Suppress the browser-native spinner on number inputs (Lat/Long) — the
    up/down arrows aren't theme-aware and look out of place. */
 .ui-dialog input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
@@ -2489,7 +1735,6 @@ body.force-show-map-filter .map-panel {
 .ui-dialog input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .ui-dialog .row { display: flex; gap: var(--ui-space-2); }
 .ui-dialog .row > * { flex: 1; }
-.feature-pills { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); margin-top: var(--ui-space-2); }
 /* The pills default to a flexible row (content-sized, growing to fill).
    When the modal itself gets narrow enough that the row would wrap and a
    lone pill stretch full-width, drop to a fixed 2-column grid. Keyed to the
@@ -2497,53 +1742,6 @@ body.force-show-map-filter .map-panel {
    switch happens when the modal is actually narrow rather than at an
    arbitrary window width. */
 [data-panel="general"] { container-type: inline-size; }
-@container (max-width: 24rem) {
-  [data-panel="general"] .feature-pills:not(.optional-fields) { display: grid; grid-template-columns: repeat(2, 1fr); }
-}
-/* Six optional fields as a fixed 3-column grid (3+3), so they never collapse
-   to one overflowing row or leave a lone trailing pill on a flex wrap. */
-.feature-pills.optional-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ui-space-2); }
-.feature-pills.optional-fields > .feature-pill { padding-left: var(--ui-space-2); padding-right: var(--ui-space-2); }
-.feature-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ui-space-2);
-  padding: var(--ui-space-2) var(--ui-space-3);
-  border: 1px solid var(--control-border);
-  border-radius: var(--ui-radius-full);
-  background: var(--surface2);
-  color: var(--muted);
-  font-size: var(--ui-text-sm);
-  cursor: pointer;
-  user-select: none;
-  transition: border-color var(--ui-duration-fast), color var(--ui-duration-fast), background var(--ui-duration-fast);
-}
-.feature-pill { position: relative; }
-.ui-dialog label.feature-pill {
-  display: inline-flex;
-  font-size: var(--ui-text-sm);
-  text-transform: none;
-  letter-spacing: 0;
-  color: var(--muted);
-  margin: 0;
-}
-.ui-dialog label.feature-pill.active { color: var(--text); }
-.feature-pill > input[type="checkbox"] { display: none !important; }
-.feature-pill:hover { border-color: var(--muted); color: var(--text); }
-.feature-pill.active {
-  color: var(--text);
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface2));
-}
-/* Stretch pills to fill the row as equal cells, keeping the gaps (so they
-   still read as independent multi-select toggles, unlike the connected
-   segmented bar). Balances short groups like Visible features. */
-.feature-pills > .feature-pill {
-  flex: 1 1 0;
-  justify-content: center;
-  text-align: center;
-  white-space: nowrap;
-}
 /* The box around a ui-hint-error, which keeps no padding or margin of its own. */
 .form-error {
   margin-top: var(--ui-space-3);
@@ -2555,182 +1753,10 @@ body.force-show-map-filter .map-panel {
   display: none;
 }
 .form-error.visible { display: block; }
-.ui-dialog .success-box {
-  margin-top: var(--ui-space-3);
-  padding: var(--ui-space-2) var(--ui-space-3);
-  background: color-mix(in srgb, var(--green) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--green) 35%, transparent);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-size: var(--ui-text-sm);
-}
-
-/* Admin: stats grid + users list */
-.ui-dialog .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, auto);
-  grid-auto-flow: column;
-  gap: var(--ui-space-2);
-  margin-top: var(--ui-space-2);
-}
-.ui-dialog .stat-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--ui-space-2) var(--ui-space-3);
-  background: var(--surface2);
-  min-width: 0;
-}
-.ui-dialog .stat-card .stat-val { font-size: var(--ui-text-lg); color: var(--text); }
-.ui-dialog .user-list {
-  list-style: none;
-  padding: 0;
-  margin: var(--ui-space-2) 0 0;
-}
-.ui-dialog .user-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--ui-space-1) var(--ui-space-3);
-  padding: var(--ui-space-2) 0;
-  border-bottom: 1px solid var(--border);
-  font-size: var(--ui-text-sm);
-}
-.ui-dialog .user-row:last-child { border-bottom: none; }
-/* Each group is its ui-list-head and its rows; the gaps space them. */
-#s-admin-users { display: flex; flex-direction: column; gap: var(--ui-space-3); margin-top: var(--ui-space-1); }
-.ui-dialog .user-group { display: flex; flex-direction: column; gap: 0.1rem; }
-.ui-dialog .user-row .user-name {
-  color: var(--text);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--ui-text-sm);
-}
-/* An account row's name and its Public badge, spaced by the gap. */
-.ui-dialog .user-row .user-name.user-name-flags { display: flex; align-items: center; gap: var(--ui-space-2); }
-.ui-dialog .user-row .user-name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.ui-dialog .user-row.self .user-name { color: var(--accent); font-weight: 500; }
-.ui-dialog .user-row .user-counts {
-  grid-column: 1 / -1;
-  color: var(--muted);
-  font-size: var(--ui-text-xs);
-  font-variant-numeric: tabular-nums;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--ui-space-3);
-}
-.ui-dialog .user-row .user-counts b { color: var(--text); font-weight: 500; margin-right: var(--ui-space-1); }
-.ui-dialog .user-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--ui-space-1);
-  justify-content: flex-end;
-}
-.ui-dialog .user-actions button:not(.ui-dialog-close) {
-  padding: var(--ui-space-1) var(--ui-space-2);
-  font-size: var(--ui-text-xs);
-}
-.ui-dialog .user-flag { flex: none; white-space: nowrap; --ui-border: var(--border); }
-.ui-dialog .log-list {
-  list-style: none;
-  padding: 0;
-  margin: var(--ui-space-2) 0 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface2);
-}
-.ui-dialog .log-row {
-  padding: var(--ui-space-2) var(--ui-space-3);
-  border-bottom: 1px solid var(--border);
-  font-size: var(--ui-text-xs);
-  line-height: 1.4;
-}
-.cat-color-dot {
-  flex: 0 0 auto; width: 1.5rem; height: 1.5rem; border-radius: 50%;
-  border: 2px solid var(--control-border); padding: 0; cursor: pointer;
-  transition: transform var(--ui-duration-fast) ease-out;
-}
-.cat-color-dot:hover { transform: scale(1.1); }
-.cat-color-dot.open { box-shadow: 0 0 0 2px var(--text); }
-.cat-swatches {
-  display: grid; grid-template-columns: repeat(10, auto);
-  justify-content: center; gap: var(--ui-space-2);
-  max-height: 0; opacity: 0; overflow: hidden; visibility: hidden;
-  padding: 0;
-  transition: max-height var(--ui-duration-base) ease, opacity var(--ui-duration-fast) ease, padding var(--ui-duration-base) ease, visibility var(--ui-duration-base);
-}
-.cat-swatches.open { max-height: 12rem; opacity: 1; padding: var(--ui-space-2) var(--ui-space-1) var(--ui-space-1); visibility: visible; }
-.cat-swatch {
-  width: 1.75rem; height: 1.75rem; border-radius: 50%; padding: 0;
-  border: 2px solid transparent; cursor: pointer;
-}
-.cat-swatch.active { border-color: var(--text); }
-/* Ten swatches overflow a narrow dialog. */
-@media (max-width: 600px) { .cat-swatches { grid-template-columns: repeat(5, auto); } }
 /* On touch devices, bump tap targets to comfortable sizes. */
 @media (pointer: coarse) {
-  .cat-color-dot { width: 2rem; height: 2rem; }
-  .cat-swatch { width: 2.5rem; height: 2.5rem; }
-  .cat-swatches { grid-template-columns: repeat(5, auto); gap: var(--ui-space-2); }
-  .cat-swatches.open { max-height: 16rem; }
   .select-popover { font-size: var(--ui-text-sm); }
   .select-popover .select-option { padding: var(--ui-space-3) var(--ui-space-3); }
-}
-.row-note {
-  display: block; max-height: 0; opacity: 0; overflow: hidden; margin-top: 0;
-  font-size: var(--ui-text-xs); color: var(--muted); white-space: pre-wrap; word-break: break-word;
-}
-.show-notes .row-note { max-height: 8rem; opacity: 1; margin-top: var(--ui-space-1); }
-/* Transitions activate only after the user clicks the toggle, so freshly
-   rendered rows don't fire the animation on first paint. */
-.notes-anim .row-note {
-  transition: max-height var(--ui-duration-base) ease, opacity var(--ui-duration-fast) ease, margin-top var(--ui-duration-base) ease;
-}
-.row-src { flex: 0 0 auto; font-size: var(--ui-text-xs); color: var(--muted); text-decoration: none; padding: 0.05rem var(--ui-space-2); border: 1px solid var(--control-border); border-radius: var(--ui-radius-full); }
-.row-src:hover { color: var(--text); border-color: var(--text); }
-.ui-dialog .log-row:last-child { border-bottom: none; }
-.ui-dialog .log-row .log-head {
-  display: flex;
-  align-items: baseline;
-  gap: var(--ui-space-2);
-  flex-wrap: wrap;
-}
-.ui-dialog .log-row .log-msg { color: var(--text); flex: 1; min-width: 0; }
-.ui-dialog .log-row .log-name { color: var(--accent); font-weight: 500; }
-.ui-dialog .log-row .log-name.muted { color: var(--muted); font-weight: 400; font-style: italic; }
-.ui-dialog .log-row .log-time {
-  margin-left: auto;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--ui-text-xs);
-}
-.ui-dialog .log-row .log-details {
-  color: var(--muted);
-  font-size: var(--ui-text-xs);
-  margin-top: var(--ui-space-1);
-  word-break: break-word;
-}
-.ui-dialog .log-row.log-fail .log-msg { color: var(--danger); }
-.ui-dialog .log-more {
-  display: block;
-  width: 100%;
-  margin-top: var(--ui-space-2);
-  padding: var(--ui-space-2);
-  font-size: var(--ui-text-xs);
-}
-.ui-dialog .user-flag.on {
-  --ui-muted: var(--text);
-  --ui-border: color-mix(in srgb, var(--accent) 40%, transparent);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-}
-.ui-dialog .danger-btn:not(h2 .ui-dialog-close) {
-  color: var(--danger);
-  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
 }
 .ui-dialog .danger-btn:not(h2 .ui-dialog-close):hover:not(:disabled) {
   color: var(--text);
@@ -2746,14 +1772,6 @@ body.force-show-map-filter .map-panel {
   align-items: center;
   gap: var(--ui-space-2);
   margin-top: var(--ui-space-5);
-}
-/* Inline warning that sits to the left of the action buttons. */
-.ui-dialog .action-warning {
-  min-width: 0;
-  font-size: var(--ui-text-xs);
-  font-weight: 400;
-  color: var(--danger);
-  margin: 0;
 }
 /* All non-close buttons inside a modal get the bordered look. The
    :not(.ui-dialog-close) excludes both the in-h2 close (set up via

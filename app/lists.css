@@ -1,0 +1,331 @@
+/* The Places, Routes, Areas, History and You pages, loaded with their module
+   by mountLazy in router.js. */
+/* In the app layer the @layer line in app.css places, so a sheet added later
+   keeps its place in the cascade. */
+@layer app {
+.you-gear.has-dot::after { top: 6px; right: 6px; }
+/* The phone's Lists tabs. A wide screen has the lists in the nav. */
+.list-tabs { display: none; }
+@media (max-width: 600px) {
+  .list-tabs {
+    display: flex;
+    margin: 0 0 var(--ui-space-3);
+    border-bottom: 1px solid var(--border);
+  }
+  .list-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--ui-touch-target);
+    margin-bottom: -1px;
+    font-size: var(--ui-text-md);
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+  }
+  .list-tab:hover { color: var(--text); }
+  .list-tab[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
+}
+/* You: who is signed in, with the menu's entries behind the gear. */
+.you-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-3);
+  margin: 0 0 var(--ui-space-4);
+}
+.you-name { min-width: 0; }
+.you-name span { display: block; color: var(--muted); font-size: var(--ui-text-sm); }
+.you-name strong { display: block; color: var(--text); font-size: var(--ui-text-xl); overflow-wrap: anywhere; }
+/* Not a ui-button-icon: the block's base button is transparent from the ui
+   layer, which an app rule cannot override, and the gear is a filled circle. */
+.you-gear {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--ui-touch-target);
+  height: var(--ui-touch-target);
+  padding: 0;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--ui-radius-full);
+  cursor: pointer;
+}
+.you-gear:hover { border-color: var(--muted); }
+.you-gear svg { width: 22px; height: 22px; }
+.you-signin {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--ui-space-6) var(--ui-space-3) var(--ui-space-5);
+  text-align: center;
+}
+.you-signin svg { width: 56px; height: 56px; color: var(--muted); }
+.you-signin p { margin: var(--ui-space-2) 0 var(--ui-space-4); color: var(--muted); }
+.you-rows { max-width: 480px; margin: 0 auto; }
+/* Index grids (places + routes) */
+.region-grid {
+  columns: 2;
+  column-gap: var(--ui-space-5);
+}
+/* Places: one full-width column of country/category sections; cards inside
+   are width-capped and centered, up to 3 per row (see .place-grid). */
+.category-grid { columns: auto; }
+/* Cap the section just under where a 4th 320px card would fit (4x320 + gaps
+   > 1300), so rows top out at 3; margin-inline centers it in the page.
+   No content-visibility: auto here. WebKit leaves an on-screen section
+   skipped (zero height, cards hidden) after a re-render shrinks the list
+   around it, a filter or a search, until the viewport changes. Without it a
+   resize lays out every section; forced layout measured 0.3ms against 3ms at
+   2400 cards and 8ms at 9600, far above a real list. */
+.category-group {
+  max-width: 1300px;
+  margin-inline: auto;
+}
+/* Empty-state message must span both columns; otherwise it sits in one
+   column with the other empty, which looks like off-center alignment. */
+.category-grid > :is(.ui-empty, .app-state),
+.region-grid > :is(.ui-empty, .app-state) { column-span: all; }
+.category-group,
+.region-group {
+  margin-bottom: var(--ui-space-5);
+  break-inside: avoid;
+}
+.category-group:only-child,
+.region-group:only-child { column-span: all; }
+.category-label,
+.region-label {
+  font-size: var(--ui-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text);
+  padding-bottom: var(--ui-space-2);
+  margin-bottom: var(--ui-space-3);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+}
+.section-link { cursor: pointer; }
+.section-link:hover { color: var(--accent); }
+.group-color-dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.place-count,
+.route-count {
+  font-size: var(--ui-text-xs);
+  color: var(--muted);
+}
+@media (max-width: 600px) {
+  .region-grid { columns: 1; }
+}
+/* Places index */
+.index-controls {
+  display: flex;
+  gap: var(--ui-space-3);
+  margin-bottom: var(--ui-space-5);
+  align-items: center;
+}
+.index-controls input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  background: var(--surface);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: var(--ui-text-sm);
+  font-weight: 300;
+  font-family: inherit;
+  transition: border-color var(--ui-duration-fast);
+}
+.index-controls input[type="text"]:focus { border-color: var(--accent); }
+/* Live result count pinned inside the search box: total when unfiltered,
+   the matching count once a search/filter narrows the list. */
+.index-controls .search-wrap { position: relative; flex: 1; min-width: 0; display: flex; }
+.index-controls .search-wrap input[type="text"] { padding-right: var(--ui-space-7); }
+.index-controls .result-count {
+  position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%);
+  font-size: var(--ui-text-xs); color: var(--muted); pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+.index-controls select {
+  flex-shrink: 0;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  background: var(--surface);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: var(--ui-text-sm);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color var(--ui-duration-fast);
+}
+.index-controls select:focus { border-color: var(--accent); }
+/* Multi-select tag control: a dropdown button that matches the filter
+   selects and opens the themed listbox in multi-pick mode. */
+.filter-ms-btn {
+  width: 100%; text-align: left; padding: var(--ui-space-2) 1.7rem var(--ui-space-2) var(--ui-space-2);
+  background: var(--surface2); border: 1px solid var(--control-border); border-radius: var(--radius);
+  color: var(--text); font-size: var(--ui-text-sm); font-family: inherit; cursor: pointer; position: relative;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.filter-ms-btn::after {
+  content: ''; position: absolute; right: 0.75rem; top: 50%; width: 6px; height: 6px;
+  border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
+  transform: translateY(-70%) rotate(45deg); transition: transform var(--ui-duration-fast);
+}
+.filter-ms-btn[aria-expanded="true"]::after { transform: translateY(-30%) rotate(225deg); }
+.filter-ms-btn.filter-active { border-color: var(--accent); color: var(--accent); }
+#view-popover { min-width: 8rem; gap: var(--ui-space-1); padding: var(--ui-space-2); }
+.filter-popover .view-option { display: block; width: 100%; text-align: left; background: transparent; border: none; border-radius: var(--radius); color: var(--text); font-family: inherit; font-size: var(--ui-text-sm); padding: var(--ui-space-2) var(--ui-space-2); cursor: pointer; }
+.filter-popover .view-option:hover { background: var(--surface2); }
+.filter-popover .view-option.active { color: var(--accent); font-weight: 600; }
+.filter-popover .filter-divider { height: 1px; background: var(--border); margin: var(--ui-space-1) -0.25rem; }
+.place-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 460px));
+  gap: var(--ui-space-2);
+  justify-content: center;
+}
+.place-card .place-text { min-width: 0; flex: 1; }
+.place-card .catalog-mark {
+  position: relative;
+  flex: 0 0 auto; color: var(--muted); display: inline-flex;
+  align-items: center; justify-content: center; align-self: center; margin-left: var(--ui-space-2);
+  background: transparent; border: none; padding: var(--ui-space-1); cursor: pointer;
+}
+.place-card .catalog-mark:hover { color: var(--text); }
+/* Orphan: the linked catalog entry was removed. Non-actionable, so it
+   reads as a muted "unlinked" marker rather than a clickable book. */
+.place-card .catalog-mark.orphan { color: var(--muted); opacity: 0.7; cursor: default; }
+.place-card .catalog-mark.orphan:hover { color: var(--muted); }
+.place-card .catalog-mark svg { width: 0.95rem; height: 0.95rem; display: block; }
+.place-card .catalog-mark.update-available::after {
+  content: '';
+  position: absolute;
+  top: 0.05rem;
+  right: 0.05rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+/* History timeline (chronological journal of visited places + completed routes) */
+.history-list { max-width: 720px; margin: 0 auto; }
+.history-group { margin-bottom: var(--ui-space-6); }
+.history-group:last-child { margin-bottom: 0; }
+.history-year {
+  font-size: var(--ui-text-xs); font-weight: 600; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--text);
+  padding-bottom: var(--ui-space-2); margin-bottom: var(--ui-space-4);
+  border-bottom: 1px solid var(--border);
+}
+.history-card {
+  display: flex; gap: var(--ui-space-4); align-items: flex-start;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: var(--ui-space-3) var(--ui-space-4);
+  margin-bottom: var(--ui-space-3); cursor: pointer;
+  transition: border-color var(--ui-duration-fast);
+}
+.history-card:hover { border-color: var(--border-hover); }
+.history-image {
+  flex: 0 0 auto; width: 120px; aspect-ratio: 16 / 10;
+  object-fit: cover; border-radius: var(--radius);
+  background: var(--surface2);
+}
+.history-body { min-width: 0; flex: 1; }
+.history-head { display: flex; align-items: center; gap: var(--ui-space-2); flex-wrap: wrap; }
+/* The name takes the free width, which pushes the kind badge to the end. */
+.history-name { flex: 1 1 0; min-width: 0; font-size: var(--ui-text-sm); font-weight: 400; color: var(--text); }
+.history-kind { --ui-label-weight: 600; --ui-border: var(--border); letter-spacing: 0.1em; text-transform: uppercase; }
+.history-meta { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); display: flex; align-items: baseline; gap: var(--ui-space-3); flex-wrap: wrap; }
+.history-stars { color: var(--accent); }
+.history-note { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); }
+/* Gallery view: single column, image on top and larger. */
+.history-list.gallery .history-cards { display: grid; grid-template-columns: 1fr; gap: var(--ui-space-4); }
+.history-list.gallery .history-card {
+  flex-direction: column; align-items: stretch;
+  gap: 0; padding: 0; margin-bottom: 0; overflow: hidden;
+}
+.history-list.gallery .history-image { width: 100%; aspect-ratio: 16 / 9; }
+.history-list.gallery .history-body { padding: var(--ui-space-3) var(--ui-space-4); }
+/* Compact: reserve the thumbnail's width for media-less entries so text
+   aligns; gallery stacks media on top, so no spacer there. */
+.history-image-spacer { flex: 0 0 auto; width: 120px; }
+.history-list.gallery .history-image-spacer { display: none; }
+@media (max-width: 600px) {
+  .history-image, .history-image-spacer { width: 88px; }
+}
+/* Routes index */
+.route-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--ui-space-2);
+}
+.route-card { align-items: center; }
+.route-card .name {
+  font-size: var(--ui-text-sm);
+  font-weight: 300;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* List view modes. The default ("grid") uses the multi-column styling
+   above; these single-column variants are opted in per list via a class
+   on the grid container. */
+.category-grid.view-compact, .category-grid.view-gallery,
+.region-grid.view-compact, .region-grid.view-gallery { columns: 1; max-width: 720px; margin: 0 auto; }
+.view-compact .place-grid, .view-gallery .place-grid,
+.view-compact .route-grid, .view-gallery .route-grid { grid-template-columns: 1fr; }
+/* Compact: small media thumbnail on the left, body beside it (like History). */
+.view-compact .place-card, .view-compact .route-card { gap: var(--ui-space-4); }
+.view-compact .card-media {
+  flex: 0 0 auto; width: 120px; aspect-ratio: 16 / 10; display: block;
+  object-fit: cover; border-radius: var(--radius); background: var(--surface2);
+}
+.view-compact .card-body { display: flex; gap: var(--ui-space-2); flex: 1; min-width: 0; align-items: flex-start; }
+.view-compact .route-card .card-body { align-items: center; }
+.view-compact .card-media-spacer { flex: 0 0 auto; width: 120px; }
+@media (max-width: 600px) {
+  .view-compact .card-media { width: 88px; }
+  .view-compact .card-media-spacer { width: 88px; }
+}
+/* Gallery: media (image / route silhouette) on top, body below. */
+.view-gallery .place-grid, .view-gallery .route-grid { gap: var(--ui-space-4); }
+.view-gallery .place-card, .view-gallery .route-card {
+  flex-direction: column; align-items: stretch; gap: 0; padding: 0; overflow: hidden;
+}
+.view-gallery .card-media {
+  width: 100%; aspect-ratio: 16 / 9; display: block;
+  object-fit: cover; background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.view-gallery .card-body { display: flex; gap: var(--ui-space-2); align-items: flex-start; padding: var(--ui-space-3) var(--ui-space-4); }
+.view-gallery .route-card .card-body { align-items: center; }
+.view-gallery .route-card .name { white-space: normal; }
+.place-tags { margin-top: var(--ui-space-1); }
+.category-grid > .ui-empty,
+.region-grid > .ui-empty,
+.history-list > .ui-empty { min-block-size: 200px; justify-content: center; }
+@media (max-width: 900px) {
+.route-grid { grid-template-columns: 1fr; }
+}
+.fade-in { animation: fadeIn var(--ui-duration-slow) ease both; }
+/* Self-retiring chip in the Places controls row, accent-bordered to draw
+   the eye, shown only while catalog updates are pending. Shape from .filter-btn. */
+.filter-dropdown .filter-btn.catalog-update-chip { border-color: var(--accent); color: var(--accent); }
+/* Desktop-only chip; on phones the action moves into the Menu instead. */
+@media (max-width: 600px) { .catalog-update-chip-wrap { display: none; } }
+} /* @layer app */
