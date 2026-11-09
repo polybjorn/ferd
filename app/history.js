@@ -153,7 +153,7 @@ function HistoryCard({ e, view, show }) {
     <div class="history-body">
       <div class="history-head">
         <span class="history-name">${e.name}</span>
-        <span class="history-kind">${e.kind === 'place' ? t('history.place') : t('history.route')}</span>
+        <span class="ui-badge ui-badge-pill history-kind">${e.kind === 'place' ? t('history.place') : t('history.route')}</span>
       </div>
       ${(date || stars) && html`<div class="history-meta">
         ${date && html`<span>${e.date}</span>`}

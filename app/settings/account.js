@@ -190,7 +190,7 @@ export function AdminStats({ version }) {
       [t('admin.statRoutes'), s.routes],
       [t('admin.statFiles'), formatBytes(s.data_bytes)],
       [t('admin.statDatabase'), formatBytes(s.db_bytes)],
-    ].map(([lbl, v]) => html`<div key=${lbl} class="stat-card"><div class="stat-val">${String(v)}</div><div class="stat-lbl">${lbl}</div></div>`);
+    ].map(([lbl, v]) => html`<div key=${lbl} class="stat-card"><div class="stat-val">${String(v)}</div><div class="ui-list-head stat-lbl">${lbl}</div></div>`);
   }
   return html`<div class="stats-grid" id="s-admin-stats">${body}</div>`;
 }
@@ -217,9 +217,10 @@ export function AdminUsers({ version, onChanged }) {
      * @param {string} title
      * @param {AdminUserData[]} list
      */
-    const group = (title, list) => list.length ? html`
-      <div class="user-group-h">${title}</div>
-      <ul class="user-list">${list.map(u => html`<${UserRow} key=${u.id} u=${u} isSelf=${u.username === meName} onChanged=${onChanged} />`)}</ul>` : null;
+    const group = (title, list) => list.length ? html`<div class="user-group">
+      <div class="ui-list-head user-group-h">${title}</div>
+      <ul class="user-list">${list.map(u => html`<${UserRow} key=${u.id} u=${u} isSelf=${u.username === meName} onChanged=${onChanged} />`)}</ul>
+    </div>` : null;
     body = [group(t('admin.admins'), users.filter(u => u.is_admin)), group(t('admin.members'), users.filter(u => !u.is_admin))];
   }
   return html`<div id="s-admin-users">${body}</div>`;
@@ -285,7 +286,7 @@ function UserRow({ u, isSelf, onChanged }) {
   const button = (name, label, extra) =>
     html`<button data-act=${name} disabled=${busy === name} onClick=${() => act(name)} ...${extra}>${label}</button>`;
   return html`<li class=${'user-row' + (isSelf ? ' self' : '')} data-uid=${u.id} data-uname=${u.username}>
-    <span class="user-name">${u.username}${u.published ? html`<span class="user-flag on">${t('admin.public')}</span>` : ''}</span>
+    <span class="user-name user-name-flags"><span class="user-name-text">${u.username}</span>${u.published ? html`<span class="ui-badge ui-badge-pill user-flag on">${t('admin.public')}</span>` : ''}</span>
     <div class="user-actions">
       ${u.published ? button('unpublish', t('admin.unpublish')) : ''}
       ${u.sessions ? button('revoke', t('admin.revoke')) : ''}

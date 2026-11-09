@@ -265,12 +265,14 @@ export function AddArea() {
           <button type="button" class="primary" id="a-search-go" disabled=${searching} onClick=${runSearch}>${t('area.search')}</button>
         </div>
         <div class="area-results" id="a-results" ref=${resultsEl} hidden=${!found || !found.length}>
-          ${(found || []).map((/** @type {any} */ result, /** @type {number} */ i) => html`<button type="button" class="area-result" key=${searchId + ':' + i}
+          ${(found || []).map((/** @type {any} */ result, /** @type {number} */ i) => html`<button type="button" class="ui-list-item area-result" key=${searchId + ':' + i}
             aria-pressed=${String(picked === i)} hidden=${folded && picked !== i}
             onClick=${(/** @type {Event} */ e) => pickResult(result, i, /** @type {HTMLElement} */ (e.currentTarget), found ? found.length : 0)}>
-            <span class="area-result-name">${result.name}</span>
-            <span class="area-result-kind">${result.kind}</span>
-            ${result.detail && html`<span class="area-result-detail">${result.detail}</span>`}
+            <span class="ui-list-item-main">
+              <span class="area-result-name">${result.name}</span>
+              ${result.detail && html`<span class="area-result-detail">${result.detail}</span>`}
+            </span>
+            <span class="ui-list-item-end area-result-kind">${result.kind}</span>
           </button>`)}
         </div>
         <div class="area-results-foot">
