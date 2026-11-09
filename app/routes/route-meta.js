@@ -22,14 +22,12 @@ function routeMetadataKey(route) {
 }
 
 /** @param {number} rating */
-export function ratingStarsText(rating) {
-  // Returns HTML, not plain text, so the empty stars stay glyph-identical
-  // to the filled ones (☆ and ★ render at different widths in most fonts).
-  if (!rating) return '';
-  const filled = '★'.repeat(rating);
+export function ratingStars(rating) {
+  // The empty stars are faded filled ones rather than ☆, so they stay
+  // glyph-identical (☆ and ★ render at different widths in most fonts).
+  if (!rating) return null;
   const empty = 5 - rating;
-  if (!empty) return filled;
-  return filled + '<span class="stars-empty">' + '★'.repeat(empty) + '</span>';
+  return html`${'★'.repeat(rating)}${empty > 0 && html`<span class="stars-empty">${'★'.repeat(empty)}</span>`}`;
 }
 
 // Keys of routes mid-move. The old key leaves the store before the new one
