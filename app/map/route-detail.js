@@ -13,10 +13,9 @@ import {
 } from './map-markers.js';
 import {
   MAX_ELEV_POINTS, adjustTrailStrokes, applyNonScalingStroke, bindTrailStrokeMotion,
-  decimateCoords, fetchGpxText, simplifyRouteForZoom,
+  decimateCoords, fetchGpxText, parseGpxTracks, simplifyRouteForZoom,
 } from './route-layer.js';
-import { EXTERNAL_ICON_SVG } from './map-popups.js';
-import { DIFFICULTY_LABELS, findRouteByKey, openEditTrailMetadataModal, ratingStarsText, routeIsMoving } from '../routes/route-meta.js';
+import { DIFFICULTY_LABELS, findRouteByKey, openEditTrailMetadataModal, ratingStars, routeIsMoving } from '../routes/route-meta.js';
 import { getTrailWeightFactor } from '../theme.js';
 import { wrappedRouter } from '../router.js';
 import { t } from '../i18n.js';
@@ -25,43 +24,12 @@ import { AppError, html as vhtml, mountExtra, mountPage, useEffect, useRef } fro
 
 /** @typedef {import('./route-layer.js').LeafletMap} LeafletMap */
 /** @typedef {import('./route-layer.js').LeafletLayer} LeafletLayer */
-/** @typedef {{ lat: number, lon: number, ele: number | null }} GpxPoint */
-/** @typedef {{ name: string, points: GpxPoint[] }} GpxTrack */
+/** @typedef {import('./route-layer.js').GpxPoint} GpxPoint */
+/** @typedef {import('./route-layer.js').GpxTrack} GpxTrack */
 /** @typedef {{ lat: number, lon: number, sym: string, name: string, desc: string }} GpxWaypoint */
 /** @typedef {{ distance: number, gain: number, loss: number, maxEle: number }} TrackStats */
 /** @typedef {ReturnType<typeof mapScheduler>} MapScheduler */
 /** @typedef {{ type: 'Feature', geometry: { type: 'LineString', coordinates: Array<Array<number | null>> }, properties: {} }} ElevFeature */
-
-/**
- * @param {string} xmlText
- * @returns {GpxTrack[]}
- */
-export function parseGpxTracks(xmlText) {
-  const doc = new DOMParser().parseFromString(xmlText, 'text/xml');
-  let tracks = doc.getElementsByTagNameNS(GPX_NS, 'trk');
-  if (tracks.length === 0) tracks = doc.getElementsByTagName('trk');
-  /** @type {GpxTrack[]} */
-  const result = [];
-  for (let i = 0; i < tracks.length; i++) {
-    const trk = tracks[i];
-    const nameEl = trk.getElementsByTagNameNS(GPX_NS, 'name')[0] || trk.getElementsByTagName('name')[0];
-    const name = nameEl ? nameEl.textContent || '' : t('routeDetail.track', { n: i + 1 });
-    /** @type {GpxPoint[]} */
-    const points = [];
-    let trkpts = trk.getElementsByTagNameNS(GPX_NS, 'trkpt');
-    if (trkpts.length === 0) trkpts = trk.getElementsByTagName('trkpt');
-    for (let j = 0; j < trkpts.length; j++) {
-      const pt = trkpts[j];
-      const lat = parseFloat(pt.getAttribute('lat') || '');
-      const lon = parseFloat(pt.getAttribute('lon') || '');
-      const eleEl = pt.getElementsByTagNameNS(GPX_NS, 'ele')[0] || pt.getElementsByTagName('ele')[0];
-      const ele = eleEl ? parseFloat(eleEl.textContent || '') : null;
-      points.push({ lat, lon, ele });
-    }
-    result.push({ name, points });
-  }
-  return result;
-}
 
 /**
  * @param {string} xmlText
@@ -660,7 +628,8 @@ function detailKeyInHash() {
 // (its Edit button). Rebuild once the flush is done.
 const rebuildLater = () => setTimeout(wrappedRouter, 0);
 
-const metaHtml = (/** @type {string} */ h) => ({ __html: h });
+// The same icon as map-popups.js's EXTERNAL_ICON_SVG, which Leaflet takes as a string.
+const ExternalIcon = () => vhtml`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>`;
 
 // The detail page's metadata: the facts, tags and notes panel, the crumb and
 // the nav Edit button. They follow the store, so an edit redraws these and
@@ -714,10 +683,10 @@ function RouteMeta({ routeKey }) {
     vhtml`<span class="fact">${displayRegion(region.name)}</span>`,
   ];
   if (route.difficulty) facts.push(vhtml`<span class="fact">${DIFFICULTY_LABELS[route.difficulty] || route.difficulty}</span>`);
-  if (route.rating && getShowField('rating')) facts.push(vhtml`<span class="fact" title=${route.rating + '/5'} dangerouslySetInnerHTML=${metaHtml(ratingStarsText(route.rating))}></span>`);
+  if (route.rating && getShowField('rating')) facts.push(vhtml`<span class="fact" title=${route.rating + '/5'}>${ratingStars(route.rating)}</span>`);
   if (route.date_completed && getShowField('date')) facts.push(vhtml`<span class="fact">${route.date_completed}</span>`);
   // Source link moved here from the removed top stats bar.
-  if (href) facts.push(vhtml`<a class="fact fact-source" href=${href} target="_blank" rel="noopener noreferrer">${domainFromUrl(/** @type {string} */ (route.source)) + ' '}<span dangerouslySetInnerHTML=${metaHtml(EXTERNAL_ICON_SVG)}></span></a>`);
+  if (href) facts.push(vhtml`<a class="fact fact-source" href=${href} target="_blank" rel="noopener noreferrer">${domainFromUrl(/** @type {string} */ (route.source)) + ' '}<span><${ExternalIcon} /></span></a>`);
   return vhtml`<div class="route-meta-panel">
     <div class="route-meta-header">
       <div class="route-meta-line">${facts.map((f, i) => vhtml`${i > 0 && vhtml`<span class="sep">\u00b7</span>`}${f}`)}</div>

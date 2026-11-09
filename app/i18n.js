@@ -677,6 +677,7 @@ const STRINGS = {
 
   'routeDetail.notes': 'Notes',
   'routeDetail.notFound': 'Route not found',
+  'routeDetail.loadFailed': 'Could not load the route page. Check your connection and try again.',
   'routeDetail.notFoundCrumb': 'Not found',
   'routeDetail.edit': 'Edit',
   'routeDetail.elevation': 'Elevation',
