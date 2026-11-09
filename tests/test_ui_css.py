@@ -196,8 +196,7 @@ class ThemeContrast(unittest.TestCase):
 
   def test_a_tint_of_a_colour_carries_body_text(self):
     # The colour measured on a surface falls short on a tint of itself.
-    for rule in (r"\.ui-dialog \.success-box \{", r"\.ui-dialog \.user-flag\.on \{",
-                 r"\.ui-dialog \.danger-btn:not\(h2 \.ui-dialog-close\):hover:not\(:disabled\) \{"):
+    for rule in (r"\.ui-dialog \.success-box \{", r"\.ui-dialog \.user-flag\.on \{"):
       # A badge takes its text colour from --ui-muted, so the tint sets that.
       self.assertRegex(FRONTEND, rule + r"[^}]*\n\s*(?:color|--ui-muted): var\(--text\);")
 
@@ -266,8 +265,7 @@ class TargetsAndFocus(unittest.TestCase):
 
   def test_a_filled_control_rings_in_its_label_colour(self):
     selectors = " ".join(s for s, body in self.rules() if "outline-color: currentColor" in body)
-    for filled in ("button.primary", "button.nav-action-btn"):
-      self.assertIn(filled, selectors)
+    self.assertIn("button.nav-action-btn", selectors)
 
   def test_a_swatch_ring_sits_outside_its_colour(self):
     body = self.body('button:is(.cat-swatch, .cat-color-dot):focus-visible')

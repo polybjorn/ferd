@@ -67,7 +67,7 @@ function EditPlace({ place }) {
               <input type="number" id="e-lon" step="any" required value=${v.lon} onInput=${text('lon')} />
             <//>
           </div>
-          <div class="ui-control-row"><button type="button" class="primary" id="e-pick-on-map" onClick=${pick}>${t('form.pickOnMap')}</button></div>
+          <div class="ui-control-row"><button type="button" class="ui-button ui-button-primary" id="e-pick-on-map" onClick=${pick}>${t('form.pickOnMap')}</button></div>
           <${Field} id="e-category" label=${t('form.category')}>
             <${SelectOrNew} id="e-category" options=${categorySlugs()} labelOf=${displayCategory} value=${v.category}
               onChange=${(/** @type {any} */ category) => patch({ category })} newPlaceholder=${t('form.newCategory')} />

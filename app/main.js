@@ -302,17 +302,17 @@ function SyncIssues() {
     <ul class="sync-issues">${stuck.map(it => html`<li key=${'s' + it.id}>
       <div><div>${t(OP_TEXT[it.method || ''] || 'syncIssues.op.change', { name: it.name })}</div><div class="sync-issue-error">${it.error}</div></div>
       <div class="sync-issue-actions">
-        <button type="button" class="primary" disabled=${busy} onClick=${() => run(sync)}>${t('syncIssues.retry')}</button>
-        ${it.upload ? html`<button type="button" disabled=${busy} onClick=${() => save(it)}>${t('syncIssues.save')}</button>` : null}
-        <button type="button" disabled=${busy} onClick=${() => run(() => discardOp(Number(it.id)))}>${t('syncIssues.discard')}</button>
+        <button type="button" class="ui-button ui-button-primary" disabled=${busy} onClick=${() => run(sync)}>${t('syncIssues.retry')}</button>
+        ${it.upload ? html`<button type="button" class="ui-button" disabled=${busy} onClick=${() => save(it)}>${t('syncIssues.save')}</button>` : null}
+        <button type="button" class="ui-button" disabled=${busy} onClick=${() => run(() => discardOp(Number(it.id)))}>${t('syncIssues.discard')}</button>
       </div>
     </li>`)}</ul>` : null}
     ${kept.length ? html`<p>${t('syncIssues.keptLead')}</p>
     <ul class="sync-issues">${kept.map(it => html`<li key=${it.key}>
       <div><div>${it.name}</div><div class="sync-issue-error">${it.error}</div></div>
       <div class="sync-issue-actions">
-        <button type="button" class="primary" disabled=${busy} onClick=${() => save(it)}>${t('syncIssues.save')}</button>
-        <button type="button" disabled=${busy} onClick=${() => run(() => dismissKept(String(it.key)))}>${t('syncIssues.dismiss')}</button>
+        <button type="button" class="ui-button ui-button-primary" disabled=${busy} onClick=${() => save(it)}>${t('syncIssues.save')}</button>
+        <button type="button" class="ui-button" disabled=${busy} onClick=${() => run(() => dismissKept(String(it.key)))}>${t('syncIssues.dismiss')}</button>
       </div>
     </li>`)}</ul>` : null}
     <div class=${'form-error' + (error ? ' visible' : '')}><p class="ui-hint ui-hint-error">${error}</p></div>

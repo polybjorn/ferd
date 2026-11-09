@@ -18,6 +18,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - A language setting under Settings > General. It starts from the browser's language and falls back to English, syncs to your account, and applies at once without a reload. Numbers group in that language's style (7 340,9 in Norwegian) and lists sort in its alphabetical order. Norwegian bokmål is offered with the whole interface translated. What you entered yourself, such as names, notes and categories, and catalog entries keep their own wording, and dates show as 2026-11-08 in every language.
 
 ### Changed
+- Buttons in dialogs use the shared ui-foundation button: the text is a little larger and darker, with no extra letter spacing, and filled buttons take the theme's accent the same way everywhere. The category colour dots are round again, and the Filters button in Add > Browse matches the one on the list pages.
 - The first load skips the route page and the elevation chart (about 100 KB), which load when a route page first opens. They stay cached for offline use.
 - The Places, Routes, Areas, History and You pages load the first time you open them instead of at startup, so the first load is about 60 KB smaller. They still open offline.
 - The place and area Edit dialogs, the route details form and the map's right-click menu load the first time you use them, so the first load is about 48 KB smaller. They still work offline.

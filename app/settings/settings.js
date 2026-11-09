@@ -202,7 +202,7 @@ function switchLanguage(code) {
 function ManageRow({ id, hint, onOpen }) {
   return html`<div class="ui-control-row">
     <p class="ui-hint">${hint}</p>
-    <button type="button" class="primary" id=${id} onClick=${onOpen}>${t('common.manage')}</button>
+    <button type="button" class="ui-button ui-button-primary" id=${id} onClick=${onOpen}>${t('common.manage')}</button>
   </div>`;
 }
 
@@ -466,10 +466,10 @@ function ImportSection({ ids, modeName, modes, replaceBody, run }) {
     <div class="ui-control-row settings-file-row">
       <div class="file-picker">
         <input type="file" id=${ids.file} tabindex="-1" accept=".zip,application/zip" class="file-input-hidden" ref=${fileRef} onChange=${picked} />
-        <button type="button" class="primary" id=${ids.pick} onClick=${() => fileRef.current.click()}>${t('transfer.chooseFile')}</button>
+        <button type="button" class="ui-button ui-button-primary" id=${ids.pick} onClick=${() => fileRef.current.click()}>${t('transfer.chooseFile')}</button>
         <span class=${'file-name' + (fileName ? ' has-file' : '')} id=${ids.name}>${fileName || t('transfer.noFile')}</span>
       </div>
-      <button type="button" class="primary" id=${ids.start} disabled=${busy} onClick=${start}>${busy ? t('transfer.importing') : t('transfer.import')}</button>
+      <button type="button" class="ui-button ui-button-primary" id=${ids.start} disabled=${busy} onClick=${start}>${busy ? t('transfer.importing') : t('transfer.import')}</button>
     </div>
     <${ErrorBox} id=${ids.error} msg=${error} />
     <div class="success-box" id=${ids.success} hidden=${!done}>${done}</div>
@@ -509,7 +509,7 @@ function BackupPanel() {
     <h3 class="settings-h">${t('backup.export')}</h3>
     <div class="ui-control-row">
       <p class="ui-hint">${t('backup.exportHint')}</p>
-      <button type="button" class="primary" id="s-local-export" disabled=${busy} onClick=${exportZip}>${busy ? t('backup.exporting') : t('transfer.export')}</button>
+      <button type="button" class="ui-button ui-button-primary" id="s-local-export" disabled=${busy} onClick=${exportZip}>${busy ? t('backup.exporting') : t('transfer.export')}</button>
     </div>
     <${ErrorBox} id="s-local-export-error" msg=${error} />
     <h3 class="settings-h">${t('backup.import')}</h3>
@@ -575,7 +575,7 @@ function ExportSection() {
       <${RadioPills} name="export-format" options=${[['zip', t('account.formatZip')], ['geojson', t('account.formatGeojson')]]} initial="zip" variant="radio-segmented" onPick=${setFormat} />
       <div class="ui-control-row">
         <p class="ui-hint" id="s-export-desc">${t(EXPORT_FORMATS[format].desc)}</p>
-        <button type="button" class="primary" id="s-export" disabled=${busy} onClick=${start}>${t('transfer.export')}</button>
+        <button type="button" class="ui-button ui-button-primary" id="s-export" disabled=${busy} onClick=${start}>${t('transfer.export')}</button>
       </div>
       <${ErrorBox} id="s-export-error" msg=${error} />
     </div>`;
@@ -638,7 +638,7 @@ function PasswordForm({ onChanged }) {
       <p class="ui-hint">${t('account.passwordHint')}</p>
     <//>
     <div class="ui-control-row">
-      <button type="submit" class="primary" id="s-submit" disabled=${busy}>${t('account.changePassword')}</button>
+      <button type="submit" class="ui-button ui-button-primary" id="s-submit" disabled=${busy}>${t('account.changePassword')}</button>
     </div>
     <${ErrorBox} id="s-error" msg=${error} />
     <div class="success-note" id="s-pw-success" hidden=${!done}>${done}</div>
@@ -698,7 +698,7 @@ function TokenForm({ onCreated }) {
       <${RadioPills} name="s-token-expiry" options=${[['30', t('security.days30')], ['90', t('security.days90')], ['365', t('security.year1')], ['', t('security.never')]]} initial="365" variant="radio-segmented" onPick=${setExpiry} />
     <//>
     <div class="ui-control-row">
-      <button type="submit" class="primary" id="s-token-create" disabled=${busy}>${t('security.createToken')}</button>
+      <button type="submit" class="ui-button ui-button-primary" id="s-token-create" disabled=${busy}>${t('security.createToken')}</button>
     </div>
     <${ErrorBox} id="s-token-error" msg=${error} />
     <div id="s-token-new" class="success-box" hidden=${!token}>

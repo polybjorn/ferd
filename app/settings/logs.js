@@ -148,7 +148,7 @@ function LogList({ local, version }) {
   else if (!rows || !rows.length) body = html`<div class="hint">${t('logs.none')}</div>`;
   else body = html`
     <ul class="log-list">${rows.map(r => html`<${LogRow} key=${r.id} r=${r} />`)}</ul>
-    ${next && html`<button type="button" class="log-more" disabled=${more} onClick=${loadOlder}>${t('logs.loadOlder')}</button>`}`;
+    ${next && html`<button type="button" class="ui-button log-more" disabled=${more} onClick=${loadOlder}>${t('logs.loadOlder')}</button>`}`;
   return html`<div id="s-admin-logs">${body}</div>`;
 }
 

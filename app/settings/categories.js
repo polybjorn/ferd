@@ -251,7 +251,7 @@ function CategoriesView({ initial, inUse }) {
       <h3 class="settings-h" style="margin-top:var(--ui-space-3)">${t('categories.add')}</h3>
       <div class="row" style="margin-top:var(--ui-space-1)">
         <div class="ui-field"><input type="text" id="cat-new-display" placeholder=${t('categories.newPlaceholder')} value=${newText} onInput=${(/** @type {Event} */ e) => setNewText(/** @type {HTMLInputElement} */ (e.currentTarget).value)} /></div>
-        <button type="button" class="primary" id="cat-add" style="flex:0 0 auto" onClick=${add}>${t('categories.add')}</button>
+        <button type="button" class="ui-button ui-button-primary" id="cat-add" style="flex:0 0 auto" onClick=${add}>${t('categories.add')}</button>
       </div>
       <div class="hint" id="cat-new-slug-preview" hidden=${!newSlug}>${newSlug && tx('categories.slugPreview', { slug: html`<code>${newSlug}</code>` })}</div>
       <${ErrorBox} id="cat-error" msg=${error} />

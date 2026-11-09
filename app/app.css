@@ -23,7 +23,7 @@ button { min-height: 24px; }
   outline-offset: -2px;
 }
 /* An accent ring vanishes on an accent fill, and a swatch can be any colour. */
-:is(button.primary, button.nav-action-btn):focus-visible { outline-color: currentColor; }
+button.nav-action-btn:focus-visible { outline-color: currentColor; }
 button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
 /* These clip what sticks out, and a checkbox ring sits outside the box. */
 #browse-list, #cat-list { margin-inline: -4px; padding-inline: 4px; }
@@ -631,11 +631,9 @@ a:not([class]):hover { text-decoration: underline; }
 .you-signin svg { width: 56px; height: 56px; color: var(--muted); }
 .you-signin p { margin: var(--ui-space-2) 0 var(--ui-space-4); color: var(--muted); }
 .you-rows { max-width: 480px; margin: 0 auto; }
-/* The sheet's selectors carry .ui-dialog and :not() to outrank
-   `.ui-dialog button:not(.ui-dialog-close)`, which would draw the rows as buttons. */
 :is(.account-sheet, .you-rows) { display: flex; flex-direction: column; }
 .you-rows button,
-.ui-dialog .account-sheet button:not(.ui-dialog-close) {
+.ui-dialog .account-sheet button {
   display: flex;
   align-items: center;
   width: 100%;
@@ -652,11 +650,11 @@ a:not([class]):hover { text-decoration: underline; }
   cursor: pointer;
 }
 .you-rows button:last-child,
-.ui-dialog .account-sheet button:not(.ui-dialog-close):is(:last-child, :has(+ .auth-menu-foot)) { border-bottom: 0; }
+.ui-dialog .account-sheet button:is(:last-child, :has(+ .auth-menu-foot)) { border-bottom: 0; }
 .you-rows button:hover,
-.ui-dialog .account-sheet button:not(.ui-dialog-close):hover { background: var(--surface2); }
+.ui-dialog .account-sheet button:hover { background: var(--surface2); }
 /* Sign out ends the session, so a gap keeps a tap meant for About off it. */
-.ui-dialog .account-sheet button.auth-menu-foot:not(.ui-dialog-close) {
+.ui-dialog .account-sheet button.auth-menu-foot {
   margin-top: var(--ui-space-4);
   border-top: 1px solid var(--border);
   color: var(--muted);
@@ -1252,11 +1250,12 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 }
 .map-search-heading-row .map-search-heading { margin: 0; }
 /* Set like the heading it shares a row with, in the accent so it reads as
-   an action. Outranks `.ui-dialog button:not(.ui-dialog-close)`, which would draw
-   it as a button. */
-.ui-dialog button.map-search-clear:not(.ui-dialog-close) {
+   an action. */
+.ui-dialog button.map-search-clear {
   position: relative;
   padding: 0;
+  font-family: inherit;
+  cursor: pointer;
   font-size: var(--ui-text-xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1264,7 +1263,7 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   background: transparent;
   border: 0;
 }
-.ui-dialog button.map-search-clear:not(.ui-dialog-close):hover { color: var(--text); }
+.ui-dialog button.map-search-clear:hover { color: var(--text); }
 /* Name over meta, beside a marker that centres on both lines. */
 .map-search-list .map-search-result {
   display: grid;
@@ -1292,10 +1291,10 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 .filter-sheet-sec-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-3); }
 .filter-sheet-title { margin: 0; font-size: var(--ui-text-sm); font-weight: 600; }
 .filter-sheet-count { margin-left: var(--ui-space-2); color: var(--muted); font-size: var(--ui-text-xs); font-weight: 400; }
-/* Selectors carry button and :not() to outrank `.ui-dialog button:not(.ui-dialog-close)`,
-   which would draw the links and chips as plain buttons. */
-.ui-dialog button.filter-sheet-link:not(.ui-dialog-close) {
+.ui-dialog button.filter-sheet-link {
   padding: var(--ui-space-2) var(--ui-space-1);
+  font-family: inherit;
+  cursor: pointer;
   font-size: var(--ui-text-sm);
   font-weight: 600;
   letter-spacing: normal;
@@ -1303,6 +1302,7 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   background: none;
   border: 0;
 }
+.ui-dialog button.filter-sheet-link:disabled { opacity: 0.4; cursor: not-allowed; }
 .filter-chips { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); }
 .filter-chips + .filter-chips { margin-top: var(--ui-space-2); }
 .ui-chip .legend-dot { margin: 0; }
@@ -1311,7 +1311,7 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 @media (pointer: coarse) {
   .leaflet-container { --map-btn-size: var(--ui-touch-target); }
   .map-search-list .map-search-result { min-block-size: var(--ui-touch-target); box-sizing: border-box; }
-  .ui-dialog button.filter-sheet-link:not(.ui-dialog-close) { min-block-size: var(--ui-touch-target); }
+  .ui-dialog button.filter-sheet-link { min-block-size: var(--ui-touch-target); }
   /* Clear stays one line of small caps, so the row keeps its height, and
      takes a full-height hit area that overlaps the space around it. */
   .map-search-clear::after {
@@ -1765,6 +1765,7 @@ body.signin-only #app {
   text-align: center;
 }
 .signin-alt button {
+  font-family: inherit;
   background: none;
   border: none;
   color: var(--muted);
@@ -2207,18 +2208,6 @@ body.force-show-map-filter .map-panel {
 .session-row { --ui-surface: var(--surface2); --ui-border: var(--border); }
 .session-current { letter-spacing: 0.1em; text-transform: uppercase; }
 .session-sub { font-size: var(--ui-text-xs); color: var(--muted); margin-top: var(--ui-space-1); }
-.session-revoke {
-  background: transparent;
-  border: 1px solid var(--control-border);
-  color: var(--danger);
-  font-size: var(--ui-text-xs);
-  padding: var(--ui-space-1) var(--ui-space-2);
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-family: inherit;
-}
-.session-revoke:hover:not(:disabled) { border-color: var(--danger); }
-.session-revoke:disabled { opacity: 0.5; cursor: not-allowed; }
 /* .btn-x and .catalog-eye-btn sit on ui-button ui-button-icon, which draws
    the square and outranks this layer, so their colours are set through its
    tokens. The hover colour says what the button does. */
@@ -2408,14 +2397,20 @@ body.force-show-map-filter .map-panel {
   position: relative;
 }
 /* The negative margin keeps the tap area from making the row taller. */
-.ui-dialog button.area-search-info:not(.ui-dialog-close) {
+.ui-dialog button.area-search-info {
+  background: transparent;
   border: none;
+  border-radius: var(--radius);
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--ui-text-xs);
   display: flex;
   margin: -0.5rem 0;
   padding: var(--ui-space-2);
 }
-.ui-dialog button.area-search-info:not(.ui-dialog-close):hover:not(:disabled),
-.ui-dialog button.area-search-info[aria-expanded="true"]:not(.ui-dialog-close) { color: var(--accent); }
+.ui-dialog button.area-search-info:hover:not(:disabled),
+.ui-dialog button.area-search-info[aria-expanded="true"] { color: var(--accent); }
 .ui-dialog .area-search-note {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -2440,21 +2435,23 @@ body.force-show-map-filter .map-panel {
 }
 .ui-dialog .area-results { display: flex; flex-direction: column; gap: var(--ui-space-1); margin-top: var(--ui-space-2); }
 .ui-dialog .area-results[hidden] { display: none; }
-/* A ui-list-item on the dialog's raised surface. The selector carries button
-   and :not() to outrank `.ui-dialog button:not(.ui-dialog-close)`, which sits
-   later and would space the letters out as a button's. */
-.ui-dialog button.area-result:not(.ui-dialog-close) { --ui-surface: var(--surface2); letter-spacing: normal; }
-.ui-dialog button.area-results-more[hidden]:not(.ui-dialog-close) { display: none; }
+/* A ui-list-item on the dialog's raised surface. */
+.ui-dialog .area-result { --ui-surface: var(--surface2); }
+.ui-dialog button.area-results-more[hidden] { display: none; }
 .area-results-foot { align-items: center; display: flex; gap: var(--ui-space-3); justify-content: space-between; }
-.ui-dialog button.area-results-more:not(.ui-dialog-close) {
+.ui-dialog button.area-results-more {
+  background: transparent;
   border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
   font-size: var(--ui-text-sm);
   letter-spacing: normal;
   margin-top: var(--ui-space-1);
   padding: var(--ui-space-1) 0;
 }
 .area-results-credit { color: var(--muted); font-size: var(--ui-text-xs); margin-left: auto; margin-top: var(--ui-space-1); }
-.ui-dialog button.area-results-more:not(.ui-dialog-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
+.ui-dialog button.area-results-more:hover:not(:disabled) { color: var(--text); text-decoration: underline; }
 .area-result-name { font-weight: 600; }
 .area-result-kind, .area-result-detail { color: var(--muted); font-size: var(--ui-text-xs); }
 .area-result-kind::first-letter { text-transform: uppercase; }
@@ -2464,8 +2461,8 @@ body.force-show-map-filter .map-panel {
 #p-coords-manual { line-height: 24px; }
 .ui-dialog .success-note { font-size: var(--ui-text-sm); color: var(--green, #6db26d); margin-top: var(--ui-space-2); }
 .ui-dialog h3.sessions-h { display: flex; align-items: baseline; gap: var(--ui-space-3); }
-.ui-dialog button.sessions-revoke-others:not(h2 .ui-dialog-close) { margin-left: auto; font-size: var(--ui-text-xs); font-weight: 400; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0; letter-spacing: 0; }
-.ui-dialog button.sessions-revoke-others:not(h2 .ui-dialog-close):hover:not(:disabled) { color: var(--text); text-decoration: underline; }
+.ui-dialog button.sessions-revoke-others { margin-left: auto; font-family: inherit; font-size: var(--ui-text-xs); font-weight: 400; background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 0; letter-spacing: 0; }
+.ui-dialog button.sessions-revoke-others:hover:not(:disabled) { color: var(--text); text-decoration: underline; }
 /* The category label input stays outside a .ui-field: its tag sits inside the
    box, and ui.css's field padding would cover it. */
 .cat-input-wrap > .cat-display {
@@ -2631,10 +2628,6 @@ body.force-show-map-filter .map-panel {
   gap: var(--ui-space-1);
   justify-content: flex-end;
 }
-.ui-dialog .user-actions button:not(.ui-dialog-close) {
-  padding: var(--ui-space-1) var(--ui-space-2);
-  font-size: var(--ui-text-xs);
-}
 .ui-dialog .user-flag { flex: none; white-space: nowrap; --ui-border: var(--border); }
 .ui-dialog .log-list {
   list-style: none;
@@ -2716,25 +2709,12 @@ body.force-show-map-filter .map-panel {
   word-break: break-word;
 }
 .ui-dialog .log-row.log-fail .log-msg { color: var(--danger); }
-.ui-dialog .log-more {
-  display: block;
-  width: 100%;
-  margin-top: var(--ui-space-2);
-  padding: var(--ui-space-2);
-  font-size: var(--ui-text-xs);
-}
+.ui-dialog .log-more { inline-size: 100%; }
+.ui-dialog .log-list:has(+ .log-more) { margin-block-end: var(--ui-space-2); }
 .ui-dialog .user-flag.on {
   --ui-muted: var(--text);
   --ui-border: color-mix(in srgb, var(--accent) 40%, transparent);
   background: color-mix(in srgb, var(--accent) 10%, transparent);
-}
-.ui-dialog .danger-btn:not(h2 .ui-dialog-close) {
-  color: var(--danger);
-  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
-}
-.ui-dialog .danger-btn:not(h2 .ui-dialog-close):hover:not(:disabled) {
-  color: var(--text);
-  background: color-mix(in srgb, var(--danger) 12%, transparent);
 }
 .ui-dialog select:disabled {
   opacity: 0.55;
@@ -2755,46 +2735,6 @@ body.force-show-map-filter .map-panel {
   color: var(--danger);
   margin: 0;
 }
-/* All non-close buttons inside a modal get the bordered look. The
-   :not(.ui-dialog-close) excludes both the in-h2 close (set up via
-   .ui-dialog h2 .ui-dialog-close below) and any free-standing close (e.g. the
-   floating one used by the Add modal). Adding a new .ui-dialog-close anywhere
-   in a modal is intentionally enough to opt out of this styling. */
-.ui-dialog button:not(.ui-dialog-close) {
-  background: transparent;
-  border: 1px solid var(--control-border);
-  color: var(--muted);
-  font-family: inherit;
-  font-size: var(--ui-text-xs);
-  padding: var(--ui-space-2) var(--ui-space-4);
-  border-radius: var(--radius);
-  cursor: pointer;
-  letter-spacing: 0.05em;
-  transition: background-color var(--ui-duration-slow) ease, color var(--ui-duration-slow) ease, border-color var(--ui-duration-slow) ease, opacity var(--ui-duration-fast) ease;
-}
-/* Theme-aware primary button outside the modal (e.g. list-page Add buttons).
-   Inside the modal, the higher-specificity rule above still wins. */
-button.primary {
-  background: var(--accent);
-  border: 1px solid var(--accent);
-  color: var(--fab-text);
-  font-family: inherit;
-  font-size: var(--ui-text-xs);
-  padding: var(--ui-space-2) var(--ui-space-4);
-  border-radius: var(--radius);
-  cursor: pointer;
-  letter-spacing: 0.05em;
-  transition: opacity var(--ui-duration-fast);
-}
-button.primary:hover:not(:disabled) { box-shadow: inset 0 0 0 1px var(--fab-text); }
-button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
-.ui-dialog button.primary:not(h2 .ui-dialog-close) {
-  background: var(--accent);
-  color: var(--fab-text);
-  border-color: var(--accent);
-}
-.ui-dialog button:not(.ui-dialog-close):not(.primary):hover:not(:disabled) { color: var(--text); border-color: var(--muted); }
-.ui-dialog button:not(.ui-dialog-close):disabled { opacity: 0.4; cursor: not-allowed; }
 .ui-dialog .hint {
   font-size: var(--ui-text-xs);
   color: var(--muted);

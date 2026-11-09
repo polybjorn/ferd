@@ -115,7 +115,7 @@ function SessionRow({ s, onRevoked }) {
       <div class="session-device">${deviceLabel(s.user_agent)} ${s.current ? html`<span class="ui-badge ui-badge-pill ui-badge-success session-current">${t('security.thisDevice')}</span>` : ''}</div>
       <div class="session-sub">${s.current ? ip : ip + ' · ' + timeAgo(s.last_seen_at || s.created_at)}</div>
     </div>
-    ${s.current ? '' : html`<button class="ui-list-item-end session-revoke" data-id=${s.id} disabled=${busy} onClick=${revoke}>${t('security.revoke')}</button>`}
+    ${s.current ? '' : html`<button class="ui-button ui-button-danger ui-list-item-end session-revoke" data-id=${s.id} disabled=${busy} onClick=${revoke}>${t('security.revoke')}</button>`}
   </li>`;
 }
 
@@ -159,7 +159,7 @@ function TokenRow({ tok, onRevoked }) {
       <div class="session-device">${tok.name}</div>
       <div class="session-sub">${[t(tok.scope === 'readonly' ? 'security.scopeReadonly' : 'security.scopeFull'), used, exp].join(' · ')}</div>
     </div>
-    <button class="ui-list-item-end session-revoke" data-id=${tok.id} disabled=${busy} onClick=${revoke}>${t('security.revoke')}</button>
+    <button class="ui-button ui-button-danger ui-list-item-end session-revoke" data-id=${tok.id} disabled=${busy} onClick=${revoke}>${t('security.revoke')}</button>
   </li>`;
 }
 
@@ -284,14 +284,14 @@ function UserRow({ u, isSelf, onChanged }) {
    * @param {Record<string, string>} [extra]
    */
   const button = (name, label, extra) =>
-    html`<button data-act=${name} disabled=${busy === name} onClick=${() => act(name)} ...${extra}>${label}</button>`;
+    html`<button class="ui-button" data-act=${name} disabled=${busy === name} onClick=${() => act(name)} ...${extra}>${label}</button>`;
   return html`<li class=${'user-row' + (isSelf ? ' self' : '')} data-uid=${u.id} data-uname=${u.username}>
     <span class="user-name user-name-flags"><span class="user-name-text">${u.username}</span>${u.published ? html`<span class="ui-badge ui-badge-pill user-flag on">${t('admin.public')}</span>` : ''}</span>
     <div class="user-actions">
       ${u.published ? button('unpublish', t('admin.unpublish')) : ''}
       ${u.sessions ? button('revoke', t('admin.revoke')) : ''}
       ${isSelf ? '' : button('role', t(u.is_admin ? 'admin.demote' : 'admin.promote'), { 'data-promote': u.is_admin ? '0' : '1' })}
-      ${isSelf ? '' : button('delete', t('admin.delete'), { class: 'danger-btn' })}
+      ${isSelf ? '' : button('delete', t('admin.delete'), { class: 'ui-button ui-button-danger' })}
     </div>
     <div class="user-counts">
       <span><b>${u.sessions}</b>${t('admin.sessions')}</span>
@@ -325,8 +325,8 @@ export function AdminCatalog() {
     const n = Array.isArray(res.data) ? res.data.length : 0;
     body = html`<div style="display:flex;align-items:center;gap:var(--ui-space-2)">
       <span class="dialog-desc" style="margin:0;flex:1">${t('admin.catalogHint')}</span>
-      ${n ? html`<button type="button" class="primary" id="s-catalog-manage" onClick=${openCatalogManager}>${t('common.manage')}</button>` : ''}
-      <button type="button" class="primary" id="s-catalog-add" onClick=${openCatalogPicker}>${t('common.add')}</button>
+      ${n ? html`<button type="button" class="ui-button ui-button-primary" id="s-catalog-manage" onClick=${openCatalogManager}>${t('common.manage')}</button>` : ''}
+      <button type="button" class="ui-button ui-button-primary" id="s-catalog-add" onClick=${openCatalogPicker}>${t('common.add')}</button>
     </div>`;
   }
   return html`<div id="s-admin-catalog">${body}</div>`;

@@ -262,7 +262,7 @@ export function AddArea() {
           <input type="text" id="a-search" maxlength="200" enterkeyhint="search" placeholder=${t('area.searchPlaceholder')}
             value=${q} onInput=${(/** @type {Event} */ e) => setQ(valueOf(e))}
             onKeyDown=${(/** @type {KeyboardEvent} */ e) => { if (e.key === 'Enter') { e.preventDefault(); runSearch(); } }} />
-          <button type="button" class="primary" id="a-search-go" disabled=${searching} onClick=${runSearch}>${t('area.search')}</button>
+          <button type="button" class="ui-button ui-button-primary" id="a-search-go" disabled=${searching} onClick=${runSearch}>${t('area.search')}</button>
         </div>
         <div class="area-results" id="a-results" ref=${resultsEl} hidden=${!found || !found.length}>
           ${(found || []).map((/** @type {any} */ result, /** @type {number} */ i) => html`<button type="button" class="ui-list-item area-result" key=${searchId + ':' + i}

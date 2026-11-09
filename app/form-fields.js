@@ -146,7 +146,7 @@ export function FilePick({ id, accept, required, file, onFile, inputRef }) {
   return html`<div class="ui-control-row">
     <input type="file" id=${id} ref=${ref} tabindex="-1" accept=${accept} class="file-input-hidden" required=${required}
       onChange=${(/** @type {Event} */ e) => { const files = /** @type {HTMLInputElement} */ (e.currentTarget).files; onFile(files && files[0] || null); }} />
-    <button type="button" class="primary" id=${id + '-pick'} onClick=${() => ref.current && ref.current.click()}>${t('form.chooseFile')}</button>
+    <button type="button" class="ui-button ui-button-primary" id=${id + '-pick'} onClick=${() => ref.current && ref.current.click()}>${t('form.chooseFile')}</button>
     <span class=${'ui-control-text' + (file ? ' has-file' : '')} id=${id + '-name'}>${file ? file.name : t('form.noFile')}</span>
   </div>`;
 }

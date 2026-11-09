@@ -63,7 +63,7 @@ export function AddPlace({ prefillCoords, draft, reopen }) {
       <div>
         <${Field} label=${t('form.coordinates')} required>
           <div class="ui-control-row">
-            <button type="button" class="primary" id="pick-on-map" onClick=${pick}>${c ? t('place.repick') : t('form.pickOnMap')}</button>
+            <button type="button" class="ui-button ui-button-primary" id="pick-on-map" onClick=${pick}>${c ? t('place.repick') : t('form.pickOnMap')}</button>
             ${c
               ? html`<span class="ui-control-text" id="p-coords-display">${c.lat.toFixed(5) + ', ' + c.lng.toFixed(5)}</span>`
               : !manual && html`<a href="#" class="ui-control-text" id="p-coords-manual" onClick=${(/** @type {Event} */ e) => { e.preventDefault(); setManual(true); }}>${t('place.enterManually')}</a>`}
