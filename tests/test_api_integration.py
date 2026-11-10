@@ -1835,6 +1835,9 @@ class TestContentSecurityPolicy(unittest.TestCase):
     modern = json.dumps([{"type": "csp-violation", "body": {
       "blockedURL": "inline", "effectiveDirective": "script-src-elem"}}]).encode()
     self.assertEqual(self._report(modern, "application/reports+json"), 204)
+    webkit = json.dumps({"type": "csp-violation", "body": {
+      "blockedURL": "inline", "effectiveDirective": "style-src-elem"}}).encode()
+    self.assertEqual(self._report(webkit, "application/csp-report"), 204)
 
   def test_report_sink_refuses_junk_and_oversize(self):
     self.assertEqual(self._report(b"{}", "application/json"), 400)

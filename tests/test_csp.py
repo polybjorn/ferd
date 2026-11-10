@@ -103,6 +103,19 @@ class TestParseReports(unittest.TestCase):
     out = csp.parse_reports(raw, "application/reports+json")
     self.assertEqual([r["blocked"] for r in out], ["eval"])
 
+  def test_webkit_sends_one_reporting_api_entry_as_csp_report(self):
+    raw = json.dumps({"type": "csp-violation", "url": "https://ferd.example/", "body": {
+      "documentURL": "https://ferd.example/", "disposition": "report",
+      "effectiveDirective": "style-src-elem", "blockedURL": "inline",
+      "statusCode": 200, "sample": ""}}).encode()
+    out = csp.parse_reports(raw, "application/csp-report")
+    self.assertEqual([(r["directive"], r["blocked"]) for r in out], [("style-src-elem", "inline")])
+
+  def test_csp_report_without_either_shape_is_refused(self):
+    for body in ({}, {"type": "intervention", "body": {}}, {"type": "csp-violation"}, []):
+      with self.assertRaises(ValueError):
+        csp.parse_reports(json.dumps(body).encode(), "application/csp-report")
+
   def test_fields_are_cleaned_and_truncated(self):
     raw = json.dumps({"csp-report": {"blocked-uri": "a\nb" + "x" * 500}}).encode()
     blocked = csp.parse_reports(raw, "application/csp-report")[0]["blocked"]
