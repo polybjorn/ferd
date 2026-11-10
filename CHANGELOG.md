@@ -63,6 +63,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Zooming out no longer shows a dark frame around the map while the wider tiles load: the gap takes a colour close to the base map's own, Topo, OpenStreetMap or Dark, and follows the tile filter.
 - Zooming out or panning the map no longer shows empty edges while the next tiles load: each base map also loads one ring of tiles just beyond the screen, and on a phone the tiles load while you pinch or drag instead of only when you let go.
 - On a phone, double-tapping the map to zoom no longer slides the new map tiles in from one side before they settle; they zoom in place with the rest of the map.
+- On a phone, double-tapping the map to zoom no longer flashes the bottom bar back for a moment; a single tap still brings it back.
 - A menu opened from a button near the edge of a narrow phone screen, such as a list's View menu, is kept inside the screen instead of running past its edge.
 - The x on close buttons and on the search clear button sits in the middle of the button instead of a few pixels low.
 - Map search results can be picked by keyboard, on the desktop panel and in the phone's search view: the arrow keys move through the results, Enter opens the highlighted one and Escape closes the list. Screen readers now announce the field as a combobox and each result as an option.

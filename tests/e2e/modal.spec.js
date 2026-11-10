@@ -1,5 +1,6 @@
 // A modal closes on Esc and hands focus back to the control that opened it.
-// On a phone, the bottom bar navigates and a modal takes its phone layout.
+// On a phone, the bottom bar navigates, stays away through a double-tap zoom,
+// and a modal takes its phone layout.
 const { test, expect } = require('@playwright/test');
 const { fence, signIn, isPhone, dialog } = require('./helpers');
 
@@ -47,6 +48,48 @@ test('the bottom bar navigates between views', async ({ page, baseURL }, info) =
   await page.locator('#bar-map').click();
   await expect(current).toHaveId('bar-map');
   await expect(page.locator('.leaflet-container').first()).toBeVisible();
+
+  expect(fenced.external).toEqual([]);
+  expect(fenced.errors).toEqual([]);
+});
+
+test('a double-tap zoom keeps the moved-away bottom bar away', async ({ page, baseURL }, info) => {
+  test.skip(info.project.name !== 'android', 'the bottom bar is the phone layout, and WebKit\'s emulated taps never zoom the map');
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  await signIn(page);
+  const map = page.locator('#map');
+  await page.waitForSelector('#map .leaflet-tile-loaded', { state: 'attached' });
+
+  await map.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.locator('body')).toHaveClass(/\bbar-away\b/);
+
+  // A class check after the zoom would miss the bar showing for a moment, so
+  // every change to it is logged as it happens.
+  await page.evaluate(() => {
+    const log = /** @type {string[]} */ ([]);
+    Object.assign(window, { barLog: log });
+    const container = /** @type {Element} */ (document.querySelector('#map'));
+    new MutationObserver(() => {
+      if (!document.body.classList.contains('bar-away')) log.push('shown');
+    }).observe(document.body, { attributeFilter: ['class'] });
+    new MutationObserver(() => {
+      if (container.querySelector('.leaflet-zoom-anim')) log.push('zoom');
+    }).observe(container, { attributeFilter: ['class'], subtree: true });
+  });
+  const box = await map.boundingBox();
+  if (!box) throw new Error('the map has no box');
+  const x = box.x + 80, y = box.y + box.height / 3;
+  await page.touchscreen.tap(x, y);
+  await page.waitForTimeout(90);
+  await page.touchscreen.tap(x, y);
+  await page.waitForTimeout(800);
+  const log = await page.evaluate(() => /** @type {any} */ (window).barLog);
+  expect(log).toContain('zoom');
+  expect(log).not.toContain('shown');
+
+  await page.touchscreen.tap(x, y);
+  await expect(page.locator('body')).not.toHaveClass(/\bbar-away\b/);
 
   expect(fenced.external).toEqual([]);
   expect(fenced.errors).toEqual([]);

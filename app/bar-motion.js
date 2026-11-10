@@ -7,6 +7,10 @@
 // A finger at rest still reports a few pixels of scroll, which would make the
 // bar flicker on and off.
 const SCROLL_SLACK = 8;
+// Android's double-tap timeout (ViewConfiguration.DOUBLE_TAP_TIMEOUT). A tap is
+// known to be single only once this has passed: bringing the bar back sooner
+// shows it on the first tap of a double-tap zoom, and the zoom hides it again.
+const DOUBLE_TAP_MS = 300;
 
 const body = document.body;
 
@@ -18,13 +22,18 @@ function setAway(away) {
 /** @param {import('./map/route-layer.js').LeafletMap} map */
 export function tuckBarWhileMoving(map) {
   let moved = false;
-  map.on('movestart', () => { moved = true; setAway(true); });
+  let reveal = 0;
+  map.on('movestart', () => { moved = true; clearTimeout(reveal); setAway(true); });
   const el = map.getContainer();
   el.addEventListener('pointerdown', () => { moved = false; }, { passive: true });
   // A mouse drag ends in a click too; only a press that left the map where it
   // was counts as a tap. Listening on the element rather than Leaflet's click
   // catches taps on markers and controls as well as on the map itself.
-  el.addEventListener('click', () => { if (!moved) setAway(false); });
+  el.addEventListener('click', () => {
+    if (moved) return;
+    clearTimeout(reveal);
+    reveal = setTimeout(() => setAway(false), DOUBLE_TAP_MS);
+  });
 }
 
 const app = document.getElementById('app');
