@@ -1,4 +1,4 @@
-/* ui.js 1.17.0: the behaviour behind the ui.css blocks that need script,
+/* ui.js 1.17.1: the behaviour behind the ui.css blocks that need script,
    menus, search, dialogs, collapses, popovers and tabs, and a toast and a
    confirm built from them, for an app that wants it rather than its own.
 
