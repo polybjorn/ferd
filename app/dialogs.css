@@ -184,17 +184,8 @@
   transition: border-color var(--ui-duration-fast), color var(--ui-duration-fast), background var(--ui-duration-fast);
 }
 .feature-pill { position: relative; }
-.ui-dialog label.feature-pill {
-  display: inline-flex;
-  font-size: var(--ui-text-sm);
-  text-transform: none;
-  letter-spacing: 0;
-  color: var(--muted);
-  margin: 0;
-}
-.ui-dialog label.feature-pill.active { color: var(--text); }
 .feature-pill > input[type="checkbox"] { display: none !important; }
-.feature-pill:hover { border-color: var(--muted); color: var(--text); }
+.feature-pill:hover { border-color: var(--muted); }
 .feature-pill.active {
   color: var(--text);
   border-color: var(--accent);
