@@ -30,6 +30,9 @@ test('the bottom bar navigates between views', async ({ page, baseURL }, info) =
 
   const current = page.locator('#bottom-bar [aria-current="page"]');
   await expect(current).toHaveId('bar-map');
+  // The bar replaces the header tabs, and ui.css's tab display outranks a
+  // plain display: none from the app layer.
+  await expect(page.locator('.app-nav .nav-tabs')).toBeHidden();
 
   await page.locator('#bar-lists').click();
   await expect(current).toHaveId('bar-lists');
