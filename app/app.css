@@ -62,6 +62,12 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --shadow:         rgba(0, 0, 0, 0.4);
   --backdrop:       rgba(46, 52, 64, 0.6);
   --fab-text:       #2e3440;
+  /* Close to each base map's average, for the gaps a zoom-out leaves while
+     tiles load. They follow the tiles rather than the theme. Dark is the
+     OpenStreetMap colour through the .tiles-dark filter. */
+  --map-land-topo: #e6d3a3;
+  --map-land-osm:  #d9e3c8;
+  --map-land-dark: #232c15;
 }
 
 [data-theme="nord"][data-mode="dark"] {
@@ -402,11 +408,16 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
 
 .leaflet-div-icon { background: transparent; border: none; }
 /* Selector targets .leaflet-tile-container so it applies to both the
-   <img> tiles and the per-level <canvas> created by the NoGap plugin. */
-[data-tile-filter="muted"] .leaflet-tile-container { filter: saturate(0.35) brightness(0.95) contrast(0.95); }
-[data-tile-filter="grayscale"] .leaflet-tile-container { filter: grayscale(1); }
-[data-tile-filter="sepia"] .leaflet-tile-container { filter: sepia(0.7); }
-[data-tile-filter="contrast"] .leaflet-tile-container { filter: contrast(1.15) saturate(1.1); }
+   <img> tiles and the per-level <canvas> created by the NoGap plugin, and
+   the gap colour behind them. */
+[data-tile-filter="muted"] .leaflet-tile-container,
+[data-tile-filter="muted"] #map::before { filter: saturate(0.35) brightness(0.95) contrast(0.95); }
+[data-tile-filter="grayscale"] .leaflet-tile-container,
+[data-tile-filter="grayscale"] #map::before { filter: grayscale(1); }
+[data-tile-filter="sepia"] .leaflet-tile-container,
+[data-tile-filter="sepia"] #map::before { filter: sepia(0.7); }
+[data-tile-filter="contrast"] .leaflet-tile-container,
+[data-tile-filter="contrast"] #map::before { filter: contrast(1.15) saturate(1.1); }
 /* The Dark base map: OpenStreetMap inverted, with hues turned back so
    water stays blue and parks green. Sits on the layer, so a tile filter
    above still applies on top of it. */
@@ -780,6 +791,14 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   background: var(--surface);
   box-sizing: border-box;
 }
+/* A zoom-out shows the old tiles shrunk in the middle until the wider ones
+   load, with the map's own background around them. A colour near the base
+   map's average keeps that gap from reading as a dark frame; it sits in a
+   pseudo-element so the tile filters can tint it with the tiles. */
+#map[data-tiles]::before { content: ''; position: absolute; inset: 0; background: var(--map-land); }
+#map[data-tiles="OpenTopoMap"] { --map-land: var(--map-land-topo); }
+#map[data-tiles="OpenStreetMap"] { --map-land: var(--map-land-osm); }
+#map[data-tiles="Dark"] { --map-land: var(--map-land-dark); }
 
 .map-panel {
   background: var(--surface);

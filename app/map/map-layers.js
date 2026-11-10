@@ -264,6 +264,10 @@ export function addTilePicker(map) {
 /** @param {LeafletMap} map */
 export function addTileLayersToMap(map) {
   const layers = createTileLayers();
+  // app.css colours the gaps a zoom-out leaves to match the base map.
+  for (const [name, layer] of Object.entries(layers)) {
+    layer.on('add', () => { map.getContainer().dataset.tiles = name; });
+  }
   const def = getDefaultTileLayer();
   (layers[def] || layers[BASE_LAYER_NAMES[0]]).addTo(map);
   const overlays = createOverlayLayers();
