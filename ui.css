@@ -1,4 +1,4 @@
-/* ui.css 1.16.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.17.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -98,10 +98,20 @@
    --ui-text when unset, so a delete can turn danger and an edit accent;
    the ring on a button that is not quiet stays currentColor.
    --ui-button-icon-size sets the square's side, --ui-control-height when
-   unset; under a coarse pointer the side never drops below
-   --ui-touch-target. --ui-button-glyph-size sets the icon's side, 1.25rem
-   when unset. --ui-button-display sets any
-   .ui-button's display, inline-flex when unset, so a host can set it to none
+   unset, and --ui-button-icon-inline-size and --ui-button-icon-block-size
+   set one side each, falling back to it; a set block size is exact. The
+   icon button reads --ui-button-padding, 0 when unset, so a host can size it
+   round a glyph with an inline size of auto. Under a coarse pointer the box
+   never drops below --ui-touch-target, unless .ui-button-icon-compact is on
+   it: that keeps the box at its set size, for a button in a dense row, and
+   reaches the target's height with a hit area above and below the box. The
+   area is as wide as the box, so two such buttons side by side keep their
+   own presses. It sets translate: 0 under a coarse pointer, so a host moves
+   a compact button with transform or position. --ui-button-glyph-size sets the
+   icon's side, 1.25rem when unset. --ui-button-text-size sets any
+   .ui-button's font size, --ui-text-sm when unset, which sizes a text glyph
+   such as a pencil. --ui-button-display sets any .ui-button's display,
+   inline-flex when unset, so a host can set it to none
    in a media query to show a button in one layout only; the hidden
    attribute still hides the button whatever the token says.
 
@@ -129,7 +139,12 @@
    the shadow and the colour, so the row's text says the status too.
    --ui-list-item-radius, --ui-list-item-text-size and --ui-list-item-gap set
    the corner, the font size and the gap between a row's children, falling
-   back to --ui-radius, --ui-text-sm and --ui-space-3. The chosen row's tint
+   back to --ui-radius, --ui-text-sm and --ui-space-3. --ui-list-item-align
+   sets align-items, center when unset, such as baseline for a label beside
+   smaller figures. --ui-list-item-border-block-start-width,
+   -block-end-width and -inline-end-width set those three edges, 1px when
+   unset, so a row can draw its stripe alone or a divider under it; the start
+   edge stays 1px for the stripe's shadow to add to. The chosen row's tint
    mixes the accent into --ui-list-item-fill, so a row filled by the host
    keeps that fill under the tint.
 
@@ -829,7 +844,7 @@
     margin: 0;
     padding: var(--ui-button-padding, var(--ui-space-1) var(--ui-space-3));
     font: inherit;
-    font-size: var(--ui-text-sm);
+    font-size: var(--ui-button-text-size, var(--ui-text-sm));
     font-weight: var(--ui-label-weight);
     color: var(--ui-button-color, var(--ui-text));
     text-decoration: none;
@@ -837,7 +852,7 @@
     background: var(--ui-button-fill, transparent);
     border: 1px solid var(--ui-button-border, var(--ui-border));
     border-radius: var(--ui-radius);
-    transition: box-shadow var(--ui-duration-fast), color var(--ui-duration-fast);
+    transition: box-shadow var(--ui-duration-fast), color var(--ui-duration-fast), opacity var(--ui-duration-fast);
   }
   .ui-button-primary {
     color: var(--ui-on-accent);
@@ -887,11 +902,14 @@
   /* An icon button is square, as tall as any control, and holds one icon.
      It changes the shape only, so it sits on any button look, quiet or
      bordered, and keeps that look's states. */
+  /* A set block size is exact, since the quiet look's transparent border
+     would otherwise add 2px to a glyph as tall as the box. */
   .ui-button-icon {
     flex: none;
-    inline-size: var(--ui-button-icon-size, var(--ui-control-height));
-    min-block-size: var(--ui-button-icon-size, var(--ui-control-height));
-    padding: 0;
+    inline-size: var(--ui-button-icon-inline-size, var(--ui-button-icon-size, var(--ui-control-height)));
+    block-size: var(--ui-button-icon-block-size, auto);
+    min-block-size: var(--ui-button-icon-block-size, var(--ui-button-icon-size, var(--ui-control-height)));
+    padding: var(--ui-button-padding, 0);
   }
   .ui-button-icon-round { border-radius: var(--ui-radius-full); }
 
@@ -1008,7 +1026,7 @@
      tint of the accent that keeps --ui-text on --ui-surface readable. */
   .ui-list-item {
     display: var(--ui-list-item-display, flex);
-    align-items: center;
+    align-items: var(--ui-list-item-align, center);
     gap: var(--ui-list-item-gap, var(--ui-space-3));
     box-sizing: border-box;
     inline-size: 100%;
@@ -1024,6 +1042,11 @@
     color: var(--ui-list-item-color, var(--ui-text));
     background: var(--ui-list-item-fill, var(--ui-surface));
     border: 1px solid var(--ui-list-item-border, var(--ui-border));
+    /* The start edge stays 1px: the stripe's shadow adds the rest of its
+       width to it. */
+    border-block-start-width: var(--ui-list-item-border-block-start-width, 1px);
+    border-block-end-width: var(--ui-list-item-border-block-end-width, 1px);
+    border-inline-end-width: var(--ui-list-item-border-inline-end-width, 1px);
     border-inline-start-color: var(--ui-list-item-stripe, var(--ui-list-item-border, var(--ui-border)));
     border-radius: var(--ui-list-item-radius, var(--ui-radius));
     box-shadow: inset calc(var(--ui-list-item-stripe-width, 3px) - 1px) 0 0 var(--ui-list-item-stripe, transparent);
@@ -2097,7 +2120,7 @@
     /* A size hook above the touch target keeps its height; below it, the
        target wins. A block with no height at rest falls back to 0px, since
        max() takes no auto. */
-    .ui-button { min-block-size: max(var(--ui-button-size, var(--ui-control-height)), var(--ui-touch-target)); }
+    .ui-button:where(:not(.ui-button-icon-compact)) { min-block-size: max(var(--ui-button-size, var(--ui-control-height)), var(--ui-touch-target)); }
     .ui-chip { min-block-size: max(var(--ui-chip-size, 0px), var(--ui-touch-target)); }
     :is(a, button).ui-list-item { min-block-size: max(var(--ui-list-item-size, 0px), var(--ui-touch-target)); }
     :is(a, button).ui-card { min-block-size: max(var(--ui-card-size, 0px), var(--ui-touch-target)); }
@@ -2108,9 +2131,20 @@
     .ui-disclosure > summary { min-block-size: max(var(--ui-disclosure-size, var(--ui-control-height)), var(--ui-touch-target)); }
     .ui-menu-item { min-block-size: max(var(--ui-menu-item-size, var(--ui-control-height)), var(--ui-touch-target)); }
     .ui-control-row { min-block-size: var(--ui-touch-target); }
-    .ui-button-icon {
-      inline-size: max(var(--ui-button-icon-size, var(--ui-control-height)), var(--ui-touch-target));
-      min-block-size: max(var(--ui-button-icon-size, var(--ui-control-height)), var(--ui-touch-target));
+    .ui-button-icon:where(:not(.ui-button-icon-compact)) {
+      min-inline-size: var(--ui-touch-target);
+      min-block-size: max(var(--ui-button-icon-block-size, var(--ui-button-icon-size, var(--ui-control-height))), var(--ui-touch-target));
+    }
+    /* translate makes the button the area's containing block without a
+       position, which a host may set to place the button. The area keeps the
+       box's width, since a later button's area paints over an earlier one
+       and would take the presses of two buttons side by side. */
+    .ui-button-icon-compact { translate: 0; }
+    .ui-button-icon-compact::before {
+      content: "";
+      position: absolute;
+      inset-inline: 0;
+      inset-block: min(0px, calc((100% - var(--ui-touch-target)) / 2));
     }
     .ui-dialog-close { inline-size: var(--ui-touch-target); }
     .ui-search-clear { inline-size: var(--ui-touch-target); }

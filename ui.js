@@ -1,5 +1,6 @@
-/* ui.js 1.16.0: the behaviour behind the ui.css menu and search blocks, for
-   an app that wants it rather than its own.
+/* ui.js 1.17.0: the behaviour behind the ui.css blocks that need script,
+   menus, search, dialogs, collapses, popovers and tabs, and a toast and a
+   confirm built from them, for an app that wants it rather than its own.
 
    Load it as a plain deferred script, <script src="ui.js" defer></script>,
    which a module page can load too, and which runs under script-src 'self'.
