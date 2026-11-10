@@ -416,6 +416,8 @@ class AccountMenu(unittest.TestCase):
     self.assertNotIn("_close", self.AUTH)
     actions = (ROOT / "app" / "map" / "map-actions.js").read_text(encoding="utf-8")
     self.assertNotIn("auth-menu", actions)
+    # ui.js closes an open popover when a menu opens.
+    self.assertNotIn("closeTransientOverlays", self.AUTH + actions)
     self.assertNotRegex(APP_CSS, r"\.auth-menu[\s{.\[]")
 
 

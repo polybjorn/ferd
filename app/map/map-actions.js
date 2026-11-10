@@ -101,19 +101,6 @@ export function revealPlaceMarker(map, place) {
   }
 }
 
-// Close any open filter or view popover, so only one is open at a time. Pass
-// the popover being opened to keep it open. The account menu closes itself
-// (ui.js) on a click outside it.
-/** @param {HTMLElement} [keepEl] */
-export function closeTransientOverlays(keepEl) {
-  /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.filter-popover')).forEach(function(p) {
-    if (p === keepEl || p.hidden) return;
-    p.hidden = true;
-    const b = p.parentElement && p.parentElement.querySelector('.filter-btn');
-    if (b) b.setAttribute('aria-expanded', 'false');
-  });
-}
-
 // Force a style recalc so a class change is observed as a transition start
 // rather than batched away. Used for entry animations and for restarting
 // a keyframe animation on repeated triggers.

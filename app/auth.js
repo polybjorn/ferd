@@ -2,7 +2,7 @@ import { render } from 'preact';
 import { state } from './core.js';
 import { applyAuth, hasServer, isReadOnly, serverBase, setBearerToken, setServerless } from './server.js';
 import { clearRecentPicks, logsEnabled, refreshTabVisibility } from './prefs.js';
-import { closeTransientOverlays, parseOverlays, TOPO_CREDIT } from './map/index.js';
+import { parseOverlays, TOPO_CREDIT } from './map/index.js';
 import { openCatalogBulkUpdateModal, placesWithCatalogUpdates } from './places-list.js';
 import { openLogsModal, openSettingsModal } from './lazy-open.js';
 import { openConfirmModal } from './select.js';
@@ -76,10 +76,9 @@ function AuthWidget() {
   }
   const local = !hasServer();
   // ui.js opens, closes and moves focus through the menu from this markup.
-  // Only one floating overlay at a time: opening the menu closes a filter popover.
+  // Opening the menu also closes an open filter popover (ui.js).
   return html`<div class="ui-menu-anchor">
-    <button type="button" id="auth-menu-btn" title=${t('auth.menu')} aria-haspopup="menu" aria-expanded="false" aria-controls="auth-menu"
-      onClick=${() => closeTransientOverlays()}>${t('auth.menuButton')}</button>
+    <button type="button" id="auth-menu-btn" title=${t('auth.menu')} aria-haspopup="menu" aria-expanded="false" aria-controls="auth-menu">${t('auth.menuButton')}</button>
     <div class="ui-menu ui-menu-end" id="auth-menu" role="menu" aria-labelledby="auth-menu-head" hidden>
       <p class="ui-menu-head" id="auth-menu-head">${local
         ? t('auth.localMap')

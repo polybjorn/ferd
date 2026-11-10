@@ -17,7 +17,6 @@ export { showResultOnMap } from './map-phone.js';
 export { syncCountriesOnMap } from './country-layer.js';
 export { renderUnifiedMap } from './home-map.js';
 export {
-  closeTransientOverlays,
   deletePlaceItem,
   deleteRouteItem,
   openPlacePopup,
