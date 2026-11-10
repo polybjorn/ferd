@@ -52,6 +52,26 @@ test('the bottom bar navigates between views', async ({ page, baseURL }, info) =
   expect(fenced.errors).toEqual([]);
 });
 
+test('the header Add button survives a list page', async ({ page, baseURL }, info) => {
+  test.skip(isPhone(info), 'the phone has no header actions');
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  await signIn(page);
+  const add = page.locator('#nav-actions button');
+  await expect(add).toHaveCount(1);
+
+  await page.locator('#tab-places').click();
+  await expect(add).toHaveCount(1);
+  await page.locator('#nav-home').click();
+  await expect(page.locator('#map-add-btn')).toBeVisible();
+  // Preact runs the list page's effect cleanup after the next paint, once the
+  // map has put its button in, so look again past that point without retrying.
+  await page.evaluate(() => new Promise(r => requestAnimationFrame(() => setTimeout(r, 100))));
+  expect(await add.count()).toBe(1);
+
+  expect(fenced.external).toEqual([]);
+  expect(fenced.errors).toEqual([]);
+});
+
 for (const width of [320, 412]) {
   test(`a modal takes the phone layout at ${width}px`, async ({ page, baseURL }, info) => {
     test.skip(!isPhone(info), 'the phone layout is the phone projects\' concern');

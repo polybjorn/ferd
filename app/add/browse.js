@@ -150,7 +150,7 @@ function BrowseList({ entries }) {
         </div>
       </div>`}
     </div>
-    <div id="browse-list" class=${notes === null ? '' : 'notes-anim' + (notes ? ' show-notes' : '')} style="max-height:50vh;overflow-y:auto">
+    <div id="browse-list" class=${notes === null ? '' : 'notes-anim' + (notes ? ' show-notes' : '')}>
       ${visible.map(({ e, i }) => {
         const m = meta(e);
         const note = (e.note || '').trim();

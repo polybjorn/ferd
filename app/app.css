@@ -27,6 +27,7 @@ button.nav-action-btn:focus-visible { outline-color: currentColor; }
 button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
 /* These clip what sticks out, and a checkbox ring sits outside the box. */
 #browse-list, #cat-list { margin-inline: -4px; padding-inline: 4px; }
+#browse-list { max-height: 50vh; overflow-y: auto; }
 
 /* Tell native controls (date picker, radios, scrollbars) which palette to
    follow. The data-mode attribute is set by applyTheme(). */
@@ -619,7 +620,7 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 .filter-dropdown .filter-btn:hover { border-color: var(--muted); }
 .filter-dropdown .filter-btn.has-active { border-color: var(--accent); color: var(--accent); }
 /* A filter select holding a non-default value reads as active. */
-.filter-popover select.filter-active { border-color: var(--accent); color: var(--accent); }
+.filter-popover select.filter-active { --ui-field-border: var(--accent); --ui-field-color: var(--accent); }
 /* Checkbox indicator for the multi-pick listbox options. */
 .select-popover .select-option-multi { position: relative; padding-right: 1.8rem; }
 .select-popover .select-option-multi::before {
@@ -630,8 +631,6 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 /* The box is ui-popover's; the old minimum width rides its hook. */
 .filter-popover { --ui-popover-width: 200px; }
 .filter-popover label { display: block; font-size: var(--ui-text-xs); color: var(--muted); margin-bottom: var(--ui-space-1); text-transform: uppercase; letter-spacing: 0.05em; }
-.filter-popover select { width: 100%; padding: var(--ui-space-2) var(--ui-space-2); background: var(--surface2); border: 1px solid var(--control-border); border-radius: var(--radius); color: var(--text); font-size: var(--ui-text-sm); font-family: inherit; cursor: pointer; }
-.filter-popover select:focus { border-color: var(--accent); }
 .filter-popover .filter-clear {
   width: 100%;
   background: transparent;
@@ -1402,6 +1401,7 @@ body.signin-only #app {
 .elevation-control .area { fill: var(--accent); fill-opacity: 0.35; stroke: var(--accent); }
 .elevation-control .axis text { fill: var(--text); font-size: var(--ui-text-xs); text-shadow: none; paint-order: normal; stroke: none; }
 .elevation-control .axis line, .elevation-control .axis path { stroke: var(--border); }
+.elevation-control { --ele-grid: var(--border); }
 .elevation-control .mouse-focus-line { stroke: var(--text); }
 .elevation-detached:not(:hover) .mouse-focus-line,
 .elevation-detached:not(:hover) .mouse-focus-label { display: none; }
@@ -1656,6 +1656,15 @@ body.force-show-map-filter .map-panel {
   overflow-y: auto;
   scrollbar-gutter: stable;
 }
+/* A full-screen dialog has a set height, so Browse's list fills it and the
+   actions under the list sit at the bottom rather than partway down. */
+.ui-dialog-fullscreen :is(.ui-dialog-body, #add-body, #browse-body, #browse-body > div):has(#browse-list) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.ui-dialog-fullscreen #browse-list { flex: 1 1 auto; min-height: 4rem; max-height: none; }
 #catalog-bulk-list { margin-top: var(--ui-space-2); }
 .catalog-bulk-place { margin-bottom: var(--ui-space-4); }
 .catalog-bulk-place:last-child { margin-bottom: 0; }

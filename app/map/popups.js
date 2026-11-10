@@ -94,8 +94,8 @@ const DIFFICULTIES = /** @type {Record<string, string>} */ ({
   easy: 'form.diffEasy', moderate: 'form.diffModerate', hard: 'form.diffHard', expert: 'form.diffExpert',
 });
 
-/** @param {{ route: any, region: { name: string }, color: string }} props */
-export function RoutePopup({ route, region, color }) {
+/** @param {{ route: any, region: { name: string } }} props */
+export function RoutePopup({ route, region }) {
   // Difficulty, rating and date sit left, centre and right, so each slot
   // renders even when empty.
   const difficulty = route.difficulty ? (DIFFICULTIES[route.difficulty] ? t(DIFFICULTIES[route.difficulty]) : route.difficulty) : '';
@@ -110,7 +110,7 @@ export function RoutePopup({ route, region, color }) {
     <${Tags} tags=${route.tags} />
     <${Note} text=${route.notes} />
     <div class="popup-meta">
-      <span style=${{ color }}>${t(route.completed ? 'popup.completed' : 'popup.planned')}</span>
+      <span>${t(route.completed ? 'popup.completed' : 'popup.planned')}</span>
       <span>${displayRegion(region.name)}</span>
     </div>`;
 }

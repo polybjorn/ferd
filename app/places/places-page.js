@@ -260,7 +260,7 @@ function PlacesPage() {
         <option value="updates-available">${t('places.updatesAvailable')}</option>
       <//>
       <div class="filter-divider"></div>
-      <select id="filter-group-by" value=${mode} onChange=${(/** @type {Event} */ e) => {
+      <div class="ui-field"><select id="filter-group-by" value=${mode} onChange=${(/** @type {Event} */ e) => {
         const v = /** @type {HTMLSelectElement} */ (e.currentTarget).value;
         state.groupBy = v;
         setPref('places-group-by', v);
@@ -269,7 +269,7 @@ function PlacesPage() {
         <option value="category">${t('places.groupByCategory')}</option>
         <option value="country">${t('places.groupByCountry')}</option>
         <option value="letter">${t('lists.groupByLetter')}</option>
-      </select>
+      </select></div>
     <//>`}>
     ${pending > 0 && html`<div class="filter-dropdown catalog-update-chip-wrap"><button type="button" class="filter-btn catalog-update-chip" id="catalog-update-review" onClick=${openCatalogBulkUpdateModal}>${t('places.reviewUpdates')}</button></div>`}
   </${IndexControls}>`;

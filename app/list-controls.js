@@ -31,7 +31,9 @@ export function useNavAdd(id, title, onClick) {
     const btn = addButton(id, title);
     btn.addEventListener('click', onClick);
     nav.replaceChildren(btn);
-    return () => { nav.replaceChildren(); };
+    // Only its own button: the cleanup can run after the next page has put
+    // its Add in, and clearing the row would take that one too.
+    return () => { btn.remove(); };
   }, [canAdd]);
   return canAdd;
 }
@@ -114,11 +116,11 @@ function ViewPopover({ kind, onView }) {
  */
 /** @param {Record<string, any>} props */
 export function FilterSelect({ id, value, onChange, label, children }) {
-  return html`<select id=${id} class=${value !== 'all' ? 'filter-active' : ''} value=${value}
+  return html`<div class="ui-field"><select id=${id} class=${value !== 'all' ? 'filter-active' : ''} value=${value}
     onChange=${(/** @type {Event} */ e) => onChange(/** @type {HTMLSelectElement} */ (e.currentTarget).value)}>
     <option value="all" hidden>${label}</option>
     ${children}
-  </select>`;
+  </select></div>`;
 }
 
 /** The tag multi-select button; the list itself is the themed popover. */

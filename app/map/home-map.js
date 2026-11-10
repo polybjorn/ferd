@@ -351,7 +351,7 @@ export function renderUnifiedMap(focus) {
         console.warn('[ferd] gpx parse failed for', desc.gpxUrl, e && e.err);
         try { desc.parent.removeLayer(gpxLayer); } catch (_) {}
       }).bindPopup(
-        () => popupElement(html`<${RoutePopup} route=${desc.route} region=${desc.region} color=${desc.color} />`),
+        () => popupElement(html`<${RoutePopup} route=${desc.route} region=${desc.region} />`),
         { closeButton: false }
       ).on('click', (function(key) {
         return function(/** @type {any} */ ev) {

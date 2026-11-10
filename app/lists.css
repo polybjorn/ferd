@@ -158,19 +158,6 @@
   font-size: var(--ui-text-xs); color: var(--muted); pointer-events: none;
   font-variant-numeric: tabular-nums;
 }
-.index-controls select {
-  flex-shrink: 0;
-  padding: var(--ui-space-2) var(--ui-space-3);
-  background: var(--surface);
-  border: 1px solid var(--control-border);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-size: var(--ui-text-sm);
-  font-family: inherit;
-  cursor: pointer;
-  transition: border-color var(--ui-duration-fast);
-}
-.index-controls select:focus { border-color: var(--accent); }
 /* Multi-select tag control: a dropdown button that matches the filter
    selects and opens the themed listbox in multi-pick mode. */
 .filter-ms-btn {
@@ -190,7 +177,7 @@
 .filter-popover .filter-divider { height: 1px; background: var(--border); margin: var(--ui-space-1) -0.25rem; }
 .place-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 460px));
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 460px));
   gap: var(--ui-space-2);
   justify-content: center;
 }
