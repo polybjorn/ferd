@@ -3,11 +3,8 @@
 /* In the app layer the @layer line in app.css places, so a sheet added later
    keeps its place in the cascade. */
 @layer app {
-/* A phone gives the map and the lists the whole screen: the bar floats over
-   them, names the current tab and holds Add, and You stands in for the menu.
-   A route keeps the header, which is the only place its name shows.
-   --ui-bottom-bar-space is the floating bar's share of the bottom edge, which
-   the toast clears. */
+/* The phone bar is docked over the route page too, so the layout keeps
+   --ui-bottom-bar-space clear below its content. */
 @media (max-width: 600px) {
 body[data-view="route"] .detail-layout { padding-bottom: var(--ui-bottom-bar-space); }
 }

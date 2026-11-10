@@ -43,15 +43,15 @@
                   The bottom bar draws its top edge with it too
         sheet     --ui-sheet-width caps a sheet on a wide screen, and
                   --ui-radius-xl rounds its top corners. --ui-corner-gap is
-                  how far a sheet's or full-screen view's actions, and the
-                  bottom bar's items, sit from the screen's side and bottom
-                  edges, clear of a rounded display corner; it is in px and
+                  how far a sheet's or full-screen view's actions sit from
+                  the screen's side and bottom edges, and the bottom bar's
+                  items from its sides, clear of a rounded display corner; it is in px and
                   stays off the spacing scale, since a display corner does not
                   shrink with a denser app. A host's own last row in a sheet
                   or full-screen view reads it too
         bar       --ui-bottom-bar-height, --ui-bottom-bar-display; the
-                  height is the items' row, and the bar adds its corner gap
-                  below it (see the bottom bar contract).
+                  height is the items' row, and the bar adds a small gap or
+                  the safe area below it (see the bottom bar contract).
                   --ui-bottom-bar-space is its full height, flat, and
                   --ui-bottom-bar-float-space the same for a floating bar;
                   the toast reads --ui-bottom-bar-space. The bar shows
@@ -176,8 +176,11 @@
    layout ends, in the flow below a full-height column or fixed to the
    bottom from its own layer, and reserves its full height for it:
    --ui-bottom-bar-height plus the gap below the items, which is
-   max(--ui-corner-gap, the bottom safe-area inset). The gap sits outside
-   --ui-bottom-bar-height because the items' content nearly fills it.
+   max(--ui-space-1, the bottom safe-area inset). The gap sits outside
+   --ui-bottom-bar-height because the items' content nearly fills it. It
+   takes no corner gap: a page drawn into the display's bottom corners has
+   viewport-fit=cover, which reports the inset, and one without it already
+   ends above the home indicator and the browser's own toolbar.
    aria-current="page" marks the item for the screen in view.
    .ui-bottom-bar-float lifts the bar off the screen edges by --ui-space-3,
    plus the safe area below it; content may run behind it, and a host that
@@ -368,7 +371,7 @@
     --ui-bottom-bar-height: 3.5rem;
     --ui-bottom-bar-display: flex;
     --ui-bottom-bar-space: calc(var(--ui-bottom-bar-height)
-      + max(var(--ui-corner-gap), env(safe-area-inset-bottom, 0px)));
+      + max(var(--ui-space-1), env(safe-area-inset-bottom, 0px)));
     --ui-bottom-bar-float-space: calc(var(--ui-bottom-bar-height)
       + var(--ui-space-3) * 2 + env(safe-area-inset-bottom, 0px));
     --ui-touch-target: 3rem;
@@ -1494,7 +1497,7 @@
     min-inline-size: 0;
     margin: 0;
     padding: 0 max(var(--ui-corner-gap), env(safe-area-inset-right, 0px))
-      max(var(--ui-corner-gap), env(safe-area-inset-bottom, 0px))
+      max(var(--ui-space-1), env(safe-area-inset-bottom, 0px))
       max(var(--ui-corner-gap), env(safe-area-inset-left, 0px));
     background: var(--ui-bottom-bar-fill, var(--ui-surface));
     border-block-start: 1px solid var(--ui-dialog-border);

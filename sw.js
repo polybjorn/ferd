@@ -31,6 +31,7 @@ const SHELL_ASSETS = [
   '/app/auth.js',
   '/app/backup.js',
   '/app/bottom-bar.js',
+  '/app/bar-motion.js',
   '/app/context-menu.js',
   '/app/dialogs.css',
   '/app/core.js',

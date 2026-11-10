@@ -27,6 +27,7 @@ import './router.js';
 import { saveDownload } from './download.js';
 import './modal.js';
 import './bottom-bar.js';
+import './bar-motion.js';
 
 applyTheme(getStoredTheme(), getStoredMode());
 applyControlVisibility();

@@ -36,7 +36,7 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
 /* Inherited, so one declaration reaches every scrolling list and modal. */
 :root { scrollbar-color: var(--muted) transparent; }
 /* The bar shows only on a phone, so a toast clears no bar elsewhere. */
-:root { --ui-bottom-bar-space: 0px; }
+@media (min-width: 601px) { :root { --ui-bottom-bar-space: 0px; } }
 
 :root {
   --bg:           #2e3440;
@@ -522,13 +522,12 @@ a:not([class]):hover { text-decoration: underline; }
   z-index: var(--ui-z-sticky);
 }
 
-/* A phone gives the map and the lists the whole screen: the bar floats over
-   them, names the current tab and holds Add, and You stands in for the menu.
-   A route keeps the header, which is the only place its name shows.
-   --ui-bottom-bar-space is the floating bar's share of the bottom edge, which
-   the toast clears. */
+/* A phone gives the map and the lists the whole screen: the bar is docked
+   over them, names the current tab and holds Add, and You stands in for the
+   menu. A route keeps the header, which is the only place its name shows.
+   --ui-bottom-bar-space is the bar's share of the bottom edge, which the toast
+   and the map's credit clear. */
 @media (max-width: 600px) {
-  :root { --ui-bottom-bar-space: var(--ui-bottom-bar-float-space); }
   .bottom-bar { --ui-bottom-bar-display: flex; }
 
   body:not([data-view="route"]) .app-nav {
@@ -549,12 +548,15 @@ a:not([class]):hover { text-decoration: underline; }
   body:not([data-view="route"]) .nav-actions { display: none; }
 
   #app > #map .leaflet-bottom { bottom: var(--ui-bottom-bar-space); }
+  /* bar-motion.js sets bar-away while the content moves. The map runs under
+     the bar, so the credit follows it down rather than the map resizing. */
+  body.bar-away .bottom-bar { transform: translateY(100%); }
+  body.bar-away #app > #map .leaflet-bottom { transform: translateY(var(--ui-bottom-bar-space)); }
+  @media (prefers-reduced-motion: no-preference) {
+    .bottom-bar,
+    #app > #map .leaflet-bottom { transition: transform var(--ui-duration-base) ease; }
+  }
 }
-/* Search is filled in the centre because it is used more than Add, and it
-   opens an overlay rather than a page, so the fill still marks the one item
-   that is not a destination. */
-.bottom-bar .bar-fill > svg { color: var(--fab-text); background: var(--accent); }
-.bottom-bar .bar-fill:hover > svg { filter: brightness(1.1); }
 /* The You item's dot: catalog updates wait in the gear's list. */
 .bottom-bar .has-dot { position: relative; }
 .bottom-bar .has-dot::after,

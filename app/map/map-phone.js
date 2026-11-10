@@ -2,6 +2,7 @@ import { closeModal, openModal, openSheetModal } from '../modal.js';
 import { bindFilterSheet, FilterSheet, refreshFilterPanel, syncFilterDot } from './home-map.js';
 import { goToSearchResult, recentResultRows, searchMatches, searchResultRows } from './place-layer.js';
 import { bindSearchKeys } from './search-keys.js';
+import { tuckBarWhileMoving } from '../bar-motion.js';
 import { addRecentPick, clearRecentPicks, getRecentPicks, placesEnabled, routesEnabled } from '../prefs.js';
 import { state } from '../core.js';
 import { html, renderFresh } from '../view.js';
@@ -27,6 +28,7 @@ export function addPhoneMapButtons(map) {
     }
   });
   map.addControl(new Ctrl());
+  tuckBarWhileMoving(map);
   syncFilterDot();
   if (state._pendingSearchResult) {
     const row = state._pendingSearchResult;

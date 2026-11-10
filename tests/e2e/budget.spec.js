@@ -8,7 +8,7 @@
 const { test, expect } = require('@playwright/test');
 const { fence, signIn } = require('./helpers');
 
-const BUDGET = 928 * 1000;
+const BUDGET = 930 * 1000;
 const COUNTED = /^(text\/(html|css|javascript)|application\/(javascript|x-javascript))\b/;
 
 test('the first load stays under its budget of JS, CSS and HTML', async ({ page, baseURL }) => {
