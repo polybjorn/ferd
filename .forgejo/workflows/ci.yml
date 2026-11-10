@@ -125,10 +125,23 @@ jobs:
     steps:
       - name: Fetch ci-actions
         run: git clone -q --depth 1 --branch v1 "$GITHUB_SERVER_URL/bjorn/ci-actions.git" "${RUNNER_TEMP:-/tmp}/ci-actions"
+      # Full history, since the scope step reads the range back to the merge
+      # base or the push's before.
       - name: Checkout
         env:
           TOKEN: ${{ github.token }}
+          DEPTH: "0"
         run: bash "${RUNNER_TEMP:-/tmp}/ci-actions/checkout/checkout.sh"
+      # A skip leaves the job green rather than skipped, so github-sync, which
+      # needs it, still runs.
+      - name: Decide whether there is anything to test
+        id: scope
+        env:
+          TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          BEFORE: ${{ github.event.before }}
+        run: node scripts/e2e-scope.js
       # Offline against the runner's /osv cache, so the package list never
       # reaches osv.dev. It reads the lockfile, so it sits ahead of npm ci.
       - name: Self-test the OSV gate
@@ -136,10 +149,13 @@ jobs:
       - name: Known vulnerabilities in dependencies
         run: bash "${RUNNER_TEMP:-/tmp}/ci-actions/osv-scan/scan.sh"
       - run: npm ci
+        if: steps.scope.outputs.run == 'true'
         timeout-minutes: 5
       - name: Playwright release against the image's browsers
+        if: steps.scope.outputs.run == 'true'
         run: npx playwright --version
       - name: Browser tests
+        if: steps.scope.outputs.run == 'true'
         env:
           CI: "true"
         run: npx playwright test
