@@ -95,6 +95,20 @@ if (window.L && L.TileLayer && L.TileLayer.mergeOptions) {
       },
     });
   }
+
+  // Leaflet loads only the tiles on screen, so a zoom-out or a pan shows the
+  // map's background at the edges until the next tiles arrive. A layer with
+  // edgeBufferTiles also loads that many rings of tiles beyond the edge.
+  // NoGap sizes its canvas from these bounds too, so the ring has room there.
+  const tiledPixelBounds = L.GridLayer.prototype._getTiledPixelBounds;
+  L.GridLayer.include({
+    /** @param {any} center */
+    _getTiledPixelBounds(center) {
+      const bounds = tiledPixelBounds.call(this, center);
+      const pad = (this.options.edgeBufferTiles || 0) * this.getTileSize().x;
+      return pad ? L.bounds(bounds.min.subtract([pad, pad]), bounds.max.add([pad, pad])) : bounds;
+    },
+  });
 }
 
 
@@ -102,21 +116,26 @@ const OSM_CREDIT = '&copy; <a href="https://openstreetmap.org/copyright">OpenStr
 export const TOPO_CREDIT = OSM_CREDIT + ', SRTM | &copy; <a href="https://opentopomap.org">OpenTopoMap</a> ' +
   '(<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)';
 
+// One ring of tiles beyond the screen on each base map. No more: the
+// OpenStreetMap tile policy allows only modest, short-range look-ahead.
+const EDGE_BUFFER = 1;
+
 /** @returns {Record<string, LeafletLayer>} */
 function createTileLayers() {
   return {
     'OpenTopoMap': L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
       maxZoom: 17, subdomains: 'abc',
+      edgeBufferTiles: EDGE_BUFFER,
       attribution: TOPO_CREDIT,
     }),
     'OpenStreetMap': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
+      maxZoom: 19, edgeBufferTiles: EDGE_BUFFER,
       attribution: OSM_CREDIT,
     }),
     // OpenStreetMap's tiles drawn dark by the .tiles-dark filter: CARTO's
     // dark tiles now need a key, and Esri's terms do not cover Leaflet.
     'Dark': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, className: 'tiles-dark',
+      maxZoom: 19, className: 'tiles-dark', edgeBufferTiles: EDGE_BUFFER,
       attribution: OSM_CREDIT,
     }),
   };
