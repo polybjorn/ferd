@@ -1468,8 +1468,10 @@ body.signin-only #app {
   opacity: 1;
 }
 @media (max-width: 600px) {
-  /* The bar takes over from the tabs, and its You page from the menu. */
-  .app-nav .nav-tabs,
+  /* The bar takes over from the tabs, and its You page from the menu. The
+     tabs are hidden through ui.css's hook because its layer outranks this
+     one, so a plain display: none on them never applies. */
+  .app-nav .nav-tabs { --ui-tabs-display: none; }
   .auth-widget { display: none; }
   /* With the tabs gone, drop the empty middle column so the brand stays
      left and the actions stay hard right (otherwise nav-right auto-places
