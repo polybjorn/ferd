@@ -939,8 +939,25 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 .ui-chip .legend-dot { margin: 0; }
 .filter-chip-check { display: none; width: 16px; height: 16px; flex: none; }
 .ui-chip[aria-pressed="true"] .filter-chip-check { display: block; }
+/* A pressed chip is filled with the accent, which swallows a dot drawn in the
+   text colour or in a colour close to the accent. A status dot follows the
+   label instead, and a coloured dot keeps its colour inside a surface ring. */
+.ui-chip[aria-pressed="true"] .dot-visited { --ui-dot-color: currentColor; }
+.ui-chip[aria-pressed="true"] .dot-want { box-shadow: inset 0 0 0 1.5px currentColor; }
+.ui-chip[aria-pressed="true"] :is(.legend-dot, .dot-completed) { box-shadow: 0 0 0 2px var(--surface); }
+.ui-chip[aria-pressed="true"] .dot-planned { box-shadow: inset 0 0 0 1.5px var(--status-planned), 0 0 0 2px var(--surface); }
 @media (pointer: coarse) {
   .leaflet-container { --map-btn-size: var(--ui-touch-target); }
+  .leaflet-control-layers .leaflet-control-layers-list label > span { min-height: var(--ui-touch-target); }
+  .index-controls input[type="text"], .filter-dropdown .filter-btn { min-block-size: var(--ui-touch-target); }
+  /* Edit stays a small link, so the popup keeps its height, and takes a
+     full-height hit area over the empty footer around it. */
+  .leaflet-popup-content .popup-edit { position: relative; }
+  .leaflet-popup-content .popup-edit::after {
+    content: '';
+    position: absolute;
+    inset: calc((100% - var(--ui-touch-target)) / 2) calc(var(--ui-space-3) * -1);
+  }
   .map-search-list .map-search-result { min-block-size: var(--ui-touch-target); box-sizing: border-box; }
   .ui-dialog button.filter-sheet-link { min-block-size: var(--ui-touch-target); }
   /* Clear stays one line of small caps, so the row keeps its height, and

@@ -98,6 +98,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The grid lines on a route's elevation chart follow the theme instead of staying near-white in dark mode.
 - On a 320px-wide screen, place cards keep the page margin instead of running edge to edge.
 - The Filters dropdowns on an iPhone are full height and follow the app's theme instead of shrinking to a thin system control.
+- On a touch screen, the rows of the map's layer picker, the filter field and the Filters and View buttons on Places, Routes and History are full tap height, and a place popup's Edit link takes a tap anywhere around it in the footer.
 
 ### Removed
 - The upgrade steps from 1.x. The server no longer copies a user's JSON files into `app.db` or moves data from before accounts on start, and the app no longer reads the device database 1.x left. See Changed for how to bring 1.x data over.
