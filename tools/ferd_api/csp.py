@@ -109,11 +109,27 @@ def _clean(value) -> str:
   return text[:REPORT_FIELD_MAX]
 
 
+def _reporting_api_entry(item) -> dict | None:
+  """One Reporting API csp-violation entry, or None for any other entry."""
+  if not isinstance(item, dict) or item.get("type") != "csp-violation":
+    return None
+  body = item.get("body")
+  if not isinstance(body, dict):
+    return None
+  return {
+    "blocked": body.get("blockedURL"),
+    "directive": body.get("effectiveDirective"),
+    "source": body.get("sourceFile"),
+    "line": body.get("lineNumber"),
+  }
+
+
 def parse_reports(raw: bytes, ctype: str) -> list[dict]:
   """The violations in a report body, as dicts of blocked, directive, source
   and line. Accepts the report-uri shape (application/csp-report) and the
-  Reporting API shape (application/reports+json). Raises ValueError on
-  anything else."""
+  Reporting API shape (application/reports+json). WebKit sends a single
+  Reporting API entry as application/csp-report, so that type takes it too.
+  Raises ValueError on anything else."""
   try:
     data = json.loads(raw.decode("utf-8"))
   except (UnicodeDecodeError, json.JSONDecodeError) as e:
@@ -121,29 +137,22 @@ def parse_reports(raw: bytes, ctype: str) -> list[dict]:
   out = []
   if ctype == "application/csp-report":
     body = data.get("csp-report") if isinstance(data, dict) else None
-    if not isinstance(body, dict):
-      raise ValueError("no csp-report")
-    out.append({
-      "blocked": body.get("blocked-uri"),
-      "directive": body.get("effective-directive") or body.get("violated-directive"),
-      "source": body.get("source-file"),
-      "line": body.get("line-number"),
-    })
+    if isinstance(body, dict):
+      out.append({
+        "blocked": body.get("blocked-uri"),
+        "directive": body.get("effective-directive") or body.get("violated-directive"),
+        "source": body.get("source-file"),
+        "line": body.get("line-number"),
+      })
+    else:
+      entry = _reporting_api_entry(data)
+      if entry is None:
+        raise ValueError("no csp-report")
+      out.append(entry)
   elif ctype == "application/reports+json":
     if not isinstance(data, list):
       raise ValueError("not a list")
-    for item in data[:10]:
-      if not isinstance(item, dict) or item.get("type") != "csp-violation":
-        continue
-      body = item.get("body")
-      if not isinstance(body, dict):
-        continue
-      out.append({
-        "blocked": body.get("blockedURL"),
-        "directive": body.get("effectiveDirective"),
-        "source": body.get("sourceFile"),
-        "line": body.get("lineNumber"),
-      })
+    out.extend(e for e in map(_reporting_api_entry, data[:10]) if e is not None)
   else:
     raise ValueError("unsupported content type")
   return [{k: _clean(v) for k, v in r.items()} for r in out]
