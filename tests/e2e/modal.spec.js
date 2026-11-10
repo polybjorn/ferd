@@ -1,6 +1,6 @@
 // A modal closes on Esc and hands focus back to the control that opened it.
 // On a phone, the bottom bar navigates, stays away through a double-tap zoom,
-// and a modal takes its phone layout.
+// comes and goes with a tap on the bare map, and a modal takes its phone layout.
 const { test, expect } = require('@playwright/test');
 const { fence, signIn, isPhone, dialog } = require('./helpers');
 
@@ -90,6 +90,49 @@ test('a double-tap zoom keeps the moved-away bottom bar away', async ({ page, ba
 
   await page.touchscreen.tap(x, y);
   await expect(page.locator('body')).not.toHaveClass(/\bbar-away\b/);
+
+  expect(fenced.external).toEqual([]);
+  expect(fenced.errors).toEqual([]);
+});
+
+test('a tap on the bare map toggles the bottom bar, and the credit stays clear of the corner', async ({ page, baseURL }, info) => {
+  test.skip(!isPhone(info), 'the bottom bar is the phone layout');
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  await signIn(page);
+  const map = page.locator('#map');
+  const body = page.locator('body');
+  await page.waitForSelector('#map .leaflet-tile-loaded', { state: 'attached' });
+  const box = await map.boundingBox();
+  if (!box) throw new Error('the map has no box');
+  const x = box.x + 80, y = box.y + box.height / 3;
+
+  await page.touchscreen.tap(x, y);
+  await expect(body).toHaveClass(/\bbar-away\b/);
+  // A popup here would mean the tap found a route, pin or area, not bare map.
+  await expect(page.locator('#map .leaflet-popup')).toHaveCount(0);
+
+  // Each shown control in the bottom-right corner, the credit or its button,
+  // keeps --ui-corner-gap from both screen edges once the bar is away.
+  await expect.poll(() => page.evaluate(() => {
+    const gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ui-corner-gap'));
+    const shown = [...document.querySelectorAll('#map .leaflet-bottom.leaflet-right .leaflet-control')]
+      .filter(c => c.getClientRects().length);
+    const clear = shown.every(c => {
+      const r = c.getBoundingClientRect();
+      return innerWidth - r.right >= gap - 0.5 && innerHeight - r.bottom >= gap - 0.5;
+    });
+    return shown.length > 0 && clear;
+  })).toBe(true);
+
+  await page.touchscreen.tap(x, y);
+  await expect(body).not.toHaveClass(/\bbar-away\b/);
+
+  // The first tap collapsed the credit to its button. A tap on that is aimed
+  // at the credit, so the bar stays.
+  await page.locator('#map .map-credit-toggle').tap();
+  await expect(page.locator('#map .leaflet-control-attribution')).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(body).not.toHaveClass(/\bbar-away\b/);
 
   expect(fenced.external).toEqual([]);
   expect(fenced.errors).toEqual([]);

@@ -560,9 +560,21 @@ a:not([class]):hover { text-decoration: underline; }
 
   #app > #map .leaflet-bottom { bottom: var(--ui-bottom-bar-space); }
   /* bar-motion.js sets bar-away while the content moves. The map runs under
-     the bar, so the credit follows it down rather than the map resizing. */
+     the bar, so the credit follows it down rather than the map resizing, but
+     stops --ui-corner-gap from the screen's edges, clear of a rounded display
+     corner as the bar's own items are. The controls' 5px margin counts toward
+     the gap, and so does a safe-area inset. */
   body.bar-away .bottom-bar { transform: translateY(100%); }
-  body.bar-away #app > #map .leaflet-bottom { transform: translateY(var(--ui-bottom-bar-space)); }
+  body.bar-away #app > #map .leaflet-bottom {
+    transform: translate(var(--map-corner-x, 0px), calc(var(--ui-bottom-bar-space) + 5px
+      - max(var(--ui-corner-gap), env(safe-area-inset-bottom, 0px))));
+  }
+  body.bar-away #app > #map .leaflet-bottom.leaflet-left {
+    --map-corner-x: calc(max(var(--ui-corner-gap), env(safe-area-inset-left, 0px)) - 5px);
+  }
+  body.bar-away #app > #map .leaflet-bottom.leaflet-right {
+    --map-corner-x: calc(5px - max(var(--ui-corner-gap), env(safe-area-inset-right, 0px)));
+  }
   @media (prefers-reduced-motion: no-preference) {
     .bottom-bar,
     #app > #map .leaflet-bottom { transition: transform var(--ui-duration-base) ease; }
