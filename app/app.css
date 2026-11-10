@@ -727,17 +727,15 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   grid-template-columns: 1.4rem max-content 1fr;
   column-gap: var(--ui-space-3);
 }
-.catalog-diff-field,
-.ui-dialog label.catalog-diff-field {
+.catalog-diff-field {
   display: grid;
   grid-template-columns: subgrid;
   grid-column: 1 / -1;
   align-items: center;
   margin: 0;
 }
-.catalog-diff-field.selectable,
-.ui-dialog label.catalog-diff-field.selectable { cursor: pointer; }
-.catalog-diff-field + .catalog-diff-field { margin-top: var(--ui-space-2); padding-top: var(--ui-space-2); border-top: 1px dashed var(--border); }
+.catalog-diff-field.selectable { cursor: pointer; }
+.catalog-diff-field + .catalog-diff-field { padding-top: var(--ui-space-2); border-top: 1px dashed var(--border); }
 .catalog-diff-check { margin: var(--ui-space-1) 0 0; cursor: pointer; accent-color: var(--accent); width: 1rem; height: 1rem; }
 .catalog-diff-label { color: var(--muted); font-size: var(--ui-text-xs); padding-top: 0.1rem; }
 .catalog-diff-old { color: var(--muted); text-decoration: line-through; word-break: break-word; }
