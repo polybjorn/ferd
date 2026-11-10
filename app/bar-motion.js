@@ -59,7 +59,10 @@ if (app) {
     setAway(y > lastY && y > 0);
     lastY = y;
   }, { passive: true });
-  window.addEventListener('hashchange', () => { lastY = 0; setAway(false); });
+  // A list page comes back where it was left (view.js), which is not a scroll.
+  // The router can have put it back before this runs, or after.
+  window.addEventListener('hashchange', () => { lastY = app.scrollTop; setAway(false); });
+  app.addEventListener('scrollrestore', () => { lastY = app.scrollTop; });
 }
 // A keyboard user tabbing into the hidden bar must see where focus went.
 document.getElementById('bottom-bar')?.addEventListener('focusin', () => setAway(false));

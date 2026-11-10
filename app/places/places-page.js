@@ -52,7 +52,7 @@ export function renderPlacesIndex() {
   setCrumb(t('lists.places'));
   cleanupMap();
   setPref('lists-tab', 'places');
-  mountPage(html`<${PlacesPage} />`);
+  mountPage(html`<${PlacesPage} />`, 'places');
 }
 
 /** @param {any} place */

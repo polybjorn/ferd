@@ -16,7 +16,7 @@ export function renderAreasIndex() {
   setCrumb(t('lists.areas'));
   cleanupMap();
   setPref('lists-tab', 'areas');
-  mountPage(html`<${AreasPage} />`);
+  mountPage(html`<${AreasPage} />`, 'areas');
 }
 
 /**

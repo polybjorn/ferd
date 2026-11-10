@@ -20,7 +20,7 @@ export function renderHistoryIndex() {
   setActiveTab('history');
   setCrumb(t('history.title'));
   cleanupMap();
-  mountPage(html`<${HistoryPage} />`);
+  mountPage(html`<${HistoryPage} />`, 'history');
 }
 
 /**

@@ -1,4 +1,4 @@
-import { h, render, Fragment } from 'preact';
+import { cloneElement, h, render, Fragment } from 'preact';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import htm from 'htm';
 import { openModal } from './modal.js';
@@ -36,17 +36,66 @@ export function renderFresh(view, el) {
   render(view, el);
 }
 
-// A list page is one Preact tree under #app. The router unmounts it before
-// any page writes #app, so effects clean up and a page that replaces #app
-// never sits on top of a live tree.
+// A page is one Preact tree under #app. The router unmounts it before any
+// page writes #app, so effects clean up and a page that replaces #app never
+// sits on top of a live tree.
+//
+// A list page is kept instead: leaving it moves its tree into a detached
+// host, and the next visit puts the host back and renders over what it drew,
+// so the page returns where it was scrolled, with its images and route
+// outlines in place and no entrance replayed. Detached rather than hidden,
+// because the pages share element ids.
 let pageMounted = false;
-/** @param {any} view */
-export function mountPage(view) {
+/** @type {Map<string, { host: HTMLElement, scroll: number }>} */
+const kept = new Map();
+/** @type {{ host: HTMLElement, scroll: number } | null} */
+let shown = null;
+let visits = 0;
+// Counts mounts, so an effect a kept page must redo on each visit (its Add in
+// the nav, which the router clears) can depend on it.
+export function pageVisit() { return visits; }
+
+/** @param {HTMLElement} app */
+function leaveKept(app) {
+  if (!shown) return;
+  shown.scroll = app.scrollTop;
+  shown.host.remove();
+  shown = null;
+}
+
+/** @param {any} view @param {string} [keep] the name a list page is kept under */
+export function mountPage(view, keep) {
   const app = document.getElementById('app');
   if (!app) return;
-  if (!pageMounted) app.replaceChildren();
-  render(view, app);
-  pageMounted = true;
+  visits++;
+  if (!keep) {
+    leaveKept(app);
+    if (!pageMounted) app.replaceChildren();
+    render(view, app);
+    pageMounted = true;
+    return;
+  }
+  if (pageMounted) { render(null, app); pageMounted = false; }
+  let page = kept.get(keep);
+  if (!page) {
+    page = { host: document.createElement('div'), scroll: 0 };
+    page.host.className = 'page-host';
+    kept.set(keep, page);
+  } else if (page !== shown) {
+    page.host.dataset.returned = '';
+  }
+  const back = page !== shown;
+  if (back) { leaveKept(app); app.replaceChildren(page.host); }
+  // The signals integration skips a component whose props did not change, and
+  // a visit must render: a setting may have changed while the page was away.
+  render(cloneElement(view, { visit: visits }), page.host);
+  shown = page;
+  if (back) {
+    app.scrollTop = page.scroll;
+    // bar-motion reads a scroll it did not see coming as the user's, and
+    // would take a jump back down the list for a scroll down.
+    app.dispatchEvent(new Event('scrollrestore'));
+  }
 }
 // A view mounted inside imperative page markup (the route detail's meta
 // panel). unmountPage tears these down with the page, because the router
@@ -60,9 +109,10 @@ export function mountExtra(view, el) {
 export function unmountPage() {
   extraRoots.forEach(el => render(null, el));
   extraRoots.clear();
+  const app = document.getElementById('app');
+  if (app) leaveKept(app);
   if (!pageMounted) return;
   pageMounted = false;
-  const app = document.getElementById('app');
   if (app) render(null, app);
 }
 

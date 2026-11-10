@@ -44,7 +44,7 @@ export function renderTrailsIndex() {
   setCrumb(t('lists.routes'));
   cleanupMap();
   setPref('lists-tab', 'routes');
-  mountPage(html`<${RoutesPage} />`);
+  mountPage(html`<${RoutesPage} />`, 'routes');
 }
 
 /** @param {any} route @param {string} regionName */

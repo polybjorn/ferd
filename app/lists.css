@@ -308,6 +308,8 @@
 .route-grid { grid-template-columns: 1fr; }
 }
 .fade-in { animation: fadeIn var(--ui-duration-slow) ease both; }
+/* A list page put back in #app would play it again (view.js). */
+.page-host[data-returned] .fade-in { animation: none; }
 /* Self-retiring chip in the Places controls row, accent-bordered to draw
    the eye, shown only while catalog updates are pending. Shape from .filter-btn. */
 .filter-dropdown .filter-btn.catalog-update-chip { border-color: var(--accent); color: var(--accent); }
