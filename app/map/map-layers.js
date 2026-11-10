@@ -51,6 +51,10 @@ if (window.L && L.TileLayer && L.TileLayer.mergeOptions) {
     // requesting a batch per fractional level mid-gesture.
     updateWhenZooming: _isTouch,
     dumpToCanvas: _isTouch,
+    // Leaflet's mobile default fetches only once a gesture ends, so the edges
+    // a pinch or a drag reveals stay empty until the fingers lift. Fetching
+    // every updateInterval during it fills them while the map moves.
+    updateWhenIdle: false,
   });
 
   // Leaflet 1.9 places each tile with translate3d, which gives it its own
