@@ -98,6 +98,26 @@ if (window.L && L.TileLayer && L.TileLayer.mergeOptions) {
         onOpaqueTile.call(this, tile);
       },
     });
+
+    // Leaflet places a new zoom level for the current view before animating it
+    // to the target, but NoGap creates the level's canvas after that, so the
+    // canvas animates from the pane's corner at full size: on a double-tap the
+    // new tiles slide in from one side. Placing the canvas the same way first
+    // makes it zoom with the old level. The zoom animation is already running
+    // when the canvas is created, so the placement itself would animate from
+    // that corner unless the transition is off while it is committed.
+    const onCreateLevel = L.TileLayer.prototype._onCreateLevel;
+    L.TileLayer.include({
+      /** @param {any} level */
+      _onCreateLevel(level) {
+        onCreateLevel.call(this, level);
+        if (!level.canvas) return;
+        level.canvas.style.transition = 'none';
+        this._setCanvasZoomTransform(level, this._map.getCenter(), this._map.getZoom());
+        L.Util.falseFn(level.canvas.offsetWidth);
+        level.canvas.style.transition = '';
+      },
+    });
   }
 
   // Leaflet loads only the tiles on screen, so a zoom-out or a pan shows the
