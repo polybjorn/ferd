@@ -1,31 +1,30 @@
-// The phone bar gets out of the way while the content moves: it slides down
-// when the map is dragged or zoomed and when a list scrolls down, and comes
-// back when the map settles, a list scrolls up or a new view opens. CSS acts
-// on the class only at phone width, so a wider screen ignores it.
+// The phone bar gets out of the way while the content moves. Panning or
+// zooming the map sends it down until the map is tapped, so a map being looked
+// at stays fullscreen; a list sends it down while scrolling down and brings it
+// back on scrolling up. A new view always brings it back. CSS acts on the class
+// only at phone width, so a wider screen ignores it.
 
-const SETTLE_MS = 1000;
 // A finger at rest still reports a few pixels of scroll, which would make the
 // bar flicker on and off.
 const SCROLL_SLACK = 8;
 
 const body = document.body;
-/** @type {ReturnType<typeof setTimeout> | undefined} */
-let settle;
 
 /** @param {boolean} away */
 function setAway(away) {
-  clearTimeout(settle);
   body.classList.toggle('bar-away', away);
 }
 
 /** @param {import('./map/route-layer.js').LeafletMap} map */
 export function tuckBarWhileMoving(map) {
-  map.on('movestart', () => setAway(true));
-  // Waiting a moment keeps the bar from bobbing between short pans.
-  map.on('moveend', () => {
-    clearTimeout(settle);
-    settle = setTimeout(() => setAway(false), SETTLE_MS);
-  });
+  let moved = false;
+  map.on('movestart', () => { moved = true; setAway(true); });
+  const el = map.getContainer();
+  el.addEventListener('pointerdown', () => { moved = false; }, { passive: true });
+  // A mouse drag ends in a click too; only a press that left the map where it
+  // was counts as a tap. Listening on the element rather than Leaflet's click
+  // catches taps on markers and controls as well as on the map itself.
+  el.addEventListener('click', () => { if (!moved) setAway(false); });
 }
 
 const app = document.getElementById('app');
