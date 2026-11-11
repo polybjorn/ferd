@@ -650,7 +650,7 @@ const STRINGS = {
   'mapFilter.visited': 'Visited',
   'mapFilter.planned': 'Planned',
   'mapFilter.completed': 'Completed',
-  'mapFilter.toggleAll': 'Toggle all',
+  'mapFilter.all': 'All',
   'mapFilter.reset': 'Reset',
   'mapFilter.status': 'Status',
   'mapFilter.categories': 'Categories',

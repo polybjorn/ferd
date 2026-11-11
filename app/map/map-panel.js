@@ -105,7 +105,7 @@ export function MapPanel() {
     </div>
     ${placesEnabled() ? panelBody('places') : null}
     ${routesEnabled() ? panelBody('routes') : null}
-    <div class="legend-status panel-status" id="panel-status"></div>
+    <div class="panel-status" id="panel-status"></div>
     <div class="panel-heads">
       ${placesEnabled() ? panelHead('places', t('mapFilter.places')) : null}
       ${routesEnabled() ? panelHead('routes', t('mapFilter.routes')) : null}

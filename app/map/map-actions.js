@@ -234,13 +234,3 @@ function animatePlaceCardOut(slug) {
     setTimeout(resolve, 190);
   });
 }
-
-/** @param {HTMLElement | null | undefined} el */
-export function pulseChip(el) {
-  if (!el) return;
-  el.classList.remove('pulse');
-  // Force reflow so the animation restarts on repeated clicks.
-  forceReflow(el);
-  el.classList.add('pulse');
-  el.addEventListener('animationend', () => el.classList.remove('pulse'), { once: true });
-}

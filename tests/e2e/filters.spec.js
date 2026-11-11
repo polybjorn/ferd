@@ -1,10 +1,10 @@
-// The map's filter panel (its Places and Routes tabs and a category toggle),
-// the phone's Filters sheet in its place, and a list page's filter popover
-// with "Clear filters".
+// The map's filter panel (its Places and Routes tabs, a category row and the
+// status choice), the phone's Filters sheet in its place, and a list page's
+// filter popover with "Clear filters".
 const { test, expect } = require('@playwright/test');
 const { fence, signIn, isPhone, dialog } = require('./helpers');
 
-test('the map filter panel switches tabs and toggles a category', async ({ page, baseURL }, info) => {
+test('the map filter panel switches tabs, toggles a category and picks a status', async ({ page, baseURL }, info) => {
   const fenced = await fence(page, /** @type {string} */ (baseURL));
   await signIn(page);
   test.skip(isPhone(info), 'a phone has the Filters sheet instead, tested below');
@@ -13,25 +13,33 @@ test('the map filter panel switches tabs and toggles a category', async ({ page,
   const routesHead = page.locator('.panel-head[aria-controls="routes-section"]');
   await placesHead.click();
   await expect(placesHead).toHaveAttribute('aria-expanded', 'true');
-  const castle = page.locator('#places-body .legend-item[data-cat="castle"]');
+  const castle = page.locator('#places-body .filter-row[data-cat="castle"]');
   await expect(castle).toBeVisible();
 
   await routesHead.click();
   await expect(routesHead).toHaveAttribute('aria-expanded', 'true');
   await expect(placesHead).toHaveAttribute('aria-expanded', 'false');
-  await expect(page.locator('#routes-body .legend-item[data-region]').first()).toBeVisible();
+  await expect(page.locator('#routes-body .filter-row[data-region]').first()).toBeVisible();
 
   await placesHead.click();
   await castle.click();
-  await expect(castle).toHaveClass(/\bdisabled\b/);
+  await expect(castle).toHaveAttribute('aria-pressed', 'false');
   await castle.click();
-  await expect(castle).not.toHaveClass(/\bdisabled\b/);
+  await expect(castle).toHaveAttribute('aria-pressed', 'true');
+
+  const status = page.locator('#panel-status');
+  const allShown = /(\d+) of \1 shown/;
+  await expect(status).toContainText(allShown);
+  await status.getByRole('radio', { name: 'Visited' }).check();
+  await expect(status).not.toContainText(allShown);
+  await status.getByRole('radio', { name: 'All' }).check();
+  await expect(status).toContainText(allShown);
 
   expect(fenced.external).toEqual([]);
   expect(fenced.errors).toEqual([]);
 });
 
-test('the phone Filters sheet toggles a category and resets', async ({ page, baseURL }, info) => {
+test('the phone Filters sheet toggles a category, picks a status and resets', async ({ page, baseURL }, info) => {
   test.skip(!isPhone(info), 'the sheet is the phone layout');
   const fenced = await fence(page, /** @type {string} */ (baseURL));
   await signIn(page);
@@ -42,7 +50,7 @@ test('the phone Filters sheet toggles a category and resets', async ({ page, bas
   const places = sheet.getByRole('region', { name: /^Places/ });
   const allShown = /(\d+) of \1 shown/;
   await expect(places).toContainText(allShown);
-  const castles = places.getByRole('button', { name: 'Castles' });
+  const castles = places.getByRole('button', { name: /^Castles\b/ });
   await expect(castles).toHaveAttribute('aria-pressed', 'true');
   const reset = sheet.getByRole('button', { name: 'Reset' });
   await expect(reset).toBeDisabled();
@@ -55,6 +63,14 @@ test('the phone Filters sheet toggles a category and resets', async ({ page, bas
   await reset.click();
   await expect(castles).toHaveAttribute('aria-pressed', 'true');
   await expect(places).toContainText(allShown);
+
+  const planned = places.getByRole('radio', { name: 'Planned' });
+  await planned.check();
+  await expect(places).not.toContainText(allShown);
+  await expect(reset).toBeEnabled();
+  await reset.click();
+  await expect(planned).not.toBeChecked();
+  await expect(places.getByRole('radio', { name: 'All' })).toBeChecked();
 
   expect(fenced.external).toEqual([]);
   expect(fenced.errors).toEqual([]);

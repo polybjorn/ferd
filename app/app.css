@@ -931,10 +931,11 @@ body.hide-map-filter .map-phone-buttons { order: 1; }
   padding-top: var(--ui-space-3);
   border-top: 1px solid var(--border);
 }
-.filter-sheet-sec-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-3); }
+.filter-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-3); }
 .filter-sheet-title { margin: 0; font-size: var(--ui-text-sm); font-weight: 600; }
-.filter-sheet-count { margin-left: var(--ui-space-2); color: var(--muted); font-size: var(--ui-text-xs); font-weight: 400; }
-.ui-dialog button.filter-sheet-link {
+.filter-count { color: var(--muted); font-size: var(--ui-text-xs); font-weight: 400; }
+.filter-sheet-title .filter-count { margin-left: var(--ui-space-2); }
+:is(.ui-dialog, .map-panel) button.filter-link {
   padding: var(--ui-space-2) var(--ui-space-1);
   font-family: inherit;
   cursor: pointer;
@@ -945,19 +946,39 @@ body.hide-map-filter .map-phone-buttons { order: 1; }
   background: none;
   border: 0;
 }
-.ui-dialog button.filter-sheet-link:disabled { opacity: 0.4; cursor: not-allowed; }
-.filter-chips { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); }
-.filter-chips + .filter-chips { margin-top: var(--ui-space-2); }
-.ui-chip .legend-dot { margin: 0; }
-.filter-chip-check { display: none; width: 16px; height: 16px; flex: none; }
-.ui-chip[aria-pressed="true"] .filter-chip-check { display: block; }
-/* A pressed chip is filled with the accent, which swallows a dot drawn in the
-   text colour or in a colour close to the accent. A status dot follows the
-   label instead, and a coloured dot keeps its colour inside a surface ring. */
-.ui-chip[aria-pressed="true"] .dot-visited { --ui-dot-color: currentColor; }
-.ui-chip[aria-pressed="true"] .dot-want { box-shadow: inset 0 0 0 1.5px currentColor; }
-.ui-chip[aria-pressed="true"] :is(.legend-dot, .dot-completed) { box-shadow: 0 0 0 2px var(--surface); }
-.ui-chip[aria-pressed="true"] .dot-planned { box-shadow: inset 0 0 0 1.5px var(--status-planned), 0 0 0 2px var(--surface); }
+:is(.ui-dialog, .map-panel) button.filter-link:disabled { opacity: 0.4; cursor: not-allowed; }
+.filter-status { margin-block: var(--ui-space-2); }
+/* Padding rather than a margin on the head, which ui.css zeroes from a
+   stronger layer. */
+.filter-rows { padding-top: var(--ui-space-3); }
+.filter-rows .ui-list-head { padding: 0 var(--ui-space-3) var(--ui-space-1); }
+/* The label gives way to an ellipsis rather than wrap, so every row keeps
+   one height and the counts and checks stay in one column. */
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  inline-size: 100%;
+  min-block-size: var(--ui-control-height);
+  padding: 0 var(--ui-space-3);
+  font: inherit;
+  font-size: var(--ui-text-sm);
+  text-align: start;
+  color: var(--text);
+  background: none;
+  border: 0;
+  border-radius: var(--ui-radius);
+  cursor: pointer;
+  transition: opacity var(--ui-duration-fast);
+}
+/* A touch screen keeps :hover on the last row tapped. */
+@media (hover: hover) { .filter-row:hover { background: var(--ui-control-surface); } }
+.filter-row:focus-visible { outline-offset: calc(-1 * var(--ui-focus-width)); }
+.filter-row-label { flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.filter-row-count { color: var(--muted); font-size: var(--ui-text-xs); font-variant-numeric: tabular-nums; }
+.filter-row-check { inline-size: 16px; block-size: 16px; flex: none; color: var(--accent); }
+.filter-row[aria-pressed="false"] { opacity: 0.45; }
+.filter-row[aria-pressed="false"] .filter-row-check { visibility: hidden; }
 @media (pointer: coarse) {
   .leaflet-container { --map-btn-size: var(--ui-touch-target); }
   .leaflet-control-layers .leaflet-control-layers-list label > span { min-height: var(--ui-touch-target); }
@@ -971,7 +992,7 @@ body.hide-map-filter .map-phone-buttons { order: 1; }
     inset: calc((100% - var(--ui-touch-target)) / 2) calc(var(--ui-space-3) * -1);
   }
   .map-search-list .map-search-result { min-block-size: var(--ui-touch-target); box-sizing: border-box; }
-  .ui-dialog button.filter-sheet-link { min-block-size: var(--ui-touch-target); }
+  :is(.ui-dialog, .map-panel) button.filter-link, .filter-row { min-block-size: var(--ui-touch-target); }
   /* Clear stays one line of small caps, so the row keeps its height, and
      takes a full-height hit area that overlaps the space around it. */
   .map-search-clear::after {
@@ -1011,68 +1032,24 @@ body.hide-map-filter .map-phone-buttons { order: 1; }
   flex-direction: column;
   gap: var(--ui-space-1);
   border-top: 1px solid var(--border);
-  padding: var(--ui-space-2) var(--ui-space-3);
+  padding: var(--ui-space-1);
 }
+.panel-section-body .filter-rows { padding-top: var(--ui-space-1); }
 
-.legend-cats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--ui-space-1) var(--ui-space-2);
-}
+.result-line.completed { background: var(--status-completed); }
+.result-line.planned { background: var(--status-planned); }
 
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-1);
-  font-size: var(--ui-text-xs);
-  color: var(--text);
-  cursor: pointer;
-  user-select: none;
-  transition: opacity var(--ui-duration-fast);
-  padding: var(--ui-space-1) 0;
-}
-/* Off = the whole row fades back and the color dot disappears entirely. */
-.legend-item.disabled { opacity: 0.5; }
-.legend-item.disabled .legend-dot { opacity: 0; }
-
-.legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; transition: opacity var(--ui-duration-fast); }
-.legend-line { width: 14px; height: 3px; border-radius: var(--ui-radius-sm); flex-shrink: 0; }
-.legend-line.completed, .result-line.completed { background: var(--status-completed); }
-.legend-line.planned, .result-line.planned { background: var(--status-planned); }
-
-.legend-status {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-1);
-  margin-top: var(--ui-space-1);
-  padding-top: var(--ui-space-1);
+/* Shared status footer: pinned below the accordion sections so it doesn't
+   move when tabs animate, and shows the open section's count and status. */
+.panel-status {
+  padding: var(--ui-space-1) var(--ui-space-3) var(--ui-space-3);
   border-top: 1px solid var(--border);
 }
-/* Shared status footer: pinned below the accordion sections so it doesn't
-   move when tabs animate. A 1fr/auto/1fr grid keeps the middle "Planned"
-   chip dead-centered regardless of the leading chip's width, so it doesn't
-   shift when Visited <-> Completed swaps. Done chip pins left, Toggle all
-   pins right. */
-.panel-status {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--ui-space-1);
-  margin-top: 0;
-  padding: var(--ui-space-2) var(--ui-space-3);
-}
-.panel-status .ui-chip { overflow-wrap: normal; white-space: nowrap; }
-.panel-status > .panel-toggle-all { margin-inline-start: auto; }
-
-.legend-item, .panel-status .ui-chip { transform-origin: center; }
-.legend-item.pulse, .panel-status .ui-chip.pulse { animation: chip-pulse var(--ui-duration-base) ease-out; }
-@keyframes chip-pulse {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.08); }
-  100% { transform: scale(1); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .legend-item.pulse, .panel-status .ui-chip.pulse { animation: none !important; }
+/* "Completed" fits a third of the 246px panel only at the small size. */
+.panel-status .filter-status {
+  --ui-text-sm: var(--ui-text-xs);
+  --ui-choice-padding: var(--ui-space-1);
+  margin-bottom: 0;
 }
 .route-meta-tags, .place-tags {
   display: flex;

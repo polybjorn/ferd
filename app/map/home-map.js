@@ -1,5 +1,5 @@
 import {
-  addButton, colourClass, displayCategory, displayRegion, setActiveTab, setCrumb, sortedCategorySlugs, state,
+  addButton, displayCategory, displayRegion, setActiveTab, setCrumb, sortedCategorySlugs, state,
 } from '../core.js';
 import { gpxUrlFor, isReadOnly, routeStatusColor } from '../server.js';
 import { collapseCreditOnPhone, MapPanel } from './map-panel.js';
@@ -17,7 +17,7 @@ import { fadeOutRoute, initAreaLayers, openAreaPopupAt } from './area-layer.js';
 import { html, renderFresh } from '../view.js';
 import { t } from '../i18n.js';
 import { popupElement, RoutePopup } from './popups.js';
-import { openPlacePopup, pulseChip, revealPlaceMarker } from './map-actions.js';
+import { openPlacePopup, revealPlaceMarker } from './map-actions.js';
 import { applyMapFilters, createPlaceLayerGroup, initUnifiedSearch, placeShown, routeShown } from './place-layer.js';
 import { focusHash } from '../router.js';
 import { getTrailWeightFactor } from '../theme.js';
@@ -548,27 +548,58 @@ export function renderUnifiedMap(focus) {
   }
 }
 
-/** @param {string} cat */
-function categoryDot(cat) {
-  return html`<span class=${'legend-dot ' + colourClass(/** @type {Record<string, string>} */ (state.categoryColors)[cat])}></span>`;
-}
+/** @typedef {'places' | 'routes'} FilterSection */
 
-function placesLegend() {
-  const cats = sortedCategorySlugs(Object.keys(state.categoryColors));
-  return html`<div class="legend-cats">${cats.map(cat => html`<div class=${'legend-item' + (state.hiddenCategories.has(cat) ? ' disabled' : '')} data-cat=${cat}>
-    ${categoryDot(cat)}${displayCategory(cat)}
-  </div>`)}</div>`;
-}
+const checkMark = () => html`<svg class="filter-row-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>`;
 
-function routesLegend() {
+// One row per category or region, in the desktop panel and the phone's sheet
+// alike. syncFilterControls fills in the count.
+/** @param {string} attr @param {string} key @param {boolean} on @param {string} label */
+function filterRow(attr, key, on, label) {
+  return html`<button type="button" class="filter-row" ...${{ [attr]: key }} aria-pressed=${String(on)}>
+    <span class="filter-row-label">${label}</span><span class="filter-row-count"></span>${checkMark()}
+  </button>`;
+}
+/** @param {FilterSection} section */
+function filterRows(section) {
+  if (section === 'places') {
+    return sortedCategorySlugs(Object.keys(state.categoryColors)).map(cat =>
+      filterRow('data-cat', cat, !state.hiddenCategories.has(cat), displayCategory(cat)));
+  }
   const regions = state.manifest && state.manifest.regions ? state.manifest.regions.map(r => r.name) : [];
-  if (!regions.length) return null;
-  return html`<div class="legend-cats">${regions.map(r => html`<div class=${'legend-item' + (state.hiddenRegions.has(r) ? ' disabled' : '')} data-region=${r}>${displayRegion(r)}</div>`)}</div>`;
+  return regions.map(r => filterRow('data-region', r, !state.hiddenRegions.has(r), displayRegion(r)));
+}
+/** @param {FilterSection} section */
+function rowList(section) {
+  const rows = filterRows(section);
+  if (!rows.length) return null;
+  const label = section === 'places' ? t('mapFilter.categories') : t('mapFilter.regions');
+  return html`<div class="filter-rows" role="group" aria-label=${label}>
+    <p class="ui-list-head" aria-hidden="true">${label}</p>${rows}
+  </div>`;
 }
 
-/** @param {string} section */
-function statusChips(section) {
-  return html`${statusFilterChips(section === 'places')}<button type="button" class="ui-chip panel-toggle-all" data-toggle-all=${section}>${t('mapFilter.toggleAll')}</button>`;
+/** @param {FilterSection} section */
+function statusValue(section) {
+  const [done, planned] = section === 'places'
+    ? [state.showVisited, state.showWant]
+    : [state.showCompleted, state.showPlanned];
+  return done && planned ? 'all' : done ? 'done' : planned ? 'planned' : '';
+}
+// Status is one choice of three rather than two switches, since switching
+// both off would only empty the map. A default from Settings can still
+// leave none of the three chosen.
+/** @param {FilterSection} section @param {string} scope keeps the radio name apart from the other view's */
+function statusChoice(section, scope) {
+  const value = statusValue(section);
+  const options = [
+    ['all', t('mapFilter.all')],
+    ['done', section === 'places' ? t('mapFilter.visited') : t('mapFilter.completed')],
+    ['planned', t('mapFilter.planned')],
+  ];
+  return html`<div class="ui-choice-list ui-choice-segmented filter-status" role="radiogroup" aria-label=${t('mapFilter.status')} data-status=${section}>
+    ${options.map(([v, label]) => html`<label class="ui-choice"><input type="radio" name=${scope + '-' + section + '-status'} value=${v} checked=${v === value} />${label}</label>`)}
+  </div>`;
 }
 
 // The phone's filter button carries a dot while anything is filtered out,
@@ -585,51 +616,25 @@ export function syncFilterDot() {
 // Redraws every open filter view: the desktop panel and the phone's sheet.
 export function refreshFilterPanel() {
   const placesBody = document.getElementById('places-body');
-  if (placesBody) renderFresh(placesLegend(), placesBody);
+  if (placesBody) renderFresh(rowList('places'), placesBody);
   const routesBody = document.getElementById('routes-body');
-  if (routesBody) renderFresh(routesLegend(), routesBody);
+  if (routesBody) renderFresh(rowList('routes'), routesBody);
   renderPanelStatus();
   /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.filter-sheet [data-sheet-section]')).forEach(el => {
-    renderFresh(sheetSection(el.dataset.sheetSection || ''), el);
+    renderFresh(sheetSection(/** @type {FilterSection} */ (el.dataset.sheetSection)), el);
   });
-  syncFilterSheet();
-  syncFilterDot();
+  syncFilterControls();
 }
 
-// The phone's filter sheet: both sections open, every choice a chip that
-// wraps, so the whole set fits in about half the screen.
-/** @param {string} attr @param {string} key @param {boolean} on @param {string} label @param {any} mark */
-function filterChip(attr, key, on, label, mark) {
-  return html`<button type="button" class="ui-chip" ...${{ [attr]: key }} aria-pressed=${String(on)}>${mark}${label}</button>`;
-}
-const checkMark = () => html`<svg class="filter-chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>`;
-/** @param {string} cls */
-const statusDot = cls => html`<span class=${'ui-dot ' + cls}></span>`;
-/** @param {boolean} places */
-function statusFilterChips(places) {
-  return places
-    ? [filterChip('data-filter', 'visited', state.showVisited, t('mapFilter.visited'), statusDot('dot-visited')),
-      filterChip('data-filter', 'want', state.showWant, t('mapFilter.planned'), statusDot('dot-want'))]
-    : [filterChip('data-route-status', 'completed', state.showCompleted, t('mapFilter.completed'), statusDot('dot-completed')),
-      filterChip('data-route-status', 'planned', state.showPlanned, t('mapFilter.planned'), statusDot('dot-planned'))];
-}
-/** @param {string} id */
+/** @param {FilterSection} id */
 function sheetSection(id) {
   const places = id === 'places';
-  let groups = [];
-  if (places) {
-    groups = sortedCategorySlugs(Object.keys(state.categoryColors)).map(cat =>
-      filterChip('data-cat', cat, !state.hiddenCategories.has(cat), displayCategory(cat), categoryDot(cat)));
-  } else if (state.manifest && state.manifest.regions) {
-    groups = state.manifest.regions.map(r =>
-      filterChip('data-region', r.name, !state.hiddenRegions.has(r.name), displayRegion(r.name), checkMark()));
-  }
-  return html`<div class="filter-sheet-sec-head">
-      <h3 class="filter-sheet-title" id=${'filter-sheet-' + id}>${places ? t('mapFilter.places') : t('mapFilter.routes')}<span class="filter-sheet-count" data-count=${id}></span></h3>
-      <button type="button" class="filter-sheet-link" data-toggle-all=${id}></button>
+  return html`<div class="filter-head">
+      <h3 class="filter-sheet-title" id=${'filter-sheet-' + id}>${places ? t('mapFilter.places') : t('mapFilter.routes')}<span class="filter-count" data-count=${id}></span></h3>
+      <button type="button" class="filter-link" data-toggle-all=${id}></button>
     </div>
-    <div class="filter-chips" role="group" aria-label=${t('mapFilter.status')}>${statusFilterChips(places)}</div>
-    ${groups.length ? html`<div class="filter-chips" role="group" aria-label=${places ? t('mapFilter.categories') : t('mapFilter.regions')}>${groups}</div>` : null}`;
+    ${statusChoice(id, 'sheet')}
+    ${rowList(id)}`;
 }
 // The whole sheet, handle and head included, as openViewModal's views render
 // theirs. refreshFilterPanel fills each section.
@@ -639,7 +644,7 @@ export function FilterSheet() {
   return html`<div class="ui-dialog-handle" aria-hidden="true"></div>
     <div class="ui-dialog-head">
       <h2 class="ui-dialog-title">${t('mapFilter.title')}</h2>
-      <button type="button" class="filter-sheet-link" data-filter-reset>${t('mapFilter.reset')}</button>
+      <button type="button" class="filter-link" data-filter-reset>${t('mapFilter.reset')}</button>
     </div>
     <div class="ui-dialog-body"><div class="filter-sheet">
       ${placesEnabled() ? section('places') : null}
@@ -650,64 +655,51 @@ export function FilterSheet() {
 function allPlacesOn() { return state.hiddenCategories.size === 0 && state.showVisited && state.showWant; }
 function allRoutesOn() { return state.hiddenRegions.size === 0 && state.showCompleted && state.showPlanned; }
 
-// Counts what the map shows, as each section's own measure of the filter.
-function syncFilterSheet() {
-  const sheet = document.querySelector('.filter-sheet');
-  if (!sheet) return;
-  // Routes count from the manifest, since their map layers arrive later.
+// Brings every count, check and choice in line with the state, in place, so a
+// tap never redraws the control under the finger. Routes count from the
+// manifest, since their map layers arrive later.
+function syncFilterControls() {
   const routes = state.manifest && state.manifest.regions
     ? state.manifest.regions.flatMap(r => r.routes.map(t => ({ region: r.name, completed: t.completed })))
     : [];
+  const places = state._placeRecords || [];
   /** @type {Record<string, number[]>} */
-  const counts = /** @type {Record<string, number[]>} */ ({
-    places: state._placeRecords ? [state._placeRecords.filter(placeShown).length, state._placeRecords.length] : [0, 0],
+  const counts = {
+    places: [places.filter(placeShown).length, places.length],
     routes: [routes.filter(routeShown).length, routes.length],
-  });
-  /** @type {NodeListOf<HTMLElement>} */ (sheet.querySelectorAll('[data-count]')).forEach(el => {
+  };
+  /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('[data-count]')).forEach(el => {
     const [shown, total] = counts[el.dataset.count || ''];
     el.textContent = total ? t('mapFilter.shown', { shown, total }) : '';
   });
-  /** @type {NodeListOf<HTMLElement>} */ (sheet.querySelectorAll('[data-toggle-all]')).forEach(el => {
+  /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('[data-toggle-all]')).forEach(el => {
     const allOn = el.dataset.toggleAll === 'places' ? allPlacesOn() : allRoutesOn();
     el.textContent = allOn ? t('mapFilter.hideAll') : t('mapFilter.showAll');
   });
+  // A row counts what it would show under the chosen status, whether it is
+  // hidden or not, so a hidden row says what it would bring back.
+  /** @type {Map<string, number>} */
+  const perKey = new Map();
+  if (state._placeRecords) {
+    for (const p of places) if (p.visited ? state.showVisited : state.showWant) perKey.set('cat:' + p.category, (perKey.get('cat:' + p.category) || 0) + 1);
+  }
+  for (const r of routes) if (r.completed ? state.showCompleted : state.showPlanned) perKey.set('region:' + r.region, (perKey.get('region:' + r.region) || 0) + 1);
+  /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('.filter-row')).forEach(row => {
+    const isCat = row.dataset.cat !== undefined;
+    const set = isCat ? state.hiddenCategories : state.hiddenRegions;
+    const key = /** @type {string} */ (isCat ? row.dataset.cat : row.dataset.region);
+    row.setAttribute('aria-pressed', String(!set.has(key)));
+    const count = row.querySelector('.filter-row-count');
+    const n = perKey.get((isCat ? 'cat:' : 'region:') + key) || 0;
+    if (count) count.textContent = isCat && !state._placeRecords ? '' : String(n);
+  });
+  /** @type {NodeListOf<HTMLElement>} */ (document.querySelectorAll('[data-status]')).forEach(group => {
+    const value = statusValue(/** @type {FilterSection} */ (group.dataset.status));
+    group.querySelectorAll('input').forEach(input => { input.checked = input.value === value; });
+  });
   const reset = /** @type {HTMLButtonElement | null} */ (document.querySelector('[data-filter-reset]'));
   if (reset) reset.disabled = !filtersActive();
-}
-
-/** @param {HTMLElement} dialog */
-export function bindFilterSheet(dialog) {
-  dialog.addEventListener('click', function(/** @type {MouseEvent} */ e) {
-    if (/** @type {HTMLElement} */ (e.target).closest('[data-filter-reset]')) {
-      state.hiddenCategories.clear();
-      state.hiddenRegions.clear();
-      state.showVisited = state.showWant = state.showCompleted = state.showPlanned = true;
-      refreshFilterPanel();
-      applyMapFilters();
-      return;
-    }
-    const all = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.filter-sheet [data-toggle-all]'));
-    if (all) {
-      if (all.dataset.toggleAll === 'places') toggleAllPlaces(); else toggleAllRoutes();
-      return;
-    }
-    const chip = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.ui-chip'));
-    if (!chip) return;
-    const d = chip.dataset;
-    if (d.cat !== undefined || d.region !== undefined) {
-      const set = d.cat !== undefined ? state.hiddenCategories : state.hiddenRegions;
-      const key = d.cat !== undefined ? d.cat : d.region;
-      if (set.has(key)) set.delete(key); else set.add(key);
-    } else if (d.filter === 'visited') state.showVisited = !state.showVisited;
-    else if (d.filter === 'want') state.showWant = !state.showWant;
-    else if (d.routeStatus === 'completed') state.showCompleted = !state.showCompleted;
-    else if (d.routeStatus === 'planned') state.showPlanned = !state.showPlanned;
-    chip.setAttribute('aria-pressed', String(chip.getAttribute('aria-pressed') !== 'true'));
-    pulseChip(chip);
-    applyMapFilters();
-    syncFilterSheet();
-    syncFilterDot();
-  });
+  syncFilterDot();
 }
 
 // Which section is currently open (accordion = at most one).
@@ -719,80 +711,92 @@ function activePanelSection() {
   return null;
 }
 
-// The status chips live in one persistent footer (not inside the animated
-// section bodies) so they stay put across tab switches; only the leading
-// chip's label swaps Visited<->Completed for the active tab. Hidden when
-// both tabs are collapsed.
-/** @param {string | null} [active] the open section, read from the DOM when not given */
+// The status choice lives in one footer below the accordion sections, so it
+// stays put across tab switches, and shows the open tab's. Hidden when both
+// tabs are collapsed.
+/** @param {FilterSection | null} [active] the open section, read from the DOM when not given */
 function renderPanelStatus(active = activePanelSection()) {
   const el = document.getElementById('panel-status');
   if (!el) return;
   if (!active) { renderFresh(null, el); el.style.display = 'none'; return; }
   el.style.display = '';
-  renderFresh(statusChips(active), el);
+  renderFresh(html`<div class="filter-head">
+      <span class="filter-count" data-count=${active}></span>
+      <button type="button" class="filter-link" data-toggle-all=${active}></button>
+    </div>
+    ${statusChoice(active, 'panel')}`, el);
 }
 
-// Toggle-all handlers, called from the delegated body click handlers (the
-// controls live inside the section bodies, which refreshFilterPanel rebuilds).
+// Hide all empties the list and leaves the status choice alone, since that
+// has no "none" to show. Show all brings back everything.
 function toggleAllPlaces() {
-  const cats = Object.keys(state.categoryColors);
-  if (allPlacesOn()) {
-    cats.forEach(c => state.hiddenCategories.add(c));
-    state.showVisited = false; state.showWant = false;
-  } else {
+  if (allPlacesOn()) Object.keys(state.categoryColors).forEach(c => state.hiddenCategories.add(c));
+  else {
     state.hiddenCategories.clear();
     state.showVisited = true; state.showWant = true;
   }
-  refreshFilterPanel();
   applyMapFilters();
+  syncFilterControls();
 }
 
 function toggleAllRoutes() {
-  const regions = state.manifest ? state.manifest.regions.map(r => r.name) : [];
-  if (allRoutesOn()) {
-    regions.forEach(r => state.hiddenRegions.add(r));
-    state.showCompleted = false; state.showPlanned = false;
-  } else {
+  if (allRoutesOn()) (state.manifest ? state.manifest.regions.map(r => r.name) : []).forEach(r => state.hiddenRegions.add(r));
+  else {
     state.hiddenRegions.clear();
     state.showCompleted = true; state.showPlanned = true;
   }
-  refreshFilterPanel();
   applyMapFilters();
+  syncFilterControls();
 }
 
-// Delegated, so the handler survives refreshFilterPanel replacing the items.
-// Toggles flip in place rather than re-render, which would cut the pulse.
+// Delegated, so the handlers survive refreshFilterPanel replacing the rows.
+/** @param {MouseEvent} e */
+function onFilterClick(e) {
+  const target = /** @type {HTMLElement} */ (e.target);
+  const all = /** @type {HTMLElement | null} */ (target.closest('[data-toggle-all]'));
+  if (all) {
+    if (all.dataset.toggleAll === 'places') toggleAllPlaces(); else toggleAllRoutes();
+    return;
+  }
+  const row = /** @type {HTMLElement | null} */ (target.closest('.filter-row'));
+  if (!row) return;
+  const isCat = row.dataset.cat !== undefined;
+  const set = isCat ? state.hiddenCategories : state.hiddenRegions;
+  const key = /** @type {string} */ (isCat ? row.dataset.cat : row.dataset.region);
+  if (set.has(key)) set.delete(key); else set.add(key);
+  applyMapFilters();
+  syncFilterControls();
+}
+/** @param {Event} e */
+function onStatusChange(e) {
+  const input = e.target;
+  if (!(input instanceof HTMLInputElement)) return;
+  const group = /** @type {HTMLElement | null} */ (input.closest('[data-status]'));
+  if (!group) return;
+  const done = input.value !== 'planned';
+  const planned = input.value !== 'done';
+  if (group.dataset.status === 'places') { state.showVisited = done; state.showWant = planned; }
+  else { state.showCompleted = done; state.showPlanned = planned; }
+  applyMapFilters();
+  syncFilterControls();
+}
 /** @param {HTMLElement} el */
-export function bindFilterClicks(el) {
-  el.addEventListener('click', function(/** @type {MouseEvent} */ e) {
-    const item = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.legend-item[data-cat], .legend-item[data-region]'));
-    if (item) {
-      const isCat = item.dataset.cat !== undefined;
-      const set = isCat ? state.hiddenCategories : state.hiddenRegions;
-      const key = isCat ? item.dataset.cat : item.dataset.region;
-      if (set.has(key)) set.delete(key); else set.add(key);
-      item.classList.toggle('disabled', set.has(key));
-      pulseChip(item);
-      applyMapFilters();
-      syncFilterDot();
-      return;
-    }
-    const chip = /** @type {HTMLElement | null} */ (/** @type {HTMLElement} */ (e.target).closest('.ui-chip'));
-    if (!chip) return;
-    if (chip.classList.contains('panel-toggle-all')) {
-      if (chip.dataset.toggleAll === 'places') toggleAllPlaces();
-      else toggleAllRoutes();
-      return;
-    }
-    if (chip.dataset.filter === 'visited') state.showVisited = !state.showVisited;
-    else if (chip.dataset.filter === 'want') state.showWant = !state.showWant;
-    else if (chip.dataset.routeStatus === 'completed') state.showCompleted = !state.showCompleted;
-    else if (chip.dataset.routeStatus === 'planned') state.showPlanned = !state.showPlanned;
-    chip.setAttribute('aria-pressed', String(chip.getAttribute('aria-pressed') !== 'true'));
-    pulseChip(chip);
+function bindFilterControls(el) {
+  el.addEventListener('click', onFilterClick);
+  el.addEventListener('change', onStatusChange);
+}
+
+/** @param {HTMLElement} dialog */
+export function bindFilterSheet(dialog) {
+  dialog.addEventListener('click', function(/** @type {MouseEvent} */ e) {
+    if (!/** @type {HTMLElement} */ (e.target).closest('[data-filter-reset]')) return;
+    state.hiddenCategories.clear();
+    state.hiddenRegions.clear();
+    state.showVisited = state.showWant = state.showCompleted = state.showPlanned = true;
     applyMapFilters();
-    syncFilterDot();
+    syncFilterControls();
   });
+  bindFilterControls(dialog);
 }
 
 export function bindFilterPanel() {
@@ -811,11 +815,12 @@ export function bindFilterPanel() {
         const body = document.getElementById(other);
         if (body) body.classList.remove('open');
       });
-      renderPanelStatus(section.classList.contains('open') ? null : id.replace(/-section$/, ''));
+      renderPanelStatus(section.classList.contains('open') ? null : /** @type {FilterSection} */ (id.replace(/-section$/, '')));
+      syncFilterControls();
     });
   });
   ['places-body', 'routes-body', 'panel-status'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) bindFilterClicks(el);
+    if (el) bindFilterControls(el);
   });
 }

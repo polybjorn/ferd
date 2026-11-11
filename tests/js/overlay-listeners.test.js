@@ -92,7 +92,8 @@ function mapPanel() {
       getElementById: id => [places.section, routes.section].find(s => s.id === id) || null,
     },
     renderPanelStatus: a => status.push(a),
-    bindFilterClicks() {},
+    bindFilterControls() {},
+    syncFilterControls() {},
   };
   vm.createContext(ctx);
   vm.runInContext(`${fn('bindFilterPanel')}\nbindFilterPanel();`, ctx);

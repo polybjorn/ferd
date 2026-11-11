@@ -647,7 +647,7 @@ export const NB = {
   'mapFilter.visited': 'Besøkt',
   'mapFilter.planned': 'Planlagt',
   'mapFilter.completed': 'Fullført',
-  'mapFilter.toggleAll': 'Slå alle av eller på',
+  'mapFilter.all': 'Alle',
   'mapFilter.reset': 'Tilbakestill',
   'mapFilter.status': 'Status',
   'mapFilter.categories': 'Kategorier',
