@@ -155,10 +155,10 @@ test('a tap that closes the tile picker leaves the bottom bar as it is', async (
   const box = await page.locator('#map').boundingBox();
   if (!box) throw new Error('the map has no box');
 
-  await page.locator('#map .leaflet-control-layers-toggle').tap();
+  // A tap on the button opens the picker through emulated mouse events whose
+  // timing varies, and Enter opens it the same way every time.
+  await page.locator('#map .leaflet-control-layers-toggle').press('Enter');
   await expect(picker).toHaveClass(/leaflet-control-layers-expanded/);
-  // A second tap this soon reads as a double-tap zoom, which moves the map.
-  await page.waitForTimeout(500);
   await page.touchscreen.tap(box.x + 80, box.y + box.height / 3);
   await expect(picker).not.toHaveClass(/leaflet-control-layers-expanded/);
   await page.waitForTimeout(500);
