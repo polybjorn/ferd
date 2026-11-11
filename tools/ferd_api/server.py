@@ -22,6 +22,11 @@ from .handler import Handler
 class ThreadingHTTPServer(http.server.ThreadingHTTPServer):
   daemon_threads = True
   allow_reuse_address = True
+  # socketserver listens with a backlog of 5, so a burst of connections (a
+  # client syncing after time offline, a page load fetching in parallel) could
+  # be reset before a worker thread picked it up. The kernel caps this at
+  # net.core.somaxconn.
+  request_queue_size = 128
 
 
 def parse_bind(spec: str) -> tuple[str, int]:

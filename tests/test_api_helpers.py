@@ -1062,5 +1062,13 @@ class TestGpxMovePlan(unittest.TestCase):
     self.assertEqual(store.get_map(conn, uid, "metadata"), {"To/u": {"rating": 4}})
 
 
+class TestServerBacklog(unittest.TestCase):
+  def test_listen_queue_holds_a_burst(self):
+    # socketserver's default backlog of 5 reset connections from a burst of
+    # parallel requests on a slow host.
+    from ferd_api.server import ThreadingHTTPServer
+    self.assertGreaterEqual(ThreadingHTTPServer.request_queue_size, 64)
+
+
 if __name__ == "__main__":
   unittest.main()
