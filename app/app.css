@@ -836,9 +836,14 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 .map-search-result .result-line { width: 12px; height: 2px; border-radius: var(--ui-radius-sm); }
 .map-search-result .result-meta { color: var(--muted); margin-left: auto; font-size: var(--ui-text-xs); }
 
-/* A phone has no room for the filter panel beside the credit, so two
-   buttons under the tile picker open search and filters as their own views. */
-.map-phone-buttons { display: none; flex-direction: column; gap: var(--ui-space-1); }
+/* A phone has no room for the filter panel beside the credit, so a button
+   opens filters as their own view. It sits above the tile picker, which
+   grows downward as it opens, so opening the picker moves nothing else. A
+   hidden button fades in place rather than leaving the layout, so it drops
+   below the picker instead of leaving a gap at the top. */
+.map-phone-buttons { display: none; flex-direction: column; gap: var(--ui-space-1); order: -1; }
+.leaflet-top.leaflet-right { display: flex; flex-direction: column; align-items: flex-end; }
+body.hide-map-filter .map-phone-buttons { order: 1; }
 /* One outer size for the tile picker and the phone buttons, so the stack
    lines up and a touch screen grows them together. */
 .leaflet-container { --map-btn-size: 38px; }
@@ -1250,11 +1255,15 @@ body.signin-only #app {
   .leaflet-control-attribution,
   .map-credit-toggle {
     transform-origin: right bottom;
-    animation: credit-in var(--ui-duration-fast) ease-out;
+    animation: grow-in var(--ui-duration-fast) ease-out;
   }
 }
-@keyframes credit-in {
+@keyframes grow-in {
   from { opacity: 0; transform: scale(0.8); }
+}
+/* The open tile picker grows out of its button the way the credit does. */
+@media (prefers-reduced-motion: no-preference) {
+  .leaflet-control-layers-expanded { animation: grow-in var(--ui-duration-fast) ease-out; }
 }
 
 .leaflet-tooltip {

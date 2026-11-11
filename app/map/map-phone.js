@@ -12,7 +12,7 @@ const filterIcon = () => html`<svg viewBox="0 0 24 24" fill="none" stroke="curre
 const clearIcon = () => html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
 
 // A phone has no room for the filter panel beside the credit, so filters
-// become a button under the tile picker that opens a sheet, and search moves
+// become a button above the tile picker that opens a sheet, and search moves
 // to the bottom bar. CSS shows the button or the panel by width, so a resize
 // needs no rebuild.
 /** @param {import('./route-layer.js').LeafletMap} map */
