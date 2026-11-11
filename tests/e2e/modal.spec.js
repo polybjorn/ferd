@@ -145,6 +145,33 @@ test('a tap on the bare map toggles the bottom bar, and the credit stays clear o
   expect(fenced.errors).toEqual([]);
 });
 
+test('a tap that closes the tile picker leaves the bottom bar as it is', async ({ page, baseURL }, info) => {
+  test.skip(!isPhone(info), 'the bottom bar is the phone layout');
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  await signIn(page);
+  const body = page.locator('body');
+  const picker = page.locator('#map .leaflet-control-layers');
+  await page.waitForSelector('#map .leaflet-tile-loaded', { state: 'attached' });
+  const box = await page.locator('#map').boundingBox();
+  if (!box) throw new Error('the map has no box');
+
+  await page.locator('#map .leaflet-control-layers-toggle').tap();
+  await expect(picker).toHaveClass(/leaflet-control-layers-expanded/);
+  // A second tap this soon reads as a double-tap zoom, which moves the map.
+  await page.waitForTimeout(500);
+  await page.touchscreen.tap(box.x + 80, box.y + box.height / 3);
+  await expect(picker).not.toHaveClass(/leaflet-control-layers-expanded/);
+  await page.waitForTimeout(500);
+  await expect(body).not.toHaveClass(/\bbar-away\b/);
+
+  // With the picker closed, the same tap reads as bare map again.
+  await page.touchscreen.tap(box.x + 80, box.y + box.height / 3);
+  await expect(body).toHaveClass(/\bbar-away\b/);
+
+  expect(fenced.external).toEqual([]);
+  expect(fenced.errors).toEqual([]);
+});
+
 test('the header Add button survives a list page', async ({ page, baseURL }, info) => {
   test.skip(isPhone(info), 'the phone has no header actions');
   const fenced = await fence(page, /** @type {string} */ (baseURL));
