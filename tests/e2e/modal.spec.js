@@ -124,11 +124,16 @@ test('a tap on the bare map toggles the bottom bar, and the credit stays clear o
     return shown.length > 0 && clear;
   })).toBe(true);
 
+  // The first tap collapsed the credit to its button. A tap on that is aimed
+  // at the credit, so the bar stays as it is, away here and showing below.
+  await page.locator('#map .map-credit-toggle').tap();
+  await expect(page.locator('#map .leaflet-control-attribution')).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(body).toHaveClass(/\bbar-away\b/);
+
   await page.touchscreen.tap(x, y);
   await expect(body).not.toHaveClass(/\bbar-away\b/);
 
-  // The first tap collapsed the credit to its button. A tap on that is aimed
-  // at the credit, so the bar stays.
   await page.locator('#map .map-credit-toggle').tap();
   await expect(page.locator('#map .leaflet-control-attribution')).toBeVisible();
   await page.waitForTimeout(500);

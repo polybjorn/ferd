@@ -36,14 +36,15 @@ export function tuckBarWhileMoving(map) {
   // catches taps on markers and controls as well as on the map itself.
   el.addEventListener('click', (/** @type {MouseEvent} */ e) => {
     if (moved) return;
+    // A tap on a control was aimed at that control, and leaves the bar as it is.
+    if (e.target instanceof Element && e.target.closest('.leaflet-control, .leaflet-popup')) return;
     // Routes, pins and areas are found by the map's own click handlers, so a
     // tap reads as bare map only if it opened no popup. One that closed a popup
-    // or landed on a control was aimed at that, and leaves the bar showing.
-    const aimed = e.target instanceof Element && !!e.target.closest('.leaflet-control, .leaflet-popup');
+    // was aimed at that, and leaves the bar showing.
     clearTimeout(reveal);
     reveal = setTimeout(() => {
       if (body.classList.contains('bar-away')) setAway(false);
-      else if (!aimed && !popupAtPress && !popupOpen) setAway(true);
+      else if (!popupAtPress && !popupOpen) setAway(true);
     }, DOUBLE_TAP_MS);
   });
 }
