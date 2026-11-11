@@ -61,6 +61,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Add, Settings and the catalog lists are only as tall as their content, up to the height of the screen. Their top edge stays put, so the tabs and filter box don't move.
 
 ### Fixed
+- The app no longer stays on Loading when its sign-in check stalls on a poor connection: it asks once more after 4 seconds, then opens the way it does offline. On a first visit, the copy of the app kept for offline use now downloads once the app has opened, not alongside it.
 - The server no longer resets connections when many requests arrive at once, such as a client syncing after time offline. Its listen queue held only 5 waiting connections, so on a busy or slow host some were dropped before they were read.
 - Zooming out no longer shows a dark frame around the map while the wider tiles load: the gap takes a colour close to the base map's own, Topo, OpenStreetMap or Dark, and follows the tile filter.
 - Zooming out or panning the map no longer shows empty edges while the next tiles load: each base map also loads one ring of tiles just beyond the screen, and on a phone the tiles load while you pinch or drag instead of only when you let go.

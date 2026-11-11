@@ -51,6 +51,10 @@ async function fence(page, baseURL) {
   return fenced;
 }
 
+// Room for the app's own retry of a stalled session check (STATE_TIMEOUT_MS
+// in app/main.js) on a loaded CI runner.
+const FIRST_LOAD_MS = 12_000;
+
 /**
  * Sign in through the API and open the app at hash.
  * @param {import('@playwright/test').Page} page
@@ -59,7 +63,7 @@ async function signIn(page, hash = '') {
   const login = await page.request.post('/api/login', { data: { username: USER, password: PASSWORD } });
   expect(login.ok(), `login answered ${login.status()}`).toBe(true);
   await page.goto('/' + hash);
-  await expect(page.locator('#auth-menu-btn:visible, #bar-add:visible')).toBeVisible();
+  await expect(page.locator('#auth-menu-btn:visible, #bar-add:visible')).toBeVisible({ timeout: FIRST_LOAD_MS });
 }
 
 /**
@@ -73,7 +77,7 @@ async function signUp(page, info, hash = '') {
   const res = await page.request.post('/api/register', { data: { username, password: PASSWORD } });
   expect(res.ok(), `register answered ${res.status()}`).toBe(true);
   await page.goto('/' + hash);
-  await expect(page.locator('#auth-menu-btn:visible, #bar-add:visible')).toBeVisible();
+  await expect(page.locator('#auth-menu-btn:visible, #bar-add:visible')).toBeVisible({ timeout: FIRST_LOAD_MS });
   return username;
 }
 

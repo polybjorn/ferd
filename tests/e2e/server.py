@@ -25,13 +25,18 @@ import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from http.cookiejar import CookieJar
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
+# Outside test-results, which Playwright empties as a run starts. CI uploads it
+# with the report when a run fails.
+LOG = REPO / "e2e-logs" / "api.log"
 E2E_USER = "demo"
 E2E_PASSWORD = "demo-password-1"
 
@@ -82,6 +87,21 @@ def seed(base: str, zip_path: Path) -> None:
   opener.open(gate, timeout=10).close()
 
 
+def keep_log(proc: subprocess.Popen) -> None:
+  """Pass the API's log through and keep a copy in LOG with the UTC time each
+  line arrived, which is about when its response went out. Set beside a
+  failed test's trace, it shows whether a request the page waited on ever
+  reached the server."""
+  LOG.parent.mkdir(exist_ok=True)
+  with LOG.open("w", encoding="utf-8") as log:
+    for raw in proc.stderr:
+      line = raw.decode("utf-8", "replace")
+      sys.stderr.write(line)
+      stamp = datetime.now(timezone.utc).strftime("%H:%M:%S.%f")[:-3]
+      log.write(f"{stamp} {line}")
+      log.flush()
+
+
 def main() -> int:
   port = int(sys.argv[1]) if len(sys.argv) > 1 else free_port()
   tmp = Path(tempfile.mkdtemp(prefix="ferd-e2e-"))
@@ -118,8 +138,9 @@ def main() -> int:
     )
     proc = subprocess.Popen(
       [sys.executable, str(REPO / "tools" / "api.py"), "--config", str(tmp / "config.json")],
-      cwd=REPO, stdin=subprocess.DEVNULL,
+      cwd=REPO, stdin=subprocess.DEVNULL, stderr=subprocess.PIPE,
     )
+    threading.Thread(target=keep_log, args=(proc,), daemon=True).start()
     base = f"http://127.0.0.1:{port}"
     wait_healthy(base, proc)
     seed(base, zip_path)

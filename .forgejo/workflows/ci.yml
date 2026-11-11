@@ -169,7 +169,7 @@ jobs:
           bash "$tools/selftest.sh"
           out="${RUNNER_TEMP:-/tmp}/e2e-upload"
           mkdir -p "$out"
-          dirs=$(ls -d playwright-report test-results 2>/dev/null || true)
+          dirs=$(ls -d playwright-report test-results e2e-logs 2>/dev/null || true)
           [ -z "$dirs" ] || python3 -m zipfile -c "$out/e2e-report.zip" $dirs
           python3 "$tools/upload_artifact.py" e2e-report "$out"
 

@@ -102,6 +102,25 @@ export function loadDataAndRender() {
   });
 }
 
+// A request that stalls instead of failing (a connection dropped on a poor
+// link) would hold the page on Loading for good, so the session check gets a
+// bounded time and one fresh attempt before it counts as a network failure.
+const STATE_TIMEOUT_MS = 4000;
+function fetchState() {
+  /** @returns {Promise<Response>} */
+  const once = () => {
+    const signal = AbortSignal.timeout(STATE_TIMEOUT_MS);
+    // Asked of the signal, since WebKit rejects with an AbortError where the
+    // others name a TimeoutError.
+    return fetch(apiUrl('/state'), applyAuth({ signal })).catch(err => {
+      if (signal.aborted && !retried) { retried = true; return once(); }
+      throw err;
+    });
+  };
+  let retried = false;
+  return once();
+}
+
 export function bootApp() {
   // No server: no auth, a read-write owner whose data lives entirely in
   // IndexedDB. Config falls back to defaults.
@@ -118,7 +137,7 @@ export function bootApp() {
       // cold boot) restore the last-known session so the PWA opens into
       // the map instead of bouncing to the sign-in screen. A definitive
       // non-ok response (e.g. expired session) still yields null.
-      return fetch(apiUrl('/state'), applyAuth({})).then(
+      return fetchState().then(
         r => {
           if (!r.ok) return null;
           return r.json().then(s => { metaSet(authCacheKey(), s); return s; }, /** @returns {null} */ () => null);
@@ -196,7 +215,7 @@ function startup() {
 applyLanguage();
 bindStoreToState();
 bindMapToStore();
-startup();
+const booted = startup();
 
 // PWA: offline indicator + service worker registration + update toast.
 (function() {
@@ -254,7 +273,10 @@ startup();
     }, 2000);
   };
 
-  navigator.serviceWorker.register('/sw.js').then((reg) => {
+  // Only once the app is up: installing precaches the whole shell, and on a
+  // slow first visit those downloads would queue ahead of the requests the
+  // page needs to open.
+  booted.finally(() => navigator.serviceWorker.register('/sw.js').then((reg) => {
     if (reg.waiting) promptUpdate(reg);
     reg.addEventListener('updatefound', () => {
       const worker = reg.installing;
@@ -272,7 +294,7 @@ startup();
     // update() returns a promise that rejects offline; a try/catch misses it
     // and WebKit reports the rejection as a page error.
     reg.update().catch(() => { /* offline; the next load checks again */ });
-  }).catch(() => { /* registration failed; app still works online */ });
+  }).catch(() => { /* registration failed; app still works online */ }));
 })();
 
 /** @type {Record<string, string>} */
