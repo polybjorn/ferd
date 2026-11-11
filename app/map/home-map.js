@@ -614,6 +614,27 @@ export function syncFilterDot() {
 }
 
 // Redraws every open filter view: the desktop panel and the phone's sheet.
+// A hidden list has no width to measure, and the sheet or a panel section
+// opens later, so each list is measured whenever its size changes.
+const columnFit = typeof ResizeObserver === 'function'
+  ? new ResizeObserver(entries => { for (const e of entries) fitFilterColumns(/** @type {HTMLElement} */ (e.target)); })
+  : null;
+/** @param {HTMLElement} list */
+function fitFilterColumns(list) {
+  if (!list.offsetWidth) return;
+  // The text's own width: a label's scrollWidth never drops below the box,
+  // which stretches to fill its column.
+  const text = document.createRange();
+  let widest = 0;
+  for (const row of /** @type {NodeListOf<HTMLElement>} */ (list.querySelectorAll('.filter-row'))) {
+    const label = /** @type {HTMLElement} */ (row.querySelector('.filter-row-label'));
+    text.selectNodeContents(label);
+    widest = Math.max(widest, row.offsetWidth - label.offsetWidth + Math.ceil(text.getBoundingClientRect().width));
+  }
+  const width = widest ? `${widest + 1}px` : '';
+  if (list.style.getPropertyValue('--filter-col') !== width) list.style.setProperty('--filter-col', width);
+}
+
 export function refreshFilterPanel() {
   const placesBody = document.getElementById('places-body');
   if (placesBody) renderFresh(rowList('places'), placesBody);
@@ -624,6 +645,10 @@ export function refreshFilterPanel() {
     renderFresh(sheetSection(/** @type {FilterSection} */ (el.dataset.sheetSection)), el);
   });
   syncFilterControls();
+  if (columnFit) {
+    columnFit.disconnect();
+    document.querySelectorAll('.filter-rows').forEach(el => columnFit.observe(el));
+  }
 }
 
 /** @param {FilterSection} id */
