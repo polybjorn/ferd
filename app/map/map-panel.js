@@ -130,6 +130,7 @@ export function collapseCreditOnPhone(map) {
   const collapse = function() {
     clearTimeout(timer);
     container.classList.add('credit-collapsed');
+    container.classList.remove('credit-opened');
   };
   const timer = setTimeout(collapse, 5000);
   map.on('unload', function() { clearTimeout(timer); });
@@ -138,6 +139,9 @@ export function collapseCreditOnPhone(map) {
   });
   toggle.addEventListener('click', function() {
     container.classList.remove('credit-collapsed');
+    // Unlike the credit shown at load, one opened here was asked for, so the
+    // tap that closes it leaves the bottom bar alone (bar-motion.js).
+    container.classList.add('credit-opened');
     const link = credit.querySelector('a');
     if (link) link.focus();
   });

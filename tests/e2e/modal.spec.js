@@ -133,6 +133,11 @@ test('a tap on the bare map toggles the bottom bar, and the credit stays clear o
   await page.waitForTimeout(500);
   await expect(body).toHaveClass(/\bbar-away\b/);
 
+  // A tap that closes a credit opened from its button only closes it.
+  await page.touchscreen.tap(x, y);
+  await expect(page.locator('#map .leaflet-control-attribution')).toBeHidden();
+  await page.waitForTimeout(500);
+  await expect(body).toHaveClass(/\bbar-away\b/);
   await page.touchscreen.tap(x, y);
   await expect(body).not.toHaveClass(/\bbar-away\b/);
 

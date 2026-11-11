@@ -25,17 +25,19 @@ export function tuckBarWhileMoving(map) {
   let moved = false;
   let popupOpen = false;
   let popupAtPress = false;
-  let pickerAtPress = false;
+  let openAtPress = false;
   let reveal = 0;
   map.on('movestart', () => { moved = true; clearTimeout(reveal); setAway(true); });
   map.on('popupopen', () => { popupOpen = true; });
   map.on('popupclose', () => { popupOpen = false; });
   const el = map.getContainer();
+  // Capture runs this before the credit's own listener on the same element
+  // closes it.
   el.addEventListener('pointerdown', () => {
     moved = false;
     popupAtPress = popupOpen;
-    pickerAtPress = !!el.querySelector('.leaflet-control-layers-expanded');
-  }, { passive: true });
+    openAtPress = el.classList.contains('credit-opened') || !!el.querySelector('.leaflet-control-layers-expanded');
+  }, { passive: true, capture: true });
   // A mouse drag ends in a click too; only a press that left the map where it
   // was counts as a tap. Listening on the element rather than Leaflet's click
   // catches taps on markers and controls as well as on the map itself.
@@ -43,9 +45,9 @@ export function tuckBarWhileMoving(map) {
     if (moved) return;
     // A tap on a control was aimed at that control, and leaves the bar as it is.
     if (e.target instanceof Element && e.target.closest('.leaflet-control, .leaflet-popup')) return;
-    // Leaflet closes an open tile picker on a map tap, which is all that tap
-    // was for.
-    if (pickerAtPress) return;
+    // A map tap closes an open tile picker or a credit opened from its button,
+    // which is all that tap was for.
+    if (openAtPress) return;
     // Routes, pins and areas are found by the map's own click handlers, so a
     // tap reads as bare map only if it opened no popup. One that closed a popup
     // was aimed at that, and leaves the bar showing.
