@@ -128,6 +128,8 @@ test('a tap on the bare map toggles the bottom bar, and the credit stays clear o
   // at the credit, so the bar stays as it is, away here and showing below.
   await page.locator('#map .map-credit-toggle').tap();
   await expect(page.locator('#map .leaflet-control-attribution')).toBeVisible();
+  // It grows in from the corner rather than appearing at once.
+  await expect(page.locator('#map .leaflet-control-attribution')).toHaveCSS('animation-name', 'credit-in');
   await page.waitForTimeout(500);
   await expect(body).toHaveClass(/\bbar-away\b/);
 

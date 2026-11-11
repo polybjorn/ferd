@@ -1269,6 +1269,19 @@ body.signin-only #app {
   .credit-collapsed .leaflet-control-attribution { display: none; }
   .credit-collapsed .map-credit-toggle { display: block; }
 }
+/* The credit and its button take turns in the corner, so the one coming in
+   grows out of it. Keyframes, because they run as display leaves none, and a
+   transition would need @starting-style, newer than the Chrome 99 floor. */
+@media (max-width: 600px) and (prefers-reduced-motion: no-preference) {
+  .leaflet-control-attribution,
+  .map-credit-toggle {
+    transform-origin: right bottom;
+    animation: credit-in var(--ui-duration-fast) ease-out;
+  }
+}
+@keyframes credit-in {
+  from { opacity: 0; transform: scale(0.8); }
+}
 
 .leaflet-tooltip {
   background: var(--surface) !important;
