@@ -791,8 +791,7 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   /* Fixed width so the panel doesn't resize as content (categories vs
-     regions) changes between tabs. Trimmed to just fit the 2-column
-     category grid. Mobile caps it below. */
+     regions) changes between tabs. Mobile caps it below. */
   width: 246px;
   max-width: 246px;
 }
@@ -951,7 +950,11 @@ body.hide-map-filter .map-phone-buttons { order: 1; }
 /* Padding rather than a margin on the head, which ui.css zeroes from a
    stronger layer. */
 .filter-rows { padding-top: var(--ui-space-3); }
-.filter-rows .ui-list-head { padding: 0 var(--ui-space-3) var(--ui-space-1); }
+.filter-rows .ui-list-head { padding: 0 var(--ui-space-3) var(--ui-space-1); column-span: all; }
+/* Names are short, so a wide sheet fits two columns, read down like the
+   list pages' grids; the desktop panel stays at one. */
+.filter-rows { columns: 10rem; column-gap: var(--ui-space-2); }
+.filter-row { break-inside: avoid; }
 /* The label gives way to an ellipsis rather than wrap, so every row keeps
    one height and the counts and checks stay in one column. */
 .filter-row {
