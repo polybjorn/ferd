@@ -957,7 +957,7 @@ body.hide-map-filter .map-phone-buttons { order: 1; }
 .filter-rows { columns: var(--filter-col, 10rem); column-gap: 0; }
 .filter-row { break-inside: avoid; }
 /* The label gives way to an ellipsis rather than wrap, so every row keeps
-   one height and the counts and checks stay in one column. */
+   one height and the counts stay in one column. */
 .filter-row {
   display: flex;
   align-items: center;
@@ -980,9 +980,8 @@ body.hide-map-filter .map-phone-buttons { order: 1; }
 .filter-row:focus-visible { outline-offset: calc(-1 * var(--ui-focus-width)); }
 .filter-row-label { flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .filter-row-count { color: var(--muted); font-size: var(--ui-text-xs); font-variant-numeric: tabular-nums; }
-.filter-row-check { inline-size: 16px; block-size: 16px; flex: none; color: var(--accent); }
+/* The fade alone marks a hidden row; aria-pressed tells a screen reader. */
 .filter-row[aria-pressed="false"] { opacity: 0.45; }
-.filter-row[aria-pressed="false"] .filter-row-check { visibility: hidden; }
 @media (pointer: coarse) {
   .leaflet-container { --map-btn-size: var(--ui-touch-target); }
   .leaflet-control-layers .leaflet-control-layers-list label > span { min-height: var(--ui-touch-target); }

@@ -550,14 +550,12 @@ export function renderUnifiedMap(focus) {
 
 /** @typedef {'places' | 'routes'} FilterSection */
 
-const checkMark = () => html`<svg class="filter-row-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>`;
-
 // One row per category or region, in the desktop panel and the phone's sheet
 // alike. syncFilterControls fills in the count.
 /** @param {string} attr @param {string} key @param {boolean} on @param {string} label */
 function filterRow(attr, key, on, label) {
   return html`<button type="button" class="filter-row" ...${{ [attr]: key }} aria-pressed=${String(on)}>
-    <span class="filter-row-label">${label}</span><span class="filter-row-count"></span>${checkMark()}
+    <span class="filter-row-label">${label}</span><span class="filter-row-count"></span>
   </button>`;
 }
 /** @param {FilterSection} section */
