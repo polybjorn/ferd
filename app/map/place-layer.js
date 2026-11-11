@@ -92,6 +92,63 @@ function ringHead(ctx, pt, r, visited, color, tint) {
 // all places and clusters to a single <canvas>, hit-tests clicks and
 // hovers. Replaces the L.markerClusterGroup + L.marker DOM model so
 // pinch-zoom doesn't pay per-element compositing cost.
+/** @param {number} count */
+function clusterDiscRadius(count) {
+  return count >= 100 ? 22 : count >= 10 ? 18 : 15;
+}
+
+// The shapes _drawCluster and _drawMarker paint, halo included, measured from
+// the mark's point.
+/** @param {PlaceFeature} f @param {number} dx @param {number} dy @param {number} size @param {string} style */
+function markCovers(f, dx, dy, size, style) {
+  if (f.properties.cluster) return Math.hypot(dx, dy) <= clusterDiscRadius(f.properties.point_count || 0) + HALO;
+  if (style === 'tag') {
+    const pole = 0.75 + HALO;
+    const flag = dx >= -pole && dx <= size + HALO && dy >= -HALO && dy <= size * 0.55 + HALO;
+    return flag || (Math.abs(dx) <= pole && dy >= 0 && dy <= size * 1.1 + pole);
+  }
+  if (style === 'pin' && Math.abs(dx) <= 1 + HALO && dy >= 0 && dy <= size + 1 + HALO) return true;
+  return Math.hypot(dx, dy) <= placeMarkerRadius(size) + HALO;
+}
+
+// Groups draw over single places, since a group stands for more of them and
+// its count is what a reader looks for.
+/** @param {PlaceFeature[]} features */
+function clustersOnTop(features) {
+  return features.filter(f => !f.properties.cluster).concat(features.filter(f => f.properties.cluster));
+}
+
+// The topmost mark under the point wins, so a tap on a group never opens a
+// place it covers. A tap that misses every mark goes to the nearest one in
+// reach, which keeps a small mark easy to hit with a finger.
+/**
+ * @param {PlaceFeature[]} features in draw order
+ * @param {(f: PlaceFeature) => Pt} at
+ * @param {Pt} point
+ * @param {number} size
+ * @param {string} style
+ * @param {number} reach
+ * @returns {PlaceFeature | null}
+ */
+function pickMark(features, at, point, size, style, reach) {
+  let best = null;
+  let bestDist = Infinity;
+  for (let i = features.length - 1; i >= 0; i--) {
+    const f = features[i];
+    const pt = at(f);
+    const dx = point.x - pt.x;
+    const dy = point.y - pt.y;
+    if (markCovers(f, dx, dy, size, style)) return f;
+    const r = f.properties.cluster ? reach * 1.6 : reach;
+    const distSq = dx * dx + dy * dy;
+    if (distSq <= r * r && distSq < bestDist) {
+      best = f;
+      bestDist = distSq;
+    }
+  }
+  return best;
+}
+
 const PlaceCanvasLayer = L.Layer.extend({
   options: {
     pane: 'placeCanvasPane',
@@ -276,7 +333,7 @@ const PlaceCanvasLayer = L.Layer.extend({
     const bounds = map.getBounds();
     if (this._supercluster && this._useClusters) {
       const bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()];
-      return this._supercluster.getClusters(bbox, Math.floor(map.getZoom()));
+      return clustersOnTop(this._supercluster.getClusters(bbox, Math.floor(map.getZoom())));
     }
     return this._places
       .filter((/** @type {Place} */ p) => bounds.contains([p.lat, p.lon]))
@@ -395,10 +452,7 @@ const PlaceCanvasLayer = L.Layer.extend({
 
   /** @param {CanvasRenderingContext2D} ctx @param {Pt} pt @param {number} count @param {MapInk} ink */
   _drawCluster: function(ctx, pt, count, ink) {
-    let r;
-    if (count >= 100) r = 22;
-    else if (count >= 10) r = 18;
-    else r = 15;
+    const r = clusterDiscRadius(count);
     ctx.beginPath();
     discPath(ctx, pt.x, pt.y, r + HALO);
     paintHalo(ctx, ink);
@@ -487,23 +541,9 @@ const PlaceCanvasLayer = L.Layer.extend({
   _hitTest: function(point) {
     if (!this._visibleFeatures) return null;
     const map = this._map;
-    let best = null;
-    let bestDist = Infinity;
-    for (const f of this._visibleFeatures) {
-      const coords = f.geometry.coordinates;
-      const pt = map.latLngToContainerPoint([coords[1], coords[0]]);
-      const dx = point.x - pt.x;
-      const dy = point.y - pt.y;
-      const distSq = dx * dx + dy * dy;
-      const r = f.properties.cluster
-        ? this.options.clickHitRadius * 1.6
-        : this.options.clickHitRadius;
-      if (distSq <= r * r && distSq < bestDist) {
-        best = f;
-        bestDist = distSq;
-      }
-    }
-    return best;
+    return pickMark(this._visibleFeatures,
+      f => map.latLngToContainerPoint([f.geometry.coordinates[1], f.geometry.coordinates[0]]),
+      point, getMarkerSize(), getPinStyle(), this.options.clickHitRadius);
   },
 
   /** @param {{ containerPoint: Pt, originalEvent: Event }} e */
