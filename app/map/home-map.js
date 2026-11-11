@@ -256,6 +256,14 @@ export function renderUnifiedMap(focus) {
   let popupOpenOnPress = false;
   map.on('preclick', function() { popupOpenOnPress = !!(map._popup && map._popup.isOpen()); });
   map.on('click', function(/** @type {any} */ e) {
+    // A tap on a place or a group is the place layer's, even where a route
+    // runs under it. Its listener is added after this one, so a group's zoom
+    // has not moved the map yet.
+    const cg = state._placeClusterGroup;
+    if (cg && typeof cg._hitTest === 'function' && cg._hitTest(e.containerPoint)) {
+      setSelectedRoute(null);
+      return;
+    }
     const cands = nearTrailCandidates(e.containerPoint);
     if (cands.length) {
       // If the current selection is one of the routes under the cursor,
@@ -314,7 +322,10 @@ export function renderUnifiedMap(focus) {
       if (!routeDescriptors.includes(desc)) return;
       const gpxLayer = new L.GPX(text, {
         async: true,
-        polyline_options: { color: desc.color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'route-line' },
+        // Not interactive: a stroke that took its own clicks would open its
+        // card over a place drawn on it, and the map's click handler already
+        // hits every route within reach of a tap.
+        polyline_options: { color: desc.color, opacity: 0.85, weight: 4 * getTrailWeightFactor(), className: 'route-line', interactive: false },
         // Waypoints hidden on the index map; revealed in detail view only.
         markers: { startIcon: null, endIcon: null, wptIcons: { '': null }, wptTypeIcons: { '': null } },
       });
@@ -353,17 +364,7 @@ export function renderUnifiedMap(focus) {
       }).bindPopup(
         () => popupElement(html`<${RoutePopup} route=${desc.route} region=${desc.region} />`),
         { closeButton: false }
-      ).on('click', (function(key) {
-        return function(/** @type {any} */ ev) {
-          // Stop propagation so the map-level near-tap handler
-          // doesn't fire a duplicate replaceState + popup toggle.
-          if (ev && ev.originalEvent) L.DomEvent.stopPropagation(ev.originalEvent);
-          history.replaceState(null, '', focusHash('route', desc.route._slug || key));
-          // Direct stroke hits skip the map handler, so set the
-          // highlight here too, otherwise it stays on the prior route.
-          setSelectedRoute(key);
-        };
-      })(desc.route.key));
+      );
       routeLayers.push({ route: desc.route, region: desc.region.name, layer: gpxLayer, completed: desc.route.completed });
       loadedRouteKeys.add(desc.route.key);
       pendingRouteKeys.delete(desc.route.key);

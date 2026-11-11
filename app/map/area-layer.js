@@ -218,8 +218,6 @@ function openAreaPopup(map, area, latlng) {
 /** @param {LeafletMap} map @param {any} e */
 export function openAreaPopupAt(map, e) {
   if (document.querySelector('.pick-coords-banner')) return;
-  const cg = state._placeClusterGroup;
-  if (cg && typeof cg._hitTest === 'function' && cg._hitTest(e.containerPoint)) return;
   const hits = (state._areaLayers || [])
     .filter(({ area, layer }) => state._areaGroup.hasLayer(layer)
       && layer.getBounds().contains(e.latlng)
