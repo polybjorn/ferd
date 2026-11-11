@@ -57,8 +57,6 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --status-completed: #32af49;
   --status-planned:   #ff6b6b;
 
-  --cluster-fill:   rgba(136, 192, 208, 0.6);
-  --cluster-halo:   rgba(136, 192, 208, 0.25);
   --shadow:         rgba(0, 0, 0, 0.4);
   --backdrop:       rgba(46, 52, 64, 0.6);
   --fab-text:       #2e3440;
@@ -68,6 +66,10 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --map-land-topo: #e6d3a3;
   --map-land-osm:  #d9e3c8;
   --map-land-dark: #232c15;
+  /* The halo round every place mark, white on all three base maps, with a
+     dark hairline that keeps it apart from snow and pale ground. */
+  --map-mark-halo: #ffffff;
+  --map-mark-edge: rgba(0, 0, 0, 0.55);
 }
 
 [data-theme="nord"][data-mode="dark"] {
@@ -86,8 +88,6 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --completed:    #a3be8c;
   --planned:      #bf616a;
 
-  --cluster-fill:   rgba(136, 192, 208, 0.6);
-  --cluster-halo:   rgba(136, 192, 208, 0.25);
   --shadow:         rgba(0, 0, 0, 0.4);
   --backdrop:       rgba(46, 52, 64, 0.6);
   --fab-text:       #2e3440;
@@ -109,8 +109,6 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --completed:    #6f8b5d;
   --planned:      #a04149;
 
-  --cluster-fill:   rgba(94, 129, 172, 0.65);
-  --cluster-halo:   rgba(94, 129, 172, 0.25);
   --shadow:         rgba(0, 0, 0, 0.12);
   --backdrop:       rgba(46, 52, 64, 0.4);
   --fab-text:       #ffffff;
@@ -132,8 +130,6 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --completed:    #859900;
   --planned:      #dc322f;
 
-  --cluster-fill:   rgba(38, 139, 210, 0.6);
-  --cluster-halo:   rgba(38, 139, 210, 0.25);
   --shadow:         rgba(0, 0, 0, 0.4);
   --backdrop:       rgba(0, 43, 54, 0.6);
   --fab-text:       #002b36;
@@ -155,8 +151,6 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --completed:    #859900;
   --planned:      #dc322f;
 
-  --cluster-fill:   rgba(38, 139, 210, 0.65);
-  --cluster-halo:   rgba(38, 139, 210, 0.25);
   --shadow:         rgba(0, 0, 0, 0.12);
   --backdrop:       rgba(0, 43, 54, 0.4);
   --fab-text:       #ffffff;
@@ -178,8 +172,6 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --completed:    #b8bb26;
   --planned:      #fb4934;
 
-  --cluster-fill:   rgba(254, 128, 25, 0.6);
-  --cluster-halo:   rgba(254, 128, 25, 0.25);
   --shadow:         rgba(0, 0, 0, 0.4);
   --backdrop:       rgba(40, 40, 40, 0.6);
   --fab-text:       #282828;
@@ -201,8 +193,6 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --completed:    #79740e;
   --planned:      #cc241d;
 
-  --cluster-fill:   rgba(214, 93, 14, 0.65);
-  --cluster-halo:   rgba(214, 93, 14, 0.25);
   --shadow:         rgba(0, 0, 0, 0.12);
   --backdrop:       rgba(60, 56, 54, 0.4);
   --fab-text:       #fbf1c7;
@@ -224,8 +214,6 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --completed:    #a6e3a1;
   --planned:      #f38ba8;
 
-  --cluster-fill:   rgba(203, 166, 247, 0.6);
-  --cluster-halo:   rgba(203, 166, 247, 0.25);
   --shadow:         rgba(0, 0, 0, 0.4);
   --backdrop:       rgba(30, 30, 46, 0.6);
   --fab-text:       #1e1e2e;
@@ -247,8 +235,6 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --completed:    #40a02b;
   --planned:      #d20f39;
 
-  --cluster-fill:   rgba(136, 57, 239, 0.65);
-  --cluster-halo:   rgba(136, 57, 239, 0.25);
   --shadow:         rgba(0, 0, 0, 0.12);
   --backdrop:       rgba(76, 79, 105, 0.4);
   --fab-text:       #ffffff;
@@ -270,8 +256,6 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --completed:    #9ccfd8;
   --planned:      #eb6f92;
 
-  --cluster-fill:   rgba(196, 167, 231, 0.6);
-  --cluster-halo:   rgba(196, 167, 231, 0.25);
   --shadow:         rgba(0, 0, 0, 0.4);
   --backdrop:       rgba(25, 23, 36, 0.6);
   --fab-text:       #191724;
@@ -293,8 +277,6 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --completed:    #9ece6a;
   --planned:      #f7768e;
 
-  --cluster-fill:   rgba(122, 162, 247, 0.6);
-  --cluster-halo:   rgba(122, 162, 247, 0.25);
   --shadow:         rgba(0, 0, 0, 0.4);
   --backdrop:       rgba(26, 27, 38, 0.6);
   --fab-text:       #1a1b26;
@@ -316,8 +298,6 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --completed:    #587539;
   --planned:      #f52a65;
 
-  --cluster-fill:   rgba(46, 125, 233, 0.65);
-  --cluster-halo:   rgba(46, 125, 233, 0.25);
   --shadow:         rgba(0, 0, 0, 0.12);
   --backdrop:       rgba(52, 59, 88, 0.4);
   --fab-text:       #ffffff;
@@ -339,8 +319,6 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --completed:    #50fa7b;
   --planned:      #ff5555;
 
-  --cluster-fill:   rgba(189, 147, 249, 0.6);
-  --cluster-halo:   rgba(189, 147, 249, 0.25);
   --shadow:         rgba(0, 0, 0, 0.4);
   --backdrop:       rgba(40, 42, 54, 0.6);
   --fab-text:       #282a36;
@@ -362,8 +340,6 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --completed:    #14710a;
   --planned:      #cb3a2a;
 
-  --cluster-fill:   rgba(100, 74, 201, 0.65);
-  --cluster-halo:   rgba(100, 74, 201, 0.25);
   --shadow:         rgba(0, 0, 0, 0.12);
   --backdrop:       rgba(31, 31, 31, 0.4);
   --fab-text:       #ffffff;
@@ -385,8 +361,6 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
   --completed:    #56949f;
   --planned:      #b4637a;
 
-  --cluster-fill:   rgba(144, 122, 169, 0.65);
-  --cluster-halo:   rgba(144, 122, 169, 0.25);
   --shadow:         rgba(0, 0, 0, 0.12);
   --backdrop:       rgba(87, 82, 121, 0.4);
   --fab-text:       #fffaf3;

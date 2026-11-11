@@ -62,6 +62,8 @@ export function goToRoute(map, key) {
 }
 /** @param {number} size */
 export function placeMarkerRadius(size) { return Math.max(3, (size / 2) - 2); }
+// The white ring every place mark is drawn on, outside its radius.
+export const MARK_HALO = 2.5;
 // Pins are canvas drawings with no Leaflet marker to anchor to, so the popup
 // has to clear the pin itself. A tag starts at its coordinate, the others
 // are centred on it.
@@ -80,7 +82,7 @@ export function placePopupContent(map, place) {
  * @param {Place} place
  */
 export function openPlacePopup(map, place) {
-  const lift = getPinStyle() === 'tag' ? 0 : placeMarkerRadius(getMarkerSize());
+  const lift = (getPinStyle() === 'tag' ? 0 : placeMarkerRadius(getMarkerSize())) + MARK_HALO;
   const offsetY = L.Popup.prototype.options.offset[1] - lift;
   return L.popup({ closeButton: false, offset: [0, offsetY] })
     .setLatLng([place.lat, place.lon])

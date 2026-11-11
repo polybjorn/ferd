@@ -2,7 +2,7 @@ import { colourClass, reduceMotion, state } from '../core.js';
 import { easeLeaflet } from './map-layers.js';
 import { getClusterPlaces, placesEnabled, routesEnabled } from '../prefs.js';
 import { applyAreaFilters, MAP_FADE_MS, revealArea } from './area-layer.js';
-import { goToPlace, goToRoute, openPlacePopup, placeMarkerRadius } from './map-actions.js';
+import { goToPlace, goToRoute, MARK_HALO, openPlacePopup, placeMarkerRadius } from './map-actions.js';
 import { focusHash } from '../router.js';
 import { getMarkerSize, getPinStyle } from '../theme.js';
 import { bindSearchKeys } from './search-keys.js';
@@ -19,6 +19,74 @@ import { t } from '../i18n.js';
 /** @typedef {{ type: string, geometry: { type: string, coordinates: number[] }, properties: { place?: Place, cluster?: boolean, cluster_id?: number, point_count?: number, _idx?: number } }} PlaceFeature */
 /** @typedef {{ places: Place[], areas: Area[], routes: Array<{ route: ManifestRoute, region: string }> }} SearchMatches */
 /** @typedef {{ type: string, name?: string, id?: string, key?: string }} RecentPick */
+
+/** @typedef {{ halo: string, edge: string, cluster: string, clusterText: string }} MapInk */
+
+const HALO = MARK_HALO;
+const PLANNED_TINT = 0.3;
+
+// Read once per frame rather than per mark: getComputedStyle forces style
+// work, and a frame can draw hundreds of marks.
+/** @returns {MapInk} */
+function mapInk() {
+  const cs = getComputedStyle(document.documentElement);
+  const v = (/** @type {string} */ name, /** @type {string} */ fallback) => cs.getPropertyValue(name).trim() || fallback;
+  return {
+    halo: v('--map-mark-halo', '#ffffff'),
+    edge: v('--map-mark-edge', 'rgba(0, 0, 0, 0.55)'),
+    cluster: v('--accent', '#8fc4d3'),
+    clusterText: v('--fab-text', '#2e3440'),
+  };
+}
+// A hairline rather than a blurred shadow outlines the halo: canvas blur made
+// a frame about four times slower to draw, and a pinch zoom redraws every
+// frame. All of a mark's halo shapes go into one path first, so the hairline
+// traces their union instead of crossing where a stem meets its head.
+/** @param {CanvasRenderingContext2D} ctx @param {MapInk} ink */
+function paintHalo(ctx, ink) {
+  ctx.strokeStyle = ink.edge;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = ink.halo;
+  ctx.fill();
+}
+/** @param {CanvasRenderingContext2D} ctx @param {number} x @param {number} y @param {number} r */
+function discPath(ctx, x, y, r) {
+  ctx.moveTo(x + r, y);
+  ctx.arc(x, y, r, 0, 2 * Math.PI);
+}
+// Wound clockwise like arc() and rect(), so the nonzero fill joins them.
+/** @param {CanvasRenderingContext2D} ctx @param {number} x @param {number} y1 @param {number} y2 @param {number} hw */
+function stemPath(ctx, x, y1, y2, hw) {
+  ctx.moveTo(x - hw, y1);
+  ctx.lineTo(x + hw, y1);
+  ctx.lineTo(x + hw, y2);
+  ctx.arc(x, y2, hw, 0, Math.PI);
+  ctx.closePath();
+}
+/** @param {CanvasRenderingContext2D} ctx @param {number} x @param {number} y1 @param {number} y2 @param {number} width @param {string} color */
+function stem(ctx, x, y1, y2, width, color) {
+  ctx.beginPath();
+  ctx.moveTo(x, y1);
+  ctx.lineTo(x, y2);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.stroke();
+}
+// The ring sits inside the radius, so a planned mark is as wide as a visited one.
+/** @param {CanvasRenderingContext2D} ctx @param {Pt} pt @param {number} r @param {boolean} visited @param {string} color @param {string} tint */
+function ringHead(ctx, pt, r, visited, color, tint) {
+  ctx.beginPath();
+  ctx.arc(pt.x, pt.y, r, 0, 2 * Math.PI);
+  ctx.fillStyle = visited ? color : tint;
+  ctx.fill();
+  if (visited) return;
+  ctx.beginPath();
+  ctx.arc(pt.x, pt.y, r - 1.25, 0, 2 * Math.PI);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+}
 
 // Canvas-rendered place layer. Owns clustering via supercluster, draws
 // all places and clusters to a single <canvas>, hit-tests clicks and
@@ -258,17 +326,18 @@ const PlaceCanvasLayer = L.Layer.extend({
     const markerSize = (typeof getMarkerSize === 'function') ? getMarkerSize() : 18;
     const pinStyle = (typeof getPinStyle === 'function') ? getPinStyle() : 'ring';
     const catColors = /** @type {Record<string, string>} */ ((state && state.categoryColors) || {});
+    const ink = mapInk();
     for (const f of features) {
       const coords = f.geometry.coordinates;
       const projected = crs.latLngToPoint(L.latLng(coords[1], coords[0]), z);
       const pt = projected.subtract(pixelOrigin);
       if (f.properties.cluster) {
-        this._drawCluster(ctx, pt, f.properties.point_count);
+        this._drawCluster(ctx, pt, f.properties.point_count, ink);
       } else {
         const place = f.properties.place;
         const color = catColors[place.category] || '#888';
         ctx.globalAlpha = place.id === this._fadingPlaceId ? this._fadeAlpha : 1;
-        this._drawMarker(ctx, pt, place, color, markerSize, pinStyle);
+        this._drawMarker(ctx, pt, place, color, markerSize, pinStyle, ink);
         ctx.globalAlpha = 1;
       }
     }
@@ -324,88 +393,77 @@ const PlaceCanvasLayer = L.Layer.extend({
     }
   },
 
-  /** @param {CanvasRenderingContext2D} ctx @param {Pt} pt @param {number} count */
-  _drawCluster: function(ctx, pt, count) {
+  /** @param {CanvasRenderingContext2D} ctx @param {Pt} pt @param {number} count @param {MapInk} ink */
+  _drawCluster: function(ctx, pt, count, ink) {
     let r;
     if (count >= 100) r = 22;
     else if (count >= 10) r = 18;
     else r = 15;
-    const cs = getComputedStyle(document.documentElement);
-    const fill = cs.getPropertyValue('--cluster-fill').trim() || 'rgba(136,192,208,0.6)';
-    const halo = cs.getPropertyValue('--cluster-halo').trim() || 'rgba(136,192,208,0.25)';
     ctx.beginPath();
-    ctx.arc(pt.x, pt.y, r + 5, 0, 2 * Math.PI);
-    ctx.fillStyle = halo;
-    ctx.fill();
+    discPath(ctx, pt.x, pt.y, r + HALO);
+    paintHalo(ctx, ink);
     ctx.beginPath();
     ctx.arc(pt.x, pt.y, r, 0, 2 * Math.PI);
-    ctx.fillStyle = fill;
+    ctx.fillStyle = ink.cluster;
     ctx.fill();
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = ink.clusterText;
     ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(String(count), pt.x, pt.y);
   },
 
-  /** @param {CanvasRenderingContext2D} ctx @param {Pt} pt @param {Place} place @param {string} color @param {number} size @param {string} style */
-  _drawMarker: function(ctx, pt, place, color, size, style) {
+  // Every style sits on the same white halo, so a mark keeps its edge on any
+  // base map whatever colour its category has. A visited place is solid; a
+  // planned one is a tint of its colour, ringed except in the dot style.
+  /** @param {CanvasRenderingContext2D} ctx @param {Pt} pt @param {Place} place @param {string} color @param {number} size @param {string} style @param {MapInk} ink */
+  _drawMarker: function(ctx, pt, place, color, size, style, ink) {
     const r = placeMarkerRadius(size);
     const visited = !!place.visited;
+    const tint = this._withAlpha(color, PLANNED_TINT);
+    ctx.beginPath();
     if (style === 'dot') {
+      discPath(ctx, pt.x, pt.y, r + HALO);
+      paintHalo(ctx, ink);
       ctx.beginPath();
       ctx.arc(pt.x, pt.y, r, 0, 2 * Math.PI);
       ctx.fillStyle = visited ? color : this._withAlpha(color, 0.5);
       ctx.fill();
     } else if (style === 'pin') {
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(pt.x, pt.y);
-      ctx.lineTo(pt.x, pt.y + size);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, r, 0, 2 * Math.PI);
-      if (visited) { ctx.fillStyle = color; ctx.fill(); }
-      else { ctx.fillStyle = this._withAlpha(color, 0.25); ctx.fill(); ctx.stroke(); }
+      discPath(ctx, pt.x, pt.y, r + HALO);
+      stemPath(ctx, pt.x, pt.y, pt.y + size, 1 + HALO);
+      paintHalo(ctx, ink);
+      // From the rim down: inside the head it would show through a planned tint.
+      stem(ctx, pt.x, pt.y + r, pt.y + size, 2, color);
+      ringHead(ctx, pt, r, visited, color, tint);
     } else if (style === 'tag') {
       const w = size;
       const h = size * 1.1;
+      const flag = size * 0.55;
+      const pole = 0.75 + HALO;
+      // The flag's halo starts at the pole's, so the two share a left edge.
+      ctx.rect(pt.x - pole, pt.y - HALO, w + pole + HALO, flag + 2 * HALO);
+      stemPath(ctx, pt.x, pt.y, pt.y + h, pole);
+      paintHalo(ctx, ink);
+      stem(ctx, pt.x, pt.y, pt.y + h, 1.5, color);
       ctx.beginPath();
-      ctx.moveTo(pt.x, pt.y);
-      ctx.lineTo(pt.x, pt.y + h);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.rect(pt.x, pt.y, w, size * 0.55);
-      if (visited) { ctx.fillStyle = color; ctx.fill(); }
-      else {
-        ctx.fillStyle = this._withAlpha(color, 0.25);
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
-    } else {
-      // 'ring' (default)
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, r, 0, 2 * Math.PI);
       if (visited) {
+        ctx.rect(pt.x, pt.y, w, flag);
         ctx.fillStyle = color;
         ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1;
-        const alpha = ctx.globalAlpha;
-        ctx.globalAlpha = alpha * 0.6;
-        ctx.stroke();
-        ctx.globalAlpha = alpha;
       } else {
-        ctx.fillStyle = this._withAlpha(color, 0.25);
+        ctx.rect(pt.x + 1, pt.y + 1, w - 2, flag - 2);
+        ctx.fillStyle = tint;
         ctx.fill();
         ctx.strokeStyle = color;
         ctx.lineWidth = 2;
         ctx.stroke();
       }
+    } else {
+      // 'ring' (default)
+      discPath(ctx, pt.x, pt.y, r + HALO);
+      paintHalo(ctx, ink);
+      ringHead(ctx, pt, r, visited, color, tint);
     }
   },
 
