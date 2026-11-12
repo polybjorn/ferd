@@ -2,7 +2,7 @@ import { GPX_NS, state } from '../core.js';
 import { applyAuth, routeStatusColor } from '../server.js';
 import { gpxText } from '../store.js';
 import { _geometryPolygons } from '../area-geo.js';
-import { easeLeaflet, mapScheduler } from './map-layers.js';
+import { followZoomAnim, mapScheduler } from './map-layers.js';
 import { areaStyle } from './area-layer.js';
 import { getTrailWeightFactor } from '../theme.js';
 import { wrappedRouter } from '../router.js';
@@ -255,8 +255,8 @@ export function attachGLRoutes(map) {
   canvas.className = 'gl-routes';
   canvas.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;';
   // Own pane below the place-canvas (450), markers (600) and popups (700),
-  // above the tile pane (200). Not zoom-animated, so it never gets the zoom
-  // CSS scale; draw() counters the map-pane pan offset each frame.
+  // above the tile pane (200). draw() counters the map-pane pan offset each
+  // frame, and an animated zoom scales it with the tiles until it ends.
   const pane = map.getPane('glRoutesPane') || map.createPane('glRoutesPane');
   pane.style.zIndex = 410;
   pane.style.pointerEvents = 'none';
@@ -412,22 +412,16 @@ export function attachGLRoutes(map) {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
     vertCount = data.length / GL_ROUTE_STRIDE;
   }
-  // Draw at a specific zoom/center, or null/null for the map's current
-  // state. The interpolated form is driven by drawZoomAnim's rAF loop so
-  // the routes track the tiles through the 250ms release zoom animation
-  // (move/zoom don't fire during it), the same way the place canvas does.
-  /** @param {number | null} zoom @param {{ lat: number, lng: number } | null} center */
-  function drawAt(zoom, center) {
+  function draw() {
     if (!gl) return;
-    // Keep the canvas pinned to the viewport (counter the map-pane pan offset).
-    L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint([0, 0]));
+    // Keep the canvas pinned to the viewport (counter the map-pane pan offset),
+    // except while it rides a zoom transition.
+    if (!map._animatingZoom) L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint([0, 0]));
     gl.clear(gl.COLOR_BUFFER_BIT);
     if (!vertCount || !originRef) return;
     const size = map.getSize();
-    const z = (zoom == null) ? map.getZoom() : zoom;
-    const c = (center == null) ? map.getCenter() : center;
-    const scale = map.getZoomScale(z, GL_ROUTE_REFZOOM);
-    const cNow = map.project(c, GL_ROUTE_REFZOOM);
+    const scale = map.getZoomScale(map.getZoom(), GL_ROUTE_REFZOOM);
+    const cNow = map.project(map.getCenter(), GL_ROUTE_REFZOOM);
     gl.useProgram(program);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     const S = GL_ROUTE_STRIDE * 4;
@@ -448,35 +442,6 @@ export function attachGLRoutes(map) {
     gl.uniform1f(uniLoc.uHlT, (state._hlT == null) ? 1 : state._hlT);
     gl.drawArrays(gl.TRIANGLES, 0, vertCount);
   }
-  function draw() { drawAt(null, null); }
-
-  // Release zoom animation: zoomanim fires with the target zoom/center, then
-  // the tiles CSS-animate over 250ms with no move/zoom events. Interpolate
-  // along Leaflet's tile easing and redraw each frame so the routes track the
-  // tiles at constant width instead of freezing then snapping (the drift).
-  let zoomAnimRaf = 0;
-  function stopZoomAnim() { if (zoomAnimRaf) { sched.cancelFrame(zoomAnimRaf); zoomAnimRaf = 0; } }
-  /** @param {{ zoom: number, center: any }} e */
-  function onZoomAnim(e) {
-    stopZoomAnim();
-    const startZoom = map.getZoom(), startCenter = map.getCenter();
-    const targetZoom = e.zoom, targetCenter = L.latLng(e.center);
-    const startTime = performance.now(), duration = 250;
-    const targetScale = Math.pow(2, targetZoom - startZoom);
-    const tick = () => {
-      if (!gl) { zoomAnimRaf = 0; return; }
-      const t = Math.min((performance.now() - startTime) / duration, 1);
-      const eased = easeLeaflet(t);
-      const interpZoom = startZoom + Math.log2(1 + eased * (targetScale - 1));
-      const interpCenter = L.latLng(
-        startCenter.lat + (targetCenter.lat - startCenter.lat) * eased,
-        startCenter.lng + (targetCenter.lng - startCenter.lng) * eased
-      );
-      drawAt(interpZoom, interpCenter);
-      zoomAnimRaf = (t < 1) ? sched.frame(tick) : 0;
-    };
-    zoomAnimRaf = sched.frame(tick);
-  }
   let rebuildTimer = 0;
   function rebuildSoon() {
     if (rebuildTimer) return;
@@ -492,8 +457,8 @@ export function attachGLRoutes(map) {
   state._glRoutesRebuild = function () { rebuild(); draw(); }; // selection change: upload from/to buffer once
   state._glRoutesDraw = function () { draw(); };               // animation frame: cheap uniform update only
   map.on('move zoom', draw); // synchronous: lockstep with the tiles, no one-frame lag
-  map.on('zoomanim', onZoomAnim); // follow the release zoom animation (no move/zoom during it)
-  map.on('moveend zoomend', function () { stopZoomAnim(); rebuild(); draw(); });
+  followZoomAnim(map, canvas); // an animated zoom fires no move/zoom until it ends
+  map.on('moveend zoomend', function () { rebuild(); draw(); });
   map.on('resize', function () { resize(); draw(); });
   map.on('layeradd', rebuildSoon); // routes load lazily (async GPX)
 }

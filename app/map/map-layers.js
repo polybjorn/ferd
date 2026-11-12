@@ -420,21 +420,20 @@ export function cleanupMap() {
   state._glRoutesDraw = null;
 }
 
-// Leaflet's tile transition is CSS cubic-bezier(0, 0, 0.25, 1). Match it
-// exactly via Newton's method so pins and routes track the tiles through a
-// zoom animation; a polynomial ease-out diverges ~5% mid-animation, visible
-// as drift then snap.
-/** @param {number} t */
-export function easeLeaflet(t) {
-  let s = t;
-  for (let i = 0; i < 6; i++) {
-    const sm = 1 - s;
-    const x = 0.75 * sm * s * s + s * s * s;
-    const dx = 1.5 * s + 0.75 * s * s;
-    if (Math.abs(dx) < 1e-6) break;
-    s -= (x - t) / dx;
-    if (s < 0) s = 0; else if (s > 1) s = 1;
-  }
-  const sm = 1 - s;
-  return 3 * sm * s * s + s * s * s;
+// Leaflet runs its zoom animation as a CSS transition on the compositor. A
+// canvas redrawn from script each frame reaches the screen a frame or more
+// behind the tiles, which shows as stutter on a phone, so the canvas takes the
+// same transition instead, as Leaflet's own renderers do. Its drawing scales
+// with the map until the redraw at the end of the animation.
+/** @param {any} map @param {HTMLElement} canvas @returns {() => void} */
+export function followZoomAnim(map, canvas) {
+  canvas.classList.add('leaflet-zoom-animated');
+  /** @param {{ zoom: number, center: any }} e */
+  const onZoomAnim = e => {
+    const scale = map.getZoomScale(e.zoom, map.getZoom());
+    const offset = map._latLngToNewLayerPoint(map.containerPointToLatLng([0, 0]), e.zoom, e.center);
+    L.DomUtil.setTransform(canvas, offset, scale);
+  };
+  map.on('zoomanim', onZoomAnim);
+  return () => map.off('zoomanim', onZoomAnim);
 }

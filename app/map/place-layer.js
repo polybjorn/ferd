@@ -1,5 +1,5 @@
 import { colourClass, reduceMotion, state } from '../core.js';
-import { easeLeaflet } from './map-layers.js';
+import { followZoomAnim } from './map-layers.js';
 import { getClusterPlaces, placesEnabled, routesEnabled } from '../prefs.js';
 import { applyAreaFilters, MAP_FADE_MS, revealArea } from './area-layer.js';
 import { goToPlace, goToRoute, MARK_HALO, openPlacePopup, placeMarkerRadius } from './map-actions.js';
@@ -263,14 +263,11 @@ const PlaceCanvasLayer = L.Layer.extend({
     // canvas itself, so pointer events on the canvas are unnecessary.
     this._canvas.style.pointerEvents = 'none';
     this._sizeCanvas();
-    // Mobile pinch + pan fire 'move' continuously and we redraw each
-    // frame at the current zoom (pins at fixed size, positions track).
-    // Desktop wheel zoom is a 250ms CSS animation during which 'move'
-    // does not fire; _onZoomAnim drives a rAF loop that redraws at
-    // interpolated zoom/center for the same effect.
+    // Pinch and pan fire 'move' continuously and we redraw each frame at the
+    // current zoom (pins at fixed size, positions track). An animated zoom
+    // fires no 'move' until it ends, and the canvas rides its transition.
     map.on('move', this._redraw, this);
-    map.on('zoomanim', this._onZoomAnim, this);
-    map.on('zoomend', this._stopZoomAnim, this);
+    this._unfollowZoomAnim = followZoomAnim(map, this._canvas);
     // Must resize the canvas bitmap (not just repaint) when the map grows,
     // else pins past the old width are clipped off a stale-width canvas.
     map.on('resize', this._onResize, this);
@@ -286,12 +283,10 @@ const PlaceCanvasLayer = L.Layer.extend({
       this._canvas.parentNode.removeChild(this._canvas);
     }
     map.off('move', this._redraw, this);
-    map.off('zoomanim', this._onZoomAnim, this);
-    map.off('zoomend', this._stopZoomAnim, this);
     map.off('resize', this._onResize, this);
     map.off('click', this._onClick, this);
     map.off('mousemove', this._onMouseMove, this);
-    this._stopZoomAnim();
+    this._unfollowZoomAnim();
     this._map = null;
     return this;
   },
@@ -345,19 +340,9 @@ const PlaceCanvasLayer = L.Layer.extend({
   },
 
   _redraw: function() {
-    this._drawAt(null, null);
-  },
-
-  // Draw at a specific zoom/center, or null/null to use the map's
-  // current state. Used by _onZoomAnim's rAF loop to render at
-  // interpolated zoom during the 250ms desktop animation.
-  /** @param {number | null} zoom @param {LeafletMap | null} center */
-  _drawAt: function(zoom, center) {
     const map = this._map;
     if (!map || !this._canvas) return;
-    const useInterp = (zoom != null && center != null);
-    const z = useInterp ? zoom : map.getZoom();
-    const c = useInterp ? center : map.getCenter();
+    const z = map.getZoom();
 
     const ctx = this._canvas.getContext('2d');
     const dpr = this._dpr || 1;
@@ -365,18 +350,12 @@ const PlaceCanvasLayer = L.Layer.extend({
     const size = map.getSize();
     ctx.clearRect(0, 0, size.x, size.y);
 
-    // Position the canvas at viewport top-left in layer coords.
-    // During interpolation we hold the canvas at the current map's
-    // layer origin; pin positions are computed at the interpolated
-    // zoom/center via project().
-    const topLeft = map.containerPointToLayerPoint([0, 0]);
-    L.DomUtil.setPosition(this._canvas, topLeft);
+    // Position the canvas at viewport top-left in layer coords, except while
+    // it rides a zoom transition, where that would snap it back mid-flight.
+    if (!map._animatingZoom) L.DomUtil.setPosition(this._canvas, map.containerPointToLayerPoint([0, 0]));
 
-    // Compute pixel origin for the (possibly interpolated) zoom/center.
     const crs = map.options.crs;
-    const projCenter = crs.latLngToPoint(c, z);
-    const halfSize = size.divideBy(2);
-    const pixelOrigin = projCenter.subtract(halfSize)._round();
+    const pixelOrigin = crs.latLngToPoint(map.getCenter(), z).subtract(size.divideBy(2))._round();
 
     const features = this._getCurrentFeatures();
     this._visibleFeatures = features;
@@ -397,56 +376,6 @@ const PlaceCanvasLayer = L.Layer.extend({
         this._drawMarker(ctx, pt, place, color, markerSize, pinStyle, ink);
         ctx.globalAlpha = 1;
       }
-    }
-  },
-
-  // Desktop wheel zoom: zoomanim fires once with the target zoom and
-  // center. The map then CSS-animates over 250ms. 'move' doesn't fire
-  // during that window, so we manually interpolate and redraw the
-  // canvas each frame to keep pins tracking at constant size.
-  /** @param {{ zoom: number, center: any }} e */
-  _onZoomAnim: function(e) {
-    if (!this._map) return;
-    this._stopZoomAnim();
-    const startZoom = this._map.getZoom();
-    const startCenter = this._map.getCenter();
-    const targetZoom = e.zoom;
-    const targetCenter = L.latLng(e.center);
-    const startTime = performance.now();
-    const duration = 250;
-    // Leaflet's tile transform interpolates SCALE linearly between
-    // 1 and the target scale (CSS transition on the transform
-    // property). Mapping that to zoom is logarithmic, not linear:
-    // at progress 0.5 of a +1 zoom step the visual scale is 1.5,
-    // not 2^0.5 = 1.414. Interpolating zoom linearly here put pins
-    // at the wrong fractional zoom relative to the tiles, which
-    // showed up as the drift-during-zoom you saw.
-    const targetScale = Math.pow(2, targetZoom - startZoom);
-    const tick = () => {
-      if (!this._map) return;
-      const elapsed = performance.now() - startTime;
-      const t = Math.min(elapsed / duration, 1);
-      const eased = easeLeaflet(t);
-      const scaleAtP = 1 + eased * (targetScale - 1);
-      const interpZoom = startZoom + Math.log2(scaleAtP);
-      const interpCenter = L.latLng(
-        startCenter.lat + (targetCenter.lat - startCenter.lat) * eased,
-        startCenter.lng + (targetCenter.lng - startCenter.lng) * eased
-      );
-      this._drawAt(interpZoom, interpCenter);
-      if (t < 1) {
-        this._zoomAnimRaf = requestAnimationFrame(tick);
-      } else {
-        this._zoomAnimRaf = null;
-      }
-    };
-    this._zoomAnimRaf = requestAnimationFrame(tick);
-  },
-
-  _stopZoomAnim: function() {
-    if (this._zoomAnimRaf) {
-      cancelAnimationFrame(this._zoomAnimRaf);
-      this._zoomAnimRaf = null;
     }
   },
 
