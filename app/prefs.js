@@ -174,8 +174,8 @@ export function getLanguage() {
   return matchLanguage(getPref('lang', (typeof navigator !== 'undefined' && navigator.language) || 'en'));
 }
 // Points t(), number formatting and sorting at the saved language, and sets
-// <html lang> to match.
-export function applyLanguage() { setLanguage(getLanguage()); }
+// <html lang> to match. Resolves once that language's strings are loaded.
+export function applyLanguage() { return setLanguage(getLanguage()); }
 export function getClusterPlaces() { return getPref('cluster-places', 'true') !== 'false'; }
 // Optional form fields — let the user hide ones they never use. All default ON.
 /** @param {string} name */

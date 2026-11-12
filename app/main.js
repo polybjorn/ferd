@@ -70,9 +70,11 @@ export function loadDataAndRender() {
   // shows a map (an error) leaves a failure here unseen.
   const map = loadMap();
   map.catch(() => {});
-  return loadData().then(function(loaded) {
+  // The synced prefs may name another language, whose strings load first.
+  return loadData().then(loaded => {
     loadSyncedPrefs();
-    applyLanguage();
+    return applyLanguage().then(() => loaded);
+  }).then(function(loaded) {
     refreshTabVisibility();
     if (!loaded) {
       document.body.classList.remove('app-booting', 'signin-only');
@@ -241,9 +243,11 @@ document.getElementById('skip-link')?.addEventListener('click', function(e) {
   document.getElementById('app')?.focus();
 });
 
-applyLanguage();
+const languageReady = applyLanguage();
 bindStoreToState();
-const booted = startup();
+// The first screen waits for the saved language's strings, so a Norwegian
+// interface does not draw in English first.
+const booted = languageReady.then(startup);
 
 // PWA: offline indicator + service worker registration + update toast.
 (function() {

@@ -1,5 +1,3 @@
-import { NB } from './i18n-nb.js';
-
 // UI strings, one table per language. A view asks for text by key, and a key
 // a language's table lacks falls back to English, so a table can be partial.
 // Keys are grouped by view; `common` is for words that more than one view
@@ -718,8 +716,13 @@ const STRINGS = {
   'menu.copyPrompt': 'Copy this link:',
 };
 
+// The tables other than English load only when picked, so an English
+// interface never fetches them. Until one arrives, t() reads English.
+/** @type {Record<string, () => Promise<Record<string, string>>>} */
+const LOADERS = { nb: () => import('./i18n-nb.js').then(m => m.NB) };
+
 /** @type {Record<string, Record<string, string>>} */
-const TABLES = { en: STRINGS, nb: NB };
+const TABLES = { en: STRINGS };
 
 // The languages the setting offers, each named in itself so a reader finds
 // their own whatever the UI is in now.
@@ -732,15 +735,29 @@ let active = 'en';
 /** @param {string | null | undefined} tag */
 export function matchLanguage(tag) {
   const primary = String(tag || '').toLowerCase().split(/[-_]/)[0];
-  if (primary in TABLES) return primary;
+  if (primary === 'en' || primary in LOADERS) return primary;
   if (primary === 'no' || primary === 'nn') return 'nb';
   return 'en';
 }
 
-/** @param {string} code */
+// Fetches a language's table once. A table that fails to load leaves t()
+// on English, and the next call tries again.
+/** @param {string} code @returns {Promise<void>} */
+export function loadLanguage(code) {
+  const lang = matchLanguage(code);
+  if (lang in TABLES) return Promise.resolve();
+  return LOADERS[lang]().then(table => { TABLES[lang] = table; });
+}
+
+// Resolves once the language's table is in, so text drawn after reads it.
+/** @param {string} code @returns {Promise<void>} */
 export function setLanguage(code) {
-  active = matchLanguage(code);
-  if (typeof document !== 'undefined') document.documentElement.lang = active;
+  const lang = matchLanguage(code);
+  const loaded = loadLanguage(lang).catch(() => {});
+  return loaded.then(() => {
+    active = lang;
+    if (typeof document !== 'undefined') document.documentElement.lang = active;
+  });
 }
 
 // The active language, which is also the locale numbers and sorting use.
@@ -787,4 +804,4 @@ export const stringKeys = () => Object.keys(STRINGS);
 
 // One language's own table, without the English fallback, for the parity test.
 /** @param {string} code */
-export const stringTable = code => ({ ...TABLES[code] });
+export const stringTable = code => loadLanguage(code).then(() => ({ ...TABLES[code] }));

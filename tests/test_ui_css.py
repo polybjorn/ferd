@@ -543,7 +543,7 @@ class ModuleLists(unittest.TestCase):
     "backup.js", "settings/account.js", "settings/catalog.js", "settings/categories.js",
     "settings/logs.js", "settings/regions.js", "settings/settings.js", "map/route-detail.js",
     "areas/areas-page.js", "history.js", "list-controls.js", "places/places-page.js",
-    "routes/routes-page.js", "you.js",
+    "routes/routes-page.js", "you.js", "i18n-nb.js",
     "areas/area-payload.js", "areas/edit-area.js", "context-menu.js", "form-fields.js",
     "places/edit-place.js", "places/place-payload.js", "routes/route-meta.js", "routes/route-payload.js",
   }

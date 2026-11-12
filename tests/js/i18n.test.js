@@ -44,7 +44,7 @@ test('t fills slots and picks the plural by count', async () => {
 test('a language table falls back to English per key, and the browser tag picks the table', async () => {
   const { t, setLanguage, language, matchLanguage } = await load();
   try {
-    setLanguage('nb');
+    await setLanguage('nb');
     assert.equal(language(), 'nb');
     assert.equal(t('settings.general.language'), 'Språk');
     assert.equal(t('categories.clearWarning', { count: 1 }), '1 sted mister kategorien sin');
@@ -55,10 +55,10 @@ test('a language table falls back to English per key, and the browser tag picks 
     assert.equal(matchLanguage('en-GB'), 'en');
     assert.equal(matchLanguage('de-DE'), 'en');
     assert.equal(matchLanguage(undefined), 'en');
-    setLanguage('fr');
+    await setLanguage('fr');
     assert.equal(language(), 'en');
   } finally {
-    setLanguage('en');
+    await setLanguage('en');
   }
 });
 
@@ -76,11 +76,11 @@ test('numbers and unit labels follow the active language', async () => {
   try {
     assert.equal(ctx.grpNum(7340.9, 1), '7,340.9');
     assert.equal(ctx.formatDistance(7340900), '7,340.9 km');
-    i18n.setLanguage('nb');
+    await i18n.setLanguage('nb');
     assert.equal(ctx.grpNum(7340.9, 1), '7 340,9');
     assert.equal(ctx.formatElevation(1234), '1 234 m');
   } finally {
-    i18n.setLanguage('en');
+    await i18n.setLanguage('en');
   }
 });
 
@@ -88,13 +88,13 @@ test('numbers and unit labels follow the active language', async () => {
 // {slot} names per key, and a .one/.other pair wherever English has one.
 test('every language table matches the English keys, slots and plurals', async () => {
   const { stringKeys, stringTable, LANGUAGES } = await load();
-  const en = stringTable('en');
+  const en = await stringTable('en');
   const slots = s => [...s.matchAll(/\{(\w+)\}/g)].map(m => m[1]).sort().join(',');
   const codes = LANGUAGES.map(([code]) => code).filter(code => code !== 'en');
   assert.ok(codes.includes('nb'));
   assert.deepEqual(Object.keys(en), stringKeys());
   for (const code of codes) {
-    const table = stringTable(code);
+    const table = await stringTable(code);
     const missing = stringKeys().filter(k => !(k in table));
     const extra = Object.keys(table).filter(k => !(k in en));
     assert.deepEqual(missing, [], code + ' lacks keys');

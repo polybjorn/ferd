@@ -142,7 +142,7 @@ function SettingsView({ tabs, env }) {
   // Picking a language re-renders the dialog, whose text all comes from t().
   const [, setLanguageShown] = useState(getLanguage());
   /** @param {string} code */
-  const pickLanguage = code => { switchLanguage(code); setLanguageShown(code); };
+  const pickLanguage = code => { switchLanguage(code).then(() => setLanguageShown(code)); };
   const body = useRef(/** @type {HTMLDivElement | null} */ (null));
   // A select a tab renders after the dialog opened would keep the system
   // picker, so each tab switch themes the panels again, as the Add dialog does.
@@ -188,9 +188,9 @@ function Select({ id, label, options, initial, onPick }) {
 // redraw in it. The home map keeps its layers and redraws only its panel and
 // an open popup, as a feature toggle does, since a rebuild would blink.
 /** @param {string} code */
-function switchLanguage(code) {
+async function switchLanguage(code) {
   setPref('lang', code);
-  applyLanguage();
+  await applyLanguage();
   renderAuthWidget();
   const base = (location.hash || '#/').split('?')[0];
   const homeMap = base === '#/' || base === '#' || base === '#/map' || base.startsWith('#/place/') || base.startsWith('#/route/');
