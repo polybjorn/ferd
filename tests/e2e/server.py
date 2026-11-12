@@ -13,7 +13,11 @@ Once the data is in, it prints "ferd-e2e ready on port N" to stdout.
 playwright.config.js waits for that line and reads the port out of it, so the
 tests never start against a server that is still empty.
 
-Usage: python3 tests/e2e/server.py [PORT]
+Usage: python3 tests/e2e/server.py [--publish] [PORT]
+
+--publish also publishes the demo user's map at /u/demo, the page
+scripts/lighthouse-ci.sh audits beside the sign-in page. The browser tests run
+without it.
 
 Stdlib only. The sign-in the tests use is E2E_USER / E2E_PASSWORD below,
 mirrored in tests/e2e/helpers.js and tests/e2e/smoke.spec.js.
@@ -62,7 +66,7 @@ def wait_healthy(base: str, proc: subprocess.Popen, timeout: float = 30) -> None
   raise SystemExit("[e2e] api.py did not answer /api/health in time")
 
 
-def seed(base: str, zip_path: Path) -> None:
+def seed(base: str, zip_path: Path, publish: bool = False) -> None:
   opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(CookieJar()))
   login = urllib.request.Request(
     base + "/api/login",
@@ -85,6 +89,13 @@ def seed(base: str, zip_path: Path) -> None:
     headers={"Content-Type": "application/json"},
   )
   opener.open(gate, timeout=10).close()
+  if publish:
+    pub = urllib.request.Request(
+      base + "/api/me/publish",
+      data=json.dumps({"published": True}).encode(),
+      headers={"Content-Type": "application/json"},
+    )
+    opener.open(pub, timeout=10).close()
 
 
 def keep_log(proc: subprocess.Popen) -> None:
@@ -103,7 +114,10 @@ def keep_log(proc: subprocess.Popen) -> None:
 
 
 def main() -> int:
-  port = int(sys.argv[1]) if len(sys.argv) > 1 else free_port()
+  args = sys.argv[1:]
+  publish = "--publish" in args
+  args = [a for a in args if a != "--publish"]
+  port = int(args[0]) if args else free_port()
   tmp = Path(tempfile.mkdtemp(prefix="ferd-e2e-"))
   proc = None
 
@@ -143,7 +157,7 @@ def main() -> int:
     threading.Thread(target=keep_log, args=(proc,), daemon=True).start()
     base = f"http://127.0.0.1:{port}"
     wait_healthy(base, proc)
-    seed(base, zip_path)
+    seed(base, zip_path, publish)
     print(f"ferd-e2e ready on port {port}", flush=True)
     proc.wait()
     return proc.returncode or 0

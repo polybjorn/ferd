@@ -2,7 +2,7 @@
 # because GitHub Actions build the ghcr images and the release APK that
 # Obtainium reads. Nothing is forced, so a commit made on GitHub stops the sync
 # until it is pulled into the forge. The sync waits for the attribution and
-# prose checks, the unit tests and the browser tests.
+# prose checks, the unit tests, the browser tests and the Lighthouse floors.
 #
 # ci-actions is cloned through $GITHUB_SERVER_URL and its scripts run directly,
 # not through `uses:`. That form needs the CI host written out, this file goes
@@ -173,6 +173,49 @@ jobs:
           [ -z "$dirs" ] || python3 -m zipfile -c "$out/e2e-report.zip" $dirs
           python3 "$tools/upload_artifact.py" e2e-report "$out"
 
+  # The sign-in page and a published map held at 100 on Lighthouse
+  # accessibility, best practices and SEO, on phone and desktop, against the
+  # e2e stack with the demo data. The audit is the release ci-actions'
+  # site-audit pins; scripts/lighthouse-ci.sh grades its scores alone, since
+  # some of the audit's other findings wait on decisions. Scoped like the
+  # browser tests, as it holds a playwright slot for a minute or two.
+  lighthouse:
+    runs-on: playwright
+    timeout-minutes: 20
+    steps:
+      - name: Fetch ci-actions
+        run: git clone -q --depth 1 --branch v1 "$GITHUB_SERVER_URL/bjorn/ci-actions.git" "${RUNNER_TEMP:-/tmp}/ci-actions"
+      - name: Checkout
+        env:
+          TOKEN: ${{ github.token }}
+          DEPTH: "0"
+        run: bash "${RUNNER_TEMP:-/tmp}/ci-actions/checkout/checkout.sh"
+      - name: Decide whether there is anything to audit
+        id: scope
+        env:
+          TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          BEFORE: ${{ github.event.before }}
+        run: node scripts/e2e-scope.js
+      - name: Fetch site-audit
+        if: steps.scope.outputs.run == 'true'
+        run: bash "${RUNNER_TEMP:-/tmp}/ci-actions/site-audit/fetch.sh"
+      - name: Self-test site-audit
+        if: steps.scope.outputs.run == 'true'
+        run: node "$SITE_AUDIT" --self-test
+      - name: Lighthouse on the sign-in page and a published map
+        if: steps.scope.outputs.run == 'true'
+        run: bash scripts/lighthouse-ci.sh
+      - name: Upload the report and the API log
+        if: failure()
+        run: |
+          set -eu
+          [ -d e2e-logs ] || exit 0
+          tools="${RUNNER_TEMP:-/tmp}/ci-actions/upload-artifact"
+          bash "$tools/selftest.sh"
+          python3 "$tools/upload_artifact.py" lighthouse-report e2e-logs
+
   # Reads a PR's commits with the list github-sync applies after the merge, when
   # the only fix for a hit is rewriting protected main. Here it is still a
   # force-push to the PR branch.
@@ -198,7 +241,7 @@ jobs:
 
   github-sync:
     if: github.event_name == 'push'
-    needs: [attribution, prose, test, e2e]
+    needs: [attribution, prose, test, e2e, lighthouse]
     runs-on: docker
     timeout-minutes: 10
     steps:
