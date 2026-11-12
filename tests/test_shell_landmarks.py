@@ -26,6 +26,12 @@ class ShellLandmarks(unittest.TestCase):
     self.assertTrue(href.startswith("#") and len(href) > 1, f"first link is {href}")
     self.assertIn(f'id="{href[1:]}"', body)
 
+  def test_the_nav_brand_is_the_shell_h1(self):
+    # The other h1 is the hidden notice for a browser too old to run the app.
+    self.assertEqual(len(re.findall(r"<h1\b", SHELL)), 2)
+    self.assertRegex(SHELL, r'<h1 class="nav-brand">')
+    self.assertRegex(SHELL, r'<div id="webview-notice"[^>]*hidden>\s*<h1>')
+
 
 if __name__ == "__main__":
   unittest.main()

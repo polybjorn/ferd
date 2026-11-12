@@ -436,7 +436,9 @@ a:not([class]):hover { text-decoration: underline; }
   justify-self: end;
 }
 
+/* The brand is the page's h1: a published map shows its owner there. */
 .nav-brand {
+  margin: 0;
   font-size: var(--ui-text-sm);
   font-weight: 400;
   color: var(--text);
@@ -522,7 +524,28 @@ a:not([class]):hover { text-decoration: underline; }
     padding: 0;
     border: 0;
   }
-  body:not([data-view="route"]) .nav-brand { display: none; }
+  body:not([data-view="route"], [data-view="map"], .app-booting) .nav-brand { display: none; }
+  /* The map keeps its h1 as a label over the top edge, between the zoom
+     control and the phone buttons, at their height and 5px margin. A
+     published map shows it there while it loads. */
+  body:is([data-view="map"], .app-booting) .nav-brand {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: calc(100% - 2 * (38px + var(--ui-space-5)));
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  body:is([data-view="map"], .app-booting) #nav-home {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 var(--ui-space-3);
+    line-height: calc(38px - 2px);
+  }
+  body.map-chrome-hidden[data-view="map"] .nav-brand { display: none; }
   body:not([data-view="route"]) #app {
     height: 100vh;
     height: 100dvh;
@@ -1074,7 +1097,9 @@ body.hide-map-filter .map-phone-buttons { order: 1; }
 }
 .app-state .ui-hint { font-size: var(--ui-text-sm); }
 body.signin-only .app-nav,
-body.app-booting .app-nav { display: none; }
+body.app-booting:not(.public-map) .app-nav { display: none; }
+/* A published map shows its nav while it loads, with only the brand. */
+body.app-booting .app-nav > :not(.nav-brand) { visibility: hidden; }
 body:is(.signin-only, .app-booting) .pwa-notices { display: none; }
 /* Off screen until a keyboard reaches it. */
 .skip-link {

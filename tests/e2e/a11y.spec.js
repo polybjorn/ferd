@@ -127,3 +127,27 @@ for (const theme of THEMES) {
     });
   }
 }
+
+// The nav brand is the map's one h1. A phone shows it over the map's top
+// edge, clear of the zoom control and the phone buttons, down to 320px.
+test('the map names itself in one visible h1', async ({ page, baseURL }, info) => {
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  if (isPhone(info)) await page.setViewportSize({ width: 320, height: 800 });
+  await signIn(page);
+  await expect(page.locator('.leaflet-container').first()).toBeVisible();
+  const h1 = page.locator('h1:visible');
+  await expect(h1).toHaveCount(1);
+  await expect(h1).toHaveClass(/nav-brand/);
+  if (isPhone(info)) {
+    const box = await h1.boundingBox();
+    for (const sel of ['.leaflet-control-zoom', '.map-phone-buttons']) {
+      const other = await page.locator(sel).first().boundingBox();
+      if (!box || !other) throw new Error(`no box for the h1 or ${sel}`);
+      const apart = box.x + box.width <= other.x || other.x + other.width <= box.x
+        || box.y + box.height <= other.y || other.y + other.height <= box.y;
+      expect(apart, `the h1 overlaps ${sel}`).toBe(true);
+    }
+  }
+  expect(fenced.external).toEqual([]);
+  expect(fenced.errors).toEqual([]);
+});

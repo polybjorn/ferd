@@ -45,7 +45,8 @@ function applyConfig(cfg) {
   const owner = viewer.mode === 'public' ? viewer.username : null;
   document.title = owner ? t('app.publicTitle', { user: owner, brand }) : brand;
   const brandEl = document.getElementById('nav-brand-text');
-  if (brandEl) brandEl.textContent = brand;
+  // The nav brand is the page's h1, so a published map names its owner there.
+  if (brandEl) brandEl.textContent = owner || brand;
   refreshTabVisibility();
 }
 
@@ -136,6 +137,13 @@ function fetchState() {
 }
 
 export function bootApp() {
+  // A published map never shows the sign-in page, so its nav shows while the
+  // map loads, holding the owner's name: the page's h1.
+  if (state.viewer.mode === 'public') {
+    document.body.classList.add('public-map');
+    const brandEl = document.getElementById('nav-brand-text');
+    if (brandEl && state.viewer.username) brandEl.textContent = state.viewer.username;
+  }
   // No server: no auth, a read-write owner whose data lives entirely in
   // IndexedDB. Config falls back to defaults.
   if (!hasServer()) {
