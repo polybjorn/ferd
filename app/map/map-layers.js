@@ -424,16 +424,20 @@ export function cleanupMap() {
 // canvas redrawn from script each frame reaches the screen a frame or more
 // behind the tiles, which shows as stutter on a phone, so the canvas takes the
 // same transition instead, as Leaflet's own renderers do. Its drawing scales
-// with the map until the redraw at the end of the animation, which a zoom
-// jump (below) would make far too large.
-/** @param {any} map @param {HTMLElement} canvas @returns {() => void} */
-export function followZoomAnim(map, canvas) {
+// with the map until the redraw at the end of the animation. On a zoom jump
+// (below), which would scale it several times over, a layer that redraws each
+// frame passes `jumpProbe`: an empty element in the canvas's place that takes
+// the transform instead, so the canvas stays put and the layer reads where the
+// map is from the probe.
+/** @param {any} map @param {HTMLElement} canvas @param {HTMLElement} [jumpProbe] @returns {() => void} */
+export function followZoomAnim(map, canvas, jumpProbe) {
   canvas.classList.add('leaflet-zoom-animated');
+  if (jumpProbe) jumpProbe.classList.add('leaflet-zoom-animated');
   /** @param {{ zoom: number, center: any }} e */
   const onZoomAnim = e => {
     const scale = map.getZoomScale(e.zoom, map.getZoom());
     const offset = map._latLngToNewLayerPoint(map.containerPointToLatLng([0, 0]), e.zoom, e.center);
-    L.DomUtil.setTransform(canvas, offset, scale);
+    L.DomUtil.setTransform(jumpProbe && isZoomJump(map, e) ? jumpProbe : canvas, offset, scale);
   };
   map.on('zoomanim', onZoomAnim);
   return () => map.off('zoomanim', onZoomAnim);
@@ -441,17 +445,42 @@ export function followZoomAnim(map, canvas) {
 
 // A cluster tap, a double tap or a zoom button zooms a whole level or more,
 // and each level doubles whatever rides the transition. On such a jump the
-// pins glide at their own size (place-layer.js) and the route and area lines
-// hide until it ends. The snap after a pinch moves less than a level and
-// keeps the plain scaling, where hiding the lines would flicker each release.
+// pins glide at their own size (place-layer.js) and the WebGL routes redraw
+// each frame at their own width (route-layer.js). The snap after a pinch moves
+// less than a level and keeps the plain scaling, which stays under 1.4x.
 /** @param {any} map @param {{ zoom: number }} e */
 export function isZoomJump(map, e) {
   return Math.abs(e.zoom - map.getZoom()) >= 1;
 }
 
+// A layer redrawn from script each frame lands a frame or more behind
+// transitions the compositor runs on its own. So on a zoom jump every
+// transform transition in the map is paused and set from one frame loop,
+// which fires 'zoomframe' for those layers after moving the rest: tiles, pins
+// and redrawn layers change in the same frame. A busy main thread holds the
+// whole map back together, so only a map with such a layer runs it. Leaflet's
+// own timer still ends the zoom.
 /** @param {any} map */
-export function hideLinesOnZoomJump(map) {
-  const box = map.getContainer();
-  map.on('zoomanim', (/** @type {{ zoom: number }} */ e) => { if (isZoomJump(map, e)) box.classList.add('map-zoom-jump'); });
-  map.on('zoomend', () => box.classList.remove('map-zoom-jump'));
+export function stepZoomJump(map) {
+  const pane = map.getPane('mapPane');
+  map.on('zoomanim', (/** @type {{ zoom: number }} */ e) => {
+    if (!isZoomJump(map, e)) return;
+    const start = performance.now();
+    // Once every zoomanim handler has set its end transform.
+    queueMicrotask(() => {
+      getComputedStyle(pane).transform;
+      const runs = pane.getAnimations({ subtree: true })
+        .filter((/** @type {any} */ a) => a.transitionProperty === 'transform');
+      for (const a of runs) a.pause();
+      /** @param {number} [now] */
+      const step = now => {
+        if (!map._animatingZoom) return;
+        const t = Math.max(0, (now ?? performance.now()) - start);
+        for (const a of runs) a.currentTime = t;
+        map.fire('zoomframe');
+        requestAnimationFrame(step);
+      };
+      step();
+    });
+  });
 }

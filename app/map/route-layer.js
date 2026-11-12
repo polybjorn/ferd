@@ -2,7 +2,7 @@ import { GPX_NS, state } from '../core.js';
 import { applyAuth, routeStatusColor } from '../server.js';
 import { gpxText } from '../store.js';
 import { _geometryPolygons } from '../area-geo.js';
-import { followZoomAnim, mapScheduler } from './map-layers.js';
+import { followZoomAnim, mapScheduler, stepZoomJump } from './map-layers.js';
 import { areaStyle } from './area-layer.js';
 import { getTrailWeightFactor } from '../theme.js';
 import { wrappedRouter } from '../router.js';
@@ -261,6 +261,8 @@ export function attachGLRoutes(map) {
   pane.style.zIndex = 410;
   pane.style.pointerEvents = 'none';
   pane.appendChild(canvas);
+  // Takes the zoom transform in the canvas's place on a zoom jump (followZoomAnim).
+  const probe = L.DomUtil.create('div', '', pane);
 
   const VS = [
     'attribute vec2 aSegA; attribute vec2 aSegB; attribute float aEnd; attribute float aSide;',
@@ -412,16 +414,31 @@ export function attachGLRoutes(map) {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
     vertCount = data.length / GL_ROUTE_STRIDE;
   }
+  /** @type {{ s: number, dx: number, dy: number } | null} a zoom jump's scale and shift of the canvas, read from the probe each frame */
+  let jumpFrame = null;
   function draw() {
     if (!gl) return;
+    const frame = map._animatingZoom ? jumpFrame : null;
     // Keep the canvas pinned to the viewport (counter the map-pane pan offset),
     // except while it rides a zoom transition.
-    if (!map._animatingZoom) L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint([0, 0]));
+    if (!map._animatingZoom) {
+      const at = map.containerPointToLayerPoint([0, 0]);
+      L.DomUtil.setPosition(canvas, at);
+      L.DomUtil.setPosition(probe, at);
+    }
     gl.clear(gl.COLOR_BUFFER_BIT);
     if (!vertCount || !originRef) return;
     const size = map.getSize();
-    const scale = map.getZoomScale(map.getZoom(), GL_ROUTE_REFZOOM);
+    let scale = map.getZoomScale(map.getZoom(), GL_ROUTE_REFZOOM);
     const cNow = map.project(map.getCenter(), GL_ROUTE_REFZOOM);
+    let dx = originRef.x - cNow.x, dy = originRef.y - cNow.y;
+    if (frame) {
+      // Where the canvas would be drawn if it rode the transition, folded into
+      // the shader's scale and offset so the line width stays in screen pixels.
+      scale *= frame.s;
+      dx += ((frame.s - 1) * size.x / 2 + frame.dx) / scale;
+      dy += ((frame.s - 1) * size.y / 2 + frame.dy) / scale;
+    }
     gl.useProgram(program);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     const S = GL_ROUTE_STRIDE * 4;
@@ -436,7 +453,7 @@ export function attachGLRoutes(map) {
     gl.enableVertexAttribArray(attrLoc.aWTo); gl.vertexAttribPointer(attrLoc.aWTo, 1, gl.FLOAT, false, S, 48);
     gl.enableVertexAttribArray(attrLoc.aDist); gl.vertexAttribPointer(attrLoc.aDist, 1, gl.FLOAT, false, S, 52);
     gl.uniform1f(uniLoc.uScale, scale);
-    gl.uniform2f(uniLoc.uOriginDelta, originRef.x - cNow.x, originRef.y - cNow.y);
+    gl.uniform2f(uniLoc.uOriginDelta, dx, dy);
     gl.uniform2f(uniLoc.uHalfSize, size.x / 2, size.y / 2);
     gl.uniform2f(uniLoc.uViewport, size.x, size.y);
     gl.uniform1f(uniLoc.uHlT, (state._hlT == null) ? 1 : state._hlT);
@@ -457,7 +474,15 @@ export function attachGLRoutes(map) {
   state._glRoutesRebuild = function () { rebuild(); draw(); }; // selection change: upload from/to buffer once
   state._glRoutesDraw = function () { draw(); };               // animation frame: cheap uniform update only
   map.on('move zoom', draw); // synchronous: lockstep with the tiles, no one-frame lag
-  followZoomAnim(map, canvas); // an animated zoom fires no move/zoom until it ends
+  followZoomAnim(map, canvas, probe); // an animated zoom fires no move/zoom until it ends
+  stepZoomJump(map);
+  map.on('zoomanim', () => { jumpFrame = null; });
+  map.on('zoomframe', () => {
+    const m = new DOMMatrixReadOnly(getComputedStyle(probe).transform);
+    const pin = L.DomUtil.getPosition(canvas);
+    jumpFrame = { s: m.a, dx: m.e - pin.x, dy: m.f - pin.y };
+    draw();
+  });
   map.on('moveend zoomend', function () { rebuild(); draw(); });
   map.on('resize', function () { resize(); draw(); });
   map.on('layeradd', rebuildSoon); // routes load lazily (async GPX)
