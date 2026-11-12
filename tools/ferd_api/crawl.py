@@ -5,7 +5,7 @@ Link previews are always on: a shared link to a published map gets a canonical
 URL and an image, which exposes nothing a link holder cannot already open.
 Indexing is opt-in per instance with `search_indexing`. Off, robots.txt shuts
 every crawler out and there is no sitemap; on, robots.txt allows the site and
-names a sitemap of the published maps.
+names a sitemap of the front page and the published maps.
 
 Every URL is built from the request's origin, so one install answers for
 whatever name it is reached by.
@@ -70,10 +70,11 @@ def robots_txt(origin_url: str | None, indexing: bool) -> str:
 
 
 def sitemap_xml(origin_url: str | None, usernames: list[str]) -> str:
-  """A sitemap of the published maps. Empty when the origin is unknown, since
-  a sitemap takes absolute URLs only."""
+  """A sitemap of the front page and the published maps. Empty when the origin
+  is unknown, since a sitemap takes absolute URLs only."""
   urls = []
   if origin_url:
+    urls.append(f"  <url><loc>{xml_escape(origin_url + '/')}</loc></url>")
     for name in usernames:
       loc = xml_escape(origin_url + "/u/" + quote(name, safe="") + "/")
       urls.append(f"  <url><loc>{loc}</loc></url>")

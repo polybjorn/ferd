@@ -60,6 +60,7 @@ class TestRobotsAndSitemap(unittest.TestCase):
 
   def test_sitemap_quotes_and_escapes_names(self):
     body = crawl.sitemap_xml("https://ferd.example", ["demo", "a&b"])
+    self.assertIn("<loc>https://ferd.example/</loc>", body)
     self.assertIn("<loc>https://ferd.example/u/demo/</loc>", body)
     self.assertIn("<loc>https://ferd.example/u/a%26b/</loc>", body)
     self.assertNotIn("<url>", crawl.sitemap_xml(None, ["demo"]))

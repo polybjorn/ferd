@@ -2158,7 +2158,7 @@ class TestCrawlDefaults(unittest.TestCase):
 
 class TestCrawlIndexing(unittest.TestCase):
   """With search_indexing on, robots.txt allows the site and the sitemap
-  lists published maps only."""
+  lists the front page and published maps only."""
 
   @classmethod
   def setUpClass(cls):
@@ -2188,12 +2188,13 @@ class TestCrawlIndexing(unittest.TestCase):
     loc = f"<loc>{self.server.base_url}/u/{SEED_USER}/</loc>"
     headers, body = self._get("/sitemap.xml")
     self.assertEqual(headers.get("Content-Type"), "application/xml; charset=utf-8")
+    self.assertIn(f"<loc>{self.server.base_url}/</loc>", body)
     self.assertNotIn(loc, body)
     self.c.request("POST", "/api/me/publish", {"published": True})
     try:
       _, body = self._get("/sitemap.xml")
       self.assertIn(loc, body)
-      self.assertEqual(body.count("<url>"), 1)
+      self.assertEqual(body.count("<url>"), 2)
     finally:
       self.c.request("POST", "/api/me/publish", {"published": False})
 

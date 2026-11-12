@@ -149,7 +149,7 @@ These sit at the site root, not under `/api`.
 | Method | Path | Notes |
 |---|---|---|
 | `GET` | `/robots.txt` | `Disallow: /` unless `search_indexing` is on; then it allows `/` and `/u/` and names the sitemap. See [configure.md](configure.md#search-engines-and-link-previews). |
-| `GET` | `/sitemap.xml` | The published maps' `/u/<username>/` URLs. `404` unless `search_indexing` is on. |
+| `GET` | `/sitemap.xml` | The front page and the published maps' `/u/<username>/` URLs. `404` unless `search_indexing` is on. |
 
 ## Browser reports
 
