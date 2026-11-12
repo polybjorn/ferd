@@ -27,18 +27,18 @@ jobs:
     needs: gate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0  # full history so the version task can count commits
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@v6.1.0
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v4
+        uses: android-actions/setup-android@v4.0.4
 
       - name: Decode keystore
         env:
@@ -79,7 +79,7 @@ jobs:
           echo "path=$out" >> "$GITHUB_OUTPUT"
 
       - name: Attach APK to the release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v3.0.4
         with:
           files: ${{ steps.apk.outputs.path }}
           fail_on_unmatched_files: true
