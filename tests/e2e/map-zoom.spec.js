@@ -37,6 +37,9 @@ test('pins glide with the tiles at their own size through a cluster zoom', async
     const tiles = /** @type {any} */ (Object.values(map._layers).find((/** @type {any} */ l) => l._levels));
     const box = map.getContainer();
     const matrix = (/** @type {Element} */ el) => new DOMMatrixReadOnly(getComputedStyle(el).transform);
+    // A test browser draws routes as SVG, so the WebGL route pane a phone uses
+    // is made here to check that the hiding reaches it under its real name.
+    const linePanes = ['overlayPane', 'glRoutesPane', 'areasPane'].map(n => map.getPane(n) || map.createPane(n));
     const probe = /** @type {any} */ (window).__zoomProbe = {
       marks: 0, steps: 0, worst: 0, moved: 0, scale: 1, canvasHidden: false, linesHidden: true,
     };
@@ -53,7 +56,7 @@ test('pins glide with the tiles at their own size through a cluster zoom', async
       });
       probe.marks = marks.length;
       probe.canvasHidden = getComputedStyle(box.querySelector('canvas.place-canvas-layer')).visibility === 'hidden';
-      for (const pane of box.querySelectorAll('.leaflet-overlay-pane, .leaflet-glRoutesPane-pane')) {
+      for (const pane of linePanes) {
         if (getComputedStyle(pane).opacity !== '0') probe.linesHidden = false;
       }
       const watched = [level.el, ...els];

@@ -1555,13 +1555,13 @@ body.signin-only #app {
 .leaflet-overlay-pane .leaflet-interactive { filter: drop-shadow(0 0 3px rgba(0,0,0,0.5)); }
 /* A zoom jump would scale route and area lines several times over, so they
    hide at once while it runs and fade back in after (isZoomJump). */
-.map-zoom-jump .leaflet-glRoutesPane-pane,
+.map-zoom-jump .leaflet-glRoutes-pane,
 .map-zoom-jump .leaflet-overlay-pane,
-.map-zoom-jump .leaflet-areasPane-pane { opacity: 0; transition: none; }
+.map-zoom-jump .leaflet-areas-pane { opacity: 0; transition: none; }
 @media (prefers-reduced-motion: no-preference) {
-  .leaflet-glRoutesPane-pane,
+  .leaflet-glRoutes-pane,
   .leaflet-overlay-pane,
-  .leaflet-areasPane-pane { transition: opacity var(--ui-duration-fast) ease-out; }
+  .leaflet-areas-pane { transition: opacity var(--ui-duration-fast) ease-out; }
 }
 .place-glide,
 .place-glide > canvas { position: absolute; left: 0; top: 0; pointer-events: none; }
