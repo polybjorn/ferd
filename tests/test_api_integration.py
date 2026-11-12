@@ -2119,7 +2119,7 @@ class TestCrawlDefaults(unittest.TestCase):
 
   def setUp(self):
     (_server.data_dir / "index.html").write_text(
-      "<head>\n  <!-- __FERD_SHARE_TAGS__ -->\n</head>", encoding="utf-8")
+      "<head>\n  <title>Ferd</title>\n  <!-- __FERD_SHARE_TAGS__ -->\n</head>", encoding="utf-8")
     # Serving the page reads sw.js for the cache version and keeps it for a
     # few seconds, so a missing one would leak into the next class.
     (_server.data_dir / "sw.js").write_text("// stub", encoding="utf-8")
@@ -2147,8 +2147,10 @@ class TestCrawlDefaults(unittest.TestCase):
     self.assertIn(f'<link rel="canonical" href="{origin}/u/someone/">', body)
     self.assertIn(f'<meta property="og:image" content="{origin}/icons/icon-512.png">', body)
     self.assertNotIn("__FERD_SHARE_TAGS__", body)
+    self.assertIn("<title>someone - Ferd</title>", body)
     _, _, body = self._get("/")
     self.assertIn(f'<link rel="canonical" href="{origin}/">', body)
+    self.assertIn("<title>Ferd</title>", body)
 
   def test_a_malformed_host_writes_no_tags(self):
     _, _, body = self._get("/", {"Host": 'x"><script>'})

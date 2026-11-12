@@ -37,6 +37,13 @@ class TestCanonical(unittest.TestCase):
       with self.subTest(path=path):
         self.assertEqual(crawl.canonical_path(path), want)
 
+  def test_a_published_map_names_its_owner_in_the_title(self):
+    page = "<head><title>Ferd</title></head>"
+    self.assertEqual(crawl.page_title(page, "/"), page)
+    self.assertEqual(crawl.page_title(page, "/u/"), page)
+    self.assertEqual(crawl.page_title(page, "/u/demo/"), "<head><title>demo - Ferd</title></head>")
+    self.assertIn("<title>a&lt;b - Ferd</title>", crawl.page_title(page, "/u/a%3Cb"))
+
   def test_tags_need_an_origin(self):
     self.assertEqual(crawl.share_tags(None, "/u/demo"), "")
     tags = crawl.share_tags("https://ferd.example", "/u/demo")

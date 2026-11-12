@@ -1,5 +1,5 @@
-"""What crawlers and link previews read: robots.txt, the sitemap and the
-canonical and og:image tags in the page head.
+"""What crawlers and link previews read: robots.txt, the sitemap, and the
+title, canonical and og:image tags in the page head.
 
 Link previews are always on: a shared link to a published map gets a canonical
 URL and an image, which exposes nothing a link holder cannot already open.
@@ -38,14 +38,31 @@ def origin(scheme: str, host: str | None) -> str | None:
   return f"{scheme}://{host.lower()}"
 
 
+def _map_owner(path: str) -> str | None:
+  """The username of the published map at `path`, under `/u/<username>/`."""
+  if path.startswith("/u/"):
+    return unquote(path[len("/u/"):].split("/", 1)[0]) or None
+  return None
+
+
 def canonical_path(path: str) -> str:
   """The canonical path of a page the shell serves: a published map's
   `/u/<username>/`, whatever follows it, and `/` for everything else."""
-  if path.startswith("/u/"):
-    name = unquote(path[len("/u/"):].split("/", 1)[0])
-    if name:
-      return "/u/" + quote(name, safe="") + "/"
-  return "/"
+  name = _map_owner(path)
+  return "/u/" + quote(name, safe="") + "/" if name else "/"
+
+
+_TITLE_RE = re.compile(r"<title>([^<]*)</title>")
+
+
+def page_title(page: str, path: str) -> str:
+  """`page` with a published map's owner in its title, as the client writes it
+  once its script runs, so a crawler or link preview that reads the served
+  HTML tells the map from the sign-in page."""
+  name = _map_owner(path)
+  if not name:
+    return page
+  return _TITLE_RE.sub(lambda m: f"<title>{html.escape(name)} - {m.group(1)}</title>", page, count=1)
 
 
 def share_tags(origin_url: str | None, path: str) -> str:
