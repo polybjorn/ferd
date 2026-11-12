@@ -125,11 +125,12 @@ The service worker reads the same list and keeps tiles offline only from hosts o
 | `manifest_cmd` | `FERD_MANIFEST_CMD` | `null` | Command to run after a successful GPX upload to regenerate that user's `routes.json`. Invoked with `shell=False`, 60s timeout, `cwd=users/<username>/`, with the user's folder passed as `$1`. Relative paths are resolved against `data_dir`. |
 | `secure_cookies` | `FERD_SECURE_COOKIES` | `true` | Sets the `Secure` flag on the session cookie. Disable only for plain-HTTP local dev. |
 | `max_body_bytes` | `FERD_MAX_BODY_BYTES` | `1048576` | Cap on JSON request bodies. GPX uploads have a separate hard cap of 10 MiB. |
-| `static_dir` | `FERD_STATIC_DIR` | `null` | If set, the API also serves static files from this directory for any non-`/api/*` GET. Behind a proxy, let the proxy serve the other files, but send `index.html` and `sw.js` through the API so they carry the [Content-Security-Policy](#content-security-policy). |
+| `static_dir` | `FERD_STATIC_DIR` | `null` | If set, the API also serves static files from this directory for any non-`/api/*` GET. Behind a proxy, let the proxy serve the other files, but send `/`, `/u/`, `index.html`, `sw.js`, `robots.txt` and `sitemap.xml` through the API so the page carries the [Content-Security-Policy](#content-security-policy) and its [link-preview tags](#search-engines-and-link-previews). |
 | `idle_exit_seconds` | `FERD_IDLE_EXIT_SECONDS` | `0` | If > 0, the process exits after this many seconds with no requests. Pair with systemd socket activation for zero-idle RAM. |
 | `require_setup_token` | `FERD_REQUIRE_SETUP_TOKEN` | `false` | If true and no users exist, generate a one-time token printed to stderr; the first registration must supply it. A user table that empties while the API runs gets a fresh token at the next registration attempt. See [SECURITY](../SECURITY.md). |
 | `cors_origins` | `FERD_CORS_ORIGINS` | `"*"` | Allowed origins for cross-origin clients (native/WebView shells that bundle the frontend and point at this server). `"*"` allows any origin; set to a JSON list of exact origins (`["https://app.example.com"]`) to restrict, or `[]` to disable CORS. The env var sets a single origin or `"*"`; use the file for a list. Cross-origin requests authenticate with bearer tokens and no cookies, so credentials are never allowed and `"*"` exposes nothing an unauthenticated HTTP client couldn't already reach. |
 | `trusted_proxies` | `FERD_TRUSTED_PROXIES` | `[]` | Reverse-proxy addresses whose `X-Real-IP` / `X-Forwarded-For` headers are trusted for the client IP. Behind a proxy the socket peer is always the proxy, so without this every client shares one login rate-limit bucket and session/audit records show the proxy's address. Set to `["127.0.0.1"]` when nginx proxies from the same host. Leave empty when clients connect directly - a trusted header from an untrusted peer would let clients spoof their IP. The env var takes a comma-separated list. |
+| `search_indexing` | `FERD_SEARCH_INDEXING` | `false` | Lets search engines index published maps. Off, `/robots.txt` answers `Disallow: /` and there is no sitemap. On, `/robots.txt` allows `/` and `/u/` and names `/sitemap.xml`, which lists every published map. See [Search engines and link previews](#search-engines-and-link-previews). |
 | `initial_user` | `FERD_INITIAL_USER` | `null` | If set with `initial_password`, the admin account is created on first start. Both fields are ignored on later starts once any user exists. |
 | `initial_password` | `FERD_INITIAL_PASSWORD` | `null` | See `initial_user`. Must be at least 12 characters. |
 
@@ -143,6 +144,12 @@ The API sends a Content-Security-Policy on `index.html` (and the `/u/<username>/
 Unless the policy names its own `report-uri` or `report-to`, the browser posts violations to `POST /api/csp-report`, and the API logs one `csp-violation` line per report to stderr (the journal under systemd). Nothing is stored.
 
 A reverse proxy that serves `index.html` and `sw.js` from disk drops the header. Proxy those two paths to the API, as the examples in `deploy/` say, and do not set a second Content-Security-Policy in the proxy: a browser applies both, so the stricter of the two wins in every directive.
+
+## Search engines and link previews
+
+A shared link to any page gets a preview: the API writes a canonical link, `og:url` and `og:image` into `index.html` as it serves it, built from the origin the request reached. A published map's canonical URL is `/u/<username>/`; every other page's is `/`. The scheme is `X-Forwarded-Proto` when one of `trusted_proxies` sends it, and otherwise `https` unless `secure_cookies` is off. A request whose `Host` is not a plain hostname or address gets no tags.
+
+Indexing is separate and off by default, so no instance turns up in a search engine unless its operator asks for it with `search_indexing`. Behind a proxy, send `/`, `/u/`, `/robots.txt` and `/sitemap.xml` to the API along with `index.html` and `sw.js`, as the examples in `deploy/` do; a proxy that serves the page from disk drops the tags.
 
 ## Data files
 

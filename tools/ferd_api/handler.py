@@ -64,6 +64,8 @@ class Handler(RequestMixin, StaticMixin, SessionMixin, AdminMixin, CatalogMixin,
       "/api/admin/users": "_h_admin_users_list",
       "/api/admin/stats": "_h_admin_stats",
       "/api/admin/logs": "_h_admin_logs",
+      "/robots.txt": "_h_robots",
+      "/sitemap.xml": "_h_sitemap",
     },
     "POST": {
       "/api/register": "_h_register",

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from http import HTTPStatus
 
-from .. import store
+from .. import crawl, store
 from ..common import ValidationError, safe_path_component
 from ..users import user_dir
 
@@ -19,6 +19,31 @@ class PublicMixin:
     self._send_json(HTTPStatus.OK, {
       "usernames": [r["username"] for r in rows],
     })
+
+  def _send_text(self, body: str, ctype: str):
+    data = body.encode("utf-8")
+    self.send_response(HTTPStatus.OK)
+    self.send_header("Content-Type", ctype)
+    self.send_header("Content-Length", str(len(data)))
+    self.send_header("Cache-Control", "no-cache")
+    self.send_header("X-Content-Type-Options", "nosniff")
+    self.end_headers()
+    self.wfile.write(data)
+
+  def _h_robots(self):
+    """robots.txt: every crawler shut out unless search_indexing is on."""
+    self._send_text(crawl.robots_txt(self._origin(), bool(self.cfg.get("search_indexing"))),
+                    "text/plain; charset=utf-8")
+
+  def _h_sitemap(self):
+    """The published maps, for search engines. Only with search_indexing on."""
+    if not self.cfg.get("search_indexing"):
+      return self._send_plain(HTTPStatus.NOT_FOUND, b"not found")
+    rows = self.conn.execute(
+      "SELECT username FROM users WHERE published=1 ORDER BY username"
+    ).fetchall()
+    self._send_text(crawl.sitemap_xml(self._origin(), [r["username"] for r in rows]),
+                    "application/xml; charset=utf-8")
 
   def _public_user(self, username: str):
     """(user id, user dir) iff that user exists and has publish=ON. Else None

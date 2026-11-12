@@ -33,8 +33,11 @@ if [ ! -f site-config.json ]; then
 fi
 
 out=$(mktemp)
-# Its stderr is the API log, kept in e2e-logs/api.log as well.
-python3 tests/e2e/server.py --publish >"$out" 2>e2e-logs/server.err </dev/null &
+# Its stderr is the API log, kept in e2e-logs/api.log as well. Search
+# indexing is on, because a default instance's robots.txt shuts crawlers out on
+# purpose and Lighthouse counts that against SEO; the score held here is the
+# one for an instance that wants its published maps found.
+FERD_SEARCH_INDEXING=1 python3 tests/e2e/server.py --publish >"$out" 2>e2e-logs/server.err </dev/null &
 server=$!
 cleanup() {
   kill "$server" 2>/dev/null || true

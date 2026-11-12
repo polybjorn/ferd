@@ -142,6 +142,15 @@ Anyone can call these for a user with `published=1`. Other users return `404`. N
 
 The browser-facing public URL is `/u/<username>/` (no `/api` prefix); the static handler serves `index.html` for any such path and the SPA fetches from `/api/u/<username>/...`.
 
+## Crawlers
+
+These sit at the site root, not under `/api`.
+
+| Method | Path | Notes |
+|---|---|---|
+| `GET` | `/robots.txt` | `Disallow: /` unless `search_indexing` is on; then it allows `/` and `/u/` and names the sitemap. See [configure.md](configure.md#search-engines-and-link-previews). |
+| `GET` | `/sitemap.xml` | The published maps' `/u/<username>/` URLs. `404` unless `search_indexing` is on. |
+
 ## Browser reports
 
 | Method | Path | Notes |

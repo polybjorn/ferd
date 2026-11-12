@@ -7,7 +7,7 @@ from http import HTTPStatus
 from pathlib import Path
 from urllib.parse import unquote
 
-from .. import csp
+from .. import crawl, csp
 from ..common import BodyTooLarge, ValidationError, resolve_under
 from ..static import APP_VERSION_PLACEHOLDER, STATIC_MIME, SW_VERSION_PLACEHOLDER, get_app_version, get_sw_version
 
@@ -18,6 +18,8 @@ class StaticMixin:
     if not static_dir:
       return self._error(HTTPStatus.NOT_FOUND, "not found")
     base = Path(static_dir)
+    # The canonical link names the page asked for, before the rewrites below.
+    page_path = path
     if path in ("", "/"):
       path = "/index.html"
     # Public per-user URLs (`/u/<username>/...`) all serve the SPA shell; the
@@ -67,6 +69,8 @@ class StaticMixin:
       # header, so a browser can keep an old file under a new page.
       data = data.replace(SW_VERSION_PLACEHOLDER.encode(),
                           get_sw_version(base).encode())
+      data = data.replace(crawl.SHARE_TAGS_PLACEHOLDER.encode(),
+                          crawl.share_tags(self._origin(), page_path).encode())
     self.send_response(HTTPStatus.OK)
     self.send_header("Content-Type", ctype)
     self.send_header("Content-Length", str(len(data)))

@@ -44,6 +44,11 @@ DEFAULT_CONFIG = {
   # actually in front (e.g. ["127.0.0.1"]). Env var takes a comma-separated
   # list.
   "trusted_proxies": [],
+  # Off: robots.txt shuts every crawler out and there is no sitemap. On:
+  # robots.txt allows the site and /sitemap.xml lists the published maps, so
+  # search engines can find them. Link previews (canonical and og:image) are
+  # written either way.
+  "search_indexing": False,
 }
 
 

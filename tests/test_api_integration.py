@@ -2111,3 +2111,92 @@ class TestExportImportRoundTrip(unittest.TestCase):
 
 if __name__ == "__main__":
   unittest.main()
+
+
+class TestCrawlDefaults(unittest.TestCase):
+  """A fresh instance keeps crawlers out but still gives a shared link a
+  preview."""
+
+  def setUp(self):
+    (_server.data_dir / "index.html").write_text(
+      "<head>\n  <!-- __FERD_SHARE_TAGS__ -->\n</head>", encoding="utf-8")
+    # Serving the page reads sw.js for the cache version and keeps it for a
+    # few seconds, so a missing one would leak into the next class.
+    (_server.data_dir / "sw.js").write_text("// stub", encoding="utf-8")
+
+  def _get(self, path, headers=None):
+    req = urllib.request.Request(_server.base_url + path, headers=headers or {})
+    try:
+      with urllib.request.urlopen(req) as r:
+        return r.status, r.headers, r.read().decode("utf-8")
+    except urllib.error.HTTPError as e:
+      return e.code, e.headers, e.read().decode("utf-8")
+
+  def test_robots_shuts_every_crawler_out(self):
+    status, headers, body = self._get("/robots.txt")
+    self.assertEqual(status, 200)
+    self.assertEqual(headers.get("Content-Type"), "text/plain; charset=utf-8")
+    self.assertEqual(body, "User-agent: *\nDisallow: /\n")
+
+  def test_no_sitemap(self):
+    self.assertEqual(self._get("/sitemap.xml")[0], 404)
+
+  def test_published_map_page_carries_canonical_and_og_image(self):
+    origin = _server.base_url  # secure_cookies is off here, so http
+    _, _, body = self._get("/u/someone")
+    self.assertIn(f'<link rel="canonical" href="{origin}/u/someone/">', body)
+    self.assertIn(f'<meta property="og:image" content="{origin}/icons/icon-512.png">', body)
+    self.assertNotIn("__FERD_SHARE_TAGS__", body)
+    _, _, body = self._get("/")
+    self.assertIn(f'<link rel="canonical" href="{origin}/">', body)
+
+  def test_a_malformed_host_writes_no_tags(self):
+    _, _, body = self._get("/", {"Host": 'x"><script>'})
+    self.assertNotIn("canonical", body)
+    self.assertNotIn("<script>", body)
+
+
+class TestCrawlIndexing(unittest.TestCase):
+  """With search_indexing on, robots.txt allows the site and the sitemap
+  lists published maps only."""
+
+  @classmethod
+  def setUpClass(cls):
+    cls.server = _Server({"search_indexing": True, "trusted_proxies": ["127.0.0.1"]})
+    cls.c = Client(cls.server.base_url)
+    status, _ = cls.c.login(SEED_USER, SEED_PW)
+    assert status == 200
+
+  @classmethod
+  def tearDownClass(cls):
+    cls.server.close()
+
+  def _get(self, path, headers=None):
+    req = urllib.request.Request(self.server.base_url + path, headers=headers or {})
+    with urllib.request.urlopen(req) as r:
+      return r.headers, r.read().decode("utf-8")
+
+  def test_robots_allows_the_site_and_names_the_sitemap(self):
+    _, body = self._get("/robots.txt")
+    lines = body.splitlines()
+    self.assertNotIn("Disallow: /", lines)
+    self.assertIn("Allow: /", lines)
+    self.assertIn("Allow: /u/", lines)
+    self.assertIn(f"Sitemap: {self.server.base_url}/sitemap.xml", lines)
+
+  def test_sitemap_lists_published_maps_only(self):
+    loc = f"<loc>{self.server.base_url}/u/{SEED_USER}/</loc>"
+    headers, body = self._get("/sitemap.xml")
+    self.assertEqual(headers.get("Content-Type"), "application/xml; charset=utf-8")
+    self.assertNotIn(loc, body)
+    self.c.request("POST", "/api/me/publish", {"published": True})
+    try:
+      _, body = self._get("/sitemap.xml")
+      self.assertIn(loc, body)
+      self.assertEqual(body.count("<url>"), 1)
+    finally:
+      self.c.request("POST", "/api/me/publish", {"published": False})
+
+  def test_a_trusted_proxy_sets_the_scheme(self):
+    _, body = self._get("/robots.txt", {"X-Forwarded-Proto": "https", "Host": "maps.example.org"})
+    self.assertIn("Sitemap: https://maps.example.org/sitemap.xml", body.splitlines())

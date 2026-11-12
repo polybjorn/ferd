@@ -11,6 +11,7 @@ from http import HTTPStatus
 from pathlib import Path
 from urllib.parse import urlparse
 
+from .. import crawl
 from ..auth import READONLY_POST_ALLOW, SESSION_DAYS, api_token_lookup, hash_token, session_lookup, session_touch
 from ..common import BodyTooLarge, NotFoundError, ValidationError
 from ..store import transaction
@@ -203,6 +204,22 @@ class RequestMixin:
       # forged.
       return forwarded.split(",")[-1].strip() or peer
     return peer
+
+  def _origin(self) -> str | None:
+    """The origin this request reached, for absolute URLs in pages and in
+    robots.txt. The scheme comes from X-Forwarded-Proto when a trusted proxy
+    sent it, else from secure_cookies, which says the site is served over
+    HTTPS. None when the Host header is missing or malformed."""
+    headers = getattr(self, "headers", None)
+    if headers is None:
+      return None
+    scheme = "https" if self.cfg.get("secure_cookies") else "http"
+    peer = self.client_address[0] if self.client_address else "?"
+    if peer in type(self).trusted_proxies:
+      proto = (headers.get("X-Forwarded-Proto") or "").split(",")[0].strip().lower()
+      if proto in ("http", "https"):
+        scheme = proto
+    return crawl.origin(scheme, headers.get("Host"))
 
   def address_string(self) -> str:
     # Feeds the access-log line; same resolution as the rate limiter and

@@ -2,7 +2,7 @@
 // Grades a site-audit --json report on Lighthouse alone: accessibility, best
 // practices and SEO at 100 on phone and desktop for every page named. The
 // audit's other findings are printed but do not fail the job, since some of
-// them wait on decisions (robots.txt and a sitemap, an h1 on the map view).
+// them wait on decisions (an h1 on the map view).
 // The scores are read from the report rather than from its findings, so a
 // renamed finding kind cannot turn this into a check that always passes, and a
 // page or a form with no scores at all fails.

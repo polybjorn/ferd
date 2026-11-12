@@ -16,29 +16,44 @@ ferd.example.com {
         max_size 12MB
     }
 
+    # Block direct access to the SQLite DB and API config.
+    @blocked path /tools/app.db /tools/config.json
+    handle @blocked {
+        respond 404
+    }
+
     # Proxy the API. Stock Caddy has no rate_limit directive, so unlike the
     # nginx example there is no proxy-layer login throttle here. The API
     # enforces its own per-IP login rate limit, which is the actual defense;
     # the nginx rule is just belt-and-suspenders. If you want a matching
     # outer limit, add the caddy-ratelimit community module.
-    reverse_proxy /api/* 127.0.0.1:8091
+    handle /api/* {
+        reverse_proxy 127.0.0.1:8091
+    }
 
-    # The API sets the Content-Security-Policy on the page and the service
-    # worker (docs/configure.md), so serve those two through it rather than
-    # from disk, and do not add a second policy here.
+    # The API writes the page: it sets the Content-Security-Policy and the
+    # link-preview tags (docs/configure.md), and answers robots.txt and the
+    # sitemap. So send the page at /, /index.html and every /u/ path, the
+    # service worker and those two files through it rather than from disk,
+    # and do not add a second policy here. A handle of its own keeps the
+    # try_files below from rewriting /u/<name>/ to /index.html first, which
+    # would lose the path the canonical link names.
     # Needs static_dir set in tools/config.json.
-    @shell path /index.html /sw.js
-    reverse_proxy @shell 127.0.0.1:8091
+    @shell path / /index.html /sw.js /robots.txt /sitemap.xml /u/*
+    handle @shell {
+        reverse_proxy 127.0.0.1:8091
+    }
 
-    # Block direct access to the SQLite DB and API config.
-    @blocked path /tools/app.db /tools/config.json
-    respond @blocked 404
+    handle {
+        # The modules import each other by plain URL, so a browser that
+        # guesses a lifetime for one can run it against a newer page.
+        header /app/* Cache-Control "no-cache"
 
-    # The modules import each other by plain URL, so a browser that guesses a
-    # lifetime for one can run it against a newer page.
-    header /app/* Cache-Control "no-cache"
-
-    # Static site with SPA-style fallback.
-    try_files {path} {path}/ /index.html
-    file_server
+        # Static site with SPA-style fallback; the fallback page goes through
+        # the API too.
+        try_files {path} /index.html
+        @fallback path /index.html
+        reverse_proxy @fallback 127.0.0.1:8091
+        file_server
+    }
 }
