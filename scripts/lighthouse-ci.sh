@@ -17,7 +17,7 @@ mkdir -p e2e-logs
 report=e2e-logs/site-audit.json
 rm -f "$report"
 
-if [ -n "${SITE_AUDIT:-}" ]; then audit=(node "$SITE_AUDIT")
+if [ -n "${SITE_AUDIT:-}" ]; then audit=(node "$(cd "$(dirname "$SITE_AUDIT")" && pwd)/$(basename "$SITE_AUDIT")")
 elif command -v site-audit >/dev/null; then audit=(site-audit)
 else
   echo "lighthouse-ci: set SITE_AUDIT to site-audit.mjs, or put site-audit on PATH" >&2
@@ -33,6 +33,16 @@ if [ ! -f site-config.json ]; then
 fi
 
 out=$(mktemp)
+# site-audit reads site-audit.json from its working directory. This run serves
+# the opt-in robots.txt, so it audits from a copy without crawl.private, which
+# would report that robots.txt as a private site letting crawlers in.
+cfgdir=$(mktemp -d)
+node -e '
+  const fs = require("fs");
+  const c = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  if (c.crawl) delete c.crawl.private;
+  fs.writeFileSync(process.argv[2] + "/site-audit.json", JSON.stringify(c));
+' site-audit.json "$cfgdir"
 # Its stderr is the API log, kept in e2e-logs/api.log as well. Search
 # indexing is on, because a default instance's robots.txt shuts crawlers out on
 # purpose and Lighthouse counts that against SEO; the score held here is the
@@ -43,6 +53,7 @@ cleanup() {
   kill "$server" 2>/dev/null || true
   wait "$server" 2>/dev/null || true
   rm -f "$out"
+  rm -rf "$cfgdir"
   [ -z "$made_config" ] || rm -f site-config.json
 }
 trap cleanup EXIT
@@ -59,6 +70,6 @@ done
 base="http://127.0.0.1:$port/"
 # site-audit exits 1 on any finding, and some of its findings are not this
 # gate's to hold; the gate reads the report instead.
-"${audit[@]}" --lighthouse --runs "${RUNS:-1}" --json "$report" "$base" / /u/demo || true
+(cd "$cfgdir" && "${audit[@]}" --lighthouse --runs "${RUNS:-1}" --json "$repo/$report" "$base" / /u/demo) || true
 [ -f "$report" ] || { echo "lighthouse-ci: site-audit wrote no report" >&2; exit 1; }
 node scripts/lighthouse-gate.js "$report" "$base" "${base}u/demo"
