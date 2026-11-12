@@ -626,6 +626,8 @@ export const NB = {
   'app.loadFailed': 'Kunne ikke laste data',
   'app.otherTab': 'Ferd er åpen i en annen fane. Lukk den for å fullføre oppdateringen.',
   'app.tabPlaces': 'Steder',
+  'app.skipToContent': 'Hopp til innholdet',
+  'app.publicTitle': '{user} - {brand}',
   'app.tabRoutes': 'Ruter',
 
   'pwa.offlineReadOnly': 'Du er frakoblet. Viser det sist lastede kartet.',

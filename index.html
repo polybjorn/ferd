@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ferd</title>
+  <meta name="description" content="Ferd keeps the places you want to visit and the routes you have walked on one map.">
   <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg">
   <link rel="manifest" href="/icons/manifest.webmanifest">
   <meta name="theme-color" content="#6aaeee">
@@ -66,6 +67,7 @@
   <link rel="stylesheet" href="/webview-notice.css?v=__FERD_CACHE_VERSION__">
 </head>
 <body class="app-booting">
+  <a class="ui-button skip-link" href="#app" id="skip-link">Skip to content</a>
   <div id="webview-notice" role="alert" hidden>
     <h1>Update your browser to use Ferd</h1>
     <p>Ferd needs Chrome 99 or a newer browser. On Android, update Android System WebView and Chrome from the Play Store, then reopen Ferd.</p>
@@ -106,7 +108,7 @@
     <button type="button" class="ui-bottom-bar-item" id="bar-add" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg><span>Add</span></button>
     <a class="ui-bottom-bar-item" href="#/you" id="bar-you"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg><span>You</span></a>
   </nav>
-  <div id="app"><div class="app-state" aria-busy="true"><p class="ui-hint" role="status">Loading...</p></div></div>
+  <main id="app" tabindex="-1"><div class="app-state" aria-busy="true"><p class="ui-hint" role="status">Loading...</p></div></main>
   <div id="modal-root"></div>
 
   <script src="/vendor/leaflet/leaflet.js"></script>

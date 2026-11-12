@@ -16,6 +16,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - A place's popup has an Edit button, so editing no longer depends on finding the right-click or long-press menu. It shows when you're signed in, and never on a public map.
 - `HEAD` requests for static files, so `curl -I` shows their headers.
 - A language setting under Settings > General. It starts from the browser's language and falls back to English, syncs to your account, and applies at once without a reload. Numbers group in that language's style (7 340,9 in Norwegian) and lists sort in its alphabetical order. Norwegian bokmål is offered with the whole interface translated. What you entered yourself, such as names, notes and categories, and catalog entries keep their own wording, and dates show as 2026-11-08 in every language.
+- A Skip to content link, the first stop when moving through the page with Tab. Screen readers now find the page's main area as a landmark and the sign-in page's name as its heading, search results show a short description of Ferd, and a published map's browser tab carries its owner's name.
 
 ### Changed
 - Buttons in dialogs use the shared ui-foundation button: the text is a little larger and darker, with no extra letter spacing, and filled buttons take the theme's accent the same way everywhere. The category colour dots are round again, and the Filters button in Add > Browse matches the one on the list pages.

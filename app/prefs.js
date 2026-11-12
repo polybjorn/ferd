@@ -220,6 +220,8 @@ export function refreshTabVisibility() {
   // The count sits in the list page's search box, so a tab is its label.
   if (tabPlaces) { tabPlaces.style.display = placesEnabled() ? '' : 'none'; tabPlaces.textContent = t('app.tabPlaces'); }
   if (tabTrails) { tabTrails.style.display = routesEnabled() ? '' : 'none'; tabTrails.textContent = t('app.tabRoutes'); }
+  const skip = document.getElementById('skip-link');
+  if (skip) skip.textContent = t('app.skipToContent');
   const tabHistory = document.getElementById('tab-history');
   if (tabHistory) tabHistory.style.display = historyEnabled() ? '' : 'none';
   // Lists and Search both cover places, areas and routes, so they go with

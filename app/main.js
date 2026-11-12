@@ -1,5 +1,5 @@
 import { DATA_FILES, state } from './core.js';
-import { applyAuth, fetchJson, hasServer, isReadOnly, serverBase, serverFileUrl } from './server.js';
+import { applyAuth, detectViewer, fetchJson, hasServer, isReadOnly, serverBase, serverFileUrl } from './server.js';
 import { effect } from '@preact/signals';
 import {
   authCacheKey, discardOp, dismissKept, issueText, loadPublic, metaGet, metaSet,
@@ -41,9 +41,14 @@ if (window.matchMedia) {
 function applyConfig(cfg) {
   state.config = Object.assign({}, DEFAULT_CONFIG, cfg || {});
   state.config.features = Object.assign({}, DEFAULT_CONFIG.features, (cfg && cfg.features) || {});
-  document.title = state.config.brand || DEFAULT_CONFIG.brand;
+  const brand = state.config.brand || DEFAULT_CONFIG.brand;
+  // A published map carries its owner's name, so its tab and a search result
+  // tell it from the sign-in page.
+  const viewer = detectViewer();
+  const owner = viewer.mode === 'public' ? viewer.username : null;
+  document.title = owner ? t('app.publicTitle', { user: owner, brand }) : brand;
   const brandEl = document.getElementById('nav-brand-text');
-  if (brandEl) brandEl.textContent = state.config.brand || DEFAULT_CONFIG.brand;
+  if (brandEl) brandEl.textContent = brand;
   refreshTabVisibility();
 }
 
@@ -211,6 +216,13 @@ function startup() {
     });
   });
 }
+
+// The skip link moves focus without following its href: the router reads
+// any hash as a route, so #app would open the map.
+document.getElementById('skip-link')?.addEventListener('click', function(e) {
+  e.preventDefault();
+  document.getElementById('app')?.focus();
+});
 
 applyLanguage();
 bindStoreToState();

@@ -134,8 +134,8 @@ function normalizeServerUrl(raw) {
 /** @param {{ brand: string, localId: string, children?: any }} props */
 function SignInShell({ brand, localId, children }) {
   return html`<div class="signin-page">
-    <img class="signin-logo" src="/icons/favicon.svg" alt="" />
-    <div class="signin-brand">${brand}</div>
+    <img class="signin-logo" src="/icons/favicon.svg" alt="" width="64" height="64" />
+    <h1 class="signin-brand">${brand}</h1>
     <div class="signin-card">
       ${children}
       <div class="signin-alt"><button type="button" id=${localId} onClick=${enterLocalMode}>${t('signIn.continueLocal')}</button></div>

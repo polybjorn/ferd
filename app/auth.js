@@ -206,7 +206,7 @@ export function openAboutModal() {
     <${DialogHead} title=${t('about.title')} />
     <div class="ui-dialog-body">
       <div class="about-body">
-        <img class="about-logo" src="/icons/favicon.svg" alt="" />
+        <img class="about-logo" src="/icons/favicon.svg" alt="" width="64" height="64" />
         <div class="about-brand">${brand}</div>
         <div class="about-version">${displayVersion}</div>
         ${buildLabel && html`<div class="about-build">${buildLabel}</div>`}

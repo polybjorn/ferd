@@ -1076,6 +1076,15 @@ body.hide-map-filter .map-phone-buttons { order: 1; }
 body.signin-only .app-nav,
 body.app-booting .app-nav { display: none; }
 body:is(.signin-only, .app-booting) .pwa-notices { display: none; }
+/* Off screen until a keyboard reaches it. */
+.skip-link {
+  position: fixed;
+  top: var(--ui-space-2);
+  left: var(--ui-space-2);
+  z-index: var(--ui-z-toast);
+  transform: translateY(-200%);
+}
+.skip-link:focus { transform: none; }
 body.signin-only #app {
   height: 100vh;
   height: 100dvh;
@@ -1099,7 +1108,9 @@ body.signin-only #app {
   display: block;
 }
 .signin-page .signin-brand {
+  margin: 0;
   font-size: var(--ui-text-lg);
+  font-weight: 400;
   letter-spacing: 0.08em;
   color: var(--text);
   margin-bottom: var(--ui-space-1);

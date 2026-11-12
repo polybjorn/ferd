@@ -629,6 +629,8 @@ const STRINGS = {
   'app.loadFailed': 'Failed to load data',
   'app.otherTab': 'Ferd is open in another tab. Close it to finish updating.',
   'app.tabPlaces': 'Places',
+  'app.skipToContent': 'Skip to content',
+  'app.publicTitle': '{user} - {brand}',
   'app.tabRoutes': 'Routes',
 
   'pwa.offlineReadOnly': "You're offline. Showing the last loaded map.",
