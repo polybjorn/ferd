@@ -513,7 +513,10 @@ export function renderUnifiedMap(focus) {
     if (routeBounds.isValid()) combined.extend(routeBounds);
     const areaBounds = state._areaGroup.getBounds();
     if (areaBounds.isValid()) combined.extend(areaBounds);
-    if (combined.isValid()) map.fitBounds(combined, { padding: [40, 40] });
+    // Cap at the zoom a place click uses: a single place, or several at one
+    // spot, would otherwise open at the deepest zoom with every neighbour
+    // off screen.
+    if (combined.isValid()) map.fitBounds(combined, { padding: [40, 40], maxZoom: 12 });
   }
 
   // Filter panel
