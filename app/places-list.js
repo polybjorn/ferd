@@ -13,7 +13,7 @@ import { state } from './core.js';
  */
 import { fetchJson, hasServer } from './server.js';
 import { dataLayer } from './store.js';
-import { refreshOpenPlacePopup, redrawPlaces, refreshPlacesPresentation } from './map/index.js';
+import { loadedMap } from './map/load.js';
 import { api } from './auth.js';
 import { closeModal } from './modal.js';
 import { language, t } from './i18n.js';
@@ -313,7 +313,7 @@ function CatalogBulkUpdate() {
   /** @param {string[]} errors */
   const finish = errors => {
     try {
-      refreshPlacesPresentation();
+      loadedMap()?.refreshPlacesPresentation();
     } catch (err) {
       setProgress('');
       setError(t('common.failed', { message: /** @type {Error} */ (err).message }));
@@ -385,8 +385,8 @@ function CatalogUpdate({ place, entry, changes }) {
     dataLayer.updatePlace({ id: String(place.id), place: buildCatalogRefreshPayload(place, entry, changes, applyFields) })
       .then(() => {
         if (live.current) closeModal();
-        redrawPlaces();
-        refreshOpenPlacePopup();
+        loadedMap()?.redrawPlaces();
+        loadedMap()?.refreshOpenPlacePopup();
       })
       .catch((/** @type {Error} */ err) => { setBusy(false); setError(t('common.failed', { message: err.message })); });
   };

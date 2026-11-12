@@ -2,7 +2,7 @@ import { render } from 'preact';
 import { state } from './core.js';
 import { applyAuth, hasServer, isReadOnly, serverBase, setBearerToken, setServerless } from './server.js';
 import { clearRecentPicks, logsEnabled, refreshTabVisibility } from './prefs.js';
-import { parseOverlays, TOPO_CREDIT } from './map/index.js';
+import { loadMap } from './map/load.js';
 import { openCatalogBulkUpdateModal, placesWithCatalogUpdates } from './places-list.js';
 import { openLogsModal, openSettingsModal } from './lazy-open.js';
 import { openConfirmModal } from './select.js';
@@ -198,28 +198,32 @@ export function openAboutModal() {
     if (plus >= 0) buildLabel = t('about.build', { build: appVersion.slice(plus + 1) });
   }
   const brand = (state.config && state.config.brand) || 'Ferd';
-  const overlayCredits = parseOverlays(state.config && /** @type {typeof state.config & { overlays?: unknown }} */ (state.config).overlays)
-    .map(ov => ov.attribution).filter(Boolean);
   // Map credits are attribution markup from the layers and the site config.
-  const credits = [TOPO_CREDIT].concat(overlayCredits).join('<br>');
-  const dialog = openViewModal(html`<div class="ui-dialog-handle" aria-hidden="true"></div>
-    <${DialogHead} title=${t('about.title')} />
-    <div class="ui-dialog-body">
-      <div class="about-body">
-        <img class="about-logo" src="/icons/favicon.svg" alt="" width="64" height="64" />
-        <div class="about-brand">${brand}</div>
-        <div class="about-version">${displayVersion}</div>
-        ${buildLabel && html`<div class="about-build">${buildLabel}</div>`}
-        <div class="about-tagline">${t('about.tagline')}</div>
-        <div class="about-links">
-          <a href="https://github.com/polybjorn/ferd" target="_blank" rel="noopener">${t('about.source')}</a>
-          <span class="about-sep">·</span>
-          <a href="https://github.com/polybjorn/ferd/blob/main/LICENSE" target="_blank" rel="noopener">${t('about.license')}</a>
-          <span class="about-sep">·</span>
-          <a href="https://github.com/polybjorn/ferd/blob/main/vendor/NOTICES.md" target="_blank" rel="noopener">${t('about.notices')}</a>
+  // The map is already up wherever About is offered; failing that the dialog
+  // still opens, without them.
+  return loadMap().then(({ map }) => map, () => null).then(map => {
+    const overlayCredits = map ? map.parseOverlays(state.config && /** @type {typeof state.config & { overlays?: unknown }} */ (state.config).overlays)
+      .map(ov => ov.attribution).filter(Boolean) : [];
+    const credits = map ? [map.TOPO_CREDIT].concat(overlayCredits).join('<br>') : '';
+    const dialog = openViewModal(html`<div class="ui-dialog-handle" aria-hidden="true"></div>
+      <${DialogHead} title=${t('about.title')} />
+      <div class="ui-dialog-body">
+        <div class="about-body">
+          <img class="about-logo" src="/icons/favicon.svg" alt="" width="64" height="64" />
+          <div class="about-brand">${brand}</div>
+          <div class="about-version">${displayVersion}</div>
+          ${buildLabel && html`<div class="about-build">${buildLabel}</div>`}
+          <div class="about-tagline">${t('about.tagline')}</div>
+          <div class="about-links">
+            <a href="https://github.com/polybjorn/ferd" target="_blank" rel="noopener">${t('about.source')}</a>
+            <span class="about-sep">·</span>
+            <a href="https://github.com/polybjorn/ferd/blob/main/LICENSE" target="_blank" rel="noopener">${t('about.license')}</a>
+            <span class="about-sep">·</span>
+            <a href="https://github.com/polybjorn/ferd/blob/main/vendor/NOTICES.md" target="_blank" rel="noopener">${t('about.notices')}</a>
+          </div>
+          <div class="about-credits" dangerouslySetInnerHTML=${{ __html: credits }}></div>
         </div>
-        <div class="about-credits" dangerouslySetInnerHTML=${{ __html: credits }}></div>
-      </div>
-    </div>`, { phone: 'sheet' });
-  dialog.classList.add('narrow-dialog');
+      </div>`, { phone: 'sheet' });
+    dialog.classList.add('narrow-dialog');
+  });
 }

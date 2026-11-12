@@ -22,6 +22,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Buttons in dialogs use the shared ui-foundation button: the text is a little larger and darker, with no extra letter spacing, and filled buttons take the theme's accent the same way everywhere. The category colour dots are round again, and the Filters button in Add > Browse matches the one on the list pages.
 - The first load skips the route page and the elevation chart (about 100 KB), which load when a route page first opens. They stay cached for offline use.
 - The Places, Routes, Areas, History and You pages load the first time you open them instead of at startup, so the first load is about 60 KB smaller. They still open offline.
+- The sign-in page opens sooner: it no longer fetches the map, Leaflet or the router, which load once you are signed in or open a published map. The page downloads about 400 KB less, and the map still opens offline.
 - Places, Routes, Areas and History stay as you left them when you switch to another page: coming back from another list, the map or a route's page finds the list at the same scroll position, with its pictures and route outlines in place and without the groups fading in again.
 - The place and area Edit dialogs, the route details form and the map's right-click menu load the first time you use them, so the first load is about 48 KB smaller. They still work offline.
 - The styles for the route page, the list pages and the dialogs load with them, so the first load is about 42 KB smaller. They still work offline.

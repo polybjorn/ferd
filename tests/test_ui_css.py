@@ -548,15 +548,45 @@ class ModuleLists(unittest.TestCase):
     "places/edit-place.js", "places/place-payload.js", "routes/route-meta.js", "routes/route-payload.js",
   }
 
+  # Fetched by app/map/load.js once the viewer is past the sign-in check.
+  MAP_LOAD = (ROOT / "app" / "map" / "load.js").read_text(encoding="utf-8")
+  DEFERRED = set(re.findall(r"^  '/app/([^']+\.js)',$", MAP_LOAD, re.M))
+
+  @staticmethod
+  def static_graph(*starts):
+    # The modules reached by static import from these, as paths under app/.
+    seen, todo = set(), list(starts)
+    while todo:
+      rel = todo.pop()
+      if rel in seen:
+        continue
+      seen.add(rel)
+      src = (ROOT / "app" / rel).read_text(encoding="utf-8")
+      for spec in re.findall(r"^\s*(?:import|export)\s[^'\"]*?from\s*'(\.[^']+)'|^\s*import\s*'(\.[^']+)'", src, re.M):
+        spec = spec[0] or spec[1]
+        todo.append(str((ROOT / "app" / rel).parent.joinpath(spec).resolve().relative_to(ROOT / "app")))
+    return seen
+
   def test_every_module_is_preloaded(self):
     # A module left out still works, one network round trip slower per level.
+    self.assertIn("map/index.js", self.DEFERRED, "read no deferred list from app/map/load.js")
     for path in sorted((ROOT / "app").rglob("*.js")):
       rel = str(path.relative_to(ROOT / "app"))
       tag = f'<link rel="modulepreload" href="/app/{rel}">'
-      if rel in self.LAZY:
+      if rel in self.LAZY or rel in self.DEFERRED:
         self.assertNotIn(tag, INDEX)
       else:
         self.assertIn(tag, INDEX)
+
+  def test_first_load_is_the_preload_list(self):
+    # An eager module that imports the map statically pulls Leaflet's
+    # dependants back into the sign-in page's load.
+    preloaded = set(re.findall(r'<link rel="modulepreload" href="/app/([^"]+)">', INDEX))
+    self.assertEqual(self.static_graph("main.js"), preloaded)
+
+  def test_deferred_list_is_the_map_graph(self):
+    graph = self.static_graph("map/index.js", "router.js") - self.static_graph("main.js")
+    self.assertEqual(graph, self.DEFERRED)
 
 
 class NoInlineScript(unittest.TestCase):

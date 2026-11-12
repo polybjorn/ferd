@@ -1,5 +1,5 @@
 import { clearRouteColorCache } from './server.js';
-import { refreshCategoryColors } from './map/index.js';
+import { loadedMap } from './map/load.js';
 
 export const THEMES = ['catppuccin', 'dracula', 'gruvbox', 'nord', 'rose-pine', 'solarized', 'tokyo-night'];
 export const MODES = ['dark', 'light', 'system'];
@@ -36,7 +36,7 @@ export function applyTheme(theme, mode) {
   clearRouteColorCache();
   // The uncategorized bucket copies --muted, and canvas clusters read theme
   // variables on each draw, so both need the new theme's values now.
-  refreshCategoryColors();
+  loadedMap()?.refreshCategoryColors();
 }
 const PIN_STYLES = ['ring', 'pin', 'dot', 'tag'];
 export function getPinStyle() {

@@ -36,7 +36,7 @@ function themeEnv() {
     document: { documentElement: { setAttribute: k => calls.push(k) } },
     getStoredMode: () => 'system',
     getStoredTheme: () => 'nord',
-    refreshCategoryColors: () => calls.push('refresh'),
+    loadedMap: () => ({ refreshCategoryColors: () => calls.push('refresh') }),
   };
   return run(`function clearRouteColorCache() {}\n${fn('applyTheme')}\n${systemListener}\nglobalThis.__applyTheme = applyTheme;`, ctx);
 }

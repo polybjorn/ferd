@@ -1,7 +1,8 @@
 'use strict';
-// The map sits behind one boundary: app/map/index.js. Modules under app/map/
-// may call Leaflet and hold its objects; every other module reaches the map
-// through index.js alone and never touches Leaflet or the layers it keeps.
+// The map sits behind one boundary: app/map/index.js, and app/map/load.js,
+// which loads it after sign-in. Modules under app/map/ may call Leaflet and
+// hold its objects; every other module reaches the map through those two
+// alone and never touches Leaflet or the layers it keeps.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -35,11 +36,13 @@ test('no module outside app/map/ reaches the map layers kept on state', () => {
   }
 });
 
-test('modules outside app/map/ import the map through index.js only', () => {
+test('modules outside app/map/ import the map through index.js or load.js only', () => {
   for (const { file, src } of outside) {
     for (const [, spec] of src.matchAll(/^import [^;]*? from '([^']+)';$/gm)) {
       const target = path.relative(APP, path.join(APP, path.dirname(file), spec));
-      if (target.startsWith('map' + path.sep)) assert.equal(target, path.join('map', 'index.js'), file + ' imports ' + spec);
+      if (target.startsWith('map' + path.sep)) {
+        assert.ok([path.join('map', 'index.js'), path.join('map', 'load.js')].includes(target), file + ' imports ' + spec);
+      }
     }
   }
 });

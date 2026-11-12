@@ -17,13 +17,10 @@ import {
 } from './theme.js';
 import { apiUrl, renderAuthWidget } from './auth.js';
 import { bindStoreToState } from './select.js';
-import { bindMapToStore } from './map/index.js';
+import { loadMap } from './map/load.js';
 import { renderServerPicker, renderSignInPage } from './sign-in.js';
-import { wrappedRouter } from './router.js';
 import './area-geo.js';
 import './tags.js';
-import './countries.js';
-import './router.js';
 import { saveDownload } from './download.js';
 import './modal.js';
 import './bottom-bar.js';
@@ -68,6 +65,10 @@ function loadData() {
 
 export function loadDataAndRender() {
   const v = state.viewer;
+  // Fetched alongside the data rather than after it. A page that never
+  // shows a map (an error) leaves a failure here unseen.
+  const map = loadMap();
+  map.catch(() => {});
   return loadData().then(function(loaded) {
     loadSyncedPrefs();
     applyLanguage();
@@ -81,30 +82,38 @@ export function loadDataAndRender() {
       mountPage(html`<${AppError} msg=${t('app.loadFailed')} />`);
       return;
     }
-    // Apply the (now-synced) theme and reveal the app chrome in the same
-    // synchronous tick as the first render, so neither the theme nor the
-    // nav visibly changes on the sign-in screen beforehand.
-    try { applyTheme(getStoredTheme(), getStoredMode()); } catch {}
-    // Seed the session's map visibility from the saved defaults. The filter
-    // panel overrides these in-session without touching the stored defaults.
-    state.hiddenCategories = new Set(getJsonListPref('default-hidden-categories'));
-    state.hiddenRegions = new Set(getJsonListPref('default-hidden-regions'));
-    state.showVisited = getDefaultShow('visited');
-    state.showWant = getDefaultShow('want');
-    state.showCompleted = getDefaultShow('completed');
-    state.showPlanned = getDefaultShow('planned');
-    document.body.classList.remove('app-booting', 'signin-only');
-    wrappedRouter();
-    updateOfflineBanner();
-    // Warm the catalog cache in the background so the Browse tab in the
-    // Add modal renders instantly the first time it's opened, instead of
-    // flashing the Loading placeholder. Authed users only.
-    if (state.auth && state.auth.authenticated && !isReadOnly() && catalogEnabled() && state._catalogCache == null) {
-      fetchCatalog().then(entries => {
-        state._catalogCache = Array.isArray(entries) ? entries : [];
-      }).catch(() => {});
-    }
+    return map.then(({ router }) => showApp(router.wrappedRouter), () => {
+      document.body.classList.remove('app-booting', 'signin-only');
+      mountPage(html`<${AppError} msg=${t('app.loadFailed')} />`);
+    });
   });
+}
+
+/** @param {() => void} wrappedRouter */
+function showApp(wrappedRouter) {
+  // Apply the (now-synced) theme and reveal the app chrome in the same
+  // synchronous tick as the first render, so neither the theme nor the
+  // nav visibly changes on the sign-in screen beforehand.
+  try { applyTheme(getStoredTheme(), getStoredMode()); } catch {}
+  // Seed the session's map visibility from the saved defaults. The filter
+  // panel overrides these in-session without touching the stored defaults.
+  state.hiddenCategories = new Set(getJsonListPref('default-hidden-categories'));
+  state.hiddenRegions = new Set(getJsonListPref('default-hidden-regions'));
+  state.showVisited = getDefaultShow('visited');
+  state.showWant = getDefaultShow('want');
+  state.showCompleted = getDefaultShow('completed');
+  state.showPlanned = getDefaultShow('planned');
+  document.body.classList.remove('app-booting', 'signin-only');
+  wrappedRouter();
+  updateOfflineBanner();
+  // Warm the catalog cache in the background so the Browse tab in the
+  // Add modal renders instantly the first time it's opened, instead of
+  // flashing the Loading placeholder. Authed users only.
+  if (state.auth && state.auth.authenticated && !isReadOnly() && catalogEnabled() && state._catalogCache == null) {
+    fetchCatalog().then(entries => {
+      state._catalogCache = Array.isArray(entries) ? entries : [];
+    }).catch(() => {});
+  }
 }
 
 // A request that stalls instead of failing (a connection dropped on a poor
@@ -226,7 +235,6 @@ document.getElementById('skip-link')?.addEventListener('click', function(e) {
 
 applyLanguage();
 bindStoreToState();
-bindMapToStore();
 const booted = startup();
 
 // PWA: offline indicator + service worker registration + update toast.

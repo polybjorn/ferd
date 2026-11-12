@@ -23,40 +23,24 @@
   <script type="importmap">
     { "imports": { "preact": "/vendor/preact/preact.js", "preact/hooks": "/vendor/preact/hooks.js", "htm": "/vendor/htm/htm.js", "@preact/signals": "/vendor/signals/signals.js", "@preact/signals-core": "/vendor/signals/signals-core.js" } }
   </script>
-  <!-- Without these, each import is found only after its parent arrives. -->
+  <!-- Without these, each import is found only after its parent arrives. The
+       map, Leaflet and the router are left out: app/map/load.js fetches them
+       once the viewer is past the sign-in check. -->
   <link rel="modulepreload" href="/app/area-geo.js">
   <link rel="modulepreload" href="/app/auth.js">
   <link rel="modulepreload" href="/app/bottom-bar.js">
   <link rel="modulepreload" href="/app/bar-motion.js">
   <link rel="modulepreload" href="/app/core.js">
-  <link rel="modulepreload" href="/app/countries.js">
   <link rel="modulepreload" href="/app/download.js">
   <link rel="modulepreload" href="/app/gpx-text.js">
   <link rel="modulepreload" href="/app/i18n-nb.js">
   <link rel="modulepreload" href="/app/i18n.js">
   <link rel="modulepreload" href="/app/lazy-open.js">
+  <link rel="modulepreload" href="/app/map/load.js">
   <link rel="modulepreload" href="/app/main.js">
-  <link rel="modulepreload" href="/app/map/area-layer.js">
-  <link rel="modulepreload" href="/app/map/country-layer.js">
-  <link rel="modulepreload" href="/app/map/home-map.js">
-  <link rel="modulepreload" href="/app/map/index.js">
-  <link rel="modulepreload" href="/app/map/map-actions.js">
-  <link rel="modulepreload" href="/app/map/map-layers.js">
-  <link rel="modulepreload" href="/app/map/map-markers.js">
-  <link rel="modulepreload" href="/app/map/map-panel.js">
-  <link rel="modulepreload" href="/app/map/map-phone.js">
-  <link rel="modulepreload" href="/app/map/map-popups.js">
-  <link rel="modulepreload" href="/app/map/map-wheel.js">
-  <link rel="modulepreload" href="/app/map/pick-coords.js">
-  <link rel="modulepreload" href="/app/map/place-layer.js">
-  <link rel="modulepreload" href="/app/map/popups.js">
-  <link rel="modulepreload" href="/app/map/route-layer.js">
-  <link rel="modulepreload" href="/app/map/search-keys.js">
-  <link rel="modulepreload" href="/app/map/sync.js">
   <link rel="modulepreload" href="/app/modal.js">
   <link rel="modulepreload" href="/app/places-list.js">
   <link rel="modulepreload" href="/app/prefs.js">
-  <link rel="modulepreload" href="/app/router.js">
   <link rel="modulepreload" href="/app/select.js">
   <link rel="modulepreload" href="/app/server.js">
   <link rel="modulepreload" href="/app/sign-in.js">
@@ -111,10 +95,6 @@
   <main id="app" tabindex="-1"><div class="app-state" aria-busy="true"><p class="ui-hint" role="status">Loading...</p></div></main>
   <div id="modal-root"></div>
 
-  <script src="/vendor/leaflet/leaflet.js"></script>
-  <script src="/vendor/leaflet-tilelayer-nogap/L.TileLayer.NoGap.js"></script>
-  <script src="/vendor/supercluster/supercluster.min.js"></script>
-  <script src="/vendor/leaflet-gpx/gpx.js"></script>
   <script src="/ui.js?v=__FERD_CACHE_VERSION__" defer></script>
   <script type="module" src="/app/main.js"></script>
 </body>

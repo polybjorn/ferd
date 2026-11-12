@@ -113,7 +113,9 @@ test('the Edit dialog moves a saved place to a picked position', async ({ page, 
   await expect.poll(async () => {
     const places = await (await page.request.get('/api/places')).json();
     const p = places.find((/** @type {{ name: string }} */ q) => q.name === name);
-    return p && Math.abs(p.lat - 46.47) + Math.abs(p.lon - 9.82) > 0.001;
+    // The map can open fitted to this one place at its deepest zoom, where the
+    // click lands well under 0.001 degrees from the pin.
+    return p && Math.abs(p.lat - 46.47) + Math.abs(p.lon - 9.82) > 0.0001;
   }, { timeout: 15_000 }).toBe(true);
 
   expect(fenced.external).toEqual([]);
