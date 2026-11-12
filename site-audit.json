@@ -1,3 +1,4 @@
 {
+  "allowHosts": ["tile.openstreetmap.org", "a.tile.opentopomap.org", "b.tile.opentopomap.org", "c.tile.opentopomap.org"],
   "crawl": { "private": true }
 }
