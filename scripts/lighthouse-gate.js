@@ -1,8 +1,9 @@
 'use strict';
-// Grades a site-audit --json report on Lighthouse alone: accessibility, best
-// practices and SEO at 100 on phone and desktop for every page named. The
-// audit's other findings are printed but do not fail the job, since some of
-// them wait on decisions (an h1 on the map view).
+// Grades a site-audit --json report: accessibility, best practices and SEO at
+// 100 on phone and desktop for every page named, and no other finding on any
+// page in the report. An exception belongs in site-audit.json, which
+// site-audit reads before it reports. Its "check by eye" lines are not findings
+// to site-audit either, so they are printed and do not fail the job.
 // The scores are read from the report rather than from its findings, so a
 // renamed finding kind cannot turn this into a check that always passes, and a
 // page or a form with no scores at all fails.
@@ -12,6 +13,8 @@ const { readFileSync } = require('node:fs');
 
 const FLOORS = { accessibility: 100, 'best-practices': 100, seo: 100 };
 const FORMS = ['mobile', 'desktop'];
+const SCORES = 'lighthouse scores';
+const NOTE = 'check by eye';
 
 /**
  * @param {any} report site-audit's --json output
@@ -47,11 +50,12 @@ function grade(report, pages) {
   }
   for (const [url, page] of Object.entries(byUrl)) {
     for (const f of (/** @type {any} */ (page)).findings || []) {
-      if (f.kind === 'lighthouse scores') continue;
+      if (f.kind === SCORES) continue;
+      if (f.kind === NOTE) notes.push(`${url}: ${f.detail}`);
       // A run that failed outright is already a missing score above, but its
       // message says why.
-      if (f.kind === 'lighthouse') failures.push(`${url}: ${f.detail}`);
-      else notes.push(`${url}: ${f.kind}: ${f.detail}`);
+      else if (f.kind === 'lighthouse') failures.push(`${url}: ${f.detail}`);
+      else failures.push(`${url}: ${f.kind}: ${f.detail}`);
     }
   }
   return { failures: [...new Set(failures)], notes };
@@ -65,15 +69,15 @@ function main() {
   }
   const { failures, notes } = grade(JSON.parse(readFileSync(path, 'utf8')), pages);
   if (notes.length) {
-    console.log(`Not gated here (${notes.length}):`);
+    console.log(`To check by eye (${notes.length}):`);
     for (const n of notes) console.log(`  ${n}`);
   }
   if (failures.length) {
-    console.log(`Lighthouse below its floors (${failures.length}):`);
+    console.log(`Site audit failed (${failures.length}):`);
     for (const f of failures) console.log(`  ${f}`);
     process.exit(1);
   }
-  console.log(`Lighthouse at 100 for accessibility, best practices and SEO on ${pages.length} pages, phone and desktop.`);
+  console.log(`Lighthouse at 100 for accessibility, best practices and SEO on ${pages.length} pages, phone and desktop, and no other findings.`);
 }
 
 if (require.main === module) main();

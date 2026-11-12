@@ -2,8 +2,9 @@
 # Holds the sign-in page and a published map at 100 on Lighthouse
 # accessibility, best practices and SEO, on phone and desktop. Starts the e2e
 # stack (tests/e2e/server.py) with the demo data and the demo map published,
-# runs site-audit over / and /u/demo, and grades the Lighthouse scores alone
-# with scripts/lighthouse-gate.js.
+# runs site-audit over / and /u/demo, and fails with scripts/lighthouse-gate.js
+# on a score under its floor or on any other finding. Exceptions go in
+# site-audit.json.
 #
 # SITE_AUDIT names site-audit.mjs, as ci-actions' site-audit/fetch.sh exports
 # it; locally it falls back to a `site-audit` command on PATH. RUNS sets the
@@ -68,8 +69,8 @@ done
 [ -n "$port" ] || { echo "lighthouse-ci: the e2e server was not ready in 60 s" >&2; exit 1; }
 
 base="http://127.0.0.1:$port/"
-# site-audit exits 1 on any finding, and some of its findings are not this
-# gate's to hold; the gate reads the report instead.
+# site-audit exits 1 on any finding; the gate reads the report instead, so a
+# missing score fails too and the failure names the page and the finding.
 (cd "$cfgdir" && "${audit[@]}" --lighthouse --runs "${RUNS:-1}" --json "$repo/$report" "$base" / /u/demo) || true
 [ -f "$report" ] || { echo "lighthouse-ci: site-audit wrote no report" >&2; exit 1; }
 node scripts/lighthouse-gate.js "$report" "$base" "${base}u/demo"

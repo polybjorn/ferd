@@ -176,8 +176,8 @@ jobs:
   # The sign-in page and a published map held at 100 on Lighthouse
   # accessibility, best practices and SEO, on phone and desktop, against the
   # e2e stack with the demo data. The audit is the release ci-actions'
-  # site-audit pins; scripts/lighthouse-ci.sh grades its scores alone, since
-  # some of the audit's other findings wait on decisions. Scoped like the
+  # site-audit pins; scripts/lighthouse-ci.sh fails on its scores and on any
+  # other finding (overflow, contrast, focus, axe, CSP). Scoped like the
   # browser tests, as it holds a playwright slot for a minute or two.
   lighthouse:
     runs-on: playwright

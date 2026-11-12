@@ -11,10 +11,26 @@ const page = (scores = full, findings = []) => ({
   lighthouse: { mobile: { scores, failed: [] }, desktop: { scores: full, failed: [] } },
 });
 
-test('passes when every page holds 100, whatever the other findings', () => {
-  const r = grade({ pages: { [HOME]: page(), [MAP]: page(full, [{ kind: 'structure', detail: 'no h1' }]) } }, [HOME, MAP]);
+test('passes when every page holds 100 and has nothing else to report', () => {
+  const r = grade({ pages: { [HOME]: page(), [MAP]: page() } }, [HOME, MAP]);
   assert.deepEqual(r.failures, []);
-  assert.deepEqual(r.notes, [`${MAP}: structure: no h1`]);
+  assert.deepEqual(r.notes, []);
+});
+
+test('any other finding fails, on a named page or on one the crawl found', () => {
+  const OTHER = 'http://127.0.0.1:1/robots.txt';
+  const r = grade({ pages: {
+    [HOME]: page(),
+    [MAP]: page(full, [{ kind: 'structure', detail: 'no h1' }]),
+    [OTHER]: { findings: [{ kind: 'crawl', detail: 'a missing address answers 200, needs 404' }], lighthouse: null },
+  } }, [HOME, MAP]);
+  assert.deepEqual(r.failures, [`${MAP}: structure: no h1`, `${OTHER}: crawl: a missing address answers 200, needs 404`]);
+});
+
+test('a line to check by eye is a note, not a failure', () => {
+  const r = grade({ pages: { [HOME]: page(full, [{ kind: 'check by eye', detail: 'focus moves up the page: a then b' }]) } }, [HOME]);
+  assert.deepEqual(r.failures, []);
+  assert.deepEqual(r.notes, [`${HOME}: focus moves up the page: a then b`]);
 });
 
 test('fails a category under its floor and names the audit', () => {
