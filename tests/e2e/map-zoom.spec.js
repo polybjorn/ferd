@@ -1,12 +1,13 @@
-// Tapping a cluster zooms and pans at once, as a CSS transition the
-// compositor runs. The pin and route canvases must ride that same transition:
-// redrawn from script instead, they reach the screen a frame behind the tiles
-// and stutter. At each step of the animation, a point near the corner has to
-// land on the same screen spot through the tiles and through each canvas.
+// Tapping a cluster zooms and pans at once, more than a level, as a CSS
+// transition the compositor runs. The pins must ride that same transition
+// (redrawn from script instead, they reach the screen a frame behind the tiles
+// and stutter) without growing with it: each one glides at its own size and
+// has to land on its place's spot on the tiles at every step. The route lines,
+// which would grow too, stay hidden until the zoom ends.
 const { test, expect } = require('@playwright/test');
 const { fence, signIn } = require('./helpers');
 
-test('pins and routes move with the tiles through a cluster zoom', async ({ page, baseURL }) => {
+test('pins glide with the tiles at their own size through a cluster zoom', async ({ page, baseURL }) => {
   const fenced = await fence(page, /** @type {string} */ (baseURL));
   await signIn(page);
   await expect(page.locator('canvas.place-canvas-layer')).toBeAttached();
@@ -31,43 +32,59 @@ test('pins and routes move with the tiles through a cluster zoom', async ({ page
 
   await page.evaluate(async () => {
     const { state } = await import('/app/core.js');
-    const map = /** @type {any} */ (state._placeClusterGroup)._map;
+    const layer = /** @type {any} */ (state._placeClusterGroup);
+    const map = layer._map;
     const tiles = /** @type {any} */ (Object.values(map._layers).find((/** @type {any} */ l) => l._levels));
-    const canvases = [...map.getContainer().querySelectorAll('canvas.place-canvas-layer, canvas.gl-routes')];
-    const corner = { x: 40, y: 60 };
-    const ll = map.containerPointToLatLng([corner.x, corner.y]);
+    const box = map.getContainer();
     const matrix = (/** @type {Element} */ el) => new DOMMatrixReadOnly(getComputedStyle(el).transform);
-    const probe = /** @type {any} */ (window).__zoomProbe = { steps: 0, transitions: 0, layers: 1 + canvases.length, worst: 0, moved: 0, start: /** @type {any} */ (null) };
-    const sample = () => {
-      const level = tiles._levels[tiles._tileZoom];
-      const local = map.project(ll, tiles._tileZoom).subtract(level.origin);
-      const onTiles = matrix(level.el).transformPoint(new DOMPoint(local.x, local.y));
-      probe.start = probe.start || onTiles;
-      probe.moved = Math.max(probe.moved, Math.hypot(onTiles.x - probe.start.x, onTiles.y - probe.start.y));
-      for (const canvas of canvases) {
-        const onCanvas = matrix(canvas).transformPoint(new DOMPoint(corner.x, corner.y));
-        probe.worst = Math.max(probe.worst, Math.hypot(onCanvas.x - onTiles.x, onCanvas.y - onTiles.y));
-      }
-      probe.steps++;
+    const probe = /** @type {any} */ (window).__zoomProbe = {
+      marks: 0, steps: 0, worst: 0, moved: 0, scale: 1, canvasHidden: false, linesHidden: true,
     };
     // A slow CI runner paints only a frame or two of the quarter-second zoom, so
     // the transitions are paused and stepped through fixed points in time
-    // instead. Registered after the layers' own handlers, this runs once every
-    // transform is set; Leaflet's end-of-zoom timer waits while it runs.
+    // instead. Registered after the layer's own handler, this runs once every
+    // mark is built; Leaflet's end-of-zoom timer waits while it runs.
     map.once('zoomanim', () => {
-      const watched = [tiles._levels[tiles._tileZoom].el, ...canvases];
+      const level = tiles._levels[tiles._tileZoom];
+      const els = /** @type {HTMLElement[]} */ ([...box.querySelectorAll('.place-glide > canvas')]);
+      const marks = els.map((el, i) => {
+        const [lng, lat] = layer._visibleFeatures[i].geometry.coordinates;
+        return { el, ll: L.latLng(lat, lng), start: /** @type {DOMPoint | null} */ (null) };
+      });
+      probe.marks = marks.length;
+      probe.canvasHidden = getComputedStyle(box.querySelector('canvas.place-canvas-layer')).visibility === 'hidden';
+      for (const pane of box.querySelectorAll('.leaflet-overlay-pane, .leaflet-glRoutesPane-pane')) {
+        if (getComputedStyle(pane).opacity !== '0') probe.linesHidden = false;
+      }
+      const watched = [level.el, ...els];
       for (const el of watched) getComputedStyle(el).transform;
       const runs = document.getAnimations().filter(a => watched.includes(/** @type {any} */ (a.effect)?.target));
-      probe.transitions = runs.length;
       const end = Math.max(0, ...runs.map(a => Number(a.effect?.getComputedTiming().endTime) || 0));
       for (const a of runs) a.pause();
       for (let i = 0; i <= 10; i++) {
         for (const a of runs) a.currentTime = end * i / 10;
-        sample();
+        for (const m of marks) {
+          const local = map.project(m.ll, tiles._tileZoom).subtract(level.origin);
+          const onTiles = matrix(level.el).transformPoint(new DOMPoint(local.x, local.y));
+          const at = matrix(m.el);
+          const onMark = at.transformPoint(new DOMPoint(m.el.offsetWidth / 2, m.el.offsetHeight / 2));
+          m.start = m.start || onMark;
+          probe.moved = Math.max(probe.moved, Math.hypot(onMark.x - m.start.x, onMark.y - m.start.y));
+          probe.worst = Math.max(probe.worst, Math.hypot(onMark.x - onTiles.x, onMark.y - onTiles.y));
+          probe.scale = Math.max(probe.scale, Math.abs(at.a), Math.abs(at.d));
+        }
+        probe.steps++;
       }
       for (const a of runs) a.play();
     });
-    map.once('zoomend', () => { probe.done = true; });
+    map.once('zoomend', () => {
+      probe.after = {
+        glide: box.querySelectorAll('.place-glide').length,
+        canvasHidden: getComputedStyle(box.querySelector('canvas.place-canvas-layer')).visibility === 'hidden',
+        jump: box.classList.contains('map-zoom-jump'),
+      };
+      probe.done = true;
+    });
   });
   // Through the layer's own handler: a demo route runs under the cluster and
   // would take a real tap.
@@ -78,10 +95,14 @@ test('pins and routes move with the tiles through a cluster zoom', async ({ page
   await page.waitForFunction(() => /** @type {any} */ (window).__zoomProbe.done);
 
   const probe = await page.evaluate(() => /** @type {any} */ (window).__zoomProbe);
-  expect(probe.layers, 'tiles and at least the pin canvas').toBeGreaterThan(1);
-  expect(probe.transitions, 'the tiles and each canvas run a transition').toBe(probe.layers);
+  expect(probe.marks, 'marks on screen glide as their own elements').toBeGreaterThan(0);
   expect(probe.steps).toBe(11);
-  expect(probe.moved, 'the zoom pans the corner across the screen').toBeGreaterThan(50);
-  expect(probe.worst, 'canvas offset from the tiles, px').toBeLessThan(1.5);
+  expect(probe.canvasHidden, 'the scaled layer canvas hides').toBe(true);
+  expect(probe.linesHidden, 'route lines hide').toBe(true);
+  expect(probe.moved, 'the zoom moves the marks across the screen').toBeGreaterThan(50);
+  expect(probe.worst, 'mark offset from its spot on the tiles, px').toBeLessThan(1.5);
+  expect(probe.scale, 'marks keep their size').toBe(1);
+  // Registered last, this zoomend runs after the layer has redrawn.
+  expect(probe.after).toEqual({ glide: 0, canvasHidden: false, jump: false });
   expect(fenced.errors).toEqual([]);
 });

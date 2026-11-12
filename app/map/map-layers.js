@@ -424,7 +424,8 @@ export function cleanupMap() {
 // canvas redrawn from script each frame reaches the screen a frame or more
 // behind the tiles, which shows as stutter on a phone, so the canvas takes the
 // same transition instead, as Leaflet's own renderers do. Its drawing scales
-// with the map until the redraw at the end of the animation.
+// with the map until the redraw at the end of the animation, which a zoom
+// jump (below) would make far too large.
 /** @param {any} map @param {HTMLElement} canvas @returns {() => void} */
 export function followZoomAnim(map, canvas) {
   canvas.classList.add('leaflet-zoom-animated');
@@ -436,4 +437,21 @@ export function followZoomAnim(map, canvas) {
   };
   map.on('zoomanim', onZoomAnim);
   return () => map.off('zoomanim', onZoomAnim);
+}
+
+// A cluster tap, a double tap or a zoom button zooms a whole level or more,
+// and each level doubles whatever rides the transition. On such a jump the
+// pins glide at their own size (place-layer.js) and the route and area lines
+// hide until it ends. The snap after a pinch moves less than a level and
+// keeps the plain scaling, where hiding the lines would flicker each release.
+/** @param {any} map @param {{ zoom: number }} e */
+export function isZoomJump(map, e) {
+  return Math.abs(e.zoom - map.getZoom()) >= 1;
+}
+
+/** @param {any} map */
+export function hideLinesOnZoomJump(map) {
+  const box = map.getContainer();
+  map.on('zoomanim', (/** @type {{ zoom: number }} */ e) => { if (isZoomJump(map, e)) box.classList.add('map-zoom-jump'); });
+  map.on('zoomend', () => box.classList.remove('map-zoom-jump'));
 }
