@@ -51,8 +51,16 @@ test('a cluster zoom glides each mark on the tiles\' own transition at its own s
     probe.scaleBefore = uniform('uScale');
     probe.widths = /** @type {number[]} */ ([]);
     probe.scales = /** @type {number[]} */ ([]);
+    // Desktop draws routes in SVG, which the transition scales with the tiles.
+    const svgPath = /** @type {SVGPathElement | null} */ (gl ? null : box.querySelector('.leaflet-overlay-pane svg path[stroke-width]'));
+    probe.svgWidth = svgPath ? parseFloat(svgPath.getAttribute('stroke-width') || '') : 0;
+    probe.svgShown = /** @type {number[]} */ ([]);
     const sample = () => {
       if (map._animatingZoom) { probe.widths.push(lineWidth()); probe.scales.push(uniform('uScale')); }
+      if (map._animatingZoom && svgPath) {
+        const svg = /** @type {Element} */ (svgPath.ownerSVGElement);
+        probe.svgShown.push(new DOMMatrixReadOnly(getComputedStyle(svg).transform).a * parseFloat(getComputedStyle(svgPath).strokeWidth));
+      }
       if (!probe.done) requestAnimationFrame(sample);
     };
     // Registered after the place layer's own handler, so its gliders are out.
@@ -108,6 +116,9 @@ test('a cluster zoom glides each mark on the tiles\' own transition at its own s
     expect(probe.widthAfter, 'and at their own width once the zoom ends').toBe(1);
     // The canvas transition scales the lines, so a redraw must not scale them again.
     expect(probe.scales.every((/** @type {number} */ s) => s === probe.scaleBefore), 'mid-zoom redraws keep the starting view').toBe(true);
+  }
+  if (probe.svgShown.length) {
+    expect(Math.max(...probe.svgShown.map((/** @type {number} */ w) => Math.abs(w - probe.svgWidth))), 'SVG route lines keep their width on screen through the zoom').toBeLessThan(0.5);
   }
   expect(probe.left, 'gliders are gone once the zoom ends').toBe(0);
   expect(probe.shown, 'the place canvas is back').toBe(true);

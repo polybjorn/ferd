@@ -510,16 +510,47 @@ export function bindTrailStrokeMotion(map) {
     lastZoom = z;
     adjustTrailStrokes();
   });
-  // Stepped desktop zoom (250ms CSS anim) doesn't fire 'move' per frame;
-  // a short rAF loop keeps strokes constant across the animation.
+  // An animated zoom (a cluster tap, the buttons) scales the SVG on a CSS
+  // transition, and Leaflet redraws nothing until it ends, so the lines would
+  // thicken with it. Each frame draws them thinner by the scale the browser
+  // shows right now.
+  /** @type {{ el: SVGElement, w: number, dash: number[] | null }[]} */
+  let held = [];
+  let raf = 0;
+  const release = () => {
+    if (raf) { sched.cancelFrame(raf); raf = 0; }
+    for (const h of held) { h.el.style.strokeWidth = ''; h.el.style.strokeDasharray = ''; }
+    held = [];
+  };
   map.on('zoomanim', function () {
-    const start = performance.now();
+    release();
+    const renderers = [state._routeRenderer, state._areaRenderer, state._detailRenderer].filter(r => r && r._container);
+    const svgs = [...new Set(renderers.map(r => /** @type {SVGElement} */ (r._container)))];
+    for (const svg of svgs) {
+      for (const el of svg.querySelectorAll('path')) {
+        const w = parseFloat(el.getAttribute('stroke-width') || '');
+        if (!w) continue;
+        const d = el.getAttribute('stroke-dasharray');
+        held.push({ el, w, dash: d ? d.split(/[ ,]+/).map(Number) : null });
+      }
+    }
+    if (!held.length) return;
     const tick = () => {
-      adjustTrailStrokes();
-      if (performance.now() - start < 270) sched.frame(tick);
+      raf = 0;
+      if (!map._animatingZoom) return;
+      for (const svg of svgs) {
+        const s = new DOMMatrixReadOnly(getComputedStyle(svg).transform).a || 1;
+        for (const h of held) {
+          if (!svg.contains(h.el)) continue;
+          h.el.style.strokeWidth = String(h.w / s);
+          if (h.dash) h.el.style.strokeDasharray = h.dash.map(v => v / s).join(' ');
+        }
+      }
+      raf = sched.frame(tick);
     };
-    sched.frame(tick);
+    tick();
   });
+  map.on('zoomend', release);
 }
 
 // Index-map route highlight. Clicking a route flags it as selected: it

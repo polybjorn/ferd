@@ -31,7 +31,15 @@ function makeEnv() {
     window: { matchMedia: () => ({ matches: false }) },
     strokeAdjusts: 0,
     adjustTrailStrokes: () => { env.strokeAdjusts++; },
+    // One SVG route path, for the per-frame width hold through a zoom.
+    strokeWrites: 0,
+    getComputedStyle: () => ({ transform: 'matrix(2, 0, 0, 2, 0, 0)' }),
+    DOMMatrixReadOnly: class { constructor(t) { this.a = parseFloat(String(t).slice(7)); } },
   };
+  const style = {};
+  Object.defineProperty(style, 'strokeWidth', { set() { env.strokeWrites++; }, get() { return ''; } });
+  const routePath = { style, getAttribute: (name) => (name === 'stroke-width' ? '4' : null) };
+  env.state = { _routeRenderer: { _container: { querySelectorAll: () => [routePath], contains: () => true } } };
   env.advance = (ms) => {
     const end = now + ms;
     for (;;) {
@@ -132,17 +140,18 @@ test("removing a map mid-zoom cancels Leaflet's zoom transition end", () => {
   assert.doesNotThrow(() => env.advance(1000));
 });
 
-test('removing a map mid-zoom stops its stroke adjust frames', () => {
+test('removing a map mid-zoom stops its stroke width frames', () => {
   const env = makeEnv();
   const map = makeMap(env);
   env.bindTrailStrokeMotion(map);
+  map._animatingZoom = true;
   map.emit('zoomanim');
   env.advance(40);
-  const before = env.strokeAdjusts;
-  assert.ok(before > 0);
+  const before = env.strokeWrites;
+  assert.ok(before > 1);
   map.remove();
   env.advance(1000);
-  assert.equal(env.strokeAdjusts, before);
+  assert.equal(env.strokeWrites, before);
 });
 
 test('the route detail map has a scheduler and no frames outside it', () => {
