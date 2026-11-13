@@ -175,6 +175,19 @@ function confirmLeaveLocal() {
   });
 }
 
+// Names, not wording, so they stay out of the translation tables.
+const REPO = 'https://github.com/polybjorn/ferd';
+const REPO_HOST = 'GitHub';
+const LICENSE = 'GPL-3.0-or-later';
+// The libraries a user meets on screen; vendor/NOTICES.md lists every one.
+const BUILT_WITH = [
+  ['Leaflet', 'https://leafletjs.com'],
+  ['Preact', 'https://preactjs.com'],
+  ['supercluster', 'https://github.com/mapbox/supercluster'],
+  ['leaflet-elevation', 'https://github.com/Raruto/leaflet-elevation'],
+  ['Natural Earth', 'https://www.naturalearthdata.com'],
+];
+
 export function openAboutModal() {
   // index.html's ferd-version meta, filled in by the static handler; still the
   // placeholder when served without the API.
@@ -207,23 +220,35 @@ export function openAboutModal() {
     const credits = map ? [map.TOPO_CREDIT].concat(overlayCredits).join('<br>') : '';
     const dialog = openViewModal(html`<div class="ui-dialog-handle" aria-hidden="true"></div>
       <${DialogHead} title=${t('about.title')} />
-      <div class="ui-dialog-body">
-        <div class="about-body">
-          <img class="about-logo" src="/icons/favicon.svg" alt="" width="64" height="64" />
-          <div class="about-brand">${brand}</div>
-          <div class="about-version">${displayVersion}</div>
-          ${buildLabel && html`<div class="about-build">${buildLabel}</div>`}
-          <div class="about-tagline">${t('about.tagline')}</div>
-          <div class="about-links">
-            <a href="https://github.com/polybjorn/ferd" target="_blank" rel="noopener">${t('about.source')}</a>
-            <span class="about-sep">·</span>
-            <a href="https://github.com/polybjorn/ferd/blob/main/LICENSE" target="_blank" rel="noopener">${t('about.license')}</a>
-            <span class="about-sep">·</span>
-            <a href="https://github.com/polybjorn/ferd/blob/main/vendor/NOTICES.md" target="_blank" rel="noopener">${t('about.notices')}</a>
-          </div>
-          <div class="about-credits" dangerouslySetInnerHTML=${{ __html: credits }}></div>
+      <div class="ui-dialog-body"><div class="about-body">
+        <div>
+          <p class="about-brand">${brand}</p>
+          <p class="about-tagline">${t('about.tagline')}</p>
         </div>
-      </div>`, { phone: 'sheet' });
+        <dl class="ui-kv">
+          <div class="ui-kv-item">
+            <dt class="ui-kv-label">${t('about.version')}</dt>
+            <dd class="ui-kv-value">${displayVersion}${buildLabel && html` <span class="about-build">(${buildLabel})</span>`}</dd>
+          </div>
+          <div class="ui-kv-item">
+            <dt class="ui-kv-label">${t('about.license')}</dt>
+            <dd class="ui-kv-value"><a href=${REPO + '/blob/main/LICENSE'} target="_blank" rel="noopener">${LICENSE}</a></dd>
+          </div>
+          <div class="ui-kv-item">
+            <dt class="ui-kv-label">${t('about.source')}</dt>
+            <dd class="ui-kv-value"><a href=${REPO} target="_blank" rel="noopener">${REPO_HOST}</a></dd>
+          </div>
+        </dl>
+        <section class="about-section">
+          <h3 class="ui-section-title">${t('about.builtWith')}</h3>
+          <p class="about-text">${BUILT_WITH.map(([name, url], i) => html`${i ? ', ' : ''}<a href=${url} target="_blank" rel="noopener">${name}</a>`)}</p>
+          <p class="about-text"><a href=${REPO + '/blob/main/vendor/NOTICES.md'} target="_blank" rel="noopener">${t('about.notices')}</a></p>
+        </section>
+        ${credits && html`<section class="about-section">
+          <h3 class="ui-section-title">${t('about.mapData')}</h3>
+          <p class="about-text" dangerouslySetInnerHTML=${{ __html: credits }}></p>
+        </section>`}
+      </div></div>`, { phone: 'sheet' });
     dialog.classList.add('narrow-dialog');
   });
 }

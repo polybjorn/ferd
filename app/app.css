@@ -1544,44 +1544,15 @@ body.signin-only #app {
      into the vacated center column). */
   .app-nav { grid-template-columns: minmax(0, 1fr) auto; }
 }
-.about-body { text-align: center; padding: var(--ui-space-2) 0 var(--ui-space-1); }
-.about-logo {
-  width: 64px;
-  height: 64px;
-  display: block;
-  margin: 0 auto var(--ui-space-2);
-}
-.about-brand {
-  font-size: var(--ui-text-xl);
-  letter-spacing: 0.08em;
-  color: var(--text);
-  margin-bottom: var(--ui-space-1);
-}
-.about-version {
-  font-size: var(--ui-text-xs);
-  color: var(--muted);
-  letter-spacing: 0.05em;
-  margin-bottom: var(--ui-space-4);
-}
-.about-version:has(+ .about-build) { margin-bottom: 0.1rem; }
-.about-build {
-  font-size: var(--ui-text-xs);
-  color: var(--muted);
-  opacity: 0.65;
-  letter-spacing: 0.05em;
-  margin-bottom: var(--ui-space-4);
-}
-.about-tagline {
-  font-size: var(--ui-text-sm);
-  color: var(--text);
-  line-height: 1.4;
-  margin-bottom: var(--ui-space-4);
-}
-.about-links { font-size: var(--ui-text-xs); color: var(--muted); }
-.about-credits { margin-top: var(--ui-space-2); font-size: var(--ui-text-xs); color: var(--muted); }
-:is(.about-links, .about-credits) a { color: var(--accent); text-decoration: none; }
-:is(.about-links, .about-credits) a:hover { text-decoration: underline; }
-.about-sep { margin: 0 var(--ui-space-2); }
+.about-body { display: grid; gap: var(--ui-space-4); }
+.about-body p { margin: 0; }
+.about-brand { font-size: var(--ui-text-xl); color: var(--text); }
+.about-body .about-tagline { margin-top: var(--ui-space-1); font-size: var(--ui-text-sm); color: var(--muted); line-height: 1.4; }
+.about-build { color: var(--muted); }
+.about-text { font-size: var(--ui-text-sm); color: var(--text); line-height: 1.5; }
+.about-section { display: grid; gap: var(--ui-space-2); }
+.about-body a { color: var(--accent); text-decoration: none; white-space: nowrap; }
+.about-body a:hover { text-decoration: underline; }
 
 /* Tile-picker (Leaflet layers control) enter/leave animation */
 .leaflet-control-layers {
