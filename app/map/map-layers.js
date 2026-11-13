@@ -138,7 +138,9 @@ if (window.L && L.TileLayer && L.TileLayer.mergeOptions) {
 
 const OSM_CREDIT = '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>';
 // One entry per source, which About lists a line each.
-export const TOPO_CREDITS = [OSM_CREDIT, 'SRTM', '&copy; <a href="https://opentopomap.org">OpenTopoMap</a> ' +
+export const TOPO_CREDITS = [OSM_CREDIT,
+  '<a href="https://www.earthdata.nasa.gov/data/instruments/srtm">NASA SRTM</a>',
+  '&copy; <a href="https://opentopomap.org">OpenTopoMap</a> ' +
   '(<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'];
 const TOPO_CREDIT = TOPO_CREDITS[0] + ', ' + TOPO_CREDITS[1] + ' | ' + TOPO_CREDITS[2];
 

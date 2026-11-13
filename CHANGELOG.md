@@ -110,7 +110,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Leaving a route's page while its elevation chart is still loading no longer logs errors from the removed map.
 - The Dark base map works again. CARTO began stamping its dark tiles with "API KEY REQUIRED", so Dark now shows OpenStreetMap's map in dark colours and no longer contacts CARTO.
 - The Docker image's licence label says GPL-3.0 instead of MIT.
-- The base maps credit their providers: OpenTopoMap names OpenStreetMap, SRTM and its CC-BY-SA licence, and OpenStreetMap and Dark credit OpenStreetMap.
+- The base maps credit their providers: OpenTopoMap names OpenStreetMap, NASA SRTM (the elevation data, linked to NASA's page) and its CC-BY-SA licence, and OpenStreetMap and Dark credit OpenStreetMap.
 - On phones, Settings fits the screen: every tab and every option in a segmented row shows in full, and the dialog no longer scrolls sideways.
 - On a phone the map search panel sits above the map credit, so the credit no longer runs across its Places and Routes row.
 - On a phone or small tablet the map shows the update banner under the top bar, so it no longer covers the search panel. There it stays hidden while offline.
