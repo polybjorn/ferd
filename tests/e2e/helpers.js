@@ -25,7 +25,10 @@ const TILE_HOST = /(^|\.)tile\.(openstreetmap|opentopomap)\.org$/;
 /**
  * Keep the page on the test server: tiles get a blank PNG, site-config.json
  * (gitignored, so absent in CI) gets the example, and any other host is
- * aborted and recorded. Returns the lists the test asserts on.
+ * aborted and recorded. A Content-Security-Policy violation counts as an
+ * error: the test server enforces the policy, and each engine logs what it
+ * blocks to the console in words of its own that all name the policy.
+ * Returns the lists the test asserts on.
  * @param {import('@playwright/test').Page} page
  * @param {string} baseURL
  */
@@ -33,6 +36,9 @@ async function fence(page, baseURL) {
   const origin = new URL(baseURL).origin;
   const fenced = { external: /** @type {string[]} */ ([]), errors: /** @type {string[]} */ ([]), tiles: 0 };
   page.on('pageerror', err => fenced.errors.push(`page error: ${err.message}`));
+  page.on('console', msg => {
+    if (msg.type() === 'error' && /content.security.policy/i.test(msg.text())) fenced.errors.push(`csp: ${msg.text()}`);
+  });
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin === origin) {

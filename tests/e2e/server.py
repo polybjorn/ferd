@@ -23,6 +23,7 @@ Stdlib only. The sign-in the tests use is E2E_USER / E2E_PASSWORD below,
 mirrored in tests/e2e/helpers.js and tests/e2e/smoke.spec.js.
 """
 import json
+import os
 import shutil
 import signal
 import socket
@@ -160,6 +161,9 @@ def main() -> int:
     proc = subprocess.Popen(
       [sys.executable, str(REPO / "tools" / "api.py"), "--config", str(tmp / "config.json")],
       cwd=REPO, stdin=subprocess.DEVNULL, stderr=subprocess.PIPE,
+      # Enforced, so a change the policy would break fails the browser tests
+      # instead of waiting for a report from the field.
+      env={**os.environ, "FERD_CSP_MODE": "enforce"},
     )
     threading.Thread(target=keep_log, args=(proc,), daemon=True).start()
     base = f"http://127.0.0.1:{port}"

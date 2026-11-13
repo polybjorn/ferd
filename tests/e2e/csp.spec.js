@@ -1,9 +1,8 @@
 // The Content-Security-Policy, enforced: an injected inline script does not
 // run, and the app still signs in and draws the map under the policy.
 //
-// The server sends the policy Report-Only by default (FERD_CSP_MODE). The test
-// takes the policy it served for the page and hands it back to the browser as
-// the enforcing header, so it checks the value that ships rather than a copy.
+// The test server enforces the policy (FERD_CSP_MODE in tests/e2e/server.py),
+// so this checks the value that ships rather than a copy.
 const fs = require('node:fs');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
@@ -40,14 +39,11 @@ test('the enforced policy blocks an injected inline script and the app still run
       }
       if (request.resourceType() === 'document') {
         const response = await route.fetch();
-        const headers = response.headers();
-        const policy = headers['content-security-policy-report-only'];
+        const policy = response.headers()['content-security-policy'];
         if (policy) served.push(policy);
-        delete headers['content-security-policy-report-only'];
-        if (policy) headers['content-security-policy'] = policy;
         const body = (await response.text())
           .replace('<head>', '<head><script>window.__injected = true;</script>');
-        return route.fulfill({ response, headers, body });
+        return route.fulfill({ response, body });
       }
       return route.fallback();
     }
@@ -61,7 +57,7 @@ test('the enforced policy blocks an injected inline script and the app still run
   expect(login.ok(), `login answered ${login.status()}`).toBe(true);
 
   await page.goto('/');
-  expect(served, 'the page was served with a Report-Only policy').toHaveLength(1);
+  expect(served, 'the page was served with an enforced policy').toHaveLength(1);
   await expect(page.locator('.leaflet-container').first()).toBeVisible();
   await expect(page.locator('img.leaflet-tile-loaded').first()).toBeAttached();
   await page.waitForLoadState('networkidle');
