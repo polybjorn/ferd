@@ -16,8 +16,10 @@ ferd.example.com {
         max_size 12MB
     }
 
-    # Block direct access to the SQLite DB and API config.
-    @blocked path /tools/app.db /tools/config.json
+    # The root holds server files too: the database, its backups and the
+    # config under tools/, every user's GPX files under users/ (the API serves
+    # them only to their owner or on a published map), unit files and git.
+    @blocked path /tools /tools/* /users /users/* /deploy /deploy/* /.git /.git/*
     handle @blocked {
         respond 404
     }

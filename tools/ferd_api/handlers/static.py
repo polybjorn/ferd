@@ -36,9 +36,11 @@ class StaticMixin:
     if any(p == ".." or p == "" for p in parts[:-1]) or ".." in parts:
       return self._send_plain(HTTPStatus.FORBIDDEN, b"forbidden")
     # Deny server-side asset directories regardless of OS path resolution.
-    # tools/ holds the API code + DB + server config; deploy/ holds unit files.
-    # Neither should be reachable through the static handler.
-    if parts[0] in ("tools", "deploy", ".git"):
+    # tools/ holds the API code + DB + server config; deploy/ holds unit files;
+    # users/ holds every user's GPX files, which the API serves only behind a
+    # session or a publish flag. Folded to lower case, since a case-insensitive
+    # file system (macOS, Windows) finds /Users/ at users/.
+    if parts[0].lower() in ("tools", "deploy", "users", ".git"):
       return self._send_plain(HTTPStatus.FORBIDDEN, b"forbidden")
     # Resolved containment check: in addition to the lexical traversal guard
     # above, verify the final resolved path stays under `base`. Catches symlink

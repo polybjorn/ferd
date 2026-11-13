@@ -1804,6 +1804,23 @@ class TestStaticPWAHeaders(unittest.TestCase):
     self.assertRegex(body, r'/ui\.css\?v=ferd-[0-9a-f]{10}"')
 
 
+class TestStaticDeniesServerFiles(unittest.TestCase):
+  """The static handler refuses the database, config and per-user files."""
+
+  def setUp(self):
+    gpx = _server.data_dir / "users" / "someone" / "gpx"
+    gpx.mkdir(parents=True, exist_ok=True)
+    (gpx / "secret.gpx").write_text("<gpx/>", encoding="utf-8")
+
+  def test_users_and_tools_are_forbidden(self):
+    for path in ("/users/someone/gpx/secret.gpx", "/Users/someone/gpx/secret.gpx",
+                 "/tools/app.db", "/TOOLS/app.db", "/deploy/x", "/.git/config"):
+      with self.subTest(path=path):
+        with self.assertRaises(urllib.error.HTTPError) as cm:
+          urllib.request.urlopen(_server.base_url + path)
+        self.assertEqual(cm.exception.code, 403)
+
+
 class TestContentSecurityPolicy(unittest.TestCase):
   """The shell carries the policy (Report-Only by default) and nosniff."""
 
