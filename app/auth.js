@@ -217,7 +217,7 @@ export function openAboutModal() {
   return loadMap().then(({ map }) => map, () => null).then(map => {
     const overlayCredits = map ? map.parseOverlays(state.config && /** @type {typeof state.config & { overlays?: unknown }} */ (state.config).overlays)
       .map(ov => ov.attribution).filter(Boolean) : [];
-    const credits = map ? [map.TOPO_CREDIT].concat(overlayCredits).join('<br>') : '';
+    const credits = map ? map.TOPO_CREDITS.concat(overlayCredits) : [];
     const dialog = openViewModal(html`<div class="ui-dialog-handle" aria-hidden="true"></div>
       <${DialogHead} title=${brand} />
       <div class="ui-dialog-body">
@@ -241,9 +241,11 @@ export function openAboutModal() {
               <a class="about-more" href=${REPO + '/blob/main/vendor/NOTICES.md'} target="_blank" rel="noopener">${t('about.notices')}</a>
             </dd>
           </div>
-          ${credits && html`<div class="ui-kv-item">
+          ${credits.length > 0 && html`<div class="ui-kv-item">
             <dt class="ui-kv-label">${t('about.mapData')}</dt>
-            <dd class="ui-kv-value about-credits" dangerouslySetInnerHTML=${{ __html: credits }}></dd>
+            <dd class="ui-kv-value">
+              <ul class="about-list">${credits.map(c => html`<li dangerouslySetInnerHTML=${{ __html: c }}></li>`)}</ul>
+            </dd>
           </div>`}
         </dl>
       </div>`, { phone: 'sheet' });

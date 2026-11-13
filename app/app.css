@@ -1544,12 +1544,13 @@ body.signin-only #app {
      into the vacated center column). */
   .app-nav { grid-template-columns: minmax(0, 1fr) auto; }
 }
+/* Wide enough for the longest label, Built with and its translations. */
+.about-kv { --ui-kv-label-width: 6rem; }
 .about-kv a { color: var(--accent); text-decoration: none; }
 .about-kv a:hover { text-decoration: underline; }
 .about-muted { color: var(--muted); }
 .about-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ui-space-1); }
 .about-more { display: inline-block; margin-top: var(--ui-space-2); font-size: var(--ui-text-sm); }
-.about-credits { font-size: var(--ui-text-sm); line-height: 1.5; }
 
 /* Tile-picker (Leaflet layers control) enter/leave animation */
 .leaflet-control-layers {
