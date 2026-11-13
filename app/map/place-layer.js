@@ -345,6 +345,41 @@ const PlaceCanvasLayer = L.Layer.extend({
       }));
   },
 
+  // The marks the view at the end of a zoom shows, so the gliders can show
+  // them on the way, not only once it lands.
+  /** @param {{ zoom: number, center: any }} e */
+  _targetFeatures: function(e) {
+    const map = this._map;
+    const half = map.getSize().divideBy(2).add([60, 60]);
+    const c = map.project(e.center, e.zoom);
+    const sw = map.unproject(c.add([-half.x, half.y]), e.zoom);
+    const ne = map.unproject(c.add([half.x, -half.y]), e.zoom);
+    return clustersOnTop(this._supercluster.getClusters([sw.lng, sw.lat, ne.lng, ne.lat], Math.floor(e.zoom)));
+  },
+
+  // Where each place sits among a set of marks: its own point, or the point
+  // of the cluster that holds it.
+  /** @param {PlaceFeature[]} features @returns {Map<unknown, any>} */
+  _owners: function(features) {
+    const owners = new Map();
+    for (const f of features) {
+      const ll = L.latLng(f.geometry.coordinates[1], f.geometry.coordinates[0]);
+      if (f.properties.cluster) {
+        for (const leaf of this._supercluster.getLeaves(f.properties.cluster_id, Infinity)) owners.set(leaf.properties.place.id, ll);
+      } else {
+        owners.set(/** @type {Place} */ (f.properties.place).id, ll);
+      }
+    }
+    return owners;
+  },
+
+  /** @param {PlaceFeature} f */
+  _anyPlaceId: function(f) {
+    if (!f.properties.cluster) return /** @type {Place} */ (f.properties.place).id;
+    const [leaf] = this._supercluster.getLeaves(f.properties.cluster_id, 1);
+    return leaf && leaf.properties.place.id;
+  },
+
   _redraw: function() {
     const map = this._map;
     if (!map || !this._canvas) return;
@@ -394,11 +429,20 @@ const PlaceCanvasLayer = L.Layer.extend({
   /** @param {{ zoom: number, center: any }} e */
   _glide: function(e) {
     const map = this._map;
-    const features = this._visibleFeatures || [];
-    if (!map || !features.length) return;
+    const shown = this._visibleFeatures || [];
+    if (!map || !shown.length) return;
     this._land();
     this._canvas.classList.add('leaflet-zoom-animated');
-    if (features.length > GLIDE_LIMIT) {
+    // Clusters nest, so zooming in, each mark of the end view comes out of the
+    // mark that held it, and zooming out, each mark shown goes into the one
+    // that will hold it.
+    const clustered = this._supercluster && this._useClusters;
+    const zoomIn = e.zoom >= map.getZoom();
+    const features = clustered && zoomIn ? this._targetFeatures(e) : shown;
+    const owners = clustered && features.length <= GLIDE_LIMIT
+      ? this._owners(zoomIn ? shown : this._targetFeatures(e))
+      : null;
+    if (!features.length || features.length > GLIDE_LIMIT) {
       rideZoomAnim(map, this._canvas, e);
       return;
     }
@@ -419,7 +463,10 @@ const PlaceCanvasLayer = L.Layer.extend({
     for (const f of features) {
       const el = /** @type {HTMLCanvasElement} */ (L.DomUtil.create('canvas', 'place-glider', pane));
       const ll = L.latLng(f.geometry.coordinates[1], f.geometry.coordinates[0]);
-      L.DomUtil.setPosition(el, map.latLngToLayerPoint(ll).subtract([near, near]));
+      const owner = owners && owners.get(this._anyPlaceId(f));
+      const from = zoomIn ? (owner || ll) : ll;
+      const to = zoomIn ? ll : (owner || ll);
+      L.DomUtil.setPosition(el, map.latLngToLayerPoint(from).subtract([near, near]));
       el.width = el.height = box * dpr;
       el.style.width = el.style.height = box + 'px';
       el.style.pointerEvents = 'none';
@@ -432,7 +479,7 @@ const PlaceCanvasLayer = L.Layer.extend({
         ctx.globalAlpha = place.id === this._fadingPlaceId ? this._fadeAlpha : 1;
         this._drawMarker(ctx, at, place, catColors[place.category || ''] || '#888', size, style, ink);
       }
-      gliders.push({ el, to: map._latLngToNewLayerPoint(ll, e.zoom, e.center).subtract([near, near]) });
+      gliders.push({ el, to: map._latLngToNewLayerPoint(to, e.zoom, e.center).subtract([near, near]) });
     }
     this._gliders = gliders.map(g => g.el);
     this._canvas.style.visibility = 'hidden';
