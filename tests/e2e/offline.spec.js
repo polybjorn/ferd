@@ -6,7 +6,7 @@
 // the shell offline. The page.route fence cannot see requests the worker
 // answers, so the test records what leaves the page itself instead.
 const { test, expect } = require('@playwright/test');
-const { signUp, isPhone } = require('./helpers');
+const { signUp, isPhone, FIRST_LOAD_MS } = require('./helpers');
 
 test.use({ serviceWorkers: 'allow' });
 
@@ -45,11 +45,12 @@ test('the shell loads offline and an offline edit syncs on reconnect', async ({ 
   await expect(page.locator('.leaflet-container').first()).toBeVisible();
 
   // Network off, then a cold reload: the worker answers the shell and the
-  // app reads its data from the device.
+  // app reads its data from the device. That is a first load like signUp's,
+  // with the same room for the session check to stall and retry.
   await context.setOffline(true);
   await page.reload();
-  await expect(page.locator('#auth-menu-btn:visible, #bar-add:visible')).toBeVisible();
-  await expect(page.locator('.leaflet-container').first()).toBeVisible();
+  await expect(page.locator('#auth-menu-btn:visible, #bar-add:visible')).toBeVisible({ timeout: FIRST_LOAD_MS });
+  await expect(page.locator('.leaflet-container').first()).toBeVisible({ timeout: FIRST_LOAD_MS });
   await expect(page.locator('#pwa-offline-banner')).toBeVisible();
 
   // An edit offline: it shows in the list at once and the banner counts it.

@@ -91,4 +91,4 @@ function dialog(/** @type {import('@playwright/test').Page} */ page) {
   return page.locator('.ui-dialog').last();
 }
 
-module.exports = { USER, PASSWORD, fence, signIn, signUp, isPhone, dialog };
+module.exports = { USER, PASSWORD, FIRST_LOAD_MS, fence, signIn, signUp, isPhone, dialog };

@@ -83,10 +83,13 @@ test('a double-tap zoom keeps the moved-away bottom bar away', async ({ page, ba
   await page.touchscreen.tap(x, y);
   await page.waitForTimeout(90);
   await page.touchscreen.tap(x, y);
-  await page.waitForTimeout(800);
-  const log = await page.evaluate(() => /** @type {any} */ (window).barLog);
-  expect(log).toContain('zoom');
-  expect(log).not.toContain('shown');
+  const barLog = () => page.evaluate(() => /** @type {string[]} */ (/** @type {any} */ (window).barLog));
+  await expect.poll(barLog).toContain('zoom');
+  // A tap of the pair read as single would show the bar DOUBLE_TAP_MS (300,
+  // app/bar-motion.js) after it, so look again once that has passed.
+  await expect(page.locator('#map .leaflet-zoom-anim')).toHaveCount(0);
+  await page.waitForTimeout(500);
+  expect(await barLog()).not.toContain('shown');
 
   await page.touchscreen.tap(x, y);
   await expect(page.locator('body')).not.toHaveClass(/\bbar-away\b/);
