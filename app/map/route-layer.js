@@ -414,11 +414,15 @@ export function attachGLRoutes(map) {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
     vertCount = data.length / GL_ROUTE_STRIDE;
   }
+  // Leaflet moves its zoom and centre to the zoom's end as soon as it starts,
+  // so a zoom jump draws from where the map stood then.
+  /** @type {{ scale: number, center: { x: number, y: number } } | null} */
+  let jumpStart = null;
   /** @type {{ s: number, dx: number, dy: number } | null} a zoom jump's scale and shift of the canvas, read from the probe each frame */
   let jumpFrame = null;
   function draw() {
     if (!gl) return;
-    const frame = map._animatingZoom ? jumpFrame : null;
+    const frame = map._animatingZoom && jumpStart ? jumpFrame : null;
     // Keep the canvas pinned to the viewport (counter the map-pane pan offset),
     // except while it rides a zoom transition.
     if (!map._animatingZoom) {
@@ -429,8 +433,8 @@ export function attachGLRoutes(map) {
     gl.clear(gl.COLOR_BUFFER_BIT);
     if (!vertCount || !originRef) return;
     const size = map.getSize();
-    let scale = map.getZoomScale(map.getZoom(), GL_ROUTE_REFZOOM);
-    const cNow = map.project(map.getCenter(), GL_ROUTE_REFZOOM);
+    let scale = frame && jumpStart ? jumpStart.scale : map.getZoomScale(map.getZoom(), GL_ROUTE_REFZOOM);
+    const cNow = frame && jumpStart ? jumpStart.center : map.project(map.getCenter(), GL_ROUTE_REFZOOM);
     let dx = originRef.x - cNow.x, dy = originRef.y - cNow.y;
     if (frame) {
       // Where the canvas would be drawn if it rode the transition, folded into
@@ -476,7 +480,10 @@ export function attachGLRoutes(map) {
   map.on('move zoom', draw); // synchronous: lockstep with the tiles, no one-frame lag
   followZoomAnim(map, canvas, probe); // an animated zoom fires no move/zoom until it ends
   stepZoomJump(map);
-  map.on('zoomanim', () => { jumpFrame = null; });
+  map.on('zoomanim', () => {
+    jumpFrame = null;
+    jumpStart = { scale: map.getZoomScale(map.getZoom(), GL_ROUTE_REFZOOM), center: map.project(map.getCenter(), GL_ROUTE_REFZOOM) };
+  });
   map.on('zoomframe', () => {
     const m = new DOMMatrixReadOnly(getComputedStyle(probe).transform);
     const pin = L.DomUtil.getPosition(canvas);

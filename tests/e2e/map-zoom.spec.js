@@ -55,7 +55,9 @@ test('pins glide with the tiles at their own size through a cluster zoom', async
     // A slow CI runner paints only a frame or two of the quarter-second zoom, so
     // the transitions are paused and stepped through fixed points in time
     // instead. Registered after the layer's own handler, this runs once every
-    // mark is built; Leaflet's end-of-zoom timer waits while it runs.
+    // mark is built, and steps in a later task: right after zoomanim Leaflet
+    // moves its zoom and centre to the zoom's end, which the frames must not
+    // read. Leaflet's end-of-zoom timer waits while it runs.
     map.once('zoomanim', () => {
       const level = tiles._levels[tiles._tileZoom];
       const els = /** @type {HTMLElement[]} */ ([...box.querySelectorAll('.place-glide > canvas')]);
@@ -73,38 +75,40 @@ test('pins glide with the tiles at their own size through a cluster zoom', async
       const uniform = (/** @type {string} */ n) => ctx.getUniform(prog, ctx.getUniformLocation(prog, n));
       const origin = map.project(map.getCenter(), 20);
       const panePos = map._getMapPanePos();
-      // Every transform transition in the map, as the map's own frame loop
-      // steps them, the route layer's probe among them.
-      for (const el of [level.el, ...els]) getComputedStyle(el).transform;
-      const runs = map.getPane('mapPane').getAnimations({ subtree: true })
-        .filter((/** @type {any} */ a) => a.transitionProperty === 'transform');
-      const end = Math.max(0, ...runs.map(a => Number(a.effect?.getComputedTiming().endTime) || 0));
-      for (const a of runs) a.pause();
-      stepping = true;
-      for (let i = 0; i <= 10; i++) {
-        for (const a of runs) a.currentTime = end * i / 10;
-        map.fire('zoomframe');
-        for (const m of marks) {
-          const local = map.project(m.ll, tiles._tileZoom).subtract(level.origin);
-          const onTiles = matrix(level.el).transformPoint(new DOMPoint(local.x, local.y));
-          const at = matrix(m.el);
-          const onMark = at.transformPoint(new DOMPoint(m.el.offsetWidth / 2, m.el.offsetHeight / 2));
-          m.start = m.start || onMark;
-          probe.moved = Math.max(probe.moved, Math.hypot(onMark.x - m.start.x, onMark.y - m.start.y));
-          probe.worst = Math.max(probe.worst, Math.hypot(onMark.x - onTiles.x, onMark.y - onTiles.y));
-          probe.scale = Math.max(probe.scale, Math.abs(at.a), Math.abs(at.d));
-          if (ctx) {
-            const p = map.project(m.ll, 20);
-            const s = uniform('uScale'), d = uniform('uOriginDelta'), h = uniform('uHalfSize');
-            const onGl = { x: h[0] + (p.x - origin.x + d[0]) * s, y: h[1] + (p.y - origin.y + d[1]) * s };
-            probe.glWorst = Math.max(probe.glWorst, Math.hypot(onGl.x - (onTiles.x + panePos.x), onGl.y - (onTiles.y + panePos.y)));
+      setTimeout(() => {
+        // Every transform transition in the map, as the map's own frame loop
+        // steps them, the route layer's probe among them.
+        for (const el of [level.el, ...els]) getComputedStyle(el).transform;
+        const runs = map.getPane('mapPane').getAnimations({ subtree: true })
+          .filter((/** @type {any} */ a) => a.transitionProperty === 'transform');
+        const end = Math.max(0, ...runs.map(a => Number(a.effect?.getComputedTiming().endTime) || 0));
+        for (const a of runs) a.pause();
+        stepping = true;
+        for (let i = 0; i <= 10; i++) {
+          for (const a of runs) a.currentTime = end * i / 10;
+          map.fire('zoomframe');
+          for (const m of marks) {
+            const local = map.project(m.ll, tiles._tileZoom).subtract(level.origin);
+            const onTiles = matrix(level.el).transformPoint(new DOMPoint(local.x, local.y));
+            const at = matrix(m.el);
+            const onMark = at.transformPoint(new DOMPoint(m.el.offsetWidth / 2, m.el.offsetHeight / 2));
+            m.start = m.start || onMark;
+            probe.moved = Math.max(probe.moved, Math.hypot(onMark.x - m.start.x, onMark.y - m.start.y));
+            probe.worst = Math.max(probe.worst, Math.hypot(onMark.x - onTiles.x, onMark.y - onTiles.y));
+            probe.scale = Math.max(probe.scale, Math.abs(at.a), Math.abs(at.d));
+            if (ctx) {
+              const p = map.project(m.ll, 20);
+              const s = uniform('uScale'), d = uniform('uOriginDelta'), h = uniform('uHalfSize');
+              const onGl = { x: h[0] + (p.x - origin.x + d[0]) * s, y: h[1] + (p.y - origin.y + d[1]) * s };
+              probe.glWorst = Math.max(probe.glWorst, Math.hypot(onGl.x - (onTiles.x + panePos.x), onGl.y - (onTiles.y + panePos.y)));
+            }
           }
+          if (gl) probe.glScale = Math.max(probe.glScale, Math.abs(matrix(gl).a));
+          probe.steps++;
         }
-        if (gl) probe.glScale = Math.max(probe.glScale, Math.abs(matrix(gl).a));
-        probe.steps++;
-      }
-      stepping = false;
-      for (const a of runs) a.play();
+        stepping = false;
+        for (const a of runs) a.play();
+      });
     });
     map.once('zoomend', () => {
       probe.after = {
