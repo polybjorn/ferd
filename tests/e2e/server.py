@@ -121,18 +121,25 @@ def main() -> int:
   tmp = Path(tempfile.mkdtemp(prefix="ferd-e2e-"))
   proc = None
 
-  def stop(*_):
+  def stop() -> None:
     if proc and proc.poll() is None:
       proc.terminate()
       try:
         proc.wait(timeout=5)
       except subprocess.TimeoutExpired:
         proc.kill()
+        proc.wait()
     shutil.rmtree(tmp, ignore_errors=True)
-    sys.exit(0)
 
-  signal.signal(signal.SIGTERM, stop)
-  signal.signal(signal.SIGINT, stop)
+  # The handler only unwinds to the finally below. It must not stop the API
+  # itself: a signal lands while the main thread sits in proc.wait(), which
+  # holds Popen's waitpid lock, so a poll() or wait() from the handler cannot
+  # reap the child and only the 5 s kill fallback ended the run.
+  def on_signal(*_):
+    raise SystemExit(0)
+
+  signal.signal(signal.SIGTERM, on_signal)
+  signal.signal(signal.SIGINT, on_signal)
   try:
     config = {
       "bind": f"127.0.0.1:{port}",
