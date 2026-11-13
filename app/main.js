@@ -237,10 +237,17 @@ function startup() {
 }
 
 // The skip link moves focus without following its href: the router reads
-// any hash as a route, so #app would open the map.
+// any hash as a route, so #app would open the map. The main element is
+// focusable only until focus leaves it: Safari focuses no button on a click
+// but the nearest focusable ancestor, which would take focus from an open
+// menu and close it before the click lands.
 document.getElementById('skip-link')?.addEventListener('click', function(e) {
   e.preventDefault();
-  document.getElementById('app')?.focus();
+  const main = document.getElementById('app');
+  if (!main) return;
+  main.tabIndex = -1;
+  main.addEventListener('blur', () => main.removeAttribute('tabindex'), { once: true });
+  main.focus();
 });
 
 const languageReady = applyLanguage();

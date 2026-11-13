@@ -151,3 +151,22 @@ test('the map names itself in one visible h1', async ({ page, baseURL }, info) =
   expect(fenced.external).toEqual([]);
   expect(fenced.errors).toEqual([]);
 });
+
+// The main element takes focus only from the skip link: focusable for good,
+// it takes a clicked button's focus in Safari and closes an open menu.
+test('the skip link focuses the main element, which lets go of focus after', async ({ page, baseURL }) => {
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  await signIn(page, '#/places');
+  await expect(page.locator('.place-card').first()).toBeVisible();
+  const main = page.locator('#app');
+  await expect(main).not.toHaveAttribute('tabindex');
+
+  await page.locator('#skip-link').focus();
+  await page.keyboard.press('Enter');
+  await expect(main).toBeFocused();
+  await expect(page).toHaveURL(/#\/places$/);
+  await page.keyboard.press('Tab');
+  await expect(main).not.toBeFocused();
+  await expect(main).not.toHaveAttribute('tabindex');
+  expect(fenced.errors).toEqual([]);
+});
