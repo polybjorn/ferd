@@ -1,12 +1,12 @@
-// Tapping a cluster zooms and pans at once, more than a level. Ridden as a CSS
-// transition, pins and lines would scale with the tiles, and a layer redrawn
-// from script alongside the compositor shakes on a phone. The map instead
-// moves itself each frame, as a pinch does: every layer redraws at its own
-// size in the same frame as the tiles, and none of them is scaled.
+// Tapping a cluster zooms and pans at once, more than a level. The zoom is
+// Leaflet's CSS transition, which the phone runs on its compositor; a layer
+// redrawn from script each frame would trail it. Each mark glides on that same
+// transition as its own small canvas, at its own size, and lands where the
+// redrawn canvas puts it.
 const { test, expect } = require('@playwright/test');
 const { fence, signIn } = require('./helpers');
 
-test('a cluster zoom moves the map frame by frame with every layer at its own size', async ({ page, baseURL }) => {
+test('a cluster zoom glides each mark on the tiles\' own transition at its own size', async ({ page, baseURL }) => {
   const fenced = await fence(page, /** @type {string} */ (baseURL));
   await signIn(page);
   await expect(page.locator('canvas.place-canvas-layer')).toBeAttached();
@@ -35,18 +35,25 @@ test('a cluster zoom moves the map frame by frame with every layer at its own si
     const box = map.getContainer();
     const scaleOf = (/** @type {Element | null} */ el) => el ? Math.abs(new DOMMatrixReadOnly(getComputedStyle(el).transform).a) : 1;
     const probe = /** @type {any} */ (window).__zoomProbe = {
-      from: map.getZoom(), zooms: /** @type {number[]} */ ([]), zoomanim: 0, scale: 1,
+      from: map.getZoom(), zoomanim: 0, gliders: 0, scale: 1, hidden: false, ends: /** @type {number[][]} */ ([]),
     };
-    map.on('zoomanim', () => probe.zoomanim++);
-    const onZoom = () => {
-      probe.zooms.push(map.getZoom());
-      probe.scale = Math.max(probe.scale,
-        scaleOf(box.querySelector('canvas.place-canvas-layer')), scaleOf(box.querySelector('canvas.gl-routes')));
-    };
-    map.on('zoom', onZoom);
+    // Registered after the place layer's own handler, so its gliders are out.
+    map.on('zoomanim', () => {
+      probe.zoomanim++;
+      const gliders = [...box.querySelectorAll('canvas.place-glider')];
+      probe.gliders = gliders.length;
+      probe.scale = Math.max(1, ...gliders.map(scaleOf));
+      probe.glides = gliders.every(el => getComputedStyle(el).transitionDuration === '0.25s');
+      probe.hidden = getComputedStyle(/** @type {Element} */ (box.querySelector('canvas.place-canvas-layer'))).visibility === 'hidden';
+      probe.ends = gliders.map(el => { const m = new DOMMatrixReadOnly(/** @type {HTMLElement} */ (el).style.transform); return [m.e, m.f]; });
+    });
     map.once('zoomend', () => {
-      map.off('zoom', onZoom);
       probe.to = map.getZoom();
+      const end = map.latLngToLayerPoint([tap.lat, tap.lng]);
+      // A glider's corner sits the same distance up and left of its mark.
+      probe.landed = probe.ends.some((/** @type {number[]} */ [x, y]) => Math.abs((end.x - x) - (end.y - y)) < 0.5 && end.x - x > 10 && end.x - x < 60);
+      probe.left = box.querySelectorAll('canvas.place-glider').length;
+      probe.shown = getComputedStyle(/** @type {Element} */ (box.querySelector('canvas.place-canvas-layer'))).visibility !== 'hidden';
       probe.offCentre = map.latLngToContainerPoint([tap.lat, tap.lng]).distanceTo(map.getSize().divideBy(2));
       probe.done = true;
     });
@@ -61,12 +68,14 @@ test('a cluster zoom moves the map frame by frame with every layer at its own si
 
   const probe = await page.evaluate(() => /** @type {any} */ (window).__zoomProbe);
   expect(probe.to - probe.from, 'the tap zooms a level or more').toBeGreaterThanOrEqual(1);
-  expect(probe.zoomanim, 'no CSS zoom transition').toBe(0);
-  // A slow CI runner paints only a frame or two of the quarter second.
-  const between = probe.zooms.filter((/** @type {number} */ z) => z > probe.from && z < probe.to);
-  expect(between.length, 'frames at a zoom between start and end').toBeGreaterThan(0);
-  expect(probe.zooms, 'the zoom only grows').toEqual([...probe.zooms].sort((a, b) => a - b));
-  expect(probe.scale, 'place and route canvases stay unscaled').toBe(1);
+  expect(probe.zoomanim, 'one CSS zoom transition').toBe(1);
+  expect(probe.gliders, 'a glider per mark in view').toBeGreaterThan(0);
+  expect(probe.scale, 'gliders stay unscaled').toBe(1);
+  expect(probe.glides, 'gliders take the tiles\' transition').toBe(true);
+  expect(probe.hidden, 'the place canvas hides while the marks glide').toBe(true);
+  expect(probe.landed, 'the tapped cluster glides to where it ends').toBe(true);
+  expect(probe.left, 'gliders are gone once the zoom ends').toBe(0);
+  expect(probe.shown, 'the place canvas is back').toBe(true);
   expect(probe.offCentre, 'the cluster ends at the centre, px').toBeLessThan(1);
   expect(fenced.errors).toEqual([]);
 });

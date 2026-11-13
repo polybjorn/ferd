@@ -8,7 +8,7 @@ import {
   DEFAULT_CONFIG, getRememberView, loadStoredView, placesEnabled, routesEnabled, saveStoredView,
 } from '../prefs.js';
 import { enableWheelZoom } from './map-wheel.js';
-import { addTileLayersToMap, animateZoomJumps, applyCoverMinZoom, cleanupMap, mapScheduler } from './map-layers.js';
+import { addTileLayersToMap, applyCoverMinZoom, cleanupMap, mapScheduler } from './map-layers.js';
 import {
   adjustTrailStrokes, applyNonScalingStroke, applyRouteHighlight, attachGLRoutes,
   bindTrailStrokeMotion, fetchGpxText, setSelectedRoute, simplifyRouteForZoom,
@@ -85,7 +85,6 @@ export function renderUnifiedMap(focus) {
     renderer: L.svg()
   }).setView(dv.center, dv.zoom);
   enableWheelZoom(map);
-  animateZoomJumps(map);
   L.control.attribution({ prefix: false }).addTo(map);
   collapseCreditOnPhone(map);
   state.currentMap = map;

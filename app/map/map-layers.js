@@ -425,60 +425,18 @@ export function cleanupMap() {
 // behind the tiles, which shows as stutter on a phone, so the canvas takes the
 // same transition instead, as Leaflet's own renderers do. Its drawing scales
 // with the map until the redraw at the end of the animation.
+/** @param {any} map @param {HTMLElement} canvas @param {{ zoom: number, center: any }} e */
+export function rideZoomAnim(map, canvas, e) {
+  const scale = map.getZoomScale(e.zoom, map.getZoom());
+  const offset = map._latLngToNewLayerPoint(map.containerPointToLatLng([0, 0]), e.zoom, e.center);
+  L.DomUtil.setTransform(canvas, offset, scale);
+}
+
 /** @param {any} map @param {HTMLElement} canvas @returns {() => void} */
 export function followZoomAnim(map, canvas) {
   canvas.classList.add('leaflet-zoom-animated');
   /** @param {{ zoom: number, center: any }} e */
-  const onZoomAnim = e => {
-    const scale = map.getZoomScale(e.zoom, map.getZoom());
-    const offset = map._latLngToNewLayerPoint(map.containerPointToLatLng([0, 0]), e.zoom, e.center);
-    L.DomUtil.setTransform(canvas, offset, scale);
-  };
+  const onZoomAnim = e => rideZoomAnim(map, canvas, e);
   map.on('zoomanim', onZoomAnim);
   return () => map.off('zoomanim', onZoomAnim);
-}
-
-const ZOOM_JUMP_MS = 250;
-
-// A cluster tap, a double tap or a zoom button zooms a whole level or more,
-// where riding the transition would draw pins and lines several times their
-// size. Such a zoom moves the map from script each frame instead, as a pinch
-// or the wheel zoom does, so every layer redraws at its own size in the same
-// frame as the tiles. The path matches Leaflet's transition: scale and offset
-// change linearly on one ease-out curve over a quarter second.
-/** @param {any} map */
-export function animateZoomJumps(map) {
-  const transition = map._tryAnimatedZoom;
-  /** @this {any} @param {any} center @param {number} zoom @param {{ animate?: boolean, noMoveStart?: boolean }} [options] */
-  map._tryAnimatedZoom = function (center, zoom, options) {
-    options = options || {};
-    if (this._animatingZoom || Math.abs(zoom - this._zoom) < 1) return transition.call(this, center, zoom, options);
-    if (!this._zoomAnimated || options.animate === false || this._nothingToAnimate() ||
-        Math.abs(zoom - this._zoom) > this.options.zoomAnimationThreshold) return false;
-    const scale = this.getZoomScale(zoom);
-    // Leaflet's rule: a target far off screen resets instead of animating.
-    if (options.animate !== true && !this.getSize().contains(this._getCenterOffset(center)._divideBy(1 - 1 / scale))) return false;
-    this._stop();
-    const z0 = this._zoom;
-    const from = this.project(this.getCenter(), z0);
-    const to = this.project(center, z0).multiplyBy(scale);
-    const start = performance.now();
-    this._moveStart(true, options.noMoveStart || false);
-    // On the map's own frame handle, so map.stop() and a drag cancel it.
-    /** @param {number} now */
-    const frame = now => {
-      const t = Math.min(1, (now - start) / ZOOM_JUMP_MS);
-      if (t >= 1) {
-        this._flyToFrame = null;
-        this._move(center, zoom)._moveEnd(true);
-        return;
-      }
-      const e = 1 - Math.pow(1 - t, 3);
-      const s = 1 + (scale - 1) * e;
-      this._move(this.unproject(from.multiplyBy(1 - e).add(to.multiplyBy(e)).divideBy(s), z0), z0 + Math.log2(s), { flyTo: true });
-      this._flyToFrame = requestAnimationFrame(frame);
-    };
-    this._flyToFrame = requestAnimationFrame(frame);
-    return true;
-  };
 }
