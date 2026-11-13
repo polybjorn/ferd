@@ -1,5 +1,14 @@
 import { colourClass, reduceMotion, state } from '../core.js';
 import { rideZoomAnim } from './map-layers.js';
+
+// WebKit frees a removed canvas's backing store lazily and caps the total, so
+// a run of zooms with hundreds of gliders could exhaust it; a zero size frees
+// the store at once.
+/** @param {HTMLCanvasElement} el */
+function dropCanvas(el) {
+  el.width = el.height = 0;
+  el.remove();
+}
 import { getClusterPlaces, placesEnabled, routesEnabled } from '../prefs.js';
 import { applyAreaFilters, MAP_FADE_MS, revealArea } from './area-layer.js';
 import { goToPlace, goToRoute, MARK_HALO, openPlacePopup, placeMarkerRadius } from './map-actions.js';
@@ -470,7 +479,14 @@ const PlaceCanvasLayer = L.Layer.extend({
       el.width = el.height = box * dpr;
       el.style.width = el.style.height = box + 'px';
       el.style.pointerEvents = 'none';
-      const ctx = /** @type {CanvasRenderingContext2D} */ (el.getContext('2d'));
+      const ctx = el.getContext('2d');
+      // WebKit hands out no context once its canvas memory cap is reached.
+      if (!ctx) {
+        dropCanvas(el);
+        for (const g of gliders) dropCanvas(g.el);
+        rideZoomAnim(map, this._canvas, e);
+        return;
+      }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (f.properties.cluster) {
         this._drawCluster(ctx, at, f.properties.point_count || 0, ink);
@@ -495,7 +511,7 @@ const PlaceCanvasLayer = L.Layer.extend({
 
   _land: function() {
     if (this._gliders) {
-      for (const el of this._gliders) el.remove();
+      for (const el of this._gliders) dropCanvas(el);
       this._gliders = null;
     }
     if (this._canvas) {

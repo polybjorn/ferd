@@ -43,7 +43,7 @@ export const MAP_MODULES = [
 /** @type {Map<string, Promise<void>>} */
 const scriptLoads = new Map();
 
-// Once per script: a retry after a failure adds only the ones that failed.
+// Once per script, until a load of the set fails.
 /** @param {string} src @returns {Promise<void>} */
 function addScript(src) {
   const known = scriptLoads.get(src);
@@ -59,7 +59,6 @@ function addScript(src) {
     document.head.appendChild(el);
   });
   scriptLoads.set(src, load);
-  load.catch(() => { scriptLoads.delete(src); });
   return load;
 }
 
@@ -83,7 +82,12 @@ export function loadMap() {
     }
     // The map modules extend Leaflet as they evaluate, so the scripts run first.
     /** @type {Promise<LoadedMap>} */
-    const load = Promise.all(SCRIPTS.map(addScript)).then(() => {
+    const scripts = Promise.all(SCRIPTS.map(addScript));
+    // A retry adds the whole set again: with Leaflet failed, the plugins after
+    // it still fire onload, having thrown on a missing L, and a retry of
+    // Leaflet alone would leave them unapplied.
+    scripts.catch(() => { for (const src of SCRIPTS) scriptLoads.delete(src); });
+    const load = scripts.then(() => {
       const router = import('../router.js');
       return import('./index.js').then(map => router.then(r => {
         map.bindMapToStore();
