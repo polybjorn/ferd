@@ -17,9 +17,11 @@ import java.security.MessageDigest
  * report-uri, since the asset origin has no endpoint to take reports.
  */
 object ContentSecurityPolicy {
-  // Report-Only until the enforcing switch lands, the same default as the
-  // server's FERD_CSP_MODE.
-  private const val HEADER = "Content-Security-Policy-Report-Only"
+  // The shell sends no reports, so a debug build enforces: what the policy
+  // blocks shows in logcat as a console error. A release stays Report-Only,
+  // the same default as the server's FERD_CSP_MODE.
+  private val HEADER =
+    if (BuildConfig.DEBUG) "Content-Security-Policy" else "Content-Security-Policy-Report-Only"
 
   private const val POLICY =
     "default-src 'self'; " +

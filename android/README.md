@@ -31,7 +31,10 @@ directory:
 ```
 
 The debug APK lands at `app/build/outputs/apk/debug/app-debug.apk`. Or open the
-`android/` folder in Android Studio and Run.
+`android/` folder in Android Studio and Run. It installs as its own app, Ferd
+debug, beside a release, and enforces the Content-Security-Policy that a
+release only reports, so what the policy blocks shows in `adb logcat` as a
+console error.
 
 The bundled frontend is copied from the repo root by the `copyWebAssets` Gradle
 task on every build, so the app never drifts from the web source.

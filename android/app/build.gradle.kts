@@ -62,6 +62,11 @@ android {
   }
 
   buildTypes {
+    // Its own app beside a release: the debug key cannot update one.
+    debug {
+      applicationIdSuffix = ".debug"
+      manifestPlaceholders["appLabel"] = "Ferd debug"
+    }
     release {
       isMinifyEnabled = false
       proguardFiles(
