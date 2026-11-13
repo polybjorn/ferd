@@ -615,13 +615,14 @@ body.nav-float :is(.nav-start, .nav-action-btn, .auth-widget > :is(button, a), .
 body.nav-float :is(.nav-start, .auth-widget > :is(button, a)) { background: var(--surface); }
 body.nav-float .nav-start { max-width: 100%; box-sizing: border-box; padding: 0 var(--ui-space-3); overflow: hidden; }
 body.nav-float .nav-brand { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-/* ui.css draws the tabs' underline as a box-shadow in the ui layer, which
-   only an !important from this earlier layer outranks. */
+/* ui.css owns the tabs' box-shadow, drawing their underline with it, so the
+   pill drops the underline through its colour and casts its shadow as a filter. */
 body.nav-float .nav-tabs {
   --ui-tabs-fill: var(--surface);
   --ui-tabs-padding: 0 var(--ui-space-1);
   --ui-tab-size: 36px;
-  box-shadow: 0 1px 4px var(--shadow) !important;
+  --ui-dialog-border: transparent;
+  filter: drop-shadow(0 1px 2px var(--shadow));
 }
 body.nav-float .nav-icon-btn {
   --ui-button-icon-size: 38px;
