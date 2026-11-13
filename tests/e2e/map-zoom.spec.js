@@ -40,14 +40,21 @@ test('a cluster zoom glides each mark on the tiles\' own transition at its own s
     const glCanvas = /** @type {HTMLCanvasElement | null} */ (box.querySelector('canvas.gl-routes'));
     // WebGL draws the routes on phones only; desktop keeps them in SVG.
     const gl = box.classList.contains('gl-routes-active') && glCanvas && glCanvas.getContext('webgl');
-    const lineWidth = () => {
+    /** @param {string} name */
+    const uniform = name => {
       if (!gl) return 1;
       const program = gl.getParameter(gl.CURRENT_PROGRAM);
-      return program ? gl.getUniform(program, gl.getUniformLocation(program, 'uWidth')) : 1;
+      return program ? gl.getUniform(program, gl.getUniformLocation(program, name)) : 1;
     };
+    const lineWidth = () => uniform('uWidth');
     probe.gl = !!gl;
+    probe.scaleBefore = uniform('uScale');
     probe.widths = /** @type {number[]} */ ([]);
-    const sample = () => { probe.widths.push(lineWidth()); if (!probe.done) requestAnimationFrame(sample); };
+    probe.scales = /** @type {number[]} */ ([]);
+    const sample = () => {
+      if (map._animatingZoom) { probe.widths.push(lineWidth()); probe.scales.push(uniform('uScale')); }
+      if (!probe.done) requestAnimationFrame(sample);
+    };
     // Registered after the place layer's own handler, so its gliders are out.
     map.on('zoomanim', () => {
       requestAnimationFrame(sample);
@@ -99,6 +106,8 @@ test('a cluster zoom glides each mark on the tiles\' own transition at its own s
   if (probe.gl) {
     expect(Math.min(...probe.widths), 'route lines are drawn thinner as the canvas grows').toBeLessThan(1);
     expect(probe.widthAfter, 'and at their own width once the zoom ends').toBe(1);
+    // The canvas transition scales the lines, so a redraw must not scale them again.
+    expect(probe.scales.every((/** @type {number} */ s) => s === probe.scaleBefore), 'mid-zoom redraws keep the starting view').toBe(true);
   }
   expect(probe.left, 'gliders are gone once the zoom ends').toBe(0);
   expect(probe.shown, 'the place canvas is back').toBe(true);

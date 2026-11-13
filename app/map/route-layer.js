@@ -416,6 +416,8 @@ export function attachGLRoutes(map) {
   // are drawn thinner by the same factor each frame to keep their width on
   // screen. A frame late only misjudges a width, never a position.
   let widthScale = 1;
+  /** @type {{ zoom: number, center: any } | null} */
+  let drawnView = null;
   let zoomAnimRaf = 0;
   /** @param {{ zoom: number }} e */
   function onZoomAnim(e) {
@@ -438,12 +440,17 @@ export function attachGLRoutes(map) {
     if (!gl) return;
     // Keep the canvas pinned to the viewport (counter the map-pane pan offset),
     // except while it rides a zoom transition.
-    if (!map._animatingZoom) L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint([0, 0]));
+    // The canvas transition does the scaling, so a redraw mid-zoom keeps to
+    // the view the zoom started from: by then the map reports its target.
+    if (!map._animatingZoom) {
+      L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint([0, 0]));
+      drawnView = { zoom: map.getZoom(), center: map.getCenter() };
+    }
     gl.clear(gl.COLOR_BUFFER_BIT);
-    if (!vertCount || !originRef) return;
+    if (!vertCount || !originRef || !drawnView) return;
     const size = map.getSize();
-    const scale = map.getZoomScale(map.getZoom(), GL_ROUTE_REFZOOM);
-    const cNow = map.project(map.getCenter(), GL_ROUTE_REFZOOM);
+    const scale = map.getZoomScale(drawnView.zoom, GL_ROUTE_REFZOOM);
+    const cNow = map.project(drawnView.center, GL_ROUTE_REFZOOM);
     gl.useProgram(program);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     const S = GL_ROUTE_STRIDE * 4;
