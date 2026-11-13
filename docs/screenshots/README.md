@@ -13,7 +13,7 @@ Use PNG, 1600x1080, with no window frame or shadow margin. Each screenshot is on
 
 ## Demo data
 
-Capture from a throwaway instance loaded with the demo dataset, never from a real account. `scripts/demo-data.py` writes an import zip with invented places, four synthetic routes with elevation (one planned, three completed), and visit and completion dates across 2023-2025 so History has several years. Nothing in it is real geography beyond the base map it sits on.
+Capture from a throwaway instance loaded with the demo dataset, never from a real account. `scripts/demo-data.py` writes an import zip with invented places, four synthetic routes with elevation (one planned, three completed), and visit and completion dates across 2023-2025 so History has several years. Nothing in it is real geography beyond the base map it sits on. The screenshots use this default set. `--large` adds what a preview needs to exercise the map, and is not for screenshots: a dense region of about 150 places for clustering, invented places in real cities in seven countries for Visited countries, three areas (Lake Basin holds places and a route) and four more routes, one of them 72 km long.
 
 From the repo root:
 

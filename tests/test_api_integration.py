@@ -1379,6 +1379,33 @@ class TestImport(unittest.TestCase):
     for path in gpx:
       self.assertIn("ele>", path.read_text("utf-8"), path.name)
 
+  def test_demo_data_large_zip_imports(self):
+    # --large feeds the preview: enough places to cluster, real countries to
+    # shade, areas, and every route the set names.
+    spec = importlib.util.spec_from_file_location(
+      "demo_data", Path(__file__).resolve().parent.parent / "scripts" / "demo-data.py")
+    demo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(demo)
+    self.assertEqual(demo.build_zip(True), demo.build_zip(True))
+    status, body = self._post_zip(self.c, "replace", demo.build_zip(True))
+    self.assertEqual(status, 200, body)
+    self.assertGreaterEqual(body["imported"]["places"], 150)
+    status, places = self.c.request("GET", "/api/places")
+    self.assertEqual(status, 200)
+    self.assertEqual(len(places), len(demo.places(True)))
+    visited_codes = {p["country_code"] for p in places if p.get("visited") and p.get("country_code")}
+    self.assertIn("IT", visited_codes)
+    self.assertGreaterEqual(len(visited_codes), 3)
+    status, areas = self.c.request("GET", "/api/areas")
+    self.assertEqual(status, 200)
+    self.assertEqual({a["name"] for a in areas}, {a["name"] for a in demo.AREAS})
+    self.assertEqual({a.get("visited", False) for a in areas}, {True, False})
+    status, meta = self.c.request("GET", "/api/metadata")
+    self.assertEqual(status, 200)
+    self.assertEqual(set(meta), {demo.route_key(r) for r in demo.routes(True)})
+    gpx = sorted((admin_dir() / "gpx").rglob("*.gpx"))
+    self.assertEqual(len(gpx), len(demo.routes(True)))
+
   def test_merge_mode_dedupes_by_name(self):
     fresh_places([{"name": "Keep", "lat": 1, "lon": 2, "category": "old"}])
     zip_payload = self._make_zip({
