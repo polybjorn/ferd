@@ -593,7 +593,6 @@ const STRINGS = {
 
   'auth.signIn': 'Sign in',
   'auth.menu': 'Account menu',
-  'auth.menuButton': 'Menu',
   'auth.localMap': 'Local map',
   'auth.signedInAs': 'Signed in as {name}',
   'auth.settings': 'Settings',
@@ -627,6 +626,7 @@ const STRINGS = {
   'app.otherTab': 'Ferd is open in another tab. Close it to finish updating.',
   'app.tabPlaces': 'Places',
   'app.skipToContent': 'Skip to content',
+  'nav.back': 'Back',
   'app.publicTitle': '{user} - {brand}',
   'app.tabRoutes': 'Routes',
 

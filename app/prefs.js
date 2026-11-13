@@ -222,6 +222,8 @@ export function refreshTabVisibility() {
   if (tabTrails) { tabTrails.style.display = routesEnabled() ? '' : 'none'; tabTrails.textContent = t('app.tabRoutes'); }
   const skip = document.getElementById('skip-link');
   if (skip) skip.textContent = t('app.skipToContent');
+  const back = document.getElementById('nav-back');
+  if (back) back.setAttribute('aria-label', t('nav.back'));
   const tabHistory = document.getElementById('tab-history');
   if (tabHistory) tabHistory.style.display = historyEnabled() ? '' : 'none';
   // Lists and Search both cover places, areas and routes, so they go with

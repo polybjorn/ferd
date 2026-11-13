@@ -397,11 +397,22 @@ export function formatElevation(m) {
   return t('unit.m', { n: grpNum(Math.round(m)) });
 }
 
+// The nav floats over a map that fills the window: the wide screen's map,
+// and a phone's route page, which has no tab bar to name it. A phone's map
+// shows only its name, as a label of its own (app.css).
+const phoneWidth = window.matchMedia('(max-width: 600px)');
+function syncNavFloat() {
+  const view = document.body.dataset.view;
+  document.body.classList.toggle('nav-float', phoneWidth.matches ? view === 'route' : view === 'map');
+}
+phoneWidth.addEventListener('change', syncNavFloat);
+
 // screen names a page below a view, such as one route under Routes. The
 // phone keeps a header bar only there, where the page has no title of its own.
 /** @param {string} view @param {string} [screen] */
 export function setActiveTab(view, screen) {
   document.body.dataset.view = screen || view;
+  syncNavFloat();
   ['places', 'routes', 'history'].forEach(v => {
     const el = document.getElementById('tab-' + v);
     if (!el) return;
@@ -421,15 +432,25 @@ const BAR_ITEM = /** @type {Record<string, string>} */ ({
   map: 'map', places: 'lists', routes: 'lists', areas: 'lists', history: 'you', you: 'you',
 });
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
 // A wide screen's Add, in the nav. A phone adds from the bar instead.
 /** @param {string} id @param {string} [title] */
 export function addButton(id, title) {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.id = id;
-  btn.className = 'nav-action-btn nav-action-add';
-  if (title) btn.title = title;
-  btn.textContent = t('common.add');
+  btn.className = 'ui-button ui-button-icon ui-button-primary nav-icon-btn';
+  btn.title = title || t('common.add');
+  btn.setAttribute('aria-label', btn.title);
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  Object.entries({ viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' })
+    .forEach(([k, v]) => svg.setAttribute(k, v));
+  ['M5 12h14', 'M12 5v14'].forEach(d => {
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', d);
+    svg.append(path);
+  });
+  btn.append(svg);
   return btn;
 }
 
@@ -446,7 +467,8 @@ export function setCrumb(text, alwaysShow) {
   // the nav tabs are hidden; route detail (no tab) shows it everywhere.
   crumbEl.classList.toggle('crumb-mobile-only', !_crumbAlways);
   if (!_crumbText) { crumbEl.textContent = ''; return; }
-  crumbEl.textContent = ' / ' + _crumbText;
+  // app.css draws the separator, which a phone's floating route name drops.
+  crumbEl.textContent = _crumbText;
   if (!brandEl || !brandEl.getClientRects().length) return;
   // Truncate the crumb char-by-char until the brand stops colliding with the
   // nav's center tabs (desktop) or, when those are hidden, the right-side
@@ -459,7 +481,7 @@ export function setCrumb(text, alwaysShow) {
   let len = _crumbText.length;
   while (len > 0 && brandEl.getBoundingClientRect().right > boundary.getBoundingClientRect().left - gap) {
     len--;
-    crumbEl.textContent = ' / ' + _crumbText.slice(0, len).trimEnd() + '…';
+    crumbEl.textContent = _crumbText.slice(0, len).trimEnd() + '…';
   }
 }
 window.addEventListener('resize', function() {
