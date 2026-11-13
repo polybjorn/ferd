@@ -1121,16 +1121,21 @@ body.signin-only #app {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   height: 100%;
+  overflow-y: auto;
   padding: var(--ui-space-6) var(--ui-space-4);
   gap: var(--ui-space-5);
   box-sizing: border-box;
 }
-.signin-page .signin-logo {
-  width: 64px;
-  height: 64px;
-  display: block;
+/* Centred by auto margins rather than justify-content, which would push a
+   page taller than the screen past its top edge out of scroll reach. */
+.signin-page > :first-child { margin-top: auto; }
+.signin-page > :last-child { margin-bottom: auto; }
+/* A phone starts the form at the top, leaving the lower half to the keyboard. */
+@media (max-width: 600px) {
+  .signin-page { padding: var(--ui-space-4); gap: var(--ui-space-3); }
+  .signin-page > :first-child { margin-top: 0; }
+  .signin-page .signin-card { padding: var(--ui-space-4); box-shadow: none; }
 }
 .signin-page .signin-brand {
   margin: 0;

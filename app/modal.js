@@ -165,12 +165,16 @@ export function popoverHost() {
 // only a short centred one moves, up to the height the form modals sit at.
 // A full-screen view shrinks to the visible part instead, and a sheet rides
 // up on the keyboard's top edge.
+/** @param {VisualViewport} vv */
+export function keyboardCovers(vv) {
+  // A pinch also shrinks the visual viewport, but only a keyboard does so at scale 1.
+  return vv.scale < 1.01 && document.documentElement.clientHeight - vv.height > 120;
+}
 function fitModalsToKeyboard() {
   const vv = window.visualViewport;
   if (!vv) return;
-  // A pinch also shrinks the visual viewport, but only a keyboard does so at scale 1.
   const layoutHeight = document.documentElement.clientHeight;
-  const covered = vv.scale < 1.01 && layoutHeight - vv.height > 120;
+  const covered = keyboardCovers(vv);
   modalStack.forEach(({ backdrop: dialog }) => {
     if (!covered) {
       /** @type {const} */ (['top', 'bottom', 'marginTop', 'maxHeight', 'height']).forEach(prop => { dialog.style[prop] = ''; });

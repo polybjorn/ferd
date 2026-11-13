@@ -2,7 +2,7 @@ import { state } from './core.js';
 import { fetchJson, isCrossOrigin, serverBase, setBearerToken, setServerBase } from './server.js';
 import { loadSyncedPrefs } from './prefs.js';
 import { api, apiUrl, enterLocalMode, refreshAuthState } from './auth.js';
-import { closeModal } from './modal.js';
+import { closeModal, keyboardCovers } from './modal.js';
 import { bootApp, loadDataAndRender, probeServer } from './main.js';
 import { t } from './i18n.js';
 import { DialogHead, ErrorBox, Field, html, mountPage, openViewModal, useEffect, useRef, useState } from './view.js';
@@ -98,8 +98,8 @@ function SignInForm({ inDialog, onSuccess }) {
   // server from the sign-in screen: Change server sits left of Sign in, and
   // the host on its own centered row below, so it reads as a status footnote.
   const cross = isCrossOrigin();
-  return html`<h2>${title}</h2>
-    ${tabs}
+  // The tabs name the form when they show, so a heading would repeat them.
+  return html`${tabs || html`<h2>${title}</h2>`}
     <form id="auth-form" onSubmit=${submit}>
       ${fields}
       <div class="form-actions">
@@ -133,8 +133,34 @@ function normalizeServerUrl(raw) {
 
 /** @param {{ brand: string, localId: string, children?: any }} props */
 function SignInShell({ brand, localId, children }) {
-  return html`<div class="signin-page">
-    <img class="signin-logo" src="/icons/favicon.svg" alt="" width="64" height="64" />
+  /** @type {{current: HTMLDivElement | null}} */
+  const pageRef = useRef(null);
+  // A phone keyboard covers the page without resizing it. The page shrinks
+  // to the part still visible and scrolls the form's buttons into it, so
+  // Sign in stays reachable while a field has focus.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    const page = pageRef.current;
+    if (!vv || !page) return;
+    const fit = () => {
+      const covered = keyboardCovers(vv);
+      page.style.height = covered ? vv.height + 'px' : '';
+      // A transform, since moving the page in the layout would pan the viewport again.
+      page.style.transform = covered && vv.offsetTop ? `translateY(${vv.offsetTop}px)` : '';
+      const field = document.activeElement;
+      if (!covered || !(field instanceof HTMLInputElement) || !page.contains(field)) return;
+      const actions = page.querySelector('.form-actions');
+      if (actions) actions.scrollIntoView({ block: 'nearest' });
+      field.scrollIntoView({ block: 'nearest' });
+    };
+    vv.addEventListener('resize', fit);
+    vv.addEventListener('scroll', fit);
+    return () => {
+      vv.removeEventListener('resize', fit);
+      vv.removeEventListener('scroll', fit);
+    };
+  }, []);
+  return html`<div class="signin-page" ref=${pageRef}>
     <h1 class="signin-brand">${brand}</h1>
     <div class="signin-card">
       ${children}

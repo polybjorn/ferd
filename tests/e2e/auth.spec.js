@@ -65,3 +65,17 @@ test('a failed sign-in shows the error and leaves the form usable', async ({ pag
   await expect(page.locator('#auth-submit')).toBeEnabled();
   expect(fenced.errors).toEqual([]);
 });
+
+// A phone keyboard leaves about 360px of an iPhone SE's screen. The sign-in
+// form fits there whole, Sign in included, with no logo above it.
+test('the sign-in form fits above a phone keyboard', async ({ page, baseURL }) => {
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  await page.setViewportSize({ width: 375, height: 360 });
+  await page.goto('/');
+  await expect(page.locator('#auth-username')).toBeVisible();
+  await expect(page.locator('.signin-page img')).toHaveCount(0);
+  const submit = await page.locator('#auth-submit').boundingBox();
+  if (!submit) throw new Error('no box for Sign in');
+  expect(submit.y + submit.height).toBeLessThanOrEqual(360);
+  expect(fenced.errors).toEqual([]);
+});
