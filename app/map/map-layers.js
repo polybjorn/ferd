@@ -390,6 +390,9 @@ export function cleanupMap() {
   state._lastTrailBounds = null;
   if (state.currentMap) {
     state.currentMap.remove();
+    // remove() leaves a resize's debounced moveend armed (Leaflet 1.9.4), and
+    // a listener reading the view would then throw on the removed map.
+    state.currentMap.off();
     state.currentMap = null;
   }
   state.tilePickerCtrl = null;

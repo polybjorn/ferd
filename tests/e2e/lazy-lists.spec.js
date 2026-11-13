@@ -90,3 +90,24 @@ test.describe('offline', () => {
     }
   });
 });
+
+// A resize leaves Leaflet's moveend armed for 200ms, and a list opened in that
+// window removes the map under it.
+test('a list opened just after a resize leaves the map without an error', async ({ page, baseURL }) => {
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  // Places once first: its first visit waits on import(), which can outlast
+  // the 200ms and leave the map in place until the timer has fired.
+  await signIn(page, '#/places');
+  await expect(page.locator(PAGES['#/places'])).toHaveCount(1);
+  await page.evaluate(() => { location.hash = '#/'; });
+  await expect(page.locator('.leaflet-container').first()).toBeVisible();
+  const { width, height } = /** @type {{ width: number, height: number }} */ (page.viewportSize());
+  await page.setViewportSize({ width: width - 100, height });
+  // Leaflet handles the resize on the next frame, and only then arms the timer.
+  await page.evaluate(() => new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))));
+  await page.evaluate(() => { location.hash = '#/places'; });
+  await expect(page.locator(PAGES['#/places'])).toHaveCount(1);
+  // Past the 200ms the moveend waits.
+  await page.waitForTimeout(400);
+  expect(fenced.errors).toEqual([]);
+});
