@@ -66,16 +66,14 @@ test('a double-tap zoom keeps the moved-away bottom bar away', async ({ page, ba
 
   // A class check after the zoom would miss the bar showing for a moment, so
   // every change to it is logged as it happens.
-  await page.evaluate(() => {
+  await page.evaluate(async () => {
+    const { state } = await import('/app/core.js');
     const log = /** @type {string[]} */ ([]);
     Object.assign(window, { barLog: log });
-    const container = /** @type {Element} */ (document.querySelector('#map'));
     new MutationObserver(() => {
       if (!document.body.classList.contains('bar-away')) log.push('shown');
     }).observe(document.body, { attributeFilter: ['class'] });
-    new MutationObserver(() => {
-      if (container.querySelector('.leaflet-zoom-anim')) log.push('zoom');
-    }).observe(container, { attributeFilter: ['class'], subtree: true });
+    /** @type {any} */ (state.currentMap).on('zoomstart', () => log.push('zoom'));
   });
   const box = await map.boundingBox();
   if (!box) throw new Error('the map has no box');
