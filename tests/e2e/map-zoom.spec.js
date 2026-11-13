@@ -6,6 +6,31 @@
 const { test, expect } = require('@playwright/test');
 const { fence, signIn } = require('./helpers');
 
+// The zoom-12 cap on the first fit is for places, which have no extent: a
+// short route keeps the fit that frames it.
+test('a map holding one short route opens framed on it', async ({ page, baseURL }, info) => {
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  // About 1.1 km across Rome, a fit far closer than zoom 12.
+  const pts = [[41.8902, 12.4922], [41.8935, 12.4853], [41.8986, 12.4769]]
+    .map(([lat, lon]) => `<trkpt lat="${lat}" lon="${lon}"></trkpt>`).join('');
+  const gpx = `<?xml version="1.0"?><gpx version="1.1" creator="e2e" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>My Trail</name><trkseg>${pts}</trkseg></trk></gpx>`;
+  const username = `e2e-${info.project.name}-${Date.now().toString(36)}`;
+  const reg = await page.request.post('/api/register', { data: { username, password: 'demo-password-1' } });
+  expect(reg.ok(), `register answered ${reg.status()}`).toBe(true);
+  const res = await page.request.post('/api/gpx?name=My%20Trail', { data: gpx, headers: { 'Content-Type': 'application/gpx+xml' } });
+  expect(res.ok(), `upload answered ${res.status()}`).toBe(true);
+  // Opened only now: a page open before the upload keeps the empty route list.
+  await page.goto('/');
+
+  await expect.poll(() => page.evaluate(async () => {
+    const { state } = await import('/app/core.js');
+    // The area group is on every map; route layers draw lazily on a desktop.
+    const map = state._areaGroup && /** @type {any} */ (state._areaGroup)._map;
+    return map && (state._routeLayers || []).length ? map.getZoom() : 0;
+  }), { timeout: 15000 }).toBeGreaterThan(12);
+  expect(fenced.errors).toEqual([]);
+});
+
 test('a cluster zoom glides each mark on the tiles\' own transition at its own size', async ({ page, baseURL }) => {
   const fenced = await fence(page, /** @type {string} */ (baseURL));
   await signIn(page);
