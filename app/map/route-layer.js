@@ -2,7 +2,7 @@ import { GPX_NS, state } from '../core.js';
 import { applyAuth, routeStatusColor } from '../server.js';
 import { gpxText } from '../store.js';
 import { _geometryPolygons } from '../area-geo.js';
-import { followZoomAnim, mapScheduler } from './map-layers.js';
+import { easeLeaflet, followZoomAnim, mapScheduler } from './map-layers.js';
 import { areaStyle } from './area-layer.js';
 import { getTrailWeightFactor } from '../theme.js';
 import { wrappedRouter } from '../router.js';
@@ -265,19 +265,19 @@ export function attachGLRoutes(map) {
   const VS = [
     'attribute vec2 aSegA; attribute vec2 aSegB; attribute float aEnd; attribute float aSide;',
     'attribute vec3 aColor; attribute float aOpFrom; attribute float aOpTo; attribute float aWFrom; attribute float aWTo; attribute float aDist;',
-    'uniform float uScale; uniform vec2 uOriginDelta; uniform vec2 uHalfSize; uniform vec2 uViewport; uniform float uHlT;',
+    'uniform float uScale; uniform vec2 uOriginDelta; uniform vec2 uHalfSize; uniform vec2 uViewport; uniform float uHlT; uniform float uWidth;',
     'varying vec4 vColor; varying float vDash;',
     'vec2 toC(vec2 v){ return uHalfSize + (v + uOriginDelta) * uScale; }',
     'vec2 toClip(vec2 c){ return vec2(c.x / uViewport.x * 2.0 - 1.0, 1.0 - c.y / uViewport.y * 2.0); }',
     'void main(){',
     '  vColor = vec4(aColor, mix(aOpFrom, aOpTo, uHlT));', // highlight opacity interpolated
-    '  float hw = mix(aWFrom, aWTo, uHlT);',              // and half-width
+    '  float hw = mix(aWFrom, aWTo, uHlT) * uWidth;',     // and half-width
     '  vec2 cA = toC(aSegA); vec2 cB = toC(aSegB);',
     '  vec2 self = mix(cA, cB, aEnd);',
     '  vec2 d = cB - cA; float l = length(d);',
     '  vec2 t = l > 0.0 ? d / l : vec2(1.0, 0.0);',
     '  vec2 perp = vec2(-t.y, t.x);',
-    '  vDash = aDist < 0.0 ? -1.0 : mod(aDist * uScale, 12.0) + aEnd * l;', // screen px along the line; -1 is solid
+    '  vDash = aDist < 0.0 ? -1.0 : (mod(aDist * uScale, 12.0 * uWidth) + aEnd * l) / uWidth;', // screen px along the line; -1 is solid
     '  gl_Position = vec4(toClip(self + perp * aSide * hw), 0.0, 1.0);',
     '}'
   ].join('\n');
@@ -314,7 +314,7 @@ export function attachGLRoutes(map) {
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) { console.warn('[gl-routes] link', gl.getProgramInfoLog(program)); return false; }
     gl.useProgram(program);
     ['aSegA', 'aSegB', 'aEnd', 'aSide', 'aColor', 'aOpFrom', 'aOpTo', 'aWFrom', 'aWTo', 'aDist'].forEach(a => attrLoc[a] = gl.getAttribLocation(program, a));
-    ['uScale', 'uOriginDelta', 'uHalfSize', 'uViewport', 'uHlT'].forEach(u => uniLoc[u] = gl.getUniformLocation(program, u));
+    ['uScale', 'uOriginDelta', 'uHalfSize', 'uViewport', 'uHlT', 'uWidth'].forEach(u => uniLoc[u] = gl.getUniformLocation(program, u));
     buffer = gl.createBuffer();
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); // premultiplied alpha
@@ -412,6 +412,28 @@ export function attachGLRoutes(map) {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
     vertCount = data.length / GL_ROUTE_STRIDE;
   }
+  // Through an animated zoom the canvas scales with the tiles, and the lines
+  // are drawn thinner by the same factor each frame to keep their width on
+  // screen. A frame late only misjudges a width, never a position.
+  let widthScale = 1;
+  let zoomAnimRaf = 0;
+  /** @param {{ zoom: number }} e */
+  function onZoomAnim(e) {
+    if (zoomAnimRaf) sched.cancelFrame(zoomAnimRaf);
+    const target = map.getZoomScale(e.zoom, map.getZoom());
+    const start = performance.now();
+    const tick = () => {
+      const t = Math.min((performance.now() - start) / 250, 1);
+      widthScale = 1 / (1 + (target - 1) * easeLeaflet(t));
+      draw();
+      zoomAnimRaf = (t < 1 && map._animatingZoom) ? sched.frame(tick) : 0;
+    };
+    tick();
+  }
+  function endZoomAnim() {
+    if (zoomAnimRaf) { sched.cancelFrame(zoomAnimRaf); zoomAnimRaf = 0; }
+    widthScale = 1;
+  }
   function draw() {
     if (!gl) return;
     // Keep the canvas pinned to the viewport (counter the map-pane pan offset),
@@ -440,6 +462,7 @@ export function attachGLRoutes(map) {
     gl.uniform2f(uniLoc.uHalfSize, size.x / 2, size.y / 2);
     gl.uniform2f(uniLoc.uViewport, size.x, size.y);
     gl.uniform1f(uniLoc.uHlT, (state._hlT == null) ? 1 : state._hlT);
+    gl.uniform1f(uniLoc.uWidth, map._animatingZoom ? widthScale : 1);
     gl.drawArrays(gl.TRIANGLES, 0, vertCount);
   }
   let rebuildTimer = 0;
@@ -458,7 +481,8 @@ export function attachGLRoutes(map) {
   state._glRoutesDraw = function () { draw(); };               // animation frame: cheap uniform update only
   map.on('move zoom', draw); // synchronous: lockstep with the tiles, no one-frame lag
   followZoomAnim(map, canvas); // an animated zoom fires no move/zoom until it ends
-  map.on('moveend zoomend', function () { rebuild(); draw(); });
+  map.on('zoomanim', onZoomAnim);
+  map.on('moveend zoomend', function () { endZoomAnim(); rebuild(); draw(); });
   map.on('resize', function () { resize(); draw(); });
   map.on('layeradd', rebuildSoon); // routes load lazily (async GPX)
 }

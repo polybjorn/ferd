@@ -37,18 +37,39 @@ test('a cluster zoom glides each mark on the tiles\' own transition at its own s
     const probe = /** @type {any} */ (window).__zoomProbe = {
       from: map.getZoom(), zoomanim: 0, gliders: 0, scale: 1, hidden: false, ends: /** @type {number[][]} */ ([]),
     };
+    const glCanvas = /** @type {HTMLCanvasElement | null} */ (box.querySelector('canvas.gl-routes'));
+    // WebGL draws the routes on phones only; desktop keeps them in SVG.
+    const gl = box.classList.contains('gl-routes-active') && glCanvas && glCanvas.getContext('webgl');
+    const lineWidth = () => {
+      if (!gl) return 1;
+      const program = gl.getParameter(gl.CURRENT_PROGRAM);
+      return program ? gl.getUniform(program, gl.getUniformLocation(program, 'uWidth')) : 1;
+    };
+    probe.gl = !!gl;
+    probe.widths = /** @type {number[]} */ ([]);
+    const sample = () => { probe.widths.push(lineWidth()); if (!probe.done) requestAnimationFrame(sample); };
     // Registered after the place layer's own handler, so its gliders are out.
     map.on('zoomanim', () => {
+      requestAnimationFrame(sample);
       probe.zoomanim++;
       const gliders = [...box.querySelectorAll('canvas.place-glider')];
       probe.gliders = gliders.length;
       probe.scale = Math.max(1, ...gliders.map(scaleOf));
       probe.glides = gliders.every(el => getComputedStyle(el).transitionDuration === '0.25s');
       probe.hidden = getComputedStyle(/** @type {Element} */ (box.querySelector('canvas.place-canvas-layer'))).visibility === 'hidden';
+      // At the transition's first instant a glider still shows where it starts.
+      const from = map.latLngToContainerPoint([tap.lat, tap.lng]);
+      const mapBox = box.getBoundingClientRect();
+      probe.started = gliders.some(el => {
+        const r = el.getBoundingClientRect();
+        const dx = from.x - (r.left - mapBox.left), dy = from.y - (r.top - mapBox.top);
+        return Math.abs(dx - dy) < 0.5 && dx > 10 && dx < 60;
+      });
       probe.ends = gliders.map(el => { const m = new DOMMatrixReadOnly(/** @type {HTMLElement} */ (el).style.transform); return [m.e, m.f]; });
     });
     map.once('zoomend', () => {
       probe.to = map.getZoom();
+      probe.widthAfter = lineWidth();
       const end = map.latLngToLayerPoint([tap.lat, tap.lng]);
       // A glider's corner sits the same distance up and left of its mark.
       probe.landed = probe.ends.some((/** @type {number[]} */ [x, y]) => Math.abs((end.x - x) - (end.y - y)) < 0.5 && end.x - x > 10 && end.x - x < 60);
@@ -73,7 +94,12 @@ test('a cluster zoom glides each mark on the tiles\' own transition at its own s
   expect(probe.scale, 'gliders stay unscaled').toBe(1);
   expect(probe.glides, 'gliders take the tiles\' transition').toBe(true);
   expect(probe.hidden, 'the place canvas hides while the marks glide').toBe(true);
+  expect(probe.started, 'the tapped cluster glides from where it was drawn').toBe(true);
   expect(probe.landed, 'the tapped cluster glides to where it ends').toBe(true);
+  if (probe.gl) {
+    expect(Math.min(...probe.widths), 'route lines are drawn thinner as the canvas grows').toBeLessThan(1);
+    expect(probe.widthAfter, 'and at their own width once the zoom ends').toBe(1);
+  }
   expect(probe.left, 'gliders are gone once the zoom ends').toBe(0);
   expect(probe.shown, 'the place canvas is back').toBe(true);
   expect(probe.offCentre, 'the cluster ends at the centre, px').toBeLessThan(1);

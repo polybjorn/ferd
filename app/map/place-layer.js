@@ -417,7 +417,9 @@ const PlaceCanvasLayer = L.Layer.extend({
     /** @type {Array<{ el: HTMLCanvasElement, to: any }>} */
     const gliders = [];
     for (const f of features) {
-      const el = /** @type {HTMLCanvasElement} */ (L.DomUtil.create('canvas', 'place-glider leaflet-zoom-animated', pane));
+      const el = /** @type {HTMLCanvasElement} */ (L.DomUtil.create('canvas', 'place-glider', pane));
+      const ll = L.latLng(f.geometry.coordinates[1], f.geometry.coordinates[0]);
+      L.DomUtil.setPosition(el, map.latLngToLayerPoint(ll).subtract([near, near]));
       el.width = el.height = box * dpr;
       el.style.width = el.style.height = box + 'px';
       el.style.pointerEvents = 'none';
@@ -430,16 +432,18 @@ const PlaceCanvasLayer = L.Layer.extend({
         ctx.globalAlpha = place.id === this._fadingPlaceId ? this._fadeAlpha : 1;
         this._drawMarker(ctx, at, place, catColors[place.category || ''] || '#888', size, style, ink);
       }
-      const ll = L.latLng(f.geometry.coordinates[1], f.geometry.coordinates[0]);
-      L.DomUtil.setPosition(el, map.latLngToLayerPoint(ll).subtract([near, near]));
       gliders.push({ el, to: map._latLngToNewLayerPoint(ll, e.zoom, e.center).subtract([near, near]) });
     }
     this._gliders = gliders.map(g => g.el);
     this._canvas.style.visibility = 'hidden';
-    // Commit the start positions, or the browser folds start and end into one
-    // style change and the marks jump instead of gliding.
-    void pane.offsetWidth;
-    for (const g of gliders) L.DomUtil.setPosition(g.el, g.to);
+    // The transition goes on only once the start positions are committed:
+    // setting a canvas font resolves its style, so a glider that had it from
+    // the start would glide in from the pane's corner.
+    void getComputedStyle(gliders[gliders.length - 1].el).transform;
+    for (const g of gliders) {
+      g.el.classList.add('leaflet-zoom-animated');
+      L.DomUtil.setPosition(g.el, g.to);
+    }
   },
 
   _land: function() {
