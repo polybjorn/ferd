@@ -23,6 +23,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ### Changed
 - With no remembered view, a map holding a single place, or several at one spot, opens at zoom 12, the zoom a place click uses, instead of the deepest zoom.
 - The map names itself in a heading: the app's name in the top bar, or the owner's name on a published map. Phones, which hide the top bar on the map, now show that name in a label over the top of the map, and a published map shows it while it loads.
+- On a phone, the list pages name themselves in a heading too: the current tab on Places, Routes and Areas (or the list's name when only one is on), and on the You page the name you are signed in as, or that you are viewing a shared map. Nothing changes on screen except a single list, or History opened from a link, which now shows its name above it.
 - Buttons in dialogs use the shared ui-foundation button: the text is a little larger and darker, with no extra letter spacing, and filled buttons take the theme's accent the same way everywhere. The category colour dots are round again, and the Filters button in Add > Browse matches the one on the list pages.
 - The first load skips the route page and the elevation chart (about 100 KB), which load when a route page first opens. They stay cached for offline use.
 - The Places, Routes, Areas, History and You pages load the first time you open them instead of at startup, so the first load is about 60 KB smaller. They still open offline.

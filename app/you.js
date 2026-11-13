@@ -11,6 +11,8 @@ import { t } from './i18n.js';
 
 // The phone's You page: who is signed in, a gear for what the wide screen's
 // menu holds, and History below. A visitor to a public map gets Sign in.
+// A phone hides the nav brand, so the name, or the shared map line, is the
+// page's h1.
 export function renderYouPage() {
   const signedIn = !!(state.auth && state.auth.authenticated);
   setActiveTab(signedIn && historyEnabled() ? 'history' : 'you');
@@ -29,17 +31,17 @@ function YouPage() {
   if (!(state.auth && state.auth.authenticated)) {
     return html`<div class="you-signin">
         ${ICON(USER)}
-        <p>${t('you.sharedMap')}</p>
+        <h1>${t('you.sharedMap')}</h1>
         <button type="button" class="ui-button ui-button-primary" id="you-signin" onClick=${() => openSignInModal()}>${t('you.signIn')}</button>
       </div>
       <div class="you-rows"><button type="button" id="you-about" onClick=${() => openAboutModal()}>${t('you.about')}</button></div>`;
   }
   const local = !hasServer();
   return html`<div class="you-head">
-      <div class="you-name">
+      <h1 class="you-name">
         <span>${local ? t('you.localMap') : t('you.signedInAs')}</span>
         <strong>${local ? t('you.noAccount') : state.auth.username}</strong>
-      </div>
+      </h1>
       <button type="button" class=${'you-gear' + (catalogUpdatesPending() ? ' has-dot' : '')} id="you-gear"
         title=${t('you.settings')} aria-label=${t('you.settings')} onClick=${() => openAccountSheet()}>${ICON(GEAR)}</button>
     </div>

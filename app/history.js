@@ -20,7 +20,15 @@ export function renderHistoryIndex() {
   setActiveTab('history');
   setCrumb(t('history.title'));
   cleanupMap();
-  mountPage(html`<${HistoryPage} />`, 'history');
+  mountPage(html`<${HistoryIndex} />`, 'history');
+}
+
+// A phone hides the nav brand, the wide screen's h1, and holds History on the
+// You page, so this title only shows on a phone that opens #/history. The
+// props carry mountPage's visit count down, which makes each visit render.
+/** @param {Record<string, any>} props */
+function HistoryIndex(props) {
+  return html`<h1 class="phone-title">${t('history.title')}</h1><${HistoryPage} ...${props} />`;
 }
 
 /**

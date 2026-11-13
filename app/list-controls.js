@@ -69,15 +69,18 @@ export function CategoryDot({ category }) {
 const LIST_LABELS = /** @type {Record<string, string>} */ ({ places: 'lists.places', routes: 'lists.routes', areas: 'lists.areas' });
 /**
  * A phone's bar has one Lists item, so the lists it holds are tabs on the
- * page. A wide screen has them in the nav. With one list there is nothing to
- * switch to.
+ * page. A wide screen has them in the nav. A phone hides the nav brand, the
+ * wide screen's h1, so there the current tab is the page's h1. With one list
+ * there is nothing to switch to, and its name alone is the h1.
  * @param {{ current: string }} props
  */
 export function ListTabs({ current }) {
   const kinds = listKinds();
-  if (kinds.length < 2) return null;
+  if (kinds.length < 2) return html`<h1 class="phone-title">${t(LIST_LABELS[current])}</h1>`;
   return html`<nav class="list-tabs" aria-label=${t('lists.tabs')}>
-    ${kinds.map(k => html`<a key=${k} class="list-tab" href=${'#/' + k} aria-current=${k === current ? 'page' : undefined}>${t(LIST_LABELS[k])}</a>`)}
+    ${kinds.map(k => k === current
+      ? html`<h1 key=${k} class="list-tab-heading"><a class="list-tab" href=${'#/' + k} aria-current="page">${t(LIST_LABELS[k])}</a></h1>`
+      : html`<a key=${k} class="list-tab" href=${'#/' + k}>${t(LIST_LABELS[k])}</a>`)}
   </nav>`;
 }
 

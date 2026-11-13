@@ -4,12 +4,31 @@
    keeps its place in the cascade. */
 @layer app {
 .you-gear.has-dot::after { top: 6px; right: 6px; }
-/* The phone's Lists tabs. A wide screen has the lists in the nav. */
-.list-tabs { display: none; }
+/* The phone's Lists tabs. A wide screen has the lists in the nav, and its h1
+   is the nav brand, so the phone's page titles hide there. */
+:is(.list-tabs, .phone-title) { display: none; }
 @media (max-width: 600px) {
   .list-tabs {
     display: flex;
     margin: 0 0 var(--ui-space-3);
+    border-bottom: 1px solid var(--border);
+  }
+  /* The current tab is the page's h1, drawn as the tab it holds. */
+  .list-tab-heading {
+    flex: 1;
+    display: flex;
+    margin: 0;
+    font: inherit;
+  }
+  /* One list, or History on its own: the name a current tab would show. */
+  .phone-title {
+    display: flex;
+    align-items: center;
+    min-height: var(--ui-touch-target);
+    margin: 0 0 var(--ui-space-3);
+    font-size: var(--ui-text-md);
+    font-weight: 500;
+    color: var(--text);
     border-bottom: 1px solid var(--border);
   }
   .list-tab {
@@ -36,7 +55,7 @@
   gap: var(--ui-space-3);
   margin: 0 0 var(--ui-space-4);
 }
-.you-name { min-width: 0; }
+.you-name { min-width: 0; margin: 0; font: inherit; }
 .you-name span { display: block; color: var(--muted); font-size: var(--ui-text-sm); }
 .you-name strong { display: block; color: var(--text); font-size: var(--ui-text-xl); overflow-wrap: anywhere; }
 /* Not a ui-button-icon-round even with --ui-button-fill: the block fixes the
@@ -65,7 +84,7 @@
   text-align: center;
 }
 .you-signin svg { width: 56px; height: 56px; color: var(--muted); }
-.you-signin p { margin: var(--ui-space-2) 0 var(--ui-space-4); color: var(--muted); }
+.you-signin h1 { font: inherit; margin: var(--ui-space-2) 0 var(--ui-space-4); color: var(--muted); }
 .you-rows { max-width: 480px; margin: 0 auto; }
 /* Index grids (places + routes) */
 .region-grid {

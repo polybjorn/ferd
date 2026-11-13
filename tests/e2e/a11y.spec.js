@@ -174,3 +174,39 @@ test('the skip link focuses the main element, which lets go of focus after', asy
   await expect(main).not.toHaveAttribute('tabindex');
   expect(fenced.errors).toEqual([]);
 });
+
+// site-audit's widths, split at the 600px phone breakpoint. The audit wants
+// one visible h1 at each, and a phone hides the nav brand off the map and a
+// route, so there each list names itself: the current Lists tab, History's
+// title, and the You page's name.
+const PHONE_WIDTHS = [320, 360, 390, 414, 600];
+const WIDE_WIDTHS = [768, 900, 1024, 1280, 1440];
+const PHONE_NAMES = /** @type {Record<string, RegExp>} */ ({
+  places: /^Places$/, routes: /^Routes$/, areas: /^Areas$/, history: /^History$/, you: /demo$/,
+});
+
+test('each view names itself in one visible h1 at every site-audit width', async ({ page, baseURL }, info) => {
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  const phone = isPhone(info);
+  // The map opens last: a resize after the map has been open throws in
+  // Leaflet, which this test is not about.
+  await signIn(page, '#/places');
+  // You is the phone bar's page; a wide screen reaches History from its nav.
+  const views = phone ? ['places', 'routes', 'areas', 'history', 'you', 'map'] : ['places', 'routes', 'areas', 'history', 'map'];
+  const h1 = page.locator('h1:visible');
+  for (const view of views) {
+    await page.evaluate(v => { location.hash = v === 'map' ? '#/' : '#/' + v; }, view);
+    for (const width of phone ? PHONE_WIDTHS : WIDE_WIDTHS) {
+      await page.setViewportSize({ width, height: 800 });
+      const at = `${view} at ${width}px`;
+      if (!phone || view === 'map') {
+        await expect(h1, at).toHaveClass(/nav-brand/);
+      } else {
+        await expect(h1, at).toHaveText(PHONE_NAMES[view]);
+      }
+      await expect(h1, at).toHaveCount(1);
+    }
+  }
+  expect(fenced.external).toEqual([]);
+  expect(fenced.errors).toEqual([]);
+});
