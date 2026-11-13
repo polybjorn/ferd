@@ -1544,6 +1544,8 @@ body.signin-only #app {
      into the vacated center column). */
   .app-nav { grid-template-columns: minmax(0, 1fr) auto; }
 }
+/* As wide as its longest line, the OpenTopoMap credit, needs. */
+.ui-dialog.about-dialog { --ui-dialog-width: 320px; }
 /* Wide enough for the longest label, Built with and its translations. */
 .about-kv { --ui-kv-label-width: 6rem; }
 .about-kv a { color: var(--accent); text-decoration: none; }

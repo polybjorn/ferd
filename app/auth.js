@@ -217,7 +217,11 @@ export function openAboutModal() {
   return loadMap().then(({ map }) => map, () => null).then(map => {
     const overlayCredits = map ? map.parseOverlays(state.config && /** @type {typeof state.config & { overlays?: unknown }} */ (state.config).overlays)
       .map(ov => ov.attribution).filter(Boolean) : [];
-    const credits = map ? map.TOPO_CREDITS.concat(overlayCredits) : [];
+    // Alphabetical by the name shown, past any leading copyright sign.
+    /** @param {string} c */
+    const sortKey = c => c.replace(/<[^>]*>|&copy;/g, '').trim();
+    const credits = map ? map.TOPO_CREDITS.concat(overlayCredits)
+      .sort((a, b) => sortKey(a).localeCompare(sortKey(b))) : [];
     const dialog = openViewModal(html`<div class="ui-dialog-handle" aria-hidden="true"></div>
       <${DialogHead} title=${brand} />
       <div class="ui-dialog-body">
@@ -249,6 +253,6 @@ export function openAboutModal() {
           </div>`}
         </dl>
       </div>`, { phone: 'sheet' });
-    dialog.classList.add('narrow-dialog');
+    dialog.classList.add('about-dialog');
   });
 }
