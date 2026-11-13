@@ -1,4 +1,4 @@
-/* ui.js 1.17.2: the behaviour behind the ui.css blocks that need script,
+/* ui.js 1.17.3: the behaviour behind the ui.css blocks that need script,
    menus, search, dialogs, collapses, popovers and tabs, and a toast and a
    confirm built from them, for an app that wants it rather than its own.
 
@@ -111,6 +111,11 @@
   let current = null;
   let typed = "";
   let typedAt = 0;
+  // Safari focuses no button on a click, so a press on an item moves focus to
+  // the nearest focusable ancestor, such as a skip link's <main tabindex="-1">.
+  // Touch fires pointerup before that focus move, so the press lasts until its
+  // click or the next press.
+  let pressedIn = false;
 
   /** @param {Element} el */
   const enabled = (el) => !(/** @type {HTMLButtonElement} */ (el).disabled) && el.getAttribute("aria-disabled") !== "true"
@@ -263,6 +268,7 @@
     if (!s) return;
     current = null;
     typed = "";
+    pressedIn = false;
     const hadFocus = s.menu.contains(document.activeElement);
     s.menu.hidden = true;
     if (s.trigger) s.trigger.setAttribute("aria-expanded", "false");
@@ -413,10 +419,13 @@
   // aria-checked, and still made when that listener stops propagation.
   document.addEventListener("click", (e) => {
     if (!(e.target instanceof Element)) return;
+    pressedIn = false;
     const item = current && e.target.closest(ITEM);
     if (item && /** @type {MenuState} */ (current).menu.contains(item)) {
       if (enabled(item)) choose(item);
       else e.preventDefault();
+      // A checkbox stays open, and arrow keys need focus back inside.
+      if (current && !current.menu.contains(document.activeElement)) /** @type {HTMLElement} */ (item).focus();
       return;
     }
     const trigger = e.target.closest(TRIGGER);
@@ -428,16 +437,18 @@
   document.addEventListener("pointerdown", (e) => {
     if (!current) return;
     const t = /** @type {Node | null} */ (e.target);
-    if (current.menu.contains(t) || (current.trigger && current.trigger.contains(t))) return;
+    pressedIn = current.menu.contains(t);
+    if (pressedIn || (current.trigger && current.trigger.contains(t))) return;
     close(false);
   }, true);
+  document.addEventListener("pointercancel", () => { pressedIn = false; }, true);
 
   // Focus moved out by other means than a key or a click here, such as a
   // screen reader. A null relatedTarget is the window losing focus, which
   // leaves the menu as it was.
   document.addEventListener("focusout", (e) => {
     const to = /** @type {Node | null} */ (e.relatedTarget);
-    if (!current || !to || current.menu.contains(to) || to === current.trigger) return;
+    if (!current || pressedIn || !to || current.menu.contains(to) || to === current.trigger) return;
     close(false);
   });
 

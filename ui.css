@@ -1,4 +1,4 @@
-/* ui.css 1.17.2: shared building blocks for menus, modals and forms.
+/* ui.css 1.17.3: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -394,9 +394,11 @@
 @layer ui {
   /* Each block opens at a `block:` comment naming it, by its main class
      without the ui- prefix, and the blocks its markup also needs. It runs to
-     the next `block:` or `shared:` comment. A `shared:` section serves several
-     blocks and keeps its place after them, since it wins on source order, so
-     a cut of some blocks keeps every shared section and the blocks' order. */
+     the next `block:` or `shared:` comment, and its rules match only its own
+     markup. A rule that serves several blocks goes in a `shared:` section,
+     placed where its source order needs it. tools/cut.py cuts the file to
+     some blocks by keeping theirs whole, in order, and the shared rules that
+     can still match. */
   /* block: section */
   .ui-section {
     font: inherit;
@@ -659,6 +661,17 @@
     inset-inline-start: 17px;
   }
 
+  /* shared: toggle and choice inputs */
+  :is(.ui-toggle-row, .ui-choice) > input {
+    flex: none;
+    margin: 0;
+    accent-color: var(--ui-accent);
+  }
+  :is(.ui-toggle-row, .ui-choice) > input:focus-visible {
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: var(--ui-focus-width);
+  }
+
   /* block: choice-list */
   .ui-choice-list {
     font: inherit;
@@ -685,16 +698,6 @@
     font-size: var(--ui-text-sm);
     color: var(--ui-choice-color, var(--ui-text));
     cursor: pointer;
-  }
-
-  :is(.ui-toggle-row, .ui-choice) > input {
-    flex: none;
-    margin: 0;
-    accent-color: var(--ui-accent);
-  }
-  :is(.ui-toggle-row, .ui-choice) > input:focus-visible {
-    outline: var(--ui-focus-width) solid var(--ui-focus-color);
-    outline-offset: var(--ui-focus-width);
   }
 
   /* Segmented and pill choice lists draw each option as a button-like label
@@ -915,6 +918,15 @@
     padding: var(--ui-button-padding, 0);
   }
   .ui-button-icon-round { border-radius: var(--ui-radius-full); }
+
+  /* shared: icons in icon, close and clear buttons */
+  /* A dialog's close is an icon, not a × character: a font draws that glyph
+     below the middle of its line box, so it never centres in the button. */
+  :is(.ui-button-icon, .ui-dialog-close, .ui-search-clear) > svg {
+    flex: none;
+    inline-size: var(--ui-button-glyph-size, 1.25rem);
+    block-size: var(--ui-button-glyph-size, 1.25rem);
+  }
 
   /* block: search, needs: field button */
   /* The browser's own clear button exists only in Chromium and WebKit, so it
@@ -1385,13 +1397,6 @@
     flex: none;
     inline-size: var(--ui-control-height);
     padding: 0;
-  }
-  /* The x is an icon, not a × character: a font draws that glyph below the
-     middle of its line box, so it never centres in the button. */
-  :is(.ui-button-icon, .ui-dialog-close, .ui-search-clear) > svg {
-    flex: none;
-    inline-size: var(--ui-button-glyph-size, 1.25rem);
-    block-size: var(--ui-button-glyph-size, 1.25rem);
   }
   .ui-dialog-body {
     flex: 1 1 auto;
