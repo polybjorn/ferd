@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 
 from .. import crawl
 from ..auth import READONLY_POST_ALLOW, SESSION_DAYS, api_token_lookup, hash_token, session_lookup, session_touch
+from ..db import BUSY_TIMEOUT_SECONDS
 from ..common import BodyTooLarge, NotFoundError, ValidationError
 from ..store import transaction
 from ..users import ensure_user_dir
@@ -47,7 +48,7 @@ class RequestMixin:
     ThreadingHTTPServer workers can corrupt internal state during concurrent
     parses. Open one per request, close it in handle_one_request()."""
     if self._req_conn is None:
-      c = sqlite3.connect(self.cfg["db_path"], isolation_level=None)
+      c = sqlite3.connect(self.cfg["db_path"], isolation_level=None, timeout=BUSY_TIMEOUT_SECONDS)
       c.execute("PRAGMA foreign_keys=ON")
       c.row_factory = sqlite3.Row
       self._req_conn = c

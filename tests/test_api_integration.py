@@ -2033,6 +2033,29 @@ class TestSync(unittest.TestCase):
     self.assertEqual(len(set(revs)), n)
     self.assertEqual(len(self.c.request("GET", "/api/places")[1]), n)
 
+  def test_writes_wait_out_a_held_write_lock(self):
+    # Another connection holds the database write lock for longer than
+    # sqlite3's default 5 second busy timeout, as a burst of slow commits
+    # can. A login and a sync batch queue behind it rather than fail.
+    results = {}
+
+    def push():
+      c = Client(_server.base_url)  # type: ignore[union-attr]
+      results["login"] = c.login(SEED_USER, SEED_PW)[0]
+      results["batch"] = batch(c, [put("place", "0000beef", {"name": "Waited", "lat": 1, "lon": 1})])[0]
+
+    holder = store_conn()
+    try:
+      holder.execute("BEGIN IMMEDIATE")
+      t = threading.Thread(target=push)
+      t.start()
+      time.sleep(6)
+      holder.execute("COMMIT")
+      t.join(30)
+    finally:
+      holder.close()
+    self.assertEqual(results, {"login": 200, "batch": 200})
+
   def test_epoch_mismatch_or_absence_resets(self):
     self._batch([{"kind": "pref", "op": "put", "id": "k", "data": 1}])
     head = self._changes()[1]["rev"]

@@ -10,6 +10,14 @@ import time
 from pathlib import Path
 
 
+# How long a connection waits for another one's write lock before failing with
+# "database is locked". Each request opens its own connection, so every write
+# queues on SQLite's lock; with sqlite3's default of 5 seconds, a burst of
+# writes on a slow disk (each commit is an fsync) outlasts the wait and the
+# request fails with an unhandled error.
+BUSY_TIMEOUT_SECONDS = 30.0
+
+
 def db_connect(path: str) -> sqlite3.Connection:
   parent = Path(path).parent
   created_dir = not parent.exists()
@@ -20,7 +28,7 @@ def db_connect(path: str) -> sqlite3.Connection:
     except OSError:
       pass
   new_db = not Path(path).exists()
-  conn = sqlite3.connect(path, check_same_thread=False, isolation_level=None)
+  conn = sqlite3.connect(path, check_same_thread=False, isolation_level=None, timeout=BUSY_TIMEOUT_SECONDS)
   conn.execute("PRAGMA journal_mode=WAL")
   conn.execute("PRAGMA foreign_keys=ON")
   conn.row_factory = sqlite3.Row
