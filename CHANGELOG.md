@@ -67,6 +67,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Add, Settings and the catalog lists are only as tall as their content, up to the height of the screen. Their top edge stays put, so the tabs and filter box don't move.
 
 ### Fixed
+- `deploy/nginx.example.conf` now passes `nginx -t`: the login rate-limit zone sits outside the server blocks, where nginx accepts it.
 - In Safari, picking a view from a list page's View menu chooses it again, instead of closing the menu and opening the card underneath.
 - A sign-in or save no longer fails with a dropped connection when the server is busy writing. Each request waited at most 5 seconds for another one's write to finish, which a burst of saves on a slow disk can outlast; it now waits up to 30 seconds.
 - The app no longer stays on Loading when its sign-in check stalls on a poor connection: it asks once more after 4 seconds, then opens the way it does offline. On a first visit, the copy of the app kept for offline use now downloads once the app has opened, not alongside it.
