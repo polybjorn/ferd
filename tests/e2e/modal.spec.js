@@ -180,6 +180,21 @@ test('a tap that closes the tile picker leaves the bottom bar as it is', async (
   expect(fenced.errors).toEqual([]);
 });
 
+test('the tile picker opens on a click, not on hover', async ({ page, baseURL }, info) => {
+  test.skip(isPhone(info), 'a phone has no hover');
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  await signIn(page);
+  const picker = page.locator('#map .leaflet-control-layers');
+  const toggle = page.locator('#map .leaflet-control-layers-toggle');
+  await toggle.hover();
+  await page.waitForTimeout(300);
+  await expect(picker).not.toHaveClass(/leaflet-control-layers-expanded/);
+  await toggle.click();
+  await expect(picker).toHaveClass(/leaflet-control-layers-expanded/);
+  expect(fenced.external).toEqual([]);
+  expect(fenced.errors).toEqual([]);
+});
+
 test('the header Add button survives a list page', async ({ page, baseURL }, info) => {
   test.skip(isPhone(info), 'the phone has no header actions');
   const fenced = await fence(page, /** @type {string} */ (baseURL));

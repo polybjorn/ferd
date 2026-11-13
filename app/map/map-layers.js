@@ -301,6 +301,10 @@ export function addTilePicker(map) {
   // turned back on in Settings arrives after the phone's map buttons.
   const el = ctrl.getContainer();
   el.parentNode.prepend(el);
+  // The button sits under the header's Add and Menu, so opening on hover
+  // would cover them as the pointer passes on its way there. A click still
+  // opens it, and leaving the open list or clicking the map still closes it.
+  L.DomEvent.off(el, 'mouseenter', ctrl._expandSafely, ctrl);
   return ctrl;
 }
 
