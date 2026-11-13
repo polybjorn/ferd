@@ -634,6 +634,10 @@ body.nav-float #app {
 }
 body.nav-float #map .leaflet-top { top: calc(var(--map-btn-size) + 5px); }
 body.nav-float.map-chrome-hidden .app-nav { display: none; }
+/* On your own map the title only repeats the app's name, so it stays a heading
+   for screen readers alone; a published map shows whose map it is. */
+body[data-view="map"]:not(.public-map) .nav-start { clip-path: inset(50%); }
+body.nav-float[data-view="map"]:not(.public-map, .map-chrome-hidden) #map .leaflet-top.leaflet-left { top: 0; }
 body.nav-float.map-chrome-hidden #map .leaflet-top { top: 0; }
 /* A phone's route page names the route alone, beside Back. */
 @media (max-width: 600px) {
