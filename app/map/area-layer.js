@@ -22,15 +22,20 @@ import { goToPlace, goToRoute } from './map-actions.js';
 // the map. Clicks are matched in openAreaPopupAt instead.
 /** @param {LeafletMap} map */
 export function initAreaLayers(map) {
+  // Where WebGL draws the outlines (attachGLRoutes ran first), the fills go on
+  // a canvas: iOS Safari moves a canvas with the tiles through an animated
+  // zoom, but an SVG trails them and lands after the zoom ends.
+  const fillOnly = map.getContainer().classList.contains('gl-routes-active');
+  const renderer = fillOnly ? L.canvas : L.svg;
   const pane = map.createPane('areasPane');
   pane.style.zIndex = 390;
   pane.style.pointerEvents = 'none';
-  state._areaRenderer = L.svg({ pane: 'areasPane' });
+  state._areaRenderer = renderer({ pane: 'areasPane' });
   state._areaGroup = L.featureGroup().addTo(map);
   const countryPane = map.createPane('countriesPane');
   countryPane.style.zIndex = 380;
   countryPane.style.pointerEvents = 'none';
-  state._countryRenderer = L.svg({ pane: 'countriesPane' });
+  state._countryRenderer = renderer({ pane: 'countriesPane' });
   state._countryGroup = L.featureGroup().addTo(map);
   state._countryGroup._key = null;
   // Natural Earth is a world-scale dataset: past this zoom its coast visibly
@@ -58,9 +63,25 @@ export function areaStyle(a, visited) {
     ? { color, weight: 2, opacity: 0.9, fillColor: color, fillOpacity: 0.22, dashArray: null }
     : { color, weight: 2, opacity: 0.7, fillColor: color, fillOpacity: 0.08, dashArray: '6 6' };
 }
+// The map's own area style, without the outline where WebGL draws it.
+/**
+ * @param {{ category?: string }} a
+ * @param {boolean} visited
+ */
+function shapeStyle(a, visited) {
+  const style = areaStyle(a, visited);
+  return state._areaRenderer instanceof L.Canvas ? { ...style, stroke: false } : style;
+}
 export const MAP_FADE_MS = 300;
 // Routes and area outlines can sit in the WebGL buffer, where one line can't
-// fade alone, so an SVG copy fades in the place of the removed shape.
+// fade alone, so an SVG copy fades in the place of the removed shape. It has
+// a renderer of its own, since the area renderer can be a canvas, which gives
+// a shape no element to animate.
+/** @param {LeafletMap} map */
+function fadeRenderer(map) {
+  if (!map._fadeRenderer) map._fadeRenderer = L.svg({ pane: 'areasPane' });
+  return map._fadeRenderer;
+}
 /**
  * @param {LeafletMap} map
  * @param {LeafletLayer} shape
@@ -88,7 +109,7 @@ export function areaFadeOut(area) {
 function fadeOutArea(area, visited) {
   if (!state.currentMap || !state._areaRenderer) return;
   fadeOutShape(state.currentMap, L.geoJSON(area.geometry, {
-    renderer: state._areaRenderer,
+    renderer: fadeRenderer(state.currentMap),
     pane: 'areasPane',
     interactive: false,
     style: areaStyle(area, visited),
@@ -107,7 +128,7 @@ export function fadeOutRoute(map, layer) {
       const { color, weight, opacity } = part.options;
       shape.addLayer(L.polyline(part.getLatLngs(), {
         color, weight, opacity,
-        renderer: state._areaRenderer,
+        renderer: fadeRenderer(map),
         pane: 'areasPane',
         interactive: false,
       }));
@@ -129,9 +150,8 @@ export function syncAreasOnMap() {
       layer: L.geoJSON(area.geometry, {
         renderer: state._areaRenderer,
         pane: 'areasPane',
-        className: 'area-shape',
         interactive: false,
-        style: areaStyle(area, visited),
+        style: shapeStyle(area, visited),
       }),
     };
   });
@@ -147,7 +167,7 @@ function markAreasByRoute() {
     routesInArea(entry.area, completed).then(function(/** @type {ManifestRoute[]} */ routes) {
       if (!routes.length) return;
       entry.visited = true;
-      entry.layer.setStyle(areaStyle(entry.area, true));
+      entry.layer.setStyle(shapeStyle(entry.area, true));
       applyAreaFilters();
     }, function() {});
   }

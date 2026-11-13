@@ -353,8 +353,8 @@ export function attachGLRoutes(map) {
     const pushSeg = (arr, ax, ay, bx, by, rgb, opF, opT, wF, wT, dist = -1) => {
       for (const [end, side] of V6) arr.push(ax, ay, bx, by, end, side, rgb[0], rgb[1], rgb[2], opF, opT, wF, wT, dist);
     };
-    // Only the outline: an area's fill stays in SVG, where scaling with the
-    // pinch is correct, and only a stroke's width has to hold constant.
+    // Only the outline: an area's fill stays in the area layer, where scaling
+    // with the pinch is correct, and only a stroke's width has to hold constant.
     /** @type {number[]} */
     const areaArr = [];
     /** @param {import('../core.js').Area} area @param {boolean} visited */

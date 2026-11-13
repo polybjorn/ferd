@@ -1950,7 +1950,6 @@ body.force-show-map-filter .map-panel {
 }
 
 /* With the WebGL route layer up it draws the routes, so the SVG route lines
-   and area outlines draw nothing (route-layer.js adds the class). */
+   draw nothing (route-layer.js adds the class). */
 .gl-routes-active path.route-line { opacity: 0 !important; }
-.gl-routes-active path.area-shape { stroke-opacity: 0 !important; }
 } /* @layer app */
