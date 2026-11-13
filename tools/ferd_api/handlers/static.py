@@ -79,10 +79,9 @@ class StaticMixin:
     self.send_header("X-Content-Type-Options", "nosniff")
     # The policy acts on the document and on the service worker script; every
     # other response would carry it for nothing.
-    if rel == "index.html":
-      for k, v in csp.headers(csp.importmap_hash(data)):
-        self.send_header(k, v)
-    elif rel == "sw.js":
+    # The hash comes from the file on disk, not the page above: that holds a
+    # name from the URL, and the import map has nothing that varies by request.
+    if rel in ("index.html", "sw.js"):
       for k, v in csp.headers(csp.importmap_hash_for(base / "index.html")):
         self.send_header(k, v)
     self.end_headers()
