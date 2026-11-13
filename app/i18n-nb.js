@@ -592,7 +592,6 @@ export const NB = {
 
   'auth.signIn': 'Logg inn',
   'auth.menu': 'Kontomeny',
-  'auth.menuButton': 'Meny',
   'auth.localMap': 'Lokalt kart',
   'auth.signedInAs': 'Logget inn som {name}',
   'auth.settings': 'Innstillinger',
@@ -627,6 +626,7 @@ export const NB = {
   'app.otherTab': 'Ferd er åpen i en annen fane. Lukk den for å fullføre oppdateringen.',
   'app.tabPlaces': 'Steder',
   'app.skipToContent': 'Hopp til innholdet',
+  'nav.back': 'Tilbake',
   'app.publicTitle': '{user} - {brand}',
   'app.tabRoutes': 'Ruter',
 

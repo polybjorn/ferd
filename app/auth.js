@@ -78,7 +78,7 @@ function AuthWidget() {
   // ui.js opens, closes and moves focus through the menu from this markup.
   // Opening the menu also closes an open filter popover (ui.js).
   return html`<div class="ui-menu-anchor">
-    <button type="button" id="auth-menu-btn" title=${t('auth.menu')} aria-haspopup="menu" aria-expanded="false" aria-controls="auth-menu">${t('auth.menuButton')}</button>
+    <button type="button" id="auth-menu-btn" class="ui-button ui-button-icon nav-icon-btn" title=${t('auth.menu')} aria-label=${t('auth.menu')} aria-haspopup="menu" aria-expanded="false" aria-controls="auth-menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></button>
     <div class="ui-menu ui-menu-end" id="auth-menu" role="menu" aria-labelledby="auth-menu-head" hidden>
       <p class="ui-menu-head" id="auth-menu-head">${local
         ? t('auth.localMap')

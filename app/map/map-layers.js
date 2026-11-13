@@ -305,6 +305,10 @@ export function addTilePicker(map) {
   // turned back on in Settings arrives after the phone's map buttons.
   const el = ctrl.getContainer();
   el.parentNode.prepend(el);
+  // The button sits under the header's Add and Menu, so opening on hover
+  // would cover them as the pointer passes on its way there. A click still
+  // opens it, and leaving the open list or clicking the map still closes it.
+  L.DomEvent.off(el, 'mouseenter', ctrl._expandSafely, ctrl);
   return ctrl;
 }
 
@@ -421,8 +425,8 @@ export function cleanupMap() {
 }
 
 // Leaflet's tile transition is CSS cubic-bezier(0, 0, 0.25, 1). Match it
-// exactly via Newton's method so pins and routes track the tiles through a
-// zoom animation; a polynomial ease-out diverges ~5% mid-animation, visible
+// exactly via Newton's method so route widths track the tiles' scale through
+// a zoom animation; a polynomial ease-out diverges ~5% mid-animation, visible
 // as drift then snap.
 /** @param {number} t */
 export function easeLeaflet(t) {
@@ -437,4 +441,25 @@ export function easeLeaflet(t) {
   }
   const sm = 1 - s;
   return 3 * sm * s * s + s * s * s;
+}
+
+// Leaflet runs its zoom animation as a CSS transition on the compositor. A
+// canvas redrawn from script each frame reaches the screen a frame or more
+// behind the tiles, which shows as stutter on a phone, so the canvas takes the
+// same transition instead, as Leaflet's own renderers do. Its drawing scales
+// with the map until the redraw at the end of the animation.
+/** @param {any} map @param {HTMLElement} canvas @param {{ zoom: number, center: any }} e */
+export function rideZoomAnim(map, canvas, e) {
+  const scale = map.getZoomScale(e.zoom, map.getZoom());
+  const offset = map._latLngToNewLayerPoint(map.containerPointToLatLng([0, 0]), e.zoom, e.center);
+  L.DomUtil.setTransform(canvas, offset, scale);
+}
+
+/** @param {any} map @param {HTMLElement} canvas @returns {() => void} */
+export function followZoomAnim(map, canvas) {
+  canvas.classList.add('leaflet-zoom-animated');
+  /** @param {{ zoom: number, center: any }} e */
+  const onZoomAnim = e => rideZoomAnim(map, canvas, e);
+  map.on('zoomanim', onZoomAnim);
+  return () => map.off('zoomanim', onZoomAnim);
 }

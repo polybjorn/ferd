@@ -2,7 +2,7 @@ import { GPX_NS, state } from '../core.js';
 import { applyAuth, routeStatusColor } from '../server.js';
 import { gpxText } from '../store.js';
 import { _geometryPolygons } from '../area-geo.js';
-import { easeLeaflet, mapScheduler } from './map-layers.js';
+import { easeLeaflet, followZoomAnim, mapScheduler } from './map-layers.js';
 import { areaStyle } from './area-layer.js';
 import { getTrailWeightFactor } from '../theme.js';
 import { wrappedRouter } from '../router.js';
@@ -255,8 +255,8 @@ export function attachGLRoutes(map) {
   canvas.className = 'gl-routes';
   canvas.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;';
   // Own pane below the place-canvas (450), markers (600) and popups (700),
-  // above the tile pane (200). Not zoom-animated, so it never gets the zoom
-  // CSS scale; draw() counters the map-pane pan offset each frame.
+  // above the tile pane (200). draw() counters the map-pane pan offset each
+  // frame, and an animated zoom scales it with the tiles until it ends.
   const pane = map.getPane('glRoutesPane') || map.createPane('glRoutesPane');
   pane.style.zIndex = 410;
   pane.style.pointerEvents = 'none';
@@ -265,19 +265,19 @@ export function attachGLRoutes(map) {
   const VS = [
     'attribute vec2 aSegA; attribute vec2 aSegB; attribute float aEnd; attribute float aSide;',
     'attribute vec3 aColor; attribute float aOpFrom; attribute float aOpTo; attribute float aWFrom; attribute float aWTo; attribute float aDist;',
-    'uniform float uScale; uniform vec2 uOriginDelta; uniform vec2 uHalfSize; uniform vec2 uViewport; uniform float uHlT;',
+    'uniform float uScale; uniform vec2 uOriginDelta; uniform vec2 uHalfSize; uniform vec2 uViewport; uniform float uHlT; uniform float uWidth;',
     'varying vec4 vColor; varying float vDash;',
     'vec2 toC(vec2 v){ return uHalfSize + (v + uOriginDelta) * uScale; }',
     'vec2 toClip(vec2 c){ return vec2(c.x / uViewport.x * 2.0 - 1.0, 1.0 - c.y / uViewport.y * 2.0); }',
     'void main(){',
     '  vColor = vec4(aColor, mix(aOpFrom, aOpTo, uHlT));', // highlight opacity interpolated
-    '  float hw = mix(aWFrom, aWTo, uHlT);',              // and half-width
+    '  float hw = mix(aWFrom, aWTo, uHlT) * uWidth;',     // and half-width
     '  vec2 cA = toC(aSegA); vec2 cB = toC(aSegB);',
     '  vec2 self = mix(cA, cB, aEnd);',
     '  vec2 d = cB - cA; float l = length(d);',
     '  vec2 t = l > 0.0 ? d / l : vec2(1.0, 0.0);',
     '  vec2 perp = vec2(-t.y, t.x);',
-    '  vDash = aDist < 0.0 ? -1.0 : mod(aDist * uScale, 12.0) + aEnd * l;', // screen px along the line; -1 is solid
+    '  vDash = aDist < 0.0 ? -1.0 : (mod(aDist * uScale, 12.0 * uWidth) + aEnd * l) / uWidth;', // screen px along the line; -1 is solid
     '  gl_Position = vec4(toClip(self + perp * aSide * hw), 0.0, 1.0);',
     '}'
   ].join('\n');
@@ -314,7 +314,7 @@ export function attachGLRoutes(map) {
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) { console.warn('[gl-routes] link', gl.getProgramInfoLog(program)); return false; }
     gl.useProgram(program);
     ['aSegA', 'aSegB', 'aEnd', 'aSide', 'aColor', 'aOpFrom', 'aOpTo', 'aWFrom', 'aWTo', 'aDist'].forEach(a => attrLoc[a] = gl.getAttribLocation(program, a));
-    ['uScale', 'uOriginDelta', 'uHalfSize', 'uViewport', 'uHlT'].forEach(u => uniLoc[u] = gl.getUniformLocation(program, u));
+    ['uScale', 'uOriginDelta', 'uHalfSize', 'uViewport', 'uHlT', 'uWidth'].forEach(u => uniLoc[u] = gl.getUniformLocation(program, u));
     buffer = gl.createBuffer();
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); // premultiplied alpha
@@ -353,8 +353,8 @@ export function attachGLRoutes(map) {
     const pushSeg = (arr, ax, ay, bx, by, rgb, opF, opT, wF, wT, dist = -1) => {
       for (const [end, side] of V6) arr.push(ax, ay, bx, by, end, side, rgb[0], rgb[1], rgb[2], opF, opT, wF, wT, dist);
     };
-    // Only the outline: an area's fill stays in SVG, where scaling with the
-    // pinch is correct, and only a stroke's width has to hold constant.
+    // Only the outline: an area's fill stays in the area layer, where scaling
+    // with the pinch is correct, and only a stroke's width has to hold constant.
     /** @type {number[]} */
     const areaArr = [];
     /** @param {import('../core.js').Area} area @param {boolean} visited */
@@ -412,22 +412,45 @@ export function attachGLRoutes(map) {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
     vertCount = data.length / GL_ROUTE_STRIDE;
   }
-  // Draw at a specific zoom/center, or null/null for the map's current
-  // state. The interpolated form is driven by drawZoomAnim's rAF loop so
-  // the routes track the tiles through the 250ms release zoom animation
-  // (move/zoom don't fire during it), the same way the place canvas does.
-  /** @param {number | null} zoom @param {{ lat: number, lng: number } | null} center */
-  function drawAt(zoom, center) {
+  // Through an animated zoom the canvas scales with the tiles, and the lines
+  // are drawn thinner by the same factor each frame to keep their width on
+  // screen. A frame late only misjudges a width, never a position.
+  let widthScale = 1;
+  /** @type {{ zoom: number, center: any } | null} */
+  let drawnView = null;
+  let zoomAnimRaf = 0;
+  /** @param {{ zoom: number }} e */
+  function onZoomAnim(e) {
+    if (zoomAnimRaf) sched.cancelFrame(zoomAnimRaf);
+    const target = map.getZoomScale(e.zoom, map.getZoom());
+    const start = performance.now();
+    const tick = () => {
+      const t = Math.min((performance.now() - start) / 250, 1);
+      widthScale = 1 / (1 + (target - 1) * easeLeaflet(t));
+      draw();
+      zoomAnimRaf = (t < 1 && map._animatingZoom) ? sched.frame(tick) : 0;
+    };
+    tick();
+  }
+  function endZoomAnim() {
+    if (zoomAnimRaf) { sched.cancelFrame(zoomAnimRaf); zoomAnimRaf = 0; }
+    widthScale = 1;
+  }
+  function draw() {
     if (!gl) return;
-    // Keep the canvas pinned to the viewport (counter the map-pane pan offset).
-    L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint([0, 0]));
+    // Keep the canvas pinned to the viewport (counter the map-pane pan offset),
+    // except while it rides a zoom transition.
+    // The canvas transition does the scaling, so a redraw mid-zoom keeps to
+    // the view the zoom started from: by then the map reports its target.
+    if (!map._animatingZoom) {
+      L.DomUtil.setPosition(canvas, map.containerPointToLayerPoint([0, 0]));
+      drawnView = { zoom: map.getZoom(), center: map.getCenter() };
+    }
     gl.clear(gl.COLOR_BUFFER_BIT);
-    if (!vertCount || !originRef) return;
+    if (!vertCount || !originRef || !drawnView) return;
     const size = map.getSize();
-    const z = (zoom == null) ? map.getZoom() : zoom;
-    const c = (center == null) ? map.getCenter() : center;
-    const scale = map.getZoomScale(z, GL_ROUTE_REFZOOM);
-    const cNow = map.project(c, GL_ROUTE_REFZOOM);
+    const scale = map.getZoomScale(drawnView.zoom, GL_ROUTE_REFZOOM);
+    const cNow = map.project(drawnView.center, GL_ROUTE_REFZOOM);
     gl.useProgram(program);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     const S = GL_ROUTE_STRIDE * 4;
@@ -446,36 +469,8 @@ export function attachGLRoutes(map) {
     gl.uniform2f(uniLoc.uHalfSize, size.x / 2, size.y / 2);
     gl.uniform2f(uniLoc.uViewport, size.x, size.y);
     gl.uniform1f(uniLoc.uHlT, (state._hlT == null) ? 1 : state._hlT);
+    gl.uniform1f(uniLoc.uWidth, map._animatingZoom ? widthScale : 1);
     gl.drawArrays(gl.TRIANGLES, 0, vertCount);
-  }
-  function draw() { drawAt(null, null); }
-
-  // Release zoom animation: zoomanim fires with the target zoom/center, then
-  // the tiles CSS-animate over 250ms with no move/zoom events. Interpolate
-  // along Leaflet's tile easing and redraw each frame so the routes track the
-  // tiles at constant width instead of freezing then snapping (the drift).
-  let zoomAnimRaf = 0;
-  function stopZoomAnim() { if (zoomAnimRaf) { sched.cancelFrame(zoomAnimRaf); zoomAnimRaf = 0; } }
-  /** @param {{ zoom: number, center: any }} e */
-  function onZoomAnim(e) {
-    stopZoomAnim();
-    const startZoom = map.getZoom(), startCenter = map.getCenter();
-    const targetZoom = e.zoom, targetCenter = L.latLng(e.center);
-    const startTime = performance.now(), duration = 250;
-    const targetScale = Math.pow(2, targetZoom - startZoom);
-    const tick = () => {
-      if (!gl) { zoomAnimRaf = 0; return; }
-      const t = Math.min((performance.now() - startTime) / duration, 1);
-      const eased = easeLeaflet(t);
-      const interpZoom = startZoom + Math.log2(1 + eased * (targetScale - 1));
-      const interpCenter = L.latLng(
-        startCenter.lat + (targetCenter.lat - startCenter.lat) * eased,
-        startCenter.lng + (targetCenter.lng - startCenter.lng) * eased
-      );
-      drawAt(interpZoom, interpCenter);
-      zoomAnimRaf = (t < 1) ? sched.frame(tick) : 0;
-    };
-    zoomAnimRaf = sched.frame(tick);
   }
   let rebuildTimer = 0;
   function rebuildSoon() {
@@ -492,8 +487,9 @@ export function attachGLRoutes(map) {
   state._glRoutesRebuild = function () { rebuild(); draw(); }; // selection change: upload from/to buffer once
   state._glRoutesDraw = function () { draw(); };               // animation frame: cheap uniform update only
   map.on('move zoom', draw); // synchronous: lockstep with the tiles, no one-frame lag
-  map.on('zoomanim', onZoomAnim); // follow the release zoom animation (no move/zoom during it)
-  map.on('moveend zoomend', function () { stopZoomAnim(); rebuild(); draw(); });
+  followZoomAnim(map, canvas); // an animated zoom fires no move/zoom until it ends
+  map.on('zoomanim', onZoomAnim);
+  map.on('moveend zoomend', function () { endZoomAnim(); rebuild(); draw(); });
   map.on('resize', function () { resize(); draw(); });
   map.on('layeradd', rebuildSoon); // routes load lazily (async GPX)
 }
@@ -514,16 +510,47 @@ export function bindTrailStrokeMotion(map) {
     lastZoom = z;
     adjustTrailStrokes();
   });
-  // Stepped desktop zoom (250ms CSS anim) doesn't fire 'move' per frame;
-  // a short rAF loop keeps strokes constant across the animation.
+  // An animated zoom (a cluster tap, the buttons) scales the SVG on a CSS
+  // transition, and Leaflet redraws nothing until it ends, so the lines would
+  // thicken with it. Each frame draws them thinner by the scale the browser
+  // shows right now.
+  /** @type {{ el: SVGElement, w: number, dash: number[] | null }[]} */
+  let held = [];
+  let raf = 0;
+  const release = () => {
+    if (raf) { sched.cancelFrame(raf); raf = 0; }
+    for (const h of held) { h.el.style.strokeWidth = ''; h.el.style.strokeDasharray = ''; }
+    held = [];
+  };
   map.on('zoomanim', function () {
-    const start = performance.now();
+    release();
+    const renderers = [state._routeRenderer, state._areaRenderer, state._detailRenderer].filter(r => r && r._container);
+    const svgs = [...new Set(renderers.map(r => /** @type {SVGElement} */ (r._container)))];
+    for (const svg of svgs) {
+      for (const el of svg.querySelectorAll('path')) {
+        const w = parseFloat(el.getAttribute('stroke-width') || '');
+        if (!w) continue;
+        const d = el.getAttribute('stroke-dasharray');
+        held.push({ el, w, dash: d ? d.split(/[ ,]+/).map(Number) : null });
+      }
+    }
+    if (!held.length) return;
     const tick = () => {
-      adjustTrailStrokes();
-      if (performance.now() - start < 270) sched.frame(tick);
+      raf = 0;
+      if (!map._animatingZoom) return;
+      for (const svg of svgs) {
+        const s = new DOMMatrixReadOnly(getComputedStyle(svg).transform).a || 1;
+        for (const h of held) {
+          if (!svg.contains(h.el)) continue;
+          h.el.style.strokeWidth = String(h.w / s);
+          if (h.dash) h.el.style.strokeDasharray = h.dash.map(v => v / s).join(' ');
+        }
+      }
+      raf = sched.frame(tick);
     };
-    sched.frame(tick);
+    tick();
   });
+  map.on('zoomend', release);
 }
 
 // Index-map route highlight. Clicking a route flags it as selected: it

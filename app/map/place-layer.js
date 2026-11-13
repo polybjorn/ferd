@@ -1,5 +1,5 @@
 import { colourClass, reduceMotion, state } from '../core.js';
-import { easeLeaflet } from './map-layers.js';
+import { rideZoomAnim } from './map-layers.js';
 import { getClusterPlaces, placesEnabled, routesEnabled } from '../prefs.js';
 import { applyAreaFilters, MAP_FADE_MS, revealArea } from './area-layer.js';
 import { goToPlace, goToRoute, MARK_HALO, openPlacePopup, placeMarkerRadius } from './map-actions.js';
@@ -24,6 +24,9 @@ import { t } from '../i18n.js';
 
 const HALO = MARK_HALO;
 const PLANNED_TINT = 0.3;
+// Past this many marks a zoom scales the canvas instead of gliding each mark,
+// since every glider is its own canvas and layer.
+const GLIDE_LIMIT = 300;
 
 // Read once per frame rather than per mark: getComputedStyle forces style
 // work, and a frame can draw hundreds of marks.
@@ -263,14 +266,12 @@ const PlaceCanvasLayer = L.Layer.extend({
     // canvas itself, so pointer events on the canvas are unnecessary.
     this._canvas.style.pointerEvents = 'none';
     this._sizeCanvas();
-    // Mobile pinch + pan fire 'move' continuously and we redraw each
-    // frame at the current zoom (pins at fixed size, positions track).
-    // Desktop wheel zoom is a 250ms CSS animation during which 'move'
-    // does not fire; _onZoomAnim drives a rAF loop that redraws at
-    // interpolated zoom/center for the same effect.
+    // Pinch and pan fire 'move' continuously and we redraw each frame at the
+    // current zoom (pins at fixed size, positions track). An animated zoom
+    // fires no 'move' until it ends: _glide moves the marks on its transition.
     map.on('move', this._redraw, this);
-    map.on('zoomanim', this._onZoomAnim, this);
-    map.on('zoomend', this._stopZoomAnim, this);
+    map.on('zoomanim', this._glide, this);
+    map.on('zoomend', this._land, this);
     // Must resize the canvas bitmap (not just repaint) when the map grows,
     // else pins past the old width are clipped off a stale-width canvas.
     map.on('resize', this._onResize, this);
@@ -286,12 +287,12 @@ const PlaceCanvasLayer = L.Layer.extend({
       this._canvas.parentNode.removeChild(this._canvas);
     }
     map.off('move', this._redraw, this);
-    map.off('zoomanim', this._onZoomAnim, this);
-    map.off('zoomend', this._stopZoomAnim, this);
     map.off('resize', this._onResize, this);
     map.off('click', this._onClick, this);
     map.off('mousemove', this._onMouseMove, this);
-    this._stopZoomAnim();
+    map.off('zoomanim', this._glide, this);
+    map.off('zoomend', this._land, this);
+    this._land();
     this._map = null;
     return this;
   },
@@ -344,20 +345,45 @@ const PlaceCanvasLayer = L.Layer.extend({
       }));
   },
 
-  _redraw: function() {
-    this._drawAt(null, null);
+  // The marks the view at the end of a zoom shows, so the gliders can show
+  // them on the way, not only once it lands.
+  /** @param {{ zoom: number, center: any }} e */
+  _targetFeatures: function(e) {
+    const map = this._map;
+    const half = map.getSize().divideBy(2).add([60, 60]);
+    const c = map.project(e.center, e.zoom);
+    const sw = map.unproject(c.add([-half.x, half.y]), e.zoom);
+    const ne = map.unproject(c.add([half.x, -half.y]), e.zoom);
+    return clustersOnTop(this._supercluster.getClusters([sw.lng, sw.lat, ne.lng, ne.lat], Math.floor(e.zoom)));
   },
 
-  // Draw at a specific zoom/center, or null/null to use the map's
-  // current state. Used by _onZoomAnim's rAF loop to render at
-  // interpolated zoom during the 250ms desktop animation.
-  /** @param {number | null} zoom @param {LeafletMap | null} center */
-  _drawAt: function(zoom, center) {
+  // Where each place sits among a set of marks: its own point, or the point
+  // of the cluster that holds it.
+  /** @param {PlaceFeature[]} features @returns {Map<unknown, any>} */
+  _owners: function(features) {
+    const owners = new Map();
+    for (const f of features) {
+      const ll = L.latLng(f.geometry.coordinates[1], f.geometry.coordinates[0]);
+      if (f.properties.cluster) {
+        for (const leaf of this._supercluster.getLeaves(f.properties.cluster_id, Infinity)) owners.set(leaf.properties.place.id, ll);
+      } else {
+        owners.set(/** @type {Place} */ (f.properties.place).id, ll);
+      }
+    }
+    return owners;
+  },
+
+  /** @param {PlaceFeature} f */
+  _anyPlaceId: function(f) {
+    if (!f.properties.cluster) return /** @type {Place} */ (f.properties.place).id;
+    const [leaf] = this._supercluster.getLeaves(f.properties.cluster_id, 1);
+    return leaf && leaf.properties.place.id;
+  },
+
+  _redraw: function() {
     const map = this._map;
     if (!map || !this._canvas) return;
-    const useInterp = (zoom != null && center != null);
-    const z = useInterp ? zoom : map.getZoom();
-    const c = useInterp ? center : map.getCenter();
+    const z = map.getZoom();
 
     const ctx = this._canvas.getContext('2d');
     const dpr = this._dpr || 1;
@@ -365,18 +391,12 @@ const PlaceCanvasLayer = L.Layer.extend({
     const size = map.getSize();
     ctx.clearRect(0, 0, size.x, size.y);
 
-    // Position the canvas at viewport top-left in layer coords.
-    // During interpolation we hold the canvas at the current map's
-    // layer origin; pin positions are computed at the interpolated
-    // zoom/center via project().
-    const topLeft = map.containerPointToLayerPoint([0, 0]);
-    L.DomUtil.setPosition(this._canvas, topLeft);
+    // Position the canvas at viewport top-left in layer coords, except while
+    // it rides a zoom transition, where that would snap it back mid-flight.
+    if (!map._animatingZoom) L.DomUtil.setPosition(this._canvas, map.containerPointToLayerPoint([0, 0]));
 
-    // Compute pixel origin for the (possibly interpolated) zoom/center.
     const crs = map.options.crs;
-    const projCenter = crs.latLngToPoint(c, z);
-    const halfSize = size.divideBy(2);
-    const pixelOrigin = projCenter.subtract(halfSize)._round();
+    const pixelOrigin = crs.latLngToPoint(map.getCenter(), z).subtract(size.divideBy(2))._round();
 
     const features = this._getCurrentFeatures();
     this._visibleFeatures = features;
@@ -400,53 +420,87 @@ const PlaceCanvasLayer = L.Layer.extend({
     }
   },
 
-  // Desktop wheel zoom: zoomanim fires once with the target zoom and
-  // center. The map then CSS-animates over 250ms. 'move' doesn't fire
-  // during that window, so we manually interpolate and redraw the
-  // canvas each frame to keep pins tracking at constant size.
+  // Leaflet's zoom is a CSS transition on the compositor, and a canvas redrawn
+  // from script each frame trails it on a phone, while a canvas riding it
+  // scales every mark. Each mark instead gets its own small canvas that
+  // translates on the same transition, as Leaflet's own markers do: scale and
+  // offset both interpolate linearly on one curve, so a point on the tiles and
+  // a mark translated to its new spot stay together, at the mark's own size.
   /** @param {{ zoom: number, center: any }} e */
-  _onZoomAnim: function(e) {
-    if (!this._map) return;
-    this._stopZoomAnim();
-    const startZoom = this._map.getZoom();
-    const startCenter = this._map.getCenter();
-    const targetZoom = e.zoom;
-    const targetCenter = L.latLng(e.center);
-    const startTime = performance.now();
-    const duration = 250;
-    // Leaflet's tile transform interpolates SCALE linearly between
-    // 1 and the target scale (CSS transition on the transform
-    // property). Mapping that to zoom is logarithmic, not linear:
-    // at progress 0.5 of a +1 zoom step the visual scale is 1.5,
-    // not 2^0.5 = 1.414. Interpolating zoom linearly here put pins
-    // at the wrong fractional zoom relative to the tiles, which
-    // showed up as the drift-during-zoom you saw.
-    const targetScale = Math.pow(2, targetZoom - startZoom);
-    const tick = () => {
-      if (!this._map) return;
-      const elapsed = performance.now() - startTime;
-      const t = Math.min(elapsed / duration, 1);
-      const eased = easeLeaflet(t);
-      const scaleAtP = 1 + eased * (targetScale - 1);
-      const interpZoom = startZoom + Math.log2(scaleAtP);
-      const interpCenter = L.latLng(
-        startCenter.lat + (targetCenter.lat - startCenter.lat) * eased,
-        startCenter.lng + (targetCenter.lng - startCenter.lng) * eased
-      );
-      this._drawAt(interpZoom, interpCenter);
-      if (t < 1) {
-        this._zoomAnimRaf = requestAnimationFrame(tick);
+  _glide: function(e) {
+    const map = this._map;
+    const shown = this._visibleFeatures || [];
+    if (!map || !shown.length) return;
+    this._land();
+    this._canvas.classList.add('leaflet-zoom-animated');
+    // Clusters nest, so zooming in, each mark of the end view comes out of the
+    // mark that held it, and zooming out, each mark shown goes into the one
+    // that will hold it.
+    const clustered = this._supercluster && this._useClusters;
+    const zoomIn = e.zoom >= map.getZoom();
+    const features = clustered && zoomIn ? this._targetFeatures(e) : shown;
+    const owners = clustered && features.length <= GLIDE_LIMIT
+      ? this._owners(zoomIn ? shown : this._targetFeatures(e))
+      : null;
+    if (!features.length || features.length > GLIDE_LIMIT) {
+      rideZoomAnim(map, this._canvas, e);
+      return;
+    }
+    const size = (typeof getMarkerSize === 'function') ? getMarkerSize() : 18;
+    const style = (typeof getPinStyle === 'function') ? getPinStyle() : 'ring';
+    const catColors = /** @type {Record<string, string>} */ ((state && state.categoryColors) || {});
+    const ink = mapInk();
+    const dpr = this._dpr || 1;
+    // One box fits any mark: the widest cluster disc, or a pin's stem and a
+    // tag's flag reaching right and down from the point.
+    const near = Math.max(clusterDiscRadius(100), placeMarkerRadius(size)) + HALO + 2;
+    const far = Math.max(near, Math.ceil(size * 1.1) + HALO + 3);
+    const box = near + far;
+    const pane = map.getPane(this.options.pane);
+    const at = { x: near, y: near };
+    /** @type {Array<{ el: HTMLCanvasElement, to: any }>} */
+    const gliders = [];
+    for (const f of features) {
+      const el = /** @type {HTMLCanvasElement} */ (L.DomUtil.create('canvas', 'place-glider', pane));
+      const ll = L.latLng(f.geometry.coordinates[1], f.geometry.coordinates[0]);
+      const owner = owners && owners.get(this._anyPlaceId(f));
+      const from = zoomIn ? (owner || ll) : ll;
+      const to = zoomIn ? ll : (owner || ll);
+      L.DomUtil.setPosition(el, map.latLngToLayerPoint(from).subtract([near, near]));
+      el.width = el.height = box * dpr;
+      el.style.width = el.style.height = box + 'px';
+      el.style.pointerEvents = 'none';
+      const ctx = /** @type {CanvasRenderingContext2D} */ (el.getContext('2d'));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (f.properties.cluster) {
+        this._drawCluster(ctx, at, f.properties.point_count || 0, ink);
       } else {
-        this._zoomAnimRaf = null;
+        const place = /** @type {Place} */ (f.properties.place);
+        ctx.globalAlpha = place.id === this._fadingPlaceId ? this._fadeAlpha : 1;
+        this._drawMarker(ctx, at, place, catColors[place.category || ''] || '#888', size, style, ink);
       }
-    };
-    this._zoomAnimRaf = requestAnimationFrame(tick);
+      gliders.push({ el, to: map._latLngToNewLayerPoint(to, e.zoom, e.center).subtract([near, near]) });
+    }
+    this._gliders = gliders.map(g => g.el);
+    this._canvas.style.visibility = 'hidden';
+    // The transition goes on only once the start positions are committed:
+    // setting a canvas font resolves its style, so a glider that had it from
+    // the start would glide in from the pane's corner.
+    void getComputedStyle(gliders[gliders.length - 1].el).transform;
+    for (const g of gliders) {
+      g.el.classList.add('leaflet-zoom-animated');
+      L.DomUtil.setPosition(g.el, g.to);
+    }
   },
 
-  _stopZoomAnim: function() {
-    if (this._zoomAnimRaf) {
-      cancelAnimationFrame(this._zoomAnimRaf);
-      this._zoomAnimRaf = null;
+  _land: function() {
+    if (this._gliders) {
+      for (const el of this._gliders) el.remove();
+      this._gliders = null;
+    }
+    if (this._canvas) {
+      this._canvas.classList.remove('leaflet-zoom-animated');
+      this._canvas.style.visibility = '';
     }
   },
 

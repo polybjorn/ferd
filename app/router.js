@@ -102,7 +102,15 @@ export function wrappedRouter() {
 // Flag in-app hash navigations (clicks) vs the initial load (reload), so a
 // place focus from a click centers the map on the pin, while a reload at a
 // place URL keeps the user's prior/remembered view.
+// Back returns to the page the route was opened from, or to the Routes list
+// when the route was the first page loaded and has nothing in-app behind it.
+let inAppSteps = 0;
+const navBack = document.getElementById('nav-back');
+if (navBack) navBack.addEventListener('click', function() {
+  if (inAppSteps) history.back(); else location.hash = '#/routes';
+});
 window.addEventListener('hashchange', function() {
+  inAppSteps++;
   state._navByHash = true;
   try { wrappedRouter(); } finally { state._navByHash = false; }
 });

@@ -80,8 +80,8 @@ export function renderUnifiedMap(focus) {
     scrollWheelZoom: false,
     // Default zoomSnap (integer release): zoomSnap:0 makes the touch pinch
     // re-round the tile pixel-origin every fractional frame, which vibrates
-    // the map. The GL route layer follows the release animation via its own
-    // zoomanim interpolation (see attachGLRoutes) so it stays glued instead.
+    // the map. The GL route layer rides the release animation's transition
+    // (see followZoomAnim) so it stays glued instead.
     renderer: L.svg()
   }).setView(dv.center, dv.zoom);
   enableWheelZoom(map);

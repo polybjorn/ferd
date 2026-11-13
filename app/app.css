@@ -34,7 +34,7 @@ button:is(.cat-swatch, .cat-color-dot):focus-visible { outline-offset: 2px; }
 [data-mode="dark"] { color-scheme: dark; }
 [data-mode="light"] { color-scheme: light; }
 /* Inherited, so one declaration reaches every scrolling list and modal. */
-:root { scrollbar-color: var(--muted) transparent; }
+:root { scrollbar-color: var(--muted) transparent; --nav-height: 44px; }
 /* The bar shows only on a phone, so a toast clears no bar elsewhere. */
 @media (min-width: 601px) { :root { --ui-bottom-bar-space: 0px; } }
 
@@ -425,8 +425,8 @@ a:not([class]):hover { text-decoration: underline; }
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: var(--ui-space-4);
-  padding: 0 var(--ui-space-5);
-  height: 50px;
+  padding: 0 var(--ui-space-4);
+  height: var(--nav-height);
 }
 
 .nav-right {
@@ -436,6 +436,14 @@ a:not([class]):hover { text-decoration: underline; }
   justify-self: end;
 }
 
+/* Back shows only over a phone's route page, which has no tabs to leave by. */
+.nav-start {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  justify-self: start;
+}
+.nav-back { --ui-button-display: none; }
 /* The brand is the page's h1: a published map shows its owner there. */
 .nav-brand {
   margin: 0;
@@ -444,11 +452,11 @@ a:not([class]):hover { text-decoration: underline; }
   color: var(--text);
   letter-spacing: 0.05em;
   white-space: nowrap;
-  justify-self: start;
 }
 .nav-brand a { color: var(--text); text-decoration: none; }
 #nav-home { display: inline-block; line-height: 24px; white-space: nowrap; }
 #nav-crumb { color: var(--muted); white-space: nowrap; }
+#nav-crumb:not(:empty)::before { content: " / "; }
 /* List-page crumbs only show where the nav tabs are hidden (mobile). */
 #nav-crumb.crumb-mobile-only { display: none; }
 @media (max-width: 600px) { #nav-crumb.crumb-mobile-only { display: inline; } }
@@ -469,6 +477,8 @@ a:not([class]):hover { text-decoration: underline; }
 
 .nav-actions { display: flex; align-items: center; gap: var(--ui-space-2); }
 .nav-actions:empty { display: none; }
+.nav-icon-btn { --ui-button-icon-size: 32px; }
+.nav-icon-btn svg { width: 18px; height: 18px; }
 .nav-action-btn {
   font: inherit;
   font-size: var(--ui-text-sm);
@@ -492,8 +502,8 @@ a:not([class]):hover { text-decoration: underline; }
   margin: 0 auto;
   /* 100vh counts the space behind a mobile browser's URL bar, and the extra
      height lets a focus scroll slide the map under the sticky nav. */
-  height: calc(100vh - 50px);
-  height: calc(100dvh - 50px);
+  height: calc(100vh - var(--nav-height));
+  height: calc(100dvh - var(--nav-height));
   overflow-y: overlay;
   padding: var(--ui-space-3) var(--ui-space-5) var(--ui-space-6);
   box-sizing: border-box;
@@ -577,6 +587,67 @@ a:not([class]):hover { text-decoration: underline; }
     #app > #map .leaflet-bottom { transition: transform var(--ui-duration-base) ease; }
   }
 }
+/* nav-float (core.js) lays the nav over a map that fills the window. Its
+   groups float over the map's top edge as controls of their own, at the
+   map buttons' height and 5px margin, and the map's top controls start
+   below them. */
+body.nav-float .app-nav {
+  position: fixed;
+  inset: 0 0 auto;
+  height: auto;
+  padding: 5px;
+  background: none;
+  border: 0;
+  pointer-events: none;
+}
+body.nav-float .app-nav > * { pointer-events: auto; }
+body.nav-float :is(.nav-start, .nav-tabs, .nav-action-btn, .auth-widget > :is(button, a)) {
+  min-height: 38px;
+  box-sizing: border-box;
+}
+body.nav-float :is(.nav-start, .nav-tabs) {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+body.nav-float :is(.nav-start, .nav-action-btn, .auth-widget > :is(button, a), .nav-icon-btn) {
+  box-shadow: 0 1px 4px var(--shadow);
+}
+body.nav-float :is(.nav-start, .auth-widget > :is(button, a)) { background: var(--surface); }
+body.nav-float .nav-start { max-width: 100%; box-sizing: border-box; padding: 0 var(--ui-space-3); overflow: hidden; }
+body.nav-float .nav-brand { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* ui.css owns the tabs' box-shadow, drawing their underline with it, so the
+   pill drops the underline through its colour and casts its shadow as a filter. */
+body.nav-float .nav-tabs {
+  --ui-tabs-fill: var(--surface);
+  --ui-tabs-padding: 0 var(--ui-space-1);
+  --ui-tab-size: 36px;
+  --ui-dialog-border: transparent;
+  filter: drop-shadow(0 1px 2px var(--shadow));
+}
+body.nav-float .nav-icon-btn {
+  --ui-button-icon-size: 38px;
+  --ui-button-fill: var(--surface);
+}
+body.nav-float #app {
+  height: 100vh;
+  height: 100dvh;
+}
+body.nav-float #map .leaflet-top { top: calc(var(--map-btn-size) + 5px); }
+body.nav-float.map-chrome-hidden .app-nav { display: none; }
+/* On your own map the title only repeats the app's name, so it stays a heading
+   for screen readers alone; a published map shows whose map it is. */
+body[data-view="map"]:not(.public-map) .nav-start { clip-path: inset(50%); }
+body.nav-float[data-view="map"]:not(.public-map, .map-chrome-hidden) #map .leaflet-top.leaflet-left { top: 0; }
+body.nav-float.map-chrome-hidden #map .leaflet-top { top: 0; }
+/* A phone's route page names the route alone, beside Back. */
+@media (max-width: 600px) {
+  body.nav-float .nav-start { padding-left: 0; }
+  body.nav-float .nav-back { --ui-button-display: inline-flex; --ui-button-icon-size: 36px; }
+  body.nav-float #nav-brand-text,
+  body.nav-float #nav-crumb::before { display: none; }
+  body.nav-float #nav-crumb { color: var(--text); }
+}
+
 /* The You item's dot: catalog updates wait in the gear's list. */
 .bottom-bar .has-dot { position: relative; }
 .bottom-bar .has-dot::after,
@@ -1099,7 +1170,7 @@ body.hide-map-filter .map-phone-buttons { order: 1; }
 body.signin-only .app-nav,
 body.app-booting:not(.public-map) .app-nav { display: none; }
 /* A published map shows its nav while it loads, with only the brand. */
-body.app-booting .app-nav > :not(.nav-brand) { visibility: hidden; }
+body.app-booting .app-nav > :not(.nav-start) { visibility: hidden; }
 body:is(.signin-only, .app-booting) .pwa-notices { display: none; }
 /* Off screen until a keyboard reaches it. */
 .skip-link {
@@ -1510,7 +1581,7 @@ body.signin-only #app {
   font-size: var(--ui-text-xs);
   position: relative;
 }
-.auth-widget .ui-menu-anchor > button, .auth-widget > :is(button, a) {
+.auth-widget > :is(button, a) {
   background: transparent;
   border: 1px solid var(--control-border);
   color: var(--muted);
@@ -1528,7 +1599,7 @@ body.signin-only #app {
   align-items: center;
   gap: var(--ui-space-1);
 }
-.auth-widget .ui-menu-anchor > button:hover, .auth-widget > :is(button, a):hover {
+.auth-widget > :is(button, a):hover {
   color: var(--text);
   border-color: var(--muted);
   opacity: 1;
@@ -1805,7 +1876,7 @@ body.force-show-map-filter .map-panel {
 /* ui.css draws the banner; this only pins it under the nav. */
 .pwa-banner {
   position: sticky;
-  top: 50px;
+  top: var(--nav-height);
   z-index: var(--ui-z-sticky);
 }
 .sync-issues { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ui-space-3); }
@@ -1850,7 +1921,6 @@ body.force-show-map-filter .map-panel {
 }
 
 /* With the WebGL route layer up it draws the routes, so the SVG route lines
-   and area outlines draw nothing (route-layer.js adds the class). */
+   draw nothing (route-layer.js adds the class). */
 .gl-routes-active path.route-line { opacity: 0 !important; }
-.gl-routes-active path.area-shape { stroke-opacity: 0 !important; }
 } /* @layer app */

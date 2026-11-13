@@ -58,9 +58,12 @@
   </div>
   <script src="/webview-check.js?v=__FERD_CACHE_VERSION__"></script>
   <nav class="app-nav">
-    <h1 class="nav-brand">
-      <a href="#/" id="nav-home"><span id="nav-brand-text">Ferd</span></a><span id="nav-crumb"></span>
-    </h1>
+    <div class="nav-start">
+      <button type="button" class="ui-button ui-button-icon ui-button-icon-compact ui-button-quiet nav-back" id="nav-back" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+      <h1 class="nav-brand">
+        <a href="#/" id="nav-home"><span id="nav-brand-text">Ferd</span></a><span id="nav-crumb"></span>
+      </h1>
+    </div>
     <div class="ui-tabs nav-tabs">
       <a class="ui-tab" href="#/places" data-view="places" id="tab-places">Places</a>
       <a class="ui-tab" href="#/routes" data-view="routes" id="tab-routes">Routes</a>

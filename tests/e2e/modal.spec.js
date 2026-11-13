@@ -66,16 +66,14 @@ test('a double-tap zoom keeps the moved-away bottom bar away', async ({ page, ba
 
   // A class check after the zoom would miss the bar showing for a moment, so
   // every change to it is logged as it happens.
-  await page.evaluate(() => {
+  await page.evaluate(async () => {
+    const { state } = await import('/app/core.js');
     const log = /** @type {string[]} */ ([]);
     Object.assign(window, { barLog: log });
-    const container = /** @type {Element} */ (document.querySelector('#map'));
     new MutationObserver(() => {
       if (!document.body.classList.contains('bar-away')) log.push('shown');
     }).observe(document.body, { attributeFilter: ['class'] });
-    new MutationObserver(() => {
-      if (container.querySelector('.leaflet-zoom-anim')) log.push('zoom');
-    }).observe(container, { attributeFilter: ['class'], subtree: true });
+    /** @type {any} */ (state.currentMap).on('zoomstart', () => log.push('zoom'));
   });
   const box = await map.boundingBox();
   if (!box) throw new Error('the map has no box');
@@ -176,6 +174,21 @@ test('a tap that closes the tile picker leaves the bottom bar as it is', async (
   await page.touchscreen.tap(box.x + 80, box.y + box.height / 3);
   await expect(body).toHaveClass(/\bbar-away\b/);
 
+  expect(fenced.external).toEqual([]);
+  expect(fenced.errors).toEqual([]);
+});
+
+test('the tile picker opens on a click, not on hover', async ({ page, baseURL }, info) => {
+  test.skip(isPhone(info), 'a phone has no hover');
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  await signIn(page);
+  const picker = page.locator('#map .leaflet-control-layers');
+  const toggle = page.locator('#map .leaflet-control-layers-toggle');
+  await toggle.hover();
+  await page.waitForTimeout(300);
+  await expect(picker).not.toHaveClass(/leaflet-control-layers-expanded/);
+  await toggle.click();
+  await expect(picker).toHaveClass(/leaflet-control-layers-expanded/);
   expect(fenced.external).toEqual([]);
   expect(fenced.errors).toEqual([]);
 });
