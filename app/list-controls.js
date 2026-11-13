@@ -3,7 +3,7 @@ import { isReadOnly } from './server.js';
 import { listKinds, setPref } from './prefs.js';
 import { _selPopover, closeSelectPopover, enhanceSelectsIn, openMultiSelectList } from './select.js';
 import { listView, listViewOptions } from './history.js';
-import { html, pageVisit, useEffect, useLayoutEffect, useRef, useState } from './view.js';
+import { html, usePageVisit, useEffect, useLayoutEffect, useRef, useState } from './view.js';
 import { t } from './i18n.js';
 
 // Controls the list pages share: the search box, the filter and view
@@ -25,7 +25,7 @@ export function useFilters(filters) {
 /** @param {string} id @param {string} title @param {() => void} onClick */
 export function useNavAdd(id, title, onClick) {
   const canAdd = !!(state.auth && state.auth.authenticated) && !isReadOnly();
-  const visit = pageVisit();
+  const visit = usePageVisit();
   useEffect(() => {
     const nav = document.getElementById('nav-actions');
     if (!nav || !canAdd) return;

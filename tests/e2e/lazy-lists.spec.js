@@ -74,6 +74,22 @@ test('a list page left for another and the map comes back as it was left', async
   expect(fenced.errors).toEqual([]);
 });
 
+test('a kept list page re-rendering in the background leaves the Add of the page shown', async ({ page, baseURL }) => {
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  await signIn(page, '#/places');
+  await expect(page.locator('#add-place-btn')).toBeAttached();
+  await page.evaluate(() => { location.hash = '#/history'; });
+  await expect(page.locator('#hist-add-btn')).toBeAttached();
+
+  // What a sync does: a new places array, which the kept Places page follows.
+  await page.evaluate(() => import('/app/store.js').then(s => { s.places.value = [...s.places.value]; }));
+  await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+
+  await expect(page.locator('#hist-add-btn')).toBeAttached();
+  await expect(page.locator('#add-place-btn')).toHaveCount(0);
+  expect(fenced.errors).toEqual([]);
+});
+
 test.describe('offline', () => {
   test.use({ serviceWorkers: 'allow' });
 

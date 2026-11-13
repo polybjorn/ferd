@@ -1,5 +1,5 @@
-import { cloneElement, h, render, Fragment } from 'preact';
-import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
+import { cloneElement, createContext, h, render, Fragment } from 'preact';
+import { useContext, useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import htm from 'htm';
 import { openModal, phoneQuery } from './modal.js';
 import { t } from './i18n.js';
@@ -52,8 +52,12 @@ const kept = new Map();
 let shown = null;
 let visits = 0;
 // Counts mounts, so an effect a kept page must redo on each visit (its Add in
-// the nav, which the router clears) can depend on it.
-export function pageVisit() { return visits; }
+// the nav, which the router clears) can depend on it. Handed down as context
+// rather than read from the counter: a kept page re-renders in its detached
+// host when its signals change, and a counter read then would take the newer
+// visit of whatever page is showing and redo the effect over that page.
+const Visit = createContext(0);
+export function usePageVisit() { return useContext(Visit); }
 
 /** @param {HTMLElement} app */
 function leaveKept(app) {
@@ -71,7 +75,7 @@ export function mountPage(view, keep) {
   if (!keep) {
     leaveKept(app);
     if (!pageMounted) app.replaceChildren();
-    render(view, app);
+    render(h(Visit.Provider, { value: visits }, view), app);
     pageMounted = true;
     return;
   }
@@ -88,7 +92,7 @@ export function mountPage(view, keep) {
   if (back) { leaveKept(app); app.replaceChildren(page.host); }
   // The signals integration skips a component whose props did not change, and
   // a visit must render: a setting may have changed while the page was away.
-  render(cloneElement(view, { visit: visits }), page.host);
+  render(h(Visit.Provider, { value: visits }, cloneElement(view, { visit: visits })), page.host);
   shown = page;
   if (back) {
     app.scrollTop = page.scroll;
