@@ -578,7 +578,6 @@ export const NB = {
   'signIn.setupToken': 'Oppsettnøkkel',
   'signIn.setupTokenHint': 'Kreves for den første registreringen. Se loggene til API-serveren.',
   'signIn.changeServer': 'Bytt server',
-  'signIn.continueLocal': 'Fortsett uten å logge inn',
   'signIn.publicMaps': 'Offentlige kart ({count})',
 
   'server.title': 'Koble til en server',

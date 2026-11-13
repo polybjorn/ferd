@@ -1170,20 +1170,23 @@ body.signin-only #app {
   cursor: pointer;
 }
 .signin-public-toggle:hover { color: var(--text); border-color: var(--muted); }
-/* The card's buttons span its width, stacked, so none leaves an empty
-   stretch beside it. Sign in comes first, over Change server. */
+/* Local map and Sign in share the row in equal halves. */
 .signin-card .form-actions {
-  flex-direction: column;
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   margin-top: var(--ui-space-4);
 }
-.signin-card .form-actions .signin-change-server { order: 1; }
-/* Cross-origin server target, on its own centred row below the buttons so
-   a long domain cuts off cleanly. */
+/* Cross-origin server target under the buttons. The host gives way first,
+   so a long domain cuts off and Change server stays whole. */
+.signin-server {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: var(--ui-space-2);
+  margin-top: var(--ui-space-4);
+}
 .signin-server-host {
-  margin-top: var(--ui-space-3);
-  text-align: center;
-  max-width: 100%;
+  min-width: 0;
   font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
   font-size: var(--ui-text-xs);
   color: var(--muted);
@@ -1192,22 +1195,18 @@ body.signin-only #app {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* "Continue without signing in" entry on the sign-in / server-picker cards. */
-.signin-alt {
-  margin-top: var(--ui-space-2);
-  text-align: center;
-}
-.signin-alt button {
+.signin-link {
   font-family: inherit;
   background: none;
   border: none;
   color: var(--muted);
-  font-size: var(--ui-text-sm);
+  font-size: var(--ui-text-xs);
   cursor: pointer;
   padding: var(--ui-space-1);
   text-decoration: underline;
+  flex-shrink: 0;
 }
-.signin-alt button:hover { color: var(--text); }
+.signin-link:hover { color: var(--text); }
 /* Plain-http caution in the server picker. Non-blocking: Connect stays
    enabled; this just informs that the token travels unencrypted. */
 .srv-warn {

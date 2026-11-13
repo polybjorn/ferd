@@ -103,11 +103,14 @@ function SignInForm({ inDialog, onSuccess }) {
     <form id="auth-form" onSubmit=${submit}>
       ${fields}
       <div class="form-actions">
-        ${cross && html`<button type="button" id="signin-change-server" class="ui-button signin-change-server"
-          onClick=${() => { document.body.classList.remove('signin-only'); renderServerPicker({}); }}>${t('signIn.changeServer')}</button>`}
+        <${LocalMapButton} id="signin-local" />
         ${submitButton}
       </div>
-      ${cross && html`<div class="signin-server-host" title=${serverBase()}>${serverBase().replace(/^https?:\/\//, '')}</div>`}
+      ${cross && html`<div class="signin-server">
+        <span class="signin-server-host" title=${serverBase()}>${serverBase().replace(/^https?:\/\//, '')}</span>
+        <button type="button" id="signin-change-server" class="signin-link"
+          onClick=${() => { document.body.classList.remove('signin-only'); renderServerPicker({}); }}>${t('signIn.changeServer')}</button>
+      </div>`}
     </form>`;
 }
 
@@ -131,8 +134,13 @@ function normalizeServerUrl(raw) {
   return (u.origin + u.pathname).replace(/\/+$/, '');
 }
 
-/** @param {{ brand: string, localId: string, children?: any }} props */
-function SignInShell({ brand, localId, children }) {
+/** @param {{ id: string }} props */
+function LocalMapButton({ id }) {
+  return html`<button type="button" class="ui-button" id=${id} onClick=${enterLocalMode}>${t('auth.localMap')}</button>`;
+}
+
+/** @param {{ brand: string, children?: any }} props */
+function SignInShell({ brand, children }) {
   /** @type {{current: HTMLDivElement | null}} */
   const pageRef = useRef(null);
   // A phone keyboard covers the page without resizing it. The page shrinks
@@ -162,10 +170,7 @@ function SignInShell({ brand, localId, children }) {
   }, []);
   return html`<div class="signin-page" ref=${pageRef}>
     <h1 class="signin-brand">${brand}</h1>
-    <div class="signin-card">
-      ${children}
-      <div class="signin-alt"><button type="button" id=${localId} onClick=${enterLocalMode}>${t('signIn.continueLocal')}</button></div>
-    </div>
+    <div class="signin-card">${children}</div>
   </div>`;
 }
 
@@ -208,6 +213,7 @@ function ServerPicker({ error: initialError }) {
     </div>
     <${ErrorBox} id="srv-error" msg=${error} />
     <div class="form-actions">
+      <${LocalMapButton} id="srv-local" />
       <button type="button" class="ui-button ui-button-primary" id="srv-connect" disabled=${busy} onClick=${connect}>
         ${busy ? t('server.connecting') : t('server.connect')}</button>
     </div>`;
@@ -223,7 +229,7 @@ let mounts = 0;
 /** @param {{ error?: string }} [opts] */
 export function renderServerPicker(opts) {
   document.body.classList.add('signin-only');
-  mountPage(html`<${SignInShell} brand="Ferd" localId="srv-local" key=${++mounts}>
+  mountPage(html`<${SignInShell} brand="Ferd" key=${++mounts}>
     <${ServerPicker} error=${(opts && opts.error) || ''} />
   <//>`);
 }
@@ -261,7 +267,7 @@ export function renderSignInPage() {
     document.body.classList.remove('signin-only');
     return loadDataAndRender();
   };
-  mountPage(html`<${SignInShell} brand=${brand} localId="signin-local" key=${++mounts}>
+  mountPage(html`<${SignInShell} brand=${brand} key=${++mounts}>
     <${SignInForm} onSuccess=${onSuccess} />
     <${PublicMaps} />
   <//>`);

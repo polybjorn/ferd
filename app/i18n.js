@@ -579,7 +579,6 @@ const STRINGS = {
   'signIn.setupToken': 'Setup token',
   'signIn.setupTokenHint': 'Required for first registration. Check the API server logs.',
   'signIn.changeServer': 'Change server',
-  'signIn.continueLocal': 'Continue without signing in',
   'signIn.publicMaps': 'Public maps ({count})',
 
   'server.title': 'Connect to a server',
