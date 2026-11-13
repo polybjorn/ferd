@@ -1544,15 +1544,12 @@ body.signin-only #app {
      into the vacated center column). */
   .app-nav { grid-template-columns: minmax(0, 1fr) auto; }
 }
-.about-body { display: grid; gap: var(--ui-space-4); }
-.about-body p { margin: 0; }
-.about-brand { font-size: var(--ui-text-xl); color: var(--text); }
-.about-body .about-tagline { margin-top: var(--ui-space-1); font-size: var(--ui-text-sm); color: var(--muted); line-height: 1.4; }
-.about-build { color: var(--muted); }
-.about-text { font-size: var(--ui-text-sm); color: var(--text); line-height: 1.5; }
-.about-section { display: grid; gap: var(--ui-space-2); }
-.about-body a { color: var(--accent); text-decoration: none; white-space: nowrap; }
-.about-body a:hover { text-decoration: underline; }
+.about-kv a { color: var(--accent); text-decoration: none; }
+.about-kv a:hover { text-decoration: underline; }
+.about-muted { color: var(--muted); }
+.about-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ui-space-1); }
+.about-more { display: inline-block; margin-top: var(--ui-space-2); font-size: var(--ui-text-sm); }
+.about-credits { font-size: var(--ui-text-sm); line-height: 1.5; }
 
 /* Tile-picker (Leaflet layers control) enter/leave animation */
 .leaflet-control-layers {

@@ -219,16 +219,12 @@ export function openAboutModal() {
       .map(ov => ov.attribution).filter(Boolean) : [];
     const credits = map ? [map.TOPO_CREDIT].concat(overlayCredits).join('<br>') : '';
     const dialog = openViewModal(html`<div class="ui-dialog-handle" aria-hidden="true"></div>
-      <${DialogHead} title=${t('about.title')} />
-      <div class="ui-dialog-body"><div class="about-body">
-        <div>
-          <p class="about-brand">${brand}</p>
-          <p class="about-tagline">${t('about.tagline')}</p>
-        </div>
-        <dl class="ui-kv">
+      <${DialogHead} title=${brand} />
+      <div class="ui-dialog-body">
+        <dl class="ui-kv about-kv">
           <div class="ui-kv-item">
             <dt class="ui-kv-label">${t('about.version')}</dt>
-            <dd class="ui-kv-value">${displayVersion}${buildLabel && html` <span class="about-build">(${buildLabel})</span>`}</dd>
+            <dd class="ui-kv-value">${displayVersion}${buildLabel && html` <span class="about-muted">(${buildLabel})</span>`}</dd>
           </div>
           <div class="ui-kv-item">
             <dt class="ui-kv-label">${t('about.license')}</dt>
@@ -238,17 +234,19 @@ export function openAboutModal() {
             <dt class="ui-kv-label">${t('about.source')}</dt>
             <dd class="ui-kv-value"><a href=${REPO} target="_blank" rel="noopener">${REPO_HOST}</a></dd>
           </div>
+          <div class="ui-kv-item">
+            <dt class="ui-kv-label">${t('about.builtWith')}</dt>
+            <dd class="ui-kv-value">
+              <ul class="about-list">${BUILT_WITH.map(([name, url]) => html`<li><a href=${url} target="_blank" rel="noopener">${name}</a></li>`)}</ul>
+              <a class="about-more" href=${REPO + '/blob/main/vendor/NOTICES.md'} target="_blank" rel="noopener">${t('about.notices')}</a>
+            </dd>
+          </div>
+          ${credits && html`<div class="ui-kv-item">
+            <dt class="ui-kv-label">${t('about.mapData')}</dt>
+            <dd class="ui-kv-value about-credits" dangerouslySetInnerHTML=${{ __html: credits }}></dd>
+          </div>`}
         </dl>
-        <section class="about-section">
-          <h3 class="ui-section-title">${t('about.builtWith')}</h3>
-          <p class="about-text">${BUILT_WITH.map(([name, url], i) => html`${i ? ', ' : ''}<a href=${url} target="_blank" rel="noopener">${name}</a>`)}</p>
-          <p class="about-text"><a href=${REPO + '/blob/main/vendor/NOTICES.md'} target="_blank" rel="noopener">${t('about.notices')}</a></p>
-        </section>
-        ${credits && html`<section class="about-section">
-          <h3 class="ui-section-title">${t('about.mapData')}</h3>
-          <p class="about-text" dangerouslySetInnerHTML=${{ __html: credits }}></p>
-        </section>`}
-      </div></div>`, { phone: 'sheet' });
+      </div>`, { phone: 'sheet' });
     dialog.classList.add('narrow-dialog');
   });
 }

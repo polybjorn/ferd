@@ -612,10 +612,8 @@ export const NB = {
   'auth.networkError': 'Nettverksfeil',
   'auth.offline': 'Du er frakoblet. Endringene ble ikke lagret.',
 
-  'about.title': 'Om',
   'about.unknownVersion': 'ukjent',
   'about.build': 'bygg {build}',
-  'about.tagline': 'Ditt eget kart over hvor du har vært, hvor du vil dra, og turene imellom.',
   'about.version': 'Versjon',
   'about.source': 'Kildekode',
   'about.license': 'Lisens',

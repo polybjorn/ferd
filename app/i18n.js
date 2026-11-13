@@ -613,10 +613,8 @@ const STRINGS = {
   'auth.networkError': 'Network error',
   'auth.offline': "You're offline. Changes not saved.",
 
-  'about.title': 'About',
   'about.unknownVersion': 'unknown',
   'about.build': 'build {build}',
-  'about.tagline': 'Your own map of where you’ve been, where you want to go, and the journeys between them.',
   'about.version': 'Version',
   'about.source': 'Source',
   'about.license': 'License',
