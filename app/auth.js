@@ -217,9 +217,12 @@ export function openAboutModal() {
   return loadMap().then(({ map }) => map, () => null).then(map => {
     const overlayCredits = map ? map.parseOverlays(state.config && /** @type {typeof state.config & { overlays?: unknown }} */ (state.config).overlays)
       .map(ov => ov.attribution).filter(Boolean) : [];
-    // Alphabetical by the name shown, past any leading copyright sign.
+    // Alphabetical by the name shown, past any leading copyright sign. The
+    // text comes from parsing the markup, which runs nothing, rather than from
+    // stripping tags with a pattern, which leaves broken markup half-parsed.
     /** @param {string} c */
-    const sortKey = c => c.replace(/<[^>]*>|&copy;/g, '').trim();
+    const sortKey = c => (new DOMParser().parseFromString(c, 'text/html').body.textContent || '')
+      .replace(/^\s*©/, '').trim();
     const credits = map ? map.TOPO_CREDITS.concat(overlayCredits)
       .sort((a, b) => sortKey(a).localeCompare(sortKey(b))) : [];
     const dialog = openViewModal(html`<div class="ui-dialog-handle" aria-hidden="true"></div>
