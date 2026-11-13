@@ -1755,9 +1755,11 @@ body.force-show-map-filter .map-panel {
 }
 .ui-dialog .ui-tabs { margin-bottom: var(--ui-space-4); }
 .ui-dialog .dialog-desc { font-size: var(--ui-text-sm); color: var(--text); margin-top: var(--ui-space-2); }
-.ui-dialog .confirm-row { align-items: center; display: flex; gap: var(--ui-space-3); margin-top: var(--ui-space-3); }
-.ui-dialog .confirm-row .dialog-desc { flex: 1; margin-top: 0; min-width: 0; overflow-wrap: anywhere; }
-.ui-dialog .confirm-row button { flex: none; margin-left: auto; }
+.ui-dialog .confirm-row { display: flex; flex-direction: column; gap: var(--ui-space-4); margin-top: var(--ui-space-3); }
+.ui-dialog .confirm-row .dialog-desc { margin-top: 0; overflow-wrap: anywhere; }
+.ui-dialog .confirm-row button { align-self: flex-end; }
+/* A thumb reaches a sheet's full-width button from either side. */
+.ui-dialog.ui-dialog-sheet .confirm-row button { align-self: stretch; }
 .ui-dialog button.area-search-info:hover:not(:disabled),
 .ui-dialog button.area-search-info[aria-expanded="true"] { color: var(--accent); }
 .ui-dialog button.area-results-more:hover:not(:disabled) { color: var(--text); text-decoration: underline; }

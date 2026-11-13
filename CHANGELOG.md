@@ -68,6 +68,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Add, Settings and the catalog lists are only as tall as their content, up to the height of the screen. Their top edge stays put, so the tabs and filter box don't move.
 
 ### Fixed
+- Confirm dialogs, such as Connect to a server and Sign out, show their text above the button instead of squeezed beside it, with a full-width button on a phone.
 - In Safari, a click on an item in the View menu picks it. Before, the menu closed before the click landed.
 - `deploy/nginx.example.conf` now passes `nginx -t`: the login rate-limit zone sits outside the server blocks, where nginx accepts it.
 - In Safari, picking a view from a list page's View menu chooses it again, instead of closing the menu and opening the card underneath.

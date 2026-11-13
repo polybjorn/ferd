@@ -608,8 +608,8 @@ export const NB = {
   'auth.signOutTitle': 'Logge ut?',
   'auth.signOutBody': 'Du må logge inn igjen for å endre steder, ruter eller innstillinger.',
   'auth.connectTitle': 'Koble til en server?',
-  'auth.connectBody': 'Dette avslutter lokal modus og går tilbake til innloggingen. Kartet på denne enheten blir lagret og hentet fram igjen hvis du bytter tilbake til lokal modus.',
-  'auth.connectConfirm': 'Koble til en server',
+  'auth.connectBody': 'Du kommer til innloggingen. Kartet på denne enheten blir lagret til du bytter tilbake.',
+  'auth.connectConfirm': 'Fortsett',
   'auth.networkError': 'Nettverksfeil',
   'auth.offline': 'Du er frakoblet. Endringene ble ikke lagret.',
 

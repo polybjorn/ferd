@@ -609,8 +609,8 @@ const STRINGS = {
   'auth.signOutTitle': 'Sign out?',
   'auth.signOutBody': 'You will need to sign in again to edit places, routes, or settings.',
   'auth.connectTitle': 'Connect to a server?',
-  'auth.connectBody': 'This leaves local-only mode and returns to the sign-in screen. Your on-device map stays saved and is restored if you switch back to local mode.',
-  'auth.connectConfirm': 'Connect to a server',
+  'auth.connectBody': 'You go to the sign-in screen. The map on this device stays saved for when you switch back.',
+  'auth.connectConfirm': 'Continue',
   'auth.networkError': 'Network error',
   'auth.offline': "You're offline. Changes not saved.",
 
