@@ -9,6 +9,10 @@ const { test, expect } = require('@playwright/test');
 const AxeBuilder = require('@axe-core/playwright').default;
 const { fence, isPhone, signIn, dialog } = require('./helpers');
 
+// Thirty independent read-only scans: run serially, this file alone set the
+// browser tests' wall-clock in every project.
+test.describe.configure({ mode: 'parallel' });
+
 const THEMES = ['catppuccin', 'dracula', 'gruvbox', 'nord', 'rose-pine', 'solarized', 'tokyo-night'];
 const MODES = ['light', 'dark'];
 
