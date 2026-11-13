@@ -84,7 +84,7 @@
   text-align: center;
 }
 .you-signin svg { width: 56px; height: 56px; color: var(--muted); }
-.you-signin h1 { font: inherit; margin: var(--ui-space-2) 0 var(--ui-space-4); color: var(--muted); }
+.you-shared { font: inherit; margin: var(--ui-space-2) 0 var(--ui-space-4); color: var(--muted); }
 .you-rows { max-width: 480px; margin: 0 auto; }
 /* Index grids (places + routes) */
 .region-grid {

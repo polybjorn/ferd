@@ -33,7 +33,7 @@ function closeOnBackdropClick(dialog, close) {
 // and search as a panel from the top edge, where a wider screen keeps the centred dialog. The class
 // follows the width, so a phone turned sideways with a modal open moves it
 // too.
-const phoneQuery = window.matchMedia('(max-width: 600px)');
+export const phoneQuery = window.matchMedia('(max-width: 600px)');
 const PHONE_LAYOUTS = { sheet: 'ui-dialog-sheet', fullscreen: 'ui-dialog-fullscreen', top: 'ui-dialog-top' };
 /** @param {ModalEntry} entry */
 function applyPhoneLayout(entry) {

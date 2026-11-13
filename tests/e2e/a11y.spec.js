@@ -195,11 +195,8 @@ const PHONE_NAMES = /** @type {Record<string, RegExp>} */ ({
 test('each view names itself in one visible h1 at every site-audit width', async ({ page, baseURL }, info) => {
   const fenced = await fence(page, /** @type {string} */ (baseURL));
   const phone = isPhone(info);
-  // The map opens last: a resize after the map has been open throws in
-  // Leaflet, which this test is not about.
-  await signIn(page, '#/places');
-  // You is the phone bar's page; a wide screen reaches History from its nav.
-  const views = phone ? ['places', 'routes', 'areas', 'history', 'you', 'map'] : ['places', 'routes', 'areas', 'history', 'map'];
+  await signIn(page);
+  const views = ['map', 'places', 'routes', 'areas', 'history', 'you'];
   const h1 = page.locator('h1:visible');
   for (const view of views) {
     await page.evaluate(v => { location.hash = v === 'map' ? '#/' : '#/' + v; }, view);
@@ -214,6 +211,13 @@ test('each view names itself in one visible h1 at every site-audit width', async
       await expect(h1, at).toHaveCount(1);
     }
   }
+  // Still on You: the h1 moves with the layout as the width crosses 600px.
+  await page.setViewportSize({ width: 600, height: 800 });
+  await expect(h1).toHaveText(PHONE_NAMES.you);
+  await page.setViewportSize({ width: 768, height: 800 });
+  // The count first: strict mode fails at once while Preact catches up.
+  await expect(h1).toHaveCount(1);
+  await expect(h1).toHaveClass(/nav-brand/);
   expect(fenced.external).toEqual([]);
   expect(fenced.errors).toEqual([]);
 });

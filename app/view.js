@@ -1,7 +1,7 @@
 import { cloneElement, h, render, Fragment } from 'preact';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import htm from 'htm';
-import { openModal } from './modal.js';
+import { openModal, phoneQuery } from './modal.js';
 import { t } from './i18n.js';
 import { isDefaultHidden, setDefaultHidden } from './prefs.js';
 
@@ -204,6 +204,17 @@ export function useFetch(load, deps) {
     return () => { live = false; };
   }, deps);
   return res;
+}
+
+// Whether the phone layout applies, kept current as the width crosses 600px.
+export function usePhone() {
+  const [phone, setPhone] = useState(phoneQuery.matches);
+  useEffect(() => {
+    const update = () => setPhone(phoneQuery.matches);
+    phoneQuery.addEventListener('change', update);
+    return () => phoneQuery.removeEventListener('change', update);
+  }, []);
+  return phone;
 }
 
 // Copies the value of the input `target` points at. The fallback covers a

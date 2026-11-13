@@ -6,13 +6,13 @@ import { cleanupMap } from './map/index.js';
 import { HistoryPage } from './history.js';
 import { catalogUpdatesPending, openAboutModal, openAccountSheet } from './auth.js';
 import { openSignInModal } from './sign-in.js';
-import { html, mountPage } from './view.js';
+import { html, mountPage, usePhone } from './view.js';
 import { t } from './i18n.js';
 
 // The phone's You page: who is signed in, a gear for what the wide screen's
 // menu holds, and History below. A visitor to a public map gets Sign in.
 // A phone hides the nav brand, so the name, or the shared map line, is the
-// page's h1.
+// page's h1. A wide screen shows the brand as its h1, so there it is not.
 export function renderYouPage() {
   const signedIn = !!(state.auth && state.auth.authenticated);
   setActiveTab(signedIn && historyEnabled() ? 'history' : 'you');
@@ -28,20 +28,21 @@ const USER = html`<path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"
 function YouPage() {
   // Read for the subscription: the gear's dot follows pending catalog updates.
   places.value; catalogCache.value;
+  const heading = usePhone() ? 'h1' : 'div';
   if (!(state.auth && state.auth.authenticated)) {
     return html`<div class="you-signin">
         ${ICON(USER)}
-        <h1>${t('you.sharedMap')}</h1>
+        <${heading} class="you-shared">${t('you.sharedMap')}</${heading}>
         <button type="button" class="ui-button ui-button-primary" id="you-signin" onClick=${() => openSignInModal()}>${t('you.signIn')}</button>
       </div>
       <div class="you-rows"><button type="button" id="you-about" onClick=${() => openAboutModal()}>${t('you.about')}</button></div>`;
   }
   const local = !hasServer();
   return html`<div class="you-head">
-      <h1 class="you-name">
+      <${heading} class="you-name">
         <span>${local ? t('you.localMap') : t('you.signedInAs')}</span>
         <strong>${local ? t('you.noAccount') : state.auth.username}</strong>
-      </h1>
+      </${heading}>
       <button type="button" class=${'you-gear' + (catalogUpdatesPending() ? ' has-dot' : '')} id="you-gear"
         title=${t('you.settings')} aria-label=${t('you.settings')} onClick=${() => openAccountSheet()}>${ICON(GEAR)}</button>
     </div>
