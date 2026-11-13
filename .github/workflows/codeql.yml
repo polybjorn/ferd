@@ -41,7 +41,7 @@ jobs:
         uses: actions/setup-java@v6.2.0
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '27'
 
       - name: Set up Android SDK
         if: matrix.language == 'java-kotlin'
