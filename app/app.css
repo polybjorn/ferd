@@ -1170,11 +1170,16 @@ body.signin-only #app {
   cursor: pointer;
 }
 .signin-public-toggle:hover { color: var(--text); border-color: var(--muted); }
-/* Cross-origin server target. The host sits on its own centered row below
-   the buttons (so a long domain wraps cleanly rather than crowding the
-   row), and "Change server" is pushed to the left of the actions row via
-   margin-right:auto, leaving the filled Sign in at the right. The button
-   is a ui-button. */
+/* The card's buttons span its width, stacked, so none leaves an empty
+   stretch beside it. Sign in comes first, over Change server. */
+.signin-card .form-actions {
+  flex-direction: column;
+  align-items: stretch;
+  margin-top: var(--ui-space-4);
+}
+.signin-card .form-actions .signin-change-server { order: 1; }
+/* Cross-origin server target, on its own centred row below the buttons so
+   a long domain cuts off cleanly. */
 .signin-server-host {
   margin-top: var(--ui-space-3);
   text-align: center;
@@ -1187,12 +1192,9 @@ body.signin-only #app {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.form-actions .signin-change-server { margin-right: auto; }
 /* "Continue without signing in" entry on the sign-in / server-picker cards. */
 .signin-alt {
-  margin-top: var(--ui-space-3);
-  padding-top: var(--ui-space-3);
-  border-top: 1px solid var(--border);
+  margin-top: var(--ui-space-2);
   text-align: center;
 }
 .signin-alt button {
