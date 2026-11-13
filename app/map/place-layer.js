@@ -1,5 +1,5 @@
 import { colourClass, reduceMotion, state } from '../core.js';
-import { followZoomAnim, isZoomJump } from './map-layers.js';
+import { followZoomAnim } from './map-layers.js';
 import { getClusterPlaces, placesEnabled, routesEnabled } from '../prefs.js';
 import { applyAreaFilters, MAP_FADE_MS, revealArea } from './area-layer.js';
 import { goToPlace, goToRoute, MARK_HALO, openPlacePopup, placeMarkerRadius } from './map-actions.js';
@@ -21,13 +21,9 @@ import { t } from '../i18n.js';
 /** @typedef {{ type: string, name?: string, id?: string, key?: string }} RecentPick */
 
 /** @typedef {{ halo: string, edge: string, cluster: string, clusterText: string }} MapInk */
-/** @typedef {{ markerSize: number, pinStyle: string, catColors: Record<string, string>, ink: MapInk }} MarkLook */
 
 const HALO = MARK_HALO;
 const PLANNED_TINT = 0.3;
-// Past this many marks on screen a zoom jump hides them until it ends rather
-// than building an element for each.
-const GLIDE_MAX = 300;
 
 // Read once per frame rather than per mark: getComputedStyle forces style
 // work, and a frame can draw hundreds of marks.
@@ -269,11 +265,9 @@ const PlaceCanvasLayer = L.Layer.extend({
     this._sizeCanvas();
     // Pinch and pan fire 'move' continuously and we redraw each frame at the
     // current zoom (pins at fixed size, positions track). An animated zoom
-    // fires no 'move' until it ends, and the canvas rides its transition, or
-    // on a zoom jump hands the pins to _glide.
+    // fires no 'move' until it ends, and the canvas rides its transition.
     map.on('move', this._redraw, this);
     this._unfollowZoomAnim = followZoomAnim(map, this._canvas);
-    map.on('zoomanim', this._onZoomAnim, this);
     // Must resize the canvas bitmap (not just repaint) when the map grows,
     // else pins past the old width are clipped off a stale-width canvas.
     map.on('resize', this._onResize, this);
@@ -292,9 +286,7 @@ const PlaceCanvasLayer = L.Layer.extend({
     map.off('resize', this._onResize, this);
     map.off('click', this._onClick, this);
     map.off('mousemove', this._onMouseMove, this);
-    map.off('zoomanim', this._onZoomAnim, this);
     this._unfollowZoomAnim();
-    this._endGlide();
     this._map = null;
     return this;
   },
@@ -312,50 +304,6 @@ const PlaceCanvasLayer = L.Layer.extend({
   },
 
   _onResize: function() { this._sizeCanvas(); this._redraw(); },
-
-  // On a zoom jump each mark on screen becomes its own small canvas that moves
-  // on the tiles' transition at its own size, as Leaflet moves its DOM
-  // markers, while the scaled layer canvas hides. The redraw at the end of the
-  // animation puts the marks back on the layer canvas.
-  /** @param {{ zoom: number, center: any }} e */
-  _onZoomAnim: function(e) {
-    const map = this._map;
-    this._endGlide();
-    if (!isZoomJump(map, e)) return;
-    this._canvas.style.visibility = 'hidden';
-    const features = this._visibleFeatures || [];
-    if (features.length > GLIDE_MAX) return;
-    const glide = this._glide = L.DomUtil.create('div', 'place-glide', map.getPane(this.options.pane));
-    const look = this._look();
-    const dpr = this._dpr || 1;
-    const marks = features.map((/** @type {PlaceFeature} */ f) => {
-      const p = f.properties;
-      const reach = Math.ceil(Math.max(p.cluster ? clusterDiscRadius(p.point_count || 0) : placeMarkerRadius(look.markerSize), look.markerSize) + HALO + 2);
-      // Drawn and placed before it joins the page: setting a canvas font
-      // computes the element's style, which would record no transform as the
-      // start of the transition.
-      const el = /** @type {HTMLCanvasElement} */ (L.DomUtil.create('canvas', 'leaflet-zoom-animated'));
-      el.width = el.height = 2 * reach * dpr;
-      el.style.width = el.style.height = 2 * reach + 'px';
-      const ctx = /** @type {CanvasRenderingContext2D} */ (el.getContext('2d'));
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      this._drawFeature(ctx, f, { x: reach, y: reach }, look);
-      const latlng = L.latLng(f.geometry.coordinates[1], f.geometry.coordinates[0]);
-      L.DomUtil.setPosition(el, map.latLngToLayerPoint(latlng).subtract([reach, reach]));
-      glide.appendChild(el);
-      return { el, latlng, reach };
-    });
-    // Commit each start position, so the move below runs as a transition from
-    // it rather than from no transform.
-    for (const m of marks) getComputedStyle(m.el).transform;
-    for (const m of marks) L.DomUtil.setPosition(m.el, map._latLngToNewLayerPoint(m.latlng, e.zoom, e.center).subtract([m.reach, m.reach]));
-  },
-
-  _endGlide: function() {
-    if (this._glide) this._glide.remove();
-    this._glide = null;
-    if (this._canvas) this._canvas.style.visibility = '';
-  },
 
   _rebuildIndex: function() {
     if (!this._places.length || !this._useClusters || typeof Supercluster === 'undefined') {
@@ -396,9 +344,6 @@ const PlaceCanvasLayer = L.Layer.extend({
     if (!map || !this._canvas) return;
     const z = map.getZoom();
 
-    if (map._animatingZoom && this._canvas.style.visibility === 'hidden') return;
-    this._endGlide();
-
     const ctx = this._canvas.getContext('2d');
     const dpr = this._dpr || 1;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -414,34 +359,24 @@ const PlaceCanvasLayer = L.Layer.extend({
 
     const features = this._getCurrentFeatures();
     this._visibleFeatures = features;
-    const look = this._look();
+    const markerSize = (typeof getMarkerSize === 'function') ? getMarkerSize() : 18;
+    const pinStyle = (typeof getPinStyle === 'function') ? getPinStyle() : 'ring';
+    const catColors = /** @type {Record<string, string>} */ ((state && state.categoryColors) || {});
+    const ink = mapInk();
     for (const f of features) {
       const coords = f.geometry.coordinates;
       const projected = crs.latLngToPoint(L.latLng(coords[1], coords[0]), z);
-      this._drawFeature(ctx, f, projected.subtract(pixelOrigin), look);
+      const pt = projected.subtract(pixelOrigin);
+      if (f.properties.cluster) {
+        this._drawCluster(ctx, pt, f.properties.point_count, ink);
+      } else {
+        const place = f.properties.place;
+        const color = catColors[place.category] || '#888';
+        ctx.globalAlpha = place.id === this._fadingPlaceId ? this._fadeAlpha : 1;
+        this._drawMarker(ctx, pt, place, color, markerSize, pinStyle, ink);
+        ctx.globalAlpha = 1;
+      }
     }
-  },
-
-  /** @returns {MarkLook} */
-  _look: function() {
-    return {
-      markerSize: (typeof getMarkerSize === 'function') ? getMarkerSize() : 18,
-      pinStyle: (typeof getPinStyle === 'function') ? getPinStyle() : 'ring',
-      catColors: /** @type {Record<string, string>} */ ((state && state.categoryColors) || {}),
-      ink: mapInk(),
-    };
-  },
-
-  /** @param {CanvasRenderingContext2D} ctx @param {PlaceFeature} f @param {Pt} pt @param {MarkLook} look */
-  _drawFeature: function(ctx, f, pt, look) {
-    if (f.properties.cluster) {
-      this._drawCluster(ctx, pt, f.properties.point_count || 0, look.ink);
-      return;
-    }
-    const place = /** @type {Place} */ (f.properties.place);
-    ctx.globalAlpha = place.id === this._fadingPlaceId ? this._fadeAlpha : 1;
-    this._drawMarker(ctx, pt, place, look.catColors[place.category || ''] || '#888', look.markerSize, look.pinStyle, look.ink);
-    ctx.globalAlpha = 1;
   },
 
   /** @param {CanvasRenderingContext2D} ctx @param {Pt} pt @param {number} count @param {MapInk} ink */

@@ -1553,8 +1553,6 @@ body.signin-only #app {
 .leaflet-elevation-pane .elevation-summary { background: var(--surface) !important; color: var(--text) !important; }
 .elevation-control .close-button, .elevation-control .elevation-toggle-icon, .elevation-detached .leaflet-close { display: none !important; }
 .leaflet-overlay-pane .leaflet-interactive { filter: drop-shadow(0 0 3px rgba(0,0,0,0.5)); }
-.place-glide,
-.place-glide > canvas { position: absolute; left: 0; top: 0; pointer-events: none; }
 .gpx-waypoint-icon {
   background: var(--surface);
   border: 1.5px solid var(--text);
