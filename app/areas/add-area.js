@@ -26,7 +26,11 @@ function searchAreaBoundaries(q) {
     q, format: 'geojson', polygon_geojson: '1', polygon_threshold: '0.001',
     namedetails: '1', 'accept-language': 'en', limit: '8',
   });
-  return fetch('https://nominatim.openstreetmap.org/search?' + params, { credentials: 'omit', signal: AbortSignal.timeout(20000) })
+  // Not AbortSignal.timeout, which throws on Chrome 99-102 and Safari 15.
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 20000);
+  return fetch('https://nominatim.openstreetmap.org/search?' + params, { credentials: 'omit', signal: ctrl.signal })
+    .finally(() => clearTimeout(timer))
     .then(r => {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();

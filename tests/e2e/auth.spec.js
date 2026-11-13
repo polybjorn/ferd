@@ -1,7 +1,7 @@
 // Sign in through the form, and sign out through the account menu (the You
 // page's sheet on a phone).
 const { test, expect } = require('@playwright/test');
-const { USER, PASSWORD, fence, isPhone, dialog } = require('./helpers');
+const { USER, PASSWORD, fence, isPhone, dialog, signIn } = require('./helpers');
 
 test('signs in through the form and out through the menu', async ({ page, baseURL }) => {
   const fenced = await fence(page, /** @type {string} */ (baseURL));
@@ -77,5 +77,15 @@ test('the sign-in form fits above a phone keyboard', async ({ page, baseURL }) =
   const submit = await page.locator('#auth-submit').boundingBox();
   if (!submit) throw new Error('no box for Sign in');
   expect(submit.y + submit.height).toBeLessThanOrEqual(360);
+  expect(fenced.errors).toEqual([]);
+});
+
+// Chrome 99-102 and Safari 15 pass the update notice's check but have no
+// AbortSignal.timeout, and the session check must not lean on it.
+test('the app starts on an engine without AbortSignal.timeout', async ({ page, baseURL }) => {
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  await page.addInitScript(() => { delete (/** @type {any} */ (AbortSignal)).timeout; });
+  await signIn(page);
+  await expect(page.locator('#map')).toBeAttached();
   expect(fenced.errors).toEqual([]);
 });

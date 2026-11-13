@@ -126,13 +126,16 @@ const STATE_TIMEOUT_MS = 4000;
 function fetchState() {
   /** @returns {Promise<Response>} */
   const once = () => {
-    const signal = AbortSignal.timeout(STATE_TIMEOUT_MS);
-    // Asked of the signal, since WebKit rejects with an AbortError where the
-    // others name a TimeoutError.
+    // AbortSignal.timeout would throw on Chrome 99-102 and Safari 15, which
+    // the update notice lets through, and the throw would skip the offline
+    // fallback and hold the page on Loading.
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), STATE_TIMEOUT_MS);
+    const signal = ctrl.signal;
     return fetch(apiUrl('/state'), applyAuth({ signal })).catch(err => {
       if (signal.aborted && !retried) { retried = true; return once(); }
       throw err;
-    });
+    }).finally(() => clearTimeout(timer));
   };
   let retried = false;
   return once();
