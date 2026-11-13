@@ -15,6 +15,11 @@ test.describe.configure({ mode: 'parallel' });
 
 const THEMES = ['catppuccin', 'dracula', 'gruvbox', 'nord', 'rose-pine', 'solarized', 'tokyo-night'];
 const MODES = ['light', 'dark'];
+// Axe reads contrast and roles from the DOM and computed styles, which the
+// engines agree on; what differs is the layout. One desktop and one phone
+// project cover both layouts at half the CPU of the theme scans in all four.
+const SCAN_PROJECTS = ['chromium', 'iphone'];
+const SCAN_SKIP = 'theme scans run in one desktop and one phone project';
 
 /** Serious and critical violations on the page now, as "rule (n nodes)" lines. */
 async function violations(/** @type {import('@playwright/test').Page} */ page, /** @type {string} */ where) {
@@ -34,6 +39,7 @@ async function applyTheme(/** @type {import('@playwright/test').Page} */ page, /
 for (const theme of THEMES) {
   for (const mode of MODES) {
     test(`no serious or critical violations in ${theme} ${mode}`, async ({ page, baseURL }, info) => {
+      test.skip(!SCAN_PROJECTS.includes(info.project.name), SCAN_SKIP);
       const fenced = await fence(page, /** @type {string} */ (baseURL));
       const phone = isPhone(info);
       const found = [];
@@ -103,6 +109,7 @@ for (const theme of THEMES) {
 for (const theme of THEMES) {
   for (const mode of MODES) {
     test(`no serious or critical violations with a hovered tab in ${theme} ${mode}`, async ({ page, baseURL }, info) => {
+      test.skip(!SCAN_PROJECTS.includes(info.project.name), SCAN_SKIP);
       await fence(page, /** @type {string} */ (baseURL));
       const phone = isPhone(info);
       const found = [];
