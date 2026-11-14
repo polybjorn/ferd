@@ -129,10 +129,11 @@ export function DoneFields({ ids, label, dateLabel, on, onToggle, date, onDate, 
 
 // The picker adds its list beside the input, so the input is the wrapper's
 // only child and Preact never reorders around the list.
-/** @param {{ id: string, value: string, onInput: (s: string) => void }} props */
-export function CountryInput({ id, value, onInput }) {
+// `label` names an input that no <label> wraps or points at.
+/** @param {{ id: string, value: string, onInput: (s: string) => void, label?: string }} props */
+export function CountryInput({ id, value, onInput, label }) {
   useEffect(() => { wireCountryPicker(id); }, []);
-  return html`<div><input type="text" id=${id} value=${value} onInput=${(/** @type {Event} */ e) => onInput(valueOf(e))} /></div>`;
+  return html`<div><input type="text" id=${id} aria-label=${label} value=${value} onInput=${(/** @type {Event} */ e) => onInput(valueOf(e))} /></div>`;
 }
 
 /**

@@ -43,7 +43,7 @@ export function MarkedCountries() {
     <h3 class="settings-h">${t('settings.general.markedCountries')}</h3>
     <div class="hint">${t('settings.general.markedCountriesHint')}</div>
     <div class="ui-control-row country-add-row">
-      <div class="ui-field"><${CountryInput} id="s-country-add" value=${name} onInput=${setName} /></div>
+      <div class="ui-field"><${CountryInput} id="s-country-add" label=${t('form.country')} value=${name} onInput=${setName} /></div>
       <button type="button" class="ui-button ui-button-primary" id="s-country-add-btn" disabled=${!code} onMouseDown=${(/** @type {Event} */ e) => e.preventDefault()} onClick=${add}>${t('common.add')}</button>
     </div>
     <ul class="session-list" id="s-country-list">${rows.map((/** @type {{ code: string, name: string }} */ r) => html`<${CountryRow} key=${r.code} code=${r.code} name=${r.name} />`)}</ul>`;
