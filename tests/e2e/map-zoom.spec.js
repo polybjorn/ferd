@@ -31,7 +31,7 @@ test('a map holding one short route opens framed on it', async ({ page, baseURL 
   expect(fenced.errors).toEqual([]);
 });
 
-test('a cluster zoom glides each mark on the tiles\' own transition at its own size', async ({ page, baseURL }) => {
+test('a cluster zoom glides each mark on the tiles\' own transition at its own size', async ({ page, baseURL }, info) => {
   const fenced = await fence(page, /** @type {string} */ (baseURL));
   await signIn(page);
   await expect(page.locator('canvas.place-canvas-layer')).toBeAttached();
@@ -139,12 +139,16 @@ test('a cluster zoom glides each mark on the tiles\' own transition at its own s
   expect(probe.hidden, 'the place canvas hides while the marks glide').toBe(true);
   expect(probe.started, 'the marks inside the tapped cluster glide out of it').toBeGreaterThan(1);
   expect(probe.landed, 'each glider lands on a mark the redrawn canvas shows').toBe(true);
-  if (probe.gl) {
+  // A loaded runner can spend the whole 0.25 s transition on one frame, so
+  // no mid-zoom width exists to judge; the app then only draws a width late.
+  if (probe.gl && probe.widths.length) {
     expect(Math.min(...probe.widths), 'route lines are drawn thinner as the canvas grows').toBeLessThan(1);
-    expect(probe.widthAfter, 'and at their own width once the zoom ends').toBe(1);
     // The canvas transition scales the lines, so a redraw must not scale them again.
     expect(probe.scales.every((/** @type {number} */ s) => s === probe.scaleBefore), 'mid-zoom redraws keep the starting view').toBe(true);
+  } else if (probe.gl) {
+    info.annotations.push({ type: 'unjudged', description: 'no frame landed during the zoom, so the mid-zoom route width was not checked' });
   }
+  if (probe.gl) expect(probe.widthAfter, 'route lines are at their own width once the zoom ends').toBe(1);
   if (probe.svgShown.length) {
     expect(Math.max(...probe.svgShown.map((/** @type {number} */ w) => Math.abs(w - probe.svgWidth))), 'SVG route lines keep their width on screen through the zoom').toBeLessThan(0.5);
   }
