@@ -318,6 +318,11 @@ def _in_ring(pt: tuple, ring: list) -> bool:
   return inside
 
 
+def _ring_area(ring: list) -> float:
+  """Unsigned shoelace area in degrees squared; only compared, never shown."""
+  return abs(sum(x1 * y2 - x2 * y1 for (y1, x1), (y2, x2) in zip(ring, ring[1:]))) / 2
+
+
 def relation_polygons(answer: dict, relation: int) -> list:
   """The polygons of a multipolygon or boundary relation from an Overpass
   answer: a list of [outer, inner, ...] rings of (lat, lon). A member with no
@@ -340,9 +345,11 @@ def relation_polygons(answer: dict, relation: int) -> list:
   if not polygons:
     raise ValidationError(f"relation {relation} has no closed outline")
   for hole in close_rings(inner):
-    home = next((p for p in polygons if _in_ring(hole[0], p[0])), None)
-    if home is not None:
-      home.append(hole)
+    # The smallest outer that holds it: an island inside a lake hole can
+    # carry its own hole, which the big outer also contains.
+    homes = [p for p in polygons if _in_ring(hole[0], p[0])]
+    if homes:
+      min(homes, key=lambda p: _ring_area(p[0])).append(hole)
   return polygons
 
 

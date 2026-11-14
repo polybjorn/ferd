@@ -182,6 +182,17 @@ class AreaTests(unittest.TestCase):
     answer = {"elements": [{"type": "relation", "id": 5, "members": [_way(*SQUARE, role="outer"), _way(*ISLAND, role="inner")]}]}
     self.assertEqual(osm.relation_polygons(answer, 5), [[SQUARE]])
 
+  def test_hole_goes_to_the_smallest_outline_holding_it(self):
+    # A lake (HOLE) in SQUARE, an island in the lake, and a pond on the
+    # island: the pond is inside SQUARE too, but belongs to the island.
+    lake = [(60.02, 10.04), (60.02, 10.16), (60.08, 10.16), (60.08, 10.04), (60.02, 10.04)]
+    pond = HOLE
+    island = [(60.03, 10.06), (60.03, 10.14), (60.07, 10.14), (60.07, 10.06), (60.03, 10.06)]
+    answer = {"elements": [{"type": "relation", "id": 5, "members": [
+      _way(*SQUARE, role="outer"), _way(*lake, role="inner"),
+      _way(*island, role="outer"), _way(*pond, role="inner")]}]}
+    self.assertEqual(osm.relation_polygons(answer, 5), [[SQUARE, lake], [island, pond]])
+
   def test_missing_relation_or_outline(self):
     with self.assertRaises(ValidationError):
       osm.relation_polygons(STUB_ANSWER, 99)
