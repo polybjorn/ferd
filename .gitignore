@@ -11,6 +11,7 @@ __pycache__/
 places.json
 routes.json
 catalog.local.json
+catalog-drafts.json
 .catalog.lock
 gpx
 users/

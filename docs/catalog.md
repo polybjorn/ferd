@@ -45,6 +45,20 @@ Insert new entries in alphabetical order by `name` (case-insensitive). Example:
 
 `tests/test_shipped_catalog.py` (runs in CI) enforces these conventions plus the place schema, so PRs catch malformed entries at review time.
 
+### Drafting entries from Wikidata
+
+`scripts/catalog-wikidata-drafts.py` drafts entries for a whole curated set at once, so the catalog does not grow only where the maintainer has been. It runs a SPARQL query on Wikidata (CC0) and writes `catalog-drafts.json` (gitignored), never `catalog.json`:
+
+```sh
+python3 scripts/catalog-wikidata-drafts.py --set unesco --limit 50
+```
+
+The one set so far is `unesco`, every item with heritage designation World Heritage Site (`wdt:P1435 wd:Q9259`). That includes the component parts of serial sites, so expect to drop many drafts. Items `catalog.json` already holds are skipped, matched by English Wikipedia link, then by name.
+
+A draft fills `name` (English label), `lat`/`lon` (P625, 5 decimals), `country` (P17), `local_name` (P1705, left out when equal to `name`), `image` (P18 as a 1280 px Commons thumb, or the original when the file is narrower) with its `image_credit` from Commons, and `sources` (the English Wikipedia article). An image Commons gives no licence for is left off. Fields starting with `_` are review hints: the Wikidata item, its P31 types, a `_suggested_category` from those types, `_suggested_tags`, and `_review` notes such as a site spanning several countries.
+
+To review a draft: check the coordinates on the map, since P625 is often the centroid of the site rather than the landmark; write `category`, `tags` and `note` yourself; delete the `_` fields; and insert the entry into `catalog.json` in name order. Wikidata and Commons are queried from the machine that runs the script, never from a user's browser.
+
 ## Categories and tags
 
 Rules for assigning `category` and `tags`, kept here so the taxonomy stays consistent as the catalog grows.
