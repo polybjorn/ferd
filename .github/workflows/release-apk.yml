@@ -84,3 +84,15 @@ jobs:
           files: ${{ steps.apk.outputs.path }}
           fail_on_unmatched_files: true
           prerelease: ${{ contains(github.ref_name, '-beta.') }}
+
+  # A new release supersedes older betas: delete their release pages, keeping
+  # the newest beta and every tag (scripts/prune-releases.py).
+  prune-releases:
+    needs: release-apk
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Delete superseded beta releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/prune-releases.py releases

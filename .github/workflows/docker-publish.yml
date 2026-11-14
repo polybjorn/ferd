@@ -70,3 +70,19 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # After every push, delete the image versions nothing keeps: superseded
+  # betas, commit builds past the newest 20, and untagged manifests no kept tag
+  # references (scripts/prune-releases.py).
+  prune-images:
+    needs: build-and-push
+    if: ${{ github.event_name == 'push' && needs.build-and-push.result == 'success' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: prune-images
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Delete superseded images
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/prune-releases.py images --keep-commits 20
