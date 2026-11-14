@@ -21,7 +21,7 @@ Each theme runs in Light, Dark, or System mode. Theme and mode are picked from S
 - Page chrome: background, surfaces, borders, text, muted text.
 - Accent color (links, focus rings, cluster halos).
 - Semantic colors: green (visited/completed), red (planned/want to visit).
-- Route line colors (`--completed`, `--planned`) and cluster halos.
+- Route line colors (`--completed`, `--planned`), the fill of visited areas and countries, and cluster halos.
 
 ### What the theme does NOT control
 
@@ -58,7 +58,7 @@ Each `[data-theme][data-mode]` block must define:
 | `--accent` | Links, focus rings, interactive accent, at 4.5:1 on `--bg`, `--surface` and `--surface2` |
 | `--danger` | Errors and destructive actions, at 4.5:1 on the same surfaces |
 | `--green` | Success text, at 4.5:1 on the same surfaces |
-| `--completed` | Completed route polylines |
+| `--completed` | Completed route polylines, visited area and country fills |
 | `--planned` | Planned route polylines |
 | `--cluster-fill` | Marker cluster fill (rgba with alpha) |
 | `--cluster-halo` | Marker cluster halo (rgba with alpha) |

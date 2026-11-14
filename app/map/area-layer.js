@@ -1,5 +1,5 @@
 import { manifestRoutes, reduceMotion, state } from '../core.js';
-import { gpxUrlFor } from '../server.js';
+import { gpxUrlFor, routeStatusColor } from '../server.js';
 import {
   areaBbox, areaContains, areaSize, bboxesOverlap, placesInArea, tracksTouchArea,
 } from '../area-geo.js';
@@ -59,8 +59,11 @@ export function areaStyle(a, visited) {
   // The colour map's literal types it as {}; the store fills it by category key.
   const colors = /** @type {Record<string, string>} */ (state.categoryColors);
   const color = colors[/** @type {string} */ (a.category)] || colors[''];
+  // The fill takes the visited countries' colour so where you have been reads
+  // as one colour from country down to municipality; the outline keeps the
+  // category.
   return visited
-    ? { color, weight: 2, opacity: 0.9, fillColor: color, fillOpacity: 0.22, dashArray: null }
+    ? { color, weight: 2, opacity: 0.9, fillColor: routeStatusColor(true), fillOpacity: 0.28, dashArray: null }
     : { color, weight: 2, opacity: 0.7, fillColor: color, fillOpacity: 0.08, dashArray: '6 6' };
 }
 // The map's own area style, without the outline where WebGL draws it.

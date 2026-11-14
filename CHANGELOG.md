@@ -10,6 +10,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - Catalog images show their author and licence under the image in the place popup, linked to the image's page on Wikimedia Commons, as the images' licences require. Places imported from the catalog keep the credit, and an update from the catalog brings it to places imported earlier.
 
 ### Changed
+- A visited area is filled in the same green as visited countries, so where you have been reads as one colour from country down to a single municipality. Its outline keeps the category colour.
 - Superseded beta images and release pages are deleted automatically: a pinned beta image (`:X.Y.Z-beta.N`) goes once a stable release supersedes it, and only the newest 20 commit-hash images are kept. Stable tags, `:latest`, `:beta` and `:dev` are never deleted.
 
 ### Fixed
