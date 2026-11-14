@@ -1,7 +1,9 @@
 # Ferd - self-hosted Leaflet map for places and GPX routes.
 # Stdlib-only Python; no pip install step.
 
-FROM python:3.15-slim
+# Pinned to the multi-arch index digest so a rebuild of the same commit gets the
+# same base; Renovate moves the tag and digest together, behind the smoke test.
+FROM python:3.15-slim@sha256:65a65fc7b30b06cb6df4930fd4650697cb23f4c2698ab81fc87e4b031bc36928
 
 LABEL org.opencontainers.image.title="Ferd" \
       org.opencontainers.image.description="Self-hosted personal map for places and GPX routes." \
