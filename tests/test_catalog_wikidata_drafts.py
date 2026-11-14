@@ -1,7 +1,10 @@
 """Tests for scripts/catalog-wikidata-drafts.py, against a canned SPARQL response with no network access."""
 
+import email.message
 import importlib.util
 import unittest
+import urllib.error
+from unittest import mock
 from pathlib import Path
 
 _spec = importlib.util.spec_from_file_location(
@@ -138,6 +141,25 @@ class CreditTests(unittest.TestCase):
     self.assertNotIn("image", bad)
     self.assertNotIn("image_credit", bad)
     self.assertEqual(bad["_review"], ["image Bad.jpg dropped: no licence on Commons"])
+
+
+
+class RateLimitTest(unittest.TestCase):
+  def test_429_stops_without_a_second_request(self):
+    headers = email.message.Message()
+    headers["Retry-After"] = "300"
+    err = urllib.error.HTTPError(drafts.SPARQL, 429, "Too Many Requests", headers, None)
+    with mock.patch.object(drafts.urllib.request, "urlopen", side_effect=err) as urlopen:
+      with self.assertRaises(drafts.RateLimited) as caught:
+        drafts.run_query("unesco")
+    self.assertEqual(caught.exception.wait, 300)
+    self.assertEqual(urlopen.call_count, 1)
+
+  def test_other_http_errors_pass_through(self):
+    err = urllib.error.HTTPError(drafts.SPARQL, 500, "Server Error", email.message.Message(), None)
+    with mock.patch.object(drafts.urllib.request, "urlopen", side_effect=err):
+      with self.assertRaises(urllib.error.HTTPError):
+        drafts.run_query("unesco")
 
 
 if __name__ == "__main__":

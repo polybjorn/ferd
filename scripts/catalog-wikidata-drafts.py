@@ -25,6 +25,7 @@ import json
 import re
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -216,6 +217,27 @@ def is_known(draft, links, names):
   return draft["name"].casefold() in names
 
 
+class RateLimited(Exception):
+  """Wikidata or Commons answered 429; `wait` is its Retry-After in seconds, or None."""
+
+  def __init__(self, wait):
+    super().__init__(wait)
+    self.wait = wait
+
+
+def get_json(req, timeout):
+  # The query service counts a request made while it throttles as a new
+  # offence and pushes the limit further out, so a 429 ends the run.
+  try:
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+      return json.load(resp)
+  except urllib.error.HTTPError as err:
+    if err.code != 429:
+      raise
+    wait = err.headers.get("Retry-After", "") if err.headers else ""
+    raise RateLimited(int(wait) if wait.isdigit() else None) from None
+
+
 def fetch_image_info(names):
   """Map each Commons file name to (extmetadata, pixel width) for one batch."""
   params = {
@@ -225,8 +247,7 @@ def fetch_image_info(names):
     "titles": "|".join("File:" + n for n in names),
   }
   req = urllib.request.Request(credits.API + "?" + urllib.parse.urlencode(params), headers={"User-Agent": USER_AGENT})
-  with urllib.request.urlopen(req, timeout=30) as resp:
-    doc = json.load(resp)
+  doc = get_json(req, 30)
   q = doc.get("query", {})
   back = {n["to"]: n["from"] for n in q.get("normalized", [])}
   out = {}
@@ -275,8 +296,7 @@ def run_query(set_name):
   req = urllib.request.Request(
     SPARQL, data=urllib.parse.urlencode({"query": query, "format": "json"}).encode(),
     headers={"User-Agent": USER_AGENT, "Accept": "application/sparql-results+json"})
-  with urllib.request.urlopen(req, timeout=120) as resp:
-    return json.load(resp)["results"]["bindings"]
+  return get_json(req, 120)["results"]["bindings"]
 
 
 def draft_set(set_name, bindings, catalog, limit=None):
@@ -314,8 +334,14 @@ def main():
   args = ap.parse_args()
 
   catalog = json.loads(Path(args.catalog).read_text(encoding="utf-8"))
-  drafts, counts = draft_set(args.set, run_query(args.set), catalog, args.limit)
-  attach_credits(drafts)
+  try:
+    drafts, counts = draft_set(args.set, run_query(args.set), catalog, args.limit)
+    attach_credits(drafts)
+  except RateLimited as err:
+    wait = f" for {err.wait} s" if err.wait else ""
+    print(f"Wikidata is rate-limiting this address{wait}. Every request before then extends the limit, "
+          "so wait it out before running again.", file=sys.stderr)
+    return 2
   Path(args.out).write_text(json.dumps(drafts, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
   print(f"{len(drafts)} drafts written to {args.out}; skipped {counts['known']} already in the catalog, "
         f"{counts['no_coordinates']} without coordinates, {counts['duplicate_name']} sharing a name", file=sys.stderr)

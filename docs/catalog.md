@@ -57,6 +57,8 @@ The one set so far is `unesco`, every item with heritage designation World Herit
 
 A draft fills `name` (English label), `lat`/`lon` (P625, 5 decimals), `country` (P17), `local_name` (P1705, left out when equal to `name`), `image` (P18 as a 1280 px Commons thumb, or the original when the file is narrower) with its `image_credit` from Commons, and `sources` (the English Wikipedia article). An image Commons gives no licence for is left off. Fields starting with `_` are review hints: the Wikidata item, its P31 types, a `_suggested_category` from those types, `_suggested_tags`, and `_review` notes such as a site spanning several countries.
 
+When Wikidata or Commons throttles the script (HTTP 429), it stops and prints how long to wait, since a request made during the limit extends it.
+
 To review a draft: check the coordinates on the map, since P625 is often the centroid of the site rather than the landmark; write `category`, `tags` and `note` yourself; delete the `_` fields; and insert the entry into `catalog.json` in name order. Wikidata and Commons are queried from the machine that runs the script, never from a user's browser.
 
 ## Categories and tags
