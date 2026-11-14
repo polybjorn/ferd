@@ -31,15 +31,16 @@ test('imports a catalog area through the server', async ({ page, baseURL }, info
   await expect(page.locator('#add-tabs')).toBeHidden();
   expect(asked).toEqual([{ relation: JOTUNHEIMEN }]);
 
-  await page.evaluate(() => { location.hash = '#/areas'; });
-  await expect(page.locator('.area-card').filter({ hasText: 'Jotunheimen National Park' })).toHaveCount(1);
-
   // Opened again, the entry says it is already there.
-  await page.evaluate(() => { location.hash = '#/'; });
   await page.locator('#map-add-btn:visible, #bar-add:visible').click();
   await page.locator('#add-tabs [data-tab="areas"]').click();
   await expect(row.locator('.browse-area-import')).toBeDisabled();
   await expect(row.locator('.browse-area-import')).toHaveText('Imported');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#add-tabs')).toBeHidden();
+
+  await page.evaluate(() => { location.hash = '#/areas'; });
+  await expect(page.locator('.area-card').filter({ hasText: 'Jotunheimen National Park' })).toHaveCount(1);
 
   expect(fenced.external).toEqual([]);
 });
