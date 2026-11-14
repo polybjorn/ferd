@@ -22,6 +22,7 @@ Each entry is a JSON object with these fields, in this order. `name`, `lat`, `lo
 - `note` - one-line identifier, max 60 chars.
 - `image` - stable thumbnail URL. For Wikipedia Commons, use the 1280 px thumb form (`.../thumb/X/XY/<file>/1280px-<file>`), not the full-res original: the popup shows ~280 px, so the original is wasted multi-MB. Prefer landscape; portrait crops poorly without `image_focus`.
 - `image_focus` - crop anchor for the popup frame (CSS `object-position`): `top`/`bottom`/`left`/`right`/`center` or `"X% Y%"`. Omit for landscape; set for portrait so the subject stays in frame (`top` for towers). Cleared automatically when `image` changes.
+- `image_credit` - the image's author and licence as `"<author>, <licence>"`, shown under the popup image and linked to the Commons file page. Required with `image`: most Commons images are CC BY or CC BY-SA, which require the credit wherever the image shows. `python3 scripts/catalog-image-credits.py` fills it from Commons for every entry that lacks one; write it by hand for an image from elsewhere.
 - `sources` - array of URLs, usually one Wikipedia link. Add more only if one can't carry the claim.
 
 Insert new entries in alphabetical order by `name` (case-insensitive). Example:
@@ -37,6 +38,7 @@ Insert new entries in alphabetical order by `name` (case-insensitive). Example:
   "local_name": "Ακρόπολη της Λίνδου",
   "note": "Hilltop citadel with a 4th-century BC Temple of Athena",
   "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/20210826-Lindos-DJI_0205.jpg/1280px-20210826-Lindos-DJI_0205.jpg",
+  "image_credit": "Thomas Berwing, CC BY-SA 4.0",
   "sources": ["https://en.wikipedia.org/wiki/Lindos"]
 }
 ```

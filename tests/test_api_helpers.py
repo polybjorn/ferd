@@ -285,6 +285,10 @@ class TestValidatePlace(unittest.TestCase):
       out = api.validate_place(self.minimal(image_focus=v))
       self.assertEqual(out["image_focus"], v, msg=f"image_focus {v!r} dropped during validate")
 
+  def test_image_credit_preserved(self):
+    out = api.validate_place(self.minimal(image_credit=" Jane Doe, CC BY-SA 4.0 "))
+    self.assertEqual(out["image_credit"], "Jane Doe, CC BY-SA 4.0")
+
   def test_image_focus_invalid_rejected(self):
     for bad in ("topp", "100", "down", "50%", "50 50"):
       with self.assertRaises(api.ValidationError):
@@ -545,7 +549,7 @@ class TestValidatePlaceMessages(unittest.TestCase):
     self.assertEqual(api.PLACE_ALL, api.PLACE_REQUIRED | api.PLACE_OPTIONAL)
     self.assertEqual(api.PLACE_OPTIONAL, {
       "id", "category", "country", "country_code", "visited", "note", "sources", "local_name",
-      "date_visited", "rating", "image", "image_focus", "tags", "from_catalog", "catalog_skip",
+      "date_visited", "rating", "image", "image_focus", "image_credit", "tags", "from_catalog", "catalog_skip",
     })
 
 

@@ -202,6 +202,8 @@ PLACE_FIELDS = {
   # when the upstream entry diverges.
   "from_catalog": _place_text(200),
   "image_focus": _place_image_focus,
+  # "<author>, <licence>" for the image, shown under it as its licence asks.
+  "image_credit": _place_text(300),
   "date_visited": _place_date_visited,
   "rating": _place_rating,
   "catalog_skip": _place_catalog_skip,

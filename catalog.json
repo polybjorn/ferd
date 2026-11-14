@@ -12,6 +12,7 @@
     "local_name": "أبو سمبل",
     "note": "Ramesses II rock-cut temples, relocated above Lake Nasser",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Ramsis%2C_Aswan_Governorate%2C_Egypt_-_panoramio.jpg/1280px-Ramsis%2C_Aswan_Governorate%2C_Egypt_-_panoramio.jpg",
+    "image_credit": "youssef_alam, CC BY 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Abu_Simbel_temples"
     ]
@@ -28,6 +29,7 @@
     "local_name": "Galleria dell'Accademia",
     "note": "Home of Michelangelo's David",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Firenze%2C_galleria_dell%27accademia%2C_sala_del_colosso%2C_01%2C0.jpg/1280px-Firenze%2C_galleria_dell%27accademia%2C_sala_del_colosso%2C_01%2C0.jpg",
+    "image_credit": "Francesco Bini, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Galleria_dell%27Accademia"
     ]
@@ -41,6 +43,7 @@
     "local_name": "Μουσείο Ακρόπολης",
     "note": "Artifacts from the Athenian Acropolis",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/New_Acropolis_Museum_building_in_Athens%2C_Greece.jpg/1280px-New_Acropolis_Museum_building_in_Athens%2C_Greece.jpg",
+    "image_credit": "philip.mallis, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Acropolis_Museum"
     ]
@@ -58,6 +61,7 @@
     "local_name": "Ακρόπολη Αθηνών",
     "note": "Ancient hilltop citadel crowned by the Parthenon",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/1029_Acropolis_of_Athens_in_Greece_at_night_Photo_by_Giles_Laurent.jpg/1280px-1029_Acropolis_of_Athens_in_Greece_at_night_Photo_by_Giles_Laurent.jpg",
+    "image_credit": "Giles Laurent, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Acropolis_of_Athens"
     ]
@@ -74,6 +78,7 @@
     "local_name": "Ακρόπολη της Λίνδου",
     "note": "Hilltop citadel with a 4th-century BC Temple of Athena",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/20210826-Lindos-DJI_0205.jpg/1280px-20210826-Lindos-DJI_0205.jpg",
+    "image_credit": "Thomas Berwing, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Lindos"
     ]
@@ -90,6 +95,7 @@
     "local_name": "آيت بن حدّو",
     "note": "Earthen-clay ksar on the old trans-Saharan caravan route",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/%22Hervorragendes_Beispiel_marokkanischer_Lehmbauarchitektur%22._10.jpg/1280px-%22Hervorragendes_Beispiel_marokkanischer_Lehmbauarchitektur%22._10.jpg",
+    "image_credit": "Holger Uwe Schmitt, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/A%C3%AFt_Benhaddou"
     ]
@@ -108,6 +114,7 @@
     "note": "Qajar Persian garden in Birjand, eastern Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/%D9%85%D8%AC%D9%85%D9%88%D8%B9%D9%87_%D8%A7%DA%A9%D8%A8%D8%B1%DB%8C%D9%87%D8%8C_%D9%85%D8%B3%D8%AC%D8%AF_%D9%88_%D8%B9%D9%85%D8%A7%D8%B1%D8%AA_%D9%88_%D8%A8%D8%A7%D8%BA.jpg/1280px-%D9%85%D8%AC%D9%85%D9%88%D8%B9%D9%87_%D8%A7%DA%A9%D8%A8%D8%B1%DB%8C%D9%87%D8%8C_%D9%85%D8%B3%D8%AC%D8%AF_%D9%88_%D8%B9%D9%85%D8%A7%D8%B1%D8%AA_%D9%88_%D8%A8%D8%A7%D8%BA.jpg",
     "image_focus": "bottom",
+    "image_credit": "Soroush.javadian, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Akbarieh_Garden"
     ]
@@ -121,6 +128,7 @@
     "local_name": "فَوْهَة ٱلْوَعْبَة",
     "note": "Volcanic crater with white salt floor",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Wahbah_Crater.jpg/1280px-Wahbah_Crater.jpg",
+    "image_credit": "SariSabban, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Al_Wahbah"
     ]
@@ -133,6 +141,7 @@
     "country": "Saudi Arabia",
     "note": "Labyrinth of abandoned mud-brick houses",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Al-Ula_Old_Town_2021.jpg/1280px-Al-Ula_Old_Town_2021.jpg",
+    "image_credit": "Richard Mortel, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Al-Ula"
     ]
@@ -149,6 +158,7 @@
     "local_name": "Alanya Kalesi",
     "note": "Medieval fortress with 6.5 km of walls on a rocky peninsula",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Alanya_Castel_Sunset_-_panoramio.jpg/1280px-Alanya_Castel_Sunset_-_panoramio.jpg",
+    "image_credit": "© CANONIER, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Alanya_Castle"
     ]
@@ -165,6 +175,7 @@
     "local_name": "Alara Kalesi",
     "note": "13th-century Silk Road fortress between Alanya and Manavgat",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Castle_on_the_maontain_Alara_Han_-_panoramio.jpg/1280px-Castle_on_the_maontain_Alara_Han_-_panoramio.jpg",
+    "image_credit": "Tanya Dedyukhina, CC BY 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Alara_Castle"
     ]
@@ -182,6 +193,7 @@
     "local_name": "الحمراء",
     "note": "13th-century Moorish palace complex in Granada",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Dawn_Charles_V_Palace_Alhambra_Granada_Andalusia_Spain.jpg/1280px-Dawn_Charles_V_Palace_Alhambra_Granada_Andalusia_Spain.jpg",
+    "image_credit": "Jebulon, CC0",
     "sources": [
       "https://en.wikipedia.org/wiki/Alhambra"
     ]
@@ -198,6 +210,7 @@
     "country": "Iran",
     "note": "Safavid imperial palace on Naqsh-e Jahan, Isfahan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/%C4%80l%C4%AB_Q%C4%81p%C5%AB_in_golden_time.jpg/1280px-%C4%80l%C4%AB_Q%C4%81p%C5%AB_in_golden_time.jpg",
+    "image_credit": "Amir Pashaei, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Ali_Qapu"
     ]
@@ -214,6 +227,7 @@
     "local_name": "غار علی‌صدر",
     "note": "Water cave with navigable underground lakes, Hamedan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Ali_Sadr_Cave%2C_Hamadan_Province%2C_Iran%2Csiamak_sabet.jpg/1280px-Ali_Sadr_Cave%2C_Hamadan_Province%2C_Iran%2Csiamak_sabet.jpg",
+    "image_credit": "Siamaksabet, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Ali-Sadr_Cave"
     ]
@@ -229,6 +243,7 @@
     "country": "Germany",
     "note": "19th-century art museum on Berlin's Museum Island",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/AlteNationalgalerie_1a.jpg/1280px-AlteNationalgalerie_1a.jpg",
+    "image_credit": "Manfred Brückels, Public domain",
     "sources": [
       "https://en.wikipedia.org/wiki/Alte_Nationalgalerie"
     ]
@@ -241,6 +256,7 @@
     "country": "Germany",
     "note": "One of the world's oldest art galleries",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Alte_Pinakothek_2009.jpg/1280px-Alte_Pinakothek_2009.jpg",
+    "image_credit": "Photo: Andreas Praefcke, CC BY 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Alte_Pinakothek"
     ]
@@ -256,6 +272,7 @@
     "country": "Germany",
     "note": "Schinkel's Neoclassical museum on Berlin's Museum Island",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Altes_Museum_%28Berlin%29_%286339770591%29.jpg/1280px-Altes_Museum_%28Berlin%29_%286339770591%29.jpg",
+    "image_credit": "Jean-Pierre Dalbéra from Paris, France, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Altes_Museum"
     ]
@@ -273,6 +290,7 @@
     "local_name": "Αρχαία Ολυμπία",
     "note": "Birthplace of the ancient Olympic Games",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Restored_ruins_of_the_Temple_of_Hera%2C_ancient_Doric_Greek_temple_at_Olympia%2C_Greece_%2816189637837%29.jpg/1280px-Restored_ruins_of_the_Temple_of_Hera%2C_ancient_Doric_Greek_temple_at_Olympia%2C_Greece_%2816189637837%29.jpg",
+    "image_credit": "Carole Raddato from FRANKFURT, Germany, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Olympia,_Greece"
     ]
@@ -289,6 +307,7 @@
     "local_name": "Αρχαία Θήρα",
     "note": "Ancient city ruins on Mesa Vouno, founded 9th c. BC",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Santorini_ancient_thera_1.jpg/1280px-Santorini_ancient_thera_1.jpg",
+    "image_credit": "Hartmut Inerle, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Ancient_Thera"
     ]
@@ -302,6 +321,7 @@
     "local_name": "សារមន្ទីរជាតិអង្គរ",
     "note": "Khmer civilization artifacts from the Angkor period",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Angkor_National_Museum_%28II%29.jpg/1280px-Angkor_National_Museum_%28II%29.jpg",
+    "image_credit": "This Photo was taken by Supanut Arunoprayote. Feel free to use any of my images, but please mention me as the author..., CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Angkor_National_Museum"
     ]
@@ -319,6 +339,7 @@
     "local_name": "អង្គរវត្ត",
     "note": "World's largest religious monument, 12th-century Khmer",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Buddhist_monks_in_front_of_the_Angkor_Wat.jpg/1280px-Buddhist_monks_in_front_of_the_Angkor_Wat.jpg",
+    "image_credit": "sam garza, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Angkor_Wat"
     ]
@@ -334,6 +355,7 @@
     "country": "Seychelles",
     "note": "Granite-boulder beach with shallow water, La Digue island",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/La_Digue_asv2024-10_img22_Union_Estate.jpg/1280px-La_Digue_asv2024-10_img22_Union_Estate.jpg",
+    "image_credit": "A.Savin, FAL",
     "sources": [
       "https://en.wikipedia.org/wiki/Anse_Source_d%27Argent"
     ]
@@ -346,6 +368,7 @@
     "country": "Australia",
     "note": "Largest aquarium in the southern hemisphere, in Perth",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/AQWA_Main_Entrance.jpg/1280px-AQWA_Main_Entrance.jpg",
+    "image_credit": "SheDev, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/AQWA"
     ]
@@ -364,6 +387,7 @@
     "local_name": "Καμάρα",
     "note": "Roman triumphal arch for Galerius's win over Persia, 303 AD",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Arch_of_Galerius-Kamara.jpg/1280px-Arch_of_Galerius-Kamara.jpg",
+    "image_credit": "Shamaramanic, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Arch_of_Galerius_and_Rotunda"
     ]
@@ -376,6 +400,7 @@
     "country": "Australia",
     "note": "New South Wales' state art gallery, in The Domain",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Art_Gallery_of_New_South_Wales%2C_2022%2C_09.jpg/1280px-Art_Gallery_of_New_South_Wales%2C_2022%2C_09.jpg",
+    "image_credit": "Chris Olszewski, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Art_Gallery_of_New_South_Wales"
     ]
@@ -392,6 +417,7 @@
     "local_name": "原爆ドーム",
     "note": "Ruin left standing nearest the atomic bomb hypocenter",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Genbaku_Dome04-r.JPG/1280px-Genbaku_Dome04-r.JPG",
+    "image_credit": "Oilstreet, CC BY 2.5",
     "sources": [
       "https://en.wikipedia.org/wiki/Hiroshima_Peace_Memorial"
     ]
@@ -408,6 +434,7 @@
     "local_name": "Państwowe Muzeum Auschwitz-Birkenau",
     "note": "Nazi death camp where 1.1 million were murdered",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Auschwitz_I_%2822_May_2010%29_b.jpg/1280px-Auschwitz_I_%2822_May_2010%29_b.jpg",
+    "image_credit": "File:Auschwitz I (22 May 2010).jpg: xiquinhosilva derivative work: Georgfotoart, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Auschwitz-Birkenau_State_Museum"
     ]
@@ -421,6 +448,7 @@
     "local_name": "Allée des Baobabs",
     "note": "Ancient baobab trees lining a dirt road",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Avenue_of_Baobabs%2C_Madagascar_%2822558139260%29.jpg/1280px-Avenue_of_Baobabs%2C_Madagascar_%2822558139260%29.jpg",
+    "image_credit": "Rod Waddington, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Avenue_of_the_Baobabs"
     ]
@@ -438,6 +466,7 @@
     "local_name": "ပុဂံ",
     "note": "Plain of 2,000+ Buddhist temples, 9th-13th century",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Bagan%2C_Burma.jpg/1280px-Bagan%2C_Burma.jpg",
+    "image_credit": "Corto Maltese 1999, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Bagan"
     ]
@@ -455,6 +484,7 @@
     "local_name": "ارگ بم",
     "note": "Massive adobe citadel of Bam, Silk Road landmark",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/010213-Kerman-IMG_0371-2.jpg/1280px-010213-Kerman-IMG_0371-2.jpg",
+    "image_credit": "Safa.daneshvar, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Arg-e_Bam"
     ]
@@ -471,6 +501,7 @@
     "country": "Mali",
     "note": "Dogon cliff dwellings carved into sandstone",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Mali_-_Pays_Dogon_%28falaise_de_Biandagara%29_%2813667559705%29.jpg/1280px-Mali_-_Pays_Dogon_%28falaise_de_Biandagara%29_%2813667559705%29.jpg",
+    "image_credit": "BMR & MAM, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Bandiagara_Escarpment"
     ]
@@ -486,6 +517,7 @@
     "country": "Italy",
     "note": "Early Christian basilica with a Roman colonnade",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Milano_Colonne_di_San_Lorenzo_1.jpg/1280px-Milano_Colonne_di_San_Lorenzo_1.jpg",
+    "image_credit": "Zairon, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Basilica_of_San_Lorenzo,_Milan"
     ]
@@ -503,6 +535,7 @@
     "local_name": "Basilica di San Vitale",
     "note": "6th-century church with major Byzantine mosaics",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Basilica_of_San_Vitale.jpg/1280px-Basilica_of_San_Vitale.jpg",
+    "image_credit": "Commonists, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Basilica_of_San_Vitale"
     ]
@@ -519,6 +552,7 @@
     "local_name": "Basteibrücke",
     "note": "Sandstone bridge over a gorge in Saxon Switzerland",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Rathen_und_Elbsandsteingebirge_asv2022-08_img04.jpg/1280px-Rathen_und_Elbsandsteingebirge_asv2022-08_img04.jpg",
+    "image_credit": "A.Savin, FAL",
     "sources": [
       "https://en.wikipedia.org/wiki/Bastei"
     ]
@@ -537,6 +571,7 @@
     "local_name": "Terme di Caracalla",
     "note": "Towering ruins of a vast Roman bath complex",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Baths_of_Caracalla%2C_facing_Caldarium.jpg/1280px-Baths_of_Caracalla%2C_facing_Caldarium.jpg",
+    "image_credit": "Ethan Doyle White, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Baths_of_Caracalla"
     ]
@@ -555,6 +590,7 @@
     "local_name": "Terme di Traiano",
     "note": "Vast Roman bathing complex dedicated under Trajan, 109 AD",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Trajansthermen.jpg/1280px-Trajansthermen.jpg",
+    "image_credit": "Rabax63, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Baths_of_Trajan"
     ]
@@ -572,6 +608,7 @@
     "local_name": "ប្រាសាទបាយ័ន",
     "note": "Smiling stone-face towers at the heart of Angkor Thom",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Stone_faces_in_Bayon%2C_Angkor_%283%29.JPG/1280px-Stone_faces_in_Bayon%2C_Angkor_%283%29.JPG",
+    "image_credit": "Dudva, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Bayon"
     ]
@@ -590,6 +627,7 @@
     "local_name": "هرم سنفرو المائل",
     "note": "One of the few pyramids keeping its smooth casing",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Bent_Pyramid_%E6%9B%B2%E6%8A%98%E9%87%91%E5%AD%97%E5%A1%94_-_panoramio.jpg/1280px-Bent_Pyramid_%E6%9B%B2%E6%8A%98%E9%87%91%E5%AD%97%E5%A1%94_-_panoramio.jpg",
+    "image_credit": "lienyuan lee, CC BY 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Bent_Pyramid"
     ]
@@ -607,6 +645,7 @@
     "local_name": "Berati",
     "note": "Ottoman hillside town known for its tiered windows",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Berat_57.jpg/1280px-Berat_57.jpg",
+    "image_credit": "Arianit, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Berat"
     ]
@@ -620,6 +659,7 @@
     "local_name": "Berliner Dom",
     "note": "Domed Protestant cathedral on Berlin's Museum Island",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/141227_Berliner_Dom.jpg/1280px-141227_Berliner_Dom.jpg",
+    "image_credit": "Ansgar Koreng, CC BY 3.0 de",
     "sources": [
       "https://en.wikipedia.org/wiki/Berlin_Cathedral"
     ]
@@ -637,6 +677,7 @@
     "local_name": "炳灵寺",
     "note": "Cliffside Buddhist grottoes with a 27 m Buddha",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Bingling_Temple_Grottoes_51.jpg/1280px-Bingling_Temple_Grottoes_51.jpg",
+    "image_credit": "Thebrainchamber1, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Bingling_Temple"
     ]
@@ -653,6 +694,7 @@
     "local_name": "Grotta Azzurra",
     "note": "Sea cave with electric blue water on Capri",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Blue_Grotto.jpg/1280px-Blue_Grotto.jpg",
+    "image_credit": "Jun, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Blue_Grotto_(Capri)"
     ]
@@ -666,6 +708,7 @@
     "local_name": "Bláa lónið",
     "note": "Geothermal spa in a lava field on the Reykjanes Peninsula",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Blue_Lagoon_with_%C3%9Eorbj%C3%B6rn%2C_Iceland%2C_20230430_1626_3692.jpg/1280px-Blue_Lagoon_with_%C3%9Eorbj%C3%B6rn%2C_Iceland%2C_20230430_1626_3692.jpg",
+    "image_credit": "Jakub Hałun, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Blue_Lagoon_(geothermal_spa)"
     ]
@@ -682,6 +725,7 @@
     "local_name": "Bode-Museum",
     "note": "Sculpture and Byzantine art on Berlin's Museum Island",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Berlin_Museumsinsel_Fernsehturm.jpg/1280px-Berlin_Museumsinsel_Fernsehturm.jpg",
+    "image_credit": "Thomas Wolf, www.foto-tw.de, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Bode_Museum"
     ]
@@ -695,6 +739,7 @@
     "local_name": "Bodrum Kalesi",
     "note": "Crusader castle housing the Museum of Underwater Archaeology",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Bodrum_Castle_%282017%29.jpg/1280px-Bodrum_Castle_%282017%29.jpg",
+    "image_credit": "Serhio Magpie, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Bodrum_Castle"
     ]
@@ -708,6 +753,7 @@
     "local_name": "دژ برازجان",
     "note": "Qajar fortified stone caravanserai, Bushehr province",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/%D9%86%D9%85%D8%A7%DB%8C_%D8%A8%DB%8C%D8%B1%D9%88%D9%86%DB%8C_%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D9%85%D8%B4%DB%8C%D8%B1%D8%A7%D9%84%D9%85%D9%84%DA%A9_%D8%A8%D8%B1%D8%A7%D8%B2%D8%AC%D8%A7%D9%86.jpg/1280px-%D9%86%D9%85%D8%A7%DB%8C_%D8%A8%DB%8C%D8%B1%D9%88%D9%86%DB%8C_%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D9%85%D8%B4%DB%8C%D8%B1%D8%A7%D9%84%D9%85%D9%84%DA%A9_%D8%A8%D8%B1%D8%A7%D8%B2%D8%AC%D8%A7%D9%86.jpg",
+    "image_credit": "Amingholami, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Borazjan_Castle"
     ]
@@ -724,6 +770,7 @@
     "local_name": "Brandenburger Tor",
     "note": "Symbol of German reunification",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Brandenburger_Tor_abends.jpg/1280px-Brandenburger_Tor_abends.jpg",
+    "image_credit": "Thomas Wolf, www.foto-tw.de, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Brandenburg_Gate"
     ]
@@ -736,6 +783,7 @@
     "country": "England",
     "note": "Vast collection of world history and culture, founded 1753",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/British_Museum_%28aerial%29.jpg/1280px-British_Museum_%28aerial%29.jpg",
+    "image_credit": "Luke Massey & the Greater London National Park City Initiative, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/British_Museum"
     ]
@@ -751,6 +799,7 @@
     "country": "Norway",
     "note": "Colorful Hanseatic wharf of old wooden buildings",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Bryggen%2C_Bergen%2C_Noruega%2C_2019-09-08%2C_DD_115-117_PAN.jpg/1280px-Bryggen%2C_Bergen%2C_Noruega%2C_2019-09-08%2C_DD_115-117_PAN.jpg",
+    "image_credit": "Diego Delso, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Bryggen"
     ]
@@ -770,6 +819,7 @@
     "local_name": "Butrinti",
     "note": "Ruined Greek and Roman city, now a national park",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Amphitheatre_of_Butrint_2009.jpg/1280px-Amphitheatre_of_Butrint_2009.jpg",
+    "image_credit": "Geoff Wong, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Butrint"
     ]
@@ -785,6 +835,7 @@
     "country": "Australia",
     "note": "22 km white sand beach in Broome with camel rides at sunset",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Cable_Beach%2C_Broome.jpg/1280px-Cable_Beach%2C_Broome.jpg",
+    "image_credit": "Zoharby, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Cable_Beach,_Western_Australia"
     ]
@@ -800,6 +851,7 @@
     "country": "Ghana",
     "note": "Slave trade fort, now a museum",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Cape_Coast_Castle%2C_Cape_Coast%2C_Ghana.JPG/1280px-Cape_Coast_Castle%2C_Cape_Coast%2C_Ghana.JPG",
+    "image_credit": "Rjruiziii, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Cape_Coast_Castle"
     ]
@@ -813,6 +865,7 @@
     "local_name": "Te Rerenga Wairua",
     "note": "Cape where the Tasman Sea meets the Pacific, sacred to Maori",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Cap_Reinga_Ile_du_Nord_Nouvelle_Z%C3%A9lande.jpg/1280px-Cap_Reinga_Ile_du_Nord_Nouvelle_Z%C3%A9lande.jpg",
+    "image_credit": "Wikibphil, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Cape_Reinga"
     ]
@@ -829,6 +882,7 @@
     "local_name": "Kapadokya",
     "note": "Fairy chimneys and ancient rock-cut cave dwellings",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/CAPPADOCIA_G%C3%B6reme_National_Park_and_the_Rock_Sites._World_Heritage_List._Turkey._Hot_Air_Ballooning_Cappadocia.jpg/1280px-CAPPADOCIA_G%C3%B6reme_National_Park_and_the_Rock_Sites._World_Heritage_List._Turkey._Hot_Air_Ballooning_Cappadocia.jpg",
+    "image_credit": "Feridun F. Alkaya, CC0",
     "sources": [
       "https://en.wikipedia.org/wiki/Cappadocia"
     ]
@@ -844,6 +898,7 @@
     "country": "France",
     "note": "Double-walled medieval citadel in southern France",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Carcassonne_-_Pont_Neuf_-_View_SSE_on_Old_Bridge_%26_Citadel_-_Porte_d%27Aude.jpg/1280px-Carcassonne_-_Pont_Neuf_-_View_SSE_on_Old_Bridge_%26_Citadel_-_Porte_d%27Aude.jpg",
+    "image_credit": "Txllxt TxllxT, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Cité_de_Carcassonne"
     ]
@@ -861,6 +916,7 @@
     "local_name": "Castel Sant'Angelo",
     "note": "Cylindrical Tiber fortress, once Hadrian's mausoleum",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Engelsburg_und_Engelsbr%C3%BCcke_abends.jpg/1280px-Engelsburg_und_Engelsbr%C3%BCcke_abends.jpg",
+    "image_credit": "Thomas Wolf, www.foto-tw.de, CC BY-SA 3.0 de",
     "sources": [
       "https://en.wikipedia.org/wiki/Castel_Sant%27Angelo"
     ]
@@ -874,6 +930,7 @@
     "local_name": "Храм Христа Спасителя",
     "note": "Russian Orthodox cathedral on the Moskva, Moscow",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Moscow_July_2011-7a.jpg/1280px-Moscow_July_2011-7a.jpg",
+    "image_credit": "Alvesgaspar, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Cathedral_of_Christ_the_Saviour"
     ]
@@ -891,6 +948,7 @@
     "local_name": "Mezquita-Catedral de Córdoba",
     "note": "Mosque-cathedral with a forest of striped double arches",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Mezquita_de_C%C3%B3rdoba_desde_el_aire_%28C%C3%B3rdoba%2C_Espa%C3%B1a%29.jpg/1280px-Mezquita_de_C%C3%B3rdoba_desde_el_aire_%28C%C3%B3rdoba%2C_Espa%C3%B1a%29.jpg",
+    "image_credit": "Toni Castillo Quero, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Mosque%E2%80%93Cathedral_of_C%C3%B3rdoba"
     ]
@@ -903,6 +961,7 @@
     "country": "France",
     "note": "Modern art museum with its structure turned inside out",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Centre_Pompidou_%40_Beaubourg_%40_Paris_%2815448205062%29.jpg/1280px-Centre_Pompidou_%40_Beaubourg_%40_Paris_%2815448205062%29.jpg",
+    "image_credit": "Guilhem Vellut from Annecy, France, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Centre_Pompidou"
     ]
@@ -920,6 +979,7 @@
     "local_name": "Karlův most",
     "note": "14th-century stone bridge lined with baroque statues",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Prague_07-2016_view_from_Lesser_Town_Tower_of_Charles_Bridge_img3.jpg/1280px-Prague_07-2016_view_from_Lesser_Town_Tower_of_Charles_Bridge_img3.jpg",
+    "image_credit": "A.Savin, FAL",
     "sources": [
       "https://en.wikipedia.org/wiki/Charles_Bridge"
     ]
@@ -936,6 +996,7 @@
     "local_name": "Cathédrale Notre-Dame de Chartres",
     "note": "Gothic cathedral with intact medieval stained glass",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Chartres_03.jpg/1280px-Chartres_03.jpg",
+    "image_credit": "FrDr, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Chartres_Cathedral"
     ]
@@ -952,6 +1013,7 @@
     "local_name": "Château de Chambord",
     "note": "Largest château in the Loire Valley, built for Francis I",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Aerial_image_of_Ch%C3%A2teau_de_Chambord_%28view_from_the_southeast%29.jpg/1280px-Aerial_image_of_Ch%C3%A2teau_de_Chambord_%28view_from_the_southeast%29.jpg",
+    "image_credit": "Carsten Steger, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Château_de_Chambord"
     ]
@@ -968,6 +1030,7 @@
     "local_name": "Château de Chenonceau",
     "note": "Renaissance château spanning the River Cher",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Chateau_de_Chenonceau_2008E_%28adjusted2%29.jpg/1280px-Chateau_de_Chenonceau_2008E_%28adjusted2%29.jpg",
+    "image_credit": "It is a derivative work of Ra-smit's photo., GFDL",
     "sources": [
       "https://en.wikipedia.org/wiki/Château_de_Chenonceau"
     ]
@@ -981,6 +1044,7 @@
     "local_name": "شفشاون",
     "note": "Blue-washed medina town in the Rif Mountains",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Chefchaouen_%2852189357475%29.jpg/1280px-Chefchaouen_%2852189357475%29.jpg",
+    "image_credit": "William John Gauthier from Denmark ([1]), CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Chefchaouen"
     ]
@@ -998,6 +1062,7 @@
     "local_name": "باغ چهل‌ستون",
     "note": "17th-c. Safavid pavilion of 'forty columns', Isfahan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Chehel_Sotoon.jpg/1280px-Chehel_Sotoon.jpg",
+    "image_credit": "Arad, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Chehel_Sotoun"
     ]
@@ -1015,6 +1080,7 @@
     "local_name": "Chichʼen Itzaʼ",
     "note": "Maya city with the Kukulcán step-pyramid",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Chichen_Itza_3.jpg/1280px-Chichen_Itza_3.jpg",
+    "image_credit": "Daniel Schwen, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Chichen_Itza"
     ]
@@ -1028,6 +1094,7 @@
     "local_name": "Château de Chillon",
     "note": "Lake Geneva island fortress, subject of Byron's poem",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/001_Chateau_de_Chillon_and_Dents_du_Midi_Photo_by_Giles_Laurent.jpg/1280px-001_Chateau_de_Chillon_and_Dents_du_Midi_Photo_by_Giles_Laurent.jpg",
+    "image_credit": "Giles Laurent, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Ch%C3%A2teau_de_Chillon"
     ]
@@ -1044,6 +1111,7 @@
     "country": "Iran",
     "note": "13th-c. BC Elamite ziggurat, southwest Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/%D8%B2%DB%8C%DA%AF%D9%88%D8%B1%D8%A7%D8%AA_%DA%86%D8%BA%D8%A7_%D8%B2%D9%86%D8%A8%DB%8C%D9%84.jpg/1280px-%D8%B2%DB%8C%DA%AF%D9%88%D8%B1%D8%A7%D8%AA_%DA%86%D8%BA%D8%A7_%D8%B2%D9%86%D8%A8%DB%8C%D9%84.jpg",
+    "image_credit": "Mobina ghanbaryan, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Chogha_Zanbil"
     ]
@@ -1061,6 +1129,7 @@
     "local_name": "Cristo Redentor",
     "note": "Art Deco Christ atop Corcovado, overlooking Rio",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Christ_on_Corcovado_mountain.JPG/1280px-Christ_on_Corcovado_mountain.JPG",
+    "image_credit": "Artyominc, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Christ_the_Redeemer_(statue)"
     ]
@@ -1078,6 +1147,7 @@
     "local_name": "Ротонда „Свети Георги\"",
     "note": "Oldest building in Sofia, a 4th-century Roman rotunda",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/StGeorgeRotundaSofia.JPG/1280px-StGeorgeRotundaSofia.JPG",
+    "image_credit": "Preslav, Public domain",
     "sources": [
       "https://en.wikipedia.org/wiki/Church_of_Saint_George,_Sofia"
     ]
@@ -1095,6 +1165,7 @@
     "country": "Israel",
     "note": "Traditional site of Jesus's crucifixion and burial",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Church_of_the_Holy_Sepulchre_by_Gerd_Eichmann_%28cropped%29.jpg/1280px-Church_of_the_Holy_Sepulchre_by_Gerd_Eichmann_%28cropped%29.jpg",
+    "image_credit": "Gerd Eichmann, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Church_of_the_Holy_Sepulchre"
     ]
@@ -1111,6 +1182,7 @@
     "local_name": "قلعة حلب",
     "note": "Among the oldest and largest castles, in use since 3000 BC",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Citadel_of_Aleppo.jpg/1280px-Citadel_of_Aleppo.jpg",
+    "image_credit": "Memorino, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Citadel_of_Aleppo"
     ]
@@ -1124,6 +1196,7 @@
     "local_name": "Castillo de Coca",
     "note": "15th-century Mudejar brick castle in Segovia province",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Castele_01.JPG/1280px-Castele_01.JPG",
+    "image_credit": "Fpl6025, CC BY-SA 3.0 es",
     "sources": [
       "https://en.wikipedia.org/wiki/Castillo_de_Coca"
     ]
@@ -1140,6 +1213,7 @@
     "local_name": "Kölner Dom",
     "note": "Gothic cathedral, took 600 years to complete",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Cologne_Dome%2C_dramatic_style_%2816652836665%29.jpg/1280px-Cologne_Dome%2C_dramatic_style_%2816652836665%29.jpg",
+    "image_credit": "Hauke Musicaloris, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Cologne_Cathedral"
     ]
@@ -1158,6 +1232,7 @@
     "local_name": "Colosseo",
     "note": "Ancient amphitheatre in central Rome",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/1280px-Colosseo_2020.jpg",
+    "image_credit": "FeaturedPics, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Colosseum"
     ]
@@ -1175,6 +1250,7 @@
     "local_name": "Praia de Copacabana",
     "note": "4 km beach with its black-and-white wave promenade",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Copacabana_in_Rio_de_Janeiro_4_%2822126347021%29.jpg/1280px-Copacabana_in_Rio_de_Janeiro_4_%2822126347021%29.jpg",
+    "image_credit": "Janko Hoener from Brühl, Germany, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Copacabana,_Rio_de_Janeiro"
     ]
@@ -1191,6 +1267,7 @@
     "local_name": "Κέρκυρα",
     "note": "Venetian-era old town, UNESCO World Heritage site",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/The_Old_Fortress_and_the_Old_Town_of_Corfu_-_September_2017.jpg/1280px-The_Old_Fortress_and_the_Old_Town_of_Corfu_-_September_2017.jpg",
+    "image_credit": "Martin Falbisoner, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Corfu_(city)"
     ]
@@ -1207,6 +1284,7 @@
     "local_name": "Damlataş Mağarası",
     "note": "Stalactite cave whose humid air is used to treat asthma",
     "image": "https://upload.wikimedia.org/wikipedia/commons/9/90/Damlata%C5%9F_Cave.jpg",
+    "image_credit": "BillBl, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Damlata%C5%9F_Cave"
     ]
@@ -1225,6 +1303,7 @@
     "local_name": "کاروانسرای دیر گچین",
     "note": "Sasanian caravanserai rebuilt by Safavids, Qom",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D8%AF%DB%8C%D8%B1_%DA%AF%DA%86%DB%8C%D9%86_%D8%A7%D8%B3%D8%AA%D8%A7%D9%86_%D9%82%D9%85_-_%D9%88%DB%8C%DA%A9%DB%8C_%D8%AF%D9%88%D8%B3%D8%AA%D8%AF%D8%A7%D8%B1_%DB%8C%D8%A7%D8%AF%D9%85%D8%A7%D9%86_2018_21.jpg/1280px-%DA%A9%D8%A7%D8%B1%D9%88%D8%A7%D9%86%D8%B3%D8%B1%D8%A7%DB%8C_%D8%AF%DB%8C%D8%B1_%DA%AF%DA%86%DB%8C%D9%86_%D8%A7%D8%B3%D8%AA%D8%A7%D9%86_%D9%82%D9%85_-_%D9%88%DB%8C%DA%A9%DB%8C_%D8%AF%D9%88%D8%B3%D8%AA%D8%AF%D8%A7%D8%B1_%DB%8C%D8%A7%D8%AF%D9%85%D8%A7%D9%86_2018_21.jpg",
+    "image_credit": "Mostafameraji, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Dayr-e_Gachin"
     ]
@@ -1238,6 +1317,7 @@
     "local_name": "البحر الميت",
     "note": "Earth's lowest dry land, 430m below sea level",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Dead_Sea_beach_00.JPG/1280px-Dead_Sea_beach_00.JPG",
+    "image_credit": "لا روسا, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Dead_Sea"
     ]
@@ -1254,6 +1334,7 @@
     "local_name": "Dooie Vlei",
     "note": "Clay pan with dead trees among red dunes",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Dead_Vlei_4.jpg/1280px-Dead_Vlei_4.jpg",
+    "image_credit": "Ikiwaner, GFDL 1.2",
     "sources": [
       "https://en.wikipedia.org/wiki/Deadvlei"
     ]
@@ -1271,6 +1352,7 @@
     "local_name": "Δήλος",
     "note": "Sacred island, mythical birthplace of Apollo",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Terrace_of_the_Lions_-_51681905195.jpg/1280px-Terrace_of_the_Lions_-_51681905195.jpg",
+    "image_credit": "ftrc, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Delos"
     ]
@@ -1288,6 +1370,7 @@
     "local_name": "Δελφοί",
     "note": "Sanctuary of Apollo, seat of the ancient Oracle",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Delphi%2C_Greece_-_panoramio.jpg/1280px-Delphi%2C_Greece_-_panoramio.jpg",
+    "image_credit": "tamara semina, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Delphi"
     ]
@@ -1300,6 +1383,7 @@
     "country": "Germany",
     "note": "World's largest science and technology museum",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Deutsches_Museum_Portrait_4.jpg/1280px-Deutsches_Museum_Portrait_4.jpg",
+    "image_credit": "Burkhard Mücke, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Deutsches_Museum"
     ]
@@ -1316,6 +1400,7 @@
     "local_name": "Čertovy hlavy",
     "note": "Two 9 m devil heads carved into a sandstone cliff",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Certovy_hlavy_Zelizy.jpg/1280px-Certovy_hlavy_Zelizy.jpg",
+    "image_credit": "Jirka.h23, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/%C4%8Certovy_hlavy"
     ]
@@ -1332,6 +1417,7 @@
     "local_name": "Dim Mağarası",
     "note": "Dripstone cave with galleries and an underground lake",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Dim_Cave.jpg/1280px-Dim_Cave.jpg",
+    "image_credit": "Squnxik, CC BY 3.0",
     "sources": [
       "https://tr.wikipedia.org/wiki/Dim_Ma%C4%9Faras%C4%B1"
     ]
@@ -1349,6 +1435,7 @@
     "local_name": "Dioklecijanova palača",
     "note": "Roman emperor's palace, now Split's old town",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Aerial_view_of_Diocletian%27s_Palace_in_Split%2C_Croatia_%2848608247353%29.jpg/1280px-Aerial_view_of_Diocletian%27s_Palace_in_Split%2C_Croatia_%2848608247353%29.jpg",
+    "image_credit": "dronepicr, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Diocletian%27s_Palace"
     ]
@@ -1364,7 +1451,8 @@
     "country": "Saudi Arabia",
     "local_name": "الدرعية",
     "note": "Mud-brick birthplace of the first Saudi state",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/At-Turaif_District_of_Diriyah%2C_Saudi_Arabia.jpg/1280px-At-Turaif_District_of_Diriyah%2C_Saudi_Arabia.jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/At-Turaif_District_in_ad-Dir%27iyah_%285%29.jpg/1280px-At-Turaif_District_in_ad-Dir%27iyah_%285%29.jpg",
+    "image_credit": "Radosław Botev, CC BY 3.0 pl",
     "sources": [
       "https://en.wikipedia.org/wiki/Diriyah"
     ]
@@ -1382,6 +1470,7 @@
     "local_name": "جميلة",
     "note": "Roman ruins of ancient Cuicul, adapted to mountain terrain",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Roman_Ruins_of_Djemila_in_S%C3%A9tif%2C_Algeria.jpg/1280px-Roman_Ruins_of_Djemila_in_S%C3%A9tif%2C_Algeria.jpg",
+    "image_credit": "Alioueche Mokhtar, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Djémila"
     ]
@@ -1398,6 +1487,7 @@
     "local_name": "Palazzo Ducale",
     "note": "Gothic palace on St. Mark's Square in Venice",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/%28Venice%29_Doge%27s_Palace_and_campanile_of_St._Mark%27s_Basilica_facing_the_sea.jpg/1280px-%28Venice%29_Doge%27s_Palace_and_campanile_of_St._Mark%27s_Basilica_facing_the_sea.jpg",
+    "image_credit": "Didier Descouens, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Doge%27s_Palace"
     ]
@@ -1415,6 +1505,7 @@
     "local_name": "گنبد سلطانیه",
     "note": "14th-c. Ilkhanid mausoleum, northwest Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Gonbad_Soltaniye.jpg/1280px-Gonbad_Soltaniye.jpg",
+    "image_credit": "Farzad Yousefian, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Dome_of_Soltaniyeh"
     ]
@@ -1432,6 +1523,7 @@
     "local_name": "قبة الصخرة",
     "note": "Gold-domed Islamic shrine on the Temple Mount",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Jerusalem-2013%282%29-Temple_Mount-Dome_of_the_Rock_%28SE_exposure%29.jpg/1280px-Jerusalem-2013%282%29-Temple_Mount-Dome_of_the_Rock_%28SE_exposure%29.jpg",
+    "image_credit": "Godot13, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Dome_of_the_Rock"
     ]
@@ -1449,6 +1541,7 @@
     "local_name": "Porte du Voyage sans Retour",
     "note": "Doorway from the House of Slaves on Gorée Island",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/La_maison_des_esclaves.jpg/1280px-La_maison_des_esclaves.jpg",
+    "image_credit": "Charlottedkr, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/House_of_Slaves"
     ]
@@ -1466,6 +1559,7 @@
     "local_name": "باغ دولت آباد",
     "note": "18th-c. Persian garden with giant windcatcher, Yazd",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Dolat_Abad_Garden_-_Pavilion_01.jpg/1280px-Dolat_Abad_Garden_-_Pavilion_01.jpg",
+    "image_credit": "Bernard Gagnon, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Dowlatabad_Garden"
     ]
@@ -1478,6 +1572,7 @@
     "country": "Germany",
     "note": "Baroque church rebuilt from its WWII ruins",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Dresden%2C_Frauenkirche_--_2023_--_9387.jpg/1280px-Dresden%2C_Frauenkirche_--_2023_--_9387.jpg",
+    "image_credit": "Dietmar Rabich, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Dresden_Frauenkirche"
     ]
@@ -1494,6 +1589,7 @@
     "local_name": "Stari Grad Dubrovnik",
     "note": "Medieval walled city on the Adriatic coast",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/The_walls_of_the_fortress_and_View_of_the_old_city._panorama.jpg/1280px-The_walls_of_the_fortress_and_View_of_the_old_city._panorama.jpg",
+    "image_credit": "Zysko serhii, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Dubrovnik"
     ]
@@ -1506,6 +1602,7 @@
     "country": "Saudi Arabia",
     "note": "Tuwaiq escarpment cliff overlooking endless desert",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Edge_of_the_world_%286524157755%29.jpg/1280px-Edge_of_the_world_%286524157755%29.jpg",
+    "image_credit": "Sammy Six, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Tuwaiq"
     ]
@@ -1519,6 +1616,7 @@
     "local_name": "Museo Egizio",
     "note": "Largest Egyptian collection outside Cairo",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Museo_Egizio_e_Galleria_sabauda%2C_Torino.jpg/1280px-Museo_Egizio_e_Galleria_sabauda%2C_Torino.jpg",
+    "image_credit": "Georgius LXXXIX at Italian Wikipedia, Public domain",
     "sources": [
       "https://en.wikipedia.org/wiki/Museo_Egizio"
     ]
@@ -1536,6 +1634,7 @@
     "local_name": "Tour Eiffel",
     "note": "1889 wrought-iron tower and symbol of Paris",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Paris_-_Jardins_du_Trocad%C3%A9ro_%26_Tour_Eiffel_%2826804140054%29.jpg/1280px-Paris_-_Jardins_du_Trocad%C3%A9ro_%26_Tour_Eiffel_%2826804140054%29.jpg",
+    "image_credit": "Fred Romero from Paris, France, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Eiffel_Tower"
     ]
@@ -1552,6 +1651,7 @@
     "local_name": "Ελαφονήσι",
     "note": "Pink-sand beach and lagoon on western Crete",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/%CE%95%CE%BB%CE%B1%CF%86%CE%BF%CE%BD%CE%AE%CF%83%CE%B9_1287.jpg/1280px-%CE%95%CE%BB%CE%B1%CF%86%CE%BF%CE%BD%CE%AE%CF%83%CE%B9_1287.jpg",
+    "image_credit": "C messier, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Elafonisi"
     ]
@@ -1565,6 +1665,7 @@
     "local_name": "جبل الفيل",
     "note": "Elephant-shaped sandstone monolith in the AlUla desert",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Elephant_rock%2C_Al-%27Ula.jpg/1280px-Elephant_rock%2C_Al-%27Ula.jpg",
+    "image_credit": "Uhooep, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Elephant_Rock_(Saudi_Arabia)"
     ]
@@ -1580,6 +1681,7 @@
     "country": "Chad",
     "note": "Sandstone arches and ancient rock art in the Sahara",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Ourini_Arch_at_sunset%2C_Ennedi%2C_Chad_%2840598172781%29.jpg/1280px-Ourini_Arch_at_sunset%2C_Ennedi%2C_Chad_%2840598172781%29.jpg",
+    "image_credit": "Valerian Guillot from Cambridge, United Kingdom, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Ennedi_Plateau"
     ]
@@ -1598,6 +1700,7 @@
     "local_name": "Επίδαυρος",
     "note": "Best-preserved ancient Greek theatre, famed acoustics",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Theatre_of_Epidaurus_2.jpg/1280px-Theatre_of_Epidaurus_2.jpg",
+    "image_credit": "Andreas Trepte, CC BY-SA 2.5",
     "sources": [
       "https://en.wikipedia.org/wiki/Epidaurus"
     ]
@@ -1615,6 +1718,7 @@
     "local_name": "باغ ارم",
     "note": "Qajar Persian garden with cypress avenue, Shiraz",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Bagh_Eram_Shiraz.jpg/1280px-Bagh_Eram_Shiraz.jpg",
+    "image_credit": "Hamidhassas, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Eram_Garden"
     ]
@@ -1631,6 +1735,7 @@
     "local_name": "قەڵای هەولێر",
     "note": "Possibly the oldest continuously inhabited place on Earth",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Hawler_Castle.jpg/1280px-Hawler_Castle.jpg",
+    "image_credit": "jan kurdistani, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Citadel_of_Erbil"
     ]
@@ -1646,6 +1751,7 @@
     "country": "Iceland",
     "note": "Ice cap covering a 1,651 m active volcano",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Eyjafjallaj%C3%B6kull_major_eruption_20100510.jpg/1280px-Eyjafjallaj%C3%B6kull_major_eruption_20100510.jpg",
+    "image_credit": "David Karnå, CC BY 1.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Eyjafjallaj%C3%B6kull"
     ]
@@ -1663,6 +1769,7 @@
     "local_name": "فاس البالي",
     "note": "Walled medina of Fez, world's largest car-free area",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Fes_Bab_Bou_Jeloud_2011.jpg/1280px-Fes_Bab_Bou_Jeloud_2011.jpg",
+    "image_credit": "Bjørn Christian Tørrissen, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Fes_el_Bali"
     ]
@@ -1680,6 +1787,7 @@
     "local_name": "باغ فین",
     "note": "Safavid Persian garden with spring-fed pools, Kashan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Jard%C3%ADn_de_Fin%2C_Kashan%2C_Ir%C3%A1n%2C_2016-09-19%2C_DD_22.jpg/1280px-Jard%C3%ADn_de_Fin%2C_Kashan%2C_Ir%C3%A1n%2C_2016-09-19%2C_DD_22.jpg",
+    "image_credit": "Diego Delso, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Fin_Garden"
     ]
@@ -1695,6 +1803,7 @@
     "country": "Scotland",
     "note": "Basalt-column sea cave that inspired Mendelssohn",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Fingal%27s_Cave%2C_Staffa_Island_02.jpg/1280px-Fingal%27s_Cave%2C_Staffa_Island_02.jpg",
+    "image_credit": "Luk~commonswiki, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Fingal%27s_Cave"
     ]
@@ -1708,6 +1817,7 @@
     "local_name": "Φηρά",
     "note": "Cliff-perched capital of Santorini on the caldera rim",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Santorini_Fira3_tango7174.jpg/1280px-Santorini_Fira3_tango7174.jpg",
+    "image_credit": "Tango7174, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Fira"
     ]
@@ -1724,6 +1834,7 @@
     "local_name": "Halászbástya",
     "note": "Neo-Gothic terrace with panoramic views of Budapest",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Fishermans_bastion_Budapest_IMG_1429.JPG/1280px-Fishermans_bastion_Budapest_IMG_1429.JPG",
+    "image_credit": "Bjoertvedt, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Fisherman%27s_Bastion"
     ]
@@ -1740,6 +1851,7 @@
     "local_name": "Basilica di Santa Maria del Fiore",
     "note": "Duomo crowned by Brunelleschi's vast brick dome",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Cattedrale_di_Santa_Maria_del_Fiore_%E2%80%93_Il_Duomo_di_Firenze.jpg/1280px-Cattedrale_di_Santa_Maria_del_Fiore_%E2%80%93_Il_Duomo_di_Firenze.jpg",
+    "image_credit": "Gary Campbell-Hall, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Florence_Cathedral"
     ]
@@ -1756,6 +1868,7 @@
     "local_name": "伏見稲荷大社",
     "note": "Thousands of vermillion torii gates up a mountain trail",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Torii_path_with_lantern_at_Fushimi_Inari_Taisha_Shrine%2C_Kyoto%2C_Japan.jpg/1280px-Torii_path_with_lantern_at_Fushimi_Inari_Taisha_Shrine%2C_Kyoto%2C_Japan.jpg",
+    "image_credit": "Basile Morin, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Fushimi_Inari-taisha"
     ]
@@ -1772,6 +1885,7 @@
     "local_name": "Galata Kulesi",
     "note": "Medieval stone tower with panoramic views over Istanbul",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Galata_Tower_%2867m.%29.jpg/1280px-Galata_Tower_%2867m.%29.jpg",
+    "image_credit": "Jorge Láscar, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Galata_Tower"
     ]
@@ -1788,6 +1902,7 @@
     "local_name": "Գառնիի տաճար",
     "note": "Only standing Greco-Roman colonnaded temple in the region",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Garni_temple_2021_drone.jpg/1280px-Garni_temple_2021_drone.jpg",
+    "image_credit": "Yerevantsi, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_Garni"
     ]
@@ -1805,6 +1920,7 @@
     "local_name": "Գեղարդ",
     "note": "Medieval monastery partly carved into the cliffside",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Monasterio_de_Geghard%2C_Armenia%2C_2016-10-02%2C_DD_63.jpg/1280px-Monasterio_de_Geghard%2C_Armenia%2C_2016-10-02%2C_DD_63.jpg",
+    "image_credit": "Diego Delso, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Geghard"
     ]
@@ -1821,6 +1937,7 @@
     "local_name": "Чингис хааны морьт хөшөө",
     "note": "40 m stainless-steel Genghis Khan on horseback",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Genghis_Khan_Equestrian_Statue%2C_photo_by_Vaiz_Ha.jpg/1280px-Genghis_Khan_Equestrian_Statue%2C_photo_by_Vaiz_Ha.jpg",
+    "image_credit": "Vaiz Ha, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Equestrian_statue_of_Genghis_Khan"
     ]
@@ -1834,6 +1951,7 @@
     "local_name": "Deutsches Historisches Museum",
     "note": "German history museum in Berlin's Baroque Zeughaus",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Zeughaus_Berlin_2012.jpg/1280px-Zeughaus_Berlin_2012.jpg",
+    "image_credit": "Avda, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Deutsches_Historisches_Museum"
     ]
@@ -1847,6 +1965,7 @@
     "local_name": "三鷹の森ジブリ美術館",
     "note": "Miyazaki's animated world brought to life",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Ghibli_Museum_2024.JPG/1280px-Ghibli_Museum_2024.JPG",
+    "image_credit": "Fotointheworld, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Ghibli_Museum"
     ]
@@ -1860,6 +1979,7 @@
     "local_name": "銀山温泉",
     "note": "Gas-lit Taisho-era hot spring town in Yamagata",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Evening_twilight_in_Ginzan_Onsen_town_January_2022_B.jpg/1280px-Evening_twilight_in_Ginzan_Onsen_town_January_2022_B.jpg",
+    "image_credit": "さかおり, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Ginzan_Onsen"
     ]
@@ -1877,6 +1997,7 @@
     "local_name": "کاخ گلستان",
     "note": "Qajar royal palace complex in central Tehran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Palais_du_Golestan%2C_T%C3%A9h%C3%A9ran_%285%29.jpg/1280px-Palais_du_Golestan%2C_T%C3%A9h%C3%A9ran_%285%29.jpg",
+    "image_credit": "ZarlokX, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Golestan_Palace"
     ]
@@ -1890,6 +2011,7 @@
     "local_name": "五稜郭",
     "note": "Star-shaped Western-style fort in Hakodate, Hokkaido",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Hakodate_Goryokaku_Panorama_1.JPG/1280px-Hakodate_Goryokaku_Panorama_1.JPG",
+    "image_credit": "Keihin nike, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Gory%C5%8Dkaku"
     ]
@@ -1903,6 +2025,7 @@
     "local_name": "المتحف المصري الكبير",
     "note": "World's largest archaeological museum, opened 2025",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Grand_Egyptian_Museum_2025_%2857645%29.jpg/1280px-Grand_Egyptian_Museum_2025_%2857645%29.jpg",
+    "image_credit": "Amr F.Nagy, Public domain",
     "sources": [
       "https://en.wikipedia.org/wiki/Grand_Egyptian_Museum"
     ]
@@ -1920,6 +2043,7 @@
     "local_name": "Grote Markt",
     "note": "Ornate guildhall square in Brussels",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Grand-Place%2C_Brussels_-_panorama%2C_June_2018.jpg/1280px-Grand-Place%2C_Brussels_-_panorama%2C_June_2018.jpg",
+    "image_credit": "Celuici, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Grand-Place"
     ]
@@ -1932,6 +2056,7 @@
     "country": "Belgium",
     "note": "Moated medieval castle of the Counts of Flanders, Ghent",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Gent_Gravensteen_R01.jpg/1280px-Gent_Gravensteen_R01.jpg",
+    "image_credit": "Marc Ryckaert (MJJR), CC BY 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Gravensteen"
     ]
@@ -1948,6 +2073,7 @@
     "local_name": "Tlachihualtepetl",
     "note": "Largest pyramid by volume in the world",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Gran_Pir%C3%A1mide_de_Cholula%2C_Puebla%2C_M%C3%A9xico%2C_2013-10-12%2C_DD_10.JPG/1280px-Gran_Pir%C3%A1mide_de_Cholula%2C_Puebla%2C_M%C3%A9xico%2C_2013-10-12%2C_DD_10.JPG",
+    "image_credit": "Diego Delso, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Great_Pyramid_of_Cholula"
     ]
@@ -1965,6 +2091,7 @@
     "country": "Egypt",
     "note": "Oldest of the Seven Wonders and only one still standing",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Great_Pyramid_of_Giza_-_Pyramid_of_Khufu.jpg/1280px-Great_Pyramid_of_Giza_-_Pyramid_of_Khufu.jpg",
+    "image_credit": "Douwe C. van der Zee, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Great_Pyramid_of_Giza"
     ]
@@ -1982,6 +2109,7 @@
     "local_name": "أبو الهول",
     "note": "Limestone sphinx on the Giza plateau, c. 2500 BCE",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Sphinx_with_the_third_pyramid.jpg/1280px-Sphinx_with_the_third_pyramid.jpg",
+    "image_credit": "Hesham Ebaid, CC0",
     "sources": [
       "https://en.wikipedia.org/wiki/Great_Sphinx_of_Giza"
     ]
@@ -1998,6 +2126,7 @@
     "country": "Zimbabwe",
     "note": "Medieval stone city, gave the country its name",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Great-zim-aerial-looking-West.JPG/1280px-Great-zim-aerial-looking-West.JPG",
+    "image_credit": "Janice Bell, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Great_Zimbabwe"
     ]
@@ -2015,6 +2144,7 @@
     "local_name": "Villa Adriana",
     "note": "Vast Roman villa recreating sites from the empire",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Villa_Hadriana_%28Villa_Adriana_Tivoli%29_1000_20.jpg/1280px-Villa_Hadriana_%28Villa_Adriana_Tivoli%29_1000_20.jpg",
+    "image_credit": "FrDr, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Hadrian%27s_Villa"
     ]
@@ -2032,6 +2162,7 @@
     "local_name": "Ayasofya",
     "note": "6th-century Byzantine cathedral turned mosque in Istanbul",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Hagia_Sophia_%28228968325%29.jpeg/1280px-Hagia_Sophia_%28228968325%29.jpeg",
+    "image_credit": "Adli Wahid, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Hagia_Sophia"
     ]
@@ -2048,6 +2179,7 @@
     "local_name": "端島",
     "note": "Abandoned concrete island, former coal mining city",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Battle-Ship_Island_Nagasaki_Japan.jpg/1280px-Battle-Ship_Island_Nagasaki_Japan.jpg",
+    "image_credit": "Flickr user: kntrty https://www.flickr.com/photos/kntrty/, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Hashima_Island"
     ]
@@ -2064,7 +2196,8 @@
     "country": "Saudi Arabia",
     "local_name": "مدائن صالح",
     "note": "Over 100 Nabataean rock-cut tombs in the desert",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Hegra%2C_Al-Ula%2C_Saudi_Arabia.png/1280px-Hegra%2C_Al-Ula%2C_Saudi_Arabia.png",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Qasr_al-Farid%2C_a_1st-century_AD_Nabatean_unfinished_tomb_carved_into_a_giant_boulder_in_Hegra_%28Mada%27in_Salih%29%2C_the_kingdom%27s_second_Nabatean_capital_after_Petra%2C_Saudi_Arabia_-_53534952258.jpg/1280px-thumbnail.jpg",
+    "image_credit": "Following Hadrian, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Hegra"
     ]
@@ -2078,6 +2211,7 @@
     "local_name": "Heidelberger Schloss",
     "note": "Romantic ruin overlooking the Neckar valley",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Heidelberg-2726936.jpg/1280px-Heidelberg-2726936.jpg",
+    "image_credit": "Motatcho, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Heidelberg_Castle"
     ]
@@ -2094,6 +2228,7 @@
     "local_name": "Государственный Эрмитаж",
     "note": "Imperial art collection in Saint Petersburg's Winter Palace",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/RUS-2016-Aerial-SPB-Winter_Palace_%28crop%29.jpg/1280px-RUS-2016-Aerial-SPB-Winter_Palace_%28crop%29.jpg",
+    "image_credit": "Godot13, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Hermitage_Museum"
     ]
@@ -2111,6 +2246,7 @@
     "local_name": "姫路城",
     "note": "Japan's best-preserved castle, white heron design",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Himeji_castle_in_may_2015.jpg/1280px-Himeji_castle_in_may_2015.jpg",
+    "image_credit": "Nikos Kitsakis, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Himeji_Castle"
     ]
@@ -2124,6 +2260,7 @@
     "local_name": "広島平和記念資料館",
     "note": "History of the atomic bombing of Hiroshima",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Hiroshima_Peace_Memorial_Museum_2009.jpg/1280px-Hiroshima_Peace_Memorial_Museum_2009.jpg",
+    "image_credit": "Wiiii, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Hiroshima_Peace_Memorial_Museum"
     ]
@@ -2137,6 +2274,7 @@
     "local_name": "香港藝術館",
     "note": "Hong Kong's flagship art museum by Victoria Harbour",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Hong_Kong_Museum_of_Art_20250716.jpg/1280px-Hong_Kong_Museum_of_Art_20250716.jpg",
+    "image_credit": "Ghostingb, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Hong_Kong_Museum_of_Art"
     ]
@@ -2150,6 +2288,7 @@
     "local_name": "Garaanngaddim",
     "note": "Tidal surge through narrow gorges of the Kimberley coast",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Horizontal_Falls.jpg/1280px-Horizontal_Falls.jpg",
+    "image_credit": "Reefpix, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Horizontal_Falls"
     ]
@@ -2162,6 +2301,7 @@
     "country": "Germany",
     "note": "Non-European art in Berlin's reconstructed palace",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Berlin-BerlinerSchloss-6-Asio.JPG/1280px-Berlin-BerlinerSchloss-6-Asio.JPG",
+    "image_credit": "Asio otus, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Humboldt_Forum"
     ]
@@ -2178,6 +2318,7 @@
     "local_name": "Országház",
     "note": "Largest building in Hungary",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Hungarian_Parliament_Building_from_across_the_Danube%2C_2025-01-11.jpg/1280px-Hungarian_Parliament_Building_from_across_the_Danube%2C_2025-01-11.jpg",
+    "image_credit": "Kilyann Le Hen, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Hungarian_Parliament_Building"
     ]
@@ -2194,6 +2335,7 @@
     "local_name": "حرم امام رضا",
     "note": "Tomb of 8th Shia Imam, vast pilgrimage complex, Mashhad",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/%D8%B5%D8%AD%D9%86_%D8%A7%DB%8C%D9%88%D8%A7%D9%86_%D8%B7%D9%84%D8%A7_%D9%88_%D8%B3%D9%82%D8%A7%D8%AE%D8%A7%D9%86%D9%87.jpg/1280px-%D8%B5%D8%AD%D9%86_%D8%A7%DB%8C%D9%88%D8%A7%D9%86_%D8%B7%D9%84%D8%A7_%D9%88_%D8%B3%D9%82%D8%A7%D8%AE%D8%A7%D9%86%D9%87.jpg",
+    "image_credit": "AmirVarastehAhmadi, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Imam_Reza_shrine"
     ]
@@ -2210,6 +2352,7 @@
     "local_name": "皇居東御苑",
     "note": "Free public gardens on the old Edo Castle grounds",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/East_Garden_Edo_Castle_Tokyo_photo_Don_Ramey_Logan.jpg/1280px-East_Garden_Edo_Castle_Tokyo_photo_Don_Ramey_Logan.jpg",
+    "image_credit": "Don Ramey Logan, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Imperial_Palace_East_Garden"
     ]
@@ -2226,6 +2369,7 @@
     "local_name": "İshak Paşa Sarayı",
     "note": "18th-century Ottoman palace with views of Mount Ararat",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Ishakpa%C5%9Fa_sarayiii.jpg/1280px-Ishakpa%C5%9Fa_sarayiii.jpg",
+    "image_credit": "Volcanicaaa, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Ishak_Pasha_Palace"
     ]
@@ -2243,6 +2387,7 @@
     "local_name": "厳島神社",
     "note": "Floating torii gate in the sea off Miyajima island",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Itsukushima_Shrine_Torii_Gate_%2813890465459%29.jpg/1280px-Itsukushima_Shrine_Torii_Gate_%2813890465459%29.jpg",
+    "image_credit": "redlegsfan21, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Itsukushima_Shrine"
     ]
@@ -2261,6 +2406,7 @@
     "local_name": "کاروانسرای جمال آباد",
     "note": "Ilkhanid caravanserai near Mianeh, northwest Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Jamal_abad_caravansary.jpg/1280px-Jamal_abad_caravansary.jpg",
+    "image_credit": "aydin tabrizi, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Jamalabad_Caravanserai"
     ]
@@ -2278,6 +2424,7 @@
     "local_name": "مسجد جامع اصفهان",
     "note": "Friday mosque of Isfahan, founder of four-iwan plan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/20180301124354_IMG_4179And6more_Interior_3.jpg/1280px-20180301124354_IMG_4179And6more_Interior_3.jpg",
+    "image_credit": "Hamidespanani, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Jameh_Mosque_of_Isfahan"
     ]
@@ -2294,6 +2441,7 @@
     "local_name": "مغارة جعيتا",
     "note": "Massive stalactite cave with underground river boat ride",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Jeita_Grotto_ITH044.jpg/1280px-Jeita_Grotto_ITH044.jpg",
+    "image_credit": "Dennis Chanter, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Jeita_Grotto"
     ]
@@ -2310,6 +2458,7 @@
     "local_name": "Mosteiro dos Jerónimos",
     "note": "Manueline monastery built to honor Vasco da Gama's voyage",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/The_Jer%C3%B3nimos_Monastery_or_Hieronymites_Monastery.png/1280px-The_Jer%C3%B3nimos_Monastery_or_Hieronymites_Monastery.png",
+    "image_credit": "Heartshade, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Jer%C3%B3nimos_Monastery"
     ]
@@ -2323,6 +2472,7 @@
     "local_name": "地獄谷野猿公苑",
     "note": "Wild snow monkeys bathing in natural hot springs in Nagano",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Two_snow_monkeys_at_Jigokudani_Monkey_Park.jpg/1280px-Two_snow_monkeys_at_Jigokudani_Monkey_Park.jpg",
+    "image_credit": "Ashley98lee, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Jigokudani_Monkey_Park"
     ]
@@ -2340,6 +2490,7 @@
     "local_name": "ჯვრის მონასტერი",
     "note": "6th-century hilltop church above the confluence at Mtskheta",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Georgia_Jvari_monastery_IMG_9345_2070.jpg/1280px-Georgia_Jvari_monastery_IMG_9345_2070.jpg",
+    "image_credit": "Alexxx1979, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Jvari_monastery"
     ]
@@ -2356,6 +2507,7 @@
     "local_name": "وادي قاديشا",
     "note": "Holy valley with ancient monasteries carved into cliffs",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Qadisha_Valley%2C_Aerial_View_From_Qannoubine_Monastery.jpg/1280px-Qadisha_Valley%2C_Aerial_View_From_Qannoubine_Monastery.jpg",
+    "image_credit": "Evan Williams, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Kadisha_Valley"
     ]
@@ -2373,6 +2525,7 @@
     "local_name": "कैलाश मन्दिर",
     "note": "Hindu temple carved top-down from a single rock",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Kailasa_Temple_at_Ellora_%28Cave_16%29.jpg/1280px-Kailasa_Temple_at_Ellora_%28Cave_16%29.jpg",
+    "image_credit": "Rohit Sharma, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Kailasa_Temple,_Ellora"
     ]
@@ -2389,6 +2542,7 @@
     "local_name": "Kaputaş Plajı",
     "note": "Narrow canyon beach between cliffs",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg/1280px-Turkiye_Antalya_Kaputa%C5%9F_Plaj%C4%B1.jpg",
+    "image_credit": "Tbakky, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Kaputas_Beach"
     ]
@@ -2406,6 +2560,7 @@
     "local_name": "الكرنك",
     "note": "Egyptian temple complex, 134-column Hypostyle Hall",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Temple_de_Louxor_68.jpg/1280px-Temple_de_Louxor_68.jpg",
+    "image_credit": "René Hourdry, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Karnak"
     ]
@@ -2421,6 +2576,7 @@
     "country": "Turkey",
     "note": "Carian city with temple-fronted rock-cut tombs",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Kaunos_Kaya_Mezarlar%C4%B1.jpg/1280px-Kaunos_Kaya_Mezarlar%C4%B1.jpg",
+    "image_credit": "Aerdemsenturk, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Kaunos"
     ]
@@ -2437,6 +2593,7 @@
     "local_name": "兼六園",
     "note": "One of Japan's top three gardens, in Kanazawa",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Stone_lantern_Kenrokuen.jpg/1280px-Stone_lantern_Kenrokuen.jpg",
+    "image_credit": "Japanexperterna.se, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Kenroku-en"
     ]
@@ -2454,6 +2611,7 @@
     "local_name": "Kīlauea",
     "note": "One of the most active volcanoes on Earth",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Episode_4_of_Kilauea%27s_December_2024_eruption_2025-01-16.jpg/1280px-Episode_4_of_Kilauea%27s_December_2024_eruption_2025-01-16.jpg",
+    "image_credit": "USGS/K. Lynn, Public domain",
     "sources": [
       "https://en.wikipedia.org/wiki/K%C4%ABlauea"
     ]
@@ -2469,6 +2627,7 @@
     "country": "Netherlands",
     "note": "19 historic windmills lined along the canals",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/KinderdijkMolens02.jpg/1280px-KinderdijkMolens02.jpg",
+    "image_credit": "Lucas Hirschegger, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Kinderdijk"
     ]
@@ -2486,6 +2645,7 @@
     "local_name": "清水寺",
     "note": "Hillside temple with a nail-free wooden stage",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Kiyomizu.jpg/1280px-Kiyomizu.jpg",
+    "image_credit": "Jordy Meow, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Kiyomizu-dera"
     ]
@@ -2502,6 +2662,7 @@
     "local_name": "Κνωσός",
     "note": "Largest Bronze Age Minoan palace on Crete",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/North_Entrance_of_the_Palace_of_Knossos%2C_Crete._%2853809932111%29.jpg/1280px-North_Entrance_of_the_Palace_of_Knossos%2C_Crete._%2853809932111%29.jpg",
+    "image_credit": "Mustang Joe, CC0",
     "sources": [
       "https://en.wikipedia.org/wiki/Knossos"
     ]
@@ -2515,6 +2676,7 @@
     "local_name": "Κάστρο του Κολοσσιού",
     "note": "15th-century Crusader castle of the Knights Hospitaller",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Kolossi_Castle_01.JPG/1280px-Kolossi_Castle_01.JPG",
+    "image_credit": "Vegard Ottervig, Public domain",
     "sources": [
       "https://en.wikipedia.org/wiki/Kolossi_Castle"
     ]
@@ -2531,6 +2693,7 @@
     "local_name": "قلعة الحصن",
     "note": "Best-preserved Crusader castle in the world",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/KRAK_DES_CHEVALIERS_-_GAR_-_6-00.jpg/1280px-KRAK_DES_CHEVALIERS_-_GAR_-_6-00.jpg",
+    "image_credit": "Gianfranco Gazzetti, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Krak_des_Chevaliers"
     ]
@@ -2546,6 +2709,7 @@
     "country": "Austria",
     "note": "Habsburg art museum with the largest Bruegel collection",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Maria-Theresien-Platz_Kunsthistorisches_Museum_Wien_2010.jpg/1280px-Maria-Theresien-Platz_Kunsthistorisches_Museum_Wien_2010.jpg",
+    "image_credit": "Manfred Werner - Tsui, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Kunsthistorisches_Museum"
     ]
@@ -2558,6 +2722,7 @@
     "country": "New Zealand",
     "note": "New Zealand's only castle, on the Otago Peninsula",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Larnach_Castle_and_fountain.jpg/1280px-Larnach_Castle_and_fountain.jpg",
+    "image_credit": "Pseudopanax at English Wikipedia, Public domain",
     "sources": [
       "https://en.wikipedia.org/wiki/Larnach_Castle"
     ]
@@ -2575,6 +2740,7 @@
     "local_name": "Torre pendente di Pisa",
     "note": "Freestanding bell tower famous for its unintended tilt",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Leaning_Tower_of_Pisa%2C_Italy%2C_15_Sep._2023%2C_Landscape.jpg/1280px-Leaning_Tower_of_Pisa%2C_Italy%2C_15_Sep._2023%2C_Landscape.jpg",
+    "image_credit": "Jochem Pluim, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Leaning_Tower_of_Pisa"
     ]
@@ -2591,6 +2757,7 @@
     "local_name": "Мавзолей Ленина",
     "note": "Granite mausoleum housing Lenin's body, Red Square",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Mauzoleumlenina_%28cropped%29.jpeg/1280px-Mauzoleumlenina_%28cropped%29.jpeg",
+    "image_credit": "Staron, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Lenin%27s_Mausoleum"
     ]
@@ -2609,6 +2776,7 @@
     "local_name": "乐山大佛",
     "note": "World's largest stone Buddha, carved into a cliff",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/36275-Leshan_%2849067653383%29.jpg/1280px-36275-Leshan_%2849067653383%29.jpg",
+    "image_credit": "xiquinhosilva, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Leshan_Giant_Buddha"
     ]
@@ -2625,6 +2793,7 @@
     "local_name": "Löwendenkmal",
     "note": "Dying lion carved in rock for fallen Swiss Guards",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Lion_Monument.jpg/1280px-Lion_Monument.jpg",
+    "image_credit": "Gürkan Sengün, Public domain",
     "sources": [
       "https://en.wikipedia.org/wiki/Lion_Monument"
     ]
@@ -2641,6 +2810,7 @@
     "local_name": "Musée du Louvre",
     "note": "World's most-visited museum, home of the Mona Lisa",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Louvre_Museum_Wikimedia_Commons.jpg/1280px-Louvre_Museum_Wikimedia_Commons.jpg",
+    "image_credit": "Benh LIEU SONG (Flickr), CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Louvre"
     ]
@@ -2657,6 +2827,7 @@
     "local_name": "معبد الأقصر",
     "note": "Ancient Egyptian temple complex on the east bank of the Nile",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Templo_de_Luxor%2C_Luxor%2C_Egipto%2C_2022-04-01%2C_DD_01.jpg/1280px-Templo_de_Luxor%2C_Luxor%2C_Egipto%2C_2022-04-01%2C_DD_01.jpg",
+    "image_credit": "Diego Delso, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Luxor_Temple"
     ]
@@ -2670,6 +2841,7 @@
     "local_name": "M+ 博物館",
     "note": "Museum of modern visual culture in West Kowloon",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/WKCD_M%2B%2C_2021.11.jpg/1280px-WKCD_M%2B%2C_2021.11.jpg",
+    "image_credit": "Lord Jaraxxus, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/M%2B"
     ]
@@ -2687,6 +2859,7 @@
     "local_name": "Machu Pikchu",
     "note": "15th-century Inca citadel at 2,430 m in the Andes",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Machu_Picchu_Panorama_2025.jpg/1280px-Machu_Picchu_Panorama_2025.jpg",
+    "image_credit": "Jorge Castro Ruso, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Machu_Picchu"
     ]
@@ -2700,6 +2873,7 @@
     "local_name": "Mamure Kalesi",
     "note": "Massive coastal fortress with 39 towers in Anamur",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Castle_in_Mamure%2C_Anamur%2C_Turkey_from_the_Sea.jpg/1280px-Castle_in_Mamure%2C_Anamur%2C_Turkey_from_the_Sea.jpg",
+    "image_credit": "Beñat Irasuegi, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Mamure_Castle"
     ]
@@ -2718,6 +2892,7 @@
     "local_name": "מצדה",
     "note": "Hilltop fortress overlooking the Dead Sea",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Aerial_view_of_Masada_%28Israel%29_02.jpg/1280px-Aerial_view_of_Masada_%28Israel%29_02.jpg",
+    "image_credit": "Godot13, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Masada"
     ]
@@ -2733,6 +2908,7 @@
     "country": "French Polynesia",
     "note": "Bora Bora's main public beach",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Matira_Beach%2C_Bora_Bora%2C_French_Polynesia.jpg/1280px-Matira_Beach%2C_Bora_Bora%2C_French_Polynesia.jpg",
+    "image_credit": "The original uploader was Sba2 at English Wikipedia., CC BY 2.5",
     "sources": [
       "https://en.wikipedia.org/wiki/Bora_Bora"
     ]
@@ -2749,6 +2925,7 @@
     "local_name": "松本城",
     "note": "One of Japan's original castles with striking black exterior",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Matsumoto_Castle_Keep_Tower.jpg/1280px-Matsumoto_Castle_Keep_Tower.jpg",
+    "image_credit": "Lightning toothed whale (稲妻ノ歯鯨) This photo was taken with Canon EOS 500D, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Matsumoto_Castle"
     ]
@@ -2765,6 +2942,7 @@
     "local_name": "Santa Costanza",
     "note": "4th-century domed tomb with original Roman ceiling mosaics",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Mausoleo_di_Santa_Costanza_-_esterno.jpg/1280px-Mausoleo_di_Santa_Costanza_-_esterno.jpg",
+    "image_credit": "Grosseto2, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Mausoleum_of_Constantina"
     ]
@@ -2782,6 +2960,7 @@
     "local_name": "秦始皇陵",
     "note": "First emperor's tomb, guarded by the Terracotta Army",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Terra-cotta_Warriors_%2811523319873%29.jpg/1280px-Terra-cotta_Warriors_%2811523319873%29.jpg",
+    "image_credit": "edward stojakovic from Portland, OR, United States, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Mausoleum_of_Qin_Shi_Huang"
     ]
@@ -2797,6 +2976,7 @@
     "country": "Thailand",
     "note": "Bay made famous by the film The Beach",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Maya_Bay%2C_Thailand_by_Mike_Clegg_Photography.jpg/1280px-Maya_Bay%2C_Thailand_by_Mike_Clegg_Photography.jpg",
+    "image_credit": "User:Mikecleggphoto from www.travelanddestinations.com, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Maya_Bay"
     ]
@@ -2814,6 +2994,7 @@
     "local_name": "ميدوم",
     "note": "Egypt's first straight-sided pyramid, collapsed",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Meidoum03.jpg/1280px-Meidoum03.jpg",
+    "image_credit": "Kurohito, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Meidum"
     ]
@@ -2830,6 +3011,7 @@
     "local_name": "明治神宮",
     "note": "Forested Shinto shrine in central Tokyo",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Meiji_Jingu_2023-3.jpg/1280px-Meiji_Jingu_2023-3.jpg",
+    "image_credit": "Akonnchiroll, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Meiji_Shrine"
     ]
@@ -2842,6 +3024,7 @@
     "country": "United States",
     "note": "Largest art museum in the Americas, on Fifth Avenue",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Metropolitan_Museum_of_Art_%28The_Met%29_-_Central_Park%2C_NYC.jpg/1280px-Metropolitan_Museum_of_Art_%28The_Met%29_-_Central_Park%2C_NYC.jpg",
+    "image_credit": "Hugo Schneider, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Metropolitan_Museum_of_Art"
     ]
@@ -2859,6 +3042,7 @@
     "local_name": "Μονή Μεγάλου Μετεώρου",
     "note": "Largest of the cliff-top Meteora monasteries",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Megalo_Meteoro_panorama.jpg/1280px-Megalo_Meteoro_panorama.jpg",
+    "image_credit": "Janmad, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Great_Meteoron"
     ]
@@ -2875,6 +3059,7 @@
     "local_name": "Μονεμβασιά",
     "note": "Medieval rock fortress town on the Peloponnese coast",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/%CE%9A%CE%B1%CF%83%CF%84%CF%81%CE%BF%CF%80%CE%BF%CE%BB%CE%B9%CF%84%CE%B5%CE%B9%CE%B1_%CE%BC%CE%BF%CE%BD%CE%B5%CE%BC%CE%B2%CE%B1%CF%83%CE%B9%CE%B1%CF%82.jpg/1280px-%CE%9A%CE%B1%CF%83%CF%84%CF%81%CE%BF%CF%80%CE%BF%CE%BB%CE%B9%CF%84%CE%B5%CE%B9%CE%B1_%CE%BC%CE%BF%CE%BD%CE%B5%CE%BC%CE%B2%CE%B1%CF%83%CE%B9%CE%B1%CF%82.jpg",
+    "image_credit": "Katsikas pantelis, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Monemvasia"
     ]
@@ -2890,6 +3075,7 @@
     "country": "France",
     "note": "Medieval abbey on a tidal island in Normandy",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Mont-Saint-Michel_vu_du_ciel.jpg/1280px-Mont-Saint-Michel_vu_du_ciel.jpg",
+    "image_credit": "Amaustan, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Mont-Saint-Michel"
     ]
@@ -2906,6 +3092,7 @@
     "local_name": "ܕܝܪܐ ܕܡܪܝ ܓܒܪܐܝܠ",
     "note": "Syriac Orthodox monastery founded in 397 AD",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/MorGabrielMonastery1.jpg/1280px-MorGabrielMonastery1.jpg",
+    "image_credit": "Vincent Vega, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Mor_Gabriel_Monastery"
     ]
@@ -2923,6 +3110,7 @@
     "local_name": "Etna",
     "note": "Europe's most active volcano",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Mt_Etna_and_Catania1.jpg/1280px-Mt_Etna_and_Catania1.jpg",
+    "image_credit": "BenAveling, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Mount_Etna"
     ]
@@ -2938,6 +3126,7 @@
     "country": "United States",
     "note": "Four U.S. presidents carved into a granite mountain",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Mount_Rushmore_detail_view_%28100MP%29.jpg/1280px-Mount_Rushmore_detail_view_%28100MP%29.jpg",
+    "image_credit": "Thomas Wolf, www.foto-tw.de, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Mount_Rushmore"
     ]
@@ -2954,6 +3143,7 @@
     "local_name": "Monte Vesuvio",
     "note": "Destroyed Pompeii, walkable crater",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Il_cratere_del_Vulcano_-_panoramio.jpg/1280px-Il_cratere_del_Vulcano_-_panoramio.jpg",
+    "image_credit": "pietro scerrato, CC BY 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Mount_Vesuvius"
     ]
@@ -2967,6 +3157,7 @@
     "local_name": "Munch-museet",
     "note": "World's largest Munch collection, holds The Scream",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/MUNCH_Museum_front_%282020%29.jpg/1280px-MUNCH_Museum_front_%282020%29.jpg",
+    "image_credit": "Premeditated, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Munch_Museum"
     ]
@@ -2979,6 +3170,7 @@
     "country": "Spain",
     "note": "Spain's national museum of European art in Madrid",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Museo_del_Prado_2016_%2825185969599%29.jpg/1280px-Museo_del_Prado_2016_%2825185969599%29.jpg",
+    "image_credit": "Emilio J. Rodríguez Posada, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Museo_del_Prado"
     ]
@@ -2992,6 +3184,7 @@
     "local_name": "Museo Nacional Centro de Arte Reina Sofía",
     "note": "Modern art, home of Guernica",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/MNCARS_05.jpg/1280px-MNCARS_05.jpg",
+    "image_credit": "Luis García (Zaqarbal), CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Museo_Nacional_Centro_de_Arte_Reina_Sof%C3%ADa"
     ]
@@ -3004,6 +3197,7 @@
     "country": "Mexico",
     "note": "Silver hexagon-tiled museum of Carlos Slim's art",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Museo_Soumaya%2C_Ciudad_de_M%C3%A9xico%2C_M%C3%A9xico%2C_2015-07-18%2C_DD_12.JPG/1280px-Museo_Soumaya%2C_Ciudad_de_M%C3%A9xico%2C_M%C3%A9xico%2C_2015-07-18%2C_DD_12.JPG",
+    "image_credit": "Diego Delso, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Museo_Soumaya"
     ]
@@ -3016,6 +3210,7 @@
     "country": "United States",
     "note": "MoMA, influential modern and contemporary art in Manhattan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/The_Museum_of_Modern_Art%2C_MoMA%2C_New_York_%2850415922541%29.jpg/1280px-The_Museum_of_Modern_Art%2C_MoMA%2C_New_York_%2850415922541%29.jpg",
+    "image_credit": "Andrew Milligan sumo, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Museum_of_Modern_Art"
     ]
@@ -3031,6 +3226,7 @@
     "country": "France",
     "note": "Impressionist art in a former Beaux-Arts railway station",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Mus%C3%A9e_d%27Orsay_%2849570190661%29.jpg/1280px-Mus%C3%A9e_d%27Orsay_%2849570190661%29.jpg",
+    "image_credit": "Cheng-en Cheng from Taichung City, Taiwan, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Mus%C3%A9e_d%27Orsay"
     ]
@@ -3048,6 +3244,7 @@
     "local_name": "Μυστράς",
     "note": "Byzantine ghost town with frescoed churches near Sparta",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Palace_at_Mystras_by_Joy_of_Museums.jpg/1280px-Palace_at_Mystras_by_Joy_of_Museums.jpg",
+    "image_credit": "Joyofmuseums, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Mystras"
     ]
@@ -3061,6 +3258,7 @@
     "local_name": "直島",
     "note": "Art island of Ando museums and outdoor installations",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Yellow_Pumpkin_Monument.jpg/1280px-Yellow_Pumpkin_Monument.jpg",
+    "image_credit": "ブルーノ・プラス, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Naoshima"
     ]
@@ -3079,6 +3277,7 @@
     "local_name": "میدان نقش جهان",
     "note": "One of the largest public squares in the world",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Shah_%28_Emam_%29_Square_5.jpg/1280px-Shah_%28_Emam_%29_Square_5.jpg",
+    "image_credit": "Arosha-photo ( Reza Sobhani ), CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Naqsh-e_Jahan_Square"
     ]
@@ -3095,6 +3294,7 @@
     "local_name": "奈良公園",
     "note": "Free-roaming deer among temple grounds and gardens",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/003_Nara_deer_in_Japan_-_deer_of_Nara_Park_under_autumn_leaves.jpg/1280px-003_Nara_deer_in_Japan_-_deer_of_Nara_Park_under_autumn_leaves.jpg",
+    "image_credit": "Marek Ślusarczyk (Tupungato) Photo portfolio, CC BY 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Nara_Park"
     ]
@@ -3111,6 +3311,7 @@
     "local_name": "مسجد نصیرالملک",
     "note": "The Pink Mosque, famous for stained glass light",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Nasir_ol_Molk_Mosque_%2831233739431%29.jpg/1280px-Nasir_ol_Molk_Mosque_%2831233739431%29.jpg",
+    "image_credit": "Matt Biddulph from UK, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Nasir-ol-Molk_Mosque"
     ]
@@ -3124,6 +3325,7 @@
     "local_name": "国立新美術館",
     "note": "Wavy-glass hall, Japan's largest exhibition space",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/The_National_Art_Center_%2C_Tokyo_-_panoramio_%281%29.jpg/1280px-The_National_Art_Center_%2C_Tokyo_-_panoramio_%281%29.jpg",
+    "image_credit": "Kaz Ish, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/The_National_Art_Center,_Tokyo"
     ]
@@ -3136,6 +3338,7 @@
     "country": "England",
     "note": "Western European paintings on Trafalgar Square, London",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Galer%C3%ADa_Nacional%2C_Londres%2C_Inglaterra%2C_2014-08-07%2C_DD_036.JPG/1280px-Galer%C3%ADa_Nacional%2C_Londres%2C_Inglaterra%2C_2014-08-07%2C_DD_036.JPG",
+    "image_credit": "Diego Delso, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Gallery"
     ]
@@ -3148,6 +3351,7 @@
     "country": "United States",
     "note": "US national art museum on the Washington Mall",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/National_Gallery_of_Art_-_2026_%2855255088792%29.jpg/1280px-National_Gallery_of_Art_-_2026_%2855255088792%29.jpg",
+    "image_credit": "ajay_suresh, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Gallery_of_Art"
     ]
@@ -3160,6 +3364,7 @@
     "country": "Australia",
     "note": "Australia's oldest and most-visited art museum",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/National_Gallery_of_Victoria_from_Eurkea_Tower.jpg/1280px-National_Gallery_of_Victoria_from_Eurkea_Tower.jpg",
+    "image_credit": "Lakeyboy at English Wikipedia, Public domain",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Gallery_of_Victoria"
     ]
@@ -3172,6 +3377,7 @@
     "country": "Singapore",
     "note": "Southeast Asian art in the former Supreme Court",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/National_Gallery_Singapore_-_Joy_of_Museums_-_External.jpg/1280px-National_Gallery_Singapore_-_Joy_of_Museums_-_External.jpg",
+    "image_credit": "GordonMakryllos, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Gallery_Singapore"
     ]
@@ -3185,6 +3391,7 @@
     "local_name": "Muzeum Narodowe w Krakowie",
     "note": "Poland's first national museum, founded 1879",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/GmachG%C5%82%C3%B3wnyMuzeumNarodowego-Aleja3Maja1-Krowodrza-POL%2C_Krak%C3%B3w.jpg/1280px-GmachG%C5%82%C3%B3wnyMuzeumNarodowego-Aleja3Maja1-Krowodrza-POL%2C_Krak%C3%B3w.jpg",
+    "image_credit": "Mach240390, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Museum,_Krak%C3%B3w"
     ]
@@ -3198,6 +3405,7 @@
     "local_name": "Muzeum Narodowe w Warszawie",
     "note": "Poland's largest art collection, founded 1862",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Muzeum_Narodowe_w_Warszawie_2019.jpg/1280px-Muzeum_Narodowe_w_Warszawie_2019.jpg",
+    "image_credit": "Adrian Grycuk, CC BY-SA 3.0 pl",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Museum,_Warsaw"
     ]
@@ -3210,6 +3418,7 @@
     "country": "United States",
     "note": "Smithsonian museum of African American history",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/National_Museum_of_African_American_History_and_Culture_in_February_2020.jpg/1280px-National_Museum_of_African_American_History_and_Culture_in_February_2020.jpg",
+    "image_credit": "Frank Schulenburg, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Museum_of_African_American_History_and_Culture"
     ]
@@ -3223,6 +3432,7 @@
     "local_name": "Museo Nacional de Antropología",
     "note": "Mexico's largest museum, home of the Aztec Sun Stone",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Frontis_del_edificio_del_Museo_Nacional_de_Antropolog%C3%ADa.JPG/1280px-Frontis_del_edificio_del_Museo_Nacional_de_Antropolog%C3%ADa.JPG",
+    "image_credit": "Carlos yo, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Museum_of_Anthropology_(Mexico)"
     ]
@@ -3235,6 +3445,7 @@
     "country": "India",
     "note": "Indian art and archaeology, prehistory to modern",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/India_national_museum_01.jpg/1280px-India_national_museum_01.jpg",
+    "image_credit": "Miya.m, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Museum,_New_Delhi"
     ]
@@ -3248,6 +3459,7 @@
     "local_name": "국립중앙박물관",
     "note": "Flagship museum of Korean history and art in Seoul",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/National_Museum_of_Korea%2C_Seoul_%282%29_%2840236586235%29.jpg/1280px-National_Museum_of_Korea%2C_Seoul_%282%29_%2840236586235%29.jpg",
+    "image_credit": "Richard Mortel from Riyadh, Saudi Arabia, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Museum_of_Korea"
     ]
@@ -3260,6 +3472,7 @@
     "country": "Scotland",
     "note": "Scotland's national museum of art, science, and history",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Museum_of_Scotland.jpg/1280px-Museum_of_Scotland.jpg",
+    "image_credit": "Maccoinnich, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Museum_of_Scotland"
     ]
@@ -3273,6 +3486,7 @@
     "local_name": "國立故宮博物院",
     "note": "Chinese imperial art collection from the Forbidden City",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/NationalPalace_MuseumFrontView.jpg/1280px-NationalPalace_MuseumFrontView.jpg",
+    "image_credit": "Peellden, CC BY 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Palace_Museum"
     ]
@@ -3285,6 +3499,7 @@
     "country": "England",
     "note": "Portraits of notable Britons, near Trafalgar Square",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/National_Portrait_Gallery%2C_London%2C_June_2023_34.jpg/1280px-National_Portrait_Gallery%2C_London%2C_June_2023_34.jpg",
+    "image_credit": "No Swan So Fine, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/National_Portrait_Gallery,_London"
     ]
@@ -3297,6 +3512,7 @@
     "country": "England",
     "note": "Dinosaur and blue whale galleries in a grand London hall",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Museo_de_Historia_Natural%2C_Londres%2C_Inglaterra%2C_2022-11-25%2C_DD_37.jpg/1280px-Museo_de_Historia_Natural%2C_Londres%2C_Inglaterra%2C_2022-11-25%2C_DD_37.jpg",
+    "image_credit": "Diego Delso, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Natural_History_Museum,_London"
     ]
@@ -3313,6 +3529,7 @@
     "local_name": "Παραλία Ναυάγιο",
     "note": "Shipwreck beach on Zakynthos",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Navagio%2C_Zante_01.jpg/1280px-Navagio%2C_Zante_01.jpg",
+    "image_credit": "Wilnel José Verdú Guerrero, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Navagio"
     ]
@@ -3330,6 +3547,7 @@
     "local_name": "ប្រាសាទនាគព័ន្ធ",
     "note": "Island temple in a circular healing pool",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Neak_Pean_%2840335935051%29.jpg/1280px-Neak_Pean_%2840335935051%29.jpg",
+    "image_credit": "Mig Gilbert from Brighton, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Neak_Pean"
     ]
@@ -3346,6 +3564,7 @@
     "country": "Italy",
     "note": "Some 4,000 rock-cut tombs in limestone cliffs",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Nekropolis_von_Pantalica.jpg/1280px-Nekropolis_von_Pantalica.jpg",
+    "image_credit": "Clemensfranz, CC BY 2.5",
     "sources": [
       "https://en.wikipedia.org/wiki/Necropolis_of_Pantalica"
     ]
@@ -3361,6 +3580,7 @@
     "country": "Germany",
     "note": "Berlin's Egyptian and prehistory museum on Museum Island",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Berlin_Neues_Museum_001.JPG/1280px-Berlin_Neues_Museum_001.JPG",
+    "image_credit": "Janericloebe, Public domain",
     "sources": [
       "https://en.wikipedia.org/wiki/Neues_Museum"
     ]
@@ -3374,6 +3594,7 @@
     "local_name": "Schloss Neuschwanstein",
     "note": "Ludwig II's 19th-c. fairy-tale castle in Bavaria",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Schloss_Neuschwanstein_2013.jpg/1280px-Schloss_Neuschwanstein_2013.jpg",
+    "image_credit": "Thomas Wolf, www.foto-tw.de, CC BY-SA 3.0 de",
     "sources": [
       "https://en.wikipedia.org/wiki/Neuschwanstein_Castle"
     ]
@@ -3390,6 +3611,7 @@
     "local_name": "根津神社",
     "note": "Quiet shrine with a tunnel of torii gates and azalea garden",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Nezu_Shrine_2010.jpg/1280px-Nezu_Shrine_2010.jpg",
+    "image_credit": "Wiiii, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Nezu_Shrine"
     ]
@@ -3403,6 +3625,7 @@
     "local_name": "Nidarosdomen",
     "note": "Northernmost medieval cathedral, over St. Olav's grave",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Die_Nidaros_Kathedrale_in_Trondheim._03.jpg/1280px-Die_Nidaros_Kathedrale_in_Trondheim._03.jpg",
+    "image_credit": "Holger Uwe Schmitt, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Nidaros_Cathedral"
     ]
@@ -3418,6 +3641,7 @@
     "country": "Tanzania",
     "note": "White sand and tidal flats on Zanzibar's northern tip",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Nungwi%2C_Zanzibar_%2851553981452%29.jpg/1280px-Nungwi%2C_Zanzibar_%2851553981452%29.jpg",
+    "image_credit": "Nina R from Africa, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Nungwi"
     ]
@@ -3431,6 +3655,7 @@
     "local_name": "海遊館",
     "note": "Aquarium built around a central whale-shark tank",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Kaiy%C5%ABkan.jpg/1280px-Kaiy%C5%ABkan.jpg",
+    "image_credit": "Sakai Yayoi, CC0",
     "sources": [
       "https://en.wikipedia.org/wiki/Osaka_Aquarium_Kaiyukan"
     ]
@@ -3447,6 +3672,7 @@
     "local_name": "大阪城",
     "note": "Landmark fortress in a large park in central Osaka",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Osaka_Castle_03bs3200.jpg/1280px-Osaka_Castle_03bs3200.jpg",
+    "image_credit": "663highland, CC BY 2.5",
     "sources": [
       "https://en.wikipedia.org/wiki/Osaka_Castle"
     ]
@@ -3462,6 +3688,7 @@
     "country": "Nigeria",
     "note": "Sacred forest of Yoruba shrines and sculptures",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Osun_groove_Osogbo.jpg/1280px-Osun_groove_Osogbo.jpg",
+    "image_credit": "ABORISADEADETONA, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Osun-Osogbo"
     ]
@@ -3478,6 +3705,7 @@
     "local_name": "Παλάτι του Μεγάλου Μαγίστρου",
     "note": "Medieval Knights Hospitaller fortress in Rhodes Old Town",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes_%289451928431%29.jpg/1280px-Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes_%289451928431%29.jpg",
+    "image_credit": "Jorge Láscar from Australia, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Palace_of_the_Grand_Master_of_the_Knights_of_Rhodes"
     ]
@@ -3494,6 +3722,7 @@
     "local_name": "Château de Versailles",
     "note": "Louis XIV's palace and gardens with the Hall of Mirrors",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Versailles-Chateau-Jardins02.jpg/1280px-Versailles-Chateau-Jardins02.jpg",
+    "image_credit": "G CHP, CC BY-SA 2.5",
     "sources": [
       "https://en.wikipedia.org/wiki/Palace_of_Versailles"
     ]
@@ -3509,6 +3738,7 @@
     "country": "Turkey",
     "note": "White travertine terraces with thermal pools",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Pamukkale%2C_Denizli_2026_68.jpg/1280px-Pamukkale%2C_Denizli_2026_68.jpg",
+    "image_credit": "Biologg, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Pamukkale"
     ]
@@ -3525,6 +3755,7 @@
     "country": "Italy",
     "note": "Best-preserved Roman temple, vast unreinforced dome",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Fa%C3%A7ade_of_the_Pantheon%2C_Rome%2C_Italy.jpg/1280px-Fa%C3%A7ade_of_the_Pantheon%2C_Rome%2C_Italy.jpg",
+    "image_credit": "Julian Lupyan, CC0",
     "sources": [
       "https://en.wikipedia.org/wiki/Pantheon,_Rome"
     ]
@@ -3541,6 +3772,7 @@
     "country": "Cyprus",
     "note": "Roman villas with elaborate floor mosaics",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Casa_de_Teseo%2C_parque_arqueol%C3%B3gico_de_Pafos%2C_Chipre%2C_2021-12-10%2C_DD_28.jpg/1280px-Casa_de_Teseo%2C_parque_arqueol%C3%B3gico_de_Pafos%2C_Chipre%2C_2021-12-10%2C_DD_28.jpg",
+    "image_credit": "Diego Delso, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Paphos_Archaeological_Park"
     ]
@@ -3557,6 +3789,7 @@
     "local_name": "Parc Güell",
     "note": "Gaudí's mosaic-tiled park on Carmel Hill, Barcelona",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Parc_guell_-_panoramio.jpg/1280px-Parc_guell_-_panoramio.jpg",
+    "image_credit": "essetefano, CC BY 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Park_G%C3%BCell"
     ]
@@ -3573,6 +3806,7 @@
     "local_name": "Palácio da Pena",
     "note": "Colorful Romanticist palace on a hilltop in Sintra",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Sintra_Portugal_Pal%C3%A1cio_da_Pena-01.jpg/1280px-Sintra_Portugal_Pal%C3%A1cio_da_Pena-01.jpg",
+    "image_credit": "CEphoto, Uwe Aranas, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Pena_Palace"
     ]
@@ -3589,6 +3823,7 @@
     "local_name": "Pergamonmuseum",
     "note": "Berlin museum of monumental reconstructed antiquities",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Pergamonmuseum_Front.jpg/1280px-Pergamonmuseum_Front.jpg",
+    "image_credit": "Raimond Spekking, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Pergamon_Museum"
     ]
@@ -3606,6 +3841,7 @@
     "local_name": "تخت جمشید",
     "note": "Ceremonial capital of the Achaemenid Empire",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Apadana_palace_persepolis.JPG/1280px-Apadana_palace_persepolis.JPG",
+    "image_credit": "درفش کاویانی, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Persepolis"
     ]
@@ -3623,6 +3859,7 @@
     "local_name": "البتراء",
     "note": "Nabataean city carved into rose-red cliffs",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Nabatean_Treasury_in_Petra%2C_Jordan_%284053066453%29.jpg/1280px-Nabatean_Treasury_in_Petra%2C_Jordan_%284053066453%29.jpg",
+    "image_credit": "David Berkowitz from New York, NY, USA, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Petra"
     ]
@@ -3640,6 +3877,7 @@
     "local_name": "Пловдивски античен театър",
     "note": "Well-preserved 2nd-century Roman theatre above Plovdiv",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Roman_Theatre_Plovdiv_3.jpg/1280px-Roman_Theatre_Plovdiv_3.jpg",
+    "image_credit": "MrPanyGoff, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Plovdiv_Roman_theatre"
     ]
@@ -3657,6 +3895,7 @@
     "local_name": "Pompei",
     "note": "Roman city buried by Vesuvius's ash in AD 79",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Old_house_pompei_site.jpeg/1280px-Old_house_pompei_site.jpeg",
+    "image_credit": "Abderrahman Ait Ali from Stockholm, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Pompeii"
     ]
@@ -3675,6 +3914,7 @@
     "country": "France",
     "note": "Three-tier Roman aqueduct bridge spanning the Gardon",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Pont_du_Gard_BLS.jpg/1280px-Pont_du_Gard_BLS.jpg",
+    "image_credit": "Benh LIEU SONG (Flickr), CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Pont_du_Gard"
     ]
@@ -3691,6 +3931,7 @@
     "local_name": "Postojnska jama",
     "note": "Europe's most-visited show cave, with a train inside",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Postojna_%2822206343750%29.jpg/1280px-Postojna_%2822206343750%29.jpg",
+    "image_credit": "Ivan Ivankovic from Dubrovnik, Croatia, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Postojna_Cave"
     ]
@@ -3707,6 +3948,7 @@
     "local_name": "Pražský hrad",
     "note": "Largest ancient castle complex in the world",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Prague_Castle_from_Alsovo_nabrezi.jpg/1280px-Prague_Castle_from_Alsovo_nabrezi.jpg",
+    "image_credit": "Mgimelfarb, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Prague_Castle"
     ]
@@ -3722,6 +3964,7 @@
     "country": "Portugal",
     "note": "Limestone arches and sea caves",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Praia_da_Marinha_%281%29.JPG/1280px-Praia_da_Marinha_%281%29.JPG",
+    "image_credit": "Joseolgon, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Praia_da_Marinha"
     ]
@@ -3739,6 +3982,7 @@
     "local_name": "ប្រាសាទព្រះខ័ន",
     "note": "Jungle temple that housed a Buddhist university",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Preah_Khan%2C_Angkor%2C_Camboya%2C_2013-08-17%2C_DD_26.JPG/1280px-Preah_Khan%2C_Angkor%2C_Camboya%2C_2013-08-17%2C_DD_26.JPG",
+    "image_credit": "Diego Delso, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Preah_Khan"
     ]
@@ -3752,6 +3996,7 @@
     "local_name": "Predjamski grad",
     "note": "Renaissance castle built into the mouth of a cave",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/H%C3%B6hlenburg_Predjama_in_Slovenien.jpg/1280px-H%C3%B6hlenburg_Predjama_in_Slovenien.jpg",
+    "image_credit": "Lettkemann, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Predjama_Castle"
     ]
@@ -3769,6 +4014,7 @@
     "local_name": "Arena Pula",
     "note": "1st-century Roman amphitheatre, among the best preserved",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Pula_Arena_%282024-10-10_1%29.jpg/1280px-Pula_Arena_%282024-10-10_1%29.jpg",
+    "image_credit": "Olgierd Rudak, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Pula_Arena"
     ]
@@ -3782,6 +4028,7 @@
     "local_name": "Государственный музей изобразительных искусств имени А. С. Пушкина",
     "note": "European art museum named for Pushkin, Moscow",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Gmii.jpg/1280px-Gmii.jpg",
+    "image_credit": "user:Ghirlandajo, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Pushkin_Museum"
     ]
@@ -3800,6 +4047,7 @@
     "local_name": "Piramide Cestia",
     "note": "Egyptian-style pyramid tomb in Rome, c. 12 BC",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Piramide_Cestia.jpg/1280px-Piramide_Cestia.jpg",
+    "image_credit": "Livioandronico2013, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Pyramid_of_Cestius"
     ]
@@ -3817,6 +4065,7 @@
     "country": "Egypt",
     "note": "Egypt's oldest pyramid, a six-tier step pyramid",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Saqqara_pyramid_ver_2.jpg/1280px-Saqqara_pyramid_ver_2.jpg",
+    "image_credit": "Charles J. Sharp, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Pyramid_of_Djoser"
     ]
@@ -3834,6 +4083,7 @@
     "country": "Egypt",
     "note": "Second-tallest Giza pyramid, still capped with casing stone",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Pyramid_of_Khafre_and_Sphinx%2C_Giza%2C_Greater_Cairo%2C_Egypt.jpg/1280px-Pyramid_of_Khafre_and_Sphinx%2C_Giza%2C_Greater_Cairo%2C_Egypt.jpg",
+    "image_credit": "M1chu, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Pyramid_of_Khafre"
     ]
@@ -3851,6 +4101,7 @@
     "country": "Egypt",
     "note": "Smallest of the three main Giza pyramids",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Cairo%2C_Gizeh%2C_Pyramid_of_Menkaure%2C_Egypt%2C_Oct_2005.jpg/1280px-Cairo%2C_Gizeh%2C_Pyramid_of_Menkaure%2C_Egypt%2C_Oct_2005.jpg",
+    "image_credit": "CC BY-SA 2.5",
     "sources": [
       "https://en.wikipedia.org/wiki/Pyramid_of_Menkaure"
     ]
@@ -3869,6 +4120,7 @@
     "local_name": "Pirámide de la Luna",
     "note": "Closes the Avenue of the Dead, echoing Cerro Gordo",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Piramide_de_la_Luna_072006.jpg/1280px-Piramide_de_la_Luna_072006.jpg",
+    "image_credit": "Gorgo, Public domain",
     "sources": [
       "https://en.wikipedia.org/wiki/Pyramid_of_the_Moon"
     ]
@@ -3887,6 +4139,7 @@
     "local_name": "Pirámide del Sol",
     "note": "Largest Teotihuacan pyramid, over a sacred cave",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/2020-02-11_Teotihuacan_la_Avenida_de_los_Muertos_y_la_Pir%C3%A1mide_del_Sol.jpg/1280px-2020-02-11_Teotihuacan_la_Avenida_de_los_Muertos_y_la_Pir%C3%A1mide_del_Sol.jpg",
+    "image_credit": "Burkhard Mücke, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Pyramid_of_the_Sun"
     ]
@@ -3905,6 +4158,7 @@
     "local_name": "برج گنبد قابوس",
     "note": "11th-c. brick funerary tower for Qabus, NE Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/%DA%AF%D9%86%D8%A8%D8%AF_%DA%A9%D8%A7%D9%88%D9%88%D8%B3_-_%D9%BE%D8%A7%D8%B1%DA%AF_%DA%AF%D9%86%D8%A8%D8%AF.jpg/1280px-%DA%AF%D9%86%D8%A8%D8%AF_%DA%A9%D8%A7%D9%88%D9%88%D8%B3_-_%D9%BE%D8%A7%D8%B1%DA%AF_%DA%AF%D9%86%D8%A8%D8%AF.jpg",
+    "image_credit": "Khashayar khosravani, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Gonbad-e_Qabus_(tower)"
     ]
@@ -3921,6 +4175,7 @@
     "local_name": "نارنجستان قوام",
     "note": "Qajar mansion and orange garden in Shiraz",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Qavam_House_2018.jpg/1280px-Qavam_House_2018.jpg",
+    "image_credit": "In fact, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Qavam_House"
     ]
@@ -3937,6 +4192,7 @@
     "local_name": "ไร่เลย์",
     "note": "Only reachable by boat, surrounded by limestone karst cliffs",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Railay_Beach_5.jpg/1280px-Railay_Beach_5.jpg",
+    "image_credit": "kallerna, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Railay_Beach"
     ]
@@ -3954,6 +4210,7 @@
     "local_name": "Kızıl Avlu",
     "note": "Monumental Roman temple to Egyptian gods at Pergamon",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Red_basilica_west_view.jpg/1280px-Red_basilica_west_view.jpg",
+    "image_credit": "Prioryman, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Red_Basilica"
     ]
@@ -3971,6 +4228,7 @@
     "country": "Egypt",
     "note": "Egypt's first true smooth-sided pyramid",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Rote_Pyramide_%28Dahschur%29_04.jpg/1280px-Rote_Pyramide_%28Dahschur%29_04.jpg",
+    "image_credit": "Olaf Tausch, CC BY 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Red_Pyramid"
     ]
@@ -3986,6 +4244,7 @@
     "country": "Peru",
     "note": "Chachapoya cliff tombs shaped like tiny houses",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Mausoleos_de_Revash-nX-11.jpg/1280px-Mausoleos_de_Revash-nX-11.jpg",
+    "image_credit": "PsamatheM, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Revash"
     ]
@@ -4001,6 +4260,7 @@
     "country": "Iceland",
     "note": "Black volcanic sand and basalt columns",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Reynisfjara_Beach_Looking_West_Towards_Dyrh%C3%B3laey.jpg/1280px-Reynisfjara_Beach_Looking_West_Towards_Dyrh%C3%B3laey.jpg",
+    "image_credit": "Strwiki2017, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Reynisfjara"
     ]
@@ -4018,6 +4278,7 @@
     "local_name": "Ponte di Rialto",
     "note": "16th-century stone arch over the Grand Canal",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Rialto_2025_4.jpg/1280px-Rialto_2025_4.jpg",
+    "image_credit": "kallerna, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Rialto_Bridge"
     ]
@@ -4036,6 +4297,7 @@
     "local_name": "رباط زين الدين",
     "note": "Safavid Silk Road caravanserai with circular towers",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Zeinodin_Caravanserai.jpg/1280px-Zeinodin_Caravanserai.jpg",
+    "image_credit": "David Stanley, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Ribat_of_Zein-o-din"
     ]
@@ -4054,6 +4316,7 @@
     "country": "Iran",
     "note": "12th-c. Seljuk caravanserai, northeast Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/%D9%86%D9%85%D8%A7%DB%8C_%D8%B3%D9%87_%D8%B1%D8%AE_%D8%B1%D8%A8%D8%A7%D8%B7_%D8%B4%D8%B1%D9%81.jpg/1280px-%D9%86%D9%85%D8%A7%DB%8C_%D8%B3%D9%87_%D8%B1%D8%AE_%D8%B1%D8%A8%D8%A7%D8%B7_%D8%B4%D8%B1%D9%81.jpg",
+    "image_credit": "Hadidehghanpour, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Ribat-i_Sharaf"
     ]
@@ -4066,6 +4329,7 @@
     "country": "Netherlands",
     "note": "Dutch national museum, home of Rembrandt's Night Watch",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/South_facade_of_the_Rijksmuseum_Amsterdam_%28DSCF0528%29.jpg/1280px-South_facade_of_the_Rijksmuseum_Amsterdam_%28DSCF0528%29.jpg",
+    "image_credit": "Trougnouf (Benoit Brummer), CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Rijksmuseum"
     ]
@@ -4082,6 +4346,7 @@
     "local_name": "Рилски манастир",
     "note": "Largest Eastern Orthodox monastery in Bulgaria",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Rila_Monastery%2C_August_2013.jpg/1280px-Rila_Monastery%2C_August_2013.jpg",
+    "image_credit": "Raggatt2000, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Rila_Monastery"
     ]
@@ -4098,6 +4363,7 @@
     "local_name": "Chipul lui Decebal",
     "note": "55 m face of King Decebalus carved in a cliff",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Statuia_Chipul_lui_Decebal_-_Cazanele_Dun%C4%83rii%2C_Rom%C3%A2nia.jpg/1280px-Statuia_Chipul_lui_Decebal_-_Cazanele_Dun%C4%83rii%2C_Rom%C3%A2nia.jpg",
+    "image_credit": "https://www.facebook.com/george.bufan, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Rock_sculpture_of_Decebalus"
     ]
@@ -4115,6 +4381,7 @@
     "local_name": "ቤተ ጊዮርጊስ",
     "note": "Cross-shaped church carved from solid rock",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Lalibela%2C_san_giorgio%2C_esterno_24.jpg/1280px-Lalibela%2C_san_giorgio%2C_esterno_24.jpg",
+    "image_credit": "Sailko, CC BY 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Church_of_Saint_George,_Lalibela"
     ]
@@ -4132,6 +4399,7 @@
     "local_name": "Foro Romano",
     "note": "Ruins of the political center of ancient Rome",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Forum_Romanum_Rom.jpg/1280px-Forum_Romanum_Rom.jpg",
+    "image_credit": "Stefan Bauer, http://www.ferras.at, CC BY-SA 2.5",
     "sources": [
       "https://en.wikipedia.org/wiki/Roman_Forum"
     ]
@@ -4151,6 +4419,7 @@
     "local_name": "Ροτόντα",
     "note": "4th-century domed mausoleum, later church and mosque",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Rotunda_of_Galerius435.jpg/1280px-Rotunda_of_Galerius435.jpg",
+    "image_credit": "Shamaramanic, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Arch_of_Galerius_and_Rotunda"
     ]
@@ -4167,6 +4436,7 @@
     "local_name": "Zamek Królewski w Warszawie",
     "note": "Royal residence rebuilt after WWII destruction",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Royal_Castle_in_Warsaw%2C_Poland%2C_2022%2C_03.jpg/1280px-Royal_Castle_in_Warsaw%2C_Poland%2C_2022%2C_03.jpg",
+    "image_credit": "Chris Olszewski, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Royal_Castle,_Warsaw"
     ]
@@ -4182,6 +4452,7 @@
     "country": "Australia",
     "note": "1880 Melbourne hall, site of Australia's first parliament",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Royal_exhibition_building_tulips_straight.jpg/1280px-Royal_exhibition_building_tulips_straight.jpg",
+    "image_credit": "Photograph taken by Diliff and straightened by Ian Fieggen, CC BY 2.5",
     "sources": [
       "https://en.wikipedia.org/wiki/Royal_Exhibition_Building"
     ]
@@ -4198,6 +4469,7 @@
     "local_name": "Государственный Русский музей",
     "note": "World's largest collection of Russian art, St Petersburg",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%D0%B4%D0%B2%D0%BE%D1%80%D0%B5%D1%86%2C_%D0%B4%D0%B2%D0%BE%D1%8003.jpg/1280px-%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2%D1%81%D0%BA%D0%B8%D0%B9_%D0%B4%D0%B2%D0%BE%D1%80%D0%B5%D1%86%2C_%D0%B4%D0%B2%D0%BE%D1%8003.jpg",
+    "image_credit": "Екатерина Борисова, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Russian_Museum"
     ]
@@ -4216,6 +4488,7 @@
     "local_name": "کاروانسرای سعدالسلطنه",
     "note": "Qajar urban caravanserai, the largest in Iran, Qazvin",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/%D8%B3%D8%B1%D8%A7%DB%8C_%D8%B3%D8%B9%D8%AF%D8%A7%D9%84%D8%B3%D9%84%D8%B7%D9%86%D9%87_%D9%82%D8%B2%D9%88%DB%8C%D9%86.jpg/1280px-%D8%B3%D8%B1%D8%A7%DB%8C_%D8%B3%D8%B9%D8%AF%D8%A7%D9%84%D8%B3%D9%84%D8%B7%D9%86%D9%87_%D9%82%D8%B2%D9%88%DB%8C%D9%86.jpg",
+    "image_credit": "Behrad09, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Sa%27d_al-Saltaneh_Caravanserai"
     ]
@@ -4232,6 +4505,7 @@
     "country": "Turkey",
     "note": "Pisidian mountain city at 1500m, restored fountain",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Sagalassos_Antik_Kenti_03.jpg/1280px-Sagalassos_Antik_Kenti_03.jpg",
+    "image_credit": "BerkhanTr, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Sagalassos"
     ]
@@ -4248,6 +4522,7 @@
     "local_name": "Basílica de la Sagrada Família",
     "note": "Gaudí's Barcelona basilica, begun 1882",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/SF_maig_2026.jpg/1280px-SF_maig_2026.jpg",
+    "image_credit": "Canaan, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Sagrada_Fam%C3%ADlia"
     ]
@@ -4264,6 +4539,7 @@
     "local_name": "Собор Василия Блаженного",
     "note": "Onion-domed cathedral on Moscow's Red Square",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/030524-Moscow-IMG_9807-2.jpg/1280px-030524-Moscow-IMG_9807-2.jpg",
+    "image_credit": "Safa.daneshvar, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Saint_Basil%27s_Cathedral"
     ]
@@ -4277,6 +4553,7 @@
     "local_name": "Φαράγγι Σαμαριάς",
     "note": "16 km gorge in Crete, one of the longest in Europe",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Walkers_in_the_Samari%C3%A1_Gorge_-_2022-07-25.jpg/1280px-Walkers_in_the_Samari%C3%A1_Gorge_-_2022-07-25.jpg",
+    "image_credit": "Bretwa, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Samaria_Gorge"
     ]
@@ -4293,6 +4570,7 @@
     "local_name": "Schloss Sanssouci",
     "note": "Rococo summer palace of Frederick the Great, Potsdam",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Schloss_Sanssouci_2014.jpg/1280px-Schloss_Sanssouci_2014.jpg",
+    "image_credit": "ernstol, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Sanssouci"
     ]
@@ -4310,6 +4588,7 @@
     "local_name": "Basilica dei Santi Cosma e Damiano",
     "note": "6th-century church in the Forum with Byzantine apse mosaic",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Palatine_view_of_temple_of_romulus.jpg/1280px-Palatine_view_of_temple_of_romulus.jpg",
+    "image_credit": "Anthony M. from Rome, Italy, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Santi_Cosma_e_Damiano,_Rome"
     ]
@@ -4327,6 +4606,7 @@
     "note": "Endpoint of the Camino de Santiago, tomb of St. James",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Santiago_cathedral_2021.jpg/1280px-Santiago_cathedral_2021.jpg",
     "image_focus": "top",
+    "image_credit": "Fernando, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Santiago_de_Compostela_Cathedral"
     ]
@@ -4356,6 +4636,7 @@
     "country": "Italy",
     "note": "Ancient cave dwellings inhabited for millennia",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Matera_boenisch_nov_2005.jpg/1280px-Matera_boenisch_nov_2005.jpg",
+    "image_credit": "Bönisch, CC BY-SA 2.0 de",
     "sources": [
       "https://en.wikipedia.org/wiki/Sassi_di_Matera"
     ]
@@ -4372,6 +4653,7 @@
     "local_name": "Schloss Schönbrunn",
     "note": "Habsburg summer residence",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Wien_-_Schloss_Sch%C3%B6nbrunn.JPG/1280px-Wien_-_Schloss_Sch%C3%B6nbrunn.JPG",
+    "image_credit": "C.Stadler/Bwag, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Schönbrunn_Palace"
     ]
@@ -4387,6 +4669,7 @@
     "country": "Scotland",
     "note": "Scotland's national art collection, on The Mound",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Scottish_National_Gallery_-_aerial_-_2025-04-19_01.jpg/1280px-Scottish_National_Gallery_-_aerial_-_2025-04-19_01.jpg",
+    "image_credit": "瑞丽江的河水, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Scottish_National_Gallery"
     ]
@@ -4403,6 +4686,7 @@
     "local_name": "Kostnice v Sedlci",
     "note": "Chapel decorated with bones of 40,000 people",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Bone_Chandelabra.jpg/1280px-Bone_Chandelabra.jpg",
+    "image_credit": "Daniel Wabyick from San Francisco, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Sedlec_Ossuary"
     ]
@@ -4418,6 +4702,7 @@
     "country": "Iceland",
     "note": "60 m waterfall you can walk behind",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Idyllic_landscape_with_a_waterfall_%28Unsplash%29.jpg/1280px-Idyllic_landscape_with_a_waterfall_%28Unsplash%29.jpg",
+    "image_credit": "Robert Lukeman robertlukeman, CC0",
     "sources": [
       "https://en.wikipedia.org/wiki/Seljalandsfoss"
     ]
@@ -4434,6 +4719,7 @@
     "local_name": "浅草寺",
     "note": "Tokyo's oldest temple with the Kaminarimon gate",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Sensoji_2023.jpg/1280px-Sensoji_2023.jpg",
+    "image_credit": "Akonnchiroll, CC0",
     "sources": [
       "https://en.wikipedia.org/wiki/Sens%C5%8D-ji"
     ]
@@ -4450,6 +4736,7 @@
     "local_name": "Catedral de Sevilla",
     "note": "World's largest Gothic cathedral, with the Giralda tower",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Cathedral_sunset_with_palm_%284281433272%29.jpg/1280px-Cathedral_sunset_with_palm_%284281433272%29.jpg",
+    "image_credit": "Weldon Kennedy from London, UK, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Seville_Cathedral"
     ]
@@ -4463,6 +4750,7 @@
     "local_name": "Castello Sforzesco",
     "note": "15th-c. Milanese fortress, now civic museums",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Castello_Sforzesco_da_alto.jpg/1280px-Castello_Sforzesco_da_alto.jpg",
+    "image_credit": "zheng.yan, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Sforza_Castle"
     ]
@@ -4476,6 +4764,7 @@
     "local_name": "上海博物馆",
     "note": "Ancient Chinese art in a bronze-ding-shaped building",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/201003_Shanghai_Museum.jpg/1280px-201003_Shanghai_Museum.jpg",
+    "image_credit": "Windmemories, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Shanghai_Museum"
     ]
@@ -4489,6 +4778,7 @@
     "local_name": "上海科技馆",
     "note": "Major science museum in Pudong, Shanghai",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Shanghai_Science_and_Technology_Museum_20260418_%282%29.jpg/1280px-Shanghai_Science_and_Technology_Museum_20260418_%282%29.jpg",
+    "image_credit": "DvTor8303, CC0",
     "sources": [
       "https://en.wikipedia.org/wiki/Shanghai_Science_and_Technology_Museum"
     ]
@@ -4506,6 +4796,7 @@
     "local_name": "باغ شاهزاده ماهان",
     "note": "Qajar Persian garden with terraced waterworks, Mahan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/%D8%A8%D8%A7%D8%BA_%D8%B4%D8%A7%D9%87%D8%B2%D8%A7%D8%AF%D9%87-%D9%85%D8%A7%D9%87%D8%A7%D9%86-%DA%A9%D8%B1%D9%85%D8%A7%D9%86.jpg/1280px-%D8%A8%D8%A7%D8%BA_%D8%B4%D8%A7%D9%87%D8%B2%D8%A7%D8%AF%D9%87-%D9%85%D8%A7%D9%87%D8%A7%D9%86-%DA%A9%D8%B1%D9%85%D8%A7%D9%86.jpg",
+    "image_credit": "Pourjafari, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Shazdeh_Garden"
     ]
@@ -4519,6 +4810,7 @@
     "local_name": "新宿御苑",
     "note": "Garden blending Japanese, English and French styles",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Shinjuku_Gyoen_National_Garden_-_sakura_3.JPG/1280px-Shinjuku_Gyoen_National_Garden_-_sakura_3.JPG",
+    "image_credit": "Kakidai, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Shinjuku_Gyoen"
     ]
@@ -4536,6 +4828,7 @@
     "local_name": "白川郷",
     "note": "Traditional steep-roofed farmhouses in a mountain village",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Ogi_Shirakawa-g%C5%8D%2C_Gifu%2C_Japan.jpg/1280px-Ogi_Shirakawa-g%C5%8D%2C_Gifu%2C_Japan.jpg",
+    "image_credit": "663highland, CC BY 2.5",
     "sources": [
       "https://en.wikipedia.org/wiki/Shirakawa-g%C5%8D"
     ]
@@ -4553,6 +4846,7 @@
     "local_name": "مجموعه آرامگاه و خانقاه شیخ صفی‌الدین",
     "note": "16th-c. Safavid Sufi shrine in Ardabil, northwest Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Sheikh_Safi_Al_Din_Ardabili_Tomb.jpg/1280px-Sheikh_Safi_Al_Din_Ardabili_Tomb.jpg",
+    "image_credit": "MAF70, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Sheikh_Safi_al-Din_Kh%C4%81neg%C4%81h_and_Shrine_Ensemble"
     ]
@@ -4570,6 +4864,7 @@
     "local_name": "首里城",
     "note": "Ryukyuan royal palace in Okinawa",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Naha_Okinawa_Japan_Shuri-Castle-01.jpg/1280px-Naha_Okinawa_Japan_Shuri-Castle-01.jpg",
+    "image_credit": "CEphoto, Uwe Aranas, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Shuri_Castle"
     ]
@@ -4587,6 +4882,7 @@
     "local_name": "سازه‌های آبی شوشتر",
     "note": "Sasanian canals, dams, and watermills, southwest Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Shushtar_Historical_Hydraulic_System_Panorama.jpg/1280px-Shushtar_Historical_Hydraulic_System_Panorama.jpg",
+    "image_credit": "Iman Yari, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Shushtar_Historical_Hydraulic_System"
     ]
@@ -4603,6 +4899,7 @@
     "country": "Turkey",
     "note": "Coastal ruins with a seaside Temple of Apollo",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Temple_Apollo_Side_Wide.jpg/1280px-Temple_Apollo_Side_Wide.jpg",
+    "image_credit": "Saffron Blaze, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Side,_Turkey"
     ]
@@ -4620,6 +4917,7 @@
     "local_name": "සීගිරිය",
     "note": "5th-century palace atop a 180 m rock column",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Sigiriya_%28141688197%29.jpeg/1280px-Sigiriya_%28141688197%29.jpeg",
+    "image_credit": "Wrobell, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Sigiriya"
     ]
@@ -4635,6 +4933,7 @@
     "country": "Turkey",
     "note": "Lycian castle village over Kekova, reached by boat",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Sunken_City_Simena.JPG/1280px-Sunken_City_Simena.JPG",
+    "image_credit": "Wusel007, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Simena"
     ]
@@ -4652,6 +4951,7 @@
     "note": "Chapel in the Vatican with Michelangelo's ceiling frescoes",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Veduta_della_cappella_sistina_dai_giardini_vaticani%2C_03.jpg/1280px-Veduta_della_cappella_sistina_dai_giardini_vaticani%2C_03.jpg",
     "image_focus": "top",
+    "image_credit": "Sailko, CC BY 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Sistine_Chapel"
     ]
@@ -4665,6 +4965,7 @@
     "local_name": "Σκάρος",
     "note": "Ruined Venetian rock fortress in Imerovigli",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Skaros_Rock.jpg/1280px-Skaros_Rock.jpg",
+    "image_credit": "Christopher Down, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Skaros"
     ]
@@ -4677,6 +4978,7 @@
     "country": "England",
     "note": "Neoclassical arts centre with a fountain courtyard, London",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Somerset_House_courtyard_%2801%29.JPG/1280px-Somerset_House_courtyard_%2801%29.JPG",
+    "image_credit": "Harry Mitchell, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Somerset_House"
     ]
@@ -4694,6 +4996,7 @@
     "local_name": "Hang Sơn Đoòng",
     "note": "World's largest cave by volume",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Son_Doong_Cave_DB_%281%29.jpg/1280px-Son_Doong_Cave_DB_%281%29.jpg",
+    "image_credit": "Dave Bunnell, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Hang_Sơn_Đoòng"
     ]
@@ -4710,6 +5013,7 @@
     "local_name": "中原大佛",
     "note": "128 m gilded statue of Vairocana Buddha",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Spring_Temple_Buddha_05.jpg/1280px-Spring_Temple_Buddha_05.jpg",
+    "image_credit": "Gary Todd, CC0",
     "sources": [
       "https://en.wikipedia.org/wiki/Spring_Temple_Buddha"
     ]
@@ -4726,6 +5030,7 @@
     "local_name": "Basilika Sankt Gereon",
     "note": "Romanesque church with Europe's largest dome of its era",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Frontal_view_-_St._Gereon_-_Cologne_-_Germany_2017_%282%29.jpg/1280px-Frontal_view_-_St._Gereon_-_Cologne_-_Germany_2017_%282%29.jpg",
+    "image_credit": "José Luiz, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/St._Gereon%27s_Basilica,_Cologne"
     ]
@@ -4742,6 +5047,7 @@
     "local_name": "Κάστρο του Αγίου Ιλαρίωνα",
     "note": "Mountain-top Crusader castle in the Kyrenia range",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Saint_Hilarion_Castle%2C_Northern_Cyprus_-_panoramio_%286%29.jpg/1280px-Saint_Hilarion_Castle%2C_Northern_Cyprus_-_panoramio_%286%29.jpg",
+    "image_credit": "Maris Teteris, CC BY 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/St._Hilarion_Castle"
     ]
@@ -4759,6 +5065,7 @@
     "local_name": "Basilica di San Marco",
     "note": "Byzantine cathedral with gold mosaics in Venice",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Venezia_Basilica_di_San_Marco_Fassade_2.jpg/1280px-Venezia_Basilica_di_San_Marco_Fassade_2.jpg",
+    "image_credit": "Zairon, Public domain",
     "sources": [
       "https://en.wikipedia.org/wiki/St_Mark%27s_Basilica"
     ]
@@ -4775,6 +5082,7 @@
     "local_name": "Noel Baba Kilisesi",
     "note": "Burial church of St. Nicholas, the original Santa",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Noel_Baba_Kilisesi..._-_panoramio.jpg/1280px-Noel_Baba_Kilisesi..._-_panoramio.jpg",
+    "image_credit": "Sinan Şahin, CC BY 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/St._Nicholas_Church,_Demre"
     ]
@@ -4791,6 +5099,7 @@
     "local_name": "Basilica di San Pietro",
     "note": "Renaissance church in Vatican City, largest in the world",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Basilica_di_San_Pietro_in_Vaticano_September_2015-1a.jpg/1280px-Basilica_di_San_Pietro_in_Vaticano_September_2015-1a.jpg",
+    "image_credit": "Alvesgaspar, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/St._Peter%27s_Basilica"
     ]
@@ -4807,6 +5116,7 @@
     "local_name": "Государственный исторический музей",
     "note": "Russian national history museum on Red Square, Moscow",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Museo_Estatal_de_Historia%2C_Mosc%C3%BA%2C_Rusia%2C_2016-10-03%2C_DD_49.jpg/1280px-Museo_Estatal_de_Historia%2C_Mosc%C3%BA%2C_Rusia%2C_2016-10-03%2C_DD_49.jpg",
+    "image_credit": "Diego Delso, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/State_Historical_Museum"
     ]
@@ -4823,6 +5133,7 @@
     "country": "United States",
     "note": "France's 1886 gift, icon of freedom and welcome",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/The_Statue_of_Liberty_%2810197568643%29.jpg/1280px-The_Statue_of_Liberty_%2810197568643%29.jpg",
+    "image_credit": "Andrew Napier, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Statue_of_Liberty"
     ]
@@ -4838,6 +5149,7 @@
     "country": "India",
     "note": "World's tallest statue, 182 m, of Sardar Patel",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Statue_of_Unity_2.jpg/1280px-Statue_of_Unity_2.jpg",
+    "image_credit": "Basavaraj M, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Statue_of_Unity"
     ]
@@ -4853,6 +5165,7 @@
     "country": "England",
     "note": "Prehistoric standing stone circle on Salisbury Plain",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Stonehenge2007_07_30.jpg/1280px-Stonehenge2007_07_30.jpg",
+    "image_credit": "garethwiscombe, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Stonehenge"
     ]
@@ -4869,6 +5182,7 @@
     "country": "Italy",
     "note": "Constant eruptions visible at night",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Aerial_image_of_Stromboli_%28view_from_the_northeast%29.jpg/1280px-Aerial_image_of_Stromboli_%28view_from_the_northeast%29.jpg",
+    "image_credit": "Carsten Steger, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Stromboli"
     ]
@@ -4882,6 +5196,7 @@
     "local_name": "جامع السلطان قابوس الأكبر",
     "note": "Oman's largest mosque, striking white marble",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sultan_Qaboos_Grand_Mosque_%281%29.jpg/1280px-Sultan_Qaboos_Grand_Mosque_%281%29.jpg",
+    "image_credit": "Mostafameraji, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Sultan_Qaboos_Grand_Mosque"
     ]
@@ -4897,6 +5212,7 @@
     "country": "Australia",
     "note": "Shell-roofed performing arts centre on Sydney Harbour",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Sydney_Australia._%2821339175489%29.jpg/1280px-Sydney_Australia._%2821339175489%29.jpg",
+    "image_credit": "Bernard Spragg. NZ from Christchurch, New Zealand, CC0",
     "sources": [
       "https://en.wikipedia.org/wiki/Sydney_Opera_House"
     ]
@@ -4912,6 +5228,7 @@
     "country": "Turkey",
     "note": "Ancient port city ruins on a hilltop 20 km east of Alanya",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Syedra_-_panoramio_-_matzi01.jpg/1280px-Syedra_-_panoramio_-_matzi01.jpg",
+    "image_credit": "matzi01, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Syedra"
     ]
@@ -4928,6 +5245,7 @@
     "local_name": "Sümela Manastırı",
     "note": "4th-century cliffside monastery in the Pontic Mountains",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Sumela_From_Across_Valley.JPG/1280px-Sumela_From_Across_Valley.JPG",
+    "image_credit": "Bjørn Christian Tørrissen, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Sümela_Monastery"
     ]
@@ -4941,6 +5259,7 @@
     "local_name": "Tafelberg",
     "note": "Flat-topped mountain overlooking Cape Town",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Table_Mountain_DanieVDM.jpg/1280px-Table_Mountain_DanieVDM.jpg",
+    "image_credit": "Danie van der Merwe from Cape Town, South Africa, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Table_Mountain"
     ]
@@ -4958,6 +5277,7 @@
     "local_name": "ताजमहल",
     "note": "White marble mausoleum on the Yamuna River in Agra",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/1280px-Taj_Mahal_%28Edited%29.jpeg",
+    "image_credit": "Yann; edited by Jim Carter, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Taj_Mahal"
     ]
@@ -4970,6 +5290,7 @@
     "country": "England",
     "note": "Modern art museum in a former Bankside power station",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Tate_Modern_-_Bankside_Power_Station.jpg/1280px-Tate_Modern_-_Bankside_Power_Station.jpg",
+    "image_credit": "Acabashi, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Tate_Modern"
     ]
@@ -4986,6 +5307,7 @@
     "local_name": "Տաթևի վանք",
     "note": "9th-century gorge-edge monastery, reached by aerial tramway",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Monasterio_de_Tatev%2C_Armenia%2C_2016-10-01%2C_DD_77-79_HDR.jpg/1280px-Monasterio_de_Tatev%2C_Armenia%2C_2016-10-01%2C_DD_77-79_HDR.jpg",
+    "image_credit": "Diego Delso, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Tatev_Monastery"
     ]
@@ -5003,6 +5325,7 @@
     "local_name": "El Teide",
     "note": "Active volcano, Spain's highest peak at 3715 m",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Roque_Cinchado_und_Teide.jpg/1280px-Roque_Cinchado_und_Teide.jpg",
+    "image_credit": "Thomas Wolf, www.foto-tw.de, CC BY-SA 3.0 de",
     "sources": [
       "https://en.wikipedia.org/wiki/Teide"
     ]
@@ -5019,6 +5342,7 @@
     "local_name": "پرستشگاه‌ آناهیتا",
     "note": "Ancient temple ruins ascribed to Anahita, Kermanshah",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/%D9%85%D8%B9%D8%A8%D8%AF_%D8%A2%D9%86%D8%A7%D9%87%DB%8C%D8%AA%D8%A7_%DA%A9%D9%86%DA%AF%D8%A7%D9%88%D8%B1_3_soheilchehri.jpg/1280px-%D9%85%D8%B9%D8%A8%D8%AF_%D8%A2%D9%86%D8%A7%D9%87%DB%8C%D8%AA%D8%A7_%DA%A9%D9%86%DA%AF%D8%A7%D9%88%D8%B1_3_soheilchehri.jpg",
+    "image_credit": "soheilchehri, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_Anahita,_Kangavar"
     ]
@@ -5035,6 +5359,7 @@
     "local_name": "Ναός του Ποσειδώνα",
     "note": "Clifftop marble temple over the Aegean, c.440 BC",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Greece_Cape_Sounion_BW_2017-10-09_10-12-43.jpg/1280px-Greece_Cape_Sounion_BW_2017-10-09_10-12-43.jpg",
+    "image_credit": "Berthold Werner, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_Poseidon,_Sounion"
     ]
@@ -5050,6 +5375,7 @@
     "country": "Egypt",
     "note": "Pharaonic temple holding the Abydos King List",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Temple_of_Seti_I_at_Abydos_-_panoramio_%283%29.jpg/1280px-Temple_of_Seti_I_at_Abydos_-_panoramio_%283%29.jpg",
+    "image_credit": "Merlin UK, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_Seti_I_(Abydos)"
     ]
@@ -5067,6 +5393,7 @@
     "local_name": "Templo de las Inscripciones",
     "note": "Palenque pyramid with Pakal's tomb and Maya glyphs",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Tumba_de_pakal%2C_Chiapas.JPG/1280px-Tumba_de_pakal%2C_Chiapas.JPG",
+    "image_credit": "Lousanroj, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Temple_of_the_Inscriptions"
     ]
@@ -5083,6 +5410,7 @@
     "country": "Turkey",
     "note": "Hilltop city Alexander the Great failed to take",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Termessos_-_Theater.jpg/1280px-Termessos_-_Theater.jpg",
+    "image_credit": "Ingo Mehling, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Termessos"
     ]
@@ -5099,6 +5427,7 @@
     "local_name": "شهر سوخته",
     "note": "Bronze Age city ruins on the Helmand, southeast Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/C20R1002.jpg/1280px-C20R1002.jpg",
+    "image_credit": "Amirkhan33, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Shahr-e_Sukhteh"
     ]
@@ -5115,6 +5444,7 @@
     "local_name": "Родина-мать зовёт!",
     "note": "Sword-raising memorial to the Battle of Stalingrad",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Mamayev_Kurgan_Volgograd.jpg/1280px-Mamayev_Kurgan_Volgograd.jpg",
+    "image_credit": "Arne Müseler, CC BY-SA 3.0 de",
     "sources": [
       "https://en.wikipedia.org/wiki/The_Motherland_Calls"
     ]
@@ -5127,6 +5457,7 @@
     "country": "Australia",
     "note": "Thousands of limestone pillars in Nambung's desert sand",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Pinnacles_of_Nambung_National_Park_in_the_evening_sun%2C_September_2023_01.jpg/1280px-Pinnacles_of_Nambung_National_Park_in_the_evening_sun%2C_September_2023_01.jpg",
+    "image_credit": "Calistemon, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/The_Pinnacles_(Western_Australia)"
     ]
@@ -5144,6 +5475,7 @@
     "local_name": "تخت سلیمان",
     "note": "Sasanian fire temple ruins, northwest Iran",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Takht-e-soleiman-1.jpg/1280px-Takht-e-soleiman-1.jpg",
+    "image_credit": "myself, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Takht-e_Soleym%C4%81n"
     ]
@@ -5160,7 +5492,8 @@
     "country": "Mali",
     "local_name": "تنبكت",
     "note": "Medieval center of Islamic learning and Saharan trade",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Djenguereber_Mosque%2C_Timbuktu%2C_Mali.jpg/1280px-Djenguereber_Mosque%2C_Timbuktu%2C_Mali.jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Djinguereber_in_Timbuktu.jpg/1280px-Djinguereber_in_Timbuktu.jpg",
+    "image_credit": "upyernoz from Haverford, USA, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Timbuktu"
     ]
@@ -5178,6 +5511,7 @@
     "local_name": "تيمقاد",
     "note": "Well-preserved Roman town built on a grid plan",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Timgad_%2815685889550%29.jpg/1280px-Timgad_%2815685889550%29.jpg",
+    "image_credit": "Dan Sloan, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Timgad"
     ]
@@ -5195,6 +5529,7 @@
     "local_name": "東大寺",
     "note": "World's largest bronze Buddha in a vast wooden hall",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/T%C5%8Ddai-ji_Kon-d%C5%8D.jpg/1280px-T%C5%8Ddai-ji_Kon-d%C5%8D.jpg",
+    "image_credit": "Wiiii, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/T%C5%8Ddai-ji"
     ]
@@ -5208,6 +5543,7 @@
     "local_name": "東京都美術館",
     "note": "Brick exhibition halls in Ueno Park",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/20240116_Tokyo_Metropolitan_Art_Museum_11.11.33.jpg/1280px-20240116_Tokyo_Metropolitan_Art_Museum_11.11.33.jpg",
+    "image_credit": "Matthide127, CC0",
     "sources": [
       "https://en.wikipedia.org/wiki/Tokyo_Metropolitan_Art_Museum"
     ]
@@ -5221,6 +5557,7 @@
     "local_name": "東京国立博物館",
     "note": "Japan's oldest and largest museum, in Ueno Park",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Tokyo_National_Museum%2C_Honkan_2010.jpg/1280px-Tokyo_National_Museum%2C_Honkan_2010.jpg",
+    "image_credit": "Wiiii, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Tokyo_National_Museum"
     ]
@@ -5237,6 +5574,7 @@
     "local_name": "東京タワー",
     "note": "1958 red-and-white lattice tower, classic city symbol",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Tokyo_Tower%2C_Minato_City.jpg/1280px-Tokyo_Tower%2C_Minato_City.jpg",
+    "image_credit": "David Kernan, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Tokyo_Tower"
     ]
@@ -5254,6 +5592,7 @@
     "local_name": "آرامگاه کوروش بزرگ",
     "note": "6th-c. BC mausoleum of Cyrus the Great at Pasargadae",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Pasargad_Tomb_Cyrus3.jpg/1280px-Pasargad_Tomb_Cyrus3.jpg",
+    "image_credit": "Bernd81, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Tomb_of_Cyrus"
     ]
@@ -5270,6 +5609,7 @@
     "local_name": "آرامگاه داریوش بزرگ",
     "note": "Darius the Great's cliff tomb at Naqsh-e Rostam",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Tomb_of_Darius_I_front.jpg/1280px-Tomb_of_Darius_I_front.jpg",
+    "image_credit": "Blondinrikard Fröberg, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Tomb_of_Darius_the_Great"
     ]
@@ -5286,6 +5626,7 @@
     "local_name": "Kral Kaya Mezarları",
     "note": "Pontic royal tombs cut into a sheer cliff face",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Amasya-Pontisches_Grab-02.JPG/1280px-Amasya-Pontisches_Grab-02.JPG",
+    "image_credit": "Michael F. Schönitzer, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Tombs_of_the_kings_of_Pontus"
     ]
@@ -5303,6 +5644,7 @@
     "local_name": "Topkapı Sarayı",
     "note": "Ottoman sultans' palace overlooking the Bosphorus",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Topkapi_Palace_Seen_From_Harem.JPG/1280px-Topkapi_Palace_Seen_From_Harem.JPG",
+    "image_credit": "Bjørn Christian Tørrissen, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Topkap%C4%B1_Palace"
     ]
@@ -5316,6 +5658,7 @@
     "local_name": "Topographie des Terrors",
     "note": "On the site of the former Gestapo and SS headquarters",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/%D7%9E%D7%95%D7%96%D7%99%D7%90%D7%95%D7%9F_%D7%98%D7%95%D7%A4%D7%95%D7%92%D7%A8%D7%A4%D7%99%D7%94_%D7%A9%D7%9C_%D7%94%D7%98%D7%A8%D7%95%D7%A8_%D7%91%D7%91%D7%A8%D7%9C%D7%99%D7%9F%2C_%D7%9E%D7%91%D7%A0%D7%94_%D7%95%D7%97%D7%A6%D7%A8_04.jpg/1280px-%D7%9E%D7%95%D7%96%D7%99%D7%90%D7%95%D7%9F_%D7%98%D7%95%D7%A4%D7%95%D7%92%D7%A8%D7%A4%D7%99%D7%94_%D7%A9%D7%9C_%D7%94%D7%98%D7%A8%D7%95%D7%A8_%D7%91%D7%91%D7%A8%D7%9C%D7%99%D7%9F%2C_%D7%9E%D7%91%D7%A0%D7%94_%D7%95%D7%97%D7%A6%D7%A8_04.jpg",
+    "image_credit": "Hanay, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Topography_of_Terror"
     ]
@@ -5329,6 +5672,7 @@
     "local_name": "Государственная Третьяковская галерея",
     "note": "Foremost collection of Russian fine art, Moscow",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Moscow_05-2012_TretyakovGallery.jpg/1280px-Moscow_05-2012_TretyakovGallery.jpg",
+    "image_credit": "A.Savin, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Tretyakov_Gallery"
     ]
@@ -5346,6 +5690,7 @@
     "local_name": "Fontana di Trevi",
     "note": "Baroque fountain, the largest in Rome",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Trevi_Fountain_-_Roma.jpg/1280px-Trevi_Fountain_-_Roma.jpg",
+    "image_credit": "NikonZ7II, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Trevi_Fountain"
     ]
@@ -5364,6 +5709,7 @@
     "local_name": "Truva",
     "note": "Legendary Bronze Age city of the Iliad, nine layers",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Walls_of_Troy_%282%29.jpg/1280px-Walls_of_Troy_%282%29.jpg",
+    "image_credit": "CherryX, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Troy"
     ]
@@ -5380,6 +5726,7 @@
     "local_name": "Galleria degli Uffizi",
     "note": "Renaissance art collection of the Medici in Florence",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Florence%2C_Italy_-_panoramio_%28125%29.jpg/1280px-Florence%2C_Italy_-_panoramio_%28125%29.jpg",
+    "image_credit": "Arek N., CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Uffizi"
     ]
@@ -5393,6 +5740,7 @@
     "local_name": "Oberes Belvedere",
     "note": "Baroque palace, home of Klimt's The Kiss",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Palacio_Belvedere%2C_Viena%2C_Austria%2C_2020-02-01%2C_DD_93-95_HDR.jpg/1280px-Palacio_Belvedere%2C_Viena%2C_Austria%2C_2020-02-01%2C_DD_93-95_HDR.jpg",
+    "image_credit": "Diego Delso, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Belvedere,_Vienna"
     ]
@@ -5410,6 +5758,7 @@
     "local_name": "Urnes stavkyrkje",
     "note": "Oldest surviving stave church, built around 1130",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/2023-07-04-Stabkirche_Urnes-6799.jpg/1280px-2023-07-04-Stabkirche_Urnes-6799.jpg",
+    "image_credit": "Superbass, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Urnes_Stave_Church"
     ]
@@ -5427,6 +5776,7 @@
     "local_name": "وادي الملوك",
     "note": "Royal tombs including Tutankhamun's",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Valles_de_las_Reinas_y_de_los_Reyes%2C_Luxor%2C_Egipto%2C_2022-04-03%2C_DD_21.jpg/1280px-Valles_de_las_Reinas_y_de_los_Reyes%2C_Luxor%2C_Egipto%2C_2022-04-03%2C_DD_21.jpg",
+    "image_credit": "Diego Delso, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Valley_of_the_Kings"
     ]
@@ -5444,6 +5794,7 @@
     "local_name": "Valle dei Templi",
     "note": "Ancient Greek temple ruins in Agrigento, Sicily",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Concordiatempel_Tempio_della_Temple_of_Concordia_de_la_Concorde_Tal_der_Tempel_Valle_dei_Templi_Agrigento_Sizilien_Foto_Wolfgang_Pehlemann_DSC07490.jpg/1280px-Concordiatempel_Tempio_della_Temple_of_Concordia_de_la_Concorde_Tal_der_Tempel_Valle_dei_Templi_Agrigento_Sizilien_Foto_Wolfgang_Pehlemann_DSC07490.jpg",
+    "image_credit": "Wolfgang Pehlemann, CC BY-SA 3.0 de",
     "sources": [
       "https://en.wikipedia.org/wiki/Valley_of_the_Temples_(Sicily)"
     ]
@@ -5456,6 +5807,7 @@
     "country": "Netherlands",
     "note": "Largest collection of Van Gogh works",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Van_Gogh_Museum%2C_Kurokawa_wing.jpg/1280px-Van_Gogh_Museum%2C_Kurokawa_wing.jpg",
+    "image_credit": "Sebastian Koppehel, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Van_Gogh_Museum"
     ]
@@ -5472,6 +5824,7 @@
     "local_name": "ვარძია",
     "note": "12th-century cave monastery city carved into a cliff face",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Vardzia_Cave_Monastery_05.jpg/1280px-Vardzia_Cave_Monastery_05.jpg",
+    "image_credit": "Bernard Gagnon, CC BY 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Vardzia"
     ]
@@ -5485,6 +5838,7 @@
     "local_name": "Vasamuseet",
     "note": "17th-century warship that sank on its maiden voyage",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Vasa_ship_by_Hanay_%2857%29.jpg/1280px-Vasa_ship_by_Hanay_%2857%29.jpg",
+    "image_credit": "Hanay, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Vasa_Museum"
     ]
@@ -5501,6 +5855,7 @@
     "local_name": "Musei Vaticani",
     "note": "Papal art collections and the Sistine Chapel",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Circular_staircase_of_the_Vatican_Museums.jpg/1280px-Circular_staircase_of_the_Vatican_Museums.jpg",
+    "image_credit": "Livioandronico2013, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Vatican_Museums"
     ]
@@ -5519,6 +5874,7 @@
     "local_name": "Arena di Verona",
     "note": "1st-century Roman amphitheatre, famed for its opera season",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Arena-XE3F2406a.jpg/1280px-Arena-XE3F2406a.jpg",
+    "image_credit": "Claconvr, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Verona_Arena"
     ]
@@ -5531,6 +5887,7 @@
     "country": "England",
     "note": "World's largest museum of applied and decorative arts",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Victoria_and_Albert_Museum_London.jpg/1280px-Victoria_and_Albert_Museum_London.jpg",
+    "image_credit": "Alinangel, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Victoria_and_Albert_Museum"
     ]
@@ -5548,6 +5905,7 @@
     "local_name": "Mosi-oa-Tunya",
     "note": "One of the largest waterfalls on Earth",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Cataratas_Victoria%2C_Zambia-Zimbabue%2C_2018-07-27%2C_DD_05.jpg/1280px-Cataratas_Victoria%2C_Zambia-Zimbabue%2C_2018-07-27%2C_DD_05.jpg",
+    "image_credit": "Diego Delso, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Victoria_Falls"
     ]
@@ -5561,6 +5919,7 @@
     "local_name": "Vigelandsparken",
     "note": "Largest sculpture park by a single artist, Gustav Vigeland",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Vigeland_Sculpture_Park_-_Panoramic_view_towards_the_Monolith%2C_Oslo%2C_Norway.jpg/1280px-Vigeland_Sculpture_Park_-_Panoramic_view_towards_the_Monolith%2C_Oslo%2C_Norway.jpg",
+    "image_credit": "Christian David, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Vigeland_Park"
     ]
@@ -5578,6 +5937,7 @@
     "local_name": "ವಿಜಯನಗರ",
     "note": "Vast ruined imperial capital, now Hampi",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/View_of_the_Virupaksha_temple_complex_from_Hemakuta_hill.JPG/1280px-View_of_the_Virupaksha_temple_complex_from_Hemakuta_hill.JPG",
+    "image_credit": "Dineshkannambadi, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Vijayanagara"
     ]
@@ -5591,6 +5951,7 @@
     "local_name": "Vikingskipshuset",
     "note": "Best-preserved Viking ships, incl. the Oseberg ship",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Oseberg_Ship_-_Viking_Ship_Museum_%28Oslo%29.jpg/1280px-Oseberg_Ship_-_Viking_Ship_Museum_%28Oslo%29.jpg",
+    "image_credit": "Larry Lamsa, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Viking_Ship_Museum_(Oslo)"
     ]
@@ -5608,6 +5969,7 @@
     "local_name": "Villa dei Misteri",
     "note": "Pompeii villa with vivid mystery-cult frescoes",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Pompeii_Ruins_Scenes_of_a_Dionysiac_Mystery_Cult%2C_Villa_of_the_Mysteries_Fresco%2C_c._50_BC_%2848445603162%29.jpg/1280px-Pompeii_Ruins_Scenes_of_a_Dionysiac_Mystery_Cult%2C_Villa_of_the_Mysteries_Fresco%2C_c._50_BC_%2848445603162%29.jpg",
+    "image_credit": "Gary Todd from Xinzheng, China, Public domain",
     "sources": [
       "https://en.wikipedia.org/wiki/Villa_of_the_Mysteries"
     ]
@@ -5620,6 +5982,7 @@
     "country": "New Zealand",
     "note": "Geothermal area with colorful hot springs near Rotorua",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/ChampagnePool-Wai-O-Tapu_rotated_MC.jpg/1280px-ChampagnePool-Wai-O-Tapu_rotated_MC.jpg",
+    "image_credit": "Christian Mehlführer, User:Chmehl, CC BY 2.5",
     "sources": [
       "https://en.wikipedia.org/wiki/Wai-O-Tapu"
     ]
@@ -5635,6 +5998,7 @@
     "country": "New Zealand",
     "note": "Cave ceilings lit blue by bioluminescent glowworms",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Green_Glow_Caves_in_New_Zealand_%286563152219%29.jpg/1280px-Green_Glow_Caves_in_New_Zealand_%286563152219%29.jpg",
+    "image_credit": "Donnie Ray Jones, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Waitomo_Glowworm_Caves"
     ]
@@ -5647,6 +6011,7 @@
     "country": "Australia",
     "note": "15m granite cliff shaped like a breaking wave",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Wave_rock_%282005%29.jpg/1280px-Wave_rock_%282005%29.jpg",
+    "image_credit": "Kaliumfredrik at English Wikipedia, CC BY-SA 3.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Wave_Rock"
     ]
@@ -5663,6 +6028,7 @@
     "local_name": "Zamek Królewski na Wawelu",
     "note": "Royal residence and coronation site of Polish kings",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Wawel_%284%29.jpg/1280px-Wawel_%284%29.jpg",
+    "image_credit": "Monika Towiańska, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Wawel_Castle"
     ]
@@ -5680,6 +6046,7 @@
     "local_name": "הכותל המערבי",
     "note": "Holiest site where Jews can pray",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/16-03-30-Klagemauer_Jerusalem_RalfR-DSCF7673.jpg/1280px-16-03-30-Klagemauer_Jerusalem_RalfR-DSCF7673.jpg",
+    "image_credit": "Ralf Roletschek, GFDL 1.2",
     "sources": [
       "https://en.wikipedia.org/wiki/Western_Wall"
     ]
@@ -5696,6 +6063,7 @@
     "country": "Australia",
     "note": "Pure silica sand with swirling tidal patterns",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Hill_Inlet_at_the_end_of_Whitehaven_Beach_in_the_Whitsundays.JPG/1280px-Hill_Inlet_at_the_end_of_Whitehaven_Beach_in_the_Whitsundays.JPG",
+    "image_credit": "Isderion, CC BY-SA 3.0 de",
     "sources": [
       "https://en.wikipedia.org/wiki/Whitehaven_Beach"
     ]
@@ -5712,6 +6080,7 @@
     "local_name": "Kopalnia soli Wieliczka",
     "note": "Chapels and chandeliers carved from rock salt",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/%CE%91%CE%BB%CE%B1%CF%84%CF%89%CF%81%CF%85%CF%87%CE%B5%CE%AF%CE%B1_%CE%92%CE%B9%CE%B5%CE%BB%CE%AF%CF%84%CF%83%CE%BA%CE%B1_5021.jpg/1280px-%CE%91%CE%BB%CE%B1%CF%84%CF%89%CF%81%CF%85%CF%87%CE%B5%CE%AF%CE%B1_%CE%92%CE%B9%CE%B5%CE%BB%CE%AF%CF%84%CF%83%CE%BA%CE%B1_5021.jpg",
+    "image_credit": "C messier, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Wieliczka_Salt_Mine"
     ]
@@ -5729,6 +6098,7 @@
     "country": "Turkey",
     "note": "Ancient Lycian capital with monumental tombs",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Xanthos_Roman_Theatre_2019.jpg/1280px-Xanthos_Roman_Theatre_2019.jpg",
+    "image_credit": "Bjørn Christian Tørrissen, CC BY-SA 4.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Xanthos"
     ]
@@ -5742,6 +6112,7 @@
     "local_name": "Yanartaş",
     "note": "Eternal flames from natural gas vents near Olympos",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/The_eternal_fires_of_Chimera_in_Lycia_where_the_myth_of_the_Chimera_takes_place%2C_Mount_Chimaera%2C_Yanarta%C5%9F%2C_Turkey_%2812834951845%29.jpg/1280px-The_eternal_fires_of_Chimera_in_Lycia_where_the_myth_of_the_Chimera_takes_place%2C_Mount_Chimaera%2C_Yanarta%C5%9F%2C_Turkey_%2812834951845%29.jpg",
+    "image_credit": "Carole Raddato from FRANKFURT, Germany, CC BY-SA 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Yanarta%C5%9F"
     ]
@@ -5755,6 +6126,7 @@
     "local_name": "宮城蔵王キツネ村",
     "note": "Over 100 free-roaming foxes in the Miyagi mountains",
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Zao_foxes_%2851901324658%29.jpg/1280px-Zao_foxes_%2851901324658%29.jpg",
+    "image_credit": "Raita Futo from Tokyo, Japan, CC BY 2.0",
     "sources": [
       "https://en.wikipedia.org/wiki/Miyagi_Zao_Fox_Village"
     ]

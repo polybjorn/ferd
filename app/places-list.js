@@ -24,13 +24,13 @@ import {
 // Fields the catalog "owns" - personal status (visited / date_visited /
 // rating / from_catalog / runtime annotations) is preserved on refresh.
 /** @type {(keyof Place)[]} */
-const CATALOG_TRACKED_FIELDS = ['name', 'lat', 'lon', 'category', 'country', 'local_name', 'note', 'image', 'image_focus', 'sources', 'tags'];
+const CATALOG_TRACKED_FIELDS = ['name', 'lat', 'lon', 'category', 'country', 'local_name', 'note', 'image', 'image_focus', 'image_credit', 'sources', 'tags'];
 // The t() key that labels each field in the diff.
 /** @type {Record<string, string>} */
 const CATALOG_FIELD_LABELS = {
   name: 'form.name', lat: 'form.latitude', lon: 'form.longitude', category: 'form.category', country: 'form.country',
   local_name: 'form.localName', note: 'form.note', image: 'catalogUpdate.fieldImage',
-  image_focus: 'catalogUpdate.fieldImageFocus', sources: 'form.sources', tags: 'form.tags',
+  image_focus: 'catalogUpdate.fieldImageFocus', image_credit: 'catalogUpdate.fieldImageCredit', sources: 'form.sources', tags: 'form.tags',
 };
 
 // Returns { entry, changes: [{field, before, after}] } when the upstream

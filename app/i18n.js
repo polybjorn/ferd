@@ -701,6 +701,7 @@ const STRINGS = {
   'catalogUpdate.none': '(none)',
   'catalogUpdate.fieldImage': 'Image',
   'catalogUpdate.fieldImageFocus': 'Image focus',
+  'catalogUpdate.fieldImageCredit': 'Image credit',
   'catalogUpdate.clear': 'Clear',
   'catalogUpdate.checkAll': 'Check all',
   'catalogUpdate.uncheckAll': 'Uncheck all',

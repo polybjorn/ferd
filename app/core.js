@@ -67,6 +67,7 @@ export const DATA_FILES = { siteConfig: 'site-config.json' };
  * @property {string[]} [sources]
  * @property {string} [image]
  * @property {string} [image_focus]
+ * @property {string} [image_credit] "<author>, <licence>" shown under the image
  * @property {string} [local_name]
  * @property {string[]} [tags]
  * @property {string} [date_visited] YYYY-MM-DD

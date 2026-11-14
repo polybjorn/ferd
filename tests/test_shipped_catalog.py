@@ -71,7 +71,7 @@ NOTE_MAX = 60
 CANONICAL_ORDER = [
   "name", "lat", "lon",
   "category", "tags", "country", "local_name",
-  "note", "image", "image_focus", "sources",
+  "note", "image", "image_focus", "image_credit", "sources",
 ]
 
 IMAGE_FOCUS_RE = re.compile(r"^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$")
@@ -183,6 +183,17 @@ class ShippedCatalogTests(unittest.TestCase):
           v.strip(), IMAGE_FOCUS_RE,
           msg=f"image_focus {v!r} must be one of top/bottom/center/left/right or 'N% N%'",
         )
+
+  def test_image_credit_with_image(self):
+    # Shipped images are mostly CC BY and CC BY-SA, whose licences require
+    # the credit wherever the image is shown. scripts/catalog-image-credits.py
+    # fills it for Commons images.
+    for i, entry in enumerate(self.entries):
+      with self.subTest(i=i, name=entry.get("name", "?")):
+        if "image" in entry:
+          self.assertIn("image_credit", entry, msg="an image needs image_credit (author, licence)")
+        else:
+          self.assertNotIn("image_credit", entry, msg="image_credit without an image")
 
   def test_required_fields_present(self):
     # validate_place enforces lat/lon/name, but the catalog convention also

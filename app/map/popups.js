@@ -61,6 +61,23 @@ function PopupEdit({ onEdit }) {
 }
 
 const IMAGE_FOCUS = /^(top|bottom|center|left|right|\d{1,3}%\s+\d{1,3}%)$/;
+const COMMONS_IMAGE = /^https:\/\/upload\.wikimedia\.org\/wikipedia\/commons\/(?:thumb\/)?[0-9a-f]\/[0-9a-f]{2}\/([^/?#]+)/;
+
+// The Commons file page carries the full author and licence terms, so a
+// credit links there when the image comes from Commons.
+/** @param {string} url */
+function commonsFilePage(url) {
+  const m = COMMONS_IMAGE.exec(url || '');
+  return m ? 'https://commons.wikimedia.org/wiki/File:' + m[1] : '';
+}
+
+/** @param {{ credit?: string, image: string }} props */
+function ImageCredit({ credit, image }) {
+  if (!credit) return null;
+  const page = commonsFilePage(image);
+  return html`<div class="popup-credit">${page
+    ? html`<a href=${page} target="_blank" rel="noopener noreferrer">${credit}</a>` : credit}</div>`;
+}
 
 /** @param {{ place: any, onEdit: () => void }} props */
 export function PlacePopup({ place: p, onEdit }) {
@@ -72,7 +89,8 @@ export function PlacePopup({ place: p, onEdit }) {
     <div class="popup-name">${p.name}<${LocalName} name=${p.local_name} /></div>
     ${p.image && getShowField('image') && !imageFailed ? html`<img class="popup-image" src=${p.image} alt=""
       style=${focus ? { objectPosition: focus } : null} loading="lazy" referrerpolicy="no-referrer"
-      onError=${() => setImageFailed(true)} />` : null}
+      onError=${() => setImageFailed(true)} />
+      <${ImageCredit} credit=${p.image_credit} image=${p.image} />` : null}
     <${Note} text=${p.note} />
     <${Tags} tags=${p.tags} />
     <div class="popup-meta">

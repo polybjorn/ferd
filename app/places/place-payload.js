@@ -115,6 +115,7 @@ export function editPlacePayload(v, place, show) {
   if (!show('image') && place.image) out.image = place.image;
   if (!show('tags') && place.tags && place.tags.length) out.tags = place.tags;
   if (place.image_focus && out.image === place.image) out.image_focus = place.image_focus;
+  if (place.image_credit && out.image === place.image) out.image_credit = place.image_credit;
   if (out.visited) {
     if (!show('date') && place.date_visited) out.date_visited = place.date_visited;
     if (!show('rating') && place.rating) out.rating = place.rating;

@@ -6,9 +6,13 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Added
 - A `public_url` setting (`FERD_PUBLIC_URL`). Set it to the site's address, such as `https://ferd.example.com`, and link previews, `/robots.txt` and `/sitemap.xml` name that address whatever `Host` a request sends, so a cache in front cannot keep a page pointing at another host. Unset, they follow the request as before. The nginx and Caddy examples now say to answer only the configured name.
+- Catalog images show their author and licence under the image in the place popup, linked to the image's page on Wikimedia Commons, as the images' licences require. Places imported from the catalog keep the credit, and an update from the catalog brings it to places imported earlier.
 
 ### Changed
 - Superseded beta images and release pages are deleted automatically: a pinned beta image (`:X.Y.Z-beta.N`) goes once a stable release supersedes it, and only the newest 20 commit-hash images are kept. Stable tags, `:latest`, `:beta` and `:dev` are never deleted.
+
+### Fixed
+- The catalog images for Diriyah, Hegra and Timbuktu were deleted from Wikimedia Commons and showed nothing; they are replaced.
 
 ## [2.0.0] - 2026-11-14
 

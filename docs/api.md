@@ -172,10 +172,11 @@ These sit at the site root, not under `/api`.
 
 Required: `name`, `lat`, `lon`. Optional: `category`, `country`, `visited`, `note`, `sources` (array of `http(s)` URLs, max 20, each max 500 chars), `image` (single `http(s)` URL, max 1000 chars), `local_name`, `tags` (array of free-form labels, same format as route tags: `[a-zA-Z0-9][a-zA-Z0-9-]{0,31}`, max 10, deduped case-insensitively), `date_visited` (YYYY-MM-DD), `rating` (1-5). `country_code` is set by the server from `country` (its ISO 3166-1 alpha-2 code, or left out when the name does not match the table in `vendor/natural-earth/country-names.json`); a client value is accepted and replaced. A missing or empty `category` is stored as "uncategorized" (the field is stripped). Anything else is rejected.
 
-Four more optional fields are managed by the server or the catalog flow rather than typed in by hand:
+Five more optional fields are managed by the server or the catalog flow rather than typed in by hand:
 
 - `id` - 8-char hex, picked by the client that creates the place and stable for its life. The server sets it from the change's `id`.
 - `image_focus` - crop anchor for the popup image (`top`/`bottom`/`left`/`right`/`center` or `"X% Y%"`). The app drops it when `image` changes; the server stores what it is sent.
+- `image_credit` - author and licence of the image, such as `"Jane Doe, CC BY-SA 4.0"` (max 300 chars), shown under the popup image. Catalog entries carry it; the app drops it when `image` changes.
 - `from_catalog` - name of the catalog entry this place was imported from (max 200 chars). Drives the imported-already indicator in Browse.
 - `catalog_skip` - object (max 20 keys) recording catalog fields the user dismissed, mapped to the catalog value at dismiss time, so the same diff doesn't resurface. Values are JSON scalars or lists (max 50 items).
 

@@ -700,6 +700,7 @@ export const NB = {
   'catalogUpdate.none': '(ingen)',
   'catalogUpdate.fieldImage': 'Bilde',
   'catalogUpdate.fieldImageFocus': 'Bildefokus',
+  'catalogUpdate.fieldImageCredit': 'Bildekreditering',
   'catalogUpdate.clear': 'Tøm',
   'catalogUpdate.checkAll': 'Merk alle',
   'catalogUpdate.uncheckAll': 'Fjern alle merker',
