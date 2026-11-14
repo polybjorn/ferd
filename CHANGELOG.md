@@ -112,6 +112,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 - The server no longer resets connections when many requests arrive at once, such as a client syncing after time offline. Its listen queue held only 5 waiting connections, so on a busy or slow host some were dropped before they were read.
 - The app no longer stays on Loading when its sign-in check stalls on a poor connection: it asks once more after 4 seconds, then opens the way it does offline. On a first visit, the copy of the app kept for offline use now downloads once the app has opened, not alongside it.
 - `deploy/nginx.example.conf` now passes `nginx -t`: the login rate-limit zone sits outside the server blocks, where nginx accepts it.
+- `deploy/nginx.example.conf` turns on HTTP/2 with the `http2 on;` directive, so `nginx -t` on nginx 1.25.1 or newer no longer warns that `listen ... http2` is deprecated. A comment in the file gives the old form for an older nginx.
 - The Docker image's licence label says GPL-3.0 instead of MIT.
 
 ### Removed
