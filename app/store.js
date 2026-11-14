@@ -38,6 +38,8 @@ import { ROUTE_META_FIELDS, _genId, _splitKey, parseGpxText, stripGpxPiiText } f
 export const places = signal(/** @type {any[]} */ ([]));
 export const areas = signal(/** @type {any[]} */ ([]));
 export const routes = signal(/** @type {{ regions: any[] }} */ ({ regions: [] }));
+// ISO codes of the countries the user marked visited by hand, sorted.
+export const visitedCountries = signal(/** @type {string[]} */ ([]));
 export const labels = signal(/** @type {Record<string, any>} */ ({}));
 export const prefs = signal(/** @type {Record<string, any>} */ ({}));
 export const pendingCount = signal(0);
@@ -74,7 +76,7 @@ export function bindCatalogCache() {
 
 const DB_NAME = 'ferd';
 const DB_VERSION = 6;
-const KINDS = ['place', 'area', 'route', 'metadata', 'pref', 'label'];
+const KINDS = ['place', 'area', 'route', 'metadata', 'pref', 'label', 'country'];
 const BATCH_MAX = 500;
 // Characters of change data per push. Even at three UTF-8 bytes each, a
 // batch stays under the server's default 1 MiB body limit.
@@ -735,6 +737,7 @@ function publish(kinds) {
     if (kinds.has('place')) places.value = sortedData(mem.place);
     if (kinds.has('area')) areas.value = sortedData(mem.area);
     if (kinds.has('route') || kinds.has('metadata')) routes.value = buildManifest(mem.route, mem.metadata);
+    if (kinds.has('country')) visitedCountries.value = [...mem.country.keys()].sort();
     if (kinds.has('label')) {
       /** @type {Record<string, any>} */
       const o = {};
@@ -998,8 +1001,8 @@ function fetchOr(url) {
 // has no copy, so the caller can say which.
 export async function loadPublic() {
   const had = await open();
-  const got = await Promise.all([fetchOr(dataUrl('places')), fetchOr(dataUrl('areas')), fetchOr(dataUrl('routes')), fetchOr(categoryLabelsUrl())]);
-  const [pl, ar, ro, lb] = got;
+  const got = await Promise.all([fetchOr(dataUrl('places')), fetchOr(dataUrl('areas')), fetchOr(dataUrl('routes')), fetchOr(categoryLabelsUrl()), fetchOr(dataUrl('visited-countries'))]);
+  const [pl, ar, ro, lb, vc] = got;
   // Part of the map missing would replace the saved copy with less of it.
   if (got.includes('offline')) return had || null;
   if (!Array.isArray(pl) && !(ro && Array.isArray(ro.regions))) return false;
@@ -1009,6 +1012,7 @@ export async function loadPublic() {
   if (Array.isArray(ar)) for (const a of ar) if (a && a.id) changes.push({ kind: 'area', id: a.id, op: 'put', data: a });
   changes.push(...manifestItems(ro));
   if (lb && lb.category_labels) for (const s in lb.category_labels) changes.push({ kind: 'label', id: s, op: 'put', data: lb.category_labels[s] });
+  if (vc && Array.isArray(vc.countries)) for (const c of vc.countries) changes.push({ kind: 'country', id: c, op: 'put', data: {} });
   mem = emptyMem();
   const { w } = applyChanges(changes, false);
   w.clearItems = true;
@@ -1133,6 +1137,11 @@ export const dataLayer = {
   deleteRegion(body) { return gpxOp('deleteRegion', body); },
   /** @param {{ name: string }} body */
   async clearRegion(body) { const r = await gpxOp('clearRegion', body); logIfLocal('region.clear', body.name); return r; },
+  /** @param {string} code @param {boolean} visited */
+  setCountryVisited(code, visited) {
+    if (mem.country.has(code) === visited) return Promise.resolve();
+    return commit([visited ? { kind: 'country', id: code, op: 'put', data: {} } : { kind: 'country', id: code, op: 'delete' }]);
+  },
   /** @param {string} key @param {any} value */
   putPref(key, value) {
     const cur = mem.pref.get(key);
@@ -1154,12 +1163,12 @@ export function exportLocal() {
     for (const [k, v] of mem.label) lb[k] = v.data;
     return {
       places: sortedData(mem.place), areas: sortedData(mem.area), routes: buildManifest(mem.route, new Map()),
-      metadata: md, labels: lb, gpx: gpx.map(g => ({ file: g.file, text: g.text })),
+      metadata: md, labels: lb, countries: [...mem.country.keys()].sort(), gpx: gpx.map(g => ({ file: g.file, text: g.text })),
     };
   });
 }
 /**
- * @param {{ places: any, areas: any, metadata: any, labels: any, gpx: Array<{ file: string, text: string }> }} data
+ * @param {{ places: any, areas: any, metadata: any, labels: any, countries?: any, gpx: Array<{ file: string, text: string }> }} data
  * @param {string} mode 'replace' or 'merge'
  */
 export async function importLocal(data, mode) {
@@ -1208,6 +1217,9 @@ export async function importLocal(data, mode) {
     for (const k in data.labels) changes.push({ kind: 'label', id: k, op: 'put', data: data.labels[k] });
     if (mode === 'replace') for (const id of mem.label.keys()) if (!(id in data.labels)) changes.push({ kind: 'label', id, op: 'delete' });
   }
+  const countries = Array.isArray(data.countries) ? data.countries.filter((/** @type {any} */ c) => typeof c === 'string') : null;
+  if (countries) for (const c of countries) changes.push({ kind: 'country', id: c, op: 'put', data: {} });
+  if (mode === 'replace') for (const id of mem.country.keys()) if (!(countries && countries.includes(id))) changes.push({ kind: 'country', id, op: 'delete' });
   const { w, kinds } = applyChanges(changes, false);
   // A later put of an id deleted above in the same list wins in memory; keep
   // the database in step by writing deletes before puts.

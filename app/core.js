@@ -141,6 +141,13 @@ export const DATA_FILES = { siteConfig: 'site-config.json' };
  * @property {CategoryLabels} category_labels
  */
 
+/**
+ * The `/api/u/<name>/visited-countries` response: the ISO codes of the
+ * countries the owner marked visited by hand.
+ * @typedef {object} VisitedCountriesBody
+ * @property {string[]} countries
+ */
+
 export const state = {
   config: DEFAULT_CONFIG,
   /** @type {AuthState} */

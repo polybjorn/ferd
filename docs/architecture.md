@@ -13,7 +13,7 @@ The frontend talks to the API via `fetch`; the API stores users, sessions, and p
 
 ## Data on disk
 
-Two stores: SQLite (`tools/app.db`) and files on disk. SQLite holds auth and runtime state (users + `published` flag, sessions, audit log capped at 5000 rows, site settings; login rate-limit counters are in-memory) and each user's items: places, areas, route metadata, preferences, category labels, and one row per route. GPX files stay under `users/<username>/gpx/`, and site-wide config sits at the data-dir root.
+Two stores: SQLite (`tools/app.db`) and files on disk. SQLite holds auth and runtime state (users + `published` flag, sessions, audit log capped at 5000 rows, site settings; login rate-limit counters are in-memory) and each user's items: places, areas, route metadata, preferences, category labels, hand-marked countries, and one row per route. GPX files stay under `users/<username>/gpx/`, and site-wide config sits at the data-dir root.
 
 Items live in one table, `store_items(user_id, kind, id, pos, data, rev, updated_at, deleted)`, one row per item. Each user has a revision counter (`store_revs`) that goes up by one for every item written, and the item takes that number as its `rev`. A delete keeps the row as a tombstone (`deleted=1`, no data) so a client that was offline learns about it; tombstones are not purged. `pos` keeps list order. The sync endpoints read this table (see [api.md](api.md#sync)), so a local-first client can ask for everything after a revision. Route rows hold only what the server derives from the GPX files (`routes.json` from `gpx-manifest.sh` is ingested after each regeneration); the metadata rows are laid over them when the manifest is served.
 

@@ -68,6 +68,8 @@ export const NB = {
   'settings.general.logs': 'Logger',
   'settings.general.countries': 'Besøkte land',
   'settings.general.countriesHint': 'Besøkte land vises når kartet er zoomet ut.',
+  'settings.general.markedCountries': 'Merkede land',
+  'settings.general.markedCountriesHint': 'Merk et land som besøkt når ingen besøkt plass ligger i det.',
   'settings.general.optionalFields': 'Valgfrie felt',
   'settings.general.fieldDate': 'Dato',
   'settings.general.fieldImage': 'Bilde',

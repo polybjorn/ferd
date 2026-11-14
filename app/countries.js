@@ -10,9 +10,9 @@ import { _selectCoarsePointer } from './select.js';
 /** @typedef {{ shapes: object, names: CountryNames }} CountryData */
 
 // Visited countries: an opt-in fill under the areas for each country that
-// holds a visited place. The boundaries (Natural Earth, about 650 KB
-// gzipped) are fetched only once the layer is on; the service worker then
-// keeps them like any other /vendor/ file. The country comes from the
+// holds a visited place or that the user marked by hand. The boundaries
+// (Natural Earth, about 650 KB gzipped) are fetched only once the layer is
+// on; the service worker then keeps them like any other /vendor/ file. The country comes from the
 // place's own country field, never from where its pin falls.
 const COUNTRY_DATA_URL = '/vendor/natural-earth/';
 export const COUNTRY_MAX_ZOOM = 6;
@@ -57,11 +57,31 @@ function countryMatches(query, countries, names) {
  * @returns {string | null}
  */
 function canonicalCountry(value, countries, names) {
-  const q = normCountryName(value);
-  const hit = countries.find(c => c.code === names[q] || normCountryName(c.name) === q);
+  const hit = findCountry(value, countries, names);
   return hit ? hit.name : null;
 }
+/**
+ * @param {string} value
+ * @param {Country[]} countries
+ * @param {CountryNames} names
+ * @returns {string | null}
+ */
+function countryCodeOf(value, countries, names) {
+  const hit = findCountry(value, countries, names);
+  return hit ? hit.code : null;
+}
+/**
+ * @param {string} value
+ * @param {Country[]} countries
+ * @param {CountryNames} names
+ * @returns {Country | undefined}
+ */
+function findCountry(value, countries, names) {
+  const q = normCountryName(value);
+  return countries.find(c => c.code === names[q] || normCountryName(c.name) === q);
+}
 // COUNTRY-MATCH-END
+export { countryCodeOf };
 /** @param {string} f @returns {Promise<any>} */
 function fetchCountryFile(f) {
   return fetch(COUNTRY_DATA_URL + f).then(r => {
@@ -70,7 +90,7 @@ function fetchCountryFile(f) {
   });
 }
 /** @returns {Promise<CountryPick>} */
-function loadCountryPick() {
+export function loadCountryPick() {
   if (!state._countryPick) {
     state._countryPick = Promise.all(['country-list.json', 'country-names.json'].map(fetchCountryFile))
       .then(([list, names]) => ({
@@ -245,6 +265,7 @@ export function loadCountryData() {
   }
   return state._countryData;
 }
+// COUNTRY-CODES-BEGIN
 // The server stores country_code; the name lookup covers local mode and
 // edits still queued offline, which have not been through the server.
 /**
@@ -255,3 +276,20 @@ export function loadCountryData() {
 export function placeCountryCode(p, names) {
   return p.country_code || (p.country ? names[normCountryName(p.country)] : null) || null;
 }
+// The countries to fill: those of visited places plus the ones marked by hand.
+/**
+ * @param {Place[]} places
+ * @param {Iterable<string>} marked
+ * @param {CountryNames} names
+ * @returns {Set<string>}
+ */
+export function filledCountryCodes(places, marked, names) {
+  const codes = new Set(marked);
+  for (const p of places) {
+    if (!p.visited) continue;
+    const code = placeCountryCode(p, names);
+    if (code) codes.add(code);
+  }
+  return codes;
+}
+// COUNTRY-CODES-END

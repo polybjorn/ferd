@@ -102,7 +102,7 @@ export function detectViewer() {
   return viewerOf(location.pathname);
 }
 
-/** @param {'places' | 'areas' | 'routes' | 'metadata'} kind */
+/** @param {'places' | 'areas' | 'routes' | 'metadata' | 'visited-countries'} kind */
 export function dataUrl(kind) {
   const v = state.viewer;
   if (v && v.mode === 'public') return apiUrl('/u/' + encodeURIComponent(/** @type {string} */ (v.username)) + '/' + kind);

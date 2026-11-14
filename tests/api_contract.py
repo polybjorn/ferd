@@ -49,6 +49,7 @@ ENDPOINTS = [
   ("GET", "/u/<name>/areas", "app/core.js", "Area[]", None),
   ("GET", "/u/<name>/routes", "app/core.js", "Manifest", None),
   ("GET", "/u/<name>/category-labels", "app/core.js", "CategoryLabelsBody", None),
+  ("GET", "/u/<name>/visited-countries", "app/core.js", "VisitedCountriesBody", None),
 ]
 
 # Literal `api('METHOD', '/path'...)` calls in app/ whose response the client

@@ -32,7 +32,7 @@ Every endpoint exposed by `tools/api.py`. Useful if you want to script against F
 
 ## Per-user content (owner)
 
-All paths read and write the signed-in user's own folder (`users/<self>/`). Places, areas, preferences and category labels are written through [`POST /sync/batch`](#sync); their paths here only read.
+All paths read and write the signed-in user's own folder (`users/<self>/`). Places, areas, preferences, category labels and hand-marked countries are written through [`POST /sync/batch`](#sync); their paths here only read.
 
 | Method | Path | Body | Notes |
 |---|---|---|---|
@@ -51,9 +51,9 @@ All paths read and write the signed-in user's own folder (`users/<self>/`). Plac
 | `GET` | `/me/prefs` | - | UI prefs that should follow the account across browsers. |
 | `GET` | `/me/category-labels` | - | `{category_labels: {slug: {label, color?, order?}, ...}}`. `color` is an int index into the frontend palette (assigned on first use to keep per-category colors stable across edits). `order` sets the position in Manage categories; slugs without one sort to the end alphabetically. A `label` put through `/sync/batch` replaces the whole entry: `color` is an int 0-99, `order` an int 0-999, and any other key is rejected. |
 | `POST` | `/me/publish` | `{published: bool}` | Flip the public-read gate. Non-admins can always unpublish but can only publish when the site-wide publishing gate is open. |
-| `GET` | `/me/export` | - | Returns a zip in the layout the import reads: the JSON files are built from the user's stored items and `gpx/...` comes from the user's folder (`places.json`, `areas.json`, `routes.json`, `metadata.json`, `prefs.json`, `category-labels.json`, `gpx/...`). Excludes dotfiles, backup files (`*.bak`, `*~`), and OS metadata (`.DS_Store`, `Thumbs.db`). |
+| `GET` | `/me/export` | - | Returns a zip in the layout the import reads: the JSON files are built from the user's stored items and `gpx/...` comes from the user's folder (`places.json`, `areas.json`, `routes.json`, `metadata.json`, `prefs.json`, `category-labels.json`, `visited-countries.json`, `gpx/...`). `visited-countries.json` is an array of country codes. Excludes dotfiles, backup files (`*.bak`, `*~`), and OS metadata (`.DS_Store`, `Thumbs.db`). |
 | `GET` | `/me/export.geojson` | - | Places, areas and routes as one GeoJSON `FeatureCollection` (`application/geo+json`) for QGIS and similar tools. Places are `Point`s and areas keep their stored geometry; every feature has `kind` (`place`, `area` or `route`) and `name`, plus the stored fields. Routes are the full track (`LineString`, or `MultiLineString` for several segments) with elevation where the GPX has it, and carry `region`, `completed` and the route metadata fields; GPX timestamps, author and creator are left out. |
-| `POST` | `/me/import?mode=replace\|merge\|prefs` | zip body | `Content-Type: application/zip`. `replace` deletes existing top-level files and the `gpx/` tree before writing; `merge` appends places by unique name and updates metadata/prefs/labels by key; `prefs` only merges `prefs.json` + `category-labels.json` and skips places/routes/metadata/GPX even if they're in the archive. GPX files always have PII stripped on import. Triggers manifest regen. |
+| `POST` | `/me/import?mode=replace\|merge\|prefs` | zip body | `Content-Type: application/zip`. `replace` deletes existing top-level files and the `gpx/` tree before writing; `merge` appends places by unique name, updates metadata/prefs/labels by key and adds the archive's visited countries to the stored ones; `prefs` only merges `prefs.json` + `category-labels.json` and skips places/routes/metadata/countries/GPX even if they're in the archive. `visited-countries.json` is refused with `400` when it holds anything but known country codes. GPX files always have PII stripped on import. Triggers manifest regen. |
 | `GET` | `/catalog/routes` | - | The route catalog, `{entries, importable}`. `entries` is `catalog-routes.json` (see [catalog.md](catalog.md#route-catalog)); `importable` is false when `overpass_url` is empty. |
 | `POST` | `/catalog/routes/gpx` | `{relation: int}` | Fetch one route catalog entry's OpenStreetMap relation from Overpass and answer it as GPX: `{gpx, points, segments, tolerance_m, source, credit}`. Stores nothing; the client saves the GPX with `POST /gpx`. 404 for a relation not in the catalog or with import off, 429 while another import runs, 502 when Overpass fails. |
 | `GET` | `/catalog?include_hidden=<bool>` | - | Site-wide catalog (array of place objects). Merge of shipped baseline + local additions; see [catalog.md](catalog.md). Each entry carries `_source: "shipped"\|"local"`. Hidden shipped entries are filtered out; `?include_hidden=1` (admin only) returns them with `_hidden: true`. |
@@ -69,6 +69,7 @@ For a client that keeps its own copy of the data instead of asking for the lists
 | `metadata` | route key, `Region/Route` or `Route` | route metadata fields |
 | `pref` | the preference key | any JSON value |
 | `label` | the category slug | `{label, color?, order?}` |
+| `country` | an ISO 3166-1 alpha-2 code from the country list (`vendor/natural-earth/country-list.json`) | `{}`. A country the user marked visited by hand, whether or not a visited place lies in it. |
 | `route` | route key | route manifest facts the server derives from GPX files; read only |
 
 `GET /sync/changes?since=<rev>&limit=<n>&epoch=<epoch>` returns every item whose `rev` is above `since`, oldest first, tombstones included:
@@ -103,7 +104,7 @@ sqlite3 app.db "UPDATE store_revs SET epoch = lower(hex(randomblob(8)))"
 
 The response is `{"ok": true, "rev": <current>, "epoch": <epoch>, "results": [{"kind", "id", "rev", "status"}, ...]}`, one result per change in the same order. `status` is `applied`, or `noop` when the stored item already equals the put (or was already deleted), in which case `rev` is the item's existing revision. Conflicts are last-writer-wins per item in arrival order: a later change to the same `kind` and `id` replaces an earlier one, with no check of which revision the client last saw. A put to a deleted id brings the item back.
 
-Each `data` is validated against its shape in [Common shapes](#common-shapes) (a `label` as in `GET /me/category-labels`), and the client picks the place or area `id` (8 hex characters), so items can be created offline. Metadata that validates to empty deletes the entry. If any change is invalid the whole batch is refused with `400` (`changes[i]: <reason>`) and nothing is written; a database error rolls back all of it. At most 500 changes per batch. Limits on the whole set hold across batches: at most 200 category labels and 1 MiB of preferences in total, otherwise the batch is refused with `409` and rolled back. Metadata ids are trimmed. `route` changes are refused: routes follow the GPX files, so use `/gpx`. A read-only API token may call `/sync/changes` but not `/sync/batch`.
+Each `data` is validated against its shape in [Common shapes](#common-shapes) (a `label` as in `GET /me/category-labels`; a `country` must be a code from the country list with `{}` or no data), and the client picks the place or area `id` (8 hex characters), so items can be created offline. Metadata that validates to empty deletes the entry. If any change is invalid the whole batch is refused with `400` (`changes[i]: <reason>`) and nothing is written; a database error rolls back all of it. At most 500 changes per batch. Limits on the whole set hold across batches: at most 200 category labels, 250 hand-marked countries and 1 MiB of preferences in total, otherwise the batch is refused with `409` and rolled back. Metadata ids are trimmed. `route` changes are refused: routes follow the GPX files, so use `/gpx`. A read-only API token may call `/sync/changes` but not `/sync/batch`.
 
 ## Admin
 
@@ -139,6 +140,7 @@ Anyone can call these for a user with `published=1`. Other users return `404`. N
 | `GET` | `/u/<username>/routes` | Route manifest. |
 | `GET` | `/u/<username>/metadata` | Per-route overrides. |
 | `GET` | `/u/<username>/category-labels` | `{category_labels: {...}}`. |
+| `GET` | `/u/<username>/visited-countries` | `{countries: ["IT", "NO", ...]}`, the countries the owner marked visited by hand, sorted. The map adds the countries of visited places itself. |
 | `GET` | `/u/<username>/gpx/<region>/<file>.gpx` | Raw GPX. `region` segment is optional. |
 | `GET` | `/u/<username>/export.geojson` | The same GeoJSON as `/me/export.geojson`, which holds nothing the public page does not show. Load it in QGIS as a vector layer from this URL. |
 

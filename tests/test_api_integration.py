@@ -2176,6 +2176,72 @@ class TestExportImportRoundTrip(unittest.TestCase):
     self.assertEqual({k: stored(k) for k in ("place", "area", "metadata")}, before)
 
 
+class TestVisitedCountries(unittest.TestCase):
+  def setUp(self):
+    self.c = admin_client()
+    reset_kind("country")
+
+  def _zip(self, files: dict[str, bytes]) -> bytes:
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+      for name, data in files.items():
+        zf.writestr(name, data)
+    return buf.getvalue()
+
+  def _export(self) -> zipfile.ZipFile:
+    with self.c.opener.open(_server.base_url + "/api/me/export") as r:  # type: ignore[union-attr]
+      return zipfile.ZipFile(io.BytesIO(r.read()))
+
+  def _import(self, mode: str, files: dict[str, bytes]):
+    return self.c.request("POST", f"/api/me/import?mode={mode}", raw_body=self._zip(files), content_type="application/zip")
+
+  def test_put_and_delete(self):
+    self.assertEqual(batch(self.c, [put("country", "IT", {}), put("country", "NO", None)])[0], 200)
+    self.assertEqual(stored("country"), {"IT": {}, "NO": {}})
+    self.assertEqual(batch(self.c, [{"kind": "country", "op": "delete", "id": "IT"}])[0], 200)
+    self.assertEqual(stored("country"), {"NO": {}})
+
+  def test_validation(self):
+    for item_id, data in (("XX", {}), ("it", {}), ("", {}), ("IT", {"visited": True}), ("IT", "x")):
+      with self.subTest(item_id=item_id, data=data):
+        self.assertEqual(batch(self.c, [put("country", item_id, data)])[0], 400)
+    self.assertEqual(stored("country"), {})
+
+  def test_public_read_when_published(self):
+    batch(self.c, [put("country", "NO", {}), put("country", "IT", {})])
+    self.c.request("POST", "/api/me/publish", {"published": True})
+    anon = Client(_server.base_url)  # type: ignore[union-attr]
+    try:
+      status, body = anon.request("GET", f"/api/u/{SEED_USER}/visited-countries")
+      self.assertEqual((status, body), (200, {"countries": ["IT", "NO"]}))
+    finally:
+      self.c.request("POST", "/api/me/publish", {"published": False})
+    self.assertEqual(anon.request("GET", f"/api/u/{SEED_USER}/visited-countries")[0], 404)
+
+  def test_export_lists_codes_and_replace_import_restores_them(self):
+    batch(self.c, [put("country", "NO", {}), put("country", "IT", {})])
+    exported = self._export().read("visited-countries.json")
+    self.assertEqual(json.loads(exported), ["IT", "NO"])
+    reset_kind("country", {"FR": {}})
+    status, body = self._import("replace", {"visited-countries.json": exported})
+    self.assertEqual(status, 200, body)
+    self.assertEqual(sorted(stored("country")), ["IT", "NO"])
+
+  def test_import_merge_keeps_existing_and_prefs_mode_skips(self):
+    batch(self.c, [put("country", "FR", {})])
+    files = {"visited-countries.json": b'["IT"]'}
+    self.assertEqual(self._import("prefs", files)[0], 200)
+    self.assertEqual(sorted(stored("country")), ["FR"])
+    self.assertEqual(self._import("merge", files)[0], 200)
+    self.assertEqual(sorted(stored("country")), ["FR", "IT"])
+
+  def test_import_rejects_unknown_codes(self):
+    for body in (b'["XX"]', b'[1]', b'{"IT": {}}'):
+      with self.subTest(body=body):
+        self.assertEqual(self._import("merge", {"visited-countries.json": body})[0], 400)
+    self.assertEqual(stored("country"), {})
+
+
 if __name__ == "__main__":
   unittest.main()
 

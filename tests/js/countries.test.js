@@ -13,8 +13,11 @@ const block = /COUNTRY-MATCH-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ COUNTRY-MATCH-END/
 assert.ok(block, 'COUNTRY-MATCH markers not found in app/');
 const ctx = {};
 vm.createContext(ctx);
-vm.runInContext(block[1] + '\nglobalThis.__g = { countryMatches, canonicalCountry, normCountryName };', ctx);
-const { countryMatches, canonicalCountry, normCountryName } = ctx.__g;
+const codesBlock = /COUNTRY-CODES-BEGIN[^\n]*\n([\s\S]*?)\n\s*\/\/ COUNTRY-CODES-END/.exec(src);
+assert.ok(codesBlock, 'COUNTRY-CODES markers not found in app/');
+vm.runInContext(block[1] + '\n' + codesBlock[1].replace(/^export /gm, '')
+  + '\nglobalThis.__g = { countryMatches, canonicalCountry, countryCodeOf, normCountryName, filledCountryCodes };', ctx);
+const { countryMatches, canonicalCountry, countryCodeOf, normCountryName, filledCountryCodes } = ctx.__g;
 
 const data = f => JSON.parse(fs.readFileSync(path.join(root, 'vendor', 'natural-earth', f), 'utf8'));
 const names = data('country-names.json');
@@ -55,4 +58,24 @@ test('canonicalCountry turns any known spelling into the listed name', () => {
 
 test('every listed name resolves to its own code', () => {
   for (const c of countries) assert.equal(names[normCountryName(c.name)], c.code, c.name);
+});
+
+test('countryCodeOf turns a name or alias into the code, and nothing else into null', () => {
+  assert.equal(countryCodeOf('Norway', countries, names), 'NO');
+  assert.equal(countryCodeOf('norge', countries, names), 'NO');
+  assert.equal(countryCodeOf('it', countries, names), 'IT');
+  assert.equal(countryCodeOf('Ita', countries, names), null);
+  assert.equal(countryCodeOf('', countries, names), null);
+});
+
+test('the filled countries are those of visited places plus the ones marked by hand', () => {
+  const places = [
+    { visited: true, country_code: 'FR' },
+    { visited: true, country: 'Norway' },
+    { visited: false, country_code: 'DE' },
+    { visited: true },
+  ];
+  assert.deepEqual([...filledCountryCodes(places, ['IT', 'FR'], names)].sort(), ['FR', 'IT', 'NO']);
+  assert.deepEqual([...filledCountryCodes([], ['IT'], names)], ['IT']);
+  assert.equal(filledCountryCodes([], [], names).size, 0);
 });

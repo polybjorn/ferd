@@ -26,7 +26,7 @@ function mark(kind) {
 export function bindMapToStore() {
   // Place colours come from the labels, so a label change redraws the places.
   effect(() => { store.places.value; store.labels.value; mark('places'); });
-  effect(() => { store.areas.value; mark('areas'); });
+  effect(() => { store.areas.value; store.visitedCountries.value; mark('areas'); });
   effect(() => { store.routes.value; mark('routes'); });
 }
 

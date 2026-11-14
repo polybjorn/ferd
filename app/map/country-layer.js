@@ -1,7 +1,8 @@
 import { state } from '../core.js';
-import { countriesEnabled, loadCountryData, placeCountryCode } from '../countries.js';
+import * as store from '../store.js';
+import { countriesEnabled, filledCountryCodes, loadCountryData } from '../countries.js';
 
-// Visited countries as one fill under the areas, drawn from the places.
+// Visited countries as one fill under the areas, drawn from the places and the countries marked by hand.
 export function syncCountriesOnMap() {
   const group = state._countryGroup;
   if (!group) return;
@@ -12,12 +13,7 @@ export function syncCountriesOnMap() {
   }
   loadCountryData().then(({ shapes, names }) => {
     if (state._countryGroup !== group || !countriesEnabled()) return;
-    const codes = new Set();
-    for (const p of state.places || []) {
-      if (!p.visited) continue;
-      const code = placeCountryCode(p, names);
-      if (code) codes.add(code);
-    }
+    const codes = filledCountryCodes(state.places || [], store.visitedCountries.value, names);
     const color = getComputedStyle(document.body).getPropertyValue('--completed').trim() || '#2ea043';
     const key = color + '|' + [...codes].sort().join(',');
     if (group._key === key) return;

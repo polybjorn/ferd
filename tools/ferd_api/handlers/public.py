@@ -94,6 +94,9 @@ class PublicMixin:
   def _h_public_category_labels(self, username: str):
     self._public_rows(username, lambda uid: {"category_labels": store.get_map(self.conn, uid, "label")})
 
+  def _h_public_visited_countries(self, username: str):
+    self._public_rows(username, lambda uid: {"countries": sorted(store.get_map(self.conn, uid, "country"))})
+
   def _h_public_geojson(self, username: str):
     found = self._public_user(username)
     if found is None:

@@ -1,7 +1,7 @@
 """Per-user items in SQLite, one row each with a per-user revision.
 
-Places, areas, route manifest entries, route metadata, preferences and category
-labels all live in store_items, told apart by `kind`. Every write takes the
+Places, areas, route manifest entries, route metadata, preferences, category
+labels and hand-marked countries all live in store_items, told apart by `kind`. Every write takes the
 user's next revision from store_revs and stamps it on the row, so "everything
 since revision N" is one indexed range scan. A delete keeps the row as a
 tombstone (deleted=1, data NULL) so that scan can report it.
@@ -21,11 +21,11 @@ from .common import ValidationError, load_json_file
 from .routes import ROUTE_META_CHECKS
 
 
-KINDS = ("place", "area", "route", "metadata", "pref", "label")
+KINDS = ("place", "area", "route", "metadata", "pref", "label", "country")
 
 # Route entries are derived from the GPX files by the manifest script, so a
 # client cannot write them; it uploads or moves a GPX through the file endpoints.
-CLIENT_KINDS = ("place", "area", "metadata", "pref", "label")
+CLIENT_KINDS = ("place", "area", "metadata", "pref", "label", "country")
 
 ROUTE_META_ORDER = tuple(ROUTE_META_CHECKS)
 
@@ -432,4 +432,6 @@ def export_files(conn: sqlite3.Connection, uid: int) -> dict[str, bytes]:
     for name, kind in (("metadata.json", "metadata"), ("prefs.json", "pref"), ("category-labels.json", "label")):
       if ever_had(conn, uid, kind):
         built[name] = get_map(conn, uid, kind)
+    if ever_had(conn, uid, "country"):
+      built["visited-countries.json"] = sorted(get_map(conn, uid, "country"))
   return {n: (json.dumps(d, ensure_ascii=False, indent=2) + "\n").encode("utf-8") for n, d in built.items()}

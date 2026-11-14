@@ -78,3 +78,27 @@ test('a language switch redraws open views at once and survives a reload', async
   expect(fenced.external).toEqual([]);
   expect(fenced.errors).toEqual([]);
 });
+
+test('a hand-marked country is added, listed and removed in Settings', async ({ page, baseURL }, info) => {
+  const fenced = await fence(page, /** @type {string} */ (baseURL));
+  await signUp(page, info);
+
+  await openSettings(page);
+  const add = page.locator('#s-country-add-btn');
+  await expect(add).toBeDisabled();
+  await page.locator('#s-country-add').fill('Italy');
+  await expect(add).toBeEnabled();
+  await add.click();
+  const row = page.locator('#s-country-list .ui-list-item', { hasText: 'Italy' });
+  await expect(row).toBeVisible();
+  await expect(page.locator('#s-country-add')).toHaveValue('');
+
+  await page.reload();
+  await openSettings(page);
+  await expect(row).toBeVisible();
+  await row.locator('.country-remove').click();
+  await expect(row).toHaveCount(0);
+
+  expect(fenced.external).toEqual([]);
+  expect(fenced.errors).toEqual([]);
+});

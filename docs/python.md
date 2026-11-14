@@ -76,7 +76,7 @@ Your config and data are never touched. From 1.x to 2.0, have each user export t
 
 Two paths matter:
 
-- `tools/app.db*` (users, sessions, publish flags, site-wide settings, and every user's places, areas, route metadata, prefs and category labels - SQLite database plus its `-shm` and `-wal` siblings)
+- `tools/app.db*` (users, sessions, publish flags, site-wide settings, and every user's places, areas, route metadata, prefs, category labels and hand-marked countries - SQLite database plus its `-shm` and `-wal` siblings)
 - `users/` (uploaded GPX files, plus the JSON files from before the SQLite store, which are only a stale copy)
 
 Lose `app.db` and you lose accounts and places. Lose `users/` and you lose the GPX files.

@@ -118,6 +118,7 @@ class Handler(RequestMixin, StaticMixin, SessionMixin, AdminMixin, CatalogMixin,
     "routes": "_h_public_routes",
     "metadata": "_h_public_metadata",
     "category-labels": "_h_public_category_labels",
+    "visited-countries": "_h_public_visited_countries",
     "export.geojson": "_h_public_geojson",
   }
   ADMIN_USER_POST_ROUTES = {

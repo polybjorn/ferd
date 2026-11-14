@@ -18,6 +18,7 @@ from .areas import validate_area
 from .common import ImportTooLarge, ValidationError, atomic_write_bytes, resolve_under, safe_path_component, write_json_file
 from .gpx import strip_gpx_pii
 from .labels import clean_category_labels
+from .places import country_codes
 from .places import validate_place
 from .users import _is_export_junk
 
@@ -28,7 +29,7 @@ IMPORT_MAX_UNCOMPRESSED = 200 * 1024 * 1024  # 200 MiB uncompressed (zip-bomb gu
 
 IMPORT_READ_CHUNK = 64 * 1024
 
-IMPORT_TOP_FILES = ("places.json", "areas.json", "routes.json", "metadata.json", "prefs.json", "category-labels.json")
+IMPORT_TOP_FILES = ("places.json", "areas.json", "routes.json", "metadata.json", "prefs.json", "category-labels.json", "visited-countries.json")
 
 
 def read_zip_entry_bounded(zf: zipfile.ZipFile, info: zipfile.ZipInfo, limit: int) -> bytes:
@@ -61,6 +62,7 @@ class ImportPayload:
   metadata: dict | None = None
   prefs: dict | None = None
   labels: dict | None = None
+  countries: dict | None = None
   gpx: dict[str, bytes] = field(default_factory=dict)
 
 
@@ -143,6 +145,12 @@ def parse_payloads(staged: dict[str, bytes], mode: str) -> ImportPayload:
       out.labels = clean_category_labels(out.labels)
     except ValidationError as e:
       raise ValidationError(f"category-labels.json: {e}")
+  visited = _parse_staged_json(staged, "visited-countries.json", list)
+  if visited is not None:
+    unknown = [c for c in visited if not isinstance(c, str) or c not in country_codes()]
+    if unknown:
+      raise ValidationError(f"visited-countries.json: unknown country code: {str(unknown[0])[:16]}")
+    out.countries = {c: {} for c in visited}
   if mode == "prefs":
     return out
   if out.places is not None:
@@ -209,6 +217,7 @@ def import_replace(conn: sqlite3.Connection, uid: int, udir: Path, payload: Impo
         store.replace_map(conn, uid, "metadata", payload.metadata or {})
         store.replace_map(conn, uid, "pref", payload.prefs or {})
         store.replace_map(conn, uid, "label", payload.labels or {})
+        store.replace_map(conn, uid, "country", payload.countries or {})
         store.sync_route_manifest(conn, uid, payload.routes or {})
         # A symlinked gpx/ is renamed as a link, never followed, so replace-mode
         # cannot wipe a user-managed external directory.
@@ -257,6 +266,8 @@ def import_merge(conn: sqlite3.Connection, uid: int, udir: Path, payload: Import
     changed_meta = 0
     if payload.metadata is not None:
       changed_meta = store.merge_map(conn, uid, "metadata", payload.metadata)
+    if payload.countries is not None:
+      store.merge_map(conn, uid, "country", payload.countries)
     changed_prefs = _merge_prefs_and_labels(conn, uid, payload)
   # After the commit, so file writes never hold the database lock. A failure
   # here is reported as a failed import; running the merge again is safe.

@@ -2,7 +2,7 @@ import { exportLocal, importLocal } from './store.js';
 import { areaHasGeometry } from './area-geo.js';
 
 // Export/import a local map as a zip with the same layout the server uses
-// (places.json, routes.json, metadata.json, category-labels.json, gpx/...),
+// (places.json, routes.json, metadata.json, category-labels.json, visited-countries.json, gpx/...),
 // so a local map can be moved to a server (and back) with no conversion.
 // Written uncompressed (store); reads handle both store and deflate so a
 // server's deflated export imports cleanly.
@@ -80,6 +80,7 @@ export const localBackup = {
         { name: 'routes.json', data: j(d.routes) },
         { name: 'metadata.json', data: j(d.metadata) },
         { name: 'category-labels.json', data: j(d.labels) },
+        { name: 'visited-countries.json', data: j(d.countries) },
       ];
       for (const g of d.gpx) files.push({ name: 'gpx/' + g.file, data: enc.encode(g.text) });
       return _zipStore(files);
@@ -103,6 +104,7 @@ export const localBackup = {
         areas: Array.isArray(areas) ? areas.filter(areaHasGeometry) : null,
         metadata: parse('metadata.json'),
         labels: parse('category-labels.json'),
+        countries: parse('visited-countries.json'),
         gpx,
       }, mode);
     });

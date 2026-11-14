@@ -76,6 +76,7 @@ class TestApiContract(unittest.TestCase):
       {"kind": "area", "op": "put", "id": "e5f6a7b8", "data": {"name": "Contract Area", "geometry": POLYGON, "category": "park"}},
       {"kind": "label", "op": "put", "id": "peak", "data": {"label": "Peaks", "color": 2, "order": 0}},
       {"kind": "pref", "op": "put", "id": "theme", "data": "dark"},
+      {"kind": "country", "op": "put", "id": "IT", "data": {}},
     ]}))
     status, _ = call("POST", "/gpx?region=Contract&name=route-a", raw_body=GPX_BODY, content_type="application/gpx+xml")
     assert status == 201, status
@@ -114,7 +115,7 @@ class TestApiContract(unittest.TestCase):
     status, _ = call("POST", "/me/publish", {"published": True})
     assert status == 200, status
     keep("GET", "/public-maps", *anon.request("GET", "/api/public-maps"))
-    for kind in ("places", "areas", "routes", "category-labels"):
+    for kind in ("places", "areas", "routes", "category-labels", "visited-countries"):
       keep("GET", f"/u/<name>/{kind}", *anon.request("GET", f"/api/u/{SEED_USER}/{kind}"))
     return bodies
 

@@ -22,7 +22,7 @@ function makeEnv(overrides = {}) {
   let n = 0, seq = 0;
   const ctx = {
     console, JSON, Promise, Object, Array, Map, Set, Error, Math, Date,
-    KINDS: ['place', 'area', 'route', 'metadata', 'pref', 'label'],
+    KINDS: ['place', 'area', 'route', 'metadata', 'pref', 'label', 'country'],
     BATCH_MAX: 500,
     BATCH_CHARS: 300000,
     opsCount: 0,
@@ -376,4 +376,19 @@ test('a skipped GPX call resets the namespace it belongs to, not the one on scre
   await env.s.drainGpxOps('other');
   assert.equal(env.ctx.syncState.epoch, 'e1');
   assert.deepEqual(plain(env.writes.find(w => w.meta).meta), [['sync::other', { rev: 0, epoch: null }]]);
+});
+
+test('hand-marked countries are keyed items that pull, queue and reset like the other kinds', () => {
+  const { s, ctx } = makeEnv();
+  s.applyChanges([{ kind: 'country', id: 'IT', op: 'put', data: {} }], true);
+  assert.equal(ctx.pendingMap.size, 1);
+  s.applyPull({ rev: 2, next: 2, epoch: 'e1', changes: [
+    { kind: 'country', id: 'NO', pos: 1, rev: 1, data: {} },
+    { kind: 'country', id: 'FR', pos: 2, rev: 2, data: {} },
+  ] });
+  assert.deepEqual(memOf(ctx, 'country').map(([id]) => id).sort(), ['FR', 'IT', 'NO']);
+  s.applyPull({ rev: 3, next: 3, epoch: 'e1', changes: [{ kind: 'country', id: 'FR', pos: 2, rev: 3, deleted: true }] });
+  assert.deepEqual(memOf(ctx, 'country').map(([id]) => id).sort(), ['IT', 'NO']);
+  s.applyPull({ reset: true, rev: 9, next: 9, epoch: 'e2', changes: [] });
+  assert.deepEqual(memOf(ctx, 'country').map(([id]) => id), ['IT'], 'only the pending mark survives a reset');
 });

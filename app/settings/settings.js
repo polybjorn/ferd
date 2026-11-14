@@ -22,6 +22,7 @@ import { localBackup } from '../backup.js';
 import { saveDownload } from '../download.js';
 import { openManageCategoriesModal } from './categories.js';
 import { openManageRegionsModal } from './regions.js';
+import { MarkedCountries } from './countries.js';
 import {
   AdminCatalog, AdminStats, AdminUsers, Sessions, Tokens, renderAdminCatalog,
 } from './account.js';
@@ -277,6 +278,7 @@ function GeneralPanel({ env, onLanguage }) {
           ${pe && pill('countries', t('settings.general.countries'), setSecondaryFeature, featureVisible('countries'))}
         </div>
         ${pe && html`<div class="hint">${t('settings.general.countriesHint')}</div>`}`}`}
+    ${pe && !env.readOnly && html`<${MarkedCountries} />`}
     ${!env.readOnly && html`
       <h3 class="settings-h">${t('settings.general.optionalFields')}</h3>
       <div class="feature-pills optional-fields">

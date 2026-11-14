@@ -85,6 +85,7 @@ const SHELL_ASSETS = [
   '/app/settings/account.js',
   '/app/settings/catalog.js',
   '/app/settings/categories.js',
+  '/app/settings/countries.js',
   '/app/settings/logs.js',
   '/app/settings/regions.js',
   '/app/settings/settings.js',

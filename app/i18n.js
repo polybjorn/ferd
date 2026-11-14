@@ -69,6 +69,8 @@ const STRINGS = {
   'settings.general.logs': 'Logs',
   'settings.general.countries': 'Visited countries',
   'settings.general.countriesHint': 'Visited countries show when zoomed out.',
+  'settings.general.markedCountries': 'Marked countries',
+  'settings.general.markedCountriesHint': 'Mark a country as visited when no visited place lies in it.',
   'settings.general.optionalFields': 'Optional fields',
   'settings.general.fieldDate': 'Date',
   'settings.general.fieldImage': 'Image',

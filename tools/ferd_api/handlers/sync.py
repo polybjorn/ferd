@@ -9,7 +9,7 @@ from .. import store
 from ..areas import validate_area
 from ..common import ValidationError, nfc_route_key, safe_path_component
 from ..labels import clean_category_labels
-from ..places import PLACE_ID_RE, validate_place
+from ..places import PLACE_ID_RE, country_codes, validate_place
 from ..routes import validate_route_metadata
 
 
@@ -26,6 +26,9 @@ SYNC_MAX_REV = 2**63 - 1
 PREFS_MAX_BYTES = 1024 * 1024  # the default request body cap, so the whole set can still go in one batch
 
 LABELS_MAX = 200  # clean_category_labels' cap per map, enforced over the whole set here
+
+
+COUNTRIES_MAX = 250  # a little above the 239 codes there are, so the cap is a backstop for the whole set
 
 
 def _clean_metadata_key(key: str) -> str:
@@ -65,6 +68,12 @@ def _prepare_put(kind: str, item_id: str, data):
     if item_id.strip() not in cleaned:
       raise ValidationError("label must have a non-empty display text")
     return cleaned[item_id.strip()]
+  if kind == "country":
+    if item_id not in country_codes():
+      raise ValidationError(f"unknown country code: {item_id[:16]}")
+    if data not in (None, {}):
+      raise ValidationError("a visited country carries no data")
+    return {}
   return data
 
 
@@ -149,6 +158,8 @@ class SyncMixin:
       # over-limit batch rolls back as one.
       if store.count_items(self.conn, user["id"], "label") > LABELS_MAX:
         raise ValidationError(f"too many category labels (max {LABELS_MAX})")
+      if store.count_items(self.conn, user["id"], "country") > COUNTRIES_MAX:
+        raise ValidationError(f"too many visited countries (max {COUNTRIES_MAX})")
       if store.items_bytes(self.conn, user["id"], "pref") > PREFS_MAX_BYTES:
         raise ValidationError(f"prefs too large (max {PREFS_MAX_BYTES} bytes)")
       return results, store.head_rev(self.conn, user["id"])

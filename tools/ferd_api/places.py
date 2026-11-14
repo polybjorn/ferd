@@ -168,6 +168,25 @@ def country_names() -> dict:
   return _country_names
 
 
+COUNTRY_LIST_PATH = COUNTRY_NAMES_PATH.with_name("country-list.json")
+
+_country_codes: frozenset | None = None
+
+
+def country_codes() -> frozenset:
+  """Every ISO code the country shapes carry. Empty when the file is missing,
+  which refuses every hand-marked country rather than storing unknown ones."""
+  global _country_codes
+  if _country_codes is None:
+    try:
+      data = json.loads(COUNTRY_LIST_PATH.read_text("utf-8"))
+      _country_codes = frozenset(data) if isinstance(data, dict) else frozenset()
+    except (OSError, ValueError) as e:
+      print(f"[api] country list unavailable: {e}", file=sys.stderr)
+      _country_codes = frozenset()
+  return _country_codes
+
+
 def country_code_for(name: object) -> str | None:
   """The ISO code for a free-text country, or None when it does not match.
   Never guesses: an unknown name stays without a code."""
