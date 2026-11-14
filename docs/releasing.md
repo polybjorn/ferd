@@ -24,6 +24,14 @@ Deprecate before removing where reasonable.
    gh release edit vX.Y.Z --title "Ferd X.Y.Z" --notes-file <notes>
    ```
 
+4. Delete the GitHub releases of the betas this one supersedes, keeping their tags and the newest beta:
+
+   ```sh
+   gh release delete vX.Y.Z-beta.N --yes
+   ```
+
+   Without `--cleanup-tag` the tag stays; deleting it on GitHub alone would not hold anyway, since the forge sync pushes it back. The newest beta stays because beta testers' Obtainium filters on "beta" in the title and reports an error when no release matches. Delete it once the next beta is out. A beta line that never shipped as its own stable, such as `1.6.0-beta.*` that became 2.0.0, counts as superseded by the stable that absorbed it.
+
 The tag fires `docker-publish` (images `:X`, `:X.Y`, `:X.Y.Z` and `:latest`) and `release-apk` (the signed Android APK, attached to the release).
 
 Both publish workflows wait for `release-gate`, which fails the release unless:
