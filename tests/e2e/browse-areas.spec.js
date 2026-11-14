@@ -2,7 +2,7 @@
 // and catalog-areas.json; the Overpass fetch behind the import is answered
 // here, so no test reaches OpenStreetMap.
 const { test, expect } = require('@playwright/test');
-const { fence, signUp } = require('./helpers');
+const { fence, isPhone, signUp } = require('./helpers');
 
 const JOTUNHEIMEN = 269939;
 const GEOMETRY = {
@@ -30,6 +30,17 @@ test('imports a catalog area through the server', async ({ page, baseURL }, info
   await row.locator('.browse-area-import').click();
   await expect(page.locator('#add-tabs')).toBeHidden();
   expect(asked).toEqual([{ relation: JOTUNHEIMEN }]);
+
+  // The map fits the new area, and on a phone that move tucks the bar away
+  // (bar-motion.js) until the map is tapped.
+  if (isPhone(info)) {
+    await expect(page.locator('body')).toHaveClass(/\bbar-away\b/);
+    const map = page.locator('.leaflet-container').first();
+    const box = await map.boundingBox();
+    if (!box) throw new Error('the map has no box');
+    await map.click({ position: { x: box.width / 2, y: box.height / 2 } });
+    await expect(page.locator('body')).not.toHaveClass(/\bbar-away\b/);
+  }
 
   // Opened again, the entry says it is already there.
   await page.locator('#map-add-btn:visible, #bar-add:visible').click();
