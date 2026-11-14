@@ -38,39 +38,39 @@ def origin(scheme: str, host: str | None) -> str | None:
   return f"{scheme}://{host.lower()}"
 
 
-def _map_owner(path: str) -> str | None:
-  """The username of the published map at `path`, under `/u/<username>/`."""
+def map_owner(path: str) -> str | None:
+  """The username a `/u/<username>/` path names, as spelled in the URL. Not
+  checked: the caller looks it up before it reaches a page."""
   if path.startswith("/u/"):
     return unquote(path[len("/u/"):].split("/", 1)[0]) or None
   return None
 
 
-def canonical_path(path: str) -> str:
-  """The canonical path of a page the shell serves: a published map's
-  `/u/<username>/`, whatever follows it, and `/` for everything else."""
-  name = _map_owner(path)
-  return "/u/" + quote(name, safe="") + "/" if name else "/"
+def canonical_path(owner: str | None) -> str:
+  """The canonical path of a page the shell serves: the published map of
+  `owner` (its stored username), and `/` for everything else."""
+  return "/u/" + quote(owner, safe="") + "/" if owner else "/"
 
 
 _TITLE_RE = re.compile(r"<title>([^<]*)</title>")
 
 
-def page_title(page: str, path: str) -> str:
+def page_title(page: str, owner: str | None) -> str:
   """`page` with a published map's owner in its title, as the client writes it
   once its script runs, so a crawler or link preview that reads the served
-  HTML tells the map from the sign-in page."""
-  name = _map_owner(path)
-  if not name:
+  HTML tells the map from the sign-in page. `owner` is the stored username of
+  a published user, or None, which leaves the site title alone."""
+  if not owner:
     return page
-  return _TITLE_RE.sub(lambda m: f"<title>{html.escape(name)} - {m.group(1)}</title>", page, count=1)
+  return _TITLE_RE.sub(lambda m: f"<title>{html.escape(owner)} - {m.group(1)}</title>", page, count=1)
 
 
-def share_tags(origin_url: str | None, path: str) -> str:
-  """The canonical link and og:image for the page at `path`, or nothing when
-  the origin is unknown."""
+def share_tags(origin_url: str | None, owner: str | None) -> str:
+  """The canonical link and og:image for the page of `owner` (None for any
+  page but a published map), or nothing when the origin is unknown."""
   if not origin_url:
     return ""
-  canonical = html.escape(origin_url + canonical_path(path), quote=True)
+  canonical = html.escape(origin_url + canonical_path(owner), quote=True)
   image = html.escape(origin_url + OG_IMAGE_PATH, quote=True)
   return (f'<link rel="canonical" href="{canonical}">\n'
           f'  <meta property="og:url" content="{canonical}">\n'

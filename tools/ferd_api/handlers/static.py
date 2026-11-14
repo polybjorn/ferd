@@ -18,8 +18,13 @@ class StaticMixin:
     if not static_dir:
       return self._error(HTTPStatus.NOT_FOUND, "not found")
     base = Path(static_dir)
-    # The canonical link names the page asked for, before the rewrites below.
-    page_path = path
+    # The page's title and canonical link name a map's owner only when that
+    # user exists and has published, spelled as stored; the URL alone could
+    # put any text in a link preview on this host.
+    owner = crawl.map_owner(path)
+    if owner:
+      row = self._published_row(owner)
+      owner = row["username"] if row else None
     if path in ("", "/"):
       path = "/index.html"
     # Public per-user URLs (`/u/<username>/...`) all serve the SPA shell; the
@@ -72,8 +77,8 @@ class StaticMixin:
       data = data.replace(SW_VERSION_PLACEHOLDER.encode(),
                           get_sw_version(base).encode())
       data = data.replace(crawl.SHARE_TAGS_PLACEHOLDER.encode(),
-                          crawl.share_tags(self._origin(), page_path).encode())
-      data = crawl.page_title(data.decode("utf-8"), page_path).encode("utf-8")
+                          crawl.share_tags(self._origin(), owner).encode())
+      data = crawl.page_title(data.decode("utf-8"), owner).encode("utf-8")
     self.send_response(HTTPStatus.OK)
     self.send_header("Content-Type", ctype)
     self.send_header("Content-Length", str(len(data)))

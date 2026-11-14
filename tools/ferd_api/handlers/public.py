@@ -45,15 +45,23 @@ class PublicMixin:
     self._send_text(crawl.sitemap_xml(self._origin(), [r["username"] for r in rows]),
                     "application/xml; charset=utf-8")
 
-  def _public_user(self, username: str):
-    """(user id, user dir) iff that user exists and has publish=ON. Else None
-    (caller should 404). Username is sanitized as a path component too."""
+  def _published_row(self, username: str):
+    """The users row (id, username) of a published user, matched without
+    regard to case, or None."""
     try:
       safe_path_component(username)
     except ValidationError:
       return None
     row = self.conn.execute("SELECT id, username, published FROM users WHERE username=?", (username,)).fetchone()
     if not row or not row["published"]:
+      return None
+    return row
+
+  def _public_user(self, username: str):
+    """(user id, user dir) iff that user exists and has publish=ON. Else None
+    (caller should 404). Username is sanitized as a path component too."""
+    row = self._published_row(username)
+    if row is None:
       return None
     # The URL's spelling may differ in case from the stored name (the column is
     # NOCASE); the folder is named after the stored one.

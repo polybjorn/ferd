@@ -27,28 +27,34 @@ class TestOrigin(unittest.TestCase):
 
 
 class TestCanonical(unittest.TestCase):
-  def test_paths(self):
+  def test_the_owner_named_by_a_path(self):
     cases = {
-      "/": "/", "/index.html": "/", "/u/": "/",
-      "/u/demo": "/u/demo/", "/u/demo/": "/u/demo/", "/u/demo/x/y": "/u/demo/",
-      "/u/Bj%C3%B8rn": "/u/Bj%C3%B8rn/", "/u/a%22b": "/u/a%22b/",
+      "/": None, "/index.html": None, "/u/": None,
+      "/u/demo": "demo", "/u/demo/": "demo", "/u/demo/x/y": "demo",
+      "/u/Bj%C3%B8rn": "Bj\u00f8rn", "/u/a%22b": 'a"b',
     }
     for path, want in cases.items():
       with self.subTest(path=path):
-        self.assertEqual(crawl.canonical_path(path), want)
+        self.assertEqual(crawl.map_owner(path), want)
+
+  def test_paths(self):
+    cases = {None: "/", "": "/", "demo": "/u/demo/", "Bj\u00f8rn": "/u/Bj%C3%B8rn/", 'a"b': "/u/a%22b/"}
+    for owner, want in cases.items():
+      with self.subTest(owner=owner):
+        self.assertEqual(crawl.canonical_path(owner), want)
 
   def test_a_published_map_names_its_owner_in_the_title(self):
     page = "<head><title>Ferd</title></head>"
-    self.assertEqual(crawl.page_title(page, "/"), page)
-    self.assertEqual(crawl.page_title(page, "/u/"), page)
-    self.assertEqual(crawl.page_title(page, "/u/demo/"), "<head><title>demo - Ferd</title></head>")
-    self.assertIn("<title>a&lt;b - Ferd</title>", crawl.page_title(page, "/u/a%3Cb"))
+    self.assertEqual(crawl.page_title(page, None), page)
+    self.assertEqual(crawl.page_title(page, "demo"), "<head><title>demo - Ferd</title></head>")
+    self.assertIn("<title>a&lt;b - Ferd</title>", crawl.page_title(page, "a<b"))
 
   def test_tags_need_an_origin(self):
-    self.assertEqual(crawl.share_tags(None, "/u/demo"), "")
-    tags = crawl.share_tags("https://ferd.example", "/u/demo")
+    self.assertEqual(crawl.share_tags(None, "demo"), "")
+    tags = crawl.share_tags("https://ferd.example", "demo")
     self.assertIn('<link rel="canonical" href="https://ferd.example/u/demo/">', tags)
     self.assertIn('<meta property="og:image" content="https://ferd.example/icons/icon-512.png">', tags)
+    self.assertIn('<link rel="canonical" href="https://ferd.example/">', crawl.share_tags("https://ferd.example", None))
 
   def test_the_shell_carries_the_placeholder_and_the_image_exists(self):
     self.assertIn(crawl.SHARE_TAGS_PLACEHOLDER, (ROOT / "index.html").read_text(encoding="utf-8"))

@@ -2210,14 +2210,40 @@ class TestCrawlDefaults(unittest.TestCase):
 
   def test_published_map_page_carries_canonical_and_og_image(self):
     origin = _server.base_url  # secure_cookies is off here, so http
-    _, _, body = self._get("/u/someone")
-    self.assertIn(f'<link rel="canonical" href="{origin}/u/someone/">', body)
-    self.assertIn(f'<meta property="og:image" content="{origin}/icons/icon-512.png">', body)
-    self.assertNotIn("__FERD_SHARE_TAGS__", body)
-    self.assertIn("<title>someone - Ferd</title>", body)
+    c = Client(origin)
+    c.login(SEED_USER, SEED_PW)
+    c.request("POST", "/api/me/publish", {"published": True})
+    try:
+      _, _, body = self._get(f"/u/{SEED_USER}")
+      self.assertIn(f'<link rel="canonical" href="{origin}/u/{SEED_USER}/">', body)
+      self.assertIn(f'<meta property="og:url" content="{origin}/u/{SEED_USER}/">', body)
+      self.assertIn(f'<meta property="og:image" content="{origin}/icons/icon-512.png">', body)
+      self.assertNotIn("__FERD_SHARE_TAGS__", body)
+      self.assertIn(f"<title>{SEED_USER} - Ferd</title>", body)
+      # The URL's case does not reach the page: the name is spelled as stored,
+      # as the sitemap lists it.
+      _, _, body = self._get(f"/u/{SEED_USER.upper()}/")
+      self.assertIn(f'<link rel="canonical" href="{origin}/u/{SEED_USER}/">', body)
+      self.assertIn(f"<title>{SEED_USER} - Ferd</title>", body)
+      self.assertNotIn(SEED_USER.upper(), body)
+    finally:
+      c.request("POST", "/api/me/publish", {"published": False})
     _, _, body = self._get("/")
     self.assertIn(f'<link rel="canonical" href="{origin}/">', body)
     self.assertIn("<title>Ferd</title>", body)
+
+  def test_a_name_that_is_not_a_published_map_previews_as_the_site(self):
+    origin = _server.base_url
+    for path in ("/u/Account%20locked%2C%20sign%20in%20at%20evil.example/",  # no such user
+                 f"/u/{SEED_USER}/"):  # exists, not published
+      with self.subTest(path=path):
+        status, _, body = self._get(path)
+        self.assertEqual(status, 200)
+        self.assertIn("<title>Ferd</title>", body)
+        self.assertIn(f'<link rel="canonical" href="{origin}/">', body)
+        self.assertIn(f'<meta property="og:url" content="{origin}/">', body)
+        self.assertNotIn("/u/", body)
+        self.assertNotIn("evil.example", body)
 
   def test_a_malformed_host_writes_no_tags(self):
     _, _, body = self._get("/", {"Host": 'x"><script>'})
