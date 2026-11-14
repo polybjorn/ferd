@@ -6,19 +6,22 @@ import { enhanceSelectsIn } from '../select.js';
 import { t } from '../i18n.js';
 import { DialogHead, html, openViewModal, useEffect, useRef, useState } from '../view.js';
 import { Browse } from './browse.js';
+import { BrowseRoutes } from './browse-routes.js';
 
 /**
- * @typedef {'place' | 'route' | 'area' | 'browse'} AddTab
+ * @typedef {'place' | 'route' | 'area' | 'browse' | 'routes'} AddTab
  * @typedef {{ lat: number, lng: number }} Coords
  */
 
 /** @param {AddTab} tab */
 const tabLabel = tab => ({
   place: t('add.tabPlace'), route: t('add.tabRoute'), area: t('add.tabArea'), browse: t('add.tabBrowse'),
+  routes: t('add.tabBrowseRoutes'),
 })[tab];
 /** @param {AddTab} tab */
 const tabTitle = tab => ({
   place: t('add.titlePlace'), route: t('add.titleRoute'), area: t('add.titleArea'), browse: t('add.titleBrowse'),
+  routes: t('add.titleBrowseRoutes'),
 })[tab];
 
 /**
@@ -43,6 +46,7 @@ function AddDialog({ tabs, prefillCoords, draft, reopen }) {
         ${tab === 'place' ? html`<${AddPlace} key="place" prefillCoords=${prefillCoords} draft=${draft} reopen=${reopen} />`
           : tab === 'route' ? html`<${AddRoute} key="route" />`
           : tab === 'area' ? html`<${AddArea} key="area" />`
+          : tab === 'routes' ? html`<${BrowseRoutes} key="routes" />`
           : html`<${Browse} key="browse" />`}
       </div>
     </div>`;
@@ -59,9 +63,9 @@ export function openAddModal(prefillCoords, initialTab = null, draft = undefined
   if (!showPlaces && !showTrails) return;
   // Entry-point determines which tabs the modal exposes:
   //   'place' (Places list Add)  -> [Place, Browse]
-  //   'route' (Routes list Add)  -> just the GPX form, no tabs
+  //   'route' (Routes list Add)  -> [Route, Browse routes]
   //   'area'  (Areas list Add)   -> just the area form, no tabs
-  //   null    (map Add button)   -> [Place, Route, Area, Browse], filtered by enabled features
+  //   null    (map Add button)   -> [Place, Route, Area, Browse, Browse routes], filtered by enabled features
   // Browse reads the merged catalog in server mode and the bundled shipped
   // catalog.json in local mode (see fetchCatalog); hidden when the Catalog
   // feature is toggled off.
@@ -69,7 +73,7 @@ export function openAddModal(prefillCoords, initialTab = null, draft = undefined
   /** @type {AddTab[]} */
   let tabs;
   if (initialTab === 'route') {
-    tabs = ['route'];
+    tabs = showBrowse ? ['route', 'routes'] : ['route'];
   } else if (initialTab === 'area' && showPlaces) {
     tabs = ['area'];
   } else if (initialTab === 'place') {
@@ -80,6 +84,7 @@ export function openAddModal(prefillCoords, initialTab = null, draft = undefined
     if (showTrails) tabs.push('route');
     if (showPlaces) tabs.push('area');
     if (showPlaces && showBrowse) tabs.push('browse');
+    if (showTrails && showBrowse) tabs.push('routes');
   }
   const reopen = (/** @type {Coords} */ coords, /** @type {any} */ snapshot) => openAddModal(coords, 'place', snapshot);
   openViewModal(html`<${AddDialog} tabs=${tabs} prefillCoords=${prefillCoords} draft=${draft} reopen=${reopen} />`, { phone: 'fullscreen' });

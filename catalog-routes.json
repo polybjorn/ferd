@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Camino Francés",
+    "relation": 2163573,
+    "country": "Spain",
+    "note": "Pilgrim route from the Pyrenees to Santiago de Compostela",
+    "sources": [
+      "https://en.wikipedia.org/wiki/French_Way"
+    ]
+  },
+  {
+    "name": "GR 20",
+    "relation": 101692,
+    "country": "France",
+    "note": "North-south traverse of the Corsican mountains",
+    "sources": [
+      "https://en.wikipedia.org/wiki/GR_20"
+    ]
+  },
+  {
+    "name": "Kungsleden",
+    "relation": 1657661,
+    "country": "Sweden",
+    "note": "Summer trail from Abisko to Hemavan in Lapland",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Kungsleden"
+    ]
+  },
+  {
+    "name": "Tour du Mont Blanc",
+    "relation": 124456,
+    "country": "France",
+    "note": "Loop round the Mont Blanc massif through three countries",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Tour_du_Mont_Blanc"
+    ]
+  },
+  {
+    "name": "West Highland Way",
+    "relation": 16287,
+    "country": "United Kingdom",
+    "note": "Milngavie to Fort William through the Scottish Highlands",
+    "sources": [
+      "https://en.wikipedia.org/wiki/West_Highland_Way"
+    ]
+  }
+]

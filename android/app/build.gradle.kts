@@ -102,7 +102,7 @@ abstract class CopyWebAssets @Inject constructor(
   @get:PathSensitive(PathSensitivity.RELATIVE)
   val webSources: FileCollection
     get() = repoRoot.get().asFileTree.matching {
-      include("index.html", "ui.css", "ui.js", "theme-init.js", "webview-check.js", "webview-notice.css", "app/**", "sw.js", "catalog.json", "vendor/**", "icons/**")
+      include("index.html", "ui.css", "ui.js", "theme-init.js", "webview-check.js", "webview-notice.css", "app/**", "sw.js", "catalog.json", "catalog-routes.json", "vendor/**", "icons/**")
     }
 
   @get:OutputDirectory

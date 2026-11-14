@@ -2,14 +2,22 @@
 
 from __future__ import annotations
 
+import sys
+import threading
 from http import HTTPStatus
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from ..common import ValidationError, load_json_file, with_file_lock, write_json_file
 from ..db import log_event
+from ..osm import fetch_overpass, import_route, validate_route_entry
 from ..places import validate_place
 from ..users import catalog_baseline_hidden, catalog_baseline_open, catalog_baseline_set_hidden
+
+
+# One Overpass fetch at a time per process: the public instance allows a
+# couple of slots per client IP, and an import holds one for up to a minute.
+_IMPORT_LOCK = threading.Lock()
 
 
 class CatalogMixin:
@@ -222,3 +230,55 @@ class CatalogMixin:
     log_event(self.conn, actor=admin["username"], action="admin.catalog_hide",
               target=name, details={"hidden": body["hidden"]})
     self._send_json(HTTPStatus.OK, {"ok": True, "name": name, "hidden": body["hidden"]})
+
+  def _route_catalog(self) -> list:
+    """The shipped `catalog-routes.json`, every entry validated. A bad entry
+    is a repo bug, so it fails the request rather than being skipped."""
+    path = Path(self.cfg["static_dir"] or ".").resolve() / "catalog-routes.json"
+    entries = load_json_file(path, expected_type=list, required=False, label="catalog-routes.json") or []
+    return [validate_route_entry(e) for e in entries]
+
+  def _h_catalog_routes_get(self):
+    """Routes that can be imported from OpenStreetMap. `importable` is false
+    when the instance has no Overpass endpoint configured, so the client
+    lists the entries without an import action."""
+    if self._require_user() is None:
+      return
+    try:
+      entries = self._route_catalog()
+    except ValidationError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"catalog-routes.json: {e}")
+    self._send_json(HTTPStatus.OK, {"entries": entries, "importable": bool(self.cfg.get("overpass_url"))})
+
+  def _h_catalog_routes_gpx(self):
+    """Fetch one catalog route's relation from Overpass and answer it as GPX
+    text. Nothing is stored here: the client saves it through the ordinary
+    GPX upload, so the offline store and the server see the same write.
+    Body: {relation}. Only relations in catalog-routes.json are fetched, and
+    one at a time per process, so a client cannot point this server at
+    arbitrary OSM data or queue up Overpass requests."""
+    user = self._require_user()
+    if user is None:
+      return
+    url = self.cfg.get("overpass_url")
+    if not url:
+      return self._error(HTTPStatus.NOT_FOUND, "route import is off on this server")
+    body = self._read_body_or_400()
+    if body is None:
+      return
+    try:
+      entry = next((e for e in self._route_catalog() if e["relation"] == body.get("relation")), None)
+    except ValidationError as e:
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"catalog-routes.json: {e}")
+    if entry is None:
+      return self._error(HTTPStatus.NOT_FOUND, "relation is not in the route catalog")
+    if not _IMPORT_LOCK.acquire(blocking=False):
+      return self._error(HTTPStatus.TOO_MANY_REQUESTS, "another route import is running, try again shortly")
+    try:
+      result = import_route(entry, fetch=lambda rel: fetch_overpass(rel, url))
+    except ValidationError as e:
+      return self._error(HTTPStatus.BAD_GATEWAY, str(e))
+    finally:
+      _IMPORT_LOCK.release()
+    print(f"[api] route import: {user['username']} {entry['name']} ({result['points']} points)", file=sys.stderr)
+    self._send_json(HTTPStatus.OK, result)

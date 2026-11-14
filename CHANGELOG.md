@@ -5,6 +5,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 ## [Unreleased]
 
 ### Added
+- A route catalog. Add > Browse routes, and the Routes list's Add, list well-known long-distance trails (Camino Francés, GR 20, Kungsleden, Tour du Mont Blanc and the West Highland Way to start). Importing one has the server fetch the route from OpenStreetMap, simplify it to at most 8,000 points and save it as a GPX route with an OpenStreetMap credit in its notes and file. Your browser never contacts OpenStreetMap, and the catalog ships no route geometry. Import needs a connection and a server; local-only mode lists the routes without it. Set `overpass_url` (`FERD_OVERPASS_URL`) to use another Overpass server, or empty to turn import off. Behind nginx, raise `proxy_read_timeout` for `/api/` as the updated example does, since a long route can take most of a minute to fetch.
 - A `public_url` setting (`FERD_PUBLIC_URL`). Set it to the site's address, such as `https://ferd.example.com`, and link previews, `/robots.txt` and `/sitemap.xml` name that address whatever `Host` a request sends, so a cache in front cannot keep a page pointing at another host. Unset, they follow the request as before. The nginx and Caddy examples now say to answer only the configured name.
 - Catalog images show their author and licence under the image in the place popup, linked to the image's page on Wikimedia Commons, as the images' licences require. Places imported from the catalog keep the credit, and an update from the catalog brings it to places imported earlier.
 

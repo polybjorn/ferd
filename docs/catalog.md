@@ -110,3 +110,28 @@ Designation, Landscape, and Type are listed in full; Civilization is illustrativ
 Admins curate the per-instance catalog from the in-app Manage catalog modal, which calls the admin endpoints listed in [api.md](api.md#admin). Promoted places have their visit-only fields (`visited`, `date_visited`, `rating`) stripped on the way in - the catalog describes a place, not a personal visit.
 
 The `CATEGORY_VOCAB` and `TAG_VOCAB` controls cover only the shipped `catalog.json` (the test reads that file). Local additions are not vocab-restricted, so an admin can use any category or tag there.
+
+## Route catalog
+
+`catalog-routes.json` at the repo root lists long-distance routes users can import into their Routes list. An entry names an OpenStreetMap relation and carries hand-written metadata only, so the repo holds no ODbL geometry and browsing the list sends no request anywhere.
+
+- `name` - English/Latin-script display name, also the stored route's name. Required.
+- `relation` - the OSM relation ID (`openstreetmap.org/relation/<id>`). For a route OSM splits into stages, use the parent `superroute`. Required.
+- `country` - country name in English; for a route crossing borders, the one it starts in. Required.
+- `local_name`, `note` (max 60 chars), `image`, `sources` - as for places.
+
+Keep entries in alphabetical order by `name` and fields in that order; `tests/test_shipped_routes.py` enforces both and fails on any coordinates in the file.
+
+Importing runs on the server (`POST /api/catalog/routes/gpx`, [api.md](api.md)). It asks Overpass (`overpass_url` in [configure.md](configure.md)) for the relation and two levels of child relations, leaves out members with an `alternative`, `excursion`, `approach`, `connection`, `link` or `variant` role, and chains the ways in member order; a gap starts a new track segment. Each line is simplified with Douglas-Peucker at 5 m, doubling the tolerance until the route is under 8,000 points. The client saves the result as an ordinary GPX upload, so it syncs and works offline like any other route. The GPX names OpenStreetMap contributors and the ODbL in its `<copyright>` and links the relation, and the route's notes and source carry the same credit.
+
+Measured on 2026-11-14 against the public Overpass instance, every shipped route fits at the starting 5 m:
+
+| Route | Relation | OSM points | Kept | GPX | Fetch |
+|---|---|---|---|---|---|
+| Camino Francés | 2163573 | 32,973 | 6,846 | 274 KiB | 37 s |
+| Kungsleden | 1657661 | 13,006 | 5,296 | 212 KiB | 33 s |
+| GR 20 | 101692 | 9,128 | 3,694 | 144 KiB | 47 s |
+| Tour du Mont Blanc | 124456 | 17,033 | 3,047 | 119 KiB | 33 s |
+| West Highland Way | 16287 | 6,702 | 1,819 | 73 KiB | 31 s |
+
+Local-only mode reads the bundled file and lists the routes without an import action, since nothing there can fetch the geometry.
