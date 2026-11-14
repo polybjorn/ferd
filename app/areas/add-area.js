@@ -1,5 +1,6 @@
 import { displayCategory, grpNum, reduceMotion, state } from '../core.js';
-import { dataLayer } from '../store.js';
+import { dataLayer, visitedCountries } from '../store.js';
+import { loadCountryPick } from '../countries.js';
 import {
   AREA_CATEGORY_KINDS, AREA_MAX_FILE_BYTES, AREA_TARGET_POINTS, _areaPointCount,
   nominatimAreas, parseAreaGeoJson,
@@ -24,7 +25,7 @@ const RESULTS_TIMING = { duration: 200, easing: 'ease' };
 function searchAreaBoundaries(q) {
   const params = new URLSearchParams({
     q, format: 'geojson', polygon_geojson: '1', polygon_threshold: '0.001',
-    namedetails: '1', 'accept-language': 'en', limit: '8',
+    namedetails: '1', addressdetails: '1', 'accept-language': 'en', limit: '8',
   });
   // Not AbortSignal.timeout, which throws on Chrome 99-102 and Safari 15.
   const ctrl = new AbortController();
@@ -101,10 +102,31 @@ export function AddArea() {
   // category the user may have chosen meanwhile from here, not from `v`.
   const category = useRef(v.category);
   category.current = v.category;
+  // The picked result's country code, once the country list knows it.
+  const [countryCode, setCountryCode] = useState('');
   const fileInput = useRef(/** @type {HTMLInputElement | null} */ (null));
   const resultsEl = useRef(/** @type {HTMLDivElement | null} */ (null));
   const fromHeight = useRef(0);
   const motion = useRef(0);
+
+  const pickedResult = found && picked >= 0 ? found[picked] : null;
+  const pickedCountry = pickedResult ? pickedResult.country : '';
+  // A whole country saved as an area keeps its sea and an outline, so the
+  // form offers the marked country, which fills like the visited ones.
+  useEffect(() => {
+    setCountryCode('');
+    if (!pickedCountry) return;
+    loadCountryPick().then(pick => {
+      if (pick.countries.some(c => c.code === pickedCountry)) setCountryCode(pickedCountry);
+    }, () => {});
+  }, [pickedCountry]);
+  const countryMarked = !!countryCode && visitedCountries.value.includes(countryCode);
+  const markCountry = () => {
+    setBusy(true);
+    dataLayer.setCountryVisited(countryCode, true)
+      .then(() => closeModal())
+      .catch((/** @type {Error} */ err) => { setBusy(false); setError(err.message); });
+  };
 
   const splitAvailable = !!parsed && !parsed.osm && parsed.features.length > 1;
   const separate = splitAvailable && split;
@@ -283,6 +305,10 @@ export function AddArea() {
           <button type="button" class="area-results-more" id="a-results-more" hidden=${!showMore} onClick=${showAll}>${t('area.showAll', { count: found ? found.length : 0 })}</button>
           <span class="area-results-credit" id="a-results-credit" hidden=${!found || !found.length}>${t('area.credit')}</span>
         </div>
+        ${countryCode && pickedResult && html`<div class="ui-control-row area-country-offer" id="a-country-offer">
+          <p class="ui-hint">${t(countryMarked ? 'area.countryMarked' : 'area.countryOffer', { name: pickedResult.name })}</p>
+          ${!countryMarked && html`<button type="button" class="ui-button" id="a-country-mark" disabled=${busy} onClick=${markCountry}>${t('area.markCountry')}</button>`}
+        </div>`}
       </div>
       <${Field} label=${t('area.orFile')}>
         <${FilePick} id="a-file" accept=".geojson,.json,application/geo+json,application/json" file=${file} onFile=${onFile} inputRef=${fileInput} />

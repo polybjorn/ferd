@@ -125,6 +125,7 @@
    picked row's tint mixes --ui-surface, so that token has to move. */
 .ui-dialog .area-result { --ui-surface: var(--surface2); }
 .ui-dialog button.area-results-more[hidden] { display: none; }
+.area-country-offer { align-items: flex-start; margin-top: var(--ui-space-2); }
 .area-results-foot { align-items: center; display: flex; gap: var(--ui-space-3); justify-content: space-between; }
 .ui-dialog button.area-results-more {
   background: transparent;

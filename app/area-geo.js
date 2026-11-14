@@ -38,6 +38,7 @@ const AREA_PROJECTED_MSG = 'Coordinates are outside the lon/lat range, so the fi
  * @property {string} [addresstype]
  * @property {string} [type]
  * @property {string} [display_name]
+ * @property {{ country_code?: string }} [address]
  */
 /**
  * [south, west, north, east].
@@ -141,6 +142,7 @@ export function nominatimAreas(doc) {
       localName: local === name ? '' : local.slice(0, 200),
       kind,
       detail: (p.display_name || '').split(', ').slice(1).join(', '),
+      country: kind === 'country' && p.address && p.address.country_code ? p.address.country_code.toUpperCase() : '',
       polygons,
     });
   }

@@ -203,6 +203,17 @@ test('nominatimAreas keeps the English name and the local one beside it', () => 
   assert.equal(area.detail, 'Japan');
 });
 
+test('nominatimAreas gives a country its upper-case code and other kinds none', () => {
+  const ring = [[0, 0], [1, 0], [1, 1], [0, 0]];
+  const geometry = { type: 'Polygon', coordinates: [ring] };
+  const [country, region] = g.nominatimAreas({ features: [
+    { geometry, properties: { name: 'Italy', addresstype: 'country', address: { country_code: 'it' } } },
+    { geometry, properties: { name: 'Lazio', addresstype: 'state', address: { country_code: 'it' } } },
+  ] });
+  assert.equal(country.country, 'IT');
+  assert.equal(region.country, '');
+});
+
 test('nominatimAreas leaves the local name empty when it is the same', () => {
   const ring = [[0, 0], [1, 0], [1, 1], [0, 0]];
   const [area] = g.nominatimAreas({ features: [{
