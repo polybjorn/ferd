@@ -10,13 +10,14 @@ from urllib.parse import parse_qs, urlparse
 
 from ..common import ValidationError, load_json_file, with_file_lock, write_json_file
 from ..db import log_event
-from ..osm import fetch_overpass, import_route, validate_route_entry
+from ..osm import area_query, fetch_overpass, import_area, import_route, validate_area_entry, validate_route_entry
 from ..places import validate_place
 from ..users import catalog_baseline_hidden, catalog_baseline_open, catalog_baseline_set_hidden
 
 
-# One Overpass fetch at a time per process: the public instance allows a
-# couple of slots per client IP, and an import holds one for up to a minute.
+# One Overpass fetch at a time per process, routes and areas together: the
+# public instance allows a couple of slots per client IP, and an import holds
+# one for up to a minute.
 _IMPORT_LOCK = threading.Lock()
 
 
@@ -231,54 +232,75 @@ class CatalogMixin:
               target=name, details={"hidden": body["hidden"]})
     self._send_json(HTTPStatus.OK, {"ok": True, "name": name, "hidden": body["hidden"]})
 
-  def _route_catalog(self) -> list:
-    """The shipped `catalog-routes.json`, every entry validated. A bad entry
-    is a repo bug, so it fails the request rather than being skipped."""
-    path = Path(self.cfg["static_dir"] or ".").resolve() / "catalog-routes.json"
-    entries = load_json_file(path, expected_type=list, required=False, label="catalog-routes.json") or []
-    return [validate_route_entry(e) for e in entries]
+  def _osm_catalog(self, fname: str, validate) -> list:
+    """A shipped OSM relation catalog (`catalog-routes.json` or
+    `catalog-areas.json`), every entry validated. A bad entry is a repo bug,
+    so it fails the request rather than being skipped."""
+    path = Path(self.cfg["static_dir"] or ".").resolve() / fname
+    entries = load_json_file(path, expected_type=list, required=False, label=fname) or []
+    return [validate(e) for e in entries]
 
-  def _h_catalog_routes_get(self):
-    """Routes that can be imported from OpenStreetMap. `importable` is false
-    when the instance has no Overpass endpoint configured, so the client
-    lists the entries without an import action."""
+  def _osm_catalog_get(self, fname: str, validate):
+    """List an OSM relation catalog. `importable` is false when the instance
+    has no Overpass endpoint configured, so the client lists the entries
+    without an import action."""
     if self._require_user() is None:
       return
     try:
-      entries = self._route_catalog()
+      entries = self._osm_catalog(fname, validate)
     except ValidationError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"catalog-routes.json: {e}")
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"{fname}: {e}")
     self._send_json(HTTPStatus.OK, {"entries": entries, "importable": bool(self.cfg.get("overpass_url"))})
 
-  def _h_catalog_routes_gpx(self):
-    """Fetch one catalog route's relation from Overpass and answer it as GPX
-    text. Nothing is stored here: the client saves it through the ordinary
-    GPX upload, so the offline store and the server see the same write.
-    Body: {relation}. Only relations in catalog-routes.json are fetched, and
-    one at a time per process, so a client cannot point this server at
-    arbitrary OSM data or queue up Overpass requests."""
+  def _osm_catalog_import(self, fname: str, validate, kind: str, run):
+    """Fetch one catalog entry's relation from Overpass and answer what
+    `run(entry, url)` makes of it. Nothing is stored here: the client saves the
+    answer through its ordinary write, so the offline store and the server see
+    the same change. Body: {relation}. Only relations in the catalog file are
+    fetched, and one at a time per process, so a client cannot point this
+    server at arbitrary OSM data or queue up Overpass requests."""
     user = self._require_user()
     if user is None:
       return
     url = self.cfg.get("overpass_url")
     if not url:
-      return self._error(HTTPStatus.NOT_FOUND, "route import is off on this server")
+      return self._error(HTTPStatus.NOT_FOUND, f"{kind} import is off on this server")
     body = self._read_body_or_400()
     if body is None:
       return
     try:
-      entry = next((e for e in self._route_catalog() if e["relation"] == body.get("relation")), None)
+      entry = next((e for e in self._osm_catalog(fname, validate) if e["relation"] == body.get("relation")), None)
     except ValidationError as e:
-      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"catalog-routes.json: {e}")
+      return self._error(HTTPStatus.INTERNAL_SERVER_ERROR, f"{fname}: {e}")
     if entry is None:
-      return self._error(HTTPStatus.NOT_FOUND, "relation is not in the route catalog")
+      return self._error(HTTPStatus.NOT_FOUND, f"relation is not in the {kind} catalog")
     if not _IMPORT_LOCK.acquire(blocking=False):
-      return self._error(HTTPStatus.TOO_MANY_REQUESTS, "another route import is running, try again shortly")
+      return self._error(HTTPStatus.TOO_MANY_REQUESTS, "another import is running, try again shortly")
     try:
-      result = import_route(entry, fetch=lambda rel: fetch_overpass(rel, url))
+      result = run(entry, url)
     except ValidationError as e:
       return self._error(HTTPStatus.BAD_GATEWAY, str(e))
     finally:
       _IMPORT_LOCK.release()
-    print(f"[api] route import: {user['username']} {entry['name']} ({result['points']} points)", file=sys.stderr)
+    print(f"[api] {kind} import: {user['username']} {entry['name']} ({result['points']} points)", file=sys.stderr)
     self._send_json(HTTPStatus.OK, result)
+
+  def _h_catalog_routes_get(self):
+    """Routes that can be imported from OpenStreetMap."""
+    self._osm_catalog_get("catalog-routes.json", validate_route_entry)
+
+  def _h_catalog_routes_gpx(self):
+    """One catalog route's relation as GPX text, which the client saves with
+    the ordinary GPX upload."""
+    self._osm_catalog_import("catalog-routes.json", validate_route_entry, "route",
+                             lambda entry, url: import_route(entry, fetch=lambda rel: fetch_overpass(rel, url)))
+
+  def _h_catalog_areas_get(self):
+    """Areas that can be imported from OpenStreetMap."""
+    self._osm_catalog_get("catalog-areas.json", validate_area_entry)
+
+  def _h_catalog_areas_geometry(self):
+    """One catalog area's relation as a GeoJSON geometry, which the client
+    saves as an ordinary area."""
+    self._osm_catalog_import("catalog-areas.json", validate_area_entry, "area",
+                             lambda entry, url: import_area(entry, fetch=lambda rel: fetch_overpass(rel, url, area_query)))

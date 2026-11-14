@@ -38,6 +38,8 @@ ENDPOINTS = [
   ("GET", "/catalog", "app/places-list.js", "CatalogEntry[]", None),
   ("GET", "/catalog/routes", "app/add/browse-routes.js", "RouteCatalog", None),
   ("POST", "/catalog/routes/gpx", "app/add/browse-routes.js", "RouteImport", None),
+  ("GET", "/catalog/areas", "app/add/browse-areas.js", "AreaCatalog", None),
+  ("POST", "/catalog/areas/geometry", "app/add/browse-areas.js", "AreaImport", None),
   ("GET", "/catalog?include_hidden=1", "app/settings/catalog.js", "AdminCatalogEntry[]", None),
   ("POST", "/admin/catalog/add", "app/settings/catalog.js", "CatalogAddResult", None),
   ("GET", "/admin/stats", "app/settings/account.js", "AdminStats", None),

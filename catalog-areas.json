@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Cairngorms National Park",
+    "relation": 9838401,
+    "country": "United Kingdom",
+    "note": "Largest national park in the UK, in the Scottish Highlands",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Cairngorms_National_Park"
+    ]
+  },
+  {
+    "name": "Hardangervidda National Park",
+    "relation": 13357364,
+    "country": "Norway",
+    "local_name": "Hardangervidda nasjonalpark",
+    "note": "Mountain plateau with Europe's largest wild reindeer herd",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Hardangervidda_National_Park"
+    ]
+  },
+  {
+    "name": "Jotunheimen National Park",
+    "relation": 269939,
+    "country": "Norway",
+    "local_name": "Jotunheimen nasjonalpark",
+    "note": "Norway's highest mountains, Galdhøpiggen among them",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Jotunheimen_National_Park"
+    ]
+  },
+  {
+    "name": "Lake District National Park",
+    "relation": 287917,
+    "country": "United Kingdom",
+    "note": "Fells and lakes of Cumbria, England",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Lake_District_National_Park"
+    ]
+  },
+  {
+    "name": "Triglav National Park",
+    "relation": 2868142,
+    "country": "Slovenia",
+    "local_name": "Triglavski narodni park",
+    "note": "The Julian Alps around Triglav, Slovenia's highest peak",
+    "sources": [
+      "https://en.wikipedia.org/wiki/Triglav_National_Park"
+    ]
+  }
+]

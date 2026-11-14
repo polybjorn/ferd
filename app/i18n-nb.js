@@ -467,6 +467,11 @@ export const NB = {
   'browseRoutes.import': 'Importer',
   'browseRoutes.importing': 'Importerer…',
   'browseRoutes.imported': 'Importert',
+  'add.tabBrowseAreas': 'Bla i områder',
+  'add.titleBrowseAreas': 'Legg til område fra katalogen',
+  'browseAreas.empty': 'Ingen områder i katalogen ennå.',
+  'browseAreas.hint': 'Import henter grensen fra OpenStreetMap via denne serveren, så den krever nettilgang.',
+  'browseAreas.noImport': 'Import av områder krever en Ferd-server som når OpenStreetMap.',
 
   'browse.loading': 'Laster katalogen…',
   'browse.allImported': 'Du har importert alt i katalogen.',

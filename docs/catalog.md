@@ -151,3 +151,21 @@ Measured on 2026-11-14 against the public Overpass instance, every shipped route
 | West Highland Way | 16287 | 6,702 | 1,819 | 73 KiB | 31 s |
 
 Local-only mode reads the bundled file and lists the routes without an import action, since nothing there can fetch the geometry.
+
+## Area catalog
+
+`catalog-areas.json` at the repo root lists national parks and other protected areas users can import into their Areas list. Entries take the same fields, order and rules as the route catalog above, with `relation` naming the area's `boundary` or `multipolygon` relation; `tests/test_shipped_areas.py` runs the same checks on it.
+
+Importing runs on the server (`POST /api/catalog/areas/geometry`, [api.md](api.md)) through the same Overpass endpoint, one import at a time across routes and areas. It asks for the relation alone, since a boundary's child relations are other areas. Ways with the `outer` role, or no role, are joined into closed rings in whatever order and direction OSM stores them, and `inner` rings become holes in the outer ring that holds them; a ring that never closes is left out, as are label nodes and subareas. Each ring is simplified with Douglas-Peucker at 5 m, doubling the tolerance until the area is under 5,000 points, the same budget the Add area form simplifies a file to; a ring that falls under four points is dropped, so small islands go first. The client saves the answer as an ordinary area with `source: "osm"`, which is what credits OpenStreetMap on the area, as for a boundary found with the Add area search.
+
+Measured on 2026-11-14 against the public Overpass instance, every shipped area fits at the starting 5 m:
+
+| Area | Relation | OSM points | Kept | Answer | Fetch |
+|---|---|---|---|---|---|
+| Cairngorms National Park | 9838401 | 8,932 | 3,309 | 77 KiB | 23 s |
+| Hardangervidda National Park | 13357364 | 140 | 129 | 3 KiB | 27 s |
+| Jotunheimen National Park | 269939 | 181 | 162 | 3 KiB | 26 s |
+| Lake District National Park | 287917 | 8,769 | 2,864 | 66 KiB | 37 s |
+| Triglav National Park | 2868142 | 3,172 | 2,070 | 48 KiB | 37 s |
+
+Local-only mode lists the areas without an import action, as for routes.

@@ -54,9 +54,9 @@ DEFAULT_CONFIG = {
   # use it instead of the request's Host header, so a request naming another
   # host cannot put that host in a page a shared cache might keep.
   "public_url": None,
-  # Overpass API endpoint the server fetches a catalog route's OpenStreetMap
-  # relation from when a user imports it. Browsers never contact it. Empty
-  # turns route import off; the route catalog is then listed without it.
+  # Overpass API endpoint the server fetches a catalog route's or area's
+  # OpenStreetMap relation from when a user imports it. Browsers never contact
+  # it. Empty turns import off; the catalogs are then listed without it.
   "overpass_url": "https://overpass-api.de/api/interpreter",
 }
 

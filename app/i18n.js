@@ -468,6 +468,11 @@ const STRINGS = {
   'browseRoutes.import': 'Import',
   'browseRoutes.importing': 'Importing\u2026',
   'browseRoutes.imported': 'Imported',
+  'add.tabBrowseAreas': 'Browse areas',
+  'add.titleBrowseAreas': 'Add area from catalogue',
+  'browseAreas.empty': 'No areas in the catalogue yet.',
+  'browseAreas.hint': 'Importing fetches the boundary from OpenStreetMap through this server, so it needs a connection.',
+  'browseAreas.noImport': 'Importing an area needs a Ferd server that can reach OpenStreetMap.',
 
   'browse.loading': 'Loading catalogue\u2026',
   'browse.allImported': "You've imported everything in the catalogue.",

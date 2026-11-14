@@ -1,5 +1,6 @@
-"""Route import from OpenStreetMap relations: chaining, simplification, the
-GPX it writes, and the two endpoints against a stub Overpass server."""
+"""Route and area import from OpenStreetMap relations: chaining, ring
+assembly, simplification, the GPX and geometry they answer, and the endpoints
+against a stub Overpass server."""
 
 from __future__ import annotations
 
@@ -16,10 +17,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from ferd_api import ValidationError, gpx_lines, validate_gpx  # noqa: E402
 from ferd_api import osm  # noqa: E402
+from ferd_api.areas import validate_area_geometry  # noqa: E402
 
 
 def _way(*pts, role=""):
   return {"type": "way", "ref": 0, "role": role, "geometry": [{"lat": a, "lon": b} for a, b in pts]}
+
+
+SQUARE = [(60.0, 10.0), (60.0, 10.2), (60.1, 10.2), (60.1, 10.0), (60.0, 10.0)]
+HOLE = [(60.04, 10.08), (60.04, 10.12), (60.06, 10.12), (60.06, 10.08), (60.04, 10.08)]
+ISLAND = [(61.0, 11.0), (61.0, 11.1), (61.1, 11.1), (61.1, 11.0), (61.0, 11.0)]
 
 
 # A superroute (1) of two stages (2, 3), one with a variant that must be left
@@ -37,9 +44,22 @@ STUB_ANSWER = {"elements": [
   {"type": "relation", "id": 3, "members": [
     _way((60.004, 10.0), (60.003, 10.0), (60.002, 10.0)),
   ]},
+  # A park (10): its outline in two ways, out of order and one backwards, a
+  # lake cut out of it, an island with no role, a way that never closes, a
+  # label node and a subarea that is not part of the outline.
+  {"type": "relation", "id": 10, "members": [
+    {"type": "node", "ref": 8, "role": "label", "lat": 60.05, "lon": 10.1},
+    _way(*HOLE, role="inner"),
+    _way(*SQUARE[:3], role="outer"),
+    _way(*reversed(SQUARE[2:]), role="outer"),
+    _way(*ISLAND),
+    _way((62.0, 12.0), (62.0, 12.1), role="outer"),
+    {"type": "relation", "ref": 11, "role": "subarea"},
+  ], "tags": {"name": "Stub Park"}},
 ]}
 
 STUB_ENTRY = {"name": "Stub Way", "relation": 1, "country": "Norway"}
+STUB_AREA = {"name": "Stub Park", "relation": 10, "country": "Norway"}
 
 
 class StubOverpass:
@@ -140,6 +160,75 @@ class GpxTests(unittest.TestCase):
     self.assertEqual(sum(map(len, gpx_lines(out["gpx"].encode()))), out["points"])
 
 
+class AreaTests(unittest.TestCase):
+  def test_close_rings_joins_ways_in_any_order_and_direction(self):
+    a, b, c, d = (0, 0), (0, 1), (1, 1), (1, 0)
+    rings = osm.close_rings([[c, d], [a, b], [a, d], [b, c]])
+    self.assertEqual(rings, [[c, d, a, b, c]])
+
+  def test_close_rings_drops_an_open_ring(self):
+    self.assertEqual(osm.close_rings([[(0, 0), (0, 1), (1, 1)]]), [])
+
+  def test_relation_polygons(self):
+    polys = osm.relation_polygons(STUB_ANSWER, 10)
+    self.assertEqual(len(polys), 2)
+    outline, *holes = polys[0]
+    self.assertEqual(set(outline), set(SQUARE))
+    self.assertEqual(outline[0], outline[-1])
+    self.assertEqual(holes, [HOLE])
+    self.assertEqual(polys[1], [ISLAND])
+
+  def test_hole_outside_every_outline_is_dropped(self):
+    answer = {"elements": [{"type": "relation", "id": 5, "members": [_way(*SQUARE, role="outer"), _way(*ISLAND, role="inner")]}]}
+    self.assertEqual(osm.relation_polygons(answer, 5), [[SQUARE]])
+
+  def test_missing_relation_or_outline(self):
+    with self.assertRaises(ValidationError):
+      osm.relation_polygons(STUB_ANSWER, 99)
+    with self.assertRaises(ValidationError):
+      osm.relation_polygons({"elements": [{"type": "relation", "id": 5, "members": [_way(*HOLE, role="inner")]}]}, 5)
+
+  def test_simplify_drops_rings_too_small_to_keep(self):
+    # About 1 m across, so nothing of it survives 5 m.
+    tiny = [(60.0, 10.0), (60.0, 10.00001), (60.00001, 10.00001), (60.00001, 10.0), (60.0, 10.0)]
+    out, tol = osm.simplify_polygons_to_fit([[SQUARE, tiny], [tiny]])
+    self.assertEqual((out, tol), ([[SQUARE]], osm.SIMPLIFY_START_M))
+    with self.assertRaises(ValidationError):
+      osm.simplify_polygons_to_fit([[tiny]])
+
+  def test_simplify_raises_tolerance_until_under_the_cap(self):
+    # A ring with 20 m teeth along one side keeps every point at 5 m.
+    teeth = [(60.0 + (i % 2) * 0.00018, 10.0 + i * 0.001) for i in range(200)]
+    ring = teeth + [(60.1, 10.199), (60.1, 10.0), teeth[0]]
+    out, tol = osm.simplify_polygons_to_fit([[ring]], max_points=50)
+    self.assertLessEqual(sum(len(r) for p in out for r in p), 50)
+    self.assertGreater(tol, osm.SIMPLIFY_START_M)
+    self.assertEqual(out[0][0][0], out[0][0][-1])
+
+  def test_geometry_is_a_valid_area(self):
+    one = osm.build_area_geometry([[SQUARE, HOLE]])
+    self.assertEqual(one["type"], "Polygon")
+    self.assertEqual(one["coordinates"][0][1], [10.2, 60.0])
+    two = osm.build_area_geometry([[SQUARE], [ISLAND]])
+    self.assertEqual(two["type"], "MultiPolygon")
+    for g in (one, two):
+      self.assertEqual(validate_area_geometry(g), g)
+
+  def test_import_area_uses_the_fetcher(self):
+    seen = []
+    out = osm.import_area(STUB_AREA, fetch=lambda rel: seen.append(rel) or STUB_ANSWER)
+    self.assertEqual(seen, [10])
+    self.assertEqual((out["polygons"], out["points"]), (2, 15))
+    self.assertEqual(out["source"], "https://www.openstreetmap.org/relation/10")
+    self.assertIn("OpenStreetMap contributors", out["credit"])
+    validate_area_geometry(out["geometry"])
+
+  def test_area_query_asks_for_the_relation_alone(self):
+    q = osm.area_query(10)
+    self.assertIn("relation(10)", q)
+    self.assertNotIn("rel(r.", q)
+
+
 class FetchTests(unittest.TestCase):
   def test_http_error_is_a_validation_error(self):
     stub = StubOverpass(status=504)
@@ -166,6 +255,7 @@ class EndpointTests(unittest.TestCase):
 
     def prepare(d):
       (d / "catalog-routes.json").write_text(json.dumps([STUB_ENTRY]))
+      (d / "catalog-areas.json").write_text(json.dumps([STUB_AREA]))
 
     cls.server = _Server({"overpass_url": cls.stub.url}, prepare=prepare)
     cls.off = _Server({"overpass_url": ""}, prepare=prepare)
@@ -202,6 +292,31 @@ class EndpointTests(unittest.TestCase):
   def test_gpx_off_and_signed_out(self):
     self.assertEqual(self.c_off.request("POST", "/api/catalog/routes/gpx", {"relation": 1})[0], 404)
     self.assertEqual(self.anon.request("POST", "/api/catalog/routes/gpx", {"relation": 1})[0], 401)
+
+  def test_area_list(self):
+    self.assertEqual(self.c.request("GET", "/api/catalog/areas"), (200, {"entries": [STUB_AREA], "importable": True}))
+    self.assertEqual(self.c_off.request("GET", "/api/catalog/areas"), (200, {"entries": [STUB_AREA], "importable": False}))
+    self.assertEqual(self.anon.request("GET", "/api/catalog/areas")[0], 401)
+
+  def test_area_geometry(self):
+    before = len(self.stub.queries)
+    status, body = self.c.request("POST", "/api/catalog/areas/geometry", {"relation": 10})
+    self.assertEqual(status, 200, body)
+    self.assertEqual(body["geometry"]["type"], "MultiPolygon")
+    self.assertEqual(body["points"], 15)
+    self.assertNotIn("rel(r.", self.stub.queries[before], "an area fetch asks for the relation alone")
+
+  def test_area_geometry_refuses_what_is_not_in_the_catalog(self):
+    before = len(self.stub.queries)
+    # 1 is a route, not an area.
+    for rel in (1, 11, "10", None):
+      with self.subTest(relation=rel):
+        self.assertEqual(self.c.request("POST", "/api/catalog/areas/geometry", {"relation": rel})[0], 404)
+    self.assertEqual(len(self.stub.queries), before, "nothing outside the catalog reaches Overpass")
+
+  def test_area_geometry_off_and_signed_out(self):
+    self.assertEqual(self.c_off.request("POST", "/api/catalog/areas/geometry", {"relation": 10})[0], 404)
+    self.assertEqual(self.anon.request("POST", "/api/catalog/areas/geometry", {"relation": 10})[0], 401)
 
 
 if __name__ == "__main__":

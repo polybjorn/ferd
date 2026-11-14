@@ -24,9 +24,14 @@ GEOMETRY_KEYS = re.compile(r'"(lat|lon|coordinates|geometry|points)"')
 
 
 class ShippedRoutesTests(unittest.TestCase):
+  # tests/test_shipped_areas.py runs the same checks on catalog-areas.json.
+  PATH = ROUTES_PATH
+  FIELDS = ROUTE_CATALOG_FIELDS
+  validate = staticmethod(validate_route_entry)
+
   @classmethod
   def setUpClass(cls):
-    cls.text = ROUTES_PATH.read_text(encoding="utf-8")
+    cls.text = cls.PATH.read_text(encoding="utf-8")
     cls.entries = json.loads(cls.text)
 
   def test_is_a_non_empty_list(self):
@@ -37,12 +42,12 @@ class ShippedRoutesTests(unittest.TestCase):
     for i, e in enumerate(self.entries):
       with self.subTest(i=i, name=e.get("name", "?") if isinstance(e, dict) else "?"):
         try:
-          validate_route_entry(e)
+          self.validate(e)
         except ValidationError as err:
           self.fail(str(err))
 
   def test_no_geometry_shipped(self):
-    self.assertIsNone(GEOMETRY_KEYS.search(self.text), "catalog-routes.json holds relation IDs, not geometry")
+    self.assertIsNone(GEOMETRY_KEYS.search(self.text), f"{self.PATH.name} holds relation IDs, not geometry")
 
   def test_country_resolves_to_a_code(self):
     for e in self.entries:
@@ -69,7 +74,7 @@ class ShippedRoutesTests(unittest.TestCase):
     for e in self.entries:
       with self.subTest(name=e["name"]):
         keys = list(e)
-        self.assertEqual(keys, [k for k in ROUTE_CATALOG_FIELDS if k in e])
+        self.assertEqual(keys, [k for k in self.FIELDS if k in e])
 
 
 class RouteEntryValidationTests(unittest.TestCase):

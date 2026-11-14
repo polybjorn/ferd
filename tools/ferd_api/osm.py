@@ -1,4 +1,4 @@
-"""Route catalog entries that point at OpenStreetMap relations.
+"""Route and area catalog entries that point at OpenStreetMap relations.
 
 `catalog-routes.json` ships metadata only: a name, an OSM relation ID and the
 same descriptive fields a place entry has. The geometry stays in OSM and is
@@ -9,6 +9,10 @@ An import walks the relation (and up to two levels of child relations, which
 is how superroutes like the Tour du Mont Blanc are built), chains its ways in
 member order, simplifies each line and writes a GPX that names OpenStreetMap
 as the source and carries the ODbL licence in its metadata.
+
+An area import (`catalog-areas.json`) fetches the relation's outer and inner
+ways, closes them into rings, puts each inner ring in the outer that holds it
+and answers a GeoJSON Polygon or MultiPolygon, simplified the same way.
 """
 
 from __future__ import annotations
@@ -36,6 +40,10 @@ ROUTE_MAX_POINTS = 8000
 SIMPLIFY_START_M = 5.0
 SIMPLIFY_MAX_M = 640.0
 
+# Points kept across every ring of one imported area: the same budget the
+# app's own boundary import simplifies to (AREA_TARGET_POINTS in area-geo.js).
+AREA_MAX_POINTS = 5000
+
 OSM_CREDIT = "OpenStreetMap contributors"
 ODBL_URL = "https://opendatacommons.org/licenses/odbl/1-0/"
 
@@ -45,6 +53,8 @@ SKIP_ROLES = {"alternative", "excursion", "approach", "connection", "link", "var
 
 ROUTE_CATALOG_FIELDS = ["name", "relation", "country", "local_name", "note", "image", "sources"]
 ROUTE_CATALOG_REQUIRED = {"name", "relation", "country"}
+# catalog-areas.json entries take the same fields.
+AREA_CATALOG_FIELDS = ROUTE_CATALOG_FIELDS
 
 
 def relation_url(relation: int) -> str:
@@ -59,7 +69,7 @@ def _is_url(v: object) -> bool:
 
 
 def validate_route_entry(e: object) -> dict:
-  """Check one catalog-routes.json entry. Returns it unchanged; raises
+  """Check one catalog-routes.json or catalog-areas.json entry. Returns it unchanged; raises
   ValidationError naming the first problem."""
   if not isinstance(e, dict):
     raise ValidationError("entry must be an object")
@@ -83,6 +93,9 @@ def validate_route_entry(e: object) -> dict:
   return e
 
 
+validate_area_entry = validate_route_entry
+
+
 def overpass_query(relation: int) -> str:
   """The relation and two levels of child relations, each with the geometry
   of its member ways, in member order."""
@@ -91,11 +104,17 @@ def overpass_query(relation: int) -> str:
           "(.r0;.r1;.r2;);out geom;")
 
 
-def fetch_overpass(relation: int, url: str = OVERPASS_URL) -> dict:
-  """POST the relation query to Overpass and return the parsed answer.
+def area_query(relation: int) -> str:
+  """The relation alone, with the geometry of its member ways. A boundary's
+  child relations (subareas) are other areas, so they are not fetched."""
+  return f"[out:json][timeout:{OVERPASS_TIMEOUT_S - 10}];relation({relation});out geom;"
+
+
+def fetch_overpass(relation: int, url: str = OVERPASS_URL, query=overpass_query) -> dict:
+  """POST `query(relation)` to Overpass and return the parsed answer.
   Raises ValidationError on a network error, a non-200 or a bad body."""
-  data = urlencode({"data": overpass_query(relation)}).encode()
-  req = urllib.request.Request(url, data=data, headers={"User-Agent": "Ferd route import (https://github.com/polybjorn/ferd)"})
+  data = urlencode({"data": query(relation)}).encode()
+  req = urllib.request.Request(url, data=data, headers={"User-Agent": "Ferd catalog import (https://github.com/polybjorn/ferd)"})
   try:
     with urllib.request.urlopen(req, timeout=OVERPASS_TIMEOUT_S) as resp:
       body = resp.read(OVERPASS_MAX_BYTES + 1)
@@ -257,4 +276,116 @@ def import_route(entry: dict, fetch=fetch_overpass) -> dict:
     "tolerance_m": tol,
     "source": relation_url(relation),
     "credit": f"Route data (c) {OSM_CREDIT}, ODbL",
+  }
+
+
+def _way_points(m: dict) -> list:
+  return [(p["lat"], p["lon"]) for p in (m.get("geometry") or []) if isinstance(p, dict) and "lat" in p and "lon" in p]
+
+
+def close_rings(ways: list) -> list:
+  """Join ways into closed rings. Multipolygon members come in no set order
+  or direction, so each ring grows by whichever way shares its open end. A
+  ring that cannot be closed is a broken relation and is left out."""
+  pool = [list(w) for w in ways if len(w) >= 2]
+  rings = []
+  while pool:
+    ring = pool.pop(0)
+    while ring[0] != ring[-1]:
+      for i, w in enumerate(pool):
+        if w[0] == ring[-1]:
+          ring.extend(w[1:])
+        elif w[-1] == ring[-1]:
+          ring.extend(reversed(w[:-1]))
+        else:
+          continue
+        pool.pop(i)
+        break
+      else:
+        break
+    if ring[0] == ring[-1] and len(ring) >= 4:
+      rings.append(ring)
+  return rings
+
+
+def _in_ring(pt: tuple, ring: list) -> bool:
+  """Ray casting on (lat, lon); fine at the scale of one area."""
+  y, x = pt
+  inside = False
+  for (y1, x1), (y2, x2) in zip(ring, ring[1:]):
+    if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1) + x1:
+      inside = not inside
+  return inside
+
+
+def relation_polygons(answer: dict, relation: int) -> list:
+  """The polygons of a multipolygon or boundary relation from an Overpass
+  answer: a list of [outer, inner, ...] rings of (lat, lon). A member with no
+  role counts as outer, as older boundaries tag them; any other role (a
+  label node, a subarea) is not part of the outline."""
+  rel = next((e for e in (answer.get("elements") or [])
+              if isinstance(e, dict) and e.get("type") == "relation" and e.get("id") == relation), None)
+  if rel is None:
+    raise ValidationError(f"relation {relation} not found in OpenStreetMap")
+  outer, inner = [], []
+  for m in rel.get("members") or []:
+    if m.get("type") != "way":
+      continue
+    role = m.get("role") or ""
+    if role in ("", "outer"):
+      outer.append(_way_points(m))
+    elif role == "inner":
+      inner.append(_way_points(m))
+  polygons = [[r] for r in close_rings(outer)]
+  if not polygons:
+    raise ValidationError(f"relation {relation} has no closed outline")
+  for hole in close_rings(inner):
+    home = next((p for p in polygons if _in_ring(hole[0], p[0])), None)
+    if home is not None:
+      home.append(hole)
+  return polygons
+
+
+def simplify_polygons_to_fit(polygons: list, max_points: int = AREA_MAX_POINTS) -> tuple[list, float]:
+  """Simplify every ring at the smallest tolerance, doubling from
+  SIMPLIFY_START_M, that brings the total under max_points. A ring that
+  falls under four points is dropped, and a polygon with it when it was the
+  outline, so small islands go first as the tolerance grows."""
+  tol = SIMPLIFY_START_M
+  while True:
+    out = []
+    for rings in polygons:
+      kept = [s for s in (simplify(r, tol) for r in rings[1:]) if len(s) >= 4]
+      outline = simplify(rings[0], tol)
+      if len(outline) >= 4:
+        out.append([outline] + kept)
+    if not out:
+      raise ValidationError("the area is too small to keep after simplification")
+    if sum(len(r) for p in out for r in p) <= max_points or tol >= SIMPLIFY_MAX_M:
+      return out, tol
+    tol *= 2
+
+
+def build_area_geometry(polygons: list) -> dict:
+  """GeoJSON ([lon, lat]) Polygon for one polygon, MultiPolygon for more."""
+  coords = [[[[round(lon, 6), round(lat, 6)] for lat, lon in ring] for ring in rings] for rings in polygons]
+  if len(coords) == 1:
+    return {"type": "Polygon", "coordinates": coords[0]}
+  return {"type": "MultiPolygon", "coordinates": coords}
+
+
+def import_area(entry: dict, fetch=None) -> dict:
+  """Fetch, assemble and simplify one area catalog entry's relation. Returns
+  the geometry and what was kept, for the client to store as an area."""
+  relation = entry["relation"]
+  if fetch is None:
+    fetch = lambda rel: fetch_overpass(rel, query=area_query)  # noqa: E731
+  polygons, tol = simplify_polygons_to_fit(relation_polygons(fetch(relation), relation))
+  return {
+    "geometry": build_area_geometry(polygons),
+    "points": sum(len(r) for p in polygons for r in p),
+    "polygons": len(polygons),
+    "tolerance_m": tol,
+    "source": relation_url(relation),
+    "credit": f"Area data (c) {OSM_CREDIT}, ODbL",
   }

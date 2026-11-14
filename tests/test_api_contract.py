@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import api_contract  # noqa: E402
 from api_contract import ENDPOINTS, NOT_READ, Registry, check_body, literal_api_calls  # noqa: E402
 from test_api_integration import GPX_BODY, SEED_PW, SEED_USER, Client, _Server  # noqa: E402
-from test_osm import STUB_ENTRY, StubOverpass  # noqa: E402
+from test_osm import STUB_AREA, STUB_ENTRY, StubOverpass  # noqa: E402
 
 SHIPPED = [{"name": "Shipped Peak", "lat": 61.5, "lon": 8.3, "category": "peak", "country": "Norway"}]
 MANIFEST_CMD = Path(__file__).resolve().parent.parent / "scripts" / "gpx-manifest.sh"
@@ -31,6 +31,7 @@ POLYGON = {"type": "Polygon", "coordinates": [[[10.0, 59.0], [10.1, 59.0], [10.1
 def _write_catalog(data_dir: Path) -> None:
   (data_dir / "catalog.json").write_text(json.dumps(SHIPPED))
   (data_dir / "catalog-routes.json").write_text(json.dumps([dict(STUB_ENTRY, note="n", sources=["https://example.org/w"])]))
+  (data_dir / "catalog-areas.json").write_text(json.dumps([dict(STUB_AREA, local_name="l", note="n", sources=["https://example.org/w"])]))
 
 
 class TestApiContract(unittest.TestCase):
@@ -103,6 +104,8 @@ class TestApiContract(unittest.TestCase):
     keep("GET", "/catalog", *call("GET", "/catalog"))
     keep("GET", "/catalog/routes", *call("GET", "/catalog/routes"))
     keep("POST", "/catalog/routes/gpx", *call("POST", "/catalog/routes/gpx", {"relation": STUB_ENTRY["relation"]}))
+    keep("GET", "/catalog/areas", *call("GET", "/catalog/areas"))
+    keep("POST", "/catalog/areas/geometry", *call("POST", "/catalog/areas/geometry", {"relation": STUB_AREA["relation"]}))
 
     status, _ = call("POST", "/settings/registration", {"mode": "open"})
     assert status == 200, status

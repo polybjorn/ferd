@@ -165,8 +165,8 @@
 /* A browse row is a <label>, and kept the dialog label's spacing and size. */
 .ui-dialog .browse-row { margin: var(--ui-space-3) 0 var(--ui-space-1); font-size: var(--ui-text-sm); color: var(--text); }
 
-/* Browse routes (app/add/browse-routes.js): one row per catalog route, its
-   import button at the end. */
+/* Browse routes and Browse areas (app/add/browse-routes.js, browse-areas.js):
+   one row per catalog entry, its import button at the end. */
 .route-browse-hint { font-size: var(--ui-text-xs); color: var(--muted); padding: var(--ui-space-2) 0; }
 .ui-dialog .route-browse-row { display: flex; align-items: flex-start; gap: var(--ui-space-2); margin: 0; padding: var(--ui-space-2) 0; border-bottom: 1px solid var(--border); }
 .route-browse-text { flex: 1; min-width: 0; display: block; }
