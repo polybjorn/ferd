@@ -2,6 +2,8 @@
 
 import importlib.util
 import unittest
+import urllib.error
+from unittest import mock
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -84,6 +86,51 @@ class PlanImagesTest(unittest.TestCase):
                 self.plan(versions)
         finally:
             prune.droppable = original
+
+
+class Response:
+    def __init__(self, body):
+        self.body = body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def read(self):
+        return self.body
+
+
+def http_error(code):
+    return urllib.error.HTTPError("https://api.github.com/x", code, "", {}, None)
+
+
+@mock.patch.object(prune.time, "sleep")
+class RequestTest(unittest.TestCase):
+    def test_every_call_carries_a_timeout(self, _sleep):
+        with mock.patch.object(prune.urllib.request, "urlopen",
+                               return_value=Response(b"[]")) as urlopen:
+            prune.request("https://api.github.com/x", "t")
+        self.assertEqual(urlopen.call_args.kwargs["timeout"], prune.TIMEOUT)
+
+    def test_a_timeout_or_server_error_is_retried(self, _sleep):
+        effects = [TimeoutError(), http_error(502), Response(b'{"ok": 1}')]
+        with mock.patch.object(prune.urllib.request, "urlopen", side_effect=effects):
+            self.assertEqual(prune.request("https://api.github.com/x", "t"), {"ok": 1})
+
+    def test_a_client_error_is_not_retried(self, _sleep):
+        with mock.patch.object(prune.urllib.request, "urlopen",
+                               side_effect=[http_error(403)]) as urlopen:
+            with self.assertRaises(urllib.error.HTTPError):
+                prune.request("https://api.github.com/x", "t")
+        self.assertEqual(urlopen.call_count, 1)
+
+    def test_it_gives_up_after_the_last_attempt(self, _sleep):
+        with mock.patch.object(prune.urllib.request, "urlopen",
+                               side_effect=[TimeoutError()] * prune.ATTEMPTS):
+            with self.assertRaises(TimeoutError):
+                prune.request("https://api.github.com/x", "t")
 
 
 if __name__ == "__main__":

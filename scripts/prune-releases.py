@@ -23,6 +23,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -90,12 +91,27 @@ def plan_images(versions, children, keep_commits, now):
     return doomed
 
 
+# Without a timeout one stalled connection holds the job until GitHub kills it,
+# and the prune-images concurrency group queues every later push behind it.
+TIMEOUT = 30
+ATTEMPTS = 3
+
+
 def request(url, token, method="GET", accept="application/vnd.github+json", auth="Bearer"):
     req = urllib.request.Request(url, method=method, headers={
         "Accept": accept, "Authorization": f"{auth} {token}"})
-    with urllib.request.urlopen(req) as resp:
-        body = resp.read()
-    return json.loads(body) if body else None
+    for attempt in range(1, ATTEMPTS + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+                body = resp.read()
+            return json.loads(body) if body else None
+        except urllib.error.HTTPError as e:
+            if e.code < 500 or attempt == ATTEMPTS:
+                raise
+        except (urllib.error.URLError, TimeoutError):
+            if attempt == ATTEMPTS:
+                raise
+        time.sleep(2 * attempt)
 
 
 def paged(url, token):

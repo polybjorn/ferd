@@ -31,11 +31,46 @@ jobs:
     # A skipped gate (main, PR) lets the build run; a failed one stops it.
     if: ${{ !cancelled() && needs.gate.result != 'failure' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Two quick pushes to main would otherwise race for :dev, and the older
+    # build finishing last moves it back a commit.
+    concurrency:
+      group: docker-publish-${{ github.ref }}
     steps:
       - uses: actions/checkout@v7.0.1
 
       - uses: docker/setup-qemu-action@v4.4.0
       - uses: docker/setup-buildx-action@v4.4.1
+
+      # The e2e and Lighthouse runs test a checkout, and production runs from one,
+      # so this is the only place the entrypoint, the PUID/PGID handling and the
+      # site-config.json symlink run before a self-hoster pulls the image.
+      - name: Build the amd64 image for the smoke test
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: ferd:smoke
+          cache-from: type=gha
+
+      - name: Smoke-test the image
+        run: |
+          set -eu
+          mkdir -p "$RUNNER_TEMP/smoke-data"
+          docker run -d --name ferd-smoke -p 8090:8090 \
+            -v "$RUNNER_TEMP/smoke-data:/data" ferd:smoke
+          for _ in $(seq 30); do
+            if curl -fsS -o /dev/null http://127.0.0.1:8090/; then
+              docker exec ferd-smoke python3 -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/', timeout=3)"
+              echo "image serves / and its healthcheck command passes"
+              exit 0
+            fi
+            [ "$(docker inspect -f '{{.State.Running}}' ferd-smoke)" = true ] || break
+            sleep 1
+          done
+          docker logs ferd-smoke
+          exit 1
 
       - name: Log in to GHCR
         if: github.event_name != 'pull_request'
@@ -79,6 +114,7 @@ jobs:
     # A skipped gate (main) skips every job below it unless the condition says otherwise.
     if: ${{ !cancelled() && github.event_name == 'push' && needs.build-and-push.result == 'success' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     concurrency:
       group: prune-images
     steps:
