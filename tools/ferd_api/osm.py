@@ -42,7 +42,7 @@ SIMPLIFY_MAX_M = 640.0
 
 # Points kept across every ring of one imported area: the same budget the
 # app's own boundary import simplifies to (AREA_TARGET_POINTS in area-geo.js).
-AREA_MAX_POINTS = 5000
+AREA_IMPORT_MAX_POINTS = 5000
 
 OSM_CREDIT = "OpenStreetMap contributors"
 ODBL_URL = "https://opendatacommons.org/licenses/odbl/1-0/"
@@ -346,7 +346,7 @@ def relation_polygons(answer: dict, relation: int) -> list:
   return polygons
 
 
-def simplify_polygons_to_fit(polygons: list, max_points: int = AREA_MAX_POINTS) -> tuple[list, float]:
+def simplify_polygons_to_fit(polygons: list, max_points: int = AREA_IMPORT_MAX_POINTS) -> tuple[list, float]:
   """Simplify every ring at the smallest tolerance, doubling from
   SIMPLIFY_START_M, that brings the total under max_points. A ring that
   falls under four points is dropped, and a polygon with it when it was the
