@@ -23,6 +23,7 @@ const SHELL_ASSETS = [
   '/app/add/add.js',
   '/app/add/browse.js',
   '/app/add/browse-areas.js',
+  '/app/add/browse-catalog.js',
   '/app/add/browse-routes.js',
   '/app/app.css',
   '/app/area-geo.js',

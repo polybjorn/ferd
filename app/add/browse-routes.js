@@ -1,22 +1,13 @@
 import { state } from '../core.js';
 import { dataLayer } from '../store.js';
 import { api } from '../auth.js';
-import { fetchJson, hasServer } from '../server.js';
-import { closeModal } from '../modal.js';
 import { t } from '../i18n.js';
-import { ErrorBox, html, useEffect, useState } from '../view.js';
+import { html } from '../view.js';
+import { BrowseCatalog, fetchCatalog } from './browse-catalog.js';
 
 /**
- * One entry of catalog-routes.json: an OpenStreetMap relation and the
- * metadata written for it. The geometry is not in the file.
- * @typedef {object} RouteCatalogEntry
- * @property {string} name
- * @property {number} relation OSM relation ID
- * @property {string} country
- * @property {string} [local_name]
- * @property {string} [note]
- * @property {string} [image]
- * @property {string[]} [sources]
+ * One entry of catalog-routes.json.
+ * @typedef {import('./browse-catalog.js').CatalogRelation} RouteCatalogEntry
  */
 /**
  * @typedef {object} RouteCatalog
@@ -35,14 +26,7 @@ import { ErrorBox, html, useEffect, useState } from '../view.js';
  */
 
 /** @returns {Promise<RouteCatalog>} */
-function fetchRouteCatalog() {
-  // Without a server nothing can fetch the geometry, so the entries are
-  // listed from the bundled file with no import action.
-  if (!hasServer()) {
-    return fetchJson('catalog-routes.json', []).then(arr => ({ entries: Array.isArray(arr) ? arr : [], importable: false }));
-  }
-  return api('GET', '/catalog/routes');
-}
+const fetchRouteCatalog = () => fetchCatalog('catalog-routes.json', () => api('GET', '/catalog/routes'));
 
 /** @param {string} name */
 function haveRoute(name) {
@@ -63,51 +47,8 @@ async function importRoute(e) {
   await dataLayer.putMetadata({ key: e.name, metadata });
 }
 
-// The Browse routes tab of the Add dialog: catalog routes that are
-// OpenStreetMap relations, imported one at a time.
+// The Browse routes tab of the Add dialog.
 export function BrowseRoutes() {
-  const [res, setRes] = useState(/** @type {{ cat?: RouteCatalog, error?: string }} */ ({}));
-  const [busy, setBusy] = useState(/** @type {number | null} */ (null));
-  const [error, setError] = useState('');
-  useEffect(() => {
-    fetchRouteCatalog()
-      .then(cat => setRes({ cat }))
-      .catch((/** @type {Error} */ err) => setRes({ error: err.message }));
-  }, []);
-  if (res.error) return html`<div id="browse-routes-body"><${ErrorBox} id="add-error" msg=${res.error} /></div>`;
-  if (!res.cat) return html`<div id="browse-routes-body"><div class="route-browse-hint">${t('browse.loading')}</div></div>`;
-  const { entries, importable } = res.cat;
-  if (!entries.length) return html`<div id="browse-routes-body"><div class="route-browse-hint">${t('browseRoutes.empty')}</div></div>`;
-
-  /** @param {RouteCatalogEntry} e */
-  const run = e => {
-    setError('');
-    setBusy(e.relation);
-    importRoute(e)
-      .then(() => closeModal())
-      .catch((/** @type {Error} */ err) => { setBusy(null); setError(e.name + ': ' + err.message); });
-  };
-
-  return html`<div id="browse-routes-body">
-    <div class="route-browse-hint">${importable ? t('browseRoutes.hint') : t('browseRoutes.noImport')}</div>
-    <div id="browse-routes-list">
-      ${entries.map((/** @type {RouteCatalogEntry} */ e) => {
-        const have = haveRoute(e.name);
-        const src = Array.isArray(e.sources) ? e.sources[0] : null;
-        return html`<div class="browse-row route-browse-row" key=${e.relation} data-relation=${e.relation}>
-          <span class="route-browse-text">
-            <span class="route-browse-head">
-              <span title=${e.name} class="route-browse-name">${e.name}</span>
-              ${src && html`<a href=${src} target="_blank" rel="noopener" class="row-src">${t('browse.source')}</a>`}
-            </span>
-            <span class="route-browse-meta">${e.country}</span>
-            ${e.note && html`<span class="row-note">${e.note}</span>`}
-          </span>
-          ${importable && html`<button type="button" class="ui-button browse-route-import" disabled=${have || busy !== null}
-            onClick=${() => run(e)}>${have ? t('browseRoutes.imported') : busy === e.relation ? t('browseRoutes.importing') : t('browseRoutes.import')}</button>`}
-        </div>`;
-      })}
-    </div>
-    <${ErrorBox} id="add-error" msg=${error} />
-  </div>`;
+  const strings = { empty: t('browseRoutes.empty'), hint: t('browseRoutes.hint'), noImport: t('browseRoutes.noImport') };
+  return html`<${BrowseCatalog} kind="route" strings=${strings} load=${fetchRouteCatalog} have=${haveRoute} importEntry=${importRoute} />`;
 }
