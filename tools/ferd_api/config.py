@@ -49,6 +49,11 @@ DEFAULT_CONFIG = {
   # search engines can find them. Link previews (canonical and og:image) are
   # written either way.
   "search_indexing": False,
+  # The address the site is published at, such as "https://ferd.example.com".
+  # When set, the canonical link, og:url, og:image, robots.txt and the sitemap
+  # use it instead of the request's Host header, so a request naming another
+  # host cannot put that host in a page a shared cache might keep.
+  "public_url": None,
 }
 
 

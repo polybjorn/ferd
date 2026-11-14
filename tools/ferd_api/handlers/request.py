@@ -207,10 +207,13 @@ class RequestMixin:
     return peer
 
   def _origin(self) -> str | None:
-    """The origin this request reached, for absolute URLs in pages and in
-    robots.txt. The scheme comes from X-Forwarded-Proto when a trusted proxy
-    sent it, else from secure_cookies, which says the site is served over
-    HTTPS. None when the Host header is missing or malformed."""
+    """The origin for absolute URLs in pages, robots.txt and the sitemap:
+    public_url when it is set, else the origin this request reached. Then the
+    scheme comes from X-Forwarded-Proto when a trusted proxy sent it, else
+    from secure_cookies, which says the site is served over HTTPS. None when
+    the Host header is missing or malformed."""
+    if type(self).public_origin:
+      return type(self).public_origin
     headers = getattr(self, "headers", None)
     if headers is None:
       return None

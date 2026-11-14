@@ -40,6 +40,9 @@ class Handler(RequestMixin, StaticMixin, SessionMixin, AdminMixin, CatalogMixin,
   setup_token: str | None = None
   # Parsed from cfg["trusted_proxies"] at startup.
   trusted_proxies: frozenset[str] = frozenset()
+  # Parsed from cfg["public_url"] at startup; None leaves the Host header to
+  # name the origin.
+  public_origin: str | None = None
 
   # Exact paths per method, as handler names; the query string is not part of
   # the path. Paths that carry parameters go through PREFIX_ROUTES, whose

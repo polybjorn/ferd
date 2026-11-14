@@ -7,6 +7,9 @@
 #   sudo caddy validate --config /etc/caddy/Caddyfile
 #   sudo systemctl reload caddy
 
+# Caddy answers this block only for the name it is written with. Keep it
+# that way, rather than widening it to :443 or a wildcard: the API builds link
+# previews from the Host header unless public_url is set (docs/configure.md).
 ferd.example.com {
     root * /srv/ferd
     encode zstd gzip

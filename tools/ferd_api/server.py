@@ -11,6 +11,7 @@ import threading
 import time
 from pathlib import Path
 
+from . import crawl
 from .auth import RATE_LIMIT_MAX_FAILS, RATE_LIMIT_WINDOW, RateLimiter, new_setup_token
 from .config import load_config, parse_trusted_proxies
 from .db import db_connect, db_init, db_migrate
@@ -40,6 +41,11 @@ def main() -> int:
   args = parser.parse_args()
 
   cfg = load_config(args.config)
+  try:
+    public_origin = crawl.public_origin(cfg.get("public_url"))
+  except ValueError as e:
+    print(f"[api] {e}", file=sys.stderr)
+    return 2
   conn = db_connect(cfg["db_path"])
   db_init(conn)
   db_migrate(conn)
@@ -65,6 +71,7 @@ def main() -> int:
 
   Handler.cfg = cfg
   Handler.trusted_proxies = parse_trusted_proxies(cfg.get("trusted_proxies"))
+  Handler.public_origin = public_origin
   Handler.login_limiter = RateLimiter(RATE_LIMIT_MAX_FAILS, RATE_LIMIT_WINDOW)
   Handler.write_lock = threading.Lock()
   Handler.last_request = time.monotonic()

@@ -7,15 +7,15 @@ Indexing is opt-in per instance with `search_indexing`. Off, robots.txt shuts
 every crawler out and there is no sitemap; on, robots.txt allows the site and
 names a sitemap of the front page and the published maps.
 
-Every URL is built from the request's origin, so one install answers for
-whatever name it is reached by.
+Every URL is built from `public_url` when it is set, and otherwise from the
+request's origin, so one install answers for whatever name it is reached by.
 """
 
 from __future__ import annotations
 
 import html
 import re
-from urllib.parse import quote, unquote
+from urllib.parse import quote, unquote, urlsplit
 from xml.sax.saxutils import escape as xml_escape
 
 # Substituted into index.html on serve. A comment, so a copy of the page served
@@ -36,6 +36,26 @@ def origin(scheme: str, host: str | None) -> str | None:
   if scheme not in ("http", "https") or not _HOST_RE.match(host):
     return None
   return f"{scheme}://{host.lower()}"
+
+
+def public_origin(url: str | None) -> str | None:
+  """The origin `public_url` names, as `scheme://host`. None when it is unset
+  or blank. Raises ValueError for anything but an http or https URL with a
+  plain host and no path beyond `/`, query, fragment or credentials."""
+  url = (url or "").strip()
+  if not url:
+    return None
+  error = ValueError(f"public_url must be an origin such as https://ferd.example.com, not {url!r}")
+  try:
+    parts = urlsplit(url)
+  except ValueError:
+    raise error from None
+  if parts.path not in ("", "/") or parts.query or parts.fragment or "@" in parts.netloc:
+    raise error
+  result = origin(parts.scheme.lower(), parts.netloc)
+  if result is None:
+    raise error
+  return result
 
 
 def map_owner(path: str) -> str | None:

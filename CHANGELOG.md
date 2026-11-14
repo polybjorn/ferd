@@ -4,6 +4,9 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ## [Unreleased]
 
+### Added
+- A `public_url` setting (`FERD_PUBLIC_URL`). Set it to the site's address, such as `https://ferd.example.com`, and link previews, `/robots.txt` and `/sitemap.xml` name that address whatever `Host` a request sends, so a cache in front cannot keep a page pointing at another host. Unset, they follow the request as before. The nginx and Caddy examples now say to answer only the configured name.
+
 ## [2.0.0] - 2026-11-14
 
 2.0 keeps a copy of your map on the device and syncs it in the background, adds areas, a language setting with a Norwegian interface, and on a phone a layout built around a bar along the bottom of the screen. **Upgrading from 1.x:** 2.0 does not read the data 1.x kept on the server or on the device. Before updating, open 1.x online so any queued edits sync, then export a zip from it and import that zip into 2.0. See Storage and sync under Changed.

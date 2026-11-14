@@ -25,6 +25,20 @@ class TestOrigin(unittest.TestCase):
         self.assertIsNone(crawl.origin("https", host))
     self.assertIsNone(crawl.origin("ftp", "example.org"))
 
+  def test_public_url_names_an_origin(self):
+    self.assertIsNone(crawl.public_origin(None))
+    self.assertIsNone(crawl.public_origin("  "))
+    self.assertEqual(crawl.public_origin("https://Ferd.Example.com/"), "https://ferd.example.com")
+    self.assertEqual(crawl.public_origin("HTTP://127.0.0.1:8091"), "http://127.0.0.1:8091")
+
+  def test_public_url_refuses_anything_but_an_origin(self):
+    for url in ("ferd.example.com", "ftp://ferd.example.com", "https://ferd.example.com/maps",
+                "https://ferd.example.com/?a=1", "https://ferd.example.com/#x",
+                "https://user@ferd.example.com", 'https://a"b', "https://[::1"):
+      with self.subTest(url=url):
+        with self.assertRaises(ValueError):
+          crawl.public_origin(url)
+
 
 class TestCanonical(unittest.TestCase):
   def test_the_owner_named_by_a_path(self):

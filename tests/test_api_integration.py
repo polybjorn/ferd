@@ -2251,6 +2251,47 @@ class TestCrawlDefaults(unittest.TestCase):
     self.assertNotIn("<script>", body)
 
 
+class TestCrawlPublicUrl(unittest.TestCase):
+  """With public_url set, a request's Host header no longer names the origin
+  in the page, robots.txt or the sitemap."""
+
+  PUBLIC = "https://ferd.example.com"
+
+  @classmethod
+  def setUpClass(cls):
+    def prepare(d):
+      (d / "index.html").write_text(
+        "<head>\n  <title>Ferd</title>\n  <!-- __FERD_SHARE_TAGS__ -->\n</head>", encoding="utf-8")
+      (d / "sw.js").write_text("// stub", encoding="utf-8")
+    cls.server = _Server({"public_url": cls.PUBLIC + "/", "search_indexing": True,
+                          "trusted_proxies": ["127.0.0.1"]}, prepare=prepare)
+
+  @classmethod
+  def tearDownClass(cls):
+    cls.server.close()
+
+  def _get(self, path, headers=None):
+    req = urllib.request.Request(self.server.base_url + path, headers=headers or {})
+    with urllib.request.urlopen(req) as r:
+      return r.read().decode("utf-8")
+
+  def test_a_foreign_host_does_not_reach_the_page(self):
+    spoof = {"Host": "evil.example", "X-Forwarded-Proto": "http"}
+    body = self._get("/", spoof)
+    self.assertIn(f'<link rel="canonical" href="{self.PUBLIC}/">', body)
+    self.assertIn(f'<meta property="og:url" content="{self.PUBLIC}/">', body)
+    self.assertIn(f'<meta property="og:image" content="{self.PUBLIC}/icons/icon-512.png">', body)
+    self.assertNotIn("evil.example", body)
+    self.assertIn(f"Sitemap: {self.PUBLIC}/sitemap.xml", self._get("/robots.txt", spoof).splitlines())
+    sitemap = self._get("/sitemap.xml", spoof)
+    self.assertIn(f"<loc>{self.PUBLIC}/</loc>", sitemap)
+    self.assertNotIn("evil.example", sitemap)
+
+  def test_a_malformed_public_url_stops_the_server(self):
+    with self.assertRaises(RuntimeError):
+      _Server({"public_url": "ferd.example.com"}).close()
+
+
 class TestCrawlIndexing(unittest.TestCase):
   """With search_indexing on, robots.txt allows the site and the sitemap
   lists the front page and published maps only."""
