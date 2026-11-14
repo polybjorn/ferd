@@ -76,7 +76,8 @@ jobs:
   # references (scripts/prune-releases.py).
   prune-images:
     needs: build-and-push
-    if: ${{ github.event_name == 'push' && needs.build-and-push.result == 'success' }}
+    # A skipped gate (main) skips every job below it unless the condition says otherwise.
+    if: ${{ !cancelled() && github.event_name == 'push' && needs.build-and-push.result == 'success' }}
     runs-on: ubuntu-latest
     concurrency:
       group: prune-images
