@@ -161,6 +161,15 @@
 .cat-input-wrap > .cat-display:focus { border-color: var(--accent); }
 /* A browse row is a <label>, and kept the dialog label's spacing and size. */
 .ui-dialog .browse-row { margin: var(--ui-space-3) 0 var(--ui-space-1); font-size: var(--ui-text-sm); color: var(--text); }
+
+/* Browse routes (app/add/browse-routes.js): one row per catalog route, its
+   import button at the end. */
+.route-browse-hint { font-size: var(--ui-text-xs); color: var(--muted); padding: var(--ui-space-2) 0; }
+.ui-dialog .route-browse-row { display: flex; align-items: flex-start; gap: var(--ui-space-2); margin: 0; padding: var(--ui-space-2) 0; border-bottom: 1px solid var(--border); }
+.route-browse-text { flex: 1; min-width: 0; display: block; }
+.route-browse-head { display: flex; align-items: center; gap: var(--ui-space-2); width: 100%; }
+.route-browse-name { flex: 1; min-width: 0; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.route-browse-meta { display: block; font-size: var(--ui-text-xs); color: var(--muted); }
 .feature-pills { display: flex; flex-wrap: wrap; gap: var(--ui-space-2); margin-top: var(--ui-space-2); }
 @container (max-width: 24rem) {
   [data-panel="general"] .feature-pills:not(.optional-fields) { display: grid; grid-template-columns: repeat(2, 1fr); }

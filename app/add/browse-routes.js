@@ -34,8 +34,6 @@ import { ErrorBox, html, useEffect, useState } from '../view.js';
  * @property {string} credit
  */
 
-const HINT_STYLE = 'font-size:var(--ui-text-xs);color:var(--muted);padding:var(--ui-space-2) 0';
-
 /** @returns {Promise<RouteCatalog>} */
 function fetchRouteCatalog() {
   // Without a server nothing can fetch the geometry, so the entries are
@@ -77,9 +75,9 @@ export function BrowseRoutes() {
       .catch((/** @type {Error} */ err) => setRes({ error: err.message }));
   }, []);
   if (res.error) return html`<div id="browse-routes-body"><${ErrorBox} id="add-error" msg=${res.error} /></div>`;
-  if (!res.cat) return html`<div id="browse-routes-body"><div style=${HINT_STYLE}>${t('browse.loading')}</div></div>`;
+  if (!res.cat) return html`<div id="browse-routes-body"><div class="route-browse-hint">${t('browse.loading')}</div></div>`;
   const { entries, importable } = res.cat;
-  if (!entries.length) return html`<div id="browse-routes-body"><div style=${HINT_STYLE}>${t('browseRoutes.empty')}</div></div>`;
+  if (!entries.length) return html`<div id="browse-routes-body"><div class="route-browse-hint">${t('browseRoutes.empty')}</div></div>`;
 
   /** @param {RouteCatalogEntry} e */
   const run = e => {
@@ -91,18 +89,18 @@ export function BrowseRoutes() {
   };
 
   return html`<div id="browse-routes-body">
-    <div style=${HINT_STYLE}>${importable ? t('browseRoutes.hint') : t('browseRoutes.noImport')}</div>
+    <div class="route-browse-hint">${importable ? t('browseRoutes.hint') : t('browseRoutes.noImport')}</div>
     <div id="browse-routes-list">
       ${entries.map((/** @type {RouteCatalogEntry} */ e) => {
         const have = haveRoute(e.name);
         const src = Array.isArray(e.sources) ? e.sources[0] : null;
-        return html`<div class="browse-row" key=${e.relation} data-relation=${e.relation} style="display:flex;align-items:flex-start;gap:var(--ui-space-2);padding:var(--ui-space-2) 0;border-bottom:1px solid var(--border)">
-          <span style="flex:1;min-width:0;display:block">
-            <span style="display:flex;align-items:center;gap:var(--ui-space-2);width:100%">
-              <span title=${e.name} style="flex:1;min-width:0;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.name}</span>
+        return html`<div class="browse-row route-browse-row" key=${e.relation} data-relation=${e.relation}>
+          <span class="route-browse-text">
+            <span class="route-browse-head">
+              <span title=${e.name} class="route-browse-name">${e.name}</span>
               ${src && html`<a href=${src} target="_blank" rel="noopener" class="row-src">${t('browse.source')}</a>`}
             </span>
-            <span style="display:block;font-size:var(--ui-text-xs);color:var(--muted)">${e.country}</span>
+            <span class="route-browse-meta">${e.country}</span>
             ${e.note && html`<span class="row-note">${e.note}</span>`}
           </span>
           ${importable && html`<button type="button" class="ui-button browse-route-import" disabled=${have || busy !== null}
