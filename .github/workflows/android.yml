@@ -1,7 +1,9 @@
 name: Android build
 
 on:
+  # main only: a tag push builds the signed APK in release-apk.yml.
   push:
+    branches: [main]
     paths:
       - 'android/**'
       - 'index.html'
@@ -26,19 +28,26 @@ on:
 permissions:
   contents: read
 
+# A newer push supersedes the debug build of an older one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0  # full history so the version task can count commits
 
-      - name: Set up JDK 17
+      - name: Set up JDK 27
         uses: actions/setup-java@v6.3.0
         with:
           distribution: temurin
           java-version: '27'
+          cache: gradle
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4.0.4

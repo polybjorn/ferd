@@ -13,6 +13,7 @@ jobs:
   # commit no longer verifies upstream.
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     env:
       GH_TOKEN: ${{ github.token }}
     steps:

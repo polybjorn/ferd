@@ -23,15 +23,18 @@ jobs:
     permissions:
       contents: read
 
+  # No Gradle cache here: a signed release builds from nothing restored, so a
+  # cache written by another run cannot reach it.
   release-apk:
     needs: gate
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0  # full history so the version task can count commits
 
-      - name: Set up JDK 17
+      - name: Set up JDK 27
         uses: actions/setup-java@v6.3.0
         with:
           distribution: temurin
@@ -90,6 +93,7 @@ jobs:
   prune-releases:
     needs: release-apk
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7.0.1
       - name: Delete superseded beta releases

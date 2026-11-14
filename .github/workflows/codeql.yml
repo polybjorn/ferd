@@ -8,10 +8,17 @@ on:
   schedule:
     - cron: '23 5 * * 1'
 
+# Only the newest commit's alerts matter, and the weekly run reads the same
+# main as a push.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       security-events: write
       packages: read
@@ -36,12 +43,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7.0.1
 
-      - name: Set up JDK 17
+      - name: Set up JDK 27
         if: matrix.language == 'java-kotlin'
         uses: actions/setup-java@v6.3.0
         with:
           distribution: temurin
           java-version: '27'
+          cache: gradle
 
       - name: Set up Android SDK
         if: matrix.language == 'java-kotlin'
@@ -62,7 +70,10 @@ jobs:
       - name: Build Android app (manual build for CodeQL tracing)
         if: matrix.language == 'java-kotlin'
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        # --no-build-cache: the cache setup-java restores holds the Android job's
+        # compiled classes, and a task taken from it never runs under the tracer,
+        # which would leave the Kotlin database empty.
+        run: ./gradlew assembleDebug --no-daemon --no-build-cache --stacktrace
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4.39.3
