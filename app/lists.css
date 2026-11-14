@@ -195,10 +195,10 @@
 #view-popover { --ui-menu-width: 8rem; }
 .filter-popover .filter-divider { height: 1px; background: var(--border); margin: var(--ui-space-1) -0.25rem; }
 .place-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 460px));
-  gap: var(--ui-space-2);
-  justify-content: center;
+  --ui-grid-min: 320px;
+  --ui-grid-max: 460px;
+  --ui-grid-justify: center;
+  --ui-grid-gap: var(--ui-space-2);
 }
 .place-card .place-text { min-width: 0; flex: 1; }
 .place-card .catalog-mark {
@@ -272,9 +272,8 @@
 }
 /* Routes index */
 .route-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: var(--ui-space-2);
+  --ui-grid-min: 180px;
+  --ui-grid-gap: var(--ui-space-2);
 }
 .route-card { align-items: center; }
 .route-card .name {
@@ -291,8 +290,10 @@
    on the grid container. */
 .category-grid.view-compact, .category-grid.view-gallery,
 .region-grid.view-compact, .region-grid.view-gallery { columns: 1; max-width: 720px; margin: 0 auto; }
+/* The grids are ui-grid, whose layer beats this one, so one column is its
+   hooks: a 100% minimum fits one track, and no cap lets it fill the row. */
 .view-compact .place-grid, .view-gallery .place-grid,
-.view-compact .route-grid, .view-gallery .route-grid { grid-template-columns: 1fr; }
+.view-compact .route-grid, .view-gallery .route-grid { --ui-grid-min: 100%; --ui-grid-max: 1fr; }
 /* Compact: small media thumbnail on the left, body beside it (like History). */
 .view-compact .place-card, .view-compact .route-card { gap: var(--ui-space-4); }
 .view-compact .card-media {
@@ -307,7 +308,7 @@
   .view-compact .card-media-spacer { width: 88px; }
 }
 /* Gallery: media (image / route silhouette) on top, body below. */
-.view-gallery .place-grid, .view-gallery .route-grid { gap: var(--ui-space-4); }
+.view-gallery .place-grid, .view-gallery .route-grid { --ui-grid-gap: var(--ui-space-4); }
 .view-gallery .place-card, .view-gallery .route-card {
   flex-direction: column; align-items: stretch; gap: 0; padding: 0; overflow: hidden;
 }
@@ -324,7 +325,7 @@
 .region-grid > .ui-empty,
 .history-list > .ui-empty { min-block-size: 200px; justify-content: center; }
 @media (max-width: 900px) {
-.route-grid { grid-template-columns: 1fr; }
+.route-grid { --ui-grid-min: 100%; }
 }
 .fade-in { animation: fadeIn var(--ui-duration-slow) ease both; }
 /* A list page put back in #app would play it again (view.js). */

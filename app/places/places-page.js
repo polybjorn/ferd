@@ -288,7 +288,7 @@ function PlacesPage() {
               : html`<span>${key}</span>`}
             <span class="place-count">${'(' + visited + '/' + items.length + ')'}</span>
           </div>
-          <div class="place-grid">
+          <div class="ui-grid place-grid">
             ${items.map((/** @type {any} */ p) => html`<${PlaceCard} key=${p.id || p._slug} p=${p} view=${view} showImage=${showImage} showNote=${showNote} />`)}
           </div>
         </div>`;

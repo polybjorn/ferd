@@ -181,7 +181,7 @@ function RoutesPage() {
               : html`<span class="section-link" data-filter-region=${key} title=${t('routes.showOnlyRegion')} onClick=${() => showOnlyRegion(key)}>${displayRegion(key)}</span>`}
             <span class="route-count">${'(' + done + '/' + items.length + ')'}</span>
           </div>
-          <div class="route-grid">
+          <div class="ui-grid ui-grid-fill route-grid">
             ${items.map((/** @type {any} */ e) => html`<${RouteCard} key=${e.route.key} route=${e.route} region=${e.region} view=${view} />`)}
           </div>
         </div>`;

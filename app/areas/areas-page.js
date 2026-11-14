@@ -134,7 +134,7 @@ function AreasPage() {
             <span>${displayCategory(key)}</span>
             <span class="place-count">${'(' + visited + '/' + items.length + ')'}</span>
           </div>
-          <div class="place-grid">
+          <div class="ui-grid place-grid">
             ${items.map(r => html`<${AreaCard} key=${r.a.id} a=${r.a} visited=${r.visited} note=${r.note} />`)}
           </div>
         </div>`;
