@@ -1,4 +1,4 @@
-/* ui.css 1.19.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.21.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -136,9 +136,11 @@
    .ui-list-item-end after it holds a badge, a figure or an action. A row that
    is itself a link or button holds no second control, so a trailing action
    sits on an <li>. Hover and pressed draw the accent line, and only on an <a>
-   or <button>. A .ui-list-head is the small uppercase label over a group of
+   or <button>. A .ui-list-head is the bold uppercase label over a group of
    rows, on whatever element fits, a heading or a <p>. Space between rows and
-   around a head stays in the host. --ui-list-item-padding sets a row's
+   around a head stays in the host. --ui-list-head-size and
+   --ui-list-head-weight set its size and weight, --ui-text-sm and 600 when
+   unset, so an app can set a quieter head back. --ui-list-item-padding sets a row's
    padding, --ui-space-2 --ui-space-3 when unset. --ui-list-item-stripe
    colours a row's start edge for a status, such as delivered or returned:
    unset, the edge is the 1px border like the others; set, it is that colour
@@ -1106,9 +1108,9 @@
 
   .ui-list-head {
     margin: 0;
-    font-size: var(--ui-text-xs);
-    font-weight: 400;
-    letter-spacing: 0.08em;
+    font-size: var(--ui-list-head-size, var(--ui-text-sm));
+    font-weight: var(--ui-list-head-weight, 600);
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--ui-list-head-color, var(--ui-muted));
     overflow-wrap: anywhere;
@@ -1263,11 +1265,20 @@
      to name. A cell marked ui-row-from-medium or ui-row-from-wide is left out
      below that width, so each width has its own track list rather than one
      with empty tracks. A cell clips to one line and shows the whole value on
-     hover or focus; ui-row-wrap wraps it instead. */
+     hover or focus; ui-row-wrap wraps it instead. The margin and flex hooks
+     do not inherit, so a list or cell nested inside one keeps its own. */
+  @property --ui-rows-margin {
+    syntax: "*";
+    inherits: false;
+  }
+  @property --ui-row-cell-flex {
+    syntax: "*";
+    inherits: false;
+  }
   .ui-rows {
     display: grid;
     gap: var(--ui-rows-gap, 0 var(--ui-space-3));
-    margin: 0;
+    margin: var(--ui-rows-margin, 0);
     padding: 0;
     list-style: none;
   }
@@ -1305,7 +1316,7 @@
     color: var(--ui-muted);
   }
   .ui-row-cell {
-    flex: 0 1 auto;
+    flex: var(--ui-row-cell-flex, 0 1 auto);
     min-inline-size: 0;
     overflow: hidden;
     text-overflow: ellipsis;
