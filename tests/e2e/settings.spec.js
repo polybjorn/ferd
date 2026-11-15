@@ -84,17 +84,22 @@ test('a hand-marked country is added, listed and removed in Settings', async ({ 
   await signUp(page, info);
 
   await openSettings(page);
+  await page.locator('#s-manage-countries').click();
   const add = page.locator('#s-country-add-btn');
   await expect(add).toBeDisabled();
   await page.locator('#s-country-add').fill('Italy');
   await expect(add).toBeEnabled();
+  // The row shows before the write lands, and a reload then would drop it.
+  const saved = page.waitForResponse(r => r.url().includes('/api/sync/batch') && r.ok());
   await add.click();
+  await saved;
   const row = page.locator('#s-country-list .ui-list-item', { hasText: 'Italy' });
   await expect(row).toBeVisible();
   await expect(page.locator('#s-country-add')).toHaveValue('');
 
   await page.reload();
   await openSettings(page);
+  await page.locator('#s-manage-countries').click();
   await expect(row).toBeVisible();
   await row.locator('.country-remove').click();
   await expect(row).toHaveCount(0);

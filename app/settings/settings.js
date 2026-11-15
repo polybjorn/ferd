@@ -22,7 +22,7 @@ import { localBackup } from '../backup.js';
 import { saveDownload } from '../download.js';
 import { openManageCategoriesModal } from './categories.js';
 import { openManageRegionsModal } from './regions.js';
-import { MarkedCountries } from './countries.js';
+import { openMarkedCountriesModal } from './countries.js';
 import {
   AdminCatalog, AdminStats, AdminUsers, Sessions, Tokens, renderAdminCatalog,
 } from './account.js';
@@ -278,7 +278,6 @@ function GeneralPanel({ env, onLanguage }) {
           ${pe && pill('countries', t('settings.general.countries'), setSecondaryFeature, featureVisible('countries'))}
         </div>
         ${pe && html`<div class="hint">${t('settings.general.countriesHint')}</div>`}`}`}
-    ${pe && !env.readOnly && html`<${MarkedCountries} />`}
     ${!env.readOnly && html`
       <h3 class="settings-h">${t('settings.general.optionalFields')}</h3>
       <div class="feature-pills optional-fields">
@@ -293,7 +292,10 @@ function GeneralPanel({ env, onLanguage }) {
       <${ManageRow} id="s-manage-cats" hint=${t('settings.general.categoriesHint')} onOpen=${openManageCategoriesModal} />`}
     ${env.routesAvailable && !env.readOnly && html`
       <h3 class="settings-h">${t('settings.general.regions')}</h3>
-      <${ManageRow} id="s-manage-regions" hint=${t('settings.general.regionsHint')} onOpen=${openManageRegionsModal} />`}`;
+      <${ManageRow} id="s-manage-regions" hint=${t('settings.general.regionsHint')} onOpen=${openManageRegionsModal} />`}
+    ${pe && !env.readOnly && html`
+      <h3 class="settings-h">${t('settings.general.markedCountries')}</h3>
+      <${ManageRow} id="s-manage-countries" hint=${t('settings.general.markedCountriesHint')} onOpen=${openMarkedCountriesModal} />`}`;
 }
 
 // The on/off preferences on Appearance, and what each changes right away.

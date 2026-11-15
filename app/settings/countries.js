@@ -2,7 +2,7 @@ import { dataLayer, visitedCountries } from '../store.js';
 import { countryCodeOf, loadCountryPick } from '../countries.js';
 import { CountryInput } from '../form-fields.js';
 import { t } from '../i18n.js';
-import { html, useEffect, useState } from '../view.js';
+import { DialogHead, html, openViewModal, useEffect, useState } from '../view.js';
 
 /** @typedef {import('../countries.js').CountryPick} CountryPick */
 
@@ -20,7 +20,7 @@ function CountryRow({ code, name }) {
 // The picker's open list sits in the flow and closes when the input blurs,
 // which on a phone also scrolls the dialog. The row aligns to the top and
 // Add keeps the input focused through the press, so nothing moves under it.
-export function MarkedCountries() {
+function MarkedCountriesView() {
   const [pick, setPick] = useState(/** @type {CountryPick | null} */ (null));
   const [name, setName] = useState('');
   useEffect(() => { loadCountryPick().then(setPick, err => console.warn('[ferd] country list:', err.message)); }, []);
@@ -40,11 +40,17 @@ export function MarkedCountries() {
   const rows = codes.map((/** @type {string} */ c) => ({ code: c, name: nameOf(c) }))
     .sort((/** @type {{ name: string }} */ a, /** @type {{ name: string }} */ b) => a.name.localeCompare(b.name));
   return html`
-    <h3 class="settings-h">${t('settings.general.markedCountries')}</h3>
-    <div class="hint">${t('settings.general.markedCountriesHint')}</div>
-    <div class="ui-control-row country-add-row">
-      <div class="ui-field"><${CountryInput} id="s-country-add" label=${t('form.country')} value=${name} onInput=${setName} /></div>
-      <button type="button" class="ui-button ui-button-primary" id="s-country-add-btn" disabled=${!code} onMouseDown=${(/** @type {Event} */ e) => e.preventDefault()} onClick=${add}>${t('common.add')}</button>
-    </div>
-    <ul class="session-list" id="s-country-list">${rows.map((/** @type {{ code: string, name: string }} */ r) => html`<${CountryRow} key=${r.code} code=${r.code} name=${r.name} />`)}</ul>`;
+    <${DialogHead} title=${t('settings.general.markedCountries')} />
+    <div class="ui-dialog-body">
+      <div class="hint">${t('settings.general.markedCountriesHint')}</div>
+      <div class="ui-control-row country-add-row">
+        <div class="ui-field"><${CountryInput} id="s-country-add" label=${t('form.country')} value=${name} onInput=${setName} /></div>
+        <button type="button" class="ui-button ui-button-primary" id="s-country-add-btn" disabled=${!code} onMouseDown=${(/** @type {Event} */ e) => e.preventDefault()} onClick=${add}>${t('common.add')}</button>
+      </div>
+      <ul class="session-list" id="s-country-list">${rows.map((/** @type {{ code: string, name: string }} */ r) => html`<${CountryRow} key=${r.code} code=${r.code} name=${r.name} />`)}</ul>
+    </div>`;
+}
+
+export function openMarkedCountriesModal() {
+  openViewModal(html`<${MarkedCountriesView} />`, { phone: 'fullscreen' });
 }
