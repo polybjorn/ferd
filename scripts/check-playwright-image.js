@@ -11,9 +11,12 @@ if (!root) {
   process.exit(2);
 }
 
-// browsers.json is not in playwright-core's exports map, so it is read beside
-// the package's main entry rather than resolved by name.
-const pkgDir = path.dirname(require.resolve('playwright-core'));
+// Resolved through `playwright`, the copy the test runner loads: the top-level
+// playwright-core is whatever @axe-core/playwright's open peer range pulled in,
+// often a newer release. browsers.json is not in the exports map, so it is
+// read beside the main entry rather than resolved by name.
+const runner = path.dirname(require.resolve('playwright'));
+const pkgDir = path.dirname(require.resolve('playwright-core', { paths: [runner] }));
 const { version } = JSON.parse(readFileSync(path.join(pkgDir, 'package.json'), 'utf8'));
 const wanted = JSON.parse(readFileSync(path.join(pkgDir, 'browsers.json'), 'utf8')).browsers
   .filter(b => b.installByDefault)
