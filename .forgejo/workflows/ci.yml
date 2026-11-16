@@ -117,10 +117,15 @@ jobs:
             --one-off-max inline-style=62 important=70 colour=6
 
   # The browser tests, on Microsoft's Playwright image, which carries the
-  # browsers for one Playwright release only: package.json pins that release,
-  # and the runner's image tag moves with it.
+  # browsers for one Playwright release only. The image is named here rather
+  # than through the runner's `playwright` label so it moves in the same commit
+  # as package.json's @playwright/test: Renovate groups the two into one PR,
+  # and tests/test_playwright_pin.py fails a commit that moves only one. The
+  # label stays on site-audit's release, which the lighthouse job runs.
   e2e:
-    runs-on: playwright
+    runs-on: docker
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.0-noble@sha256:9beb546099e11f52d62e505537914870e01a67e0e6b00ae41da4775324e73dbe
     timeout-minutes: 20
     steps:
       - name: Fetch ci-actions
@@ -165,7 +170,7 @@ jobs:
         timeout-minutes: 5
       - name: Playwright release against the image's browsers
         if: steps.scope.outputs.run == 'true'
-        run: npx playwright --version
+        run: node scripts/check-playwright-image.js
       - name: Browser tests
         if: steps.scope.outputs.run == 'true'
         env:
