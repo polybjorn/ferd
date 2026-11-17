@@ -1,4 +1,4 @@
-/* ui.css 1.21.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.22.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -736,7 +736,9 @@
       background: var(--ui-choice-fill, var(--ui-control-surface));
       border: 1px solid var(--ui-choice-border, var(--ui-border));
     }
-    .ui-choice-segmented > .ui-choice { flex: 1 1 0; }
+    /* Even shares by default; none sizes each option to its label, so the
+       longer label of an uneven pair keeps its padding. */
+    .ui-choice-segmented > .ui-choice { flex: var(--ui-choice-flex, 1 1 0); }
     .ui-choice-segmented > .ui-choice + .ui-choice { border-inline-start-width: 0; }
     .ui-choice-segmented > .ui-choice:first-of-type {
       border-start-start-radius: var(--ui-radius);
