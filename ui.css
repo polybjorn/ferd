@@ -1,4 +1,4 @@
-/* ui.css 1.22.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.25.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -1267,7 +1267,7 @@
      to name. A cell marked ui-row-from-medium or ui-row-from-wide is left out
      below that width, so each width has its own track list rather than one
      with empty tracks. A cell clips to one line and shows the whole value on
-     hover or focus; ui-row-wrap wraps it instead. The margin and flex hooks
+     hover or focus, except in a ui-rows-clip list; ui-row-wrap wraps it instead. The margin and flex hooks
      do not inherit, so a list or cell nested inside one keeps its own. */
   @property --ui-rows-margin {
     syntax: "*";
@@ -1336,6 +1336,13 @@
     white-space: normal;
     overflow-wrap: anywhere;
   }
+  /* A list read at a glance keeps a cut cell one line on hover and focus too,
+     since a row growing under the pointer moves the rest of the list; the host
+     names the cut cell whole in its own tooltip. ui-row-wrap still wraps. */
+  .ui-rows-clip > .ui-row > .ui-row-cell:not(.ui-row-wrap):is(:hover, :focus-visible) {
+    overflow: hidden;
+    white-space: nowrap;
+  }
   /* Inset, so the ring stays in the cell's column and off the gap beside it. */
   .ui-row-cell:focus-visible {
     outline: var(--ui-focus-width) solid var(--ui-focus-color);
@@ -1343,6 +1350,31 @@
   }
   .ui-row-from-medium,
   .ui-row-from-wide { display: none; }
+  /* A labelled list keeps its columns in a compact container: the name
+     across the first line and every other cell a tile on a fixed grid under
+     it, its column's name over its value, so a value sits in the same place
+     on every row and reads down the list. The cells a compact row leaves out
+     show here, since a tile has room for them and a phone has no hover to
+     reach them by. */
+  .ui-rows-labelled > .ui-row {
+    display: var(--ui-row-display, grid);
+    grid-template-columns: repeat(var(--ui-rows-label-cols, 3), minmax(0, 1fr));
+    align-items: start;
+    gap: var(--ui-rows-gap, var(--ui-space-1) var(--ui-space-3));
+  }
+  .ui-rows-labelled > .ui-row > .ui-row-name { grid-column: 1 / -1; }
+  .ui-rows-labelled > .ui-row > .ui-row-from-medium,
+  .ui-rows-labelled > .ui-row > .ui-row-from-wide { display: revert; }
+  /* The cell holds its value to one line; a label longer than its tile
+     wraps instead, since a clipped column name says nothing. */
+  .ui-rows-labelled .ui-row-cell[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: var(--ui-text-xs);
+    color: var(--ui-muted);
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
   @container (min-width: 30rem) {
     .ui-rows {
       grid-template-columns: var(--ui-rows-tracks-medium, var(--ui-rows-tracks, minmax(0, 1fr)));
@@ -1355,13 +1387,41 @@
     }
     .ui-row-name { order: 0; }
     .ui-row-from-medium { display: revert; }
+    /* From medium the head names the columns, so a labelled list is the
+       plain one. */
+    .ui-rows-labelled > .ui-row {
+      grid-template-columns: subgrid;
+      align-items: var(--ui-row-align, baseline);
+      gap: var(--ui-rows-gap, 0 var(--ui-space-3));
+    }
+    .ui-rows-labelled > .ui-row > .ui-row-name { grid-column: auto; }
+    .ui-rows-labelled > .ui-row > .ui-row-from-wide { display: none; }
+    .ui-rows-labelled .ui-row-cell[data-label]::before { content: none; }
   }
   @container (min-width: 40rem) {
     .ui-rows {
       grid-template-columns: var(--ui-rows-tracks, minmax(0, 1fr));
     }
-    .ui-row-from-wide { display: revert; }
+    .ui-row-from-wide,
+    .ui-rows-labelled > .ui-row > .ui-row-from-wide { display: revert; }
   }
+  /* A stacked list holds the compact labelled form at any width, for a script
+     that measures its row and finds it does not fit; the container's width
+     cannot know a name's length. */
+  .ui-rows-labelled.ui-rows-stacked { grid-template-columns: minmax(0, 1fr); }
+  .ui-rows-labelled.ui-rows-stacked > .ui-rows-head { display: none; }
+  .ui-rows-labelled.ui-rows-stacked > .ui-row {
+    grid-template-columns: repeat(var(--ui-rows-label-cols, 3), minmax(0, 1fr));
+    align-items: start;
+    gap: var(--ui-rows-gap, var(--ui-space-1) var(--ui-space-3));
+  }
+  .ui-rows-labelled.ui-rows-stacked > .ui-row > .ui-row-name {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+  .ui-rows-labelled.ui-rows-stacked > .ui-row > .ui-row-from-medium,
+  .ui-rows-labelled.ui-rows-stacked > .ui-row > .ui-row-from-wide { display: revert; }
+  .ui-rows-labelled.ui-rows-stacked .ui-row-cell[data-label]::before { content: attr(data-label); }
 
   /* block: banner */
   /* A banner sits in the flow rather than over it, so it takes the surface
