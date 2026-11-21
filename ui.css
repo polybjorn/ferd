@@ -1,4 +1,4 @@
-/* ui.css 1.25.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.26.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -64,7 +64,9 @@
                   follows --ui-accent until a host maps it
         touch     --ui-touch-target, the smallest height a control takes
                   under a coarse pointer. 3rem meets Android's 48dp and
-                  Apple's 44pt
+                  Apple's 44pt. --ui-pointer-target is the least height
+                  of a list row and a .ui-row at any pointer; 24px is the
+                  WCAG 2.2 target size minimum, in CSS px as it is stated
         hooks     --ui-<part>-<hook>, such as --ui-button-fill, are left
                   unset, and each block reads its own with a fallback that
                   is the value it had before the hook, so a host that sets
@@ -386,6 +388,7 @@
     --ui-bottom-bar-float-space: calc(var(--ui-bottom-bar-height)
       + var(--ui-space-3) * 2 + env(safe-area-inset-bottom, 0px));
     --ui-touch-target: 3rem;
+    --ui-pointer-target: 24px;
     --ui-focus-width: 2px;
     --ui-focus-color: var(--ui-accent);
 
@@ -1060,7 +1063,7 @@
     inline-size: 100%;
     min-inline-size: 0;
     margin: 0;
-    min-block-size: var(--ui-list-item-size, auto);
+    min-block-size: var(--ui-list-item-size, var(--ui-pointer-target));
     padding: var(--ui-list-item-padding, var(--ui-space-2) var(--ui-space-3));
     font: inherit;
     font-size: var(--ui-list-item-text-size, var(--ui-text-sm));
@@ -1297,21 +1300,30 @@
     padding: var(--ui-row-padding, var(--ui-space-2) 0);
     font-size: var(--ui-row-text-size, var(--ui-text-sm));
     color: var(--ui-text);
-    background: var(--ui-row-fill, transparent);
     border-block-end: var(--ui-row-divider, 1px solid var(--ui-border));
   }
   .ui-row:last-child { border-block-end-width: 0; }
-  /* A stripe marks a row's status. It is an inset shadow, so it takes no room
-     and paints over the row's start padding, which leaves a striped row's
-     cells in the same columns as a plain row's. Forced colours drop the
-     shadow, so the row's text says the status too. */
+  /* A row is at least a pointer target tall, and a row the floor lifts
+     centres its line in the extra height. */
   .ui-row {
-    box-shadow: inset var(--ui-row-stripe-width, 3px) 0 0 var(--ui-row-stripe, transparent);
+    min-block-size: var(--ui-row-size, var(--ui-pointer-target));
+    align-content: center;
   }
-  /* A shadow has no logical offset, so a right-to-left row flips it. */
-  .ui-row:dir(rtl) {
-    box-shadow: inset calc(-1 * var(--ui-row-stripe-width, 3px)) 0 0 var(--ui-row-stripe, transparent);
+  /* A stripe marks a row's status. It is a background layer over the fill, so
+     it takes no room and paints over the row's start padding, which leaves a
+     striped row's cells in the same columns as a plain row's. Being a layer
+     rather than an inset shadow, it can stop short of the row's top and
+     bottom, so the stripes of rows with no gap between them stay apart.
+     Forced colours drop the layer, so the row's text says the status too. */
+  .ui-row {
+    background:
+      linear-gradient(var(--ui-row-stripe, transparent), var(--ui-row-stripe, transparent))
+        left center / var(--ui-row-stripe-width, 3px) calc(100% - 2 * var(--ui-row-stripe-inset, 0px)) no-repeat,
+      var(--ui-row-fill, transparent);
   }
+  /* A background position has no logical keyword, so a right-to-left row
+     moves the stripe to its other edge. */
+  .ui-row:dir(rtl) { background-position: right center, 0 0; }
   .ui-rows-head {
     display: none;
     font-size: var(--ui-text-xs);
