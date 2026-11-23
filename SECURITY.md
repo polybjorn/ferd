@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-Please use GitHub's [private vulnerability reporting](https://github.com/polybjorn/ferd/security/advisories/new) rather than opening a public issue. This keeps the disclosure private until a fix is available. Expect an initial response within a week. Only the latest release receives fixes.
+Please use GitHub's [private vulnerability reporting](https://github.com/polybjorn/ferd/security/advisories/new) rather than opening a public issue. This keeps the disclosure private until a fix is available. You can also email security@polybjorn.com, encrypted with the key at https://polybjorn.com/pubkey.asc if the report holds anything sensitive. Expect an initial response within a week. Only the latest release receives fixes.
 
 ## Threat model
 
