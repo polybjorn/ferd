@@ -61,3 +61,18 @@ test('a failed Lighthouse run is a failure and the scores line is not a note', (
   assert.deepEqual(r.failures, [`${HOME}: desktop run failed: tab lost`]);
   assert.deepEqual(r.notes, []);
 });
+
+test('failed map tile requests are one note per page, any other failed request fails', () => {
+  const tile = 'https://a.tile.opentopomap.org/11/1077/723.png net::ERR_BLOCKED_BY_ORB';
+  const r = grade({ pages: { [MAP]: page(full, [
+    { kind: 'request', detail: tile },
+    { kind: 'request', detail: 'https://tile.openstreetmap.org/4/4/4.png 503' },
+    { kind: 'request', detail: 'http://127.0.0.1:1/app/app.js 404' },
+    { kind: 'request', detail: 'https://tile.opentopomap.org.example.net/1.png net::ERR_FAILED' },
+  ]) } }, [MAP]);
+  assert.deepEqual(r.notes, [`${MAP}: 2 map tile requests failed, first ${tile}`]);
+  assert.deepEqual(r.failures, [
+    `${MAP}: request: http://127.0.0.1:1/app/app.js 404`,
+    `${MAP}: request: https://tile.opentopomap.org.example.net/1.png net::ERR_FAILED`,
+  ]);
+});

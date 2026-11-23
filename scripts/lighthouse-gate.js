@@ -4,6 +4,10 @@
 // page in the report. An exception belongs in site-audit.json, which
 // site-audit reads before it reports. Its "check by eye" lines are not findings
 // to site-audit either, so they are printed and do not fail the job.
+// A failed request to a map tile host is a note too, one per page: the audit
+// loads the live tiles, so an outage or a throttle there would otherwise fail
+// the job on a page ferd did not change. The e2e suite stubs the tiles
+// (tests/e2e/helpers.js), so that is where the map is tested.
 // The scores are read from the report rather than from its findings, so a
 // renamed finding kind cannot turn this into a check that always passes, and a
 // page or a form with no scores at all fails.
@@ -15,6 +19,16 @@ const FLOORS = { accessibility: 100, 'best-practices': 100, seo: 100 };
 const FORMS = ['mobile', 'desktop'];
 const SCORES = 'lighthouse scores';
 const NOTE = 'check by eye';
+const TILE_HOST = /(^|\.)tile\.(openstreetmap|opentopomap)\.org$/;
+
+/** @param {string} detail a request finding, "<url> <why>" */
+function tileRequest(detail) {
+  try {
+    return TILE_HOST.test(new URL(detail.split(' ')[0]).hostname);
+  } catch {
+    return false;
+  }
+}
 
 /**
  * @param {any} report site-audit's --json output
@@ -49,14 +63,17 @@ function grade(report, pages) {
     }
   }
   for (const [url, page] of Object.entries(byUrl)) {
+    const tiles = /** @type {string[]} */ ([]);
     for (const f of (/** @type {any} */ (page)).findings || []) {
       if (f.kind === SCORES) continue;
       if (f.kind === NOTE) notes.push(`${url}: ${f.detail}`);
+      else if (f.kind === 'request' && tileRequest(f.detail)) tiles.push(f.detail);
       // A run that failed outright is already a missing score above, but its
       // message says why.
       else if (f.kind === 'lighthouse') failures.push(`${url}: ${f.detail}`);
       else failures.push(`${url}: ${f.kind}: ${f.detail}`);
     }
+    if (tiles.length) notes.push(`${url}: ${tiles.length} map tile requests failed, first ${tiles[0]}`);
   }
   return { failures: [...new Set(failures)], notes };
 }
