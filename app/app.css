@@ -830,8 +830,8 @@ body:is(.signin-only, .app-booting) .bottom-bar { --ui-bottom-bar-display: none;
 .catalog-diff-field + .catalog-diff-field { padding-top: var(--ui-space-2); border-top: 1px dashed var(--border); }
 .catalog-diff-check { margin: var(--ui-space-1) 0 0; cursor: pointer; accent-color: var(--accent); width: 1rem; height: 1rem; }
 .catalog-diff-label { color: var(--muted); font-size: var(--ui-text-xs); padding-top: 0.1rem; }
-.catalog-diff-old { color: var(--muted); text-decoration: line-through; word-break: break-word; }
-.catalog-diff-new { color: var(--text); word-break: break-word; margin-top: 0.1rem; }
+.catalog-diff-old { color: var(--muted); text-decoration: line-through; overflow-wrap: anywhere; }
+.catalog-diff-new { color: var(--text); overflow-wrap: anywhere; margin-top: 0.1rem; }
 .catalog-diff-image {
   display: block; width: 100%; max-width: 220px; aspect-ratio: 16 / 10;
   object-fit: cover; border-radius: var(--radius); background: var(--surface2);

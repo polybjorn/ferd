@@ -121,6 +121,7 @@ body[data-view="route"] .detail-layout { padding-bottom: var(--ui-bottom-bar-spa
 }
 .route-meta-line .sep {
   color: var(--border);
+  -webkit-user-select: none;
   user-select: none;
 }
 .route-meta-notes {
@@ -128,7 +129,7 @@ body[data-view="route"] .detail-layout { padding-bottom: var(--ui-bottom-bar-spa
   color: var(--text);
   line-height: 1.5;
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: anywhere;
   padding-top: var(--ui-space-2);
   border-top: 1px solid var(--border);
 }
@@ -160,7 +161,7 @@ body[data-view="route"] .detail-layout { padding-bottom: var(--ui-bottom-bar-spa
 .detail-elev-title {
   font-size: var(--ui-text-xs); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
   color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-bottom: none;
-  padding: var(--ui-space-2) var(--ui-space-2); cursor: pointer; user-select: none;
+  padding: var(--ui-space-2) var(--ui-space-2); cursor: pointer; -webkit-user-select: none; user-select: none;
   display: flex; align-items: center; gap: var(--ui-space-2);
 }
 .detail-elev-title-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

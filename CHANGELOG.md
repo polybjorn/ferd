@@ -18,6 +18,7 @@ All notable changes to Ferd are recorded here. The format follows [Keep a Change
 
 ### Fixed
 - The catalog images for Diriyah, Hegra and Timbuktu were deleted from Wikimedia Commons and showed nothing; they are replaced.
+- In Safari, tapping a star rating, a feature pill or the elevation chart's title no longer selects its text.
 
 ## [2.0.0] - 2026-11-14
 
