@@ -1,4 +1,4 @@
-/* ui.css 1.26.0: shared building blocks for menus, modals and forms.
+/* ui.css 1.27.0: shared building blocks for menus, modals and forms.
    Copyright (c) 2026 Bjørn A. Andersen, MIT. From bjorn/ui-foundation; a
    vendored copy is replaced from a tag there, never edited in place.
 
@@ -1641,6 +1641,16 @@
     padding: var(--ui-space-3) var(--ui-space-4);
     border-block-start: 1px solid var(--ui-dialog-border);
   }
+
+  /* block: dialog-plain, needs: dialog */
+  /* The lines mark where a scrolling body slides under the head and the
+     actions, so a dialog whose body never scrolls, a short form, has nothing
+     for them to mark. It sits before the sheet so a sheet's corner gap still
+     wins on source order. */
+  .ui-dialog-plain :is(.ui-dialog-head, .ui-dialog-actions) { border: 0; }
+  .ui-dialog-plain .ui-dialog-head { padding-block: var(--ui-space-3) 0; }
+  .ui-dialog-plain .ui-dialog-body { padding-block: var(--ui-space-3); }
+  .ui-dialog-plain .ui-dialog-actions { padding-block: 0 var(--ui-space-4); }
 
   /* block: dialog-sheet, needs: dialog */
   /* An auto top margin is what holds the sheet to the bottom edge, so it is
